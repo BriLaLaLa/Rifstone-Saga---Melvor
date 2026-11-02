@@ -1,5 +1,11 @@
-# Godot 4
+# Godot 4 cache and generated files
 .godot/
+/android/
 *.tmp
+
+# Build and export output
 export/
 /build/
+
+# Export presets are versioned (M6-08)
+!export_presets.cfg
