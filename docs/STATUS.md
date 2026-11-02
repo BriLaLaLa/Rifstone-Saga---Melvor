@@ -24,7 +24,7 @@ Se la sessione si interrompe, si riparte da qui.
 | M1-09 | M1 | Maestria per oggetto e pool | CORE | TODO | | |
 | M1-10 | M1 | ActionRunner e raccolta | CORE | TODO | | |
 | M1-11 | M1 | Game: menu → slot → partita | CORE | TODO | | tipizzare Game.session (GameSession) e list_slots (Array[SlotInfo]); chiamare GameClock.configure da balance.json |
-| M1-12 | M1 | Contenuto: le 12 skill e Selvicoltura | DATA | IN_PROGRESS | task/M1-12 | |
+| M1-12 | M1 | Contenuto: le 12 skill e Selvicoltura | DATA | REVIEW | task/M1-12 | Ownership estesa a areas/monsters/shop.json vuoti (DECISIONS_LOG) |
 | M1-13 | M1 | Menu principale e scelta dello slot | UI | TODO | | |
 | M1-14 | M1 | Schermata principale: sidebar, barra in alto, PageHost | UI | TODO | | |
 | M1-15 | M1 | Pagina skill (raccolta) e componenti base | UI | TODO | | |
