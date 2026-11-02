@@ -22,7 +22,7 @@ Se la sessione si interrompe, si riparte da qui.
 | M1-07 | M1 | Wallet e Bank | CORE | DONE | task/M1-07 | merge 7d91052; la Bank emette bank_changed(item_id, new_count, delta) con delta con segno; ownership estesa: TestFactory.give, SessionSnapshot.take (bank, oro); campo tipizzato + _join in game_session.gd; sposta _Participant in core/session/session_participants.gd |
 | M1-08 | M1 | Skill ed esperienza | CORE | DONE | task/M1-08 | merge 718a32d; ownership estesa: GameSession.total_level(), TestFactory.set_level, SessionSnapshot.take (xp, livelli) |
 | M1-09 | M1 | Maestria per oggetto e pool | CORE | DONE | task/M1-09 | merge a65ac29 |
-| M1-10 | M1 | ActionRunner e raccolta | CORE | IN_PROGRESS | task/M1-10 | |
+| M1-10 | M1 | ActionRunner e raccolta | CORE | REVIEW | task/M1-10 | in review; stop del combattimento in start rimandato al task M4 che registra CombatEngine |
 | M1-11 | M1 | Game: menu → slot → partita | CORE | TODO | | tipizzare Game.session (GameSession) e list_slots (Array[SlotInfo]); chiamare GameClock.configure da balance.json |
 | M1-12 | M1 | Contenuto: le 12 skill e Selvicoltura | DATA | DONE | task/M1-12 | merge 9201158; Ownership estesa a areas/monsters/shop.json vuoti (DECISIONS_LOG) |
 | M1-13 | M1 | Menu principale e scelta dello slot | UI | TODO | | |
