@@ -13,12 +13,12 @@ Se la sessione si interrompe, si riparte da qui.
 | M0-06 | M0 | Menu segnaposto e scena principale | UI | DONE | task/M0-06 | merge 407e0ca; 2eac300, d9b2bfd; 7 test propri, 45/45 nel worktree |
 | M0-07 | M0 | Script di test e di controllo | QA | DONE | task/M0-07 | merge 06a4c02; 90754d7..50dd655; run_checks verde (40 test); retry import provato con Godot finto |
 | M0-08 | M0 | Integrazione di M0 | REV | DONE | main | docs 26a96ee; tag m0-done; run_checks main 82/82 |
-| M1-01 | M1 | Tabella dell'esperienza | CORE | TODO | | |
-| M1-02 | M1 | Sistema dei modificatori | CORE | TODO | | |
+| M1-01 | M1 | Tabella dell'esperienza | CORE | IN_PROGRESS | task/M1-01 | |
+| M1-02 | M1 | Sistema dei modificatori | CORE | IN_PROGRESS | task/M1-02 | |
 | M1-03 | M1 | Classi Def e caricatore JSON | CORE | TODO | | |
 | M1-04 | M1 | Validatore, GameData, DataRegistry, fixture | CORE | TODO | | tipizzare DataRegistry.data come GameData (oggi RefCounted) |
 | M1-05 | M1 | Casualità, sessione, snapshot, factory dei test | CORE | TODO | | |
-| M1-06 | M1 | Salvataggio per slot con versioni | CORE | TODO | | tipizzare SlotInfo in save_service.gd (oggi RefCounted); tipizzare gut_pre_run.gd (cast as SaveStore al posto di set()) — richiede ownership di tests/helpers/gut_pre_run.gd |
+| M1-06 | M1 | Salvataggio per slot con versioni | CORE | IN_PROGRESS | task/M1-06 | tipizzare SlotInfo in save_service.gd (oggi RefCounted); tipizzare gut_pre_run.gd (cast as SaveStore al posto di set()) — richiede ownership di tests/helpers/gut_pre_run.gd |
 | M1-07 | M1 | Wallet e Bank | CORE | TODO | | |
 | M1-08 | M1 | Skill ed esperienza | CORE | TODO | | |
 | M1-09 | M1 | Maestria per oggetto e pool | CORE | TODO | | |
