@@ -17,10 +17,10 @@ Se la sessione si interrompe, si riparte da qui.
 | M1-02 | M1 | Sistema dei modificatori | CORE | DONE | task/M1-02 | merge 7db4a0a, docs a6b0b09; 856fc17, f1b1098, ec23a7b; 44 test, run_checks 123/123 |
 | M1-03 | M1 | Classi Def e caricatore JSON | CORE | DONE | task/M1-03 | merge c1e1845, docs d9a8418; d3e60a0, 58a768b, 61e5d6a, adcdfe2; 52 test, run_checks 190/190 |
 | M1-04 | M1 | Validatore, GameData, DataRegistry, fixture | CORE | DONE | task/M1-04 | merge 76941ce, docs 559d00a; 6017c56..b59a435; run_checks 368/368; validatore in 3 file (283/354/169) |
-| M1-05 | M1 | Casualità, sessione, snapshot, factory dei test | CORE | IN_PROGRESS | task/M1-05 | |
+| M1-05 | M1 | Casualità, sessione, snapshot, factory dei test | CORE | REVIEW | task/M1-05 | in coda per il Reviewer dopo M1-12 |
 | M1-06 | M1 | Salvataggio per slot con versioni | CORE | DONE | task/M1-06 | merge 7f84ef2, docs fb30c65; 8cf567f..9f66f2c; 44 test, run_checks 126/126; scrittura 200 KB ~10-12 ms |
-| M1-07 | M1 | Wallet e Bank | CORE | TODO | | la Bank emette bank_changed(item_id, new_count, delta) con delta con segno |
-| M1-08 | M1 | Skill ed esperienza | CORE | TODO | | |
+| M1-07 | M1 | Wallet e Bank | CORE | TODO | | la Bank emette bank_changed(item_id, new_count, delta) con delta con segno; ownership estesa: TestFactory.give, SessionSnapshot.take (bank, oro); campo tipizzato + _join in game_session.gd |
+| M1-08 | M1 | Skill ed esperienza | CORE | TODO | | ownership estesa: GameSession.total_level(), TestFactory.set_level, SessionSnapshot.take (xp, livelli) |
 | M1-09 | M1 | Maestria per oggetto e pool | CORE | TODO | | |
 | M1-10 | M1 | ActionRunner e raccolta | CORE | TODO | | |
 | M1-11 | M1 | Game: menu → slot → partita | CORE | TODO | | tipizzare Game.session (GameSession) e list_slots (Array[SlotInfo]); chiamare GameClock.configure da balance.json |
@@ -60,7 +60,7 @@ Se la sessione si interrompe, si riparte da qui.
 | M5-03 | M5 | Pagina dell'Altare | UI | TODO | | |
 | M5-04 | M5 | Test di M5 | QA | TODO | | |
 | M5-05 | M5 | Integrazione di M5 | REV | TODO | | |
-| M6-01 | M6 | Simulazione offline | CORE | TODO | | ownership aggiunta: event_bus.gd (solo firma offline_completed: OfflineSummary) e riga offline_completed di test_event_bus.gd; tipizzare Game.last_offline_summary |
+| M6-01 | M6 | Simulazione offline | CORE | TODO | | ownership aggiunta: event_bus.gd (solo firma offline_completed: OfflineSummary) e riga offline_completed di test_event_bus.gd; tipizzare Game.last_offline_summary; GameSession.advance aumenta play_time_ms: decidere se l offline lo conta (GDD) |
 | M6-02 | M6 | Schermate dell'offline | UI | TODO | | |
 | M6-03 | M6 | Impostazioni (porting) | PORT | TODO | | |
 | M6-04 | M6 | Sistema dei suggerimenti | CORE | TODO | | da review M1-04: GameData._clear() non azzera _balance/stats; validatore: hp_skill/defence_skill di categoria combat, struttura di auto_eat_tiers e rift.sockets |
