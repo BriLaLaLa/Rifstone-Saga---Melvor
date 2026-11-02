@@ -1,0 +1,283 @@
+class_name DataValidator
+extends RefCounted
+## Schema and cross-reference checks of the game data (docs/04_DATA_SCHEMA.md, docs/03_ARCHITECTURE.md §10).
+## `raw` has one key per section ("balance", "stats", "skills", "items", "actions", "mastery", "areas", "monsters",
+## "shop"); each value maps the path of every loaded file of that section to its top-level object (single-file
+## sections have one entry). The paths appear in the messages and give the file name that the schema compares with
+## (`skill` of actions and mastery files, `category` of items). Every problem is appended to `errors` as
+## `<file>: <kind> '<id>': <message>`, never pushed to the debugger. Toolkit, mastery, combat: DataValidatorRules;
+## items, actions, shop: DataValidatorItems.
+
+## Every key of 02_FORMULAS.md §9 of the MVP, as dotted paths. Values that are objects in the table are listed
+## by their fields; arrays are leaves. M7 adds `fractures.*`, M8 `parallel.*`.
+const REQUIRED_BALANCE_KEYS: PackedStringArray = [
+	"tick_ms", "max_catchup_ms", "autosave_interval_ms", "slots.count", "start.gold", "start.items",
+	"xp_curve.base", "xp_curve.growth", "xp_curve.linear", "xp_curve.max_level", "xp_curve.xp_cap",
+	"mastery_curve.base", "mastery_curve.growth", "mastery_curve.linear", "mastery_curve.max_level",
+	"mastery.base_factor", "mastery.per_level", "mastery.ratio_weight", "mastery.pool_share_pct",
+	"mastery.pool_cap_per_item", "action.min_interval_ms", "gathering.rift_shard_base_chance_pct",
+	"bank.base_slots", "bank.slot_cost_base", "bank.slot_cost_growth", "bank.slot_cost_cap", "bank.max_purchasable",
+	"combat.acc_level_offset", "combat.acc_bonus_offset", "combat.maxhit_level_offset", "combat.maxhit_bonus_offset",
+	"combat.min_hit_ratio", "combat.hit_chance_min", "combat.hit_chance_max",
+	"combat.triangle.advantage_damage_mult", "combat.triangle.disadvantage_damage_mult",
+	"combat.triangle.defender_dr_mult", "combat.triangle.beats.blade", "combat.triangle.beats.arcana",
+	"combat.triangle.beats.marksmanship", "combat.min_attack_interval_ms", "combat.unarmed.style",
+	"combat.unarmed.attack_interval_ms", "combat.hp_skill", "combat.defence_skill", "combat.hp_base",
+	"combat.hp_per_vitality", "combat.xp_per_damage_style", "combat.xp_per_damage_vitality", "combat.auto_eat_tiers",
+	"combat.respawn_ms", "combat.loot_bag_base_slots", "rift.sockets", "offline.cap_ms", "offline.min_ms",
+	"offline.chunk_ms",
+]
+## Balance keys holding an array, a combat style or a skill id; every other required key holds a number.
+const BALANCE_LIST_KEYS: PackedStringArray = ["start.items", "combat.auto_eat_tiers", "rift.sockets"]
+const BALANCE_STYLE_KEYS: PackedStringArray = [
+	"combat.triangle.beats.blade", "combat.triangle.beats.arcana", "combat.triangle.beats.marksmanship",
+	"combat.unarmed.style",
+]
+const BALANCE_SKILL_KEYS: PackedStringArray = ["combat.hp_skill", "combat.defence_skill"]
+## Sections made of one file (the others are folders, possibly empty).
+const SINGLE_FILE_SECTIONS: PackedStringArray = ["balance", "stats", "skills", "areas", "monsters", "shop"]
+const SKILL_CATEGORIES: PackedStringArray = ["gathering", "artisan", "combat"]
+const STAT_FIELDS: PackedStringArray = ["id", "name", "format", "min", "max", "description", "formula", "test"]
+const STAT_FORMULA_PATTERN: String = "^(F-[0-9]{2}|[0-9]+(\\.[0-9]+)*)$"
+const STAT_TEST_PATTERN: String = "^[^:]+\\.gd::[A-Za-z_][A-Za-z0-9_]*$"
+const STAT_NAME_MAX_LENGTH: int = 40
+const SKILL_FIELDS: PackedStringArray = ["id", "name", "description", "category", "order", "icon", "color",
+	"has_mastery", "mastery_bonuses"]
+const COLOR_PATTERN: String = "^#[0-9a-fA-F]{6}$"
+const SKILL_ICON_DIR: String = "res://assets/icons/skills/"
+
+
+static func validate(raw: Dictionary, errors: PackedStringArray) -> void:
+	var v := DataValidatorRules.new()
+	for section: String in SINGLE_FILE_SECTIONS:
+		if _files(raw, section).size() != 1:
+			v.at_file("section '%s'" % section)
+			v.fail("expected one file, got %d" % _files(raw, section).size())
+	_validate_balance(v, _files(raw, "balance"))
+	_validate_stats(v, _files(raw, "stats"))
+	_collect(v.skills, _files(raw, "skills"), "skills")
+	_collect(v.items, _files(raw, "items"), "items")
+	_collect(v.actions, _files(raw, "actions"), "actions")
+	_collect(v.monsters, _files(raw, "monsters"), "monsters")
+	_collect(v.shop_entries, _files(raw, "shop"), "entries")
+	_validate_skills(v, _files(raw, "skills"))
+	DataValidatorItems.validate_items(v, _files(raw, "items"))
+	_validate_balance_refs(v, _files(raw, "balance"))
+	DataValidatorItems.validate_actions(v, _files(raw, "actions"))
+	v.validate_mastery(_files(raw, "mastery"))
+	v.validate_areas(_files(raw, "areas"))
+	v.validate_monsters(_files(raw, "monsters"))
+	DataValidatorItems.validate_shop(v, _files(raw, "shop"))
+	errors.append_array(v.errors)
+
+
+## The value at a dotted path of nested objects, or null if a segment is missing.
+static func lookup(d: Dictionary, path: String) -> Variant:
+	var node: Variant = d
+	for part: String in path.split("."):
+		if not node is Dictionary or not (node as Dictionary).has(part):
+			return null
+		node = (node as Dictionary)[part]
+	return node
+
+
+## The entries of the list `list_key` of a file, after checking the file's top-level fields.
+static func entries(v: DataValidatorRules, content: Dictionary, list_key: String, extra: PackedStringArray = []
+) -> Array[Dictionary]:
+	var allowed: PackedStringArray = extra.duplicate()
+	allowed.append(list_key)
+	v.keys(content, allowed)
+	return v.object_list(content, list_key)
+
+
+## A required icon path under `dir`.
+static func icon(v: DataValidatorRules, e: Dictionary, dir: String) -> void:
+	if v.text(e, "icon") and not (e["icon"] as String).begins_with(dir):
+		v.fail("field 'icon' must be a path under %s, got '%s'" % [dir, e["icon"]])
+
+
+## Checks the file-level `skill` of an actions or mastery file: an existing skill, equal to the file name, whose
+## category is in `categories` (any if empty). Returns the skill id ("" if not valid).
+static func file_skill(v: DataValidatorRules, content: Dictionary, path: String, categories: PackedStringArray
+) -> String:
+	if content.get("skill") is String and content["skill"] != path.get_file().get_basename():
+		v.fail("skill '%s' must be equal to the file name" % content["skill"])
+	if not v.ref(content, "skill", v.skills, "skill"):
+		return ""
+	var skill: String = content["skill"] as String
+	var category: String = str(v.skills[StringName(skill)].get("category", ""))
+	if not categories.is_empty() and not categories.has(category):
+		v.fail("skill '%s' has category '%s', expected one of %s" % [skill, category, categories])
+		return ""
+	return skill
+
+
+# The `{path: top-level object}` of a section; non-object values are left out (the loader reports them).
+static func _files(raw: Dictionary, section: String) -> Dictionary[String, Dictionary]:
+	var result: Dictionary[String, Dictionary] = {}
+	var files: Variant = raw.get(section)
+	for path: Variant in (files as Dictionary if files is Dictionary else {}):
+		if (files as Dictionary)[path] is Dictionary:
+			result[str(path)] = (files as Dictionary)[path] as Dictionary
+	return result
+
+
+# Every entry with a string id, before the rules run, so that references can point forward.
+static func _collect(into: Dictionary[StringName, Dictionary], files: Dictionary[String, Dictionary], key: String
+) -> void:
+	for path: String in files:
+		var list: Variant = files[path].get(key)
+		for e: Variant in (list as Array if list is Array else []):
+			if e is Dictionary and (e as Dictionary).get("id") is String:
+				into[StringName((e as Dictionary)["id"] as String)] = e as Dictionary
+
+
+# --- balance.json ------------------------------------------------------------------------------------------------
+
+static func _validate_balance(v: DataValidatorRules, files: Dictionary[String, Dictionary]) -> void:
+	for path: String in files:
+		var balance: Dictionary = files[path]
+		v.at_file(path)
+		for key: String in REQUIRED_BALANCE_KEYS:
+			var parent: Variant = balance if not key.contains(".") else lookup(balance, key.get_slice(".", 0)) \
+					if key.get_slice_count(".") == 2 else lookup(balance, key.substr(0, key.rfind(".")))
+			var leaf: String = key.substr(key.rfind(".") + 1)
+			if not parent is Dictionary or not (parent as Dictionary).has(leaf):
+				v.fail("missing key '%s'" % key)
+				continue
+			_balance_value(v, key, (parent as Dictionary)[leaf])
+		_unknown_balance_keys(v, balance, "")
+		v.max_skill_level = _curve_max_level(v, balance, "xp_curve")
+		v.max_mastery_level = _curve_max_level(v, balance, "mastery_curve")
+		v.min_action_interval_ms = _limit(balance, "action.min_interval_ms")
+		v.min_attack_interval_ms = _limit(balance, "combat.min_attack_interval_ms")
+
+
+static func _balance_value(v: DataValidatorRules, key: String, value: Variant) -> void:
+	if key in BALANCE_LIST_KEYS:
+		if not value is Array:
+			v.fail("key '%s' must be an array, got %s" % [key, JSON.stringify(value)])
+	elif key in BALANCE_STYLE_KEYS:
+		if not value is String or not DataValidatorRules.STYLES.has(value as String):
+			v.fail("key '%s' must be one of %s, got %s" % [key, DataValidatorRules.STYLES, JSON.stringify(value)])
+	elif key in BALANCE_SKILL_KEYS:
+		if not value is String:
+			v.fail("key '%s' must be a skill id, got %s" % [key, JSON.stringify(value)])
+	elif not DataValidatorRules.is_number(value):
+		v.fail("key '%s' must be a number, got %s" % [key, JSON.stringify(value)])
+
+
+static func _unknown_balance_keys(v: DataValidatorRules, node: Dictionary, prefix: String) -> void:
+	for key: Variant in node:
+		var path: String = str(key) if prefix.is_empty() else "%s.%s" % [prefix, key]
+		if str(key) == DataValidatorRules.DOC_KEY or path in REQUIRED_BALANCE_KEYS:
+			continue
+		var is_prefix: bool = false
+		for required: String in REQUIRED_BALANCE_KEYS:
+			is_prefix = is_prefix or required.begins_with(path + ".")
+		if not is_prefix:
+			v.fail("unknown key '%s'" % path)
+		elif node[key] is Dictionary:
+			_unknown_balance_keys(v, node[key] as Dictionary, path)
+
+
+# max_level of an XpTable curve (NO_LIMIT if malformed); base and growth must be > 0 (XpTable asserts it).
+static func _curve_max_level(v: DataValidatorRules, balance: Dictionary, curve: String) -> float:
+	for field: String in ["base", "growth"]:
+		var value: Variant = lookup(balance, "%s.%s" % [curve, field])
+		if DataValidatorRules.is_number(value) and float(value) <= 0.0:
+			v.fail("key '%s.%s' must be > 0" % [curve, field])
+	var max_level: Variant = lookup(balance, curve + ".max_level")
+	if not DataValidatorRules.is_number(max_level):
+		return DataValidatorRules.NO_LIMIT
+	if not DataValidatorRules.is_int(max_level) or float(max_level) < 1.0:
+		v.fail("key '%s.max_level' must be an integer >= 1" % curve)
+		return DataValidatorRules.NO_LIMIT
+	return float(max_level)
+
+
+static func _limit(balance: Dictionary, key: String) -> float:
+	var value: Variant = lookup(balance, key)
+	return float(value) if DataValidatorRules.is_number(value) else 0.0
+
+
+# References of balance.json, checked once skills and items are known: start.items and the combat skills.
+static func _validate_balance_refs(v: DataValidatorRules, files: Dictionary[String, Dictionary]) -> void:
+	for path: String in files:
+		v.at_file(path)
+		var start: Variant = lookup(files[path], "start")
+		if start is Dictionary and (start as Dictionary).get("items") is Array:
+			v.item_qty_list(start as Dictionary, "items", 0, "start")
+		var combat: Variant = lookup(files[path], "combat")
+		for key: String in BALANCE_SKILL_KEYS:
+			if combat is Dictionary and (combat as Dictionary).get(key.get_slice(".", 1)) is String:
+				v.ref(combat as Dictionary, key.get_slice(".", 1), v.skills, "skill", "combat")
+
+
+# --- stats.json (the entry checks of StatRegistry.from_array are reused, with the file in front) ----------------
+
+static func _validate_stats(v: DataValidatorRules, files: Dictionary[String, Dictionary]) -> void:
+	var formula := RegEx.create_from_string(STAT_FORMULA_PATTERN)
+	var test := RegEx.create_from_string(STAT_TEST_PATTERN)
+	var id := RegEx.create_from_string(DataValidatorRules.ID_PATTERN)
+	for path: String in files:
+		v.at_file(path)
+		var list: Array[Dictionary] = entries(v, files[path], "stats")
+		for index: int in list.size():
+			var e: Dictionary = list[index]
+			v.at_entry("stat", index, e)
+			v.keys(e, STAT_FIELDS)
+			if e.get("id") is String and id.search(e["id"] as String) == null:
+				v.fail("id '%s' does not match %s" % [e["id"], DataValidatorRules.ID_PATTERN])
+			if e.get("name") is String and (e["name"] as String).length() > STAT_NAME_MAX_LENGTH:
+				v.fail("field 'name' must be 1-%d characters" % STAT_NAME_MAX_LENGTH)
+			if e.get("formula") is String and formula.search(e["formula"] as String) == null:
+				v.fail("field 'formula' must be F-xx or a section number, got '%s'" % e["formula"])
+			if e.get("test") is String and test.search(e["test"] as String) == null:
+				v.fail("field 'test' must be <path>.gd::<function>, got '%s'" % e["test"])
+		v.at_file(path)
+		var registry_errors: PackedStringArray = []
+		if files[path].get("stats") is Array:
+			v.stats = StatRegistry.from_array(files[path]["stats"] as Array, registry_errors)
+		for message: String in registry_errors:
+			v.fail(message)
+
+
+# --- skills.json ---------------------------------------------------------------------------------------------------
+
+static func _validate_skills(v: DataValidatorRules, files: Dictionary[String, Dictionary]) -> void:
+	var color := RegEx.create_from_string(COLOR_PATTERN)
+	var seen: Dictionary[StringName, bool] = {}
+	var orders: Dictionary[int, bool] = {}
+	for path: String in files:
+		v.at_file(path)
+		var list: Array[Dictionary] = entries(v, files[path], "skills")
+		for index: int in list.size():
+			var e: Dictionary = list[index]
+			v.entry("skill", index, e, seen, SKILL_FIELDS, orders)
+			v.one_of(e, "category", SKILL_CATEGORIES)
+			icon(v, e, SKILL_ICON_DIR)
+			if v.text(e, "color") and color.search(e["color"] as String) == null:
+				v.fail("field 'color' must be #rrggbb, got '%s'" % e["color"])
+			if v.flag(e, "has_mastery"):
+				_skill_mastery(v, e, e["has_mastery"] as bool)
+
+
+static func _skill_mastery(v: DataValidatorRules, e: Dictionary, has_mastery: bool) -> void:
+	if has_mastery and e.get("category") == "combat":
+		v.fail("combat skills must have 'has_mastery': false")
+	if e.has("mastery_bonuses") and not has_mastery:
+		v.fail("field 'mastery_bonuses' is allowed only with 'has_mastery': true")
+	if not e.has("mastery_bonuses") or not has_mastery:
+		return
+	var rules: Array[Dictionary] = v.object_list(e, "mastery_bonuses")
+	for index: int in rules.size():
+		var rule: Dictionary = rules[index]
+		var prefix: String = "mastery_bonuses[%d]" % index
+		v.keys(rule, ["every_levels", "at_level", "modifiers"], prefix)
+		if rule.has("every_levels") == rule.has("at_level"):
+			v.fail("field '%s' needs exactly one of 'every_levels' and 'at_level'" % prefix)
+		for key: String in ["every_levels", "at_level"]:
+			if rule.has(key):
+				v.integer(rule, key, 1, v.max_mastery_level, prefix)
+		v.modifiers(rule, "modifiers", prefix, false)

@@ -1,0 +1,8 @@
+{
+  "items": [
+    {"id": "test_infusion", "name": "Infusione di prova", "category": "infusion",
+     "icon": "res://assets/icons/items/test_infusion.png", "value": 0, "sort_order": 10,
+     "description": "Azioni un poco più rapide.",
+     "infusion": {"modifiers": [{"stat": "skill_interval_pct", "value": -3}], "unique": true}}
+  ]
+}

@@ -1,12 +1,25 @@
 extends Node
 ## Data registry (autoload `DataRegistry`): loads and holds the read-only GameData from res://data.
 ##
-## Stub of task M0-03 with the final signatures; the real loading arrives with M1-04.
+## `data` is replaced on every `reload()`, also when the data is not valid, so that the UI can show `data.errors`
+## and refuse to start a game (docs/03_ARCHITECTURE.md §10). Each error is logged as a warning, plus one error line.
 
-# Contract type is GameData (core/data/game_data.gd, task M1-04). That class does not exist yet,
-# so the variable is typed with its base class RefCounted until it does.
-var data: RefCounted = null
+const LOG_CATEGORY: String = "data"
+
+var data: GameData = null
 
 
+func _ready() -> void:
+	reload()
+
+
+## Loads res://data again; true if valid.
 func reload() -> bool:
+	data = GameData.load_from_dirs()
+	if data.is_valid():
+		Log.info(LOG_CATEGORY, "game data loaded")
+		return true
+	for message: String in data.errors:
+		Log.warn(LOG_CATEGORY, message)
+	Log.error(LOG_CATEGORY, "game data not valid (%d errors)" % data.errors.size())
 	return false
