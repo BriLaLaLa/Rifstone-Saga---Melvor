@@ -5,26 +5,23 @@ extends GutHookScript
 ## so no test can ever read or overwrite a real slot. If the autoload does not exist yet, the hook does nothing.
 
 const SAVE_SERVICE_NAME: StringName = &"SaveService"
-const BASE_DIR_PROPERTY: StringName = &"base_dir"
 const TEST_SAVE_DIR: String = "user://test_saves"
 
 
 func run() -> void:
-	var save_service: Node = _find_save_service()
+	var save_service: SaveStore = _find_save_service()
 	if save_service == null:
 		return
-	# SaveStore (core/autoload/save_service.gd) does not exist before M1, so the property is set by name:
-	# a typed `as SaveStore` cast would not parse until that class is written.
-	save_service.set(BASE_DIR_PROPERTY, TEST_SAVE_DIR)
+	save_service.base_dir = TEST_SAVE_DIR
 	_reset_dir(TEST_SAVE_DIR)
 
 
 # Hook scripts are RefCounted, not nodes: the autoload is looked up from the running SceneTree.
-func _find_save_service() -> Node:
+func _find_save_service() -> SaveStore:
 	var tree: SceneTree = Engine.get_main_loop() as SceneTree
 	if tree == null:
 		return null
-	return tree.root.get_node_or_null(NodePath(String(SAVE_SERVICE_NAME)))
+	return tree.root.get_node_or_null(NodePath(String(SAVE_SERVICE_NAME))) as SaveStore
 
 
 func _reset_dir(path: String) -> void:
