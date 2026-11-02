@@ -252,6 +252,9 @@ func fractures() -> Array[FractureDef]                # M7
 class_name JsonLoader extends RefCounted
 static func load_file(path: String, errors: PackedStringArray) -> Variant      # null se manca o non valido
 static func load_dir(dir: String, errors: PackedStringArray) -> Array[Dictionary]   # tutti i .json, ordine alfabetico
+static func list_json_files(dir: String, errors: PackedStringArray) -> PackedStringArray
+    # percorsi dei .json direttamente in dir, ordine alfabetico (GameData ne ricava il nome del file); load_dir usa questa
+    # nessun push_error: ogni problema (file o cartella mancante, JSON rotto, top level non oggetto) va in errors con il percorso
 
 class_name DataValidator extends RefCounted
 const REQUIRED_BALANCE_KEYS: PackedStringArray       # tutte le chiavi di 02_FORMULAS.md §9 dell'MVP
@@ -260,6 +263,19 @@ static func validate(raw: Dictionary, errors: PackedStringArray) -> void
 ```
 
 Def (`res://core/data/defs/`, tutte `RefCounted`, campi in sola lettura per convenzione, `static func from_dict(d) -> X`):
+
+- `from_dict` converte solo i tipi (numeri in `int` dove il campo è `int`, id in `StringName`, `#rrggbb` in `Color`,
+  `[a, b]` in `Vector2i` o in coppia min/max); nessuna validazione semantica (è di `DataValidator`). Campo mancante o di
+  tipo sbagliato (anche un float con parte decimale in un campo `int`): `Log.error` (categoria `data`) e ritorno `null`,
+  mai un default inventato. Si applicano solo i default dello schema.
+- Eccezioni alla firma: `ActionDef.from_dict(d: Dictionary, file_skill_id: StringName = &"") -> ActionDef` e
+  `MasteryNodeDef.from_dict(d: Dictionary, file_skill_id: StringName = &"") -> MasteryNodeDef`: lo `skill` sta a livello
+  di file e lo passa `GameData`; vuoto → errore e `null`.
+- Modificatori creati solo con `Modifier.from_dict`. Scope di default: `skill:<skill>` per i nodi della maestria, `global`
+  per equip, infusioni ed effetti dello shop. In `MasteryBonusRule` lo `scope` dei dati è ignorato e i modificatori sono
+  globali segnaposto: lo scope `action:<id>` (e il moltiplicatore di F-11) lo applica `MasterySystem`.
+- `ActionDef.icon` resta `""` se manca: il default dello schema (icona del primo output) lo calcola `GameData`.
+- `DefReader` (`def_reader.gd`) è un helper interno dei `from_dict` di `core/data/defs/`, non API per gli altri moduli.
 
 ```gdscript
 class_name ItemQty    ; var item_id: StringName; var qty: int

@@ -163,8 +163,8 @@ Regole per tutti i task:
 - **Ruolo** CORE · **Stima** M · **Parallelizzabile** sì (con M1-01) · **Dipendenze** M1-02
 - **Ownership** `res://core/data/defs/*.gd` (tutte le Def MVP di `05_INTERFACES.md` §4: `item_def`, `equip_info`,
   `weapon_info`, `item_qty`, `drop_entry`, `skill_def`, `mastery_bonus_rule`, `action_def`, `mastery_node_def`,
-  `area_def`, `monster_def`, `shop_entry_def`), `res://core/data/json_loader.gd`, `res://tests/core/data/test_defs.gd`,
-  `test_json_loader.gd`
+  `area_def`, `monster_def`, `shop_entry_def`; helper interno `def_reader`), `res://core/data/json_loader.gd`,
+  `res://tests/core/data/test_defs.gd`, `test_item_defs.gd`, `test_json_loader.gd`
 - **Leggere** `04_DATA_SCHEMA.md` §1, §4-9; `05_INTERFACES.md` §4
 - **Descrizione** `from_dict` di ogni Def con conversione dei tipi (`int()` sui numeri, `StringName` sugli id,
   `Color` da `#rrggbb`, `Vector2i` da `pos`), default dello `scope` (`skill:<skill>` per i nodi, `action:<id>` per i bonus
