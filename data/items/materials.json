@@ -1,0 +1,29 @@
+{
+  "_doc": "Materiali. Legni di Selvicoltura T1-T8 (02_FORMULAS.md §8.1, colonna Valore); sort_order 10-80.",
+  "items": [
+    {"id": "redbirch_log", "name": "Legno di betulla rossa", "category": "material",
+     "icon": "res://assets/icons/items/redbirch_log.svg", "value": 1, "sort_order": 10,
+     "description": "Legno chiaro venato di rosso, comune nelle Pianure di Roccarossa."},
+    {"id": "ashpine_log", "name": "Legno di pino cenerino", "category": "material",
+     "icon": "res://assets/icons/items/ashpine_log.svg", "value": 3, "sort_order": 20,
+     "description": "Grigio come la cenere: cresce dove la brace ha già bruciato tutto."},
+    {"id": "thornalder_log", "name": "Legno di ontano spinoso", "category": "material",
+     "icon": "res://assets/icons/items/thornalder_log.svg", "value": 6, "sort_order": 30,
+     "description": "Duro e nodoso, con spine che restano anche dopo la scortecciatura."},
+    {"id": "duskelm_log", "name": "Legno di olmo del vespro", "category": "material",
+     "icon": "res://assets/icons/items/duskelm_log.svg", "value": 10, "sort_order": 40,
+     "description": "Scuro come il cielo al tramonto, profuma di resina e pioggia."},
+    {"id": "shardcedar_log", "name": "Legno di cedro scheggiato", "category": "material",
+     "icon": "res://assets/icons/items/shardcedar_log.svg", "value": 18, "sort_order": 50,
+     "description": "Nella corteccia brillano schegge cadute dal Rift."},
+    {"id": "veilcypress_log", "name": "Legno di cipresso velato", "category": "material",
+     "icon": "res://assets/icons/items/veilcypress_log.svg", "value": 30, "sort_order": 60,
+     "description": "Cresce nella nebbia delle gole e ne trattiene un velo d'argento."},
+    {"id": "emberlarch_log", "name": "Legno di larice di brace", "category": "material",
+     "icon": "res://assets/icons/items/emberlarch_log.svg", "value": 50, "sort_order": 70,
+     "description": "Il cuore del tronco resta tiepido per giorni dopo il taglio."},
+    {"id": "riftspruce_log", "name": "Legno di abete del Rift", "category": "material",
+     "icon": "res://assets/icons/items/riftspruce_log.svg", "value": 85, "sort_order": 80,
+     "description": "Nato sull'orlo di una crepa del Rift: le venature pulsano di luce viola."}
+  ]
+}

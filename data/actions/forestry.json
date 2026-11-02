@@ -1,0 +1,22 @@
+{
+  "_doc": "Selvicoltura: un'azione per gradino T1-T8 di 02_FORMULAS.md §8.1 (livello, intervallo, XP, prodotto).",
+  "skill": "forestry",
+  "actions": [
+    {"id": "cut_redbirch", "name": "Abbattere betulla rossa", "level": 1, "interval_ms": 3000, "xp": 10,
+     "mastery": true, "inputs": [], "outputs": [{"item": "redbirch_log", "qty": 1}]},
+    {"id": "cut_ashpine", "name": "Abbattere pino cenerino", "level": 10, "interval_ms": 3200, "xp": 18,
+     "mastery": true, "inputs": [], "outputs": [{"item": "ashpine_log", "qty": 1}]},
+    {"id": "cut_thornalder", "name": "Abbattere ontano spinoso", "level": 20, "interval_ms": 3500, "xp": 28,
+     "mastery": true, "inputs": [], "outputs": [{"item": "thornalder_log", "qty": 1}]},
+    {"id": "cut_duskelm", "name": "Abbattere olmo del vespro", "level": 30, "interval_ms": 3800, "xp": 40,
+     "mastery": true, "inputs": [], "outputs": [{"item": "duskelm_log", "qty": 1}]},
+    {"id": "cut_shardcedar", "name": "Abbattere cedro scheggiato", "level": 45, "interval_ms": 4200, "xp": 58,
+     "mastery": true, "inputs": [], "outputs": [{"item": "shardcedar_log", "qty": 1}]},
+    {"id": "cut_veilcypress", "name": "Abbattere cipresso velato", "level": 60, "interval_ms": 4600, "xp": 80,
+     "mastery": true, "inputs": [], "outputs": [{"item": "veilcypress_log", "qty": 1}]},
+    {"id": "cut_emberlarch", "name": "Abbattere larice di brace", "level": 75, "interval_ms": 5000, "xp": 108,
+     "mastery": true, "inputs": [], "outputs": [{"item": "emberlarch_log", "qty": 1}]},
+    {"id": "cut_riftspruce", "name": "Abbattere abete del Rift", "level": 90, "interval_ms": 5500, "xp": 145,
+     "mastery": true, "inputs": [], "outputs": [{"item": "riftspruce_log", "qty": 1}]}
+  ]
+}
