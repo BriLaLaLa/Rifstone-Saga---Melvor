@@ -1,8 +1,8 @@
 class_name DataValidatorRules
 extends RefCounted
 ## Second half of DataValidator (internal, not API for other modules): the field toolkit (types, ranges, unknown
-## fields, ids, references, modifiers, `{item, qty}` lists) and the rules of mastery, areas, monsters and shop
-## (docs/04_DATA_SCHEMA.md §7-9). Each problem is one line in `errors`: `<file>: <kind> '<id>': <message>`
+## fields, ids, references, modifiers, `{item, qty}` lists) and the rules of mastery, areas and monsters
+## (docs/04_DATA_SCHEMA.md §7-8). Each problem is one line in `errors`: `<file>: <kind> '<id>': <message>`
 ## (`<kind> #<index>` while the entry has no usable id). Checkers return whether the field is valid.
 
 const DOC_KEY: String = "_doc"
@@ -14,15 +14,11 @@ const MASTERY_COST_MAX_PCT: float = 50.0
 const MASTERY_POS_MAX: int = 5
 const MAX_DROPS: int = 4
 const DAMAGE_REDUCTION_STAT: StringName = &"damage_reduction"  # bounds monster damage_reduction (stats.json)
-const SHOP_CATEGORIES: PackedStringArray = ["bank", "combat", "tools", "materials"]  # M8 adds "lanes"
-const SHOP_FORMULAS: PackedStringArray = ["bank_slot"]
 const NODE_FIELDS: PackedStringArray = ["id", "name", "description", "cost_pct", "requires", "pos", "modifiers"]
 const AREA_FIELDS: PackedStringArray = ["id", "name", "description", "order", "requirements", "monsters"]
 const MONSTER_FIELDS: PackedStringArray = ["id", "name", "description", "icon", "hp", "style", "attack_interval_ms",
 	"attack_level", "power_level", "defence_level", "accuracy_bonus", "power_bonus", "evasion_bonus",
 	"damage_reduction", "gold", "rift_shard_chance", "drops"]
-const SHOP_FIELDS: PackedStringArray = ["id", "name", "description", "category", "cost", "max_purchases",
-	"requires", "effect"]
 
 var errors: PackedStringArray = []
 var stats: StatRegistry = StatRegistry.new()
@@ -168,6 +164,8 @@ func id_list(d: Dictionary, key: String, known: Variant, kind: String, min_count
 func level_map(d: Dictionary, key: String, prefix: String = "") -> void:
 	var levels: Dictionary = object(d, key, prefix)
 	for skill: Variant in levels:
+		if str(skill) == DOC_KEY and levels[skill] is String:
+			continue
 		if not skills.has(StringName(str(skill))):
 			fail("field '%s.%s': unknown skill '%s'" % [_path(prefix, key), skill, skill])
 		integer(levels, str(skill), 1, max_skill_level, _path(prefix, key))
@@ -306,50 +304,6 @@ func validate_monsters(files: Dictionary[String, Dictionary]) -> void:
 				ref(drops[drop_index], "item", items, "item", prefix)
 				number(drops[drop_index], "chance_pct", 0.0, 100.0, prefix)
 				int_pair(drops[drop_index], "qty", 1, NO_LIMIT, true, prefix)
-
-
-func validate_shop(files: Dictionary[String, Dictionary]) -> void:
-	var seen: Dictionary[StringName, bool] = {}
-	for path: String in files:
-		at_file(path)
-		var list: Array[Dictionary] = DataValidator.entries(self, files[path], "entries")
-		for index: int in list.size():
-			var e: Dictionary = list[index]
-			entry("shop entry", index, e, seen, SHOP_FIELDS)
-			one_of(e, "category", SHOP_CATEGORIES)
-			integer(e, "max_purchases", 0)
-			var cost: Dictionary = _one_of_two(e, "cost", "gold", "formula")
-			if cost.has("gold"):
-				integer(cost, "gold", 1, NO_LIMIT, "cost")
-			elif cost.has("formula"):
-				one_of(cost, "formula", SHOP_FORMULAS, "cost")
-			var req: Dictionary = object(e, "requires")
-			keys(req, ["entries", "skills", "total_level"], "requires")
-			if req.has("entries"):
-				id_list(req, "entries", shop_entries, "shop entry", 0, "requires")
-			if req.has("skills"):
-				level_map(req, "skills", "requires")
-			if req.has("total_level"):
-				integer(req, "total_level", 0, NO_LIMIT, "requires")
-			var effect: Dictionary = _one_of_two(e, "effect", "modifiers", "item")
-			if effect.has("modifiers"):
-				modifiers(effect, "modifiers", "effect")
-				if is_int(e.get("max_purchases")) and int(e["max_purchases"]) == 0:
-					fail("field 'max_purchases' can be 0 (unlimited) only for item effects")
-			elif effect.has("item"):
-				var item: Dictionary = object(effect, "item", "effect")
-				if effect["item"] is Dictionary:
-					item_qty(item, "effect.item")
-
-
-# The object under `key` with exactly one of the fields `a` and `b`; {} (after an error) otherwise.
-func _one_of_two(e: Dictionary, key: String, a: String, b: String) -> Dictionary:
-	var d: Dictionary = object(e, key)
-	keys(d, [a, b], key)
-	if e.get(key) is Dictionary and d.has(a) == d.has(b):
-		fail("field '%s' needs exactly one of '%s' and '%s'" % [key, a, b])
-		return {}
-	return d
 
 
 # `global`, `skill:<existing skill>` or `action:<existing action>`.

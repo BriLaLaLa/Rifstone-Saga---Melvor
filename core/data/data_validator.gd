@@ -5,7 +5,8 @@ extends RefCounted
 ## "shop"); each value maps the path of every loaded file of that section to its top-level object (single-file
 ## sections have one entry). The paths appear in the messages and give the file name that the schema compares with
 ## (`skill` of actions and mastery files, `category` of items). Every problem is appended to `errors` as
-## `<file>: <kind> '<id>': <message>`, never pushed to the debugger. Mastery, combat, shop: DataValidatorRules.
+## `<file>: <kind> '<id>': <message>`, never pushed to the debugger. Toolkit, mastery, combat: DataValidatorRules;
+## items, actions, shop: DataValidatorItems.
 
 ## Every key of 02_FORMULAS.md §9 of the MVP, as dotted paths. Values that are objects in the table are listed
 ## by their fields; arrays are leaves. M7 adds `fractures.*`, M8 `parallel.*`.
@@ -36,7 +37,6 @@ const BALANCE_SKILL_KEYS: PackedStringArray = ["combat.hp_skill", "combat.defenc
 ## Sections made of one file (the others are folders, possibly empty).
 const SINGLE_FILE_SECTIONS: PackedStringArray = ["balance", "stats", "skills", "areas", "monsters", "shop"]
 const SKILL_CATEGORIES: PackedStringArray = ["gathering", "artisan", "combat"]
-const ACTION_SKILL_CATEGORIES: PackedStringArray = ["gathering", "artisan"]
 const STAT_FIELDS: PackedStringArray = ["id", "name", "format", "min", "max", "description", "formula", "test"]
 const STAT_FORMULA_PATTERN: String = "^(F-[0-9]{2}|[0-9]+(\\.[0-9]+)*)$"
 const STAT_TEST_PATTERN: String = "^[^:]+\\.gd::[A-Za-z_][A-Za-z0-9_]*$"
@@ -45,25 +45,6 @@ const SKILL_FIELDS: PackedStringArray = ["id", "name", "description", "category"
 	"has_mastery", "mastery_bonuses"]
 const COLOR_PATTERN: String = "^#[0-9a-fA-F]{6}$"
 const SKILL_ICON_DIR: String = "res://assets/icons/skills/"
-const ITEM_FIELDS: PackedStringArray = ["id", "name", "description", "category", "icon", "value", "sort_order",
-	"equip", "food", "infusion"]
-const ITEM_ICON_DIR: String = "res://assets/icons/items/"
-## Item file name (without `.json`) -> the category of its items.
-const ITEM_FILE_CATEGORIES: Dictionary[String, String] = {
-	"materials": "material", "equipment": "equipment", "tools": "tool", "food": "food", "infusions": "infusion",
-	"misc": "misc",
-}
-const EQUIP_CATEGORIES: PackedStringArray = ["equipment", "tool"]
-const EQUIP_SLOTS: PackedStringArray = [
-	"head", "body", "legs", "feet", "hands", "neck", "ring", "weapon", "offhand", "tool_forestry", "tool_quarrying",
-	"tool_angling",
-]
-const TOOL_SLOT_PREFIX: String = "tool_"
-const WEAPON_SLOT: String = "weapon"
-const RIFT_SHARD_ID: StringName = &"rift_shard"
-const RIFT_SHARD_CATEGORY: String = "misc"
-const ACTION_FIELDS: PackedStringArray = ["id", "name", "level", "interval_ms", "xp", "mastery", "inputs", 
-	"outputs", "icon"]
 
 
 static func validate(raw: Dictionary, errors: PackedStringArray) -> void:
@@ -80,13 +61,13 @@ static func validate(raw: Dictionary, errors: PackedStringArray) -> void:
 	_collect(v.monsters, _files(raw, "monsters"), "monsters")
 	_collect(v.shop_entries, _files(raw, "shop"), "entries")
 	_validate_skills(v, _files(raw, "skills"))
-	_validate_items(v, _files(raw, "items"))
+	DataValidatorItems.validate_items(v, _files(raw, "items"))
 	_validate_balance_refs(v, _files(raw, "balance"))
-	_validate_actions(v, _files(raw, "actions"))
+	DataValidatorItems.validate_actions(v, _files(raw, "actions"))
 	v.validate_mastery(_files(raw, "mastery"))
 	v.validate_areas(_files(raw, "areas"))
 	v.validate_monsters(_files(raw, "monsters"))
-	v.validate_shop(_files(raw, "shop"))
+	DataValidatorItems.validate_shop(v, _files(raw, "shop"))
 	errors.append_array(v.errors)
 
 
@@ -300,101 +281,3 @@ static func _skill_mastery(v: DataValidatorRules, e: Dictionary, has_mastery: bo
 			if rule.has(key):
 				v.integer(rule, key, 1, v.max_mastery_level, prefix)
 		v.modifiers(rule, "modifiers", prefix, false)
-
-
-# --- items ---------------------------------------------------------------------------------------------------------
-
-static func _validate_items(v: DataValidatorRules, files: Dictionary[String, Dictionary]) -> void:
-	var seen: Dictionary[StringName, bool] = {}
-	for path: String in files:
-		v.at_file(path)
-		var stem: String = path.get_file().get_basename()
-		if not ITEM_FILE_CATEGORIES.has(stem):
-			v.fail("unknown items file '%s' (expected one of %s)" % [stem, ITEM_FILE_CATEGORIES.keys()])
-		var list: Array[Dictionary] = entries(v, files[path], "items")
-		for index: int in list.size():
-			v.entry("item", index, list[index], seen, ITEM_FIELDS)
-			_item(v, list[index], ITEM_FILE_CATEGORIES.get(stem, ""))
-	v.at_file("section 'items'" if files.is_empty() else (files.keys()[0] as String).get_base_dir())
-	if not v.items.has(RIFT_SHARD_ID):
-		v.fail("required item '%s' (category %s) is missing" % [RIFT_SHARD_ID, RIFT_SHARD_CATEGORY])
-	elif v.items[RIFT_SHARD_ID].get("category") != RIFT_SHARD_CATEGORY:
-		v.fail("item '%s' must have category '%s'" % [RIFT_SHARD_ID, RIFT_SHARD_CATEGORY])
-
-
-static func _item(v: DataValidatorRules, e: Dictionary, file_category: String) -> void:
-	icon(v, e, ITEM_ICON_DIR)
-	v.integer(e, "value", 0)
-	v.integer(e, "sort_order", -DataValidatorRules.NO_LIMIT)
-	if not v.one_of(e, "category", ITEM_FILE_CATEGORIES.values()):
-		return
-	var category: String = e["category"] as String
-	if not file_category.is_empty() and category != file_category:
-		v.fail("category '%s' does not match its file (expected '%s')" % [category, file_category])
-	if _sub_object(v, e, "equip", category in EQUIP_CATEGORIES):
-		_equip(v, e["equip"] as Dictionary, category)
-	if _sub_object(v, e, "food", category == "food"):
-		v.keys(e["food"] as Dictionary, ["heal"], "food")
-		v.integer(e["food"] as Dictionary, "heal", 1, DataValidatorRules.NO_LIMIT, "food")
-	if _sub_object(v, e, "infusion", category == "infusion"):
-		var infusion: Dictionary = e["infusion"] as Dictionary
-		v.keys(infusion, ["modifiers", "unique"], "infusion")
-		v.modifiers(infusion, "modifiers", "infusion")
-		if infusion.has("unique"):
-			v.flag(infusion, "unique", "infusion")
-
-
-# A sub-object required by the category (`wanted`) and forbidden otherwise; true if it is there and an object.
-static func _sub_object(v: DataValidatorRules, e: Dictionary, key: String, wanted: bool) -> bool:
-	if not wanted and e.has(key):
-		v.fail("field '%s' is not allowed for category '%s'" % [key, e["category"]])
-	if wanted:
-		v.object(e, key)
-	return wanted and e.get(key) is Dictionary
-
-
-static func _equip(v: DataValidatorRules, equip: Dictionary, category: String) -> void:
-	v.keys(equip, ["slot", "requirements", "modifiers", "weapon"], "equip")
-	var slot: String = ""
-	if v.one_of(equip, "slot", EQUIP_SLOTS, "equip"):
-		slot = equip["slot"] as String
-		if slot.begins_with(TOOL_SLOT_PREFIX) and category != "tool":
-			v.fail("slot '%s' is only for category 'tool'" % slot)
-	v.level_map(equip, "requirements", "equip")
-	v.modifiers(equip, "modifiers", "equip")
-	if equip.has("weapon") and slot != WEAPON_SLOT:
-		v.fail("field 'equip.weapon' is allowed only with slot '%s'" % WEAPON_SLOT)
-	if not equip.has("weapon") or slot != WEAPON_SLOT:
-		return
-	var weapon: Dictionary = v.object(equip, "weapon", "equip")
-	if not equip["weapon"] is Dictionary:
-		return
-	v.keys(weapon, ["style", "attack_interval_ms", "two_handed"], "equip.weapon")
-	v.one_of(weapon, "style", DataValidatorRules.STYLES, "equip.weapon")
-	v.integer(weapon, "attack_interval_ms", maxf(v.min_attack_interval_ms, 1), DataValidatorRules.NO_LIMIT,
-			"equip.weapon")
-	v.flag(weapon, "two_handed", "equip.weapon")
-
-
-# --- actions/<skill>.json ------------------------------------------------------------------------------------------
-
-static func _validate_actions(v: DataValidatorRules, files: Dictionary[String, Dictionary]) -> void:
-	var seen: Dictionary[StringName, bool] = {}
-	for path: String in files:
-		v.at_file(path)
-		var skill: String = file_skill(v, files[path], path, ACTION_SKILL_CATEGORIES)
-		var category: String = str(v.skills[StringName(skill)].get("category")) if not skill.is_empty() else ""
-		var list: Array[Dictionary] = entries(v, files[path], "actions", ["skill"])
-		for index: int in list.size():
-			var e: Dictionary = list[index]
-			v.entry("action", index, e, seen, ACTION_FIELDS)
-			v.integer(e, "level", 1, v.max_skill_level)
-			v.integer(e, "interval_ms", maxf(v.min_action_interval_ms, 1))
-			v.integer(e, "xp", 1)
-			v.flag(e, "mastery")
-			if e.has("icon"):
-				v.text(e, "icon")
-			v.item_qty_list(e, "inputs", 1 if category == "artisan" else 0)
-			if category == "gathering" and e.get("inputs") is Array and not (e["inputs"] as Array).is_empty():
-				v.fail("gathering actions must have no inputs")
-			v.item_qty_list(e, "outputs", 1)
