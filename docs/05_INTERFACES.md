@@ -108,6 +108,23 @@ func list_slots() -> Array[SlotInfo]      # slot da 1 a slot_count
 ```
 `SaveStore` non conosce `GameSession`: legge e scrive dizionari.
 
+Comportamenti di `SaveStore` (M1-06):
+- `slot_count` arriva da `slots.count` di `balance.json`, passato da chi usa lo store con `configure()`; prima di
+  `configure` non esistono slot validi (`list_slots()` è vuoto).
+- Slot fuori da 1..`slot_count`: `write_slot`/`delete_slot` falliscono con `io_error`; `read_slot` restituisce `{}` con
+  `last_error = io_error`; `slot_exists` è falso.
+- Slot vuoto (né principale né `.bak`): `read_slot` → `{}` con `io_error`; `read_slot_info` → `state = empty`.
+  Se esiste solo il `.bak`, `slot_exists` è vero e la lettura usa il `.bak`.
+- File valido = JSON, radice dizionario, `format_version` numerico. Principale non valido o assente → `.bak`;
+  entrambi non validi → `corrupted`.
+- `format_version` maggiore di `CURRENT_VERSION` → `version_unsupported` (`state = unsupported`), **senza** ripiegare
+  sul `.bak` (si perderebbe il progresso più nuovo). Versione minore senza catena di migrazioni completa →
+  `version_unsupported`.
+- `delete_slot` su uno slot vuoto riesce; cancella principale, `.bak` e `.tmp`.
+- `write_slot` non valida il contenuto (`format_version` lo scrive `GameSession.to_save`). Solo `write_slot` e
+  `delete_slot` toccano il disco.
+- Errori di I/O con `Log.warn`; errori di programmazione con `assert`.
+
 ```gdscript
 class_name SlotInfo extends RefCounted        # core/save/slot_info.gd
 var slot: int
@@ -121,6 +138,10 @@ class_name SaveMigrator extends RefCounted    # core/save/save_migrator.gd
 const CURRENT_VERSION: int = 1
 static func can_load(d: Dictionary) -> bool          # format_version <= CURRENT_VERSION
 static func migrate(d: Dictionary) -> Dictionary     # applica migrations/migration_<a>_to_<b>.gd in catena
+static func migrate_chain(d: Dictionary, target_version: int, step_for: Callable) -> Dictionary
+    # usata da migrate() con CURRENT_VERSION e i file di migrations/, dai test con passi finti;
+    # step_for(from_version) -> Callable da from_version a from_version + 1 (non valida se manca);
+    # copia profonda con format_version = target_version, {} se un passo manca o fallisce o d è più nuovo
 
 class_name SaveCodec extends RefCounted       # core/save/save_codec.gd
 static func encode(d: Dictionary) -> String          # JSON con indentazione "\t", chiavi ordinate
@@ -167,7 +188,7 @@ func hide_tooltip() -> void
 | `mastery_level_up` | `skill_id: StringName, action_id: StringName, new_level: int` | MasterySystem | |
 | `mastery_pool_changed` | `skill_id: StringName, pool_xp: int` | MasterySystem | |
 | `mastery_node_purchased` | `skill_id: StringName, node_id: StringName` | MasterySystem | |
-| `bank_changed` | `item_id: StringName, new_count: int` | Bank | ogni variazione |
+| `bank_changed` | `item_id: StringName, new_count: int, delta: int` | Bank | ogni variazione; `delta` = variazione con segno di quella singola operazione (`new_count` dopo − prima). La Bank (M1-07) deve emetterlo così; la UI non ricava il delta da copie delle quantità |
 | `bank_capacity_changed` | `used: int, capacity: int` | Bank | variano caselle usate o capienza |
 | `bank_rejected` | `item_id: StringName, qty: int` | Bank | `add` fallita per bank piena |
 | `gold_changed` | `new_amount: int, delta: int` | Wallet | |
@@ -678,8 +699,21 @@ class_name ConfirmDialog extends ConfirmationDialog   # ui/components/confirm_di
 static func ask(parent: Node, title: String, text: String) -> bool   # coroutine
 
 class_name ToastManager extends Control            # ui/components/toast/toast_manager.gd (nella MainScreen)
-func push(text: String, kind: StringName) -> void
+var events: GameEvents = null                      # null = autoload EventBus; i test passano GameEvents.new()
+var time_source: Callable = Time.get_ticks_msec    # () -> int, millisecondi
+var name_resolver: Callable                        # (id: StringName) -> String; default: l'id stesso
+func push(text: String, kind: StringName) -> void  # kind: &"info" | &"success" | &"warning"
+
+class_name Toast extends PanelContainer            # ui/components/toast/toast.gd (+ toast.tscn), interno a ToastManager
+signal dismissed                                   # fine della dissolvenza, prima di queue_free
+func setup(text: String, kind: StringName) -> void # kind sconosciuto: Log.warn e mostrato come info
+func dismiss() -> void                             # idempotente
 ```
+`ToastManager`: le variabili iniettabili si impostano prima di aggiungere il nodo all'albero (connessione in
+`_enter_tree`, disconnessione in `_exit_tree`). Ascolta `notification_requested`, `bank_changed` (solo `delta > 0`,
+sommati per oggetto in una finestra di `UiStyle.TOAST_GROUP_MS` dal primo aumento), `level_up`, `action_stopped`
+(nessun toast per `stopped_by_user` e `replaced`); `session_ended` scarta i gruppi aperti. Al massimo
+`UiStyle.TOAST_MAX_VISIBLE` toast visibili, gli altri in coda. Le costanti di presentazione sono `UiStyle.TOAST_*`.
 Le pagine non tengono stato di gioco: solo riferimenti alla sessione e ai nodi. Ogni ridisegno legge dai getter.
 
 ## 8. Helper dei test (`res://tests/helpers/`)

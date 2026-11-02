@@ -19,6 +19,11 @@ const MISSING_ICON := "res://assets/icons/ui/missing.svg"
 # --- presentation constants ---
 const TOAST_MAX_VISIBLE: int = 4
 const TOAST_GROUP_MS: int = 1000
+const TOAST_LIFETIME_MS: int = 4000
+const TOAST_EDGE_MARGIN: int = 16
+const TOAST_STACK_SEPARATION: int = 6
+const TOAST_FADE_IN_SEC: float = 0.2
+const TOAST_FADE_OUT_SEC: float = 0.3
 const BANNER_MS: int = 2000
 const SIDEBAR_WIDTH: int = 260
 const TOP_BAR_HEIGHT: int = 56
