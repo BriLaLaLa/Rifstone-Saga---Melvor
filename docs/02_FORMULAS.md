@@ -413,26 +413,26 @@ Ogni stat: effetto, limiti del **totale**, formula, test che ne verifica l'effet
 
 | Stat | Min | Max | Effetto | Formula | Test dell'effetto |
 |---|---|---|---|---|---|
-| `skill_interval_pct` | −80 | 100 | riduce/aumenta l'intervallo delle azioni | F-03 | `test_action_math.gd::test_interval_uses_skill_interval_pct` |
-| `skill_xp_pct` | 0 | 1000 | aumenta l'XP | F-02 | `test_skills_system.gd::test_add_xp_applies_skill_xp_pct` |
-| `mastery_xp_pct` | 0 | 1000 | aumenta la maestria | F-10 | `test_mastery_math.gd::test_mastery_xp_pct` |
-| `double_item_chance` | 0 | 100 | probabilità di prodotto doppio | F-06 | `test_gathering_resolver.gd::test_double_item_chance_100` |
-| `preservation_chance` | 0 | 80 | probabilità di non consumare ingredienti | F-08 | `test_artisan_resolver.gd::test_preservation_cap` |
-| `rift_shard_chance` | 0 | 100 | aumenta la probabilità di frammento | F-07 | `test_gathering_resolver.gd::test_rift_shard_chance` |
-| `bank_slots` | 0 | 10000 | caselle extra della bank | F-16 | `test_bank.gd::test_capacity_uses_bank_slots` |
-| `accuracy_bonus` | −1000 | 100000 | precisione piatta | F-20 | `test_combat_math.gd::test_accuracy_rating` |
-| `accuracy_pct` | −90 | 1000 | precisione percentuale | F-20 | `test_combat_math.gd::test_accuracy_pct` |
-| `power_bonus` | −1000 | 100000 | danno massimo piatto | F-22 | `test_combat_math.gd::test_max_hit` |
-| `power_pct` | −90 | 1000 | danno massimo percentuale | F-22 | `test_combat_math.gd::test_power_pct` |
-| `evasion_bonus` | −1000 | 100000 | evasione piatta | F-21 | `test_combat_math.gd::test_evasion_rating` |
-| `evasion_pct` | −90 | 1000 | evasione percentuale | F-21 | `test_combat_math.gd::test_evasion_pct` |
-| `damage_reduction` | 0 | 80 | riduzione del danno subito | F-25 | `test_combat_math.gd::test_damage_reduction_cap` |
-| `attack_interval_pct` | −90 | 200 | velocità d'attacco | F-26 | `test_combat_math.gd::test_attack_interval_min` |
-| `max_hp_flat` | 0 | 100000 | PV massimi piatti | F-27 | `test_combat_math.gd::test_max_hp` |
-| `food_healing_pct` | 0 | 500 | cura del cibo | F-29 | `test_auto_eat.gd::test_food_healing_pct` |
-| `gold_drop_pct` | 0 | 1000 | oro dai mostri | F-31 | `test_combat_engine.gd::test_gold_drop_pct` |
-| `loot_bag_slots` | 0 | 100 | caselle della borsa | F-33 | `test_loot_bag.gd::test_capacity_uses_loot_bag_slots` |
-| `auto_loot` | 0 | 1 | bottino direttamente nella bank | 10.6 | `test_loot_bag.gd::test_auto_loot_to_bank` |
-| `auto_eat_tier` | 0 | 3 | livello delle razioni da campo | F-30 | `test_auto_eat.gd::test_tier_thresholds` |
-| `fracture_duration_pct` (M7) | 0 | 300 | durata delle Fratture | F-50 | `test_fracture_system.gd::test_duration_pct` |
-| `parallel_lanes` (M8) | 0 | 1 | corsie extra | F-51 | `test_action_runner.gd::test_secondary_lane_unlock` |
+| `skill_interval_pct` | −80 | 100 | riduce/aumenta l'intervallo delle azioni | F-03 | `tests/systems/actions/test_action_math.gd::test_interval_uses_skill_interval_pct` |
+| `skill_xp_pct` | 0 | 1000 | aumenta l'XP | F-02 | `tests/systems/skills/test_skills_system.gd::test_add_xp_applies_skill_xp_pct` |
+| `mastery_xp_pct` | 0 | 1000 | aumenta la maestria | F-10 | `tests/systems/mastery/test_mastery_math.gd::test_mastery_xp_pct` |
+| `double_item_chance` | 0 | 100 | probabilità di prodotto doppio | F-06 | `tests/systems/actions/test_gathering_resolver.gd::test_double_item_chance_100` |
+| `preservation_chance` | 0 | 80 | probabilità di non consumare ingredienti | F-08 | `tests/systems/actions/test_artisan_resolver.gd::test_preservation_cap` |
+| `rift_shard_chance` | 0 | 100 | aumenta la probabilità di frammento | F-07 | `tests/systems/actions/test_gathering_resolver.gd::test_rift_shard_chance` |
+| `bank_slots` | 0 | 10000 | caselle extra della bank | F-16 | `tests/systems/bank/test_bank.gd::test_capacity_uses_bank_slots` |
+| `accuracy_bonus` | −1000 | 100000 | precisione piatta | F-20 | `tests/systems/combat/test_combat_math.gd::test_accuracy_rating` |
+| `accuracy_pct` | −90 | 1000 | precisione percentuale | F-20 | `tests/systems/combat/test_combat_math.gd::test_accuracy_pct` |
+| `power_bonus` | −1000 | 100000 | danno massimo piatto | F-22 | `tests/systems/combat/test_combat_math.gd::test_max_hit` |
+| `power_pct` | −90 | 1000 | danno massimo percentuale | F-22 | `tests/systems/combat/test_combat_math.gd::test_power_pct` |
+| `evasion_bonus` | −1000 | 100000 | evasione piatta | F-21 | `tests/systems/combat/test_combat_math.gd::test_evasion_rating` |
+| `evasion_pct` | −90 | 1000 | evasione percentuale | F-21 | `tests/systems/combat/test_combat_math.gd::test_evasion_pct` |
+| `damage_reduction` | 0 | 80 | riduzione del danno subito | F-25 | `tests/systems/combat/test_combat_math.gd::test_damage_reduction_cap` |
+| `attack_interval_pct` | −90 | 200 | velocità d'attacco | F-26 | `tests/systems/combat/test_combat_math.gd::test_attack_interval_min` |
+| `max_hp_flat` | 0 | 100000 | PV massimi piatti | F-27 | `tests/systems/combat/test_combat_math.gd::test_max_hp` |
+| `food_healing_pct` | 0 | 500 | cura del cibo | F-29 | `tests/systems/combat/test_auto_eat.gd::test_food_healing_pct` |
+| `gold_drop_pct` | 0 | 1000 | oro dai mostri | F-31 | `tests/systems/combat/test_combat_engine.gd::test_gold_drop_pct` |
+| `loot_bag_slots` | 0 | 100 | caselle della borsa | F-33 | `tests/systems/combat/test_loot_bag.gd::test_capacity_uses_loot_bag_slots` |
+| `auto_loot` | 0 | 1 | bottino direttamente nella bank | 01_GDD §10.6 | `tests/systems/combat/test_loot_bag.gd::test_auto_loot_to_bank` |
+| `auto_eat_tier` | 0 | 3 | livello delle razioni da campo | F-30 | `tests/systems/combat/test_auto_eat.gd::test_tier_thresholds` |
+| `fracture_duration_pct` (M7) | 0 | 300 | durata delle Fratture | F-50 | `tests/systems/fractures/test_fracture_system.gd::test_duration_pct` |
+| `parallel_lanes` (M8) | 0 | 1 | corsie extra | F-51 | `tests/systems/actions/test_action_runner.gd::test_secondary_lane_unlock` |

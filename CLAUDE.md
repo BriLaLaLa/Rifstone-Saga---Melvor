@@ -51,27 +51,30 @@ Agenti: `.claude/agents/` (un file per ruolo di `08_TEAM.md`).
 ## Comandi
 Godot: `C:\Users\Davide\Desktop\GODOT\Godot_v4.5-stable_win64_console.exe` (variabile `$env:GODOT`).
 
-**Test GUT headless su questo PC** (dalla root del progetto o del worktree), due passi:
+Comandi standard (dalla root del progetto o del worktree):
+```bash
+# import headless con un nuovo tentativo + suite GUT (exit 0 = tutti verdi)
+powershell -File tools/run_tests.ps1
+```
+```bash
+# run_tests.ps1 + controlli di progetto (righe per file, riferimenti vietati)
+powershell -File tools/run_checks.ps1
+```
+```bash
+"C:/Users/Davide/Desktop/GODOT/Godot_v4.5-stable_win64_console.exe" --headless --path . -s tools/validate_data.gd
+```
+(`validate_data.gd` nasce in M1-04).
+
+Alternativa manuale ai test, due passi:
 ```bash
 # 1. import headless delle risorse: obbligatorio in ogni worktree nuovo (senza .godot/ le classi GUT non si risolvono)
 "C:/Users/Davide/Desktop/GODOT/Godot_v4.5-stable_win64_console.exe" --headless --path . --import
 # 2. suite GUT da riga di comando (legge .gutconfig.json; exit 0 = tutti verdi)
 "C:/Users/Davide/Desktop/GODOT/Godot_v4.5-stable_win64_console.exe" --headless --path . -s addons/gut/gut_cmdln.gd
 ```
-L'avviso `ObjectDB instances leaked at exit` dopo l'import è innocuo. `tools/run_tests.ps1` (M0-07) farà gli stessi due passi.
-
-Script di progetto:
-```bash
-powershell -File tools/run_tests.ps1
-```
-```bash
-powershell -File tools/run_checks.ps1
-```
-```bash
-"C:/Users/Davide/Desktop/GODOT/Godot_v4.5-stable_win64_console.exe" --headless --path . -s tools/validate_data.gd
-```
-(`run_tests.ps1` e `run_checks.ps1` nascono in M0-07, `validate_data.gd` in M1-04).
+Il **primo import di una checkout nuova può andare in crash sui font** (segfault): si risolve cancellando i `*.tmp` in
+`.godot/imported` e ripetendo l'import; `run_tests.ps1` lo fa da solo. L'avviso `ObjectDB instances leaked at exit` dopo
+l'import è innocuo.
 
 ## Stato
-M0 in corso: M0-01 (root, `project.godot`, git) e M0-02 (GUT 9.5.0, hook dei test, smoke test) su `main`.
-Avanzamento dei task in `docs/STATUS.md`.
+M0 (Setup) completata, tag `m0-done`. Prossima milestone: **M1**. Avanzamento dei task in `docs/STATUS.md`.

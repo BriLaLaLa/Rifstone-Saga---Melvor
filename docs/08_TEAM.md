@@ -84,7 +84,7 @@ Un task è finito quando **tutto** questo è vero:
 ```
 
 ## 7. Flusso dell'Orchestratore
-1. Prendere i task con dipendenze tutte su `main` e ownership disgiunte; massimo 4 in parallelo.
+1. Prendere i task con dipendenze tutte su `main` e ownership disgiunte; massimo 3 in parallelo.
 2. Per ogni task: creare il worktree, lanciare il sub-agente del ruolo con il testo del task (copiato da `07_TASKS.md`).
 3. Ricevuto il report: se "completato", passarlo al Reviewer; se "bloccato", leggere le richieste e decidere (nuovo task,
    richiesta al Reviewer per `05_INTERFACES.md`, domanda all'utente).

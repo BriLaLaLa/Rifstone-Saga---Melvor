@@ -131,10 +131,10 @@ Regole per tutti i task:
 
 ### M0-08 · Integrazione di M0
 - **Ruolo** REV · **Stima** S · **Parallelizzabile** no · **Dipendenze** M0-01…M0-07
-- **Ownership** merge su `main`, tag `m0`
+- **Ownership** merge su `main`, tag `m0-done`
 - **Leggere** `08_TEAM.md` §4-6
 - **Descrizione** Revisione e merge dei branch nell'ordine delle dipendenze; `run_checks.ps1` verde su `main`.
-- **Accettazione** tag `m0`; report di milestone con l'elenco dei task chiusi.
+- **Accettazione** tag `m0-done`; report di milestone con l'elenco dei task chiusi.
 - **Test** esecuzione completa della suite.
 
 ---
@@ -202,7 +202,8 @@ Regole per tutti i task:
 ### M1-06 · Salvataggio per slot con versioni
 - **Ruolo** CORE · **Stima** M · **Parallelizzabile** sì (con M1-05…M1-09) · **Dipendenze** M0-08
 - **Ownership** `res://core/autoload/save_service.gd`, `res://core/save/save_codec.gd`, `save_migrator.gd`, `slot_info.gd`,
-  `res://core/save/migrations/.gitkeep`, `res://tests/core/save/test_save_store.gd`, `test_save_migrator.gd`, `test_save_codec.gd`
+  `res://core/save/migrations/.gitkeep`, `res://tests/core/save/test_save_store.gd`, `test_save_migrator.gd`, `test_save_codec.gd`,
+  `res://tests/helpers/gut_pre_run.gd` (tipizzare l'accesso a `SaveService` con `as SaveStore` al posto di `set()`)
 - **Leggere** `01_GDD.md` §1; `03_ARCHITECTURE.md` §7; `05_INTERFACES.md` §2 (SaveService), §6
 - **Descrizione** Scrittura atomica (`.tmp` → `.bak` → rename), lettura con fallback sul `.bak`, `SlotInfo` dall'intestazione,
   migrazioni in catena (con una migrazione finta solo nei test), `version_unsupported`. Misurare il tempo di scrittura di un
@@ -362,11 +363,11 @@ Regole per tutti i task:
 
 ### M1-20 · Integrazione di M1
 - **Ruolo** REV · **Stima** M · **Parallelizzabile** no · **Dipendenze** M1-01…M1-19
-- **Ownership** merge, tag `m1`, `docs/` solo per correzioni concordate
+- **Ownership** merge, tag `m1-done`, `docs/` solo per correzioni concordate
 - **Leggere** `08_TEAM.md` §4-6; `06_ROADMAP.md` M1
 - **Descrizione** Revisione con la checklist di `09_CONVENTIONS.md` §9, merge, partita di prova manuale con le voci del
   "Giocabile" di M1.
-- **Accettazione** tag `m1`; report di milestone con l'esito della prova.
+- **Accettazione** tag `m1-done`; report di milestone con l'esito della prova.
 - **Test** suite completa e `run_checks.ps1`.
 
 ---
@@ -421,7 +422,7 @@ Regole per tutti i task:
 
 ### M2-06 · Integrazione di M2
 - **Ruolo** REV · **Stima** S · **Parallelizzabile** no · **Dipendenze** M2-01…M2-05
-- **Ownership** merge, tag `m2` · **Leggere** `08_TEAM.md` §4-6 · **Descrizione** come M1-20 · **Accettazione** tag `m2` · **Test** suite.
+- **Ownership** merge, tag `m2-done` · **Leggere** `08_TEAM.md` §4-6 · **Descrizione** come M1-20 · **Accettazione** tag `m2-done` · **Test** suite.
 
 ---
 
@@ -504,7 +505,7 @@ Regole per tutti i task:
   artigianato, vendita, equipaggiamento. **Leggere** `01_GDD.md` §5, §9 · **Accettazione / Test** i file verdi.
 
 ### M3-09 · Integrazione di M3
-- **Ruolo** REV · **Stima** S · **Dipendenze** M3-01…M3-08 · **Ownership** merge, tag `m3` · **Parallelizzabile** no ·
+- **Ruolo** REV · **Stima** S · **Dipendenze** M3-01…M3-08 · **Ownership** merge, tag `m3-done` · **Parallelizzabile** no ·
   **Leggere** `08_TEAM.md` §4-6 · **Descrizione / Accettazione / Test** come M1-20.
 
 ---
@@ -566,7 +567,7 @@ Regole per tutti i task:
 - **Accettazione / Test** i file verdi.
 
 ### M4-07 · Integrazione di M4
-- **Ruolo** REV · **Stima** S · **Dipendenze** M4-01…M4-06 · **Ownership** merge, tag `m4` · **Parallelizzabile** no ·
+- **Ruolo** REV · **Stima** S · **Dipendenze** M4-01…M4-06 · **Ownership** merge, tag `m4-done` · **Parallelizzabile** no ·
   **Leggere** `08_TEAM.md` §4-6 · **Descrizione / Accettazione / Test** come M1-20.
 
 ---
@@ -604,7 +605,7 @@ Regole per tutti i task:
 - **Accettazione / Test** verde.
 
 ### M5-05 · Integrazione di M5
-- **Ruolo** REV · **Stima** S · **Dipendenze** M5-01…M5-04 · **Ownership** merge, tag `m5` · **Parallelizzabile** no ·
+- **Ruolo** REV · **Stima** S · **Dipendenze** M5-01…M5-04 · **Ownership** merge, tag `m5-done` · **Parallelizzabile** no ·
   **Leggere** `08_TEAM.md` §4-6 · **Descrizione / Accettazione / Test** come M1-20.
 
 ---
@@ -614,7 +615,9 @@ Regole per tutti i task:
 ### M6-01 · Simulazione offline
 - **Ruolo** CORE · **Stima** M · **Parallelizzabile** sì (con M6-03, M6-04) · **Dipendenze** M5-05
 - **Ownership** `res://core/offline/offline_simulator.gd`, `offline_summary.gd`, `res://core/autoload/game.gd` (punto
-  `# Offline: M6-01` in `continue_game` e stato `offline`), `res://tests/core/offline/test_offline_simulator.gd`
+  `# Offline: M6-01` in `continue_game` e stato `offline`), `res://core/autoload/event_bus.gd` (solo la firma di
+  `offline_completed`, tipizzata con `OfflineSummary`), la riga `offline_completed` di
+  `res://tests/core/autoload/test_event_bus.gd`, `res://tests/core/offline/test_offline_simulator.gd`
 - **Leggere** `01_GDD.md` §12; `02_FORMULAS.md` F-40, F-41; `03_ARCHITECTURE.md` §8; `05_INTERFACES.md` §5.13
 - **Descrizione** Come da documenti; usa solo `session.advance`; riepilogo da snapshot e `stop_reasons_log`.
 - **Accettazione** esempi F-40/F-41; equivalenza dei blocchi; 12 h di raccolta e 12 h di combattimento simulate in < 10 s
@@ -675,7 +678,7 @@ Regole per tutti i task:
 
 ### M6-08 · Rilascio dell'MVP
 - **Ruolo** REV · **Stima** S · **Parallelizzabile** no · **Dipendenze** M6-01…M6-07
-- **Ownership** `res://export_presets.cfg`, merge, tag `m6-mvp`, `docs/` (stato finale)
+- **Ownership** `res://export_presets.cfg`, merge, tag `m6-mvp` e `m6-done`, `docs/` (stato finale)
 - **Leggere** `08_TEAM.md` §4-6; `06_ROADMAP.md` M6
 - **Descrizione** Preset "Windows Desktop" (pck incorporato, esclusi `tests/*`, `tools/*`, `addons/gut/*`, `docs/*`, `*.md`),
   esportazione di prova, checklist delle Lezioni (`03_ARCHITECTURE.md` §12) spuntata nel report.
@@ -711,7 +714,7 @@ Regole per tutti i task:
 chiusura, salvataggio, offline · **Accettazione / Test** verde.
 
 ### M7-05 · Integrazione di M7 — **Ruolo** REV · **Stima** S · **Dipendenze** M7-01…M7-04 · **Parallelizzabile** no ·
-**Ownership** merge, tag `m7`, aggiornamento di `05_INTERFACES.md` se servito · **Leggere** `08_TEAM.md` · **Test** suite.
+**Ownership** merge, tag `m7-done`, aggiornamento di `05_INTERFACES.md` se servito · **Leggere** `08_TEAM.md` · **Test** suite.
 
 ## M8 · Azioni in parallelo (dopo l'MVP)
 
@@ -739,4 +742,4 @@ chiusura, salvataggio, offline · **Accettazione / Test** verde.
 **Accettazione / Test** verde.
 
 ### M8-05 · Integrazione di M8 — **Ruolo** REV · **Stima** S · **Dipendenze** M8-01…M8-04 · **Parallelizzabile** no ·
-**Ownership** merge, tag `m8` · **Test** suite.
+**Ownership** merge, tag `m8-done` · **Test** suite.
