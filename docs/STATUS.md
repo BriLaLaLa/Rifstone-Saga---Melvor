@@ -17,10 +17,10 @@ Se la sessione si interrompe, si riparte da qui.
 | M1-02 | M1 | Sistema dei modificatori | CORE | DONE | task/M1-02 | merge 7db4a0a, docs a6b0b09; 856fc17, f1b1098, ec23a7b; 44 test, run_checks 123/123 |
 | M1-03 | M1 | Classi Def e caricatore JSON | CORE | DONE | task/M1-03 | merge c1e1845, docs d9a8418; d3e60a0, 58a768b, 61e5d6a, adcdfe2; 52 test, run_checks 190/190 |
 | M1-04 | M1 | Validatore, GameData, DataRegistry, fixture | CORE | DONE | task/M1-04 | merge 76941ce, docs 559d00a; 6017c56..b59a435; run_checks 368/368; validatore in 3 file (283/354/169) |
-| M1-05 | M1 | Casualità, sessione, snapshot, factory dei test | CORE | REVIEW | task/M1-05 | in review |
+| M1-05 | M1 | Casualità, sessione, snapshot, factory dei test | CORE | DONE | task/M1-05 | merge 6dab967; _join/_tick/_PHASE_* punti di estensione protetti (05 §5.3) |
 | M1-06 | M1 | Salvataggio per slot con versioni | CORE | DONE | task/M1-06 | merge 7f84ef2, docs fb30c65; 8cf567f..9f66f2c; 44 test, run_checks 126/126; scrittura 200 KB ~10-12 ms |
-| M1-07 | M1 | Wallet e Bank | CORE | TODO | | la Bank emette bank_changed(item_id, new_count, delta) con delta con segno; ownership estesa: TestFactory.give, SessionSnapshot.take (bank, oro); campo tipizzato + _join in game_session.gd |
-| M1-08 | M1 | Skill ed esperienza | CORE | TODO | | ownership estesa: GameSession.total_level(), TestFactory.set_level, SessionSnapshot.take (xp, livelli) |
+| M1-07 | M1 | Wallet e Bank | CORE | IN_PROGRESS | task/M1-07 | la Bank emette bank_changed(item_id, new_count, delta) con delta con segno; ownership estesa: TestFactory.give, SessionSnapshot.take (bank, oro); campo tipizzato + _join in game_session.gd; sposta _Participant in core/session/session_participants.gd |
+| M1-08 | M1 | Skill ed esperienza | CORE | IN_PROGRESS | task/M1-08 | ownership estesa: GameSession.total_level(), TestFactory.set_level, SessionSnapshot.take (xp, livelli) |
 | M1-09 | M1 | Maestria per oggetto e pool | CORE | TODO | | |
 | M1-10 | M1 | ActionRunner e raccolta | CORE | TODO | | |
 | M1-11 | M1 | Game: menu → slot → partita | CORE | TODO | | tipizzare Game.session (GameSession) e list_slots (Array[SlotInfo]); chiamare GameClock.configure da balance.json |
@@ -28,7 +28,7 @@ Se la sessione si interrompe, si riparte da qui.
 | M1-13 | M1 | Menu principale e scelta dello slot | UI | TODO | | |
 | M1-14 | M1 | Schermata principale: sidebar, barra in alto, PageHost | UI | TODO | | |
 | M1-15 | M1 | Pagina skill (raccolta) e componenti base | UI | TODO | | |
-| M1-16 | M1 | Tooltip e GameWindow portati | PORT | REVIEW | task/M1-16 | in coda dopo M1-05 |
+| M1-16 | M1 | Tooltip e GameWindow portati | PORT | REVIEW | task/M1-16 | in review |
 | M1-17 | M1 | Toast portati | PORT | DONE | task/M1-17 | merge ecbf36b, docs aae6438; 386ea12..a6d6f0a; 18 test, run_checks 200/200; bank_changed con delta |
 | M1-18 | M1 | Bank minima | UI | TODO | | |
 | M1-19 | M1 | Test di integrazione di M1 | QA | TODO | | ownership estesa: tools/run_checks.ps1 (validate_data.gd su fixture e dati veri) |
