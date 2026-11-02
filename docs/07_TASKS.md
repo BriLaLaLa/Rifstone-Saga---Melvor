@@ -229,13 +229,18 @@ Regole per tutti i task:
   segue `bank_slots`; ordine conservato nel salvataggio; ogni variazione emette `bank_changed(item_id, new_count, delta)`
   con il `delta` con segno di quella operazione.
 - **Test** `test_wallet.gd`, `test_bank.gd` (incluso `test_capacity_uses_bank_slots`, F-16).
+- **Nota (da M1-08)** In `tests/core/session/test_game_session.gd` le asserzioni di `to_save` sui moduli sono per chiave
+  (non confronti dell'intero `modules`): aggiungere quelle di `wallet`/`bank` allo stesso modo.
+  `test_snapshot_of_session_without_systems_is_empty` va rinominato (es. `test_snapshot_reads_registered_systems`) e
+  aggiornato quando anche `bank` e `gold` lo riempiono. `SkillsSystem` è già registrato in `_create_systems`.
 
 ### M1-08 · Skill ed esperienza
 - **Ruolo** CORE · **Stima** S · **Parallelizzabile** sì · **Dipendenze** M1-05
 - **Ownership** `res://systems/skills/skills_system.gd`, `res://tests/systems/skills/test_skills_system.gd`,
   `res://core/session/game_session.gd` (solo campo tipizzato, registrazione e `total_level()`),
   `res://core/session/session_snapshot.gd` (solo `xp` e `levels` in `take`), `res://tests/helpers/test_factory.gd`
-  (solo `set_level`)
+  (solo `set_level`), `res://tests/core/session/test_game_session.gd` (solo le asserzioni rese false dalla
+  registrazione di SkillsSystem; estensione concessa a posteriori dal Reviewer)
 - **Leggere** `01_GDD.md` §3; `02_FORMULAS.md` F-01, F-02; `05_INTERFACES.md` §5.6
 - **Descrizione** XP per skill, livelli derivati, un `level_up` per livello, tetto `xp_cap`.
 - **Accettazione** esempi di F-02; salto di 3 livelli = 3 segnali.

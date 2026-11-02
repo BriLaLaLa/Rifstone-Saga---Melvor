@@ -495,6 +495,13 @@ func add_xp(skill_id: StringName, base_amount: int, ctx: ModifierContext = null)
 func meets_requirements(requirements: Dictionary) -> bool    # {skill_id: livello}
 func total_level() -> int
 ```
+- Stato: solo l'XP cumulativa per skill (tutte le skill dei dati, in ordine); livello e progresso derivano da `XpTable`
+  (F-01); l'XP cresce oltre `max_level` fino a `xp_curve.xp_cap`. `add_xp` con `ctx = null` usa
+  `ModifierContext.for_skill(skill_id)`; emette `xp_gained` (se > 0) e poi un `level_up` per livello, dopo il cambio.
+- Skill sconosciuta: `Log.error` e nessun cambio; `get_xp`/`get_level` → 0, `get_progress` → 0.0, `add_xp` → 0,
+  `meets_requirements` → false (anche con un livello richiesto non numerico). XP base negativa: `Log.error`, `add_xp` → 0.
+- `from_save` tollerante: skill mancanti a 0; voci di skill sconosciute o malformate (non `{"xp": intero}`; i float interi
+  del JSON sono accettati) → `Log.warn` e ignorate; XP limitata a `0..xp_cap`.
 
 ### 5.7 Maestria (`systems/mastery/`) — dipendenze: data, events, modifiers
 ```gdscript
