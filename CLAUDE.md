@@ -50,6 +50,17 @@ Agenti: `.claude/agents/` (un file per ruolo di `08_TEAM.md`).
 
 ## Comandi
 Godot: `C:\Users\Davide\Desktop\GODOT\Godot_v4.5-stable_win64_console.exe` (variabile `$env:GODOT`).
+
+**Test GUT headless su questo PC** (dalla root del progetto o del worktree), due passi:
+```bash
+# 1. import headless delle risorse: obbligatorio in ogni worktree nuovo (senza .godot/ le classi GUT non si risolvono)
+"C:/Users/Davide/Desktop/GODOT/Godot_v4.5-stable_win64_console.exe" --headless --path . --import
+# 2. suite GUT da riga di comando (legge .gutconfig.json; exit 0 = tutti verdi)
+"C:/Users/Davide/Desktop/GODOT/Godot_v4.5-stable_win64_console.exe" --headless --path . -s addons/gut/gut_cmdln.gd
+```
+L'avviso `ObjectDB instances leaked at exit` dopo l'import è innocuo. `tools/run_tests.ps1` (M0-07) farà gli stessi due passi.
+
+Script di progetto:
 ```bash
 powershell -File tools/run_tests.ps1
 ```
@@ -62,4 +73,5 @@ powershell -File tools/run_checks.ps1
 (`run_tests.ps1` e `run_checks.ps1` nascono in M0-07, `validate_data.gd` in M1-04).
 
 ## Stato
-Documentazione completa; codice non ancora iniziato. Primo task: **M0-01** (Reviewer/Integrator).
+M0 in corso: M0-01 (root, `project.godot`, git) e M0-02 (GUT 9.5.0, hook dei test, smoke test) su `main`.
+Avanzamento dei task in `docs/STATUS.md`.
