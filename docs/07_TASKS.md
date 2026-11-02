@@ -34,7 +34,8 @@ Regole per tutti i task:
   M0-06). Creare l'albero delle cartelle con `.gitkeep`. `.gitattributes` con `* text=auto eol=lf` e binari marcati;
   `.gitignore` per `.godot/`, `*.tmp`, `/build/`, `export_presets.cfg` escluso dall'ignore (si versiona). `git init`,
   primo commit, branch `main`.
-- **Accettazione** la sottocartella non esiste più; `godot --headless --path . --quit` esce con 0; `git status` pulito;
+- **Accettazione** la sottocartella non esiste più; `godot --headless --editor --path . --quit` esce con 0 (senza scena
+  principale `--quit` da solo non è applicabile: passa a M0-06); `git status` pulito;
   tutte le cartelle di §2 esistono.
 - **Test** nessun test GUT (GUT arriva con M0-02); verifica manuale con i comandi sopra, riportata nel report.
 
@@ -108,7 +109,8 @@ Regole per tutti i task:
 - **Leggere** `01_GDD.md` §1; `03_ARCHITECTURE.md` §11; `09_CONVENTIONS.md` §2-3
 - **Descrizione** Scena con titolo (Cinzel, `TitleLabel`), pulsanti Nuova partita, Continua, Impostazioni (disabilitati) ed
   Esci (funziona). In `_ready` imposta `get_window().min_size = UiStyle.WINDOW_MIN_SIZE` (costante creata da M0-04).
-- **Accettazione** F5 apre il menu nello stile D; Esci chiude; nessun file scritto in `user://`.
+- **Accettazione** F5 apre il menu nello stile D; Esci chiude; nessun file scritto in `user://`;
+  `godot --headless --path . --quit` esce con 0 (criterio spostato da M0-01).
 - **Test** `test_main_menu_smoke.gd`: la scena si istanzia, ha i 4 pulsanti, nessun errore.
 
 ### M0-07 · Script di test e di controllo
