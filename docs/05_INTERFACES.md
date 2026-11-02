@@ -463,8 +463,8 @@ const _PHASE_FRACTURES: int; const _PHASE_ACTIONS: int; const _PHASE_COMBAT: int
   `_Participant`): **helper interno** di `GameSession`, non un'API per gli altri moduli (nessuno lo usa o lo referenzia
   fuori da `game_session.gd`). `_join` delega a `SessionParticipants.join`; `new_game`, `to_save`, `from_save` (moduli
   assenti, non oggetti o sconosciuti come sopra) e `rebuild_modifiers` iterano tramite lui, nell'ordine di `_join`.
-- Ordine attuale di `_create_systems()`: `wallet`, `bank`, `skills` (i task successivi aggiungono in coda, in ordine di
-  dipendenza).
+- Ordine attuale di `_create_systems()`: `wallet`, `bank`, `skills`, `mastery` (`rebuild_fn = mastery.rebuild_modifiers`;
+  i task successivi aggiungono in coda, in ordine di dipendenza: `actions` dopo `mastery`).
 
 ### 5.4 Wallet (`systems/wallet/wallet.gd`) — dipendenze: events
 ```gdscript
@@ -553,6 +553,29 @@ func can_buy_node(node_id: StringName) -> CommandResult            # unknown_id,
 func buy_node(node_id: StringName) -> CommandResult
 func rebuild_modifiers() -> void                                   # sorgenti mastery_item:* e mastery_node:*
 ```
+- Stato: la xp di maestria di ogni azione `mastery: true` delle skill `has_mastery` e il pool di ogni skill `has_mastery`;
+  il livello deriva da F-09. La xp di maestria si ferma a `xp_for_level(max_level)` (nessun guadagno oltre il 99).
+  `get_mastery_level` di un'azione senza maestria o sconosciuta → 0; `get_pool`/`get_pool_cap`/`get_skill_ratio` di una
+  skill senza maestria → 0. R di F-10 = somma dei **livelli di maestria** delle azioni con maestria della skill /
+  (`max_level` × loro numero), non il livello della skill.
+- `add_for_action(action)`: è sicuro chiamarlo a ogni ciclo completato con qualunque `ActionDef` (azione senza maestria →
+  0, nessun cambio, nessun segnale; `null` → `Log.error` e 0). L'mxp di F-10 usa l'intervallo **base** e
+  `total(mastery_xp_pct, for_action(skill, action))`. Restituisce l'mxp di F-10 anche al 99 (la xp resta ferma) e il pool
+  riceve comunque la quota F-12, fino al tetto F-13 (al tetto: nessun cambio, nessun `mastery_pool_changed`).
+- `mastery_xp_gained(skill, action, amount)`: `amount` = xp effettivamente aggiunta (> 0; nessun segnale se 0); lo
+  emettono sia il ciclo sia `spend_pool_on_action`. Ordine degli effetti: stato → sorgente `mastery_item:<action>`
+  aggiornata (batch, un solo `modifiers_changed`, solo se un moltiplicatore di F-11 cambia) → `mastery_xp_gained` → un
+  `mastery_level_up` per livello → `mastery_pool_changed` (solo se il pool cambia).
+- `spend_pool_on_action`: errori nell'ordine `unknown_id` (azione senza maestria o sconosciuta) → `invalid_amount`
+  (`amount ≤ 0`) → `mastery_max` (già al 99) → `pool_insufficient` (pool 0); in errore nessun cambio di stato né segnale.
+- F-11: sorgente `mastery_item:<action_id>` con scope `action:<id>` solo se ha almeno un modificatore (altrimenti
+  `clear_source`). `rebuild_modifiers` (in M1-09) registra solo `mastery_item:*`; `mastery_node:*` arriva con M2-01.
+- Metodi dei nodi fino a M2-01: `node_cost` → 0, `owns_node` → false, `can_buy_node`/`buy_node` → `unknown_id`.
+- Save (§6): `{skill_id: {"pool": int, "actions": {action_id: xp}, "nodes": []}}` per ogni skill con maestria (`nodes`
+  vuoto e ignorato al caricamento fino a M2-01). `new_game` e `from_save` non emettono segnali. `from_save` tollerante:
+  skill sconosciute o senza maestria, voci non oggetto, azioni sconosciute o di un'altra skill, valori non interi o
+  negativi (i float interi del JSON sono accettati) → `Log.warn` e scartati (a 0); `actions` non oggetto → azioni a 0
+  (il pool resta); pool oltre il tetto e xp oltre il 99 → limitati (pool con `Log.warn`).
 
 ### 5.8 Azioni (`systems/actions/`) — dipendenze: data, events, modifiers, bank, skills, mastery, rng, combat (solo `stop`)
 ```gdscript

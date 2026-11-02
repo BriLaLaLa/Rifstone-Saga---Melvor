@@ -280,6 +280,10 @@ Regole per tutti i task:
   emette già `bank_rejected` + `bank_full` (non duplicarli); lo stop `bank_full` dell'azione è del runner. `add`/`remove`
   restituiscono `CommandResult` (§5.5); `TestFactory.give` è disponibile per i test. `actions` va registrato dopo
   `mastery` e con `_tick(_PHASE_ACTIONS, actions.advance)`.
+- **Nota (da M1-09)** `session.mastery.add_for_action(action)` si chiama a ogni ciclo riuscito con l'`ActionDef`, senza
+  controllare `action.mastery`: per le azioni senza maestria restituisce 0 senza effetti; al 99 la xp resta ferma ma il pool
+  riceve la quota (`05_INTERFACES.md` §5.7). I bonus F-11 (`double_item_chance` ecc.) sono già in `ModifierService` con
+  scope `action:<id>`: leggerli con `ModifierContext.for_action(skill, action)`.
 
 ### M1-11 · Game: menu → slot → partita
 - **Ruolo** CORE · **Stima** M · **Parallelizzabile** no · **Dipendenze** M1-06, M1-10
@@ -402,6 +406,8 @@ Regole per tutti i task:
   finché la milestone di quella formula non è chiusa il caso è `pending()` (diventa errore in M6-07).
 - **Accettazione** tutti verdi o `pending` motivati.
 - **Test** i cinque file.
+- **Nota (da M1-09)** La proposta di aggiungere `mastery_bonuses` di artigianato a `test_craft` nelle fixture non è di
+  questo task (le fixture sono del CORE, M1-04): è assegnata a M3-01.
 
 ### M1-20 · Integrazione di M1
 - **Ruolo** REV · **Stima** M · **Parallelizzabile** no · **Dipendenze** M1-01…M1-19
@@ -424,6 +430,11 @@ Regole per tutti i task:
   Se `mastery_system.gd` supera 400 righe, estrarre `mastery_nodes.gd` (classe interna di supporto, stessa cartella, ownership di questo task).
 - **Accettazione** esempi di F-15; prerequisiti; nodi permanenti dopo la spesa del pool.
 - **Test** `test_mastery_nodes.gd`.
+- **Nota (da M1-09)** `rebuild_modifiers` registra oggi solo `mastery_item:*` (dentro un batch): aggiungere le sorgenti
+  `mastery_node:<node_id>` dei nodi posseduti nello stesso batch. `to_save` scrive già `"nodes": []` per ogni skill con
+  maestria e `from_save` lo ignora: leggere la lista (id sconosciuti o di un'altra skill → `Log.warn` e scartati). I
+  quattro metodi dei nodi sono segnaposto (`node_cost` 0, `owns_node` false, gli altri `unknown_id`); il costo usa
+  `get_pool_cap` e `MasteryMath.node_cost` (F-15). `mastery_system.gd` è a 284 righe.
 
 ### M2-02 · Contenuto: Cavatura, Lenza, nodi della raccolta
 - **Ruolo** DATA · **Stima** M · **Parallelizzabile** sì · **Dipendenze** M1-20
@@ -480,6 +491,11 @@ Regole per tutti i task:
 - **Accettazione** con `preservation_chance` 100 (limitata a 80) circa l'80% dei cicli non consuma (10.000 cicli, seme fisso,
   tolleranza ±2%); ingredienti venduti a metà ciclo → ciclo fallito senza XP.
 - **Test** `test_artisan_resolver.gd` (incluso `test_preservation_cap`).
+- **Nota (da M1-09)** F-11 artigianato è testato solo a livello di regola (`test_mastery_math.gd`, regole vere di
+  `forging`). Aggiungere a `test_craft` delle fixture le regole `mastery_bonuses` di artigianato e un caso F-11 di sistema
+  (L 50 → +7,5 `preservation_chance`; L 99 → +13,5 e −5 `skill_interval_pct`). Ownership estesa a
+  `res://tests/fixtures/data/**` (solo `mastery_bonuses` di `test_craft`) e `res://tests/systems/mastery/test_mastery_system.gd`
+  (solo il caso nuovo).
 
 ### M3-02 · Shop (porting)
 - **Ruolo** PORT · **Stima** M · **Parallelizzabile** sì · **Dipendenze** M2-06
