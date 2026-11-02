@@ -1,0 +1,116 @@
+{
+  "tick_ms": 100,
+  "max_catchup_ms": 5000,
+  "autosave_interval_ms": 10000,
+  "slots": {
+    "count": 4
+  },
+  "start": {
+    "gold": 50,
+    "items": []
+  },
+  "xp_curve": {
+    "base": 70,
+    "growth": 1.1,
+    "linear": 8,
+    "max_level": 99,
+    "xp_cap": 50000000
+  },
+  "mastery_curve": {
+    "base": 20,
+    "growth": 1.1,
+    "linear": 4,
+    "max_level": 99
+  },
+  "mastery": {
+    "base_factor": 1.0,
+    "per_level": 0.1,
+    "ratio_weight": 3.0,
+    "pool_share_pct": 20,
+    "pool_cap_per_item": 300000
+  },
+  "action": {
+    "min_interval_ms": 250
+  },
+  "gathering": {
+    "rift_shard_base_chance_pct": 0.5
+  },
+  "bank": {
+    "base_slots": 24,
+    "slot_cost_base": 400,
+    "slot_cost_growth": 1.09,
+    "slot_cost_cap": 2000000,
+    "max_purchasable": 150
+  },
+  "combat": {
+    "acc_level_offset": 8,
+    "acc_bonus_offset": 50,
+    "maxhit_level_offset": 10,
+    "maxhit_bonus_offset": 40,
+    "min_hit_ratio": 0.1,
+    "hit_chance_min": 0.05,
+    "hit_chance_max": 0.95,
+    "triangle": {
+      "advantage_damage_mult": 1.15,
+      "disadvantage_damage_mult": 0.85,
+      "defender_dr_mult": 0.75,
+      "beats": {
+        "blade": "arcana",
+        "arcana": "marksmanship",
+        "marksmanship": "blade"
+      }
+    },
+    "min_attack_interval_ms": 800,
+    "unarmed": {
+      "style": "blade",
+      "attack_interval_ms": 2400
+    },
+    "hp_skill": "vitality",
+    "defence_skill": "guard",
+    "hp_base": 50,
+    "hp_per_vitality": 10,
+    "xp_per_damage_style": 4,
+    "xp_per_damage_vitality": 1,
+    "auto_eat_tiers": [
+      null,
+      {
+        "threshold_pct": 30,
+        "target_pct": 60
+      },
+      {
+        "threshold_pct": 40,
+        "target_pct": 75
+      },
+      {
+        "threshold_pct": 50,
+        "target_pct": 90
+      }
+    ],
+    "respawn_ms": 1500,
+    "loot_bag_base_slots": 12
+  },
+  "rift": {
+    "sockets": [
+      {
+        "level": 1
+      },
+      {
+        "level": 20
+      },
+      {
+        "level": 40
+      },
+      {
+        "level": 60
+      },
+      {
+        "level": 80
+      }
+    ]
+  },
+  "offline": {
+    "cap_ms": 43200000,
+    "min_ms": 60000,
+    "chunk_ms": 60000
+  }
+}
