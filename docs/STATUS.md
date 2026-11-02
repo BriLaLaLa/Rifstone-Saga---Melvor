@@ -11,7 +11,7 @@ Se la sessione si interrompe, si riparte da qui.
 | M0-04 | M0 | Tema UI portato da RiftStone | PORT | DONE | task/M0-04 | merge d58075f; 11/11 GUT su main; primo import di checkout nuova va in crash (gestito in M0-07) |
 | M0-05 | M0 | Configurazione di bilanciamento e registro delle stat | DATA | IN_PROGRESS | task/M0-05 | |
 | M0-06 | M0 | Menu segnaposto e scena principale | UI | TODO | | |
-| M0-07 | M0 | Script di test e di controllo | QA | IN_PROGRESS | task/M0-07 | |
+| M0-07 | M0 | Script di test e di controllo | QA | REVIEW | task/M0-07 | 90754d7..50dd655; run_checks verde (40 test); retry import provato con Godot finto |
 | M0-08 | M0 | Integrazione di M0 | REV | TODO | | |
 | M1-01 | M1 | Tabella dell'esperienza | CORE | TODO | | |
 | M1-02 | M1 | Sistema dei modificatori | CORE | TODO | | |
