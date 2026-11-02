@@ -108,6 +108,23 @@ func list_slots() -> Array[SlotInfo]      # slot da 1 a slot_count
 ```
 `SaveStore` non conosce `GameSession`: legge e scrive dizionari.
 
+Comportamenti di `SaveStore` (M1-06):
+- `slot_count` arriva da `slots.count` di `balance.json`, passato da chi usa lo store con `configure()`; prima di
+  `configure` non esistono slot validi (`list_slots()` è vuoto).
+- Slot fuori da 1..`slot_count`: `write_slot`/`delete_slot` falliscono con `io_error`; `read_slot` restituisce `{}` con
+  `last_error = io_error`; `slot_exists` è falso.
+- Slot vuoto (né principale né `.bak`): `read_slot` → `{}` con `io_error`; `read_slot_info` → `state = empty`.
+  Se esiste solo il `.bak`, `slot_exists` è vero e la lettura usa il `.bak`.
+- File valido = JSON, radice dizionario, `format_version` numerico. Principale non valido o assente → `.bak`;
+  entrambi non validi → `corrupted`.
+- `format_version` maggiore di `CURRENT_VERSION` → `version_unsupported` (`state = unsupported`), **senza** ripiegare
+  sul `.bak` (si perderebbe il progresso più nuovo). Versione minore senza catena di migrazioni completa →
+  `version_unsupported`.
+- `delete_slot` su uno slot vuoto riesce; cancella principale, `.bak` e `.tmp`.
+- `write_slot` non valida il contenuto (`format_version` lo scrive `GameSession.to_save`). Solo `write_slot` e
+  `delete_slot` toccano il disco.
+- Errori di I/O con `Log.warn`; errori di programmazione con `assert`.
+
 ```gdscript
 class_name SlotInfo extends RefCounted        # core/save/slot_info.gd
 var slot: int
@@ -121,6 +138,10 @@ class_name SaveMigrator extends RefCounted    # core/save/save_migrator.gd
 const CURRENT_VERSION: int = 1
 static func can_load(d: Dictionary) -> bool          # format_version <= CURRENT_VERSION
 static func migrate(d: Dictionary) -> Dictionary     # applica migrations/migration_<a>_to_<b>.gd in catena
+static func migrate_chain(d: Dictionary, target_version: int, step_for: Callable) -> Dictionary
+    # usata da migrate() con CURRENT_VERSION e i file di migrations/, dai test con passi finti;
+    # step_for(from_version) -> Callable da from_version a from_version + 1 (non valida se manca);
+    # copia profonda con format_version = target_version, {} se un passo manca o fallisce o d è più nuovo
 
 class_name SaveCodec extends RefCounted       # core/save/save_codec.gd
 static func encode(d: Dictionary) -> String          # JSON con indentazione "\t", chiavi ordinate

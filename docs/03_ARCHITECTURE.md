@@ -266,8 +266,10 @@ sequenceDiagram
   `core/save/migrations/migration_<da>_to_<a>.gd` (una funzione statica `migrate(d: Dictionary) -> Dictionary`),
   applicate in catena. File più nuovo del gioco → `version_unsupported`.
 - **Scrittura atomica**: scrive `slot_<n>.json.tmp`, poi sposta il file attuale in `slot_<n>.json.bak` e rinomina il
-  temporaneo. In lettura, se il file principale non è valido si prova il `.bak`. La scrittura è sincrona (file piccoli,
-  < 200 KB): misurata in M1-05, se supera 30 ms passa a un thread (idea del salvataggio asincrono di RiftStone).
+  temporaneo. In lettura, se il file principale non è valido si prova il `.bak` (ma un file valido con versione più
+  nuova non viene mai sostituito dal `.bak`). La scrittura è sincrona (file piccoli, < 200 KB): misurata in M1-06
+  (`test_write_200_kb_and_measure`), 200 KB scritti in ~10-12 ms, quindi niente thread (Q5 confermato col default);
+  il test segnala con un warning se si superano 30 ms.
 - **Stato derivato non salvato**: livelli, modificatori, capienze, statistiche di combattimento si ricalcolano.
 - **Isolamento**: caricare lo slot B dopo lo slot A crea una `GameSession` nuova; niente sopravvive tra slot
   (test `tests/integration/test_slot_isolation.gd`).
