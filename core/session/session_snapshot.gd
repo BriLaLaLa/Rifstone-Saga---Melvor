@@ -17,4 +17,9 @@ var food_eaten: int = 0
 static func take(session: GameSession) -> SessionSnapshot:
 	assert(session != null, "SessionSnapshot.take needs a session")
 	var snapshot: SessionSnapshot = SessionSnapshot.new()
+	if session.bank != null:
+		for stack: Dictionary in session.bank.stacks():
+			snapshot.bank[stack["item"]] = stack["count"]
+	if session.wallet != null:
+		snapshot.gold = session.wallet.get_gold()
 	return snapshot

@@ -22,6 +22,8 @@ var data: GameData
 var events: GameEvents
 var rng: RngService
 var modifiers: ModifierService
+var wallet: Wallet
+var bank: Bank
 # The other system fields of docs/05_INTERFACES.md §5.3 are declared by the task that creates each system.
 var slot: int = -1
 var player_name: String = ""
@@ -117,7 +119,10 @@ func total_level() -> int:
 # Per system, in dependency order: `wallet = Wallet.new(self)` then
 # `_join(Wallet.SAVE_KEY, wallet.new_game, wallet.to_save, wallet.from_save[, wallet.rebuild_modifiers])`.
 func _create_systems() -> void:
-	pass
+	wallet = Wallet.new(self)
+	_join(Wallet.SAVE_KEY, wallet.new_game, wallet.to_save, wallet.from_save)
+	bank = Bank.new(self)
+	_join(Bank.SAVE_KEY, bank.new_game, bank.to_save, bank.from_save)
 
 
 # Registers a SaveParticipant (docs/05_INTERFACES.md: SAVE_KEY, new_game, to_save, from_save).

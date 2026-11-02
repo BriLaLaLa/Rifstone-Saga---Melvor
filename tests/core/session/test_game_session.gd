@@ -93,7 +93,7 @@ func test_to_save_writes_the_header() -> void:
 	assert_eq(saved["total_level"], 0)
 	assert_eq(saved["rng"], session.rng.to_save())
 	assert_eq((saved["rng"] as Dictionary)["seed"], 918273)
-	assert_eq(saved["modules"], {})
+	assert_eq((saved["modules"] as Dictionary).keys(), ["wallet", "bank"])
 
 
 func test_to_save_header_is_readable_as_slot_info_header() -> void:
@@ -109,7 +109,9 @@ func test_to_save_writes_each_joined_module() -> void:
 	var session: ProbeSession = _probe()
 	session.add_fake(&"alpha").value = 4
 	session.add_fake(&"beta").value = 9
-	assert_eq(session.to_save(NOW_MS)["modules"], {"alpha": {"value": 4}, "beta": {"value": 9}})
+	var modules: Dictionary = session.to_save(NOW_MS)["modules"]
+	assert_eq(modules["alpha"], {"value": 4})
+	assert_eq(modules["beta"], {"value": 9})
 
 
 func test_advance_without_systems_only_counts_play_time() -> void:
@@ -133,7 +135,7 @@ func test_advance_follows_fixed_order_whatever_the_join_order() -> void:
 func test_advance_skips_missing_systems() -> void:
 	var session: ProbeSession = _probe()
 	session.add_fake(&"actions", session.phase_actions())
-	session.add_fake(&"wallet")
+	session.add_fake(&"ledger")
 	session.advance(100)
 	assert_eq(session.calls, ["actions:100"])
 
