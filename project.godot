@@ -24,6 +24,7 @@ DataRegistry="*res://core/autoload/data_registry.gd"
 GameClock="*res://core/autoload/game_clock.gd"
 SaveService="*res://core/autoload/save_service.gd"
 Game="*res://core/autoload/game.gd"
+Tooltips="*res://ui/components/tooltip/tooltip_manager.gd"
 
 [debug]
 
