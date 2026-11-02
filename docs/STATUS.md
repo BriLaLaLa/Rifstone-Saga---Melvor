@@ -18,7 +18,7 @@ Se la sessione si interrompe, si riparte da qui.
 | M1-03 | M1 | Classi Def e caricatore JSON | CORE | IN_PROGRESS | task/M1-03 | |
 | M1-04 | M1 | Validatore, GameData, DataRegistry, fixture | CORE | TODO | | tipizzare DataRegistry.data come GameData (oggi RefCounted) |
 | M1-05 | M1 | Casualità, sessione, snapshot, factory dei test | CORE | TODO | | |
-| M1-06 | M1 | Salvataggio per slot con versioni | CORE | IN_PROGRESS | task/M1-06 | tipizzare SlotInfo in save_service.gd (oggi RefCounted); tipizzare gut_pre_run.gd (cast as SaveStore al posto di set()) — richiede ownership di tests/helpers/gut_pre_run.gd |
+| M1-06 | M1 | Salvataggio per slot con versioni | CORE | REVIEW | task/M1-06 | 8cf567f..9f66f2c; 44 test, run_checks 126/126; scrittura 200 KB ~10-12 ms |
 | M1-07 | M1 | Wallet e Bank | CORE | TODO | | |
 | M1-08 | M1 | Skill ed esperienza | CORE | TODO | | |
 | M1-09 | M1 | Maestria per oggetto e pool | CORE | TODO | | |
