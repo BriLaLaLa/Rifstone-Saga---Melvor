@@ -307,13 +307,28 @@ Regole per tutti i task:
 ### M1-14 · Schermata principale: sidebar, barra in alto, PageHost
 - **Ruolo** UI · **Stima** M · **Parallelizzabile** sì · **Dipendenze** M1-11, M1-17
 - **Ownership** `res://ui/screens/main/**` (`main_screen`, `sidebar`, `top_bar`, `page_host`), `res://ui/pages/page.gd`,
-  `res://tests/ui/test_main_screen_smoke.gd`
+  `res://tests/ui/test_main_screen_smoke.gd`; per il follow-up di M1-16: `res://ui/theme/number_format.gd` (nuovo),
+  `res://ui/theme/ui_style.gd` (solo costanti `TOOLTIP_*`/`WINDOW_*`), `res://ui/components/tooltip/**`,
+  `res://ui/components/game_window/**`, `res://ui/components/toast/toast_manager.gd` (solo `_format_count`),
+  `res://tests/ui/test_tooltip.gd`, `res://tests/ui/test_game_window.gd` (nuovo), `res://tests/ui/test_number_format.gd` (nuovo)
+- **Follow-up di M1-16** (prima della barra in alto, che mostra oro e caselle): (1) `class_name NumberFormat` statica con
+  `format_int` ("1.250") e `format_number` ("1.250,5"), spostate da `ItemTooltipLines`; `ItemTooltipLines` e
+  `ToastManager._format_count` la usano (nessuna copia; `ui_style.gd` è già a 350 righe, per questo un file a parte);
+  (2) le costanti di presentazione del tooltip (`TOOLTIP_LAYER`, offset dal mouse, margine dallo schermo, larghezza
+  minima, dimensioni dei font, oggi `const`/`@export` in `tooltip_manager.gd`/`custom_tooltip.gd`) e di layout di
+  `GameWindow` (`PLACE_MARGIN`, `PLACE_TOP`, `DRAG_KEEP_VISIBLE`, `HEADER_SEPARATION`, `CLOSE_BUTTON_SIDE`) diventano
+  `UiStyle.TOOLTIP_*`/`UiStyle.WINDOW_*` (`09_CONVENTIONS.md` §2: costanti di presentazione solo in `ui_style.gd`);
+  restano `@export` solo i testi e `GameWindow.default_size`; (3) `ItemTooltipLines._scope_name` usa
+  `Modifier.SCOPE_SKILL`/`SCOPE_ACTION` invece dei letterali; (4) la classe interna `TestGameWindow` di
+  `test_tooltip.gd` passa in `tests/ui/test_game_window.gd`. Firme pubbliche invariate, tranne `format_int`/`format_number`
+  che escono da `ItemTooltipLines` (`05_INTERFACES.md` §7 da aggiornare nel report).
 - **Leggere** `01_GDD.md` §13; `03_ARCHITECTURE.md` §11; `05_INTERFACES.md` §3, §7
 - **Descrizione** Sidebar dalle skill dei dati (icona, nome, livello aggiornato su `level_up`) + Bank, Shop, Equipaggiamento,
   Combattimento, Altare (voci non ancora implementate disabilitate con "In arrivo"); barra in alto (oro, caselle
   usate/capienza, nome dello slot, pulsante menu → `Game.end_session(true)` e ritorno al menu); `PageHost` con la tabella
   delle rotte; `ToastManager` istanziato nella schermata.
 - **Accettazione** nessuna variabile con stato di gioco nella UI (solo letture); cambiare pagina scollega i segnali.
+  Test aggiornati del follow-up di M1-16 verdi; `format_int` e `format_number` esistono in un solo file.
 - **Test** smoke: la scena si istanzia con una sessione della `TestFactory`; `show_page` di ogni rotta valida.
 
 ### M1-15 · Pagina skill (raccolta) e componenti base

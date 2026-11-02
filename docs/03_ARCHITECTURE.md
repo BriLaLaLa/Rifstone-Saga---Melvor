@@ -62,7 +62,7 @@ res://
 │   ├── hints/hints.json          (M6)
 │   └── fractures/fractures.json  (M7)
 ├── ui/
-│   ├── theme/                    ← ui_style.gd, riftstone_idle_theme.tres (generato)
+│   ├── theme/                    ← ui_style.gd, number_format.gd (M1-14), riftstone_idle_theme.tres (generato)
 │   ├── components/               ← game_window/, tooltip/, toast/, item_slot/, progress/, confirm_dialog/
 │   ├── screens/                  ← main_menu/, slot_select/, main/ (main_screen, sidebar, top_bar, page_host), offline/
 │   ├── pages/                    ← skill/, bank/, shop/, equipment/, combat/, rift/, mastery/
@@ -370,8 +370,8 @@ nuovo progetto punta alla cartella di RiftStone.
 | `assets/fonts/*` (+ `OFL-*.txt`) | `assets/fonts/` | nessuno; licenze copiate | M0-04 |
 | `assets/ui/icons/` (+ `LICENSE-tabler.txt`) | `assets/icons/ui/` | solo le icone usate più la licenza | M0-04 |
 | `scripts/ui/hud/GameWindow.gd` | `ui/components/game_window/game_window.gd` | `snake_case`; testi in `@export`; tipizzazione | M1-16 |
-| `scripts/ui/TooltipManager.gd`, `scripts/ui/CustomTooltip.gd`, `scenes/ui/CustomTooltip.tscn` | `ui/components/tooltip/` | togliere l'accesso a `/root/GameState`; ricevere `ItemDef` + quantità invece di dizionari; mostrare i modificatori leggendo `StatRegistry` per le etichette | M1-15 |
-| `scripts/ui/LootNotificationManager.gd`, `LootNotification.gd`, `scenes/ui/LootNotification.tscn` | `ui/components/toast/` | da "chiamato da tutti" a "ascolta EventBus"; raggruppamento 1 s; tipi `info/success/warning` | M1-16 |
+| `scripts/ui/TooltipManager.gd`, `scripts/ui/CustomTooltip.gd`, `scenes/ui/CustomTooltip.tscn` | `ui/components/tooltip/` | togliere l'accesso a `/root/GameState`; ricevere `ItemDef` + quantità invece di dizionari; mostrare i modificatori leggendo `StatRegistry` per le etichette | M1-16 |
+| `scripts/ui/LootNotificationManager.gd`, `LootNotification.gd`, `scenes/ui/LootNotification.tscn` | `ui/components/toast/` | da "chiamato da tutti" a "ascolta EventBus"; raggruppamento 1 s; tipi `info/success/warning` | M1-17 |
 | `scripts/systems/Shop.gd` | `systems/shop/shop.gd` | da classe statica con JSON proprio a sistema della sessione che usa `GameData`; prezzi e valori solo dai dati (eliminata la regola "60 × livello" scritta nel codice); acquisti, requisiti, modificatori, F-17 | M3-02 |
 | `scripts/systems/GameSettings.gd` | `core/settings/game_settings.gd` | togliere qualità 3D/supersampling; aggiungere livello dei log; tipizzazione | M6-03 |
 | `scripts/ui/SettingsPanel.gd` | `ui/settings/settings_panel.gd` | togliere `GameState`; "Salva ed esci" chiama `Game.end_session(true)`; niente "rivedi suggerimenti" globale (è per slot) | M6-03 |

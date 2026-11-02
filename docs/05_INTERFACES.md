@@ -168,7 +168,8 @@ func delete_slot(slot: int) -> CommandResult  # slot_active se è lo slot della 
 
 ### `Tooltips` (`ui/components/tooltip/tooltip_manager.gd`)
 ```gdscript
-func show_item(item: ItemDef, count: int, global_pos: Vector2) -> void
+var data: GameData = null                 # null = DataRegistry.data; i test passano i dati delle fixture
+func show_item(item: ItemDef, count: int, global_pos: Vector2) -> void   # item null: push_error e tooltip nascosto
 func show_text(title: String, body: String, global_pos: Vector2) -> void
 func hide_tooltip() -> void
 ```
@@ -775,7 +776,40 @@ class_name Toast extends PanelContainer            # ui/components/toast/toast.g
 signal dismissed                                   # fine della dissolvenza, prima di queue_free
 func setup(text: String, kind: StringName) -> void # kind sconosciuto: Log.warn e mostrato come info
 func dismiss() -> void                             # idempotente
+
+class_name CustomTooltip extends PanelContainer    # ui/components/tooltip/custom_tooltip.gd (+ .tscn), interno a Tooltips
+func setup_item(item: ItemDef, count: int, data: GameData) -> void
+func setup_text(title: String, body: String) -> void   # body può contenere BBCode
+func show_at(cursor_pos: Vector2) -> void          # globale; spostato del mouse_offset e tenuto nel viewport
+func hide_tooltip() -> void                        # nasconde e svuota i testi
+func is_shown() -> bool
+func title_text() -> String                        # testi senza BBCode (test, accessibilità)
+func body_text() -> String
+func footer_text() -> String
+
+class_name ItemTooltipLines extends RefCounted     # ui/components/tooltip/item_tooltip_lines.gd, solo statiche
+static func subtitle(item: ItemDef, count: int) -> String          # categoria e, se count > 0, "Quantità: 1.250"
+static func body(item: ItemDef, data: GameData) -> PackedStringArray   # requisiti, arma, modificatori, cibo, valore
+static func modifier_lines(mods: Array[Modifier], data: GameData) -> PackedStringArray
+static func format_stat(format: String, value: float) -> String    # pct "+5%", flat "+8", flag "Sì"/"No"
+static func category_name(category: StringName) -> String
+static func format_int(value: int) -> String                       # "1.250"
+static func format_number(value: float) -> String                  # "1.250,5" (al massimo due decimali)
+static func escape(text: String) -> String                         # BBCode dei testi dei dati
+
+class_name GameWindow extends PanelContainer       # ui/components/game_window/game_window.gd; figlio "VBox" con la pagina
+signal opened
+signal closed
+@export var title: String
+@export var close_tooltip: String
+@export var default_size: Vector2                  # prima apertura: centrata, al massimo lo spazio libero
+func toggle() -> void
+func open_window() -> void                         # emette opened
+func close_window() -> void                        # emette closed solo se era aperta
 ```
+`Tooltips`/`ItemTooltipLines`: ogni riga di modificatore prende nome e formato da `StatRegistry.info()`; una stat non
+registrata non ha riga (e `Log.warn`); senza `GameData` valido requisiti e modificatori non si mostrano (e `Log.warn`).
+I requisiti sono in grigio: il tooltip non legge la sessione.
 `ToastManager`: le variabili iniettabili si impostano prima di aggiungere il nodo all'albero (connessione in
 `_enter_tree`, disconnessione in `_exit_tree`). Ascolta `notification_requested`, `bank_changed` (solo `delta > 0`,
 sommati per oggetto in una finestra di `UiStyle.TOAST_GROUP_MS` dal primo aumento), `level_up`, `action_stopped`
