@@ -9,9 +9,9 @@ Se la sessione si interrompe, si riparte da qui.
 | M0-02 | M0 | GUT e hook dei test | PORT | DONE | task/M0-02 | merge cbd80dd, docs CLAUDE.md 93cf74c; 916b7e4, 65c8eb2; 1/1 verde |
 | M0-03 | M0 | Autoload e tipi comuni | CORE | DONE | task/M0-03 | merge 8d61aee; 27 test propri, suite main 38/38; tipi provvisori RefCounted/Node per GameData, SlotInfo, GameSession, OfflineSummary |
 | M0-04 | M0 | Tema UI portato da RiftStone | PORT | DONE | task/M0-04 | merge d58075f; 10 test propri; primo import di checkout nuova va in crash (gestito in M0-07) |
-| M0-05 | M0 | Configurazione di bilanciamento e registro delle stat | DATA | REVIEW | task/M0-05 | b3991fb, 86d3dfc; 19/19 GUT; 21 stat, 66 chiavi balance |
+| M0-05 | M0 | Configurazione di bilanciamento e registro delle stat | DATA | DONE | task/M0-05 | merge a3dc8ac; run_checks su main 75/75; b3991fb, 86d3dfc; 19/19 GUT; 21 stat, 66 chiavi balance |
 | M0-06 | M0 | Menu segnaposto e scena principale | UI | IN_PROGRESS | task/M0-06 | |
-| M0-07 | M0 | Script di test e di controllo | QA | REVIEW | task/M0-07 | 90754d7..50dd655; run_checks verde (40 test); retry import provato con Godot finto |
+| M0-07 | M0 | Script di test e di controllo | QA | DONE | task/M0-07 | merge 06a4c02; 90754d7..50dd655; run_checks verde (40 test); retry import provato con Godot finto |
 | M0-08 | M0 | Integrazione di M0 | REV | TODO | | |
 | M1-01 | M1 | Tabella dell'esperienza | CORE | TODO | | |
 | M1-02 | M1 | Sistema dei modificatori | CORE | TODO | | |
