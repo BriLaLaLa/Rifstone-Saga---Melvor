@@ -8,7 +8,7 @@ Se la sessione si interrompe, si riparte da qui.
 | M0-01 | M0 | Root, project.godot, cartelle, git | REV | DONE | task/M0-01 | merge 5e82b06, docs ad92606; c6b5573; sottocartella svuotata, cartella vuota bloccata da processo (da rimuovere a mano); criterio --quit sostituito con --editor --quit |
 | M0-02 | M0 | GUT e hook dei test | PORT | DONE | task/M0-02 | merge cbd80dd, docs CLAUDE.md 93cf74c; 916b7e4, 65c8eb2; 1/1 verde |
 | M0-03 | M0 | Autoload e tipi comuni | CORE | IN_PROGRESS | task/M0-03 | |
-| M0-04 | M0 | Tema UI portato da RiftStone | PORT | IN_PROGRESS | task/M0-04 | |
+| M0-04 | M0 | Tema UI portato da RiftStone | PORT | REVIEW | task/M0-04 | bc54859..bc654ff; run GUT da fare in review |
 | M0-05 | M0 | Configurazione di bilanciamento e registro delle stat | DATA | TODO | | |
 | M0-06 | M0 | Menu segnaposto e scena principale | UI | TODO | | |
 | M0-07 | M0 | Script di test e di controllo | QA | IN_PROGRESS | task/M0-07 | |
