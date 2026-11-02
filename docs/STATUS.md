@@ -26,9 +26,9 @@ Se la sessione si interrompe, si riparte da qui.
 | M1-11 | M1 | Game: menu → slot → partita | CORE | TODO | | tipizzare Game.session (GameSession) e list_slots (Array[SlotInfo]); chiamare GameClock.configure da balance.json |
 | M1-12 | M1 | Contenuto: le 12 skill e Selvicoltura | DATA | DONE | task/M1-12 | merge 9201158; Ownership estesa a areas/monsters/shop.json vuoti (DECISIONS_LOG) |
 | M1-13 | M1 | Menu principale e scelta dello slot | UI | TODO | | |
-| M1-14 | M1 | Schermata principale: sidebar, barra in alto, PageHost | UI | TODO | | |
+| M1-14 | M1 | Schermata principale: sidebar, barra in alto, PageHost | UI | TODO | | follow-up di M1-16 (ownership estesa, 07_TASKS): NumberFormat, costanti TOOLTIP_/WINDOW_ in UiStyle, test_game_window.gd, Modifier.SCOPE_* |
 | M1-15 | M1 | Pagina skill (raccolta) e componenti base | UI | TODO | | |
-| M1-16 | M1 | Tooltip e GameWindow portati | PORT | REVIEW | task/M1-16 | in review |
+| M1-16 | M1 | Tooltip e GameWindow portati | PORT | DONE | task/M1-16 | merge 1981acd; Tooltips.data iniettabile (05 §2) |
 | M1-17 | M1 | Toast portati | PORT | DONE | task/M1-17 | merge ecbf36b, docs aae6438; 386ea12..a6d6f0a; 18 test, run_checks 200/200; bank_changed con delta |
 | M1-18 | M1 | Bank minima | UI | TODO | | |
 | M1-19 | M1 | Test di integrazione di M1 | QA | TODO | | ownership estesa: tools/run_checks.ps1 (validate_data.gd su fixture e dati veri) |
