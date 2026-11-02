@@ -28,7 +28,7 @@ Se la sessione si interrompe, si riparte da qui.
 | M1-13 | M1 | Menu principale e scelta dello slot | UI | TODO | | |
 | M1-14 | M1 | Schermata principale: sidebar, barra in alto, PageHost | UI | TODO | | |
 | M1-15 | M1 | Pagina skill (raccolta) e componenti base | UI | TODO | | |
-| M1-16 | M1 | Tooltip e GameWindow portati | PORT | IN_PROGRESS | task/M1-16 | |
+| M1-16 | M1 | Tooltip e GameWindow portati | PORT | REVIEW | task/M1-16 | in coda dopo M1-05 |
 | M1-17 | M1 | Toast portati | PORT | DONE | task/M1-17 | merge ecbf36b, docs aae6438; 386ea12..a6d6f0a; 18 test, run_checks 200/200; bank_changed con delta |
 | M1-18 | M1 | Bank minima | UI | TODO | | |
 | M1-19 | M1 | Test di integrazione di M1 | QA | TODO | | ownership estesa: tools/run_checks.ps1 (validate_data.gd su fixture e dati veri) |
