@@ -246,8 +246,13 @@ func areas() -> Array[AreaDef]                        # ordinate per order
 func monster(id: StringName) -> MonsterDef
 func shop_entry(id: StringName) -> ShopEntryDef
 func shop_entries() -> Array[ShopEntryDef]
-func hints() -> Array[HintDef]                        # M6
-func fractures() -> Array[FractureDef]                # M7
+func hints() -> Array[HintDef]                        # M6: lo aggiunge M6-04 (non esiste in M1-04)
+func fractures() -> Array[FractureDef]                # M7: lo aggiunge M7-01 (non esiste in M1-04)
+const LOG_CATEGORY: String = "data"
+const BALANCE_FILE: String = "balance.json"           # in config_root
+const STATS_FILE: String = "stats.json"               # in config_root
+const CONTENT_FILES: Dictionary[String, String]       # sezione a file unico -> percorso relativo a content_root
+const CONTENT_DIRS: Dictionary[String, String]        # sezione a cartella ("items", "actions", "mastery") -> cartella
 
 class_name JsonLoader extends RefCounted
 static func load_file(path: String, errors: PackedStringArray) -> Variant      # null se manca o non valido
@@ -260,7 +265,30 @@ class_name DataValidator extends RefCounted
 const REQUIRED_BALANCE_KEYS: PackedStringArray       # tutte le chiavi di 02_FORMULAS.md §9 dell'MVP
 static func validate(raw: Dictionary, errors: PackedStringArray) -> void
     # raw = {"balance", "stats", "skills", "items", "actions", "mastery", "areas", "monsters", "shop"}
+    # ogni sezione: {percorso del file: oggetto di testa del file} (sezioni a file unico: esattamente una voce, altrimenti
+    # errore; cartelle: una voce per .json, anche zero). Il percorso compare nei messaggi e dà il nome del file con cui
+    # lo schema confronta `skill` (azioni, maestria) e `category` (oggetti)
+    # messaggi: "<percorso>: <tipo> '<id>': <messaggio>" (`<tipo> #<indice>` se la voce non ha un id usabile)
+const SKILL_CATEGORIES: PackedStringArray            # usata anche da GameData.skills_by_category
+static func lookup(d: Dictionary, path: String) -> Variant       # valore a un percorso puntato, null se manca un pezzo
+# helper usati da DataValidatorRules/DataValidatorItems (non API per gli altri moduli):
+static func entries(v: DataValidatorRules, content: Dictionary, list_key: String, extra: PackedStringArray = []) -> Array[Dictionary]
+static func icon(v: DataValidatorRules, e: Dictionary, dir: String) -> void
+static func file_skill(v: DataValidatorRules, content: Dictionary, path: String, categories: PackedStringArray) -> String
 ```
+- `GameData.load_from_dirs`: con un errore qualsiasi (caricamento o validazione) nessuna Def viene costruita,
+  `is_valid()` è falso e ogni lettura per id restituisce `null` + `Log.error`. `balance_value` restituisce i numeri come
+  `float` (JSON) e copie di oggetti e array.
+- `DataRegistry.reload()` sostituisce `data` anche se non valido (la UI mostra `data.errors`), logga ogni errore con
+  `Log.warn` e una riga `Log.error`.
+- `DataValidatorRules` (`data_validator_rules.gd`: strumenti per campi, tipi, intervalli, riferimenti, modificatori;
+  regole di maestria, aree, mostri) e `DataValidatorItems` (`data_validator_items.gd`: regole di oggetti, azioni, shop)
+  sono classi **interne** di `DataValidator`, non API per gli altri moduli. I limiti di formato dello schema
+  (regex degli id, `cost_pct` ≤ 50, `pos` 0..5, max 4 drop, `name` delle stat ≤ 40) sono costanti di queste classi;
+  i limiti che dipendono dal bilanciamento si leggono dai dati (`xp_curve.max_level`, `mastery_curve.max_level`,
+  `action.min_interval_ms`, `combat.min_attack_interval_ms`, `max` della stat `damage_reduction`).
+- `tools/validate_data.gd [-- <content_root> [<config_root>]]`: stampa gli errori ed esce con 1 se non validi; carica
+  `GameData` per percorso (in uno script `-s` l'autoload `Log` non è risolto in compilazione).
 
 Def (`res://core/data/defs/`, tutte `RefCounted`, campi in sola lettura per convenzione, `static func from_dict(d) -> X`):
 

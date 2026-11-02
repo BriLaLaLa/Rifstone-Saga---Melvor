@@ -10,7 +10,8 @@ Regole comuni a tutti i tipi:
 - I riferimenti (`item`, `skill`, `monster`, `requires`…) devono puntare a id esistenti.
 - Livelli: interi 1..99. Durate: interi in ms > 0. Quantità: interi ≥ 1. Probabilità: float 0..100 (punti percentuali).
 - Nessun campo sconosciuto (il validatore lo segnala come errore, per scovare refusi). Fa eccezione `_doc`, stringa di
-  commento ammessa a qualunque livello e ignorata.
+  commento ammessa a qualunque livello e ignorata, anche dentro le mappe `{skill_id: livello}` (`requirements`,
+  `requires.skills`); un `_doc` che non è una stringa è un campo sconosciuto.
 - Nomi e testi originali: niente nomi di skill, oggetti o mostri presi da Melvor Idle.
 
 ## 1. Modificatore (oggetto annidato)
@@ -127,8 +128,8 @@ ognuno `{"items": [...]}`. Campi comuni:
 | `value` | int ≥ 0 | oro dato dalla vendita (F-18); 0 = non vendibile |
 | `sort_order` | int | ordinamento nella bank dentro la categoria |
 | `equip` | object | obbligatorio per `equipment` e `tool`, vietato per gli altri |
-| `food` | object | obbligatorio per `food` |
-| `infusion` | object | obbligatorio per `infusion` |
+| `food` | object | obbligatorio per `food`, vietato per gli altri |
+| `infusion` | object | obbligatorio per `infusion`, vietato per gli altri |
 
 `equip`:
 | Campo | Tipo | Vincoli |
@@ -138,7 +139,8 @@ ognuno `{"items": [...]}`. Campi comuni:
 | `modifiers` | array | modificatori (§1) |
 | `weapon` | object | solo con `slot: weapon`: `style` (`blade`/`marksmanship`/`arcana`), `attack_interval_ms` (≥ 800), `two_handed` (bool) |
 
-`food`: `{"heal": int ≥ 1}`. `infusion`: `{"modifiers": [...], "unique": bool}` (default `false`).
+`food`: `{"heal": int ≥ 1}`. `infusion`: `{"modifiers": [...], "unique": bool}` (default `false`); `modifiers` ha almeno
+1 modificatore (un'infusione senza effetto sarebbe decorativa).
 
 Esempi:
 ```json
@@ -197,7 +199,7 @@ Un file per ogni skill di raccolta o artigianato (7 file). Le azioni di raccolta
 | `level` | int | 1..99 |
 | `interval_ms` | int | ≥ `action.min_interval_ms` |
 | `xp` | int | ≥ 1 |
-| `mastery` | bool | `true` per tutte le azioni dell'MVP |
+| `mastery` | bool | `true` per tutte le azioni dell'MVP (lo controlla `tests/data/test_data_validity.gd`, non il validatore: le fixture hanno un'azione `false`) |
 | `inputs` | array di `{item, qty}` | vuoto per `gathering`, non vuoto per `artisan` |
 | `outputs` | array di `{item, qty}` | almeno 1 |
 | `icon` | String | facoltativo (default: icona del primo output) |
@@ -285,10 +287,10 @@ Classi: `AreaDef`, `MonsterDef`, `DropEntry`. Icone dei mostri in `res://assets/
 ```
 | Campo | Tipo | Vincoli |
 |---|---|---|
-| `category` | String | `bank`, `combat`, `tools`, `materials`, `lanes` (M8) |
+| `category` | String | `bank`, `combat`, `tools`, `materials`, `lanes` (ammessa dal validatore solo da M8) |
 | `cost` | object | **o** `{"gold": int ≥ 1}` **o** `{"formula": "bank_slot"}` (F-17); nessun'altra formula nell'MVP |
 | `max_purchases` | int | ≥ 0; 0 = illimitato (solo per effetti `item`) |
-| `requires` | object | facoltativi `entries` (id dello shop), `skills` (`{skill: livello}`), `total_level` (int) |
+| `requires` | object | facoltativi `entries` (id dello shop), `skills` (`{skill: livello}`), `total_level` (int ≥ 0) |
 | `effect` | object | **o** `modifiers` **o** `item` (`{item, qty}`) |
 
 Classe: `ShopEntryDef`.

@@ -175,7 +175,9 @@ Regole per tutti i task:
 ### M1-04 · Validatore, GameData, DataRegistry, fixture
 - **Ruolo** CORE · **Stima** L · **Parallelizzabile** no · **Dipendenze** M1-01, M1-03, M0-05
 - **Ownership** `res://core/data/data_validator.gd`, `res://core/data/game_data.gd`, `res://core/autoload/data_registry.gd`,
-  `res://tools/validate_data.gd` (script `SceneTree` che stampa `errors` ed esce ≠ 0 se non validi), `res://tests/fixtures/data/**`, `res://tests/core/data/test_data_validator.gd`, `test_game_data.gd`
+  `res://tools/validate_data.gd` (script `SceneTree` che stampa `errors` ed esce ≠ 0 se non validi), `res://tests/fixtures/data/**`, `res://tests/core/data/test_data_validator.gd`, `test_game_data.gd`;
+  estesa: `res://core/data/data_validator_rules.gd`, `data_validator_items.gd`, `res://tests/core/data/test_data_validator_items.gd`,
+  `test_data_validator_combat.gd`, `res://core/data/defs/def_reader.gd` (solo `level_map`: salto di `_doc`)
 - **Leggere** `03_ARCHITECTURE.md` §10; `04_DATA_SCHEMA.md` tutto; `05_INTERFACES.md` §4
 - **Descrizione** Validazione di schema e riferimenti di `04_DATA_SCHEMA.md` (regole comuni + per tipo, campi sconosciuti,
   `REQUIRED_BALANCE_KEYS`, cicli nei `requires` dei nodi, stat dei modificatori nel registro, `rift_shard` presente).
@@ -353,7 +355,8 @@ Regole per tutti i task:
 ### M1-19 · Test di integrazione di M1
 - **Ruolo** QA · **Stima** M · **Parallelizzabile** no · **Dipendenze** M1-10, M1-11, M1-12
 - **Ownership** `res://tests/integration/test_gathering_loop.gd`, `test_save_roundtrip.gd`, `test_slot_isolation.gd`,
-  `test_item_conservation.gd`, `res://tests/data/test_stat_registry_coverage.gd`
+  `test_item_conservation.gd`, `res://tests/data/test_stat_registry_coverage.gd`, `res://tools/run_checks.ps1` (esegue
+  `tools/validate_data.gd -- res://tests/fixtures/data` e, dopo M1-12, `tools/validate_data.gd` sui dati veri; exit ≠ 0 se non validi)
 - **Leggere** `03_ARCHITECTURE.md` §7, §12; `02_FORMULAS.md` §11; `05_INTERFACES.md` §6, §8
 - **Descrizione** Flusso: partita nuova → 60 s di Selvicoltura via `advance` → XP, oggetti, maestria attesi (seme fisso);
   salva/ricarica identico (anche `elapsed_ms` e RNG); slot A e B non si influenzano; conservazione degli oggetti
@@ -650,7 +653,9 @@ Regole per tutti i task:
   (`hints()`), `res://core/data/data_validator.gd` (regole di `hints.json`), `res://core/autoload/event_bus.gd`
   (segnale `hint_triggered`), `res://core/session/game_session.gd` (registrazione), `res://tests/systems/hints/test_hints_system.gd`
 - **Leggere** `01_GDD.md` §14; `04_DATA_SCHEMA.md` §10; `05_INTERFACES.md` §3, §5.15
-- **Descrizione** Trigger di §10 collegati agli eventi della sessione; una volta per slot.
+- **Descrizione** Trigger di §10 collegati agli eventi della sessione; una volta per slot. Il validatore è in 3 file
+  (`data_validator.gd`, `data_validator_rules.gd`, `data_validator_items.gd`): le regole nuove vanno nel file del dominio o,
+  se un file supera ~360 righe, in un file proprio (`data_validator_hints.gd`, stessa ownership).
 - **Accettazione / Test** un suggerimento visto in uno slot non è visto nell'altro.
 
 ### M6-05 · Contenuto dei suggerimenti
@@ -698,6 +703,8 @@ Regole per tutti i task:
   `res://tests/systems/fractures/test_fracture_system.gd`
 - **Leggere** `01_GDD.md` §17; `02_FORMULAS.md` F-50; `04_DATA_SCHEMA.md` §11; `05_INTERFACES.md` §5.15
 - **Descrizione / Accettazione** F-50 riprodotta; stato salvato; funziona anche durante l'offline. **Test** il file (incluso `test_duration_pct`).
+  Il validatore è in 3 file (`data_validator.gd`, `data_validator_rules.gd`, `data_validator_items.gd`): le regole nuove
+  vanno nel file del dominio o, se un file supera ~360 righe, in un file proprio (`data_validator_fractures.gd`, stessa ownership).
 
 ### M7-02 · Dati delle Fratture
 - **Ruolo** DATA · **Stima** S · **Parallelizzabile** sì · **Dipendenze** M6-08
