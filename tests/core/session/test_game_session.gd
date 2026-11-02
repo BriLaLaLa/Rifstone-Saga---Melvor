@@ -52,6 +52,11 @@ class ProbeSession:
 	func _init(game_data: GameData, game_events: GameEvents, rng_seed: int) -> void:
 		super(game_data, game_events, rng_seed)
 
+	# Fake systems own the advance phases here: the ticks of the real systems (actions) are not registered.
+	func _tick(phase: int, advance_fn: Callable) -> void:
+		if advance_fn.get_object() is FakeSystem:
+			super(phase, advance_fn)
+
 	func add_fake(key: StringName, phase: int = -1) -> FakeSystem:
 		var fake: FakeSystem = FakeSystem.new(key, self, calls)
 		_join(key, fake.new_game, fake.to_save, fake.from_save, fake.rebuild_modifiers)
@@ -77,6 +82,7 @@ func test_new_session_creates_rng_modifiers_and_registered_systems() -> void:
 	assert_not_null(session.bank)
 	assert_not_null(session.skills)
 	assert_not_null(session.mastery)
+	assert_not_null(session.actions)
 	assert_eq(session.play_time_ms, 0)
 
 
@@ -102,6 +108,7 @@ func test_to_save_writes_the_header() -> void:
 	assert_eq(modules[String(Bank.SAVE_KEY)], session.bank.to_save())
 	assert_eq(modules[String(SkillsSystem.SAVE_KEY)], session.skills.to_save())
 	assert_eq(modules[String(MasterySystem.SAVE_KEY)], session.mastery.to_save())
+	assert_eq(modules[String(ActionRunner.SAVE_KEY)], session.actions.to_save())
 
 
 func test_to_save_header_is_readable_as_slot_info_header() -> void:
@@ -132,20 +139,20 @@ func test_advance_without_systems_only_counts_play_time() -> void:
 func test_advance_follows_fixed_order_whatever_the_join_order() -> void:
 	var session: ProbeSession = _probe()
 	session.add_fake(&"combat", session.phase_combat())
-	session.add_fake(&"actions", session.phase_actions())
+	session.add_fake(&"lanes", session.phase_actions())
 	session.add_fake(&"fractures", session.phase_fractures())
 	session.advance(100)
 	session.advance(40)
-	assert_eq(session.calls, ["fractures:100", "actions:100", "combat:100", "fractures:40", "actions:40", "combat:40"])
+	assert_eq(session.calls, ["fractures:100", "lanes:100", "combat:100", "fractures:40", "lanes:40", "combat:40"])
 	assert_eq(session.play_time_ms, 140)
 
 
 func test_advance_skips_missing_systems() -> void:
 	var session: ProbeSession = _probe()
-	session.add_fake(&"actions", session.phase_actions())
+	session.add_fake(&"lanes", session.phase_actions())
 	session.add_fake(&"ledger")
 	session.advance(100)
-	assert_eq(session.calls, ["actions:100"])
+	assert_eq(session.calls, ["lanes:100"])
 
 
 func test_new_game_resets_systems_in_join_order_and_rebuilds_modifiers_once() -> void:
