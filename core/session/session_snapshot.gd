@@ -21,4 +21,9 @@ static func take(session: GameSession) -> SessionSnapshot:
 		for def: SkillDef in session.data.skills():
 			snapshot.xp[def.id] = session.skills.get_xp(def.id)
 			snapshot.levels[def.id] = session.skills.get_level(def.id)
+	if session.bank != null:
+		for stack: Dictionary in session.bank.stacks():
+			snapshot.bank[stack["item"]] = stack["count"]
+	if session.wallet != null:
+		snapshot.gold = session.wallet.get_gold()
 	return snapshot

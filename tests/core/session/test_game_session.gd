@@ -69,10 +69,13 @@ class ProbeSession:
 		return _PHASE_COMBAT
 
 
-func test_new_session_has_only_rng_and_modifiers() -> void:
+func test_new_session_creates_rng_modifiers_and_registered_systems() -> void:
 	var session: GameSession = _session()
 	assert_not_null(session.rng)
 	assert_not_null(session.modifiers)
+	assert_not_null(session.wallet)
+	assert_not_null(session.bank)
+	assert_not_null(session.skills)
 	assert_eq(session.play_time_ms, 0)
 
 
@@ -93,7 +96,10 @@ func test_to_save_writes_the_header() -> void:
 	assert_eq(saved["total_level"], session.data.skills().size())
 	assert_eq(saved["rng"], session.rng.to_save())
 	assert_eq((saved["rng"] as Dictionary)["seed"], 918273)
-	assert_eq((saved["modules"] as Dictionary)[String(SkillsSystem.SAVE_KEY)], session.skills.to_save())
+	var modules: Dictionary = saved["modules"]
+	assert_eq(modules[String(Wallet.SAVE_KEY)], session.wallet.to_save())
+	assert_eq(modules[String(Bank.SAVE_KEY)], session.bank.to_save())
+	assert_eq(modules[String(SkillsSystem.SAVE_KEY)], session.skills.to_save())
 
 
 func test_to_save_header_is_readable_as_slot_info_header() -> void:
@@ -135,7 +141,7 @@ func test_advance_follows_fixed_order_whatever_the_join_order() -> void:
 func test_advance_skips_missing_systems() -> void:
 	var session: ProbeSession = _probe()
 	session.add_fake(&"actions", session.phase_actions())
-	session.add_fake(&"wallet")
+	session.add_fake(&"ledger")
 	session.advance(100)
 	assert_eq(session.calls, ["actions:100"])
 
@@ -243,14 +249,20 @@ func test_factory_session_uses_its_own_events_and_fixtures() -> void:
 	assert_eq(session.rng.to_save()["seed"], 77)
 
 
-func test_snapshot_of_session_without_systems_is_empty() -> void:
-	var snapshot: SessionSnapshot = SessionSnapshot.take(_session())
-	assert_eq(snapshot.xp.size(), TestFactory.fixture_data().skills().size())
-	for skill_id: StringName in snapshot.xp:
-		assert_eq(snapshot.xp[skill_id], 0)
-		assert_eq(snapshot.levels[skill_id], 1)
-	assert_eq(snapshot.bank, {})
-	assert_eq(snapshot.gold, 0)
+func test_snapshot_reads_registered_systems() -> void:
+	var session: GameSession = autofree(TestFactory.session())
+	var skill_id: StringName = session.data.skills()[0].id
+	TestFactory.set_level(session, skill_id, 2)
+	TestFactory.give(session, &"test_log", 3)
+	session.wallet.add_gold(7)
+	var snapshot: SessionSnapshot = SessionSnapshot.take(session)
+	assert_eq(snapshot.xp.size(), session.data.skills().size())
+	assert_eq(snapshot.levels.size(), session.data.skills().size())
+	assert_eq(snapshot.xp[skill_id], session.skills.get_xp(skill_id))
+	assert_eq(snapshot.levels[skill_id], 2)
+	assert_eq(snapshot.bank.size(), session.bank.used())
+	assert_eq(snapshot.bank[&"test_log"], 3)
+	assert_eq(snapshot.gold, int(session.data.balance_value("start.gold")) + 7)
 	assert_eq(snapshot.kills, {})
 	assert_eq(snapshot.deaths, 0)
 	assert_eq(snapshot.food_eaten, 0)

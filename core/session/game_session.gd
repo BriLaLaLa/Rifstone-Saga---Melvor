@@ -22,14 +22,16 @@ var data: GameData
 var events: GameEvents
 var rng: RngService
 var modifiers: ModifierService
-# The other system fields of docs/05_INTERFACES.md §5.3 are declared by the task that creates each system.
+var wallet: Wallet
+var bank: Bank
 var skills: SkillsSystem
+# The other system fields of docs/05_INTERFACES.md §5.3 are declared by the task that creates each system.
 var slot: int = -1
 var player_name: String = ""
 var created_at_unix_ms: int = 0
 var play_time_ms: int = 0
 
-var _participants: Array[_Participant] = []
+var _participants: SessionParticipants = SessionParticipants.new()
 # phase -> advance(delta_ms) of the system in that phase; an empty Callable = no system.
 var _steps: Array[Callable] = []
 
@@ -48,8 +50,7 @@ func _init(game_data: GameData, game_events: GameEvents, rng_seed: int) -> void:
 ## Initial state of a new game (docs/01_GDD.md §1.1) in every system, then the modifiers.
 func new_game() -> void:
 	play_time_ms = 0
-	for p: _Participant in _participants:
-		p.new_game.call()
+	_participants.new_game()
 	rebuild_modifiers()
 
 
@@ -63,9 +64,6 @@ func advance(delta_ms: int) -> void:
 
 ## The complete slot file (docs/05_INTERFACES.md §6).
 func to_save(now_unix_ms: int) -> Dictionary:
-	var modules: Dictionary = {}
-	for p: _Participant in _participants:
-		modules[String(p.key)] = p.to_save.call()
 	return {
 		SaveMigrator.FORMAT_VERSION_KEY: SaveMigrator.CURRENT_VERSION,
 		"game_version": str(ProjectSettings.get_setting(GAME_VERSION_SETTING, "")),
@@ -76,7 +74,7 @@ func to_save(now_unix_ms: int) -> Dictionary:
 		"play_time_ms": play_time_ms,
 		"total_level": total_level(),
 		RNG_KEY: rng.to_save(),
-		MODULES_KEY: modules,
+		MODULES_KEY: _participants.to_save(),
 	}
 
 
@@ -101,7 +99,7 @@ func from_save(d: Dictionary) -> CommandResult:
 	play_time_ms = header["play_time_ms"]
 	player_name = d["player_name"]
 	rng.from_save(d[RNG_KEY])
-	_load_modules(modules)
+	_participants.from_save(modules)
 	rebuild_modifiers()
 	return CommandResult.success()
 
@@ -110,9 +108,7 @@ func from_save(d: Dictionary) -> CommandResult:
 func rebuild_modifiers() -> void:
 	modifiers.begin_batch()
 	modifiers.clear_all()
-	for p: _Participant in _participants:
-		if p.rebuild.is_valid():
-			p.rebuild.call()
+	_participants.rebuild()
 	modifiers.end_batch()
 
 
@@ -124,6 +120,10 @@ func total_level() -> int:
 # Per system, in dependency order: `wallet = Wallet.new(self)` then
 # `_join(Wallet.SAVE_KEY, wallet.new_game, wallet.to_save, wallet.from_save[, wallet.rebuild_modifiers])`.
 func _create_systems() -> void:
+	wallet = Wallet.new(self)
+	_join(Wallet.SAVE_KEY, wallet.new_game, wallet.to_save, wallet.from_save)
+	bank = Bank.new(self)
+	_join(Bank.SAVE_KEY, bank.new_game, bank.to_save, bank.from_save)
 	skills = SkillsSystem.new(self)
 	_join(SkillsSystem.SAVE_KEY, skills.new_game, skills.to_save, skills.from_save)
 
@@ -131,16 +131,7 @@ func _create_systems() -> void:
 # Registers a SaveParticipant (docs/05_INTERFACES.md: SAVE_KEY, new_game, to_save, from_save).
 func _join(key: StringName, new_game_fn: Callable, to_save_fn: Callable, from_save_fn: Callable,
 		rebuild_fn: Callable = Callable()) -> void:
-	for p: _Participant in _participants:
-		assert(p.key != key, "duplicate SAVE_KEY '%s'" % key)
-	var p: _Participant = _Participant.new()
-	p.key = key
-	p.new_game = new_game_fn
-	p.to_save = to_save_fn
-	p.from_save = from_save_fn
-	p.rebuild = rebuild_fn
-	p.system = to_save_fn.get_object()
-	_participants.append(p)
+	_participants.join(key, new_game_fn, to_save_fn, from_save_fn, rebuild_fn)
 
 
 # Registers the advance of the system that runs in `phase`.
@@ -148,23 +139,6 @@ func _tick(phase: int, advance_fn: Callable) -> void:
 	assert(phase >= 0 and phase < _PHASE_COUNT, "unknown advance phase %d" % phase)
 	assert(not _steps[phase].is_valid(), "advance phase %d already taken" % phase)
 	_steps[phase] = advance_fn
-
-
-func _load_modules(modules: Dictionary) -> void:
-	var known: Dictionary[String, bool] = {}
-	for p: _Participant in _participants:
-		var key: String = String(p.key)
-		known[key] = true
-		var block: Variant = modules.get(key)
-		if block is Dictionary:
-			p.from_save.call(block)
-		else:
-			if block != null:
-				Log.warn(LOG_CATEGORY, "module '%s' is not an object: new game state" % key)
-			p.new_game.call()
-	for key: Variant in modules:
-		if not known.has(str(key)):
-			Log.warn(LOG_CATEGORY, "unknown module '%s' ignored" % str(key))
 
 
 # int from an int or an integral float (JSON); null when missing or not integral.
@@ -182,15 +156,3 @@ func _int_field(d: Dictionary, key: String) -> Variant:
 func _load_failed(reason: StringName, detail: String) -> CommandResult:
 	Log.warn(LOG_CATEGORY, "load failed (%s): %s" % [reason, detail])
 	return CommandResult.fail(reason)
-
-
-# The four SaveParticipant callables of one system, plus its optional modifier rebuild.
-class _Participant:
-	extends RefCounted
-
-	var key: StringName
-	var new_game: Callable
-	var to_save: Callable
-	var from_save: Callable
-	var rebuild: Callable
-	var system: Object # Callables do not keep a RefCounted alive: the participant does.

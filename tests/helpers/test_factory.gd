@@ -38,11 +38,13 @@ static func session(seed_value: int = 1234, data: GameData = null) -> GameSessio
 	return result
 
 
-## Adds items through bank.add and asserts it succeeds. Needs Bank (M1-07).
+## Adds items through bank.add and asserts it succeeds.
 static func give(session: GameSession, item_id: StringName, qty: int) -> void:
 	assert(session != null, "TestFactory.give needs a session")
-	push_error("TestFactory.give(%s, %d): Bank does not exist yet (M1-07)" % [item_id, qty])
-	assert(false, "TestFactory.give needs Bank (M1-07)")
+	var result: CommandResult = session.bank.add(item_id, qty)
+	if not result.ok:
+		push_error("TestFactory.give(%s, %d) failed: %s" % [item_id, qty, result.reason])
+	assert(result.ok, "TestFactory.give failed")
 
 
 ## Raises a skill to `level` through skills.add_xp with the missing xp_for_level (emits xp_gained/level_up).
