@@ -219,7 +219,8 @@ Regole per tutti i task:
 - **Leggere** `01_GDD.md` §7-8; `02_FORMULAS.md` F-16; `05_INTERFACES.md` §5.4-5.5, §6
 - **Descrizione** Come da interfacce. `start.gold` e `start.items` applicati in `new_game` di Wallet/Bank.
 - **Accettazione** un oggetto nuovo con bank piena → `bank_full` + `bank_rejected`; quantità 0 libera la casella; capienza
-  segue `bank_slots`; ordine conservato nel salvataggio.
+  segue `bank_slots`; ordine conservato nel salvataggio; ogni variazione emette `bank_changed(item_id, new_count, delta)`
+  con il `delta` con segno di quella operazione.
 - **Test** `test_wallet.gd`, `test_bank.gd` (incluso `test_capacity_uses_bank_slots`, F-16).
 
 ### M1-08 · Skill ed esperienza

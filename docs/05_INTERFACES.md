@@ -188,7 +188,7 @@ func hide_tooltip() -> void
 | `mastery_level_up` | `skill_id: StringName, action_id: StringName, new_level: int` | MasterySystem | |
 | `mastery_pool_changed` | `skill_id: StringName, pool_xp: int` | MasterySystem | |
 | `mastery_node_purchased` | `skill_id: StringName, node_id: StringName` | MasterySystem | |
-| `bank_changed` | `item_id: StringName, new_count: int` | Bank | ogni variazione |
+| `bank_changed` | `item_id: StringName, new_count: int, delta: int` | Bank | ogni variazione; `delta` = variazione con segno di quella singola operazione (`new_count` dopo − prima). La Bank (M1-07) deve emetterlo così; la UI non ricava il delta da copie delle quantità |
 | `bank_capacity_changed` | `used: int, capacity: int` | Bank | variano caselle usate o capienza |
 | `bank_rejected` | `item_id: StringName, qty: int` | Bank | `add` fallita per bank piena |
 | `gold_changed` | `new_amount: int, delta: int` | Wallet | |
@@ -699,8 +699,21 @@ class_name ConfirmDialog extends ConfirmationDialog   # ui/components/confirm_di
 static func ask(parent: Node, title: String, text: String) -> bool   # coroutine
 
 class_name ToastManager extends Control            # ui/components/toast/toast_manager.gd (nella MainScreen)
-func push(text: String, kind: StringName) -> void
+var events: GameEvents = null                      # null = autoload EventBus; i test passano GameEvents.new()
+var time_source: Callable = Time.get_ticks_msec    # () -> int, millisecondi
+var name_resolver: Callable                        # (id: StringName) -> String; default: l'id stesso
+func push(text: String, kind: StringName) -> void  # kind: &"info" | &"success" | &"warning"
+
+class_name Toast extends PanelContainer            # ui/components/toast/toast.gd (+ toast.tscn), interno a ToastManager
+signal dismissed                                   # fine della dissolvenza, prima di queue_free
+func setup(text: String, kind: StringName) -> void # kind sconosciuto: Log.warn e mostrato come info
+func dismiss() -> void                             # idempotente
 ```
+`ToastManager`: le variabili iniettabili si impostano prima di aggiungere il nodo all'albero (connessione in
+`_enter_tree`, disconnessione in `_exit_tree`). Ascolta `notification_requested`, `bank_changed` (solo `delta > 0`,
+sommati per oggetto in una finestra di `UiStyle.TOAST_GROUP_MS` dal primo aumento), `level_up`, `action_stopped`
+(nessun toast per `stopped_by_user` e `replaced`); `session_ended` scarta i gruppi aperti. Al massimo
+`UiStyle.TOAST_MAX_VISIBLE` toast visibili, gli altri in coda. Le costanti di presentazione sono `UiStyle.TOAST_*`.
 Le pagine non tengono stato di gioco: solo riferimenti alla sessione e ai nodi. Ogni ridisegno legge dai getter.
 
 ## 8. Helper dei test (`res://tests/helpers/`)
