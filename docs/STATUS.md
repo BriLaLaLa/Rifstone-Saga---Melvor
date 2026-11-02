@@ -6,19 +6,19 @@ Se la sessione si interrompe, si riparte da qui.
 | ID | Milestone | Titolo | Ruolo | Stato | Branch | Note |
 |---|---|---|---|---|---|---|
 | M0-01 | M0 | Root, project.godot, cartelle, git | REV | DONE | task/M0-01 | merge 5e82b06, docs ad92606; c6b5573; sottocartella svuotata, cartella vuota bloccata da processo (da rimuovere a mano); criterio --quit sostituito con --editor --quit |
-| M0-02 | M0 | GUT e hook dei test | PORT | IN_PROGRESS | task/M0-02 | |
-| M0-03 | M0 | Autoload e tipi comuni | CORE | TODO | | |
-| M0-04 | M0 | Tema UI portato da RiftStone | PORT | IN_PROGRESS | task/M0-04 | |
+| M0-02 | M0 | GUT e hook dei test | PORT | DONE | task/M0-02 | merge cbd80dd, docs CLAUDE.md 93cf74c; 916b7e4, 65c8eb2; 1/1 verde |
+| M0-03 | M0 | Autoload e tipi comuni | CORE | IN_PROGRESS | task/M0-03 | |
+| M0-04 | M0 | Tema UI portato da RiftStone | PORT | REVIEW | task/M0-04 | bc54859..bc654ff; run GUT da fare in review |
 | M0-05 | M0 | Configurazione di bilanciamento e registro delle stat | DATA | TODO | | |
 | M0-06 | M0 | Menu segnaposto e scena principale | UI | TODO | | |
-| M0-07 | M0 | Script di test e di controllo | QA | TODO | | |
+| M0-07 | M0 | Script di test e di controllo | QA | IN_PROGRESS | task/M0-07 | |
 | M0-08 | M0 | Integrazione di M0 | REV | TODO | | |
 | M1-01 | M1 | Tabella dell'esperienza | CORE | TODO | | |
 | M1-02 | M1 | Sistema dei modificatori | CORE | TODO | | |
 | M1-03 | M1 | Classi Def e caricatore JSON | CORE | TODO | | |
 | M1-04 | M1 | Validatore, GameData, DataRegistry, fixture | CORE | TODO | | |
 | M1-05 | M1 | Casualità, sessione, snapshot, factory dei test | CORE | TODO | | |
-| M1-06 | M1 | Salvataggio per slot con versioni | CORE | TODO | | |
+| M1-06 | M1 | Salvataggio per slot con versioni | CORE | TODO | | tipizzare gut_pre_run.gd (cast as SaveStore al posto di set()) — richiede ownership di tests/helpers/gut_pre_run.gd |
 | M1-07 | M1 | Wallet e Bank | CORE | TODO | | |
 | M1-08 | M1 | Skill ed esperienza | CORE | TODO | | |
 | M1-09 | M1 | Maestria per oggetto e pool | CORE | TODO | | |
