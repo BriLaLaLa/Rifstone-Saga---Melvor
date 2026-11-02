@@ -23,6 +23,7 @@ var events: GameEvents
 var rng: RngService
 var modifiers: ModifierService
 # The other system fields of docs/05_INTERFACES.md §5.3 are declared by the task that creates each system.
+var skills: SkillsSystem
 var slot: int = -1
 var player_name: String = ""
 var created_at_unix_ms: int = 0
@@ -115,15 +116,16 @@ func rebuild_modifiers() -> void:
 	modifiers.end_batch()
 
 
-## Sum of the skill levels; 0 until SkillsSystem exists (M1-08).
+## Sum of the skill levels.
 func total_level() -> int:
-	return 0
+	return skills.total_level()
 
 
 # Per system, in dependency order: `wallet = Wallet.new(self)` then
 # `_join(Wallet.SAVE_KEY, wallet.new_game, wallet.to_save, wallet.from_save[, wallet.rebuild_modifiers])`.
 func _create_systems() -> void:
-	pass
+	skills = SkillsSystem.new(self)
+	_join(SkillsSystem.SAVE_KEY, skills.new_game, skills.to_save, skills.from_save)
 
 
 # Registers a SaveParticipant (docs/05_INTERFACES.md: SAVE_KEY, new_game, to_save, from_save).

@@ -90,10 +90,10 @@ func test_to_save_writes_the_header() -> void:
 	assert_eq(saved["created_at_unix_ms"], 1793600000000)
 	assert_eq(saved["saved_at_unix_ms"], NOW_MS)
 	assert_eq(saved["play_time_ms"], 3600000)
-	assert_eq(saved["total_level"], 0)
+	assert_eq(saved["total_level"], session.data.skills().size())
 	assert_eq(saved["rng"], session.rng.to_save())
 	assert_eq((saved["rng"] as Dictionary)["seed"], 918273)
-	assert_eq(saved["modules"], {})
+	assert_eq((saved["modules"] as Dictionary)[String(SkillsSystem.SAVE_KEY)], session.skills.to_save())
 
 
 func test_to_save_header_is_readable_as_slot_info_header() -> void:
@@ -109,7 +109,9 @@ func test_to_save_writes_each_joined_module() -> void:
 	var session: ProbeSession = _probe()
 	session.add_fake(&"alpha").value = 4
 	session.add_fake(&"beta").value = 9
-	assert_eq(session.to_save(NOW_MS)["modules"], {"alpha": {"value": 4}, "beta": {"value": 9}})
+	var modules: Dictionary = session.to_save(NOW_MS)["modules"]
+	assert_eq(modules["alpha"], {"value": 4})
+	assert_eq(modules["beta"], {"value": 9})
 
 
 func test_advance_without_systems_only_counts_play_time() -> void:
@@ -243,8 +245,10 @@ func test_factory_session_uses_its_own_events_and_fixtures() -> void:
 
 func test_snapshot_of_session_without_systems_is_empty() -> void:
 	var snapshot: SessionSnapshot = SessionSnapshot.take(_session())
-	assert_eq(snapshot.xp, {})
-	assert_eq(snapshot.levels, {})
+	assert_eq(snapshot.xp.size(), TestFactory.fixture_data().skills().size())
+	for skill_id: StringName in snapshot.xp:
+		assert_eq(snapshot.xp[skill_id], 0)
+		assert_eq(snapshot.levels[skill_id], 1)
 	assert_eq(snapshot.bank, {})
 	assert_eq(snapshot.gold, 0)
 	assert_eq(snapshot.kills, {})

@@ -17,4 +17,8 @@ var food_eaten: int = 0
 static func take(session: GameSession) -> SessionSnapshot:
 	assert(session != null, "SessionSnapshot.take needs a session")
 	var snapshot: SessionSnapshot = SessionSnapshot.new()
+	if session.skills != null:
+		for def: SkillDef in session.data.skills():
+			snapshot.xp[def.id] = session.skills.get_xp(def.id)
+			snapshot.levels[def.id] = session.skills.get_level(def.id)
 	return snapshot

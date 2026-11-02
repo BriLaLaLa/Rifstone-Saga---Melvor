@@ -45,11 +45,17 @@ static func give(session: GameSession, item_id: StringName, qty: int) -> void:
 	assert(false, "TestFactory.give needs Bank (M1-07)")
 
 
-## Sets a skill level through skills.add_xp with xp_for_level. Needs SkillsSystem (M1-08).
+## Raises a skill to `level` through skills.add_xp with the missing xp_for_level (emits xp_gained/level_up).
+## Call it before adding skill_xp_pct modifiers and only upwards: it asserts the level is exactly reached.
 static func set_level(session: GameSession, skill_id: StringName, level: int) -> void:
 	assert(session != null, "TestFactory.set_level needs a session")
-	push_error("TestFactory.set_level(%s, %d): SkillsSystem does not exist yet (M1-08)" % [skill_id, level])
-	assert(false, "TestFactory.set_level needs SkillsSystem (M1-08)")
+	var missing: int = session.data.xp_table().xp_for_level(level) - session.skills.get_xp(skill_id)
+	if missing > 0:
+		session.skills.add_xp(skill_id, missing)
+	var reached: int = session.skills.get_level(skill_id)
+	if reached != level:
+		push_error("TestFactory.set_level(%s, %d): level is %d" % [skill_id, level, reached])
+	assert(reached == level, "TestFactory.set_level(%s, %d) did not reach the level" % [skill_id, level])
 
 
 static func _load(content_root: String) -> GameData:
