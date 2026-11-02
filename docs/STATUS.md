@@ -21,7 +21,7 @@ Se la sessione si interrompe, si riparte da qui.
 | M1-06 | M1 | Salvataggio per slot con versioni | CORE | DONE | task/M1-06 | merge 7f84ef2, docs fb30c65; 8cf567f..9f66f2c; 44 test, run_checks 126/126; scrittura 200 KB ~10-12 ms |
 | M1-07 | M1 | Wallet e Bank | CORE | DONE | task/M1-07 | merge 7d91052; la Bank emette bank_changed(item_id, new_count, delta) con delta con segno; ownership estesa: TestFactory.give, SessionSnapshot.take (bank, oro); campo tipizzato + _join in game_session.gd; sposta _Participant in core/session/session_participants.gd |
 | M1-08 | M1 | Skill ed esperienza | CORE | DONE | task/M1-08 | merge 718a32d; ownership estesa: GameSession.total_level(), TestFactory.set_level, SessionSnapshot.take (xp, livelli) |
-| M1-09 | M1 | Maestria per oggetto e pool | CORE | IN_PROGRESS | task/M1-09 | |
+| M1-09 | M1 | Maestria per oggetto e pool | CORE | REVIEW | task/M1-09 | in review |
 | M1-10 | M1 | ActionRunner e raccolta | CORE | TODO | | |
 | M1-11 | M1 | Game: menu → slot → partita | CORE | TODO | | tipizzare Game.session (GameSession) e list_slots (Array[SlotInfo]); chiamare GameClock.configure da balance.json |
 | M1-12 | M1 | Contenuto: le 12 skill e Selvicoltura | DATA | DONE | task/M1-12 | merge 9201158; Ownership estesa a areas/monsters/shop.json vuoti (DECISIONS_LOG) |
@@ -31,7 +31,7 @@ Se la sessione si interrompe, si riparte da qui.
 | M1-16 | M1 | Tooltip e GameWindow portati | PORT | DONE | task/M1-16 | merge 1981acd; Tooltips.data iniettabile (05 §2) |
 | M1-17 | M1 | Toast portati | PORT | DONE | task/M1-17 | merge ecbf36b, docs aae6438; 386ea12..a6d6f0a; 18 test, run_checks 200/200; bank_changed con delta |
 | M1-18 | M1 | Bank minima | UI | TODO | | |
-| M1-19 | M1 | Test di integrazione di M1 | QA | TODO | | ownership estesa: tools/run_checks.ps1 (validate_data.gd su fixture e dati veri) |
+| M1-19 | M1 | Test di integrazione di M1 | QA | TODO | | ownership estesa: tools/run_checks.ps1 (validate_data.gd su fixture e dati veri); proposta di M1-09: mastery_bonuses di artigianato su test_craft nelle fixture per testare F-11 artigianato a livello di sistema |
 | M1-20 | M1 | Integrazione di M1 | REV | TODO | | |
 | M2-01 | M2 | Nodi della maestria | CORE | TODO | | |
 | M2-02 | M2 | Contenuto: Cavatura, Lenza, nodi della raccolta | DATA | TODO | | aggiungere quarrying e angling a GATHERING_WITH_ACTIONS in test_data_validity.gd |
