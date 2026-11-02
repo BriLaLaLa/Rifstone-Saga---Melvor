@@ -23,27 +23,14 @@ static func can_load(d: Dictionary) -> bool:
 
 ## Returns a migrated deep copy (the input is not changed), or {} if the chain cannot reach CURRENT_VERSION.
 static func migrate(d: Dictionary) -> Dictionary:
-	return _migrate_chain(d, CURRENT_VERSION, _step_from_file)
+	return migrate_chain(d, CURRENT_VERSION, _step_from_file)
 
 
-static func _has_format_version(d: Dictionary) -> bool:
-	var value: Variant = d.get(FORMAT_VERSION_KEY)
-	if value is int:
-		return true
-	if value is float:
-		var number: float = value as float
-		return is_finite(number) and number == floorf(number)
-	return false
-
-
-static func _format_version(d: Dictionary) -> int:
-	return int(d.get(FORMAT_VERSION_KEY, 0))
-
-
-# The chain is separate from migrate() so the tests can drive it with a fake step and a target above
-# CURRENT_VERSION: step_for(from_version) returns the Callable that migrates from_version to from_version + 1,
-# or an invalid Callable if there is none.
-static func _migrate_chain(d: Dictionary, target_version: int, step_for: Callable) -> Dictionary:
+## Brings d from its format_version to target_version; migrate() uses it with CURRENT_VERSION and the files in
+## MIGRATIONS_DIR, tests with fake steps. step_for(from_version) returns the Callable that migrates from_version
+## to from_version + 1, or an invalid Callable if there is none. Returns a deep copy (the input is not changed)
+## with format_version = target_version, or {} if a step is missing or fails or d is newer than target_version.
+static func migrate_chain(d: Dictionary, target_version: int, step_for: Callable) -> Dictionary:
 	if not _has_format_version(d):
 		Log.warn(LOG_CATEGORY, "cannot migrate: format_version missing or not an integer")
 		return {}
@@ -66,6 +53,20 @@ static func _migrate_chain(d: Dictionary, target_version: int, step_for: Callabl
 		out = migrated as Dictionary
 		out[FORMAT_VERSION_KEY] = version
 	return out
+
+
+static func _has_format_version(d: Dictionary) -> bool:
+	var value: Variant = d.get(FORMAT_VERSION_KEY)
+	if value is int:
+		return true
+	if value is float:
+		var number: float = value as float
+		return is_finite(number) and number == floorf(number)
+	return false
+
+
+static func _format_version(d: Dictionary) -> int:
+	return int(d.get(FORMAT_VERSION_KEY, 0))
 
 
 static func _step_from_file(from_version: int) -> Callable:

@@ -1,8 +1,8 @@
 extends GutTest
 ## SaveMigrator: version check and migration chain.
 ##
-## CURRENT_VERSION is 1 and there are no real migrations yet, so the chain is driven through its private seam
-## _migrate_chain with fake steps defined here (reported in M1-06: the contract has no public seam for it).
+## CURRENT_VERSION is 1 and there are no real migrations yet, so the chain is driven through migrate_chain
+## with fake steps defined here and targets above CURRENT_VERSION.
 
 
 class FakeSteps:
@@ -88,7 +88,7 @@ func test_migrate_missing_version_returns_empty() -> void:
 
 
 func test_chain_applies_steps_in_order() -> void:
-	var out: Dictionary = SaveMigrator._migrate_chain({"format_version": 1, "gold": 7}, 3, _all_steps)
+	var out: Dictionary = SaveMigrator.migrate_chain({"format_version": 1, "gold": 7}, 3, _all_steps)
 	assert_eq(out["order"], "1>2;2>3;")
 	assert_eq(out["coins"], 7)
 	assert_false(out.has("gold"))
@@ -97,20 +97,20 @@ func test_chain_applies_steps_in_order() -> void:
 
 
 func test_chain_starts_from_file_version() -> void:
-	var out: Dictionary = SaveMigrator._migrate_chain({"format_version": 2}, 3, _all_steps)
+	var out: Dictionary = SaveMigrator.migrate_chain({"format_version": 2}, 3, _all_steps)
 	assert_eq(out["order"], "2>3;")
 	assert_eq(out["format_version"], 3)
 
 
 func test_chain_does_not_change_input() -> void:
 	var d: Dictionary = {"format_version": 1, "gold": 7}
-	SaveMigrator._migrate_chain(d, 3, _all_steps)
+	SaveMigrator.migrate_chain(d, 3, _all_steps)
 	assert_eq(d, {"format_version": 1, "gold": 7})
 
 
 func test_chain_with_missing_step_returns_empty() -> void:
-	assert_eq(SaveMigrator._migrate_chain({"format_version": 1}, 3, _only_first_step), {})
+	assert_eq(SaveMigrator.migrate_chain({"format_version": 1}, 3, _only_first_step), {})
 
 
 func test_chain_with_failing_step_returns_empty() -> void:
-	assert_eq(SaveMigrator._migrate_chain({"format_version": 1}, 2, _broken_step), {})
+	assert_eq(SaveMigrator.migrate_chain({"format_version": 1}, 2, _broken_step), {})
