@@ -196,6 +196,9 @@ Regole per tutti i task:
   task crea solo `rng` e `modifiers` (gli altri sistemi li aggiungono i loro task, ognuno con una riga di creazione e una
   nella lista dei partecipanti al salvataggio); `advance` chiama i sistemi presenti (non `null`) nell'ordine fisso;
   `to_save/from_save` iterano sui partecipanti. `SessionSnapshot.take` legge ciò che esiste. `TestFactory` di §8.
+  Nota (review): la registrazione dei sistemi (`_join`/`_tick`) è in `05_INTERFACES.md` §5.3. `game_session.gd` resta
+  ≤ 200 righe per tutti i task successivi (test): chi lo supererebbe sposta `_Participant` in
+  `core/session/session_participants.gd`, aggiunto alla propria Ownership.
 - **Accettazione** due `RngService` con lo stesso seme danno la stessa sequenza, anche dopo `to_save/from_save`;
   `to_save` produce l'intestazione di §6; `game_session.gd` ≤ 200 righe.
 - **Test** `test_rng_service.gd` (determinismo, `roll_pct` 0/100 senza consumo), `test_game_session.gd` (intestazione,
@@ -217,7 +220,9 @@ Regole per tutti i task:
 ### M1-07 · Wallet e Bank
 - **Ruolo** CORE · **Stima** M · **Parallelizzabile** sì (con M1-08, M1-09) · **Dipendenze** M1-05
 - **Ownership** `res://systems/wallet/wallet.gd`, `res://systems/bank/bank.gd`, `res://tests/systems/wallet/test_wallet.gd`,
-  `res://tests/systems/bank/test_bank.gd`, `res://core/session/game_session.gd` (solo creazione e registrazione dei due sistemi)
+  `res://tests/systems/bank/test_bank.gd`, `res://core/session/game_session.gd` (solo campi tipizzati, creazione e
+  registrazione dei due sistemi), `res://core/session/session_snapshot.gd` (solo `bank` e `gold` in `take`),
+  `res://tests/helpers/test_factory.gd` (solo `give`)
 - **Leggere** `01_GDD.md` §7-8; `02_FORMULAS.md` F-16; `05_INTERFACES.md` §5.4-5.5, §6
 - **Descrizione** Come da interfacce. `start.gold` e `start.items` applicati in `new_game` di Wallet/Bank.
 - **Accettazione** un oggetto nuovo con bank piena → `bank_full` + `bank_rejected`; quantità 0 libera la casella; capienza
@@ -228,7 +233,9 @@ Regole per tutti i task:
 ### M1-08 · Skill ed esperienza
 - **Ruolo** CORE · **Stima** S · **Parallelizzabile** sì · **Dipendenze** M1-05
 - **Ownership** `res://systems/skills/skills_system.gd`, `res://tests/systems/skills/test_skills_system.gd`,
-  `res://core/session/game_session.gd` (solo registrazione)
+  `res://core/session/game_session.gd` (solo campo tipizzato, registrazione e `total_level()`),
+  `res://core/session/session_snapshot.gd` (solo `xp` e `levels` in `take`), `res://tests/helpers/test_factory.gd`
+  (solo `set_level`)
 - **Leggere** `01_GDD.md` §3; `02_FORMULAS.md` F-01, F-02; `05_INTERFACES.md` §5.6
 - **Descrizione** XP per skill, livelli derivati, un `level_up` per livello, tetto `xp_cap`.
 - **Accettazione** esempi di F-02; salto di 3 livelli = 3 segnali.
@@ -539,7 +546,8 @@ Regole per tutti i task:
 ### M4-03 · Motore del combattimento
 - **Ruolo** COMBAT · **Stima** L · **Parallelizzabile** no · **Dipendenze** M4-02
 - **Ownership** `res://systems/combat/combat_engine.gd`, `res://tests/systems/combat/test_combat_engine.gd`,
-  `res://core/session/game_session.gd` (solo registrazione)
+  `res://core/session/game_session.gd` (solo campo tipizzato e registrazione), `res://core/session/session_snapshot.gd`
+  (solo `kills`, `deaths`, `food_eaten` in `take`)
 - **Leggere** `01_GDD.md` §10; `02_FORMULAS.md` F-07, F-23…F-34; `05_INTERFACES.md` §5.10, §6
 - **Descrizione** Timer, ordine (prima il giocatore), più eventi per `advance`, respawn, uccisione (oro, drop, frammento),
   XP per danno con stance, morte (borsa persa, PV al massimo), stato salvato e ripreso, contatori, mutua esclusione con la

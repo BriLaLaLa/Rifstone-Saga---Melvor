@@ -43,7 +43,7 @@ Base: la guida di stile ufficiale di GDScript (Godot 4). Qui sotto ciò che teni
 | File | `snake_case.gd`, scena accanto allo script con lo stesso nome | `skill_page.gd`, `skill_page.tscn` |
 | Classi | `PascalCase`, uguale al nome del file | `class_name SkillPage` |
 | Autoload | `PascalCase`, `class_name` diverso se serve istanziarlo | `EventBus` / `GameEvents` |
-| Privati | prefisso `_`, mai usati da fuori (neanche nei test: si testa l'API pubblica) | `_advance_lane` |
+| Privati | prefisso `_`, mai usati da fuori (neanche nei test: si testa l'API pubblica). Unica eccezione: i punti di estensione protetti di `GameSession` (`05_INTERFACES.md` §5.3), usabili dalle sottoclassi | `_advance_lane` |
 | Segnali | passato o evento, `snake_case`, senza `on_` | `bank_changed`, `level_up` |
 | Gestori | `_on_<emettitore>_<segnale>` | `_on_bank_changed` |
 | Booleani | `is_`, `has_`, `can_` | `is_running()` |

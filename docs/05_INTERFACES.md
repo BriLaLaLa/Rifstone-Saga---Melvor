@@ -435,6 +435,29 @@ var bank: Dictionary[StringName, int]; var gold: int
 var kills: Dictionary[StringName, int]; var deaths: int; var food_eaten: int
 static func take(session: GameSession) -> SessionSnapshot
 ```
+**Registrazione di un sistema** (M1-05). I campi tipizzati dei sistemi li dichiara il task che crea il sistema (prima
+non esistono). In `_create_systems()`, in ordine di dipendenza: una riga di creazione (`wallet = Wallet.new(self)`) e una
+`_join(Wallet.SAVE_KEY, wallet.new_game, wallet.to_save, wallet.from_save[, wallet.rebuild_modifiers])`; chi ha
+`advance` aggiunge `_tick(_PHASE_ACTIONS, actions.advance)`. Punti di estensione **protetti** (usabili solo da
+`GameSession` e dalle sue sottoclassi, comprese quelle dei test; eccezione dichiarata a `09_CONVENTIONS.md` §2):
+```gdscript
+func _create_systems() -> void
+func _join(key: StringName, new_game_fn: Callable, to_save_fn: Callable, from_save_fn: Callable,
+		rebuild_fn: Callable = Callable()) -> void            # SAVE_KEY duplicata → assert
+func _tick(phase: int, advance_fn: Callable) -> void         # una fase = un solo sistema, altrimenti assert
+const _PHASE_FRACTURES: int; const _PHASE_ACTIONS: int; const _PHASE_COMBAT: int
+```
+- `advance`: ordine fisso fratture → azioni → combattimento (solo le fasi registrate), poi `play_time_ms`; indipendente
+  dall'ordine di `_join`. `new_game`, `to_save`, `from_save` e `rebuild_modifiers` seguono l'ordine di `_join`.
+- `from_save`: `format_version` assente o intestazione malformata (`slot`, `created_at_unix_ms`, `play_time_ms` non interi,
+  `player_name` non stringa, `rng`/`modules` non oggetti) → `corrupted` senza toccare nulla; `format_version` ≠
+  `SaveMigrator.CURRENT_VERSION` → `version_unsupported` (il file va migrato prima). Modulo assente o non oggetto →
+  `new_game()` di quel sistema; modulo sconosciuto → `Log.warn` e ignorato. Blocco `rng` con valori non interi →
+  `Log.warn`, generatore invariato.
+- `RngService.to_save`: `state` come stringa decimale se `|state| > 2^53`; `from_save` accetta int, float interi e stringhe.
+- `total_level()` restituisce 0 finché non esiste `SkillsSystem` (M1-08); `SessionSnapshot.take` legge solo i sistemi
+  presenti (xp/livelli M1-08, bank/oro M1-07, kills/deaths/food_eaten M4-xx).
+- `game_session.gd` ≤ 200 righe (test); chi lo supererebbe sposta `_Participant` in `core/session/session_participants.gd`.
 
 ### 5.4 Wallet (`systems/wallet/wallet.gd`) — dipendenze: events
 ```gdscript
@@ -770,5 +793,9 @@ static func session(seed_value: int = 1234, data: GameData = null) -> GameSessio
 static func give(session: GameSession, item_id: StringName, qty: int) -> void        # via bank.add, assert ok
 static func set_level(session: GameSession, skill_id: StringName, level: int) -> void # via skills.add_xp con xp_for_level
 ```
+`fixture_data()`/`real_data()` caricati una volta per esecuzione e condivisi (`GameData` è immutabile); `session()` crea
+un `GameEvents` figlio della sessione (si libera con lei), mai l'autoload `EventBus`, mai slot veri. Fino ai task dei
+sistemi `give` (M1-07) e `set_level` (M1-08) sono stub: `push_error` + `assert(false)`. GUT segnala `test_factory.gd`
+come ignorato (prefisso `test_` ma non estende `GutTest`): avviso innocuo.
 `tests/helpers/gut_pre_run.gd`: imposta `SaveService.base_dir = "user://test_saves"` e svuota la cartella.
 Ogni test libera la sessione con `autofree()` (GUT) o `session.free()`.
