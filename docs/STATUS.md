@@ -7,23 +7,23 @@ Se la sessione si interrompe, si riparte da qui.
 |---|---|---|---|---|---|---|
 | M0-01 | M0 | Root, project.godot, cartelle, git | REV | DONE | task/M0-01 | merge 5e82b06, docs ad92606; c6b5573; sottocartella svuotata, cartella vuota bloccata da processo (da rimuovere a mano); criterio --quit sostituito con --editor --quit |
 | M0-02 | M0 | GUT e hook dei test | PORT | DONE | task/M0-02 | merge cbd80dd, docs CLAUDE.md 93cf74c; 916b7e4, 65c8eb2; 1/1 verde |
-| M0-03 | M0 | Autoload e tipi comuni | CORE | IN_PROGRESS | task/M0-03 | |
-| M0-04 | M0 | Tema UI portato da RiftStone | PORT | IN_PROGRESS | task/M0-04 | |
-| M0-05 | M0 | Configurazione di bilanciamento e registro delle stat | DATA | TODO | | |
+| M0-03 | M0 | Autoload e tipi comuni | CORE | REVIEW | task/M0-03 | b3cd5c6, 22a7eea; 28/28 GUT; tipi provvisori RefCounted/Node per GameData, SlotInfo, GameSession, OfflineSummary |
+| M0-04 | M0 | Tema UI portato da RiftStone | PORT | DONE | task/M0-04 | merge d58075f; 11/11 GUT su main; primo import di checkout nuova va in crash (gestito in M0-07) |
+| M0-05 | M0 | Configurazione di bilanciamento e registro delle stat | DATA | IN_PROGRESS | task/M0-05 | |
 | M0-06 | M0 | Menu segnaposto e scena principale | UI | TODO | | |
 | M0-07 | M0 | Script di test e di controllo | QA | IN_PROGRESS | task/M0-07 | |
 | M0-08 | M0 | Integrazione di M0 | REV | TODO | | |
 | M1-01 | M1 | Tabella dell'esperienza | CORE | TODO | | |
 | M1-02 | M1 | Sistema dei modificatori | CORE | TODO | | |
 | M1-03 | M1 | Classi Def e caricatore JSON | CORE | TODO | | |
-| M1-04 | M1 | Validatore, GameData, DataRegistry, fixture | CORE | TODO | | |
+| M1-04 | M1 | Validatore, GameData, DataRegistry, fixture | CORE | TODO | | tipizzare DataRegistry.data come GameData (oggi RefCounted) |
 | M1-05 | M1 | Casualità, sessione, snapshot, factory dei test | CORE | TODO | | |
-| M1-06 | M1 | Salvataggio per slot con versioni | CORE | TODO | | tipizzare gut_pre_run.gd (cast as SaveStore al posto di set()) — richiede ownership di tests/helpers/gut_pre_run.gd |
+| M1-06 | M1 | Salvataggio per slot con versioni | CORE | TODO | | tipizzare SlotInfo in save_service.gd (oggi RefCounted); tipizzare gut_pre_run.gd (cast as SaveStore al posto di set()) — richiede ownership di tests/helpers/gut_pre_run.gd |
 | M1-07 | M1 | Wallet e Bank | CORE | TODO | | |
 | M1-08 | M1 | Skill ed esperienza | CORE | TODO | | |
 | M1-09 | M1 | Maestria per oggetto e pool | CORE | TODO | | |
 | M1-10 | M1 | ActionRunner e raccolta | CORE | TODO | | |
-| M1-11 | M1 | Game: menu → slot → partita | CORE | TODO | | |
+| M1-11 | M1 | Game: menu → slot → partita | CORE | TODO | | tipizzare Game.session (GameSession) e list_slots (Array[SlotInfo]); chiamare GameClock.configure da balance.json |
 | M1-12 | M1 | Contenuto: le 12 skill e Selvicoltura | DATA | TODO | | |
 | M1-13 | M1 | Menu principale e scelta dello slot | UI | TODO | | |
 | M1-14 | M1 | Schermata principale: sidebar, barra in alto, PageHost | UI | TODO | | |
@@ -60,7 +60,7 @@ Se la sessione si interrompe, si riparte da qui.
 | M5-03 | M5 | Pagina dell'Altare | UI | TODO | | |
 | M5-04 | M5 | Test di M5 | QA | TODO | | |
 | M5-05 | M5 | Integrazione di M5 | REV | TODO | | |
-| M6-01 | M6 | Simulazione offline | CORE | TODO | | |
+| M6-01 | M6 | Simulazione offline | CORE | TODO | | ownership aggiunta: event_bus.gd (solo firma offline_completed: OfflineSummary) e riga offline_completed di test_event_bus.gd; tipizzare Game.last_offline_summary |
 | M6-02 | M6 | Schermate dell'offline | UI | TODO | | |
 | M6-03 | M6 | Impostazioni (porting) | PORT | TODO | | |
 | M6-04 | M6 | Sistema dei suggerimenti | CORE | TODO | | |
