@@ -1,0 +1,9 @@
+{
+  "items": [
+    {"id": "test_hatchet", "name": "Accetta di prova", "category": "tool",
+     "icon": "res://assets/icons/items/test_hatchet.png", "value": 10, "sort_order": 10,
+     "description": "Attrezzo per i test.",
+     "equip": {"slot": "tool_forestry", "requirements": {"test_gather": 1},
+               "modifiers": [{"stat": "skill_interval_pct", "value": -5, "scope": "skill:test_gather"}]}}
+  ]
+}

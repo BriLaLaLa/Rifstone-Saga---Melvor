@@ -1,0 +1,36 @@
+{
+  "_doc": "Test fixture (04_DATA_SCHEMA.md §13): stable minimal content, not the real game data.",
+  "skills": [
+    {"id": "test_gather", "name": "Raccolta di prova", "category": "gathering", "order": 1,
+     "icon": "res://assets/icons/skills/test_gather.png", "color": "#7fbf6a",
+     "description": "Skill di raccolta per i test.", "has_mastery": true,
+     "mastery_bonuses": [
+       {"every_levels": 10, "modifiers": [{"stat": "double_item_chance", "value": 1}]},
+       {"at_level": 99, "modifiers": [{"stat": "double_item_chance", "value": 5}]}
+     ]},
+    {"id": "test_gather_b", "name": "Seconda raccolta di prova", "category": "gathering", "order": 2,
+     "icon": "res://assets/icons/skills/test_gather_b.png", "color": "#8f8f8f",
+     "description": "Seconda skill di raccolta per i test.", "has_mastery": true},
+    {"id": "test_craft", "name": "Artigianato di prova", "category": "artisan", "order": 3,
+     "icon": "res://assets/icons/skills/test_craft.png", "color": "#c08040",
+     "description": "Skill di artigianato per i test.", "has_mastery": true},
+    {"id": "riftbinding", "name": "Legatura del Rift", "category": "artisan", "order": 9,
+     "icon": "res://assets/icons/skills/riftbinding.png", "color": "#9060d0",
+     "description": "Infusioni per l'Altare del Rift.", "has_mastery": false},
+    {"id": "blade", "name": "Lama", "category": "combat", "order": 4,
+     "icon": "res://assets/icons/skills/blade.png", "color": "#c04040",
+     "description": "Precisione e danno in mischia.", "has_mastery": false},
+    {"id": "marksmanship", "name": "Mira", "category": "combat", "order": 5,
+     "icon": "res://assets/icons/skills/marksmanship.png", "color": "#40a040",
+     "description": "Precisione e danno a distanza.", "has_mastery": false},
+    {"id": "arcana", "name": "Arcano", "category": "combat", "order": 6,
+     "icon": "res://assets/icons/skills/arcana.png", "color": "#4060c0",
+     "description": "Precisione e danno arcani.", "has_mastery": false},
+    {"id": "vitality", "name": "Vitalità", "category": "combat", "order": 7,
+     "icon": "res://assets/icons/skills/vitality.png", "color": "#d06060",
+     "description": "Punti vita massimi.", "has_mastery": false},
+    {"id": "guard", "name": "Guardia", "category": "combat", "order": 8,
+     "icon": "res://assets/icons/skills/guard.png", "color": "#a0a0a0",
+     "description": "Evasione.", "has_mastery": false}
+  ]
+}

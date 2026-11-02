@@ -1,0 +1,13 @@
+{
+  "items": [
+    {"id": "test_twig", "name": "Rametto di prova", "category": "material",
+     "icon": "res://assets/icons/items/test_twig.png", "value": 1, "sort_order": 10,
+     "description": "Materiale di raccolta per i test."},
+    {"id": "test_log", "name": "Tronco di prova", "category": "material",
+     "icon": "res://assets/icons/items/test_log.png", "value": 3, "sort_order": 20,
+     "description": "Secondo materiale di raccolta per i test."},
+    {"id": "test_plank", "name": "Asse di prova", "category": "material",
+     "icon": "res://assets/icons/items/test_plank.png", "value": 8, "sort_order": 30,
+     "description": "Prodotto di artigianato per i test."}
+  ]
+}

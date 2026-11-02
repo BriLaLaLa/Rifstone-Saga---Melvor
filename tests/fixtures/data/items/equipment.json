@@ -1,0 +1,10 @@
+{
+  "items": [
+    {"id": "test_blade", "name": "Lama di prova", "category": "equipment",
+     "icon": "res://assets/icons/items/test_blade.png", "value": 12, "sort_order": 100,
+     "description": "Arma a lama per i test.",
+     "equip": {"slot": "weapon", "requirements": {"blade": 1},
+               "modifiers": [{"stat": "accuracy_bonus", "value": 8}, {"stat": "power_bonus", "value": 6}],
+               "weapon": {"style": "blade", "attack_interval_ms": 2400, "two_handed": false}}}
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "items": [
+    {"id": "test_ration", "name": "Razione di prova", "category": "food",
+     "icon": "res://assets/icons/items/test_ration.png", "value": 2, "sort_order": 10,
+     "description": "Cura 20 punti vita.", "food": {"heal": 20}}
+  ]
+}
