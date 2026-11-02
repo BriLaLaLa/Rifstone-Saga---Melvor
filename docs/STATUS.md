@@ -5,7 +5,7 @@ Se la sessione si interrompe, si riparte da qui.
 
 | ID | Milestone | Titolo | Ruolo | Stato | Branch | Note |
 |---|---|---|---|---|---|---|
-| M0-01 | M0 | Root, project.godot, cartelle, git | REV | TODO | | |
+| M0-01 | M0 | Root, project.godot, cartelle, git | REV | REVIEW | task/M0-01 | c6b5573; sottocartella svuotata, cartella vuota bloccata da processo (da rimuovere a mano); criterio --quit sostituito con --editor --quit |
 | M0-02 | M0 | GUT e hook dei test | PORT | TODO | | |
 | M0-03 | M0 | Autoload e tipi comuni | CORE | TODO | | |
 | M0-04 | M0 | Tema UI portato da RiftStone | PORT | TODO | | |
