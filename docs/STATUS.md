@@ -10,9 +10,9 @@ Se la sessione si interrompe, si riparte da qui.
 | M0-03 | M0 | Autoload e tipi comuni | CORE | DONE | task/M0-03 | merge 8d61aee; 27 test propri, suite main 38/38; tipi provvisori RefCounted/Node per GameData, SlotInfo, GameSession, OfflineSummary |
 | M0-04 | M0 | Tema UI portato da RiftStone | PORT | DONE | task/M0-04 | merge d58075f; 10 test propri; primo import di checkout nuova va in crash (gestito in M0-07) |
 | M0-05 | M0 | Configurazione di bilanciamento e registro delle stat | DATA | DONE | task/M0-05 | merge a3dc8ac; run_checks su main 75/75; b3991fb, 86d3dfc; 19/19 GUT; 21 stat, 66 chiavi balance |
-| M0-06 | M0 | Menu segnaposto e scena principale | UI | REVIEW | task/M0-06 | 2eac300, d9b2bfd; 7 test propri, 45/45 nel worktree |
+| M0-06 | M0 | Menu segnaposto e scena principale | UI | DONE | task/M0-06 | merge 407e0ca; 2eac300, d9b2bfd; 7 test propri, 45/45 nel worktree |
 | M0-07 | M0 | Script di test e di controllo | QA | DONE | task/M0-07 | merge 06a4c02; 90754d7..50dd655; run_checks verde (40 test); retry import provato con Godot finto |
-| M0-08 | M0 | Integrazione di M0 | REV | IN_PROGRESS | main | |
+| M0-08 | M0 | Integrazione di M0 | REV | DONE | main | docs 26a96ee; tag m0-done; run_checks main 82/82 |
 | M1-01 | M1 | Tabella dell'esperienza | CORE | TODO | | |
 | M1-02 | M1 | Sistema dei modificatori | CORE | TODO | | |
 | M1-03 | M1 | Classi Def e caricatore JSON | CORE | TODO | | |
