@@ -25,6 +25,7 @@ var modifiers: ModifierService
 var wallet: Wallet
 var bank: Bank
 var skills: SkillsSystem
+var mastery: MasterySystem
 # The other system fields of docs/05_INTERFACES.md §5.3 are declared by the task that creates each system.
 var slot: int = -1
 var player_name: String = ""
@@ -126,6 +127,8 @@ func _create_systems() -> void:
 	_join(Bank.SAVE_KEY, bank.new_game, bank.to_save, bank.from_save)
 	skills = SkillsSystem.new(self)
 	_join(SkillsSystem.SAVE_KEY, skills.new_game, skills.to_save, skills.from_save)
+	mastery = MasterySystem.new(self)
+	_join(MasterySystem.SAVE_KEY, mastery.new_game, mastery.to_save, mastery.from_save, mastery.rebuild_modifiers)
 
 
 # Registers a SaveParticipant (docs/05_INTERFACES.md: SAVE_KEY, new_game, to_save, from_save).
