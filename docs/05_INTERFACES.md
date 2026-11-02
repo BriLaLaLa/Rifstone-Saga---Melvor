@@ -314,7 +314,7 @@ class_name Modifier extends RefCounted
 var stat: StringName; var value: float
 var scope_kind: StringName        # &"global", &"skill", &"action"
 var scope_id: StringName
-static func from_dict(d: Dictionary, default_scope: String = "global") -> Modifier
+static func from_dict(d: Dictionary, default_scope: String = "global") -> Modifier   # null (+ errore) se stat/value/scope malformati; default_scope ha la sintassi di "scope" ("skill:forestry"), usato se manca
 static func make(stat: StringName, value: float, scope_kind: StringName = &"global", scope_id: StringName = &"") -> Modifier
 func applies_to(ctx: ModifierContext) -> bool
 func scaled(factor: float) -> Modifier
