@@ -128,6 +128,36 @@ func test_load_dir_missing_folder_is_an_error() -> void:
 	assert_string_contains(errors[0], dir)
 
 
+func test_list_json_files_returns_sorted_paths() -> void:
+	_write("tools.json", "{}")
+	_write("equipment.json", "{}")
+	_write("broken.json", "{broken")
+	_write("notes.txt", "not json")
+	DirAccess.make_dir_recursive_absolute(TMP_DIR.path_join("sub"))
+	_write("sub/b.json", "{}")
+	var errors: PackedStringArray = []
+	var paths: PackedStringArray = JsonLoader.list_json_files(TMP_DIR, errors)
+	assert_eq(errors.size(), 0)
+	var expected: PackedStringArray = [TMP_DIR.path_join("broken.json"), TMP_DIR.path_join("equipment.json"),
+		TMP_DIR.path_join("tools.json")]
+	assert_eq(paths, expected)
+
+
+func test_list_json_files_empty_folder_is_empty_without_errors() -> void:
+	var errors: PackedStringArray = []
+	assert_eq(JsonLoader.list_json_files(TMP_DIR, errors).size(), 0)
+	assert_eq(errors.size(), 0)
+
+
+func test_list_json_files_missing_folder_is_an_error() -> void:
+	var errors: PackedStringArray = []
+	var dir: String = TMP_DIR.path_join("missing")
+	assert_eq(JsonLoader.list_json_files(dir, errors).size(), 0)
+	assert_eq(errors.size(), 1)
+	assert_string_contains(errors[0], dir)
+	assert_string_contains(errors[0], "folder not found")
+
+
 func _write(file_name: String, text: String) -> String:
 	var path: String = TMP_DIR.path_join(file_name)
 	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)

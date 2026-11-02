@@ -31,20 +31,26 @@ static func load_file(path: String, errors: PackedStringArray) -> Variant:
 	return json.data
 
 
-## The top-level objects of every `.json` file directly inside `dir`, in alphabetical order of file name.
-## Sub-folders are not visited. A missing folder, a file that fails `load_file` or a file whose top level is not an
-## object is reported in `errors` and skipped.
-static func load_dir(dir: String, errors: PackedStringArray) -> Array[Dictionary]:
-	var result: Array[Dictionary] = []
+## The paths of the `.json` files directly inside `dir`, in alphabetical order of file name. Sub-folders are not
+## visited; a missing folder is reported in `errors` and gives an empty list.
+static func list_json_files(dir: String, errors: PackedStringArray) -> PackedStringArray:
+	var result: PackedStringArray = []
 	if not DirAccess.dir_exists_absolute(dir):
 		errors.append("%s: folder not found" % dir)
 		return result
 	var file_names: PackedStringArray = DirAccess.get_files_at(dir)
 	file_names.sort()
 	for file_name: String in file_names:
-		if file_name.get_extension().to_lower() != JSON_EXTENSION:
-			continue
-		var path: String = dir.path_join(file_name)
+		if file_name.get_extension().to_lower() == JSON_EXTENSION:
+			result.append(dir.path_join(file_name))
+	return result
+
+
+## The top-level objects of every file of `list_json_files(dir)`, in the same order. A missing folder, a file that
+## fails `load_file` or a file whose top level is not an object is reported in `errors` and skipped.
+static func load_dir(dir: String, errors: PackedStringArray) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for path: String in list_json_files(dir, errors):
 		var content: Variant = load_file(path, errors)
 		if content == null:
 			continue
