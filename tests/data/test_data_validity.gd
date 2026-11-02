@@ -2,17 +2,9 @@ extends GutTest
 ## Validity of the real game data under res://data (04_DATA_SCHEMA.md, 00_VISION.md, 02_FORMULAS.md §8.1, F-11).
 ## The checks that the validator leaves to this file live here: the 12 skill ids of 00_VISION.md, `mastery: true`
 ## on every action of the MVP, the gathering tiers of §8.1. The expected values below are the oracle.
-##
-## Until M3-04 (shop.json) and M4-04 (areas.json, monsters.json) the real data cannot be fully valid: the
-## single-file sections that do not exist yet are replaced in memory by empty lists, so that every other section is
-## validated with the real DataValidator; the full `GameData.load_from_dirs()` test stays pending until then.
 
 const CONTENT_ROOT: String = "res://data"
 const CONFIG_ROOT: String = "res://data/config"
-## Single-file sections that arrive after M1: content file -> list key of the empty stand-in, and the task.
-const LATER_SECTIONS: Dictionary[String, Array] = {
-	"areas": ["areas", "M4-04"], "monsters": ["monsters", "M4-04"], "shop": ["entries", "M3-04"],
-}
 ## 00_VISION.md, in sidebar order: [id, name, category].
 const SKILLS: Array[Array] = [
 	["forestry", "Selvicoltura", "gathering"], ["quarrying", "Cavatura", "gathering"],
@@ -47,10 +39,7 @@ func before_all() -> void:
 	}
 	for section: String in GameData.CONTENT_FILES:
 		var path: String = CONTENT_ROOT.path_join(GameData.CONTENT_FILES[section])
-		if LATER_SECTIONS.has(section) and not FileAccess.file_exists(path):
-			_raw[section] = {"<empty stand-in>/%s.json" % section: {LATER_SECTIONS[section][0]: []}}
-		else:
-			_raw[section] = _read([path])
+		_raw[section] = _read([path])
 	for section: String in GameData.CONTENT_DIRS:
 		_raw[section] = _read(JsonLoader.list_json_files(CONTENT_ROOT.path_join(GameData.CONTENT_DIRS[section]),
 				_load_errors))
@@ -85,29 +74,7 @@ func test_real_files_load() -> void:
 	assert_eq(_load_errors, PackedStringArray())
 
 
-func test_m1_sections_pass_the_validator() -> void:
-	var errors: PackedStringArray = []
-	DataValidator.validate(_raw, errors)
-	assert_eq(errors, PackedStringArray())
-
-
-func test_real_data_errors_are_only_later_sections() -> void:
-	var data: GameData = GameData.load_from_dirs(CONTENT_ROOT, CONFIG_ROOT)
-	for message: String in data.errors:
-		var later: bool = false
-		for section: String in LATER_SECTIONS:
-			later = later or message.contains("/%s.json:" % section) or message.contains("section '%s'" % section)
-		assert_true(later, "unexpected data error: %s" % message)
-
-
 func test_real_data_is_valid() -> void:
-	var missing: PackedStringArray = []
-	for section: String in LATER_SECTIONS:
-		if not FileAccess.file_exists(CONTENT_ROOT.path_join(GameData.CONTENT_FILES[section])):
-			missing.append("%s (task %s)" % [GameData.CONTENT_FILES[section], LATER_SECTIONS[section][1]])
-	if not missing.is_empty():
-		pending("full GameData.load_from_dirs() needs files that do not exist yet: %s" % ", ".join(missing))
-		return
 	var data: GameData = GameData.load_from_dirs(CONTENT_ROOT, CONFIG_ROOT)
 	assert_true(data.is_valid())
 	assert_eq(data.errors, PackedStringArray())
