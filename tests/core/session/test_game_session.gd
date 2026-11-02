@@ -76,6 +76,7 @@ func test_new_session_creates_rng_modifiers_and_registered_systems() -> void:
 	assert_not_null(session.wallet)
 	assert_not_null(session.bank)
 	assert_not_null(session.skills)
+	assert_not_null(session.mastery)
 	assert_eq(session.play_time_ms, 0)
 
 
@@ -100,6 +101,7 @@ func test_to_save_writes_the_header() -> void:
 	assert_eq(modules[String(Wallet.SAVE_KEY)], session.wallet.to_save())
 	assert_eq(modules[String(Bank.SAVE_KEY)], session.bank.to_save())
 	assert_eq(modules[String(SkillsSystem.SAVE_KEY)], session.skills.to_save())
+	assert_eq(modules[String(MasterySystem.SAVE_KEY)], session.mastery.to_save())
 
 
 func test_to_save_header_is_readable_as_slot_info_header() -> void:
