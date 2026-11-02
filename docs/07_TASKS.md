@@ -275,7 +275,8 @@ Regole per tutti i task:
 - **Ruolo** DATA · **Stima** M · **Parallelizzabile** sì (dopo M1-04) · **Dipendenze** M1-04
 - **Ownership** `res://data/skills/skills.json`, `res://data/items/materials.json`, `res://data/items/misc.json`,
   `res://data/actions/forestry.json`, `res://assets/icons/skills/**` (segnaposto), `res://assets/icons/items/**` (segnaposto
-  di questi oggetti), `res://tests/data/test_data_validity.gd`
+  di questi oggetti), `res://tests/data/test_data_validity.gd`, `res://data/combat/areas.json`, `monsters.json`,
+  `res://data/shop/shop.json` (vuoti con `_doc`, così il caricamento dei dati veri è valido; li sostituiscono M4-04 e M3-04)
 - **Leggere** `00_VISION.md`; `01_GDD.md` §3-4, §6.1; `02_FORMULAS.md` §8.1, F-11; `04_DATA_SCHEMA.md` §4-6; `09_CONVENTIONS.md` §5
 - **Descrizione** Le 12 skill (id, nomi italiani di `00_VISION.md`, categorie, colori, `mastery_bonuses` di F-11 per raccolta e
   artigianato). Selvicoltura: 8 azioni sui gradini T1-T8 di §8.1 con 8 legni dai nomi originali a tema Roccarossa/Rift;
@@ -469,7 +470,8 @@ Regole per tutti i task:
 ### M3-04 · Contenuto: Forgiatura, Focolare, Intaglio, shop
 - **Ruolo** DATA · **Stima** L · **Parallelizzabile** sì · **Dipendenze** M2-06
 - **Ownership** `res://data/actions/forging.json`, `hearthcraft.json`, `woodwright.json`, `res://data/items/equipment.json`,
-  `tools.json`, `food.json`, `materials.json` (lingotti, intermedi), `res://data/shop/shop.json`, icone segnaposto relative,
+  `tools.json`, `food.json`, `materials.json` (lingotti, intermedi), `res://data/shop/shop.json` (sostituisce il file vuoto di
+  M1-12), icone segnaposto relative,
   `res://tests/data/test_data_validity.gd` (casi nuovi)
 - **Leggere** `02_FORMULAS.md` §8.2-8.4, §8.6; `04_DATA_SCHEMA.md` §5-6, §9
 - **Descrizione** Ricette e oggetti come le tabelle (8 gradi); equipaggiamento con i modificatori di §8.4 (le armi servono in
@@ -547,7 +549,8 @@ Regole per tutti i task:
 
 ### M4-04 · Contenuto del combattimento
 - **Ruolo** DATA · **Stima** M · **Parallelizzabile** sì (con M4-01…M4-03) · **Dipendenze** M3-09
-- **Ownership** `res://data/combat/areas.json`, `monsters.json`, `res://data/items/materials.json` (drop dei mostri),
+- **Ownership** `res://data/combat/areas.json`, `monsters.json` (sostituiscono i file vuoti di M1-12),
+  `res://data/items/materials.json` (drop dei mostri),
   `res://assets/icons/monsters/**`, `res://tests/data/test_data_validity.gd` (casi nuovi)
 - **Leggere** `02_FORMULAS.md` §8.5; `04_DATA_SCHEMA.md` §8
 - **Descrizione** 4 aree e 12 mostri della tabella, con nomi e descrizioni originali; drop (max 4 per mostro).

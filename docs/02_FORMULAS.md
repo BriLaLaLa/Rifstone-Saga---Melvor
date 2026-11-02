@@ -56,8 +56,8 @@ Test: `tests/systems/actions/test_action_math.gd`.
 ### F-05 Valore totale di una stat
 `T(stat, ctx) = clamp(Σ value dei modificatori con stat = stat e scope applicabile a ctx, stat.min, stat.max)`.
 Scope applicabile: `global` sempre; `skill:<id>` se `ctx.skill_id = id`; `action:<id>` se `ctx.action_id = id`.
-Esempio: modificatori `skill_interval_pct`: global −3, skill:forestry −5, action:cut_ashoak −2, skill:quarrying −10;
-nel contesto (forestry, cut_ashoak) → −10; nel contesto (forestry, cut_redbirch) → −8; somma −95 → limitata a −80.
+Esempio: modificatori `skill_interval_pct`: global −3, skill:forestry −5, action:cut_ashpine −2, skill:quarrying −10;
+nel contesto (forestry, cut_ashpine) → −10; nel contesto (forestry, cut_redbirch) → −8; somma −95 → limitata a −80.
 Test: `tests/core/modifiers/test_modifier_service.gd`.
 
 ### F-06 Doppio prodotto

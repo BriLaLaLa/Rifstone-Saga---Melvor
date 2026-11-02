@@ -92,7 +92,7 @@ l'elenco delle chiavi obbligatorie, `DataValidator.REQUIRED_BALANCE_KEYS`).
 ```json
 {"skills": [
   {"id": "forestry", "name": "Selvicoltura", "category": "gathering", "order": 1,
-   "icon": "res://assets/icons/skills/forestry.png", "color": "#7fbf6a",
+   "icon": "res://assets/icons/skills/forestry.svg", "color": "#7fbf6a",
    "description": "Abbatti alberi per ottenere legni.",
    "has_mastery": true,
    "mastery_bonuses": [
@@ -107,7 +107,7 @@ l'elenco delle chiavi obbligatorie, `DataValidator.REQUIRED_BALANCE_KEYS`).
 | `name`, `description` | String | |
 | `category` | String | `gathering`, `artisan`, `combat` (Legatura del Rift = `artisan`) |
 | `order` | int | posizione nella sidebar, unico |
-| `icon` | String | percorso `res://assets/icons/skills/…` (se il file manca, icona segnaposto della UI) |
+| `icon` | String | percorso `res://assets/icons/skills/…`, `.svg` o `.png` (se il file manca, icona segnaposto della UI) |
 | `color` | String | `#rrggbb` |
 | `has_mastery` | bool | `false` obbligatorio per `combat` |
 | `mastery_bonuses` | array | solo se `has_mastery`; ogni regola ha **o** `every_levels` (1..99) **o** `at_level` (1..99) e `modifiers` (lo `scope` qui è ignorato: vale sempre `action:<azione>`) |
@@ -124,7 +124,7 @@ ognuno `{"items": [...]}`. Campi comuni:
 | `id` | String | unico tra tutti i file |
 | `name`, `description` | String | |
 | `category` | String | `material`, `equipment`, `tool`, `food`, `infusion`, `misc`; deve corrispondere al file |
-| `icon` | String | `res://assets/icons/items/…` |
+| `icon` | String | `res://assets/icons/items/…`, `.svg` o `.png` (i segnaposto di M1-12 sono SVG 64×64) |
 | `value` | int ≥ 0 | oro dato dalla vendita (F-18); 0 = non vendibile |
 | `sort_order` | int | ordinamento nella bank dentro la categoria |
 | `equip` | object | obbligatorio per `equipment` e `tool`, vietato per gli altri |
@@ -145,7 +145,7 @@ ognuno `{"items": [...]}`. Campi comuni:
 Esempi:
 ```json
 {"id": "redbirch_log", "name": "Legno di betulla rossa", "category": "material",
- "icon": "res://assets/icons/items/redbirch_log.png", "value": 1, "sort_order": 10,
+ "icon": "res://assets/icons/items/redbirch_log.svg", "value": 1, "sort_order": 10,
  "description": "Legno chiaro venato di rosso, comune nelle Pianure di Roccarossa."}
 ```
 ```json
@@ -266,6 +266,7 @@ Classe: `MasteryNodeDef`.
 | `drops` | array | `{item, chance_pct 0..100, qty [min ≥ 1, max ≥ min]}`, max 4 voci |
 
 Classi: `AreaDef`, `MonsterDef`, `DropEntry`. Icone dei mostri in `res://assets/icons/monsters/`.
+Fino a M4-04 i due file esistono vuoti (`{"_doc": …, "areas": []}`, `{"_doc": …, "monsters": []}`, creati da M1-12).
 
 ## 9. `data/shop/shop.json`
 
@@ -293,7 +294,7 @@ Classi: `AreaDef`, `MonsterDef`, `DropEntry`. Icone dei mostri in `res://assets/
 | `requires` | object | facoltativi `entries` (id dello shop), `skills` (`{skill: livello}`), `total_level` (int ≥ 0) |
 | `effect` | object | **o** `modifiers` **o** `item` (`{item, qty}`) |
 
-Classe: `ShopEntryDef`.
+Classe: `ShopEntryDef`. Fino a M3-04 il file esiste vuoto (`{"_doc": …, "entries": []}`, creato da M1-12).
 
 ## 10. `data/hints/hints.json` (M6)
 
