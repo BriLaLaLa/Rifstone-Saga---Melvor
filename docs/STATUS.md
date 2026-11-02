@@ -19,8 +19,8 @@ Se la sessione si interrompe, si riparte da qui.
 | M1-04 | M1 | Validatore, GameData, DataRegistry, fixture | CORE | DONE | task/M1-04 | merge 76941ce, docs 559d00a; 6017c56..b59a435; run_checks 368/368; validatore in 3 file (283/354/169) |
 | M1-05 | M1 | Casualità, sessione, snapshot, factory dei test | CORE | DONE | task/M1-05 | merge 6dab967; _join/_tick/_PHASE_* punti di estensione protetti (05 §5.3) |
 | M1-06 | M1 | Salvataggio per slot con versioni | CORE | DONE | task/M1-06 | merge 7f84ef2, docs fb30c65; 8cf567f..9f66f2c; 44 test, run_checks 126/126; scrittura 200 KB ~10-12 ms |
-| M1-07 | M1 | Wallet e Bank | CORE | REVIEW | task/M1-07 | la Bank emette bank_changed(item_id, new_count, delta) con delta con segno; ownership estesa: TestFactory.give, SessionSnapshot.take (bank, oro); campo tipizzato + _join in game_session.gd; sposta _Participant in core/session/session_participants.gd; in coda dopo M1-08 |
-| M1-08 | M1 | Skill ed esperienza | CORE | REVIEW | task/M1-08 | ownership estesa: GameSession.total_level(), TestFactory.set_level, SessionSnapshot.take (xp, livelli); in review |
+| M1-07 | M1 | Wallet e Bank | CORE | REVIEW | task/M1-07 | la Bank emette bank_changed(item_id, new_count, delta) con delta con segno; ownership estesa: TestFactory.give, SessionSnapshot.take (bank, oro); campo tipizzato + _join in game_session.gd; sposta _Participant in core/session/session_participants.gd; in review (conflitti con M1-08) |
+| M1-08 | M1 | Skill ed esperienza | CORE | DONE | task/M1-08 | merge 718a32d; ownership estesa: GameSession.total_level(), TestFactory.set_level, SessionSnapshot.take (xp, livelli) |
 | M1-09 | M1 | Maestria per oggetto e pool | CORE | TODO | | |
 | M1-10 | M1 | ActionRunner e raccolta | CORE | TODO | | |
 | M1-11 | M1 | Game: menu → slot → partita | CORE | TODO | | tipizzare Game.session (GameSession) e list_slots (Array[SlotInfo]); chiamare GameClock.configure da balance.json |
