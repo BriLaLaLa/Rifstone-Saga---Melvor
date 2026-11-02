@@ -212,6 +212,14 @@ func test_data_registry_reload_matches_validity() -> void:
 		assert_push_error("game data not valid")
 
 
+func test_doc_in_a_level_map_is_skipped_by_the_defs() -> void:
+	var root: String = _copy_fixtures()
+	_rewrite(root.path_join("combat/areas.json"), "\"requirements\": {}", "\"requirements\": {\"_doc\": \"none\"}")
+	var data: GameData = GameData.load_from_dirs(root, CONFIG_ROOT)
+	assert_true(data.is_valid(), "; ".join(data.errors))
+	assert_eq(data.area(&"test_area").requirements, {} as Dictionary[StringName, int])
+
+
 # --- helpers -----------------------------------------------------------------------------------------------------
 
 func _copy_fixtures() -> String:

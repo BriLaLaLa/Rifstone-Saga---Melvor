@@ -226,3 +226,17 @@ func test_action_optional_icon_must_be_a_string() -> void:
 	var raw: Dictionary = V.fixture_raw()
 	_action(raw, GATHER, 0)["icon"] = false
 	_expect(raw, [GATHER, "action 'gather_log'", "field 'icon' must be a string"])
+
+
+func test_infusion_needs_at_least_one_modifier() -> void:
+	var raw: Dictionary = V.fixture_raw()
+	(_item(raw, "infusions.json")["infusion"] as Dictionary)["modifiers"] = []
+	_expect(raw, ["infusions.json", "item 'test_infusion'", "field 'infusion.modifiers' needs at least 1 entries"])
+
+
+func test_doc_in_a_level_map_is_allowed() -> void:
+	var raw: Dictionary = V.fixture_raw()
+	(_equip(raw, "equipment.json")["requirements"] as Dictionary)["_doc"] = "minimum levels"
+	assert_eq(V.validate(raw), PackedStringArray())
+	(_equip(raw, "equipment.json")["requirements"] as Dictionary)["_doc"] = 5
+	_expect(raw, ["equipment.json", "item 'test_blade'", "field 'equip.requirements._doc': unknown skill '_doc'"])

@@ -150,13 +150,15 @@ func id_list(key: String) -> Array[StringName]:
 	return result
 
 
-## `{skill_id: level}` to a typed dictionary.
+## `{skill_id: level}` to a typed dictionary; a string `_doc` (comment, allowed by the schema) is skipped.
 func level_map(key: String) -> Dictionary[StringName, int]:
 	var result: Dictionary[StringName, int] = {}
 	if not is_dict(key):
 		return result
 	var raw: Dictionary = dict(key)
 	for skill: Variant in raw:
+		if str(skill) == "_doc" and raw[skill] is String:
+			continue
 		result[StringName(str(skill))] = _to_int(raw[skill], "%s.%s" % [key, skill])
 	return result
 
