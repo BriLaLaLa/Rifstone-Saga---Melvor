@@ -284,6 +284,8 @@ Regole per tutti i task:
   controllare `action.mastery`: per le azioni senza maestria restituisce 0 senza effetti; al 99 la xp resta ferma ma il pool
   riceve la quota (`05_INTERFACES.md` §5.7). I bonus F-11 (`double_item_chance` ecc.) sono già in `ModifierService` con
   scope `action:<id>`: leggerli con `ModifierContext.for_action(skill, action)`.
+- **Nota (review M1-10)** Ownership estesa (accettata) a `res://tests/core/session/test_game_session.gd`: asserzioni di
+  `actions` e `ProbeSession._tick` che registra solo le fasi dei `FakeSystem`; chiave finta `actions` → `lanes`.
 
 ### M1-11 · Game: menu → slot → partita
 - **Ruolo** CORE · **Stima** M · **Parallelizzabile** no · **Dipendenze** M1-06, M1-10
@@ -296,6 +298,11 @@ Regole per tutti i task:
 - **Accettazione** nessun file in `user://test_saves` finché non si chiama `new_game`; `new_game` scrive subito; 10 s di
   `GameClock` simulati in partita → 1 salvataggio; `end_session` libera la sessione (`is_instance_valid` falso).
 - **Test** `test_game.gd`, `test_game_no_save_before_slot.gd`.
+- **Nota (da M1-10)** La sessione ha 5 sistemi (`wallet`, `bank`, `skills`, `mastery`, `actions`) e la fase azioni
+  registrata: `GameClock` → `session.advance` basta a far girare la corsia (il runner non usa `_process`/`Timer`).
+  `stop_reasons_log()` svuota il log a ogni lettura: M1-11 non lo legge (lo legge l'offline, M6-01, dopo la simulazione;
+  in `continue_game` resta il commento). Dopo `from_save` l'intervallo del ciclo si fissa al primo `advance`
+  (`05_INTERFACES.md` §5.8).
 
 ### M1-12 · Contenuto: le 12 skill e Selvicoltura
 - **Ruolo** DATA · **Stima** M · **Parallelizzabile** sì (dopo M1-04) · **Dipendenze** M1-04
@@ -496,6 +503,13 @@ Regole per tutti i task:
   (L 50 → +7,5 `preservation_chance`; L 99 → +13,5 e −5 `skill_interval_pct`). Ownership estesa a
   `res://tests/fixtures/data/**` (solo `mastery_bonuses` di `test_craft`) e `res://tests/systems/mastery/test_mastery_system.gd`
   (solo il caso nuovo).
+- **Nota (da M1-10)** In `action_runner.gd` l'artigianato entra in due punti: `_start_check` (oggi `is_artisan()` →
+  `unknown_id`: diventa `ArtisanResolver.can_start`, `missing_inputs`; lo usa anche `_load_lane`) e `_complete_cycle`
+  (oggi sempre `GatheringResolver.resolve`: scegliere il resolver dal tipo di azione; un esito `ok = false` ferma già la
+  corsia con `outcome.reason`). Facoltativo (fixture = CORE, ownership estesa a `res://tests/fixtures/data/actions/test_gather.json`,
+  solo `interval_ms` di `gather_bundle`): `gather_bundle` a 1000 ms per il caso letterale di F-03 (1000, −80 → 250) e
+  rimozione della copia `fast` sotto `user://` in `test_action_runner.gd`; prima verificare che nessun test dipenda dai
+  3000 ms di `gather_bundle`.
 
 ### M3-02 · Shop (porting)
 - **Ruolo** PORT · **Stima** M · **Parallelizzabile** sì · **Dipendenze** M2-06
@@ -600,6 +614,12 @@ Regole per tutti i task:
   corsia main.
 - **Accettazione** stato identico dopo salvataggio/caricamento a metà duello; equivalenza 1×1000 ms = 10×100 ms.
 - **Test** `test_combat_engine.gd` (inclusi `test_gold_drop_pct`, drop F-32, morte).
+- **Nota (da M1-10)** Ownership estesa a `res://systems/actions/action_runner.gd`, solo la riga dello stop del
+  combattimento in `start` (oggi un commento segnaposto prima di `stop(lane, Reasons.REPLACED)`, già solo corsia main):
+  `if _session.combat != null: _session.combat.stop(Reasons.REPLACED)`. E a `res://tests/core/session/test_game_session.gd`:
+  la chiave finta `combat` di `ProbeSession` va in conflitto con `CombatEngine.SAVE_KEY` (assert di `_join`): rinominarla
+  (es. `duels`) e aggiungere le asserzioni di `combat`. Avviare il combattimento chiama
+  `session.actions.stop(ActionRunner.MAIN, Reasons.REPLACED)` (no-op se la corsia è ferma).
 
 ### M4-04 · Contenuto del combattimento
 - **Ruolo** DATA · **Stima** M · **Parallelizzabile** sì (con M4-01…M4-03) · **Dipendenze** M3-09
@@ -762,6 +782,8 @@ Regole per tutti i task:
 - **Descrizione / Accettazione** F-50 riprodotta; stato salvato; funziona anche durante l'offline. **Test** il file (incluso `test_duration_pct`).
   Il validatore è in 3 file (`data_validator.gd`, `data_validator_rules.gd`, `data_validator_items.gd`): le regole nuove
   vanno nel file del dominio o, se un file supera ~360 righe, in un file proprio (`data_validator_fractures.gd`, stessa ownership).
+- **Nota (da M1-10)** Se `FractureSystem.SAVE_KEY` è `fractures`, rinominare la chiave finta `fractures` di `ProbeSession`
+  in `res://tests/core/session/test_game_session.gd` (ownership estesa, solo quella chiave).
 
 ### M7-02 · Dati delle Fratture
 - **Ruolo** DATA · **Stima** S · **Parallelizzabile** sì · **Dipendenze** M6-08
@@ -793,6 +815,10 @@ chiusura, salvataggio, offline · **Accettazione / Test** verde.
   ordine di risoluzione main → secondary.
 - **Accettazione** F-51 riprodotta; `skill_in_other_lane`; ingredienti contesi risolti nell'ordine.
 - **Test** casi nuovi (incluso `test_secondary_lane_unlock`).
+- **Nota (da M1-10)** Il runner ha già `LANE_ORDER` (main → secondary) e le corsie in `_lanes` (classe interna `_Lane`);
+  vanno sbloccati: `start` (oggi `lane_unavailable` per ogni corsia ≠ main), `from_save` (scarta le corsie ≠ main con
+  `Log.warn`), `current_interval_ms` (ignora la corsia), `lanes_available` (1); `ActionMath.secondary_interval_ms` (F-51)
+  è già testato. Aggiungere `skill_in_other_lane`. Lo stop del combattimento resta solo per la corsia main.
 
 ### M8-02 · Dati di M8 — **Ruolo** DATA · **Stima** S · **Dipendenze** M6-08 · **Parallelizzabile** sì ·
 **Ownership** `res://data/shop/shop.json` (`second_thought`), `res://data/config/balance.json` (`parallel`), `res://data/config/stats.json`
