@@ -222,7 +222,9 @@ Regole per tutti i task:
 - **Ownership** `res://systems/wallet/wallet.gd`, `res://systems/bank/bank.gd`, `res://tests/systems/wallet/test_wallet.gd`,
   `res://tests/systems/bank/test_bank.gd`, `res://core/session/game_session.gd` (solo campi tipizzati, creazione e
   registrazione dei due sistemi), `res://core/session/session_snapshot.gd` (solo `bank` e `gold` in `take`),
-  `res://tests/helpers/test_factory.gd` (solo `give`)
+  `res://tests/helpers/test_factory.gd` (solo `give`), `res://core/session/session_participants.gd` (estrazione di
+  `_Participant` per il limite di 200 righe), `res://tests/core/session/test_game_session.gd` (solo le asserzioni rese
+  false dalla registrazione di Wallet/Bank; estensione concessa a posteriori dal Reviewer)
 - **Leggere** `01_GDD.md` §7-8; `02_FORMULAS.md` F-16; `05_INTERFACES.md` §5.4-5.5, §6
 - **Descrizione** Come da interfacce. `start.gold` e `start.items` applicati in `new_game` di Wallet/Bank.
 - **Accettazione** un oggetto nuovo con bank piena → `bank_full` + `bank_rejected`; quantità 0 libera la casella; capienza
@@ -256,6 +258,10 @@ Regole per tutti i task:
   (`node_cost`, `owns_node`, `can_buy_node`, `buy_node`) restituiscono `unknown_id` finché M2-01 non li implementa.
 - **Accettazione** esempi di F-10…F-14; il pool non supera il tetto.
 - **Test** `test_mastery_math.gd` (incluso `test_mastery_xp_pct`), `test_mastery_system.gd` (bonus F-11, spesa F-14).
+- **Nota (da M1-07)** `_create_systems()` registra già `wallet`, `bank`, `skills` in quest'ordine: `mastery` va in coda
+  (dopo `skills`), con `rebuild_fn = mastery.rebuild_modifiers`. I partecipanti stanno in `SessionParticipants`
+  (`core/session/session_participants.gd`, helper interno: non va toccato). In `test_game_session.gd` le asserzioni sui
+  `modules` sono per chiave: aggiungere quella di `mastery` allo stesso modo (estensione di ownership come M1-07/M1-08).
 
 ### M1-10 · ActionRunner e raccolta
 - **Ruolo** CORE · **Stima** L · **Parallelizzabile** no · **Dipendenze** M1-07, M1-08, M1-09
@@ -270,6 +276,10 @@ Regole per tutti i task:
 - **Accettazione** 600 ms con intervallo 250 → 2 cicli e 100 ms residui; equivalenza 1×1000 ms = 10×100 ms (stesso stato,
   stesso seme); bank piena → nessuna XP, stop `bank_full`.
 - **Test** i tre file (inclusi `test_interval_uses_skill_interval_pct`, `test_double_item_chance_100`, `test_rift_shard_chance`).
+- **Nota (da M1-07)** Prima di consumare o produrre usare `bank.can_add` per ogni output nuovo: `bank.add` con bank piena
+  emette già `bank_rejected` + `bank_full` (non duplicarli); lo stop `bank_full` dell'azione è del runner. `add`/`remove`
+  restituiscono `CommandResult` (§5.5); `TestFactory.give` è disponibile per i test. `actions` va registrato dopo
+  `mastery` e con `_tick(_PHASE_ACTIONS, actions.advance)`.
 
 ### M1-11 · Game: menu → slot → partita
 - **Ruolo** CORE · **Stima** M · **Parallelizzabile** no · **Dipendenze** M1-06, M1-10

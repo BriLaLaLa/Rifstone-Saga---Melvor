@@ -458,7 +458,13 @@ const _PHASE_FRACTURES: int; const _PHASE_ACTIONS: int; const _PHASE_COMBAT: int
 - `RngService.to_save`: `state` come stringa decimale se `|state| > 2^53`; `from_save` accetta int, float interi e stringhe.
 - `total_level()` restituisce 0 finché non esiste `SkillsSystem` (M1-08); `SessionSnapshot.take` legge solo i sistemi
   presenti (xp/livelli M1-08, bank/oro M1-07, kills/deaths/food_eaten M4-xx).
-- `game_session.gd` ≤ 200 righe (test); chi lo supererebbe sposta `_Participant` in `core/session/session_participants.gd`.
+- `game_session.gd` ≤ 200 righe (test). Da M1-07 i partecipanti al salvataggio stanno in
+  `core/session/session_participants.gd` (`class_name SessionParticipants extends RefCounted`, con la classe interna
+  `_Participant`): **helper interno** di `GameSession`, non un'API per gli altri moduli (nessuno lo usa o lo referenzia
+  fuori da `game_session.gd`). `_join` delega a `SessionParticipants.join`; `new_game`, `to_save`, `from_save` (moduli
+  assenti, non oggetti o sconosciuti come sopra) e `rebuild_modifiers` iterano tramite lui, nell'ordine di `_join`.
+- Ordine attuale di `_create_systems()`: `wallet`, `bank`, `skills` (i task successivi aggiungono in coda, in ordine di
+  dipendenza).
 
 ### 5.4 Wallet (`systems/wallet/wallet.gd`) — dipendenze: events
 ```gdscript
@@ -467,6 +473,9 @@ func get_gold() -> int
 func add_gold(amount: int) -> void                 # amount > 0, altrimenti push_error e nulla
 func spend(amount: int) -> CommandResult           # invalid_amount, not_enough_gold
 ```
+- Ogni variazione emette `gold_changed(new_amount, delta)` dopo il cambio (`delta` = `+amount` / `-amount`).
+- `new_game` (oro = `start.gold`) e `from_save` non emettono segnali: la UI legge lo stato dopo `session_started`.
+- `from_save` tollerante: `gold` assente, non intero (i float interi del JSON sono accettati) o negativo → `Log.warn` e 0.
 
 ### 5.5 Bank (`systems/bank/bank.gd`) — dipendenze: data, events, modifiers
 ```gdscript
@@ -484,6 +493,23 @@ func set_locked(item_id: StringName, locked: bool) -> CommandResult   # unknown_
 func move_stack(item_id: StringName, new_index: int) -> CommandResult
 func sort_stacks() -> void                         # per categoria (ordine: material, food, equipment, tool, infusion, misc), sort_order, id
 ```
+- Capienza F-16 = `bank.base_slots + floori(total(bank_slots))`; su `modifiers_changed`, solo se la capienza cambia,
+  `bank_capacity_changed(used, capacity)`. Lo emettono anche `add` di un oggetto nuovo e la casella liberata.
+- `add`: id sconosciuto → `unknown_id` (prima del controllo della quantità); `qty ≤ 0` → `invalid_amount`; oggetto nuovo
+  con bank piena → `bank_rejected(item_id, qty)` + `bank_full`, nessun `bank_changed`. Un oggetto già presente entra
+  sempre. `remove`: `qty ≤ 0` → `invalid_amount`; quantità insufficiente o oggetto assente → `not_enough_items`;
+  a 0 la casella si libera e il blocco si perde.
+- `bank_changed(item_id, new_count, delta)`: `delta` = `+qty` / `-qty` per `add`/`remove`; **`delta` = 0** per i
+  cambi che non toccano la quantità: `set_locked` (solo se il blocco cambia davvero), `move_stack` e `sort_stacks`
+  (uno per ogni casella che cambia indice).
+- `move_stack`: oggetto assente → `unknown_id`; `new_index` fuori da `0..used()-1` → `invalid_amount`; stesso indice →
+  ok senza segnali. Le altre caselle scorrono.
+- `can_add` di un id sconosciuto → false. `has(item_id, qty)` = `get_count(item_id) >= qty`.
+- `new_game` (applica `start.items`) e `from_save` non emettono segnali (la UI legge dopo `session_started`); il
+  `rebuild_modifiers` che li segue può emettere `bank_capacity_changed` se la capienza cambia.
+- `from_save` tollerante, ordine conservato: voci con id sconosciuto, duplicate, `count` non intero o ≤ 0 (i float interi
+  del JSON sono accettati) → `Log.warn` e scartate; `locked` non booleano → false; `stacks` non lista → bank vuota.
+  Non controlla la capienza (le caselle comprate non si perdono, `01_GDD.md` §7).
 
 ### 5.6 SkillsSystem (`systems/skills/skills_system.gd`) — dipendenze: data, events, modifiers
 ```gdscript
@@ -835,8 +861,8 @@ static func give(session: GameSession, item_id: StringName, qty: int) -> void   
 static func set_level(session: GameSession, skill_id: StringName, level: int) -> void # via skills.add_xp con xp_for_level
 ```
 `fixture_data()`/`real_data()` caricati una volta per esecuzione e condivisi (`GameData` è immutabile); `session()` crea
-un `GameEvents` figlio della sessione (si libera con lei), mai l'autoload `EventBus`, mai slot veri. Fino ai task dei
-sistemi `give` (M1-07) e `set_level` (M1-08) sono stub: `push_error` + `assert(false)`. GUT segnala `test_factory.gd`
+un `GameEvents` figlio della sessione (si libera con lei), mai l'autoload `EventBus`, mai slot veri. `give` (M1-07) e
+`set_level` (M1-08) sono implementati: in caso di fallimento `push_error` + `assert`. GUT segnala `test_factory.gd`
 come ignorato (prefisso `test_` ma non estende `GutTest`): avviso innocuo.
 `tests/helpers/gut_pre_run.gd`: imposta `SaveService.base_dir = "user://test_saves"` e svuota la cartella.
 Ogni test libera la sessione con `autofree()` (GUT) o `session.free()`.

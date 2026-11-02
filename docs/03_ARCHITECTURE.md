@@ -34,7 +34,7 @@ res://
 │   │                               shop_entry_def.gd, mastery_node_def.gd, item_qty.gd, drop_entry.gd, fracture_def.gd (M7)
 │   ├── modifiers/                ← modifier.gd, modifier_context.gd, modifier_service.gd, stat_registry.gd
 │   ├── progression/              ← xp_table.gd
-│   ├── session/                  ← game_session.gd, rng_service.gd, session_snapshot.gd
+│   ├── session/                  ← game_session.gd, session_participants.gd, rng_service.gd, session_snapshot.gd
 │   ├── save/                     ← save_codec.gd, save_migrator.gd, slot_info.gd, migrations/
 │   ├── offline/                  ← offline_simulator.gd, offline_summary.gd
 │   └── settings/                 ← game_settings.gd
