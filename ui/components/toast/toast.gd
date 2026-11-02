@@ -15,8 +15,6 @@ const KIND_COLORS: Dictionary[StringName, Color] = {
 	&"success": UiStyle.GOOD,
 	&"warning": UiStyle.BAD,
 }
-const FADE_IN_SEC: float = 0.2
-const FADE_OUT_SEC: float = 0.3
 const ACCENT_WIDTH: int = 3
 
 var _is_dismissing: bool = false
@@ -35,7 +33,7 @@ func setup(text: String, kind: StringName) -> void:
 	add_theme_stylebox_override("panel", sb)
 	modulate.a = 0.0
 	var tween: Tween = create_tween()
-	tween.tween_property(self, "modulate:a", 1.0, FADE_IN_SEC).set_trans(Tween.TRANS_LINEAR)
+	tween.tween_property(self, "modulate:a", 1.0, UiStyle.TOAST_FADE_IN_SEC).set_trans(Tween.TRANS_LINEAR)
 
 
 ## Fades the toast out, emits `dismissed` and frees it. Calling it twice has no effect.
@@ -44,7 +42,7 @@ func dismiss() -> void:
 		return
 	_is_dismissing = true
 	var tween: Tween = create_tween()
-	tween.tween_property(self, "modulate:a", 0.0, FADE_OUT_SEC).set_trans(Tween.TRANS_LINEAR)
+	tween.tween_property(self, "modulate:a", 0.0, UiStyle.TOAST_FADE_OUT_SEC).set_trans(Tween.TRANS_LINEAR)
 	tween.finished.connect(_on_fade_out_finished)
 
 

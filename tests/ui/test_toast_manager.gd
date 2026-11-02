@@ -30,7 +30,7 @@ func after_each() -> void:
 func test_ten_bank_increases_in_one_second_make_one_toast_with_the_sum() -> void:
 	for i: int in range(10):
 		_now_ms = i * 100
-		_events.bank_changed.emit(ITEM, i + 1)
+		_events.bank_changed.emit(ITEM, i + 1, 1)
 	_tick()
 	assert_eq(_toasts().size(), 0, "no toast before the group window closes")
 	_now_ms = UiStyle.TOAST_GROUP_MS
@@ -38,42 +38,49 @@ func test_ten_bank_increases_in_one_second_make_one_toast_with_the_sum() -> void
 	assert_eq(_texts(), PackedStringArray(["+10 test_log"]))
 
 
-func test_increases_use_the_difference_from_the_last_count() -> void:
-	_events.bank_changed.emit(ITEM, 1200)
-	_events.bank_changed.emit(ITEM, 1250)
+func test_item_already_in_bank_plus_one_shows_plus_one() -> void:
+	_events.bank_changed.emit(ITEM, 101, 1)
 	_advance(UiStyle.TOAST_GROUP_MS)
-	assert_eq(_texts(), PackedStringArray(["+1.250 test_log"]), "thousands separator, 0 -> 1250")
+	assert_eq(_texts(), PackedStringArray(["+1 test_log"]), "the delta counts, not the new total")
+
+
+func test_deltas_are_summed_with_thousands_separator() -> void:
+	_events.bank_changed.emit(ITEM, 1200, 1200)
+	_events.bank_changed.emit(ITEM, 1250, 50)
+	_advance(UiStyle.TOAST_GROUP_MS)
+	assert_eq(_texts(), PackedStringArray(["+1.250 test_log"]))
 
 
 func test_decreases_make_no_toast() -> void:
-	_events.bank_changed.emit(ITEM, 5)
+	_events.bank_changed.emit(ITEM, 5, 5)
 	_advance(UiStyle.TOAST_GROUP_MS)
-	_events.bank_changed.emit(ITEM, 2)
-	_events.bank_changed.emit(ITEM, 0)
+	_events.bank_changed.emit(ITEM, 2, -3)
+	_events.bank_changed.emit(ITEM, 0, -2)
+	_events.bank_changed.emit(ITEM, 0, 0)
 	_advance(UiStyle.TOAST_GROUP_MS)
-	assert_eq(_texts(), PackedStringArray(["+5 test_log"]), "only the first increase is shown")
+	assert_eq(_texts(), PackedStringArray(["+5 test_log"]), "only the increase is shown")
 
 
 func test_decrease_inside_a_window_does_not_reduce_the_group() -> void:
-	_events.bank_changed.emit(ITEM, 4)
-	_events.bank_changed.emit(ITEM, 1)
-	_events.bank_changed.emit(ITEM, 3)
+	_events.bank_changed.emit(ITEM, 4, 4)
+	_events.bank_changed.emit(ITEM, 1, -3)
+	_events.bank_changed.emit(ITEM, 3, 2)
 	_advance(UiStyle.TOAST_GROUP_MS)
 	assert_eq(_texts(), PackedStringArray(["+6 test_log"]), "4 gained, 3 lost (ignored), 2 gained")
 
 
 func test_groups_are_per_item() -> void:
-	_events.bank_changed.emit(ITEM, 2)
-	_events.bank_changed.emit(OTHER_ITEM, 3)
-	_events.bank_changed.emit(ITEM, 5)
+	_events.bank_changed.emit(ITEM, 2, 2)
+	_events.bank_changed.emit(OTHER_ITEM, 3, 3)
+	_events.bank_changed.emit(ITEM, 5, 3)
 	_advance(UiStyle.TOAST_GROUP_MS)
 	assert_eq(_texts(), PackedStringArray(["+5 test_log", "+3 test_ore"]))
 
 
 func test_increase_after_the_window_starts_a_new_group() -> void:
-	_events.bank_changed.emit(ITEM, 1)
+	_events.bank_changed.emit(ITEM, 1, 1)
 	_now_ms = UiStyle.TOAST_GROUP_MS
-	_events.bank_changed.emit(ITEM, 3)
+	_events.bank_changed.emit(ITEM, 3, 2)
 	assert_eq(_texts(), PackedStringArray(["+1 test_log"]), "the closed group is shown before the new one starts")
 	_advance(UiStyle.TOAST_GROUP_MS)
 	assert_eq(_texts(), PackedStringArray(["+1 test_log", "+2 test_log"]))
@@ -81,19 +88,20 @@ func test_increase_after_the_window_starts_a_new_group() -> void:
 
 func test_name_resolver_gives_the_display_name() -> void:
 	_manager.name_resolver = func(id: StringName) -> String: return "Nome di " + String(id)
-	_events.bank_changed.emit(ITEM, 7)
+	_events.bank_changed.emit(ITEM, 7, 7)
 	_events.level_up.emit(SKILL, 12)
 	_advance(UiStyle.TOAST_GROUP_MS)
 	assert_eq(_texts(), PackedStringArray(["Nome di test_skill: livello 12", "+7 Nome di test_log"]))
 
 
-func test_session_end_forgets_known_counts() -> void:
-	_events.bank_changed.emit(ITEM, 10)
-	_advance(UiStyle.TOAST_GROUP_MS)
+func test_session_end_drops_open_groups() -> void:
+	_events.bank_changed.emit(ITEM, 10, 10)
 	_events.session_ended.emit(1)
-	_events.bank_changed.emit(ITEM, 4)
 	_advance(UiStyle.TOAST_GROUP_MS)
-	assert_eq(_texts(), PackedStringArray(["+10 test_log", "+4 test_log"]))
+	assert_eq(_toasts().size(), 0, "the group of the ended session is not shown")
+	_events.bank_changed.emit(ITEM, 4, 4)
+	_advance(UiStyle.TOAST_GROUP_MS)
+	assert_eq(_texts(), PackedStringArray(["+4 test_log"]))
 
 
 func test_notification_requested_shows_the_text_with_its_kind() -> void:
@@ -148,7 +156,7 @@ func test_expired_toast_leaves_and_the_next_one_shows() -> void:
 	for i: int in range(1, UiStyle.TOAST_MAX_VISIBLE + 1):
 		_manager.push("t%d" % i, &"info")
 	var first: Toast = _toasts()[0]
-	_now_ms = ToastManager.LIFETIME_MS
+	_now_ms = UiStyle.TOAST_LIFETIME_MS
 	_tick()
 	assert_eq(_toasts().size(), UiStyle.TOAST_MAX_VISIBLE, "fading toast still counts, nothing spawned yet")
 	await wait_for_signal(first.dismissed, 2.0, "first toast fades out")
@@ -161,7 +169,7 @@ func test_expired_toast_leaves_and_the_next_one_shows() -> void:
 
 func test_toast_stays_until_its_lifetime() -> void:
 	_manager.push("resta", &"info")
-	_advance(ToastManager.LIFETIME_MS - 1)
+	_advance(UiStyle.TOAST_LIFETIME_MS - 1)
 	assert_eq(_texts(), PackedStringArray(["resta"]))
 
 

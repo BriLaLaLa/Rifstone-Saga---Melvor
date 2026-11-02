@@ -14,14 +14,9 @@ extends Control
 ## - `name_resolver`: `(id: StringName) -> String`, display name of an item or skill id. Until GameData exists (M1-04)
 ##   the default shows the id itself; the main screen sets it to read names from the data.
 ##
-## `bank_changed` carries only the new count, so the increase is the difference from the last count seen for that
-## item (presentation cache, cleared on `session_ended`). An item never seen before counts from 0.
+## `bank_changed` toasts use the signed `delta` of each change: only positive deltas count, summed per item while
+## the group window is open. Open groups are dropped on `session_ended`, so they never leak into another slot.
 
-## How long a toast stays fully visible before fading out.
-const LIFETIME_MS: int = 4000
-## Distance of the stack from the right and bottom edges of the screen.
-const EDGE_MARGIN: int = 16
-const STACK_SEPARATION: int = 6
 const TOAST_SCENE: PackedScene = preload("res://ui/components/toast/toast.tscn")
 const KIND_INFO := &"info"
 const KIND_SUCCESS := &"success"
@@ -52,7 +47,6 @@ var _active: Array[Toast] = []
 var _expiry_ms: Dictionary[Toast, int] = {}
 var _pending_texts: PackedStringArray = PackedStringArray()
 var _pending_kinds: Array[StringName] = []
-var _last_counts: Dictionary[StringName, int] = {}
 var _group_qty: Dictionary[StringName, int] = {}
 var _group_start_ms: Dictionary[StringName, int] = {}
 
@@ -64,9 +58,10 @@ func _init() -> void:
 	_stack.name = "Stack"
 	_stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_stack.alignment = BoxContainer.ALIGNMENT_END
-	_stack.add_theme_constant_override("separation", STACK_SEPARATION)
+	_stack.add_theme_constant_override("separation", UiStyle.TOAST_STACK_SEPARATION)
 	add_child(_stack)
-	_stack.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_MINSIZE, EDGE_MARGIN)
+	_stack.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_MINSIZE,
+			UiStyle.TOAST_EDGE_MARGIN)
 	_stack.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	_stack.grow_vertical = Control.GROW_DIRECTION_BEGIN
 
@@ -113,7 +108,7 @@ func _spawn(text: String, kind: StringName) -> void:
 	_stack.add_child(toast)
 	toast.setup(text, kind)
 	_active.append(toast)
-	_expiry_ms[toast] = _now() + LIFETIME_MS
+	_expiry_ms[toast] = _now() + UiStyle.TOAST_LIFETIME_MS
 	toast.dismissed.connect(_on_toast_dismissed.bind(toast), CONNECT_ONE_SHOT)
 
 
@@ -148,18 +143,15 @@ func _on_events_notification_requested(text: String, kind: StringName) -> void:
 	push(text, kind)
 
 
-func _on_events_bank_changed(item_id: StringName, new_count: int) -> void:
-	var previous: int = _last_counts.get(item_id, 0)
-	_last_counts[item_id] = new_count
-	var gained: int = new_count - previous
-	if gained <= 0:
+func _on_events_bank_changed(item_id: StringName, _new_count: int, delta: int) -> void:
+	if delta <= 0:
 		return
 	var now: int = _now()
 	_flush_groups(now)
 	if _group_qty.has(item_id):
-		_group_qty[item_id] += gained
+		_group_qty[item_id] += delta
 	else:
-		_group_qty[item_id] = gained
+		_group_qty[item_id] = delta
 		_group_start_ms[item_id] = now
 
 
@@ -175,7 +167,6 @@ func _on_events_action_stopped(_lane: StringName, skill_id: StringName, reason: 
 
 
 func _on_events_session_ended(_slot: int) -> void:
-	_last_counts.clear()
 	_group_qty.clear()
 	_group_start_ms.clear()
 
