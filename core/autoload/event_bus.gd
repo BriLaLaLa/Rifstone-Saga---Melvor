@@ -24,7 +24,7 @@ signal mastery_pool_changed(skill_id: StringName, pool_xp: int)
 signal mastery_node_purchased(skill_id: StringName, node_id: StringName)
 
 # Bank, wallet, equipment, modifiers
-signal bank_changed(item_id: StringName, new_count: int)
+signal bank_changed(item_id: StringName, new_count: int, delta: int)
 signal bank_capacity_changed(used: int, capacity: int)
 signal bank_rejected(item_id: StringName, qty: int)
 signal gold_changed(new_amount: int, delta: int)
