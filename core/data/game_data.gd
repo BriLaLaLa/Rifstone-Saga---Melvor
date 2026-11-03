@@ -14,9 +14,11 @@ const STATS_FILE: String = "stats.json"
 ## Content section -> file (single-file sections) or folder (every `.json` inside), relative to the content root.
 const CONTENT_FILES: Dictionary[String, String] = {
 	"skills": "skills/skills.json", "areas": "combat/areas.json", "monsters": "combat/monsters.json",
-	"shop": "shop/shop.json",
+	"shop": "shop/shop.json", "affixes": "affixes/affixes.json",
 }
-const CONTENT_DIRS: Dictionary[String, String] = {"items": "items", "actions": "actions", "mastery": "mastery"}
+const CONTENT_DIRS: Dictionary[String, String] = {
+	"items": "items", "actions": "actions", "mastery": "mastery", "classes": "classes",
+}
 
 var errors: PackedStringArray = []
 var stats: StatRegistry = StatRegistry.new()
@@ -37,6 +39,11 @@ var _area_list: Array[AreaDef] = []
 var _monsters: Dictionary[StringName, MonsterDef] = {}
 var _shop: Dictionary[StringName, ShopEntryDef] = {}
 var _shop_list: Array[ShopEntryDef] = []
+var _character_table: XpTable = null
+var _classes: Dictionary[StringName, ClassDef] = {}
+var _class_list: Array[ClassDef] = []
+var _affixes: Dictionary[StringName, AffixDef] = {}
+var _affix_list: Array[AffixDef] = []
 
 
 static func load_from_dirs(content_root: String = "res://data", config_root: String = "res://data/config") -> GameData:
@@ -84,6 +91,33 @@ func mastery_table() -> XpTable:
 	return _mastery_table
 
 
+## F-71 table from `character_curve` (null when the data is not valid).
+func character_xp_table() -> XpTable:
+	return _character_table
+
+
+func character_class(id: StringName) -> ClassDef:
+	return _find(_classes, id, "class") as ClassDef
+
+
+## Every class, by `order`.
+func classes() -> Array[ClassDef]:
+	return _class_list.duplicate()
+
+
+func affix(id: StringName) -> AffixDef:
+	return _find(_affixes, id, "affix") as AffixDef
+
+
+## The affixes that can roll on an equipment slot (`head`, `weapon`, `tool_forestry`…), in file order.
+func affixes_for_slot(slot: StringName) -> Array[AffixDef]:
+	var result: Array[AffixDef] = []
+	for def: AffixDef in _affix_list:
+		if def.slots.has(slot):
+			result.append(def)
+	return result
+
+
 func item(id: StringName) -> ItemDef:
 	return _find(_items, id, "item") as ItemDef
 
@@ -106,7 +140,7 @@ func skills() -> Array[SkillDef]:
 	return _skill_list.duplicate()
 
 
-## The skills of a category (`gathering`, `artisan`, `combat`), by `order`; an unknown category is an error.
+## The skills of a category (`gathering`, `artisan`), by `order`; an unknown category is an error.
 func skills_by_category(category: StringName) -> Array[SkillDef]:
 	var result: Array[SkillDef] = []
 	if not DataValidator.SKILL_CATEGORIES.has(String(category)):
@@ -203,6 +237,7 @@ func _build(raw: Dictionary) -> void:
 	stats = StatRegistry.from_array((raw["stats"] as Dictionary).values()[0]["stats"] as Array, errors)
 	_xp_table = _curve("xp_curve")
 	_mastery_table = _curve("mastery_curve")
+	_character_table = _curve("character_curve")
 	for path: String in raw["skills"]:
 		for d: Dictionary in _list(raw["skills"][path], "skills"):
 			_add(SkillDef.from_dict(d), _skills, _skill_list, path, "skill", d)
@@ -220,6 +255,12 @@ func _build(raw: Dictionary) -> void:
 	for path: String in raw["areas"]:
 		for d: Dictionary in _list(raw["areas"][path], "areas"):
 			_add(AreaDef.from_dict(d), _areas, _area_list, path, "area", d)
+	for path: String in raw["classes"]:
+		_add(ClassDef.from_dict(raw["classes"][path] as Dictionary), _classes, _class_list, path, "class",
+				raw["classes"][path] as Dictionary)
+	for path: String in raw["affixes"]:
+		for d: Dictionary in _list(raw["affixes"][path], "affixes"):
+			_add(AffixDef.from_dict(d), _affixes, _affix_list, path, "affix", d)
 	for path: String in raw["monsters"]:
 		for d: Dictionary in _list(raw["monsters"][path], "monsters"):
 			_add(MonsterDef.from_dict(d), _monsters, [], path, "monster", d)
@@ -228,6 +269,7 @@ func _build(raw: Dictionary) -> void:
 			_add(ShopEntryDef.from_dict(d), _shop, _shop_list, path, "shop entry", d)
 	_skill_list.sort_custom(func(a: SkillDef, b: SkillDef) -> bool: return a.order < b.order)
 	_area_list.sort_custom(func(a: AreaDef, b: AreaDef) -> bool: return a.order < b.order)
+	_class_list.sort_custom(func(a: ClassDef, b: ClassDef) -> bool: return a.order < b.order)
 	_action_list.sort_custom(_action_before)
 	for def: ActionDef in _action_list:
 		if def.icon.is_empty() and not def.outputs.is_empty():
@@ -264,9 +306,11 @@ static func _action_before(a: ActionDef, b: ActionDef) -> bool:
 
 # With a Def that could not be built the data is not valid: nothing stays half-loaded.
 func _clear() -> void:
-	for table: Dictionary in [_items, _skills, _actions, _nodes, _areas, _monsters, _shop]:
+	for table: Dictionary in [_items, _skills, _actions, _nodes, _areas, _monsters, _shop, _classes, _affixes]:
 		table.clear()
-	for list: Array in [_item_list, _skill_list, _action_list, _node_list, _area_list, _shop_list]:
+	for list: Array in [_item_list, _skill_list, _action_list, _node_list, _area_list, _shop_list, _class_list,
+			_affix_list]:
 		list.clear()
 	_xp_table = null
 	_mastery_table = null
+	_character_table = null

@@ -1,24 +1,22 @@
 class_name DataValidatorRules
 extends RefCounted
 ## Second half of DataValidator (internal, not API for other modules): the field toolkit (types, ranges, unknown
-## fields, ids, references, modifiers, `{item, qty}` lists) and the rules of mastery, areas and monsters
-## (docs/04_DATA_SCHEMA.md §7-8). Each problem is one line in `errors`: `<file>: <kind> '<id>': <message>`
+## fields, ids, references, modifiers, `{item, qty}` lists) and the rules of mastery (areas, monsters, classes and
+## affixes are in DataValidatorClasses; docs/04_DATA_SCHEMA.md §7). Each problem is one line in `errors`:
+## `<file>: <kind> '<id>': <message>`
 ## (`<kind> #<index>` while the entry has no usable id). Checkers return whether the field is valid.
 
 const DOC_KEY: String = "_doc"
 const ID_PATTERN: String = "^[a-z][a-z0-9_]{1,47}$"
 const NO_LIMIT: float = INF  # "no limit"; also when a limit's balance key is missing (already an error)
+const CHARACTER_KEY: String = "character"  # reserved key of the requirements: the character level
+const LEVELS_SKILLS: int = 0  # level_map modes
+const LEVELS_CHARACTER: int = 1
+const LEVELS_BOTH: int = 2
 const STYLES: PackedStringArray = ["blade", "marksmanship", "arcana"]
-const MONSTER_ICON_DIR: String = "res://assets/icons/monsters/"
 const MASTERY_COST_MAX_PCT: float = 50.0
 const MASTERY_POS_MAX: int = 5
-const MAX_DROPS: int = 4
-const DAMAGE_REDUCTION_STAT: StringName = &"damage_reduction"  # bounds monster damage_reduction (stats.json)
 const NODE_FIELDS: PackedStringArray = ["id", "name", "description", "cost_pct", "requires", "pos", "modifiers"]
-const AREA_FIELDS: PackedStringArray = ["id", "name", "description", "order", "requirements", "monsters"]
-const MONSTER_FIELDS: PackedStringArray = ["id", "name", "description", "icon", "hp", "style", "attack_interval_ms",
-	"attack_level", "power_level", "defence_level", "accuracy_bonus", "power_bonus", "evasion_bonus",
-	"damage_reduction", "gold", "rift_shard_chance", "drops"]
 
 var errors: PackedStringArray = []
 var stats: StatRegistry = StatRegistry.new()
@@ -27,8 +25,11 @@ var items: Dictionary[StringName, Dictionary] = {}
 var actions: Dictionary[StringName, Dictionary] = {}
 var monsters: Dictionary[StringName, Dictionary] = {}
 var shop_entries: Dictionary[StringName, Dictionary] = {}
+var classes: Dictionary[StringName, Dictionary] = {}
 var max_skill_level: float = NO_LIMIT  # limits from balance.json (NO_LIMIT or 0 if malformed: already reported)
 var max_mastery_level: float = NO_LIMIT
+var max_character_level: float = NO_LIMIT  # character_curve.max_level
+var max_pack_size: float = NO_LIMIT  # combat.max_pack_size
 var min_action_interval_ms: float = 0.0
 var min_attack_interval_ms: float = 0.0
 
@@ -160,15 +161,23 @@ func id_list(d: Dictionary, key: String, known: Variant, kind: String, min_count
 	return result
 
 
-## `{skill_id: level}`: existing skills, integer levels 1..max skill level.
-func level_map(d: Dictionary, key: String, prefix: String = "") -> void:
+## `{skill_id: level}`: existing skills, integer levels 1..max skill level. The reserved key `character` is the
+## character level (1..max character level): allowed with `LEVELS_BOTH`, the only key with `LEVELS_CHARACTER`, an
+## unknown skill with `LEVELS_SKILLS`.
+func level_map(d: Dictionary, key: String, prefix: String = "", mode: int = LEVELS_SKILLS) -> void:
 	var levels: Dictionary = object(d, key, prefix)
+	var at: String = _path(prefix, key)
 	for skill: Variant in levels:
 		if str(skill) == DOC_KEY and levels[skill] is String:
 			continue
-		if not skills.has(StringName(str(skill))):
-			fail("field '%s.%s': unknown skill '%s'" % [_path(prefix, key), skill, skill])
-		integer(levels, str(skill), 1, max_skill_level, _path(prefix, key))
+		if str(skill) == CHARACTER_KEY and mode != LEVELS_SKILLS:
+			integer(levels, CHARACTER_KEY, 1, max_character_level, at)
+		elif mode == LEVELS_CHARACTER:
+			fail("field '%s.%s': only '%s' is allowed here" % [at, skill, CHARACTER_KEY])
+		else:
+			if not skills.has(StringName(str(skill))):
+				fail("field '%s.%s': unknown skill '%s'" % [at, skill, skill])
+			integer(levels, str(skill), 1, max_skill_level, at)
 
 
 ## The `{item, qty}` list under `key` (at least `min_count`): existing items, integer quantities >= 1.
@@ -260,50 +269,6 @@ func _check_requires(graph: Dictionary[StringName, Array], owner: Dictionary[Str
 				fail("field 'requires': node '%s' belongs to another skill" % required)
 		if not unlocked.has(id):
 			fail("field 'requires' is part of a cycle (or depends on one): %s" % JSON.stringify(graph[id]))
-
-
-func validate_areas(files: Dictionary[String, Dictionary]) -> void:
-	var seen: Dictionary[StringName, bool] = {}
-	var orders: Dictionary[int, bool] = {}
-	for path: String in files:
-		at_file(path)
-		var list: Array[Dictionary] = DataValidator.entries(self, files[path], "areas")
-		for index: int in list.size():
-			entry("area", index, list[index], seen, AREA_FIELDS, orders)
-			level_map(list[index], "requirements")
-			id_list(list[index], "monsters", monsters, "monster", 1)
-
-
-func validate_monsters(files: Dictionary[String, Dictionary]) -> void:
-	var seen: Dictionary[StringName, bool] = {}
-	var max_dr: float = float(stats.info(DAMAGE_REDUCTION_STAT)["max"]) if stats.has(DAMAGE_REDUCTION_STAT) \
-			else NO_LIMIT
-	for path: String in files:
-		at_file(path)
-		var list: Array[Dictionary] = DataValidator.entries(self, files[path], "monsters")
-		for index: int in list.size():
-			var e: Dictionary = list[index]
-			entry("monster", index, e, seen, MONSTER_FIELDS)
-			DataValidator.icon(self, e, MONSTER_ICON_DIR)
-			integer(e, "hp", 1)
-			one_of(e, "style", STYLES)
-			integer(e, "attack_interval_ms", maxf(min_attack_interval_ms, 1))
-			for key: String in ["attack_level", "power_level", "defence_level"]:
-				integer(e, key, 1, max_skill_level)
-			for key: String in ["accuracy_bonus", "power_bonus", "evasion_bonus"]:
-				integer(e, key, 0)
-			number(e, "damage_reduction", 0.0, max_dr)
-			int_pair(e, "gold", 0, NO_LIMIT, true)
-			number(e, "rift_shard_chance", 0.0, 100.0)
-			var drops: Array[Dictionary] = object_list(e, "drops")
-			if drops.size() > MAX_DROPS:
-				fail("field 'drops' has %d entries, at most %d" % [drops.size(), MAX_DROPS])
-			for drop_index: int in drops.size():
-				var prefix: String = "drops[%d]" % drop_index
-				keys(drops[drop_index], ["item", "chance_pct", "qty"], prefix)
-				ref(drops[drop_index], "item", items, "item", prefix)
-				number(drops[drop_index], "chance_pct", 0.0, 100.0, prefix)
-				int_pair(drops[drop_index], "qty", 1, NO_LIMIT, true, prefix)
 
 
 # `global`, `skill:<existing skill>` or `action:<existing action>`.
