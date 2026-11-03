@@ -719,6 +719,13 @@ Regole per tutti i task:
   `bank.is_locked` dall'ultimo `show_item`.
 - **Nota (da M3-04)** `shop.json` ha 9 voci nelle categorie `bank`, `combat`, `tools`; gli attrezzi del novizio hanno
   `max_purchases` 0 (illimitato, `04_DATA_SCHEMA.md` §9): nessun contatore "x/max" per loro.
+- **Nota (da M3-02)** Lo shop è `session.shop` (05 §5.11): stato e motivo del pulsante Compra da `can_buy` (ordine
+  `unknown_id`, `max_purchases`, `requirement_not_met`, `not_enough_gold`, `bank_full`), prezzo da `price`, contatore da
+  `purchase_count`; vendita con `sell_value` per l'anteprima e `sell` (motivi `invalid_amount`, `unknown_id`,
+  `item_locked`, `not_sellable`, `not_enough_items`), ognuno con un testo in `REFUSED_TEXTS`. Aggiornare la pagina su
+  `shop_purchased`, `item_sold`, `gold_changed`, `bank_changed`. I requisiti mancanti si leggono dalla `ShopEntryDef`
+  (`req_entries`, `req_skills`, `req_total_level`) confrontati con `shop.purchase_count` e `session.skills`: lo shop non
+  espone l'elenco dei requisiti mancanti.
 - **Nota (da M2-03)** `ui_style.gd` è a 390 righe: costanti `UiStyle.*` nuove solo dopo lo spostamento di `build_theme`
   descritto nella nota di M3-05 (lo fa il primo dei tre task UI di M3 che ne ha bisogno).
 
