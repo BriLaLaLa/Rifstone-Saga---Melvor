@@ -20,6 +20,12 @@ const CATEGORY_NAMES: Dictionary[StringName, String] = {
 	&"infusion": "Infusione",
 	&"misc": "Varie",
 }
+## Italian name of each weapon style (docs/OPEN_QUESTIONS.md Q42): styles are not skills any more.
+const STYLE_NAMES: Dictionary[StringName, String] = {
+	&"blade": "Lama", &"marksmanship": "Mira", &"arcana": "Arcano",
+}
+## Requirement on the character level (reserved key `character` of the requirements).
+const CHARACTER_REQUIREMENT_TEXT: String = "Richiede il livello %d del personaggio"
 const FORMAT_PCT: String = "pct"
 const FORMAT_FLAT: String = "flat"
 const FORMAT_FLAG: String = "flag"
@@ -45,7 +51,7 @@ static func body(item: ItemDef, data: GameData) -> PackedStringArray:
 	if item.equip != null and has_data:
 		lines.append_array(_requirement_lines(item.equip, data))
 		if item.equip.weapon != null:
-			lines.append(_weapon_line(item.equip.weapon, data))
+			lines.append(weapon_line(item.equip.weapon))
 		lines.append_array(modifier_lines(item.equip.modifiers, data))
 	if item.is_infusion() and has_data:
 		lines.append_array(modifier_lines(item.infusion_modifiers, data))
@@ -109,13 +115,13 @@ static func _requirement_lines(equip: EquipInfo, data: GameData) -> PackedString
 		skill_ids.append(skill_id)
 	skill_ids.sort_custom(func(a: StringName, b: StringName) -> bool: return String(a) < String(b))
 	for skill_id: StringName in skill_ids:
-		lines.append(_muted("Richiede %s livello %d" % [_skill_name(skill_id, data), equip.requirements[skill_id]]))
+		lines.append(_muted(requirement_text(skill_id, equip.requirements[skill_id], data)))
 	return lines
 
 
-static func _weapon_line(weapon: WeaponInfo, data: GameData) -> String:
+static func weapon_line(weapon: WeaponInfo) -> String:
 	var seconds: String = NumberFormat.format_number(weapon.attack_interval_ms / 1000.0)
-	var line: String = "Stile %s, un attacco ogni %s s" % [_skill_name(weapon.style, data), _value(seconds)]
+	var line: String = "Stile %s, un attacco ogni %s s" % [style_name(weapon.style), _value(seconds)]
 	if weapon.two_handed:
 		line += ", a due mani"
 	return line
@@ -148,3 +154,18 @@ static func _value(text: String) -> String:
 
 static func _muted(text: String) -> String:
 	return "[color=#%s]%s[/color]" % [UiStyle.TEXT_2.to_html(false), text]
+
+
+## Display name of a weapon style (Q42); an unknown style is shown as its id (and logged).
+static func style_name(style: StringName) -> String:
+	if not STYLE_NAMES.has(style):
+		Log.warn(LOG_CATEGORY, "tooltip: unknown weapon style '%s'" % style)
+		return String(style)
+	return STYLE_NAMES[style]
+
+
+## Plain text of one requirement: the reserved key `character` is the character level, the others skill levels.
+static func requirement_text(key: StringName, needed: int, data: GameData) -> String:
+	if key == CharacterSystem.REQUIREMENT_KEY:
+		return CHARACTER_REQUIREMENT_TEXT % needed
+	return "Richiede %s livello %d" % [_skill_name(key, data), needed]

@@ -5,6 +5,8 @@ extends GutTest
 
 const FIXTURE_CONTENT := "res://tests/fixtures/data"
 const CONFIG := "res://data/config"
+## Idle frames the tooltip needs to place itself: deferred call, then one process frame, then a spare one.
+const PLACEMENT_FRAMES: int = 3
 
 var _data: GameData
 var _tooltip: CustomTooltip
@@ -32,21 +34,19 @@ func test_hidden_after_hide() -> void:
 
 
 func test_show_item_weapon_lines() -> void:
-	pending("M4-08: tooltip del pezzo con requisito character e stile")
-	return
 	_show_item(&"test_blade", 3)
 	assert_true(_tooltip.is_shown())
 	assert_true(_tooltip.visible)
 	assert_eq(_lines(_tooltip.title_text()), PackedStringArray([
-		"Lama di prova", "Equipaggiamento  ·  Quantità: 3"]))
+		"Spada di prova", "Equipaggiamento  ·  Quantità: 3"]))
 	assert_eq(_lines(_tooltip.body_text()), PackedStringArray([
-		"Richiede Lama livello 1",
+		"Richiede il livello 1 del personaggio",
 		"Stile Lama, un attacco ogni 2,4 s",
 		"Precisione +8",
 		"Potenza +6",
 		"Valore: 12 oro",
 	]))
-	assert_eq(_tooltip.footer_text().strip_edges(), "Arma a lama per i test.")
+	assert_eq(_tooltip.footer_text().strip_edges(), "Spada a una mano per i test.")
 
 
 func test_show_item_tool_shows_pct_and_skill_scope() -> void:
@@ -112,13 +112,15 @@ func test_hide_tooltip_hides_and_clears() -> void:
 func test_hide_before_placement_keeps_it_hidden() -> void:
 	_show_item(&"test_hatchet", 3)
 	Tooltips.hide_tooltip()
-	await wait_physics_frames(3)
+	await _process_frames(3)
 	assert_false(_tooltip.visible)
 
 
 func test_tooltip_is_clamped_inside_viewport() -> void:
 	Tooltips.show_item(_data.item(&"test_hatchet"), 1, Vector2(100000, 100000))
-	await wait_physics_frames(3)
+	# Placement = a deferred call plus one process frame (CustomTooltip._resize_and_place): wait for idle frames, not
+	# for physics frames, whose count per rendered frame varies (this made the test intermittent).
+	await _process_frames(PLACEMENT_FRAMES)
 	var screen: Rect2 = _tooltip.get_viewport_rect()
 	var rect: Rect2 = _tooltip.get_global_rect()
 	assert_true(screen.encloses(rect), "tooltip %s inside viewport %s" % [rect, screen])
@@ -154,3 +156,8 @@ func _lines(text: String) -> PackedStringArray:
 		if not line.strip_edges().is_empty():
 			out.append(line.strip_edges())
 	return out
+
+
+func _process_frames(count: int) -> void:
+	for i: int in count:
+		await get_tree().process_frame
