@@ -67,8 +67,9 @@ I documenti sono già scritti con questi default (R-00).
 | Q38 | Dimensione dei gruppi | 1-6, più grandi nelle aree alte | §8.5, `combat.max_pack_size` |
 | Q39 | Doppia spada: moltiplicatore dell'intervallo e penalità di precisione | `combat.dual_wield.interval_mult` 0,75, precisione −10% (modificatore dell'assetto), da rivedere con `tools/sim_combat.gd` | F-73, `04_DATA_SCHEMA.md` §14 |
 | Q40 | Parata con lo scudo: cosa blocca? | Tutto il danno di un colpo; `block_chance` dello scudo 5-15% per grado, massimo 50% | F-75 |
-| Q41 | XP dei mostri | Da tarare con `tools/sim_combat.gd` a fine M5; default 4 × PV (provvisorio, probabilmente troppo alto) | F-28, `02_FORMULAS.md` §8.5, M5-06 |
+| Q41 | XP dei mostri | Default 4 × PV, **confermato da M5-06 senza cambi** (decide l'utente). Tempi stimati con `tools/sim_combat.gd` per area, per arrivare al 99 (report di M5-06): Pianure circa 10-12 min, Bosco 25-45 min, Miniere 2,5-3,5 h, Soglia 36-52 h (uccisioni/ora sull'area intera al livello medio dei mostri: 213 / 115 / 80 / 62) | F-28, `02_FORMULAS.md` §8.5, M5-06 |
 | Q42 | Tooltip dei pezzi senza le skill di combattimento: da dove vengono il nome dello stile e il testo del requisito del personaggio? | Testi della UI in costanti di `ItemTooltipLines` (stili `blade`/`marksmanship`/`arcana` → Lama/Mira/Arcano; requisito «Richiede il livello N del personaggio»), come gli altri testi di presentazione | M4-08, `05_INTERFACES.md` §7 |
+| Q43 | A quale livello del personaggio vale il criterio di `02_FORMULAS.md` §8.5 (0 morti nel gruppo più facile, almeno 60 uccisioni/ora nell'area)? §8.5 fissa solo il grado del set e del cibo | Livello medio dei mostri dell'area (4 / 23 / 46 / 78): criterio soddisfatto (213 / 115 / 80 / 62 uccisioni/ora, 0 morti). Al livello d'ingresso (1 / 16 / 38 / 65) Miniere e Soglia restano sotto 60 (156 / 60 / 56 / 45) e i pesi dei gruppi non bastano (i gruppi singoli lenti restano sotto 60): servirebbe toccare i mostri o il personaggio | `02_FORMULAS.md` §8.5, M5-06, `tools/sim_combat.gd` (`level=`) |
 
 ## Chiuse
 
