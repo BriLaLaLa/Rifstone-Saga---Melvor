@@ -109,7 +109,7 @@ func start(skill_id: StringName, action_id: StringName, lane: StringName = MAIN)
 	var current: _Lane = _lanes.get(lane)
 	if current != null and current.action == action:
 		return CommandResult.success()
-	if _session.combat != null:
+	if lane == MAIN and _session.combat != null:
 		_session.combat.stop(Reasons.REPLACED)
 	stop(lane, Reasons.REPLACED)
 	_lanes[lane] = _Lane.new(action, 0, _interval_for(action))

@@ -158,6 +158,33 @@ func test_gold_drop_pct() -> void:
 		assert_eq(boosted.wallet.get_gold() - start_gold, floori(rolled * 1.25), "seed %d" % seed_value)
 
 
+func _gold_per_kill(session: GameSession, count: int) -> Array[int]:
+	var gains: Array[int] = []
+	session.events.gold_changed.connect(func(_amount: int, delta: int) -> void: gains.append(delta))
+	_fight_until_kills(session, count)
+	return gains
+
+
+func test_gold_example_roll_ten_with_25_pct_gives_twelve() -> void:
+	# F-31 example: roll 10 (monster B, gold 5-12), +25% -> 12. Same seed -> same kills and rolls in both sessions.
+	var found: bool = false
+	for seed_value: int in range(1, 40):
+		var plain: GameSession = _new_session(seed_value)
+		var boosted: GameSession = _new_session(seed_value)
+		_hero(plain)
+		_boost(boosted, [Modifier.make(&"power_bonus", 5000.0), Modifier.make(&"max_hp_flat", 100000.0),
+				Modifier.make(&"gold_drop_pct", 25.0)])
+		var a: Array[int] = _gold_per_kill(plain, 30)
+		var b: Array[int] = _gold_per_kill(boosted, 30)
+		assert_eq(a.size(), b.size(), "seed %d: same kills" % seed_value)
+		var at: int = a.find(10)
+		if at >= 0:
+			assert_eq(b[at], 12, "seed %d: roll 10 with +25%% -> 12" % seed_value)
+			found = true
+			break
+	assert_true(found, "some seed rolls 10 gold")
+
+
 func test_drops_and_shard_chance() -> void:
 	# F-32: test_log drops at 25% of the kills of monster A; F-07: shard chance 100 -> one per kill.
 	_hero(_session)
