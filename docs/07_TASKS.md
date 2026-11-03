@@ -1034,6 +1034,12 @@ Regole comuni a M4 (oltre a quelle in testa al file):
   (segnaposto): va tolto con il pulsante "Equipaggia". Segnali: `equipment_changed(slot_id, uid: int)` (0 = vuoto) e
   `food_changed(item_id)` per il cibo (non più `equipment_changed`). Equipaggiare nell'offhand: `equip(uid, &"offhand")`;
   i motivi di rifiuto e l'ordine sono in `05_INTERFACES.md` §5.9.
+- **Nota (da M4-09)** `ui/pages/mastery/mastery_panel.tscn` ha un `StyleBoxFlat` locale (`theme_override_styles/panel`,
+  colori scritti nella scena) per rendere opaco lo sfondo: con lo spostamento in `UiThemeBuilder` dare uno sfondo opaco
+  alla variante `WindowPanel` del tema (costanti in `UiStyle`) e togliere l'override dalla scena (ownership estesa a
+  quel file). La sidebar ha già la voce `armory` ("In arrivo" finché manca la rotta) e `CharacterPage` mostra l'assetto
+  con `equipment.setup()`; `test_main_screen_smoke.gd::test_sidebar_rows_from_data` controlla `Armory` disabilitata:
+  aggiornarlo quando la rotta esiste.
 
 ### M4-09 · Pagina del personaggio, sidebar e shop
 - **Ruolo** UI · **Stima** M · **Parallelizzabile** sì (con M4-06, M4-07) · **Dipendenze** M4-05
@@ -1075,6 +1081,10 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 - **Nota (da M4-06)** Due file di test superano le 400 righe (il controllo automatico non copre `tests/`):
   `tests/integration/test_item_conservation.gd` (412) e `tests/systems/equipment/test_equipment.gd` (409). Dividerli
   (es. `test_item_conservation_equipment.gd`; i casi di save sono già in `test_equipment_save.gd`); ownership estesa.
+- **Nota (da M4-09)** La fixture `tests/fixtures/data/shop/shop.json` usa ancora la categoria `combat`, che la pagina
+  dello shop mostra col nome grezzo (`CATEGORY_TEXTS` non la ha più): spostare quelle voci in una categoria esistente
+  (`bank`, `materials`, `tools`) già che la fixture cambia per `test_buy_log`, e aggiornare i conteggi per categoria nei
+  test che si rompono (solo quelle righe).
 
 ### M4-11 · Integrazione di M4
 - **Ruolo** REV · **Stima** S · **Dipendenze** M4-01…M4-10 · **Ownership** merge, tag `m4-done` · **Parallelizzabile** no ·

@@ -6,24 +6,31 @@ Se la sessione si interrompe, si riparte da qui.
 ## Ripartenza (aggiornata il 2026-11-03)
 - **Stato**: M4 in corso. **M4-01 + M4-02 DONE**, merge congiunto `16e6306` su `main` (correzioni del Reviewer sul
   branch in `df9bc0d`). **M4-04 DONE**, merge `ef00713`. **M4-03 DONE**, merge `f6ed43c` (main riunito nel branch in
-  `ef4bb5d`). **M4-05 DONE**, merge `a85cb8c` (`789ff61`, correzioni del Reviewer `bb59448`). **M4-06 DONE**, merge `558447b` (`437037c`). Suite (run_checks
-  dopo M4-06): 990 test, 976 passati, 14 pending, 0 falliti; validate_data verde su fixture e dati veri. M3 completata, tag
-  `m3-done` su `ca18ee6`; `main` e i tag `m0-done`…`m3-done` pushati su `origin` (il push di M4 si fa a fine
-  milestone). Visione v2 approvata (D1-D6), R-00 fatto.
-- **Prossimo passo**: **M4-06** (Equipaggiamento con `uid` e assetti; note "da M4-02", "da M4-03", "da M4-05" in
-  `07_TASKS.md`), poi M4-07 ∥ M4-09, M4-08, M4-10, M4-11, con le regole dei consumi di `CLAUDE.md` (massimo 2 agenti,
-  test mirati, suite completa solo dopo il merge, review sul diff, sezioni nei brief). I worktree `RSI-worktrees/M4-01`…
-  `M4-05` si possono rimuovere.
+  `ef4bb5d`). **M4-05 DONE**, merge `a85cb8c` (`789ff61`, correzioni del Reviewer `bb59448`). **M4-06 DONE**, merge
+  `558447b` (`437037c`). **M4-09 DONE**, merge `71fafa6` (`0755b3d`, main riunito `1a81dbd`, correzione del Reviewer
+  `ce4430f`). Suite (run_checks dopo M4-09): 997 test, 986 passati, 11 pending, 0 falliti; validate_data verde su
+  fixture e dati veri. M3 completata, tag `m3-done` su `ca18ee6`; `main` e i tag `m0-done`…`m3-done` pushati su
+  `origin` (il push di M4 si fa a fine milestone). Visione v2 approvata (D1-D6), R-00 fatto.
+- **Prossimo passo**: **M4-07** (Artigianato verso l'Armeria; note "da M4-02", "da M4-04", "da M4-05", "da M4-06" in
+  `07_TASKS.md`), poi **M4-08** (note "da M3-05/M3-09", "da M4-02", "da M4-05", "da M4-06", "da M4-09"), M4-10, M4-11,
+  con le regole dei consumi di `CLAUDE.md` (massimo 2 agenti, test mirati, suite completa solo dopo il merge, review sul
+  diff, sezioni nei brief). I worktree `RSI-worktrees/M4-01`…`M4-06` e `M4-09` si possono rimuovere.
+- **Follow-up di M4-09**: M4-08 sfondo opaco della variante `WindowPanel` nel tema al posto dell'override locale di
+  `mastery_panel.tscn`, voce `Armory` della sidebar nel test quando la rotta esiste; M4-10 categoria `combat` della
+  fixture dello shop.
+- **Follow-up di M4-06**: casi di `equip`/`unequip` fissati in `05_INTERFACES.md` §5.9; M4-07 segnaposto `equip(0)` in
+  `test_crafting_chain.gd`; M4-08 resti della stance in `equipment_page.gd`, segnaposto `not_equippable` in
+  `bank_page.gd`, segnali `equipment_changed(slot, uid)` e `food_changed`; M4-10 due file di test oltre 400 righe;
+  M7-01 `Equipment` non ascolta `armory_changed(uid, updated)` (pezzo indossato raffinato).
 - **Follow-up di M4-05** (note "da M4-05" in `07_TASKS.md`): M4-06 `set_worn` prima di `remove`, `set_worn(uid, true,
   true)` in `Equipment.from_save`, pending; M4-07 pending di `test_crafting_chain.gd`; M4-08 pending UI e
   `test_tooltip` intermittente; M4-09 sidebar con `&"combat"` e pending dello shop; M4-10 ramo `bank_full` dello shop.
 - **Follow-up di M4-03**: M4-05 e M4-06 controllano i requisiti misti con `session.character.meets_requirements`
   (`SkillsSystem.meets_requirements` registra un errore sulla chiave `character`).
-- **Pending aperti** (35 nuovi + 1 vecchio; ognuno lo chiude il task indicato, note in `07_TASKS.md`):
-  M4-06 `test_equipment.gd` (21) e `test_item_conservation.gd` (2); M4-07 `test_crafting_chain.gd` (3); M4-08
-  `test_bank_item_panel_smoke.gd` (2), `test_equipment_page_smoke.gd` (3) e `test_tooltip.gd::test_show_item_weapon_lines`
-  (1); M4-09 `test_main_screen_smoke.gd` (2) e `test_shop_page_smoke.gd` (1); vecchio: `test_stat_registry_coverage.gd`
-  (stat del combattimento, errore da M6-07).
+- **Pending aperti** (11 = 10 nuovi + 1 vecchio; ognuno lo chiude il task indicato, note in `07_TASKS.md`):
+  M4-07 `test_crafting_chain.gd` (3); M4-08 `test_bank_item_panel_smoke.gd` (2), `test_equipment_page_smoke.gd` (4,
+  compresa la stance di M4-06) e `test_tooltip.gd::test_show_item_weapon_lines` (1); vecchio:
+  `test_stat_registry_coverage.gd` (stat del combattimento, errore da M6-07). Chiusi da M4-06 (23) e M4-09 (3).
 - **Follow-up di M4-04** (note "da M4-04" in `07_TASKS.md`): M4-05 `from_dict` non controlla `uid`/unicità/castoni;
   M4-07 rarità tirata dal chiamante e scope `skill:forestry` degli attrezzi nelle fixture; M7-01 caso `+N` di
   `instance_modifiers`; M7-03 stub `drop_chances`.
@@ -105,7 +112,7 @@ Se la sessione si interrompe, si riparte da qui.
 | M4-06 | M4 | Equipaggiamento con uid e assetti | CORE | DONE | task/M4-06 | merge 558447b; 437037c; casi non fissati da §5.9 accettati e documentati in 05 §5.9; ownership estesa (regola comune di M4): `bank_page.gd`/`equipment_page.gd` solo chiamanti e connessioni `food_changed`/`equipment_changed(int)`, `test_equipment_save.gd` nuovo (divisione del test), `test_crafting_chain.gd` segnaposto `equip(0)`; run_checks 990 test, 976 passati, 14 pending, 0 falliti; note per M4-07, M4-08, M4-10, M7-01; worktree non rimosso |
 | M4-07 | M4 | Artigianato verso l'Armeria | CORE | TODO | | |
 | M4-08 | M4 | Pagina dell'Armeria ed equipaggiamento | UI | TODO | | dopo M4-09 (page_host.gd); spostamento build_theme |
-| M4-09 | M4 | Pagina del personaggio, sidebar e shop | UI | TODO | | sfondo del pannello della maestria |
+| M4-09 | M4 | Pagina del personaggio, sidebar e shop | UI | DONE | task/M4-09 | merge 71fafa6; 0755b3d, main riunito nel branch 1a81dbd, correzione del Reviewer ce4430f (`Equipment.setup()` tipizzato al posto di `has_method`, `equipment_changed(slot, uid)`, test dell'assetto evidenziato); sfondo della maestria con override locale accettato in via provvisoria (spostamento nel tema su M4-08); categoria `combat` della fixture dello shop su M4-10; run_checks 997 test, 986 passati, 11 pending, 0 falliti; worktree non rimosso |
 | M4-10 | M4 | Test di M4 | QA | TODO | | |
 | M4-11 | M4 | Integrazione di M4 | REV | TODO | | tag m4-done |
 | M5-01 | M5 | Formule di combattimento | COMBAT | TODO | | |
