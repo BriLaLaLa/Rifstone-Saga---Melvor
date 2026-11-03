@@ -653,6 +653,9 @@ Regole per tutti i task:
 - **Accettazione** un pezzo è sempre in un solo posto (bank o slot); scambio con bank piena rifiutato senza cambi;
   l'attrezzo cambia l'intervallo di F-03 della sua skill.
 - **Test** `test_equipment.gd`.
+- **Nota (Reviewer, a M3-03 chiuso)** Ownership estesa a posteriori a `res://tests/fixtures/data/items/equipment.json`
+  (4 oggetti di prova: due mani, offhand, due elmi) e a `res://tests/core/data/test_game_data.gd` (solo il conteggio
+  degli oggetti delle fixture, 8 → 12), conseguenza diretta delle fixture.
 
 ### M3-04 · Contenuto: Forgiatura, Focolare, Intaglio, shop
 - **Ruolo** DATA · **Stima** L · **Parallelizzabile** sì · **Dipendenze** M2-06
@@ -743,6 +746,13 @@ Regole per tutti i task:
 - **Nota (da M3-04)** Dati veri: archi e bastoni arcani sono `two_handed` (liberano l'`offhand`), lo scudo va in
   `offhand`; le descrizioni dei cibi ripetono la cura ("Cura 20 punti vita."): la pagina mostri `food.heal` letto dai
   dati, non la descrizione, come valore.
+- **Nota (da M3-03)** Modello: `session.equipment` (05 §5.9). Ordine dei motivi di `equip`: `unknown_id`,
+  `not_equippable`, `requirement_not_met`, `not_enough_items`, `combat_active`, `bank_full`; `unequip`: `slot_empty`,
+  `combat_active`, `bank_full`; `set_food`: `unknown_id`, `not_food`, `not_enough_items`; `set_stance`: `unknown_id`.
+  Un solo segnale `equipment_changed(slot_id, item_id)`, anche per `&"food"` e `&"stance"`; uno scudo che toglie un'arma
+  a due mani emette prima `weapon` vuoto e poi `offhand`. Il cibo scelto resta anche a quantità 0 nella bank: la pagina
+  lo mostri come esaurito. Le fixture hanno `test_greatsword` (due mani), `test_shield`, `test_helm`, `test_helm_high`
+  (richiede Lama 10) per gli smoke.
 - **Nota (da M2-03)** `ui_style.gd` è a 390 righe: costanti `UiStyle.*` nuove solo dopo lo spostamento di `build_theme`
   descritto nella nota di M3-05 (lo fa il primo dei tre task UI di M3 che ne ha bisogno).
 - **Accettazione / Test** smoke; nessuna stat mostrata che non sia nel registro.
@@ -761,6 +771,11 @@ Regole per tutti i task:
 - **Nota (da M3-04)** Catena con i dati veri: `smelt_<metallo>` (2 minerali → lingotto), `forge_<metallo>_hatchet|pick|rod`
   (2 lingotti + 1 `<legno>_log` dello stesso grado) → slot `tool_forestry|tool_quarrying|tool_angling`, modificatore
   `skill_interval_pct` con scope `skill:<skill>`.
+- **Nota (da M3-03)** Conservazione con l'equipaggiamento: un pezzo indossato è tolto dalla bank (1 unità) e i pezzi
+  spostati tornano nella bank, anche con due mani/offhand; con la bank piena lo scambio è rifiutato senza cambi, ma
+  riesce se l'unità indossata era l'ultima del suo stack (05 §5.9). Caso da coprire: un save con arma a due mani **e**
+  offhand entrambi pieni (save modificato a mano) oggi viene caricato così com'è, perché `from_save` controlla solo slot
+  e tipo dell'oggetto. Se il caso fallisce un'invariante, riportarlo al Reviewer, non correggerlo nel test.
 
 ### M3-09 · Integrazione di M3
 - **Ruolo** REV · **Stima** S · **Dipendenze** M3-01…M3-08 · **Ownership** merge, tag `m3-done` · **Parallelizzabile** no ·
@@ -805,6 +820,12 @@ Regole per tutti i task:
   la chiave finta `combat` di `ProbeSession` va in conflitto con `CombatEngine.SAVE_KEY` (assert di `_join`): rinominarla
   (es. `duels`) e aggiungere le asserzioni di `combat`. Avviare il combattimento chiama
   `session.actions.stop(ActionRunner.MAIN, Reasons.REPLACED)` (no-op se la corsia è ferma).
+- **Nota (da M3-03)** `Equipment._combat_active()` oggi legge `_session.get(&"combat")` e chiama `is_active` in modo
+  dinamico, perché il campo non esiste. Con il campo tipizzato `var combat: CombatEngine` (deve avere `is_active() -> bool`)
+  sostituirlo con `_session.combat != null and _session.combat.is_active()`: ownership estesa a
+  `res://systems/equipment/equipment.gd`, solo quella funzione. Il motore legge lo stile, l'intervallo base, la stance e
+  il cibo da `session.equipment` (`style`, `base_attack_interval_ms`, `get_stance`, `get_food`): il cibo scelto può
+  essere a quantità 0 (caso `no_food`).
 
 ### M4-04 · Contenuto del combattimento
 - **Ruolo** DATA · **Stima** M · **Parallelizzabile** sì (con M4-01…M4-03) · **Dipendenze** M3-09
