@@ -170,11 +170,13 @@ static func measure(data: Object, area: Object, scope: String, opts: Dictionary)
 	for monster_id: Variant in counts:
 		kills += int(counts[monster_id])
 		kill_xp += int(counts[monster_id]) * int(data.call("monster", monster_id).xp)
-	return {
+	var row: Dictionary = {
 		"grade": grade, "level": level, "tier": tier, "ms": elapsed, "deaths": engine.deaths(),
 		"kills": kills, "xp": kill_xp, "gold": session.wallet.get_gold() - gold_start,
 		"food": food_start - session.bank.get_count(food_id),
 	}
+	session.free()  # the session is a Node outside any tree: free it, no orphans
+	return row
 
 
 static func food_for_grade(data: Object, grade: int) -> StringName:
@@ -207,7 +209,6 @@ static func _pin_level(session: Object, pinned_xp: int) -> void:
 		return
 	session.character.from_save({"class": String(session.character.class_id()), "xp": pinned_xp})
 	session.events.modifiers_changed.emit()
-
 
 
 static func _equip_set(session: Object, grade: int, setup: StringName) -> void:
