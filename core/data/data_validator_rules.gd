@@ -159,6 +159,7 @@ func id_list(d: Dictionary, key: String, known: Variant, kind: String, min_count
 		result.append(element)
 	return result
 
+
 ## `{skill_id: level}`: existing skills, integer levels 1..max skill level. The reserved key `character` is the
 ## character level (1..max character level): with `LEVELS_CHARACTER` it is the only key, with `LEVELS_SKILLS` it is an
 ## unknown skill.
