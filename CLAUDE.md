@@ -90,4 +90,5 @@ Il **primo import di una checkout nuova può andare in crash sui font** (segfaul
 l'import è innocuo.
 
 ## Stato
-M0 (Setup) completata, tag `m0-done`. M1 (Prima skill completa, Selvicoltura) completata, tag `m1-done`. Prossima milestone: **M2**. Avanzamento dei task in `docs/STATUS.md`.
+M0 (Setup) completata, tag `m0-done`. M1 (Prima skill completa, Selvicoltura) completata, tag `m1-done`. M2 (Maestria a nodi e raccolta completa)
+completata, tag `m2-done`. Prossima milestone: **M3**. Avanzamento dei task in `docs/STATUS.md`.
