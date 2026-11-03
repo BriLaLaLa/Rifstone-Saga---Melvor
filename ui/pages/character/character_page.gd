@@ -134,10 +134,10 @@ func _refresh_stats() -> void:
 		return
 	var stats: CombatantStats = CombatantStats.for_player(_session)
 	var lines: Array[String] = [
-		CombatTexts.STAT_ACCURACY_TEXT % NumberFormat.format_int(stats.accuracy),
-		CombatTexts.STAT_EVASION_TEXT % NumberFormat.format_int(stats.evasion),
+		CombatTexts.stat_line(_session.data, &"accuracy", stats.accuracy),
+		CombatTexts.stat_line(_session.data, &"evasion", stats.evasion),
 		CombatTexts.STAT_DAMAGE_TEXT % [NumberFormat.format_int(stats.min_hit), NumberFormat.format_int(stats.max_hit)],
-		CombatTexts.STAT_HP_TEXT % NumberFormat.format_int(stats.max_hp),
+		CombatTexts.stat_line(_session.data, &"max_hp", stats.max_hp),
 	]
 	while _stats_list.get_child_count() < lines.size():
 		var line := Label.new()

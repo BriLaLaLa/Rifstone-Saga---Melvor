@@ -68,7 +68,7 @@ func bind(session: GameSession) -> void:
 	_session = session
 	var events: GameEvents = _session.events
 	var resync: Callable = _redraw_all
-	_connect(events.combat_started, resync.unbind(1))
+	_connect(events.combat_started, _on_combat_started)
 	_connect(events.combat_stopped, resync.unbind(1))
 	_connect(events.encounter_started, resync.unbind(1))
 	_connect(events.encounter_cleared, resync)
@@ -283,3 +283,9 @@ func _on_player_died() -> void:
 func _on_character_level_up(_new_level: int) -> void:
 	if _session != null:
 		_refresh_area_list()
+
+
+# A new start (from this page or elsewhere) clears the defeat or refusal message of the previous run.
+func _on_combat_started(_area_id: StringName) -> void:
+	_message_label.visible = false
+	_redraw_all()

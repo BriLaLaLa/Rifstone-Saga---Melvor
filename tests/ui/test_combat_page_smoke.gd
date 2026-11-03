@@ -126,10 +126,25 @@ func test_character_page_shows_the_base_values_of_f70() -> void:
 	assert_eq(page.get_node("%StatsTitle").text, CombatTexts.STATS_TITLE)
 	var list: Node = page.get_node("%StatsList")
 	assert_eq(list.get_child_count(), 4)
-	assert_eq((list.get_child(0) as Label).text, CombatTexts.STAT_ACCURACY_TEXT % NumberFormat.format_int(stats.accuracy))
-	assert_eq((list.get_child(3) as Label).text, CombatTexts.STAT_HP_TEXT % NumberFormat.format_int(stats.max_hp))
+	assert_eq((list.get_child(0) as Label).text, "%s: %s" % [_data_stat_name(&"accuracy_bonus"), NumberFormat.format_int(stats.accuracy)])
+	assert_eq((list.get_child(3) as Label).text, "%s: %s" % [_data_stat_name(&"max_hp_flat"), NumberFormat.format_int(stats.max_hp)])
 	page.free()
 
 
 func _label(path: String) -> Label:
 	return _page.get_node(path) as Label
+
+
+# The name of the stat in data/config/stats.json: the character page reuses it, it does not redefine it.
+func _data_stat_name(stat: StringName) -> String:
+	return str(_session.data.stats.info(stat)["name"])
+
+
+func test_defeat_message_is_cleared_by_a_new_start() -> void:
+	_session.combat.start(AREA_ID)
+	_session.events.player_died.emit()
+	assert_true(_label("%MessageLabel").visible)
+	assert_eq(_label("%MessageLabel").text, CombatTexts.DEFEAT_TEXT)
+	_session.combat.stop(Reasons.PLAYER_DIED)
+	assert_true(_session.combat.start(AREA_ID).ok, "restarted outside the page")
+	assert_false(_label("%MessageLabel").visible, "the defeat message goes away on the new start")

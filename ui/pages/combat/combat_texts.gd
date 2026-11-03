@@ -37,13 +37,21 @@ const REASON_TEXTS: Dictionary[StringName, String] = {
 }
 const REASON_TEXT_DEFAULT: String = "Operazione non riuscita."
 const DEFEAT_TEXT: String = "Sei stato sconfitto: il bottino della borsa è andato perso."
-## Character page, values of F-70 (CombatantStats.for_player).
-const STAT_ACCURACY_TEXT: String = "Precisione: %s"
-const STAT_EVASION_TEXT: String = "Evasione: %s"
+## Character page, values of F-70 (CombatantStats.for_player): "<name>: <value>", the name is the one of the stat in
+## data/config/stats.json (STAT_NAME_SOURCES); damage has no stat of its own.
+const STAT_LINE_TEXT: String = "%s: %s"
+const STAT_NAME_SOURCES: Dictionary[StringName, StringName] = {
+	&"accuracy": &"accuracy_bonus", &"evasion": &"evasion_bonus", &"max_hp": &"max_hp_flat",
+}
 const STAT_DAMAGE_TEXT: String = "Danno: %s - %s"
-const STAT_HP_TEXT: String = "PV massimi: %s"
 
 
 ## Interval in milliseconds as seconds with one decimal and a comma ("2,0").
 static func seconds_text(ms: int) -> String:
 	return String.num(ms / 1000.0, 1).replace(".", ",")
+
+
+## "<stat name>: <value>" for a key of STAT_NAME_SOURCES, the name read from the stat registry of `data`.
+static func stat_line(data: GameData, key: StringName, value: int) -> String:
+	var info: Dictionary = data.stats.info(STAT_NAME_SOURCES[key])
+	return STAT_LINE_TEXT % [str(info.get("name", key)), NumberFormat.format_int(value)]
