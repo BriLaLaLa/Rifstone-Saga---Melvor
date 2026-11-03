@@ -69,6 +69,18 @@ func total(stat: StringName, ctx: ModifierContext = null) -> float:
 	return result
 
 
+## F-74: like `total` but ignoring the sources in `excluded`, then limited to the stat min/max. Not cached.
+func total_without(stat: StringName, ctx: ModifierContext, excluded: Array[StringName]) -> float:
+	if not _stats.has(stat):
+		Log.error("modifiers", "total_without of unknown stat '%s'" % stat)
+		return 0.0
+	var sum: float = 0.0
+	for source_id: StringName in _sources:
+		if not excluded.has(source_id):
+			sum += _source_sum(source_id, stat, ctx)
+	return _stats.clamp_total(stat, sum)
+
+
 ## Per-source contributions to `stat` in `ctx` (before the min/max limit), for tooltips.
 ## Sources without applicable modifiers are left out. Entries: {"source": StringName, "value": float}.
 func breakdown(stat: StringName, ctx: ModifierContext = null) -> Array[Dictionary]:

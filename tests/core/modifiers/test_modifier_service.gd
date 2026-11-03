@@ -50,6 +50,21 @@ func test_null_context_is_global() -> void:
 	assert_eq(_service.total(&"skill_xp_pct", ModifierContext.for_skill(&"forestry")), 8.0)
 
 
+func test_total_without_excludes_sources_and_limits() -> void:
+	var no_source: Array[StringName] = []
+	var offhand: Array[StringName] = [&"equipment:offhand"]
+	var weapon: Array[StringName] = [&"equipment:weapon"]
+	_service.set_source(&"equipment:weapon", [Modifier.make(&"skill_xp_pct", 600.0)] as Array[Modifier])
+	_service.set_source(&"equipment:offhand", [Modifier.make(&"skill_xp_pct", 300.0)] as Array[Modifier])
+	_service.set_source(&"ring", [Modifier.make(&"skill_xp_pct", 5.0, &"skill", &"forestry")] as Array[Modifier])
+	assert_eq(_service.total(&"skill_xp_pct"), 900.0)
+	assert_eq(_service.total_without(&"skill_xp_pct", null, offhand), 600.0)
+	assert_eq(_service.total_without(&"skill_xp_pct", ModifierContext.for_skill(&"forestry"), weapon), 305.0)
+	_service.set_source(&"extra", [Modifier.make(&"skill_xp_pct", 700.0)] as Array[Modifier])
+	assert_eq(_service.total_without(&"skill_xp_pct", null, offhand), 1000.0, "limited to the stat maximum")
+	assert_eq(_service.total_without(&"skill_xp_pct", null, no_source), _service.total(&"skill_xp_pct"))
+
+
 func test_total_without_modifiers_is_zero() -> void:
 	assert_eq(_service.total(&"bank_slots"), 0.0)
 
