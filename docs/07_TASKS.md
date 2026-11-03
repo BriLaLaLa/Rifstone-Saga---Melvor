@@ -293,8 +293,8 @@ Regole per tutti i task:
   `res://tests/core/autoload/test_game_no_save_before_slot.gd`
 - **Leggere** `01_GDD.md` §1-2; `03_ARCHITECTURE.md` §6-7, §12; `05_INTERFACES.md` §2 (Game)
 - **Descrizione** Implementazione completa senza offline (in `continue_game` il punto in cui M6-01 inserirà l'offline è
-  un commento `# Offline: M6-01`). Autosave con un `Timer` figlio creato all'ingresso in partita e distrutto in
-  `end_session`. Configura `GameClock` e `SaveService` dai dati. Seme nuovo = `Time.get_ticks_usec()` mescolato con lo slot.
+  un commento `# Offline: M6-01`). Autosave sul tempo di `GameClock` (contatore su `GameClock.ticked`, collegato
+  all'ingresso in partita e scollegato in `end_session`; nessun `Timer`). Configura `GameClock` e `SaveService` dai dati. Seme nuovo = `Time.get_ticks_usec()` mescolato con lo slot.
 - **Accettazione** nessun file in `user://test_saves` finché non si chiama `new_game`; `new_game` scrive subito; 10 s di
   `GameClock` simulati in partita → 1 salvataggio; `end_session` libera la sessione (`is_instance_valid` falso).
 - **Test** `test_game.gd`, `test_game_no_save_before_slot.gd`.
@@ -303,6 +303,9 @@ Regole per tutti i task:
   `stop_reasons_log()` svuota il log a ogni lettura: M1-11 non lo legge (lo legge l'offline, M6-01, dopo la simulazione;
   in `continue_game` resta il commento). Dopo `from_save` l'intervallo del ciclo si fissa al primo `advance`
   (`05_INTERFACES.md` §5.8).
+- **Nota (review M1-11)** Fatto. Comportamenti in `05_INTERFACES.md` §2 (Game). Proposta aperta, non applicata: il limite
+  1-24 caratteri del nome è oggi una costante di `game.gd` fissata dal contratto e da `01_GDD.md` §1; spostarlo in
+  `balance.json` sarebbe un parametro di design nuovo e richiede l'ok dell'utente.
 
 ### M1-12 · Contenuto: le 12 skill e Selvicoltura
 - **Ruolo** DATA · **Stima** M · **Parallelizzabile** sì (dopo M1-04) · **Dipendenze** M1-04
@@ -329,6 +332,11 @@ Regole per tutti i task:
 - **Accettazione** nessun file scritto aprendo e chiudendo il menu; i tre stati dello slot visibili; nome non valido rifiutato
   con messaggio.
 - **Test** smoke test delle due scene; la scelta di uno slot vuoto non chiama `continue_game`.
+- **Nota (da M1-11)** Prima di offrire Nuova partita/Continua controllare `DataRegistry.data.is_valid()` (non esiste un
+  motivo `data_invalid`: con dati non validi `Game` non configura gli slot e ogni comando dà `io_error`). Errori da
+  mostrare: `invalid_name`, `slot_active`, `io_error`, `corrupted`, `version_unsupported` (`05_INTERFACES.md` §2).
+  `new_game` sovrascrive senza chiedere: la conferma è del menu. Cambiare scena solo con `CommandResult.ok`; in caso di
+  errore `Game` è già in `menu`, senza sessione e con il clock in pausa.
 
 ### M1-14 · Schermata principale: sidebar, barra in alto, PageHost
 - **Ruolo** UI · **Stima** M · **Parallelizzabile** sì · **Dipendenze** M1-11, M1-17
@@ -356,6 +364,10 @@ Regole per tutti i task:
 - **Accettazione** nessuna variabile con stato di gioco nella UI (solo letture); cambiare pagina scollega i segnali.
   Test aggiornati del follow-up di M1-16 verdi; `format_int` e `format_number` esistono in un solo file.
 - **Test** smoke: la scena si istanzia con una sessione della `TestFactory`; `show_page` di ogni rotta valida.
+- **Nota (da M1-11)** Il pulsante menu chiama `Game.end_session(true)` e poi cambia scena: dopo la chiamata `Game.session`
+  è `null` (liberata), `state = menu`, clock in pausa; i nodi della schermata si scollegano su `session_ended` (emesso
+  prima di liberare la sessione) e non toccano più la sessione. `session_started` arriva a sessione pronta e già salvata,
+  prima del cambio scena: la schermata legge `Game.session` in `_ready`, non aspetta il segnale.
 
 ### M1-15 · Pagina skill (raccolta) e componenti base
 - **Ruolo** UI · **Stima** M · **Parallelizzabile** sì · **Dipendenze** M1-14, M1-16
@@ -415,6 +427,10 @@ Regole per tutti i task:
 - **Test** i cinque file.
 - **Nota (da M1-09)** La proposta di aggiungere `mastery_bonuses` di artigianato a `test_craft` nelle fixture non è di
   questo task (le fixture sono del CORE, M1-04): è assegnata a M3-01.
+- **Nota (da M1-11)** Per i flussi che passano da `Game` usare un'istanza privata di `game.gd` (mai l'autoload), come
+  `test_game.gd`: `SaveService.base_dir` è già `user://test_saves`, `GameClock.time_source` sostituito e ripristinato,
+  tempo simulato con `GameClock._process(delta)` (frazioni binarie esatte) oppure direttamente con `session.advance`.
+  Dopo ogni test `end_session(false)` e clock in pausa.
 
 ### M1-20 · Integrazione di M1
 - **Ruolo** REV · **Stima** M · **Parallelizzabile** no · **Dipendenze** M1-01…M1-19
@@ -704,6 +720,10 @@ Regole per tutti i task:
 - **Accettazione** esempi F-40/F-41; equivalenza dei blocchi; 12 h di raccolta e 12 h di combattimento simulate in < 10 s
   ciascuna (misura nel report).
 - **Test** `test_offline_simulator.gd` (con `yield_frames = false`).
+- **Nota (da M1-11)** In `continue_game` l'offline va nel punto `# Offline: M6-01` (dopo `_attach`, prima del
+  salvataggio e di `_start_playing`); la costante `STATE_OFFLINE` esiste già. Durante l'offline il clock resta in pausa
+  (si avvia in `_start_playing`); `last_offline_summary` va tipizzato `OfflineSummary`; `session_started` resta l'ultimo
+  passo. Aggiungere a `test_game.gd` (ownership da estendere) i casi con offline.
 
 ### M6-02 · Schermate dell'offline
 - **Ruolo** UI · **Stima** M · **Parallelizzabile** no · **Dipendenze** M6-01

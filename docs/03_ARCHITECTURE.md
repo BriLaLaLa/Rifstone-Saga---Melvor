@@ -254,11 +254,12 @@ sequenceDiagram
     G->>OS: run(session, elapsed)
     OS-->>G: OfflineSummary
     G->>SS: write_slot(2, session.to_save())
-    G->>G: avvia timer autosave e collega GameClock
+    G->>G: collega GameClock (advance + autosave) e avvia il clock
 ```
 
-- **Nessun salvataggio senza slot.** `Game.save_now()` restituisce `slot_not_selected` se `session == null`; il timer
-  dell'autosave esiste solo dentro `new_game`/`continue_game` e si ferma in `end_session`. `SaveStore` non scrive mai
+- **Nessun salvataggio senza slot.** `Game.save_now()` restituisce `slot_not_selected` se `session == null`; l'autosave
+  non è un `Timer` ma un contatore del tempo di `GameClock` (`autosave_interval_ms`), collegato a `GameClock.ticked`
+  solo all'ingresso in partita (`new_game`/`continue_game`) e scollegato in `end_session`; nel menu il clock è in pausa. `SaveStore` non scrive mai
   da solo. Test dedicato: `tests/core/autoload/test_game_no_save_before_slot.gd`.
 - **Formato**: un file JSON per slot, `user://saves/slot_<n>.json` (formato completo in `05_INTERFACES.md` §6).
   Ogni sistema scrive il proprio blocco in `modules.<chiave>` con `to_save()` e lo legge con `from_save()`.

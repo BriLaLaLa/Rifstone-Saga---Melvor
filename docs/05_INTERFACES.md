@@ -166,6 +166,31 @@ func delete_slot(slot: int) -> CommandResult  # slot_active se è lo slot della 
 `Game` emette `session_started`/`session_ended` sull'`EventBus`, collega `GameClock.ticked` a `session.advance` in
 `playing`, salva su `NOTIFICATION_WM_CLOSE_REQUEST`.
 
+Comportamenti di `Game` (M1-11):
+- `_ready`: mette in pausa `GameClock`; con dati validi chiama `GameClock.configure(tick_ms, max_catchup_ms)`,
+  `SaveService.configure(slots.count)` e legge `autosave_interval_ms` (tutto da `balance.json`). Dati non validi →
+  `Log.error` e nessuna configurazione: ogni slot è fuori intervallo (`io_error`). Non esiste un motivo `data_invalid`:
+  la UI controlla `DataRegistry.data.is_valid()` prima di offrire Nuova partita/Continua.
+- Clock in pausa in `menu`; si avvia all'ingresso in `playing` e torna in pausa in `end_session` (anche in `_exit_tree`).
+- Errori di avvio, nell'ordine: `new_game` → `invalid_name` (nome dopo `strip_edges` fuori da 1-24), poi entrambi →
+  `slot_active` se una sessione è aperta (il chiamante chiude prima con `end_session`), `io_error` se lo slot è fuori da
+  1..`slots.count`. `continue_game` → `SaveService.last_error` (`io_error` per slot vuoto, `corrupted`,
+  `version_unsupported`) oppure l'errore di `from_save`. In ogni errore: nessuna sessione, `state = menu`, nulla scritto.
+- `new_game`: sovrascrive lo slot senza chiedere (la conferma è della UI); `created_at_unix_ms = GameClock.now_unix_ms()`;
+  salva subito. Se il primo salvataggio fallisce (`save_failed` già emesso) la sessione è scartata, `state = menu` e
+  restituisce l'errore dello store.
+- `continue_game`: lo slot è quello del nome del file (prevale su `slot` dell'intestazione); dopo il caricamento salva;
+  se quel salvataggio fallisce → `Log.warn` + `save_failed`, la partita parte lo stesso e l'autosave ritenta.
+- Seme nuovo: `(Time.get_ticks_usec() ^ (slot << 48)) & (2^53 - 1)`, intero non negativo esatto in JSON;
+  `from_save` lo sostituisce con quello salvato.
+- Autosave sul tempo di `GameClock` (non un `Timer`): ogni `ticked` in `playing` fa `session.advance(delta_ms)` e
+  somma `delta_ms`; a `autosave_interval_ms` raggiunti → `save_now()`. Ogni `save_now` azzera il contatore. Nessuna
+  connessione a `ticked` fuori da `playing`.
+- `session_started(slot, is_new)` è l'ultimo passo dell'avvio: sessione pronta, già salvata, clock avviato,
+  `state = playing`. `session_ended(slot)` dopo lo stop del clock e il salvataggio, prima di liberare la sessione.
+- La sessione è figlia di `Game` nell'albero (`add_child`) e viene liberata con `free()` in `end_session`.
+- `save_now` senza sessione → `slot_not_selected` senza segnali; `end_session` senza sessione non fa nulla.
+
 ### `Tooltips` (`ui/components/tooltip/tooltip_manager.gd`)
 ```gdscript
 var data: GameData = null                 # null = DataRegistry.data; i test passano i dati delle fixture
