@@ -15,8 +15,6 @@ const CLASS_FIELDS: PackedStringArray = ["id", "name", "description", "order", "
 	"setups", "traits", "abilities"]
 const SETUP_FIELDS: PackedStringArray = ["id", "name", "weapon", "offhand", "alternate", "modifiers"]
 const WEAPON_KINDS: PackedStringArray = DataValidatorItems.WEAPON_KINDS
-# A greatsword is two-handed, so the only weapon kind allowed in the offhand is the one-handed sword.
-const OFFHAND_KINDS: PackedStringArray = DataValidatorItems.OFFHAND_SLOT_KINDS + PackedStringArray(["sword"])
 const UNARMED_SETUP: String = "unarmed"  # reserved setup id (F-72)
 const AFFIX_FIELDS: PackedStringArray = ["id", "name", "stat", "slots", "weight", "tiers"]
 const TIER_FIELDS: PackedStringArray = ["min_ilvl", "min", "max", "step"]
@@ -102,7 +100,7 @@ static func validate_classes(v: DataValidatorRules, files: Dictionary[String, Di
 		if c.get("id") is String and c["id"] != path.get_file().get_basename():
 			v.fail("id '%s' must be equal to the file name" % c["id"])
 		var weapon_kinds: Array = _kinds(v, c, "weapon_kinds", WEAPON_KINDS, 1)
-		var offhand_kinds: Array = _kinds(v, c, "offhand_kinds", OFFHAND_KINDS, 0)
+		var offhand_kinds: Array = _kinds(v, c, "offhand_kinds", _offhand_kinds(), 0)
 		_setups(v, c, weapon_kinds, offhand_kinds)
 		for key: String in ["traits", "abilities"]:
 			if not v.object_list(c, key).is_empty():
@@ -211,3 +209,10 @@ static func validate_balance(v: DataValidatorRules, balance: Dictionary) -> void
 	for rarity: String in ["magic", "rare"]:
 		if counts is Dictionary and (counts as Dictionary).get(rarity) is Array:
 			v.int_pair(counts as Dictionary, rarity, 0, DataValidator.AFFIX_COUNT_MAX, true, "rarity.affix_count")
+
+
+# Offhand kinds of a class: the offhand-slot kinds plus the one-handed sword (a greatsword is two-handed).
+static func _offhand_kinds() -> PackedStringArray:
+	var kinds: PackedStringArray = DataValidatorItems.OFFHAND_SLOT_KINDS.duplicate()
+	kinds.append("sword")
+	return kinds
