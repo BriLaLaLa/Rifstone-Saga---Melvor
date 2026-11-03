@@ -18,7 +18,7 @@ const REQUIRED_BALANCE_KEYS: PackedStringArray = [
 	"mastery.base_factor", "mastery.per_level", "mastery.ratio_weight", "mastery.pool_share_pct",
 	"mastery.pool_cap_per_item", "mastery.pool_warning_pct", "action.min_interval_ms",
 	"gathering.rift_shard_base_chance_pct",
-	"bank.base_slots", "bank.slot_cost_base", "bank.slot_cost_growth", "bank.slot_cost_cap", "bank.max_purchasable",
+	"bank.base_slots", "bank.slot_cost_base", "bank.slot_cost_growth", "bank.slot_cost_cap",
 	"combat.acc_level_offset", "combat.acc_bonus_offset", "combat.maxhit_level_offset", "combat.maxhit_bonus_offset",
 	"combat.min_hit_ratio", "combat.hit_chance_min", "combat.hit_chance_max",
 	"combat.triangle.advantage_damage_mult", "combat.triangle.disadvantage_damage_mult",

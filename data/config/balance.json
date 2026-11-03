@@ -44,8 +44,7 @@
     "base_slots": 24,
     "slot_cost_base": 400,
     "slot_cost_growth": 1.09,
-    "slot_cost_cap": 2000000,
-    "max_purchasable": 150
+    "slot_cost_cap": 2000000
   },
   "combat": {
     "acc_level_offset": 8,
