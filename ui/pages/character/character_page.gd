@@ -5,19 +5,16 @@ extends Page
 ##
 ## Everything is read from `session.character`, `session.data` and `session.equipment` at every redraw, which runs on
 ## `character_xp_gained`, `character_level_up` and `equipment_changed`. The current setup comes from
-## `Equipment.setup()` (05 §5.9, M4-06): while that function is not on the equipment yet the page shows a neutral
-## text. It keeps no game state, only references to its own nodes.
+## `Equipment.setup()` (05 §5.9). It keeps no game state, only references to its own nodes.
 
 const LEVEL_TEXT: String = "Livello %s"
 const SETUP_TITLE_TEXT: String = "Assetto"
 const CURRENT_SETUP_TEXT: String = "In uso: %s"
 const UNARMED_NAME: String = "Mani nude"
-const UNKNOWN_SETUP_TEXT: String = "non disponibile"
 const NOTE_TEXT: String = "I valori di combattimento, i tratti e le abilità arrivano con le prossime tappe."
 const NO_CLASS_TEXT: String = "Classe non disponibile"
 const MARGIN: int = 16
 const SECTION_SEPARATION: int = 12
-const SETUP_FUNCTION: StringName = &"setup"
 const SETUP_ROW_NAME: String = "Setup_%s"
 
 var _session: GameSession = null
@@ -104,16 +101,11 @@ func _refresh() -> void:
 		(row as Label).theme_type_variation = &"HeaderLabel" if is_current else &"MutedLabel"
 
 
-## True if the equipment exposes `setup()` (05 §5.9, M4-06).
-func _equipment_has_setup() -> bool:
-	return _session.equipment != null and _session.equipment.has_method(SETUP_FUNCTION)
-
-
-## Id of the worn setup among the setups of the class; `&""` if the hands are bare or it is not known yet.
+## Id of the worn setup among the setups of the class; `&""` if the hands are bare.
 func _current_setup_id() -> StringName:
-	if not _equipment_has_setup():
+	var id: StringName = _session.equipment.setup()
+	if id == Equipment.UNARMED:
 		return &""
-	var id: StringName = StringName(String(_session.equipment.call(SETUP_FUNCTION)))
 	var class_def: ClassDef = _session.character.class_def()
 	if class_def != null:
 		for setup: SetupDef in class_def.setups:
@@ -123,11 +115,11 @@ func _current_setup_id() -> StringName:
 
 
 func _current_setup_name(setup_id: StringName) -> String:
-	if not _equipment_has_setup():
-		return UNKNOWN_SETUP_TEXT
-	for setup: SetupDef in _session.character.class_def().setups:
-		if setup.id == setup_id:
-			return setup.name
+	var class_def: ClassDef = _session.character.class_def()
+	if class_def != null:
+		for setup: SetupDef in class_def.setups:
+			if setup.id == setup_id:
+				return setup.name
 	return UNARMED_NAME
 
 
@@ -139,5 +131,5 @@ func _on_character_level_up(_new_level: int) -> void:
 	_refresh()
 
 
-func _on_equipment_changed(_slot_id: StringName, _item_id: StringName) -> void:
+func _on_equipment_changed(_slot_id: StringName, _uid: int) -> void:
 	_refresh()

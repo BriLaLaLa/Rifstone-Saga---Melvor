@@ -46,8 +46,22 @@ func test_lists_the_setups_of_the_class() -> void:
 
 func test_current_setup_text_is_never_empty() -> void:
 	assert_string_contains(_label("%CurrentSetupLabel").text, "In uso: ")
-	_session.events.equipment_changed.emit(&"weapon", &"")
+	_session.events.equipment_changed.emit(&"weapon", 0)
 	assert_string_contains(_label("%CurrentSetupLabel").text, "In uso: ")
+
+
+func test_equipped_weapon_highlights_its_setup() -> void:
+	assert_eq(_label("%CurrentSetupLabel").text, "In uso: Mani nude")
+	assert_true(_session.equipment.equip(TestFactory.give_piece(_session, &"test_blade")).ok)
+	var current: SetupDef = _session.equipment.setup_def()
+	assert_not_null(current, "a sword has a setup")
+	assert_eq(_label("%CurrentSetupLabel").text, "In uso: %s" % current.name)
+	for setup: SetupDef in _session.character.class_def().setups:
+		var row: Label = _page.find_child("Setup_%s" % setup.id, true, false) as Label
+		var expected: StringName = &"HeaderLabel" if setup.id == current.id else &"MutedLabel"
+		assert_eq(row.theme_type_variation, expected, setup.id)
+	_session.equipment.unequip(&"weapon")
+	assert_eq(_label("%CurrentSetupLabel").text, "In uso: Mani nude", "redraw on equipment_changed")
 
 
 func test_unbind_disconnects_everything() -> void:
