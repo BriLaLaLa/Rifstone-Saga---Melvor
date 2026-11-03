@@ -25,8 +25,21 @@ const GATHERING_TIERS: Array[Array] = [
 	[1, 3000, 10, 1, 1], [10, 3200, 18, 1, 3], [20, 3500, 28, 1, 6], [30, 3800, 40, 1, 10],
 	[45, 4200, 58, 1, 18], [60, 4600, 80, 1, 30], [75, 5000, 108, 1, 50], [90, 5500, 145, 1, 85],
 ]
-## Gathering skills whose actions exist in M1 (quarrying and angling arrive with M2).
-const GATHERING_WITH_ACTIONS: PackedStringArray = ["forestry"]
+## Gathering skills whose actions exist (M1: forestry; M2: quarrying and angling).
+const GATHERING_WITH_ACTIONS: PackedStringArray = ["forestry", "quarrying", "angling"]
+## 02_FORMULAS.md §8.8, forestry nodes: [id, cost_pct, requires, [[stat, value], ...]] (scope skill:forestry).
+const FORESTRY_NODES: Array[Array] = [
+	["forestry_n1_quick_axe", 5.0, [], [["skill_interval_pct", -3.0]]],
+	["forestry_n2_keen_eye", 7.5, ["forestry_n1_quick_axe"], [["double_item_chance", 3.0]]],
+	["forestry_n3_lore", 7.5, ["forestry_n1_quick_axe"], [["skill_xp_pct", 4.0]]],
+	["forestry_n4_rift_bark", 10.0, ["forestry_n2_keen_eye"], [["rift_shard_chance", 0.25]]],
+	["forestry_n5_patience", 10.0, ["forestry_n3_lore"], [["mastery_xp_pct", 5.0]]],
+	["forestry_n6_master", 20.0, ["forestry_n4_rift_bark", "forestry_n5_patience"],
+			[["skill_interval_pct", -5.0], ["double_item_chance", 5.0]]],
+]
+## §8.8: "the other skills with mastery follow the same schema (6 nodes, total 55-65%)".
+const NODE_TOTAL_MIN_PCT: float = 55.0
+const NODE_TOTAL_MAX_PCT: float = 65.0
 
 var _raw: Dictionary = {}
 var _load_errors: PackedStringArray = []
@@ -187,8 +200,76 @@ func test_icons_exist() -> void:
 
 
 func test_names_are_unique_per_kind() -> void:
-	for kind: Array in [["skills", "skills"], ["items", "items"], ["actions", "actions"]]:
+	for kind: Array in [["skills", "skills"], ["items", "items"], ["actions", "actions"], ["mastery", "nodes"]]:
 		var names: Dictionary = {}
 		for e: Dictionary in _entries(kind[0], kind[1]):
 			assert_false(names.has(e["name"]), "%s name '%s' of %s is already used" % [kind[0], e["name"], e["id"]])
 			names[e["name"]] = true
+
+
+# Mastery nodes of every mastery file, by skill, sorted by id (`<skill>_n<k>_…` sorts as n1..n6).
+func _nodes_by_skill() -> Dictionary:
+	var result: Dictionary = {}
+	for path: Variant in _raw["mastery"]:
+		var content: Dictionary = _raw["mastery"][path] as Dictionary
+		var nodes: Array = (content["nodes"] as Array).duplicate()
+		nodes.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a["id"] < b["id"])
+		result[content["skill"]] = nodes
+	return result
+
+
+func test_every_gathering_skill_has_mastery_nodes() -> void:
+	var by_skill: Dictionary = _nodes_by_skill()
+	for skill: String in GATHERING_WITH_ACTIONS:
+		assert_true(by_skill.has(skill), "mastery file of %s" % skill)
+		if by_skill.has(skill):
+			assert_eq((by_skill[skill] as Array).size(), FORESTRY_NODES.size(), "nodes of %s" % skill)
+
+
+func test_forestry_nodes_follow_8_8() -> void:
+	var nodes: Array = _nodes_by_skill().get("forestry", [])
+	assert_eq(nodes.size(), FORESTRY_NODES.size())
+	for index: int in mini(nodes.size(), FORESTRY_NODES.size()):
+		assert_eq(nodes[index]["id"], FORESTRY_NODES[index][0], "forestry node %d" % (index + 1))
+		_assert_node_like(nodes[index] as Dictionary, FORESTRY_NODES[index], "forestry", nodes)
+
+
+func test_quarrying_and_angling_nodes_follow_the_forestry_schema() -> void:
+	var by_skill: Dictionary = _nodes_by_skill()
+	for skill: String in ["quarrying", "angling"]:
+		var nodes: Array = by_skill.get(skill, [])
+		assert_eq(nodes.size(), FORESTRY_NODES.size(), "nodes of %s" % skill)
+		for index: int in mini(nodes.size(), FORESTRY_NODES.size()):
+			var prefix: String = "%s_n%d_" % [skill, index + 1]
+			assert_true((nodes[index]["id"] as String).begins_with(prefix), "%s starts with %s" % [nodes[index]["id"], prefix])
+			_assert_node_like(nodes[index] as Dictionary, FORESTRY_NODES[index], skill, nodes)
+
+
+# `node` has the cost, the requires (same positions in the n1..n6 order) and the modifiers of the forestry row `want`,
+# every modifier scoped to `skill:<skill>`.
+func _assert_node_like(node: Dictionary, want: Array, skill: String, nodes: Array) -> void:
+	var at: String = node["id"] as String
+	assert_almost_eq(float(node["cost_pct"]), float(want[1]), 0.0001, "%s cost_pct" % at)
+	var expected_requires: Array = []
+	for required: Variant in want[2]:
+		var row: int = FORESTRY_NODES.find_custom(func(r: Array) -> bool: return r[0] == required)
+		expected_requires.append(nodes[row]["id"] if row < nodes.size() else "")
+	assert_eq(node["requires"], expected_requires, "%s requires" % at)
+	var modifiers: Array = node["modifiers"] as Array
+	var expected: Array = want[3] as Array
+	assert_eq(modifiers.size(), expected.size(), "%s modifiers" % at)
+	for index: int in mini(modifiers.size(), expected.size()):
+		var m: Dictionary = modifiers[index] as Dictionary
+		assert_eq(m["stat"], expected[index][0], "%s modifier %d stat" % [at, index])
+		assert_almost_eq(float(m["value"]), float(expected[index][1]), 0.0001, "%s modifier %d value" % [at, index])
+		assert_eq(m.get("scope", "skill:%s" % skill), "skill:%s" % skill, "%s modifier %d scope" % [at, index])
+
+
+func test_mastery_node_costs_total_55_to_65_pct() -> void:
+	var by_skill: Dictionary = _nodes_by_skill()
+	assert_false(by_skill.is_empty())
+	for skill: Variant in by_skill:
+		var total: float = 0.0
+		for node: Variant in by_skill[skill]:
+			total += float((node as Dictionary)["cost_pct"])
+		assert_between(total, NODE_TOTAL_MIN_PCT, NODE_TOTAL_MAX_PCT, "total cost_pct of %s" % skill)
