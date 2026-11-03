@@ -1,5 +1,5 @@
 {
-  "_doc": "Materiali (02_FORMULAS.md §8.1, colonna Valore). Legni di Selvicoltura T1-T8: sort_order 10-80; minerali di Cavatura T1-T8: 110-180; pesci crudi di Lenza T1-T8: 210-280; lingotti di Forgiatura T1-T8: 310-380; impugnature di Intaglio T1-T8: 410-480; anime dello scudo T1-T8: 510-580; manici T1-T8: 610-680.",
+  "_doc": "Materiali (02_FORMULAS.md §8.1, colonna Valore). Legni di Selvicoltura T1-T8: sort_order 10-80; minerali di Cavatura T1-T8: 110-180; pesci crudi di Lenza T1-T8: 210-280; lingotti di Forgiatura T1-T8: 310-380; impugnature di Intaglio T1-T8: 410-480; anime dello scudo T1-T8: 510-580; manici T1-T8: 610-680; bottino dei mostri: 710-940.",
   "items": [
     {"id": "redbirch_log", "name": "Legno di betulla rossa", "category": "material", "icon": "res://assets/icons/items/redbirch_log.svg", "value": 1, "sort_order": 10,
      "description": "Legno chiaro venato di rosso, comune nelle Pianure di Roccarossa."},
@@ -112,6 +112,22 @@
     {"id": "riftspruce_shieldcore", "name": "Anima dello scudo di abete del Rift", "category": "material", "icon": "res://assets/icons/items/riftspruce_shieldcore.svg", "value": 340, "sort_order": 580,
      "description": "Disco di legno robusto che regge l'intelaiatura di uno scudo."},
     {"id": "riftspruce_handle", "name": "Manico di abete del Rift", "category": "material", "icon": "res://assets/icons/items/riftspruce_handle.svg", "value": 170, "sort_order": 680,
-     "description": "Asta di legno levigata, pronta per essere montata su un attrezzo."}
+     "description": "Asta di legno levigata, pronta per essere montata su un attrezzo."},
+    {"id":"boar_tusk","name":"Zanna di cinghiale","category":"material","icon":"res://assets/icons/items/boar_tusk.svg","value":2,"sort_order":710,"description":"Ricurva e ingiallita, ancora sporca di terra rossa."},
+    {"id":"scorched_fur","name":"Pelo bruciacchiato","category":"material","icon":"res://assets/icons/items/scorched_fur.svg","value":3,"sort_order":720,"description":"Odora di fumo e non si spegne mai del tutto."},
+    {"id":"raider_bandage","name":"Benda del predone","category":"material","icon":"res://assets/icons/items/raider_bandage.svg","value":4,"sort_order":730,"description":"Tela ruvida macchiata di polvere rossa."},
+    {"id":"redrock_flint","name":"Selce di Roccarossa","category":"material","icon":"res://assets/icons/items/redrock_flint.svg","value":2,"sort_order":740,"description":"Scheggia dura, buona per accendere fuochi e discussioni."},
+    {"id":"wolf_fang","name":"Zanna di lupo","category":"material","icon":"res://assets/icons/items/wolf_fang.svg","value":8,"sort_order":750,"description":"Bianca e sottile; il vento sembra sussurrarvi dentro."},
+    {"id":"troll_moss","name":"Muschio di troll","category":"material","icon":"res://assets/icons/items/troll_moss.svg","value":9,"sort_order":760,"description":"Spugnoso e tiepido, cresce anche dopo essere stato staccato."},
+    {"id":"hollow_arrowhead","name":"Punta cava","category":"material","icon":"res://assets/icons/items/hollow_arrowhead.svg","value":11,"sort_order":770,"description":"Una punta di freccia leggera come un respiro."},
+    {"id":"whisper_resin","name":"Resina dei sussurri","category":"material","icon":"res://assets/icons/items/whisper_resin.svg","value":8,"sort_order":780,"description":"Ambra torbida: avvicinandola all'orecchio, mormora."},
+    {"id":"golem_core","name":"Nucleo di golem","category":"material","icon":"res://assets/icons/items/golem_core.svg","value":24,"sort_order":810,"description":"Pietra grigia con una vena viola ancora luminosa."},
+    {"id":"crawler_carapace","name":"Carapace profondo","category":"material","icon":"res://assets/icons/items/crawler_carapace.svg","value":28,"sort_order":820,"description":"Placca scura e liscia, fredda come le gallerie."},
+    {"id":"witch_charm","name":"Amuleto di vena","category":"material","icon":"res://assets/icons/items/witch_charm.svg","value":34,"sort_order":830,"description":"Un filo di minerale intrecciato che vibra piano."},
+    {"id":"mine_dust","name":"Polvere di miniera","category":"material","icon":"res://assets/icons/items/mine_dust.svg","value":20,"sort_order":840,"description":"Polvere pesante che luccica sotto la lanterna."},
+    {"id":"wraith_veil","name":"Velo di spettro","category":"material","icon":"res://assets/icons/items/wraith_veil.svg","value":60,"sort_order":910,"description":"Tessuto d'ombra che si dissolve se lo si fissa troppo."},
+    {"id":"knight_plate","name":"Placca del cavaliere","category":"material","icon":"res://assets/icons/items/knight_plate.svg","value":78,"sort_order":920,"description":"Frammento d'armatura inciso con il sigillo della soglia."},
+    {"id":"colossus_shard","name":"Scheggia di colosso","category":"material","icon":"res://assets/icons/items/colossus_shard.svg","value":110,"sort_order":930,"description":"Cristallo viola grande come un pugno, caldo di Rift."},
+    {"id":"threshold_ash","name":"Cenere della Soglia","category":"material","icon":"res://assets/icons/items/threshold_ash.svg","value":55,"sort_order":940,"description":"Cenere fine che non si posa mai sul terreno."}
   ]
 }
