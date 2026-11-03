@@ -252,8 +252,13 @@ func test_real_data_forging_scrolls_88_recipes_with_variable_ingredients() -> vo
 	assert_eq(scroll.horizontal_scroll_mode, ScrollContainer.SCROLL_MODE_DISABLED)
 	var counts: Dictionary[int, bool] = {}
 	for card: ActionCard in cards:
-		counts[(card.get_node("%Ingredients") as Control).get_child_count()] = true
-	assert_true(counts.size() >= 1)
+		var distinct: Dictionary[StringName, bool] = {}
+		for input: ItemQty in _session.data.action(card.action_id()).inputs:
+			distinct[input.item_id] = true
+		var shown: int = (card.get_node("%Ingredients") as Control).get_child_count()
+		assert_eq(shown, distinct.size(), "%s ingredient rows" % card.action_id())
+		counts[shown] = true
+	assert_true(counts.has(1) and counts.has(2), "the number of ingredients varies")
 
 
 func test_real_data_forestry_page() -> void:

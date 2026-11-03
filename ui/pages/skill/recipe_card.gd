@@ -9,6 +9,7 @@ extends ActionCard
 ## it is the running one (so it can be stopped). The card keeps no game state.
 
 const INGREDIENT_ROW_PREFIX: String = "Ingredient"
+const INGREDIENT_ROW_SEPARATION: int = 6
 const OWNED_TEXT: String = "%s / %s"
 const INGREDIENT_TEXT: String = "%s  %s"
 const CHANCE_TEXT: String = "%s%%"
@@ -39,7 +40,7 @@ func setup(action: ActionDef, data: GameData) -> void:
 			continue
 		var row := HBoxContainer.new()
 		row.name = INGREDIENT_ROW_PREFIX + String(item_id).to_pascal_case()
-		row.add_theme_constant_override("separation", 6)
+		row.add_theme_constant_override("separation", INGREDIENT_ROW_SEPARATION)
 		_ingredients.add_child(row)
 		var slot: ItemSlotView = ITEM_SLOT_SCENE.instantiate() as ItemSlotView
 		slot.name = "Slot"
