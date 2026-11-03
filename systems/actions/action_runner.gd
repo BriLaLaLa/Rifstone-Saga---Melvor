@@ -8,7 +8,8 @@ extends RefCounted
 ## first cycle's interval is computed at the first advance (the modifiers are rebuilt after `from_save`).
 ## A cycle that does not count (`bank_full`) stops the lane. Every stop emits `action_stopped` and is appended to
 ## the stop reasons log (drained by `stop_reasons_log`, for the offline summary; not saved).
-## Only gathering actions run until M3-01: starting an action with `inputs` answers `unknown_id`.
+## Artisan actions (with `inputs`) start only when every input is in the bank (`missing_inputs`) and stop the lane
+## with the outcome's reason when a cycle fails (ArtisanResolver).
 ## Signals go to the session EventBus after the state changed; `new_game`/`from_save` emit nothing.
 ## Dependencies: data, events, modifiers, bank, skills, mastery, rng, combat (only `stop`, from M4).
 
@@ -96,8 +97,8 @@ func from_save(d: Dictionary) -> void:
 
 
 ## Starts an action, replacing the one running in the lane (stopped with `replaced`). Starting the action already
-## running in the lane changes nothing. unknown_id (unknown skill or action, action of another skill, artisan action
-## until M3-01), level_too_low, lane_unavailable (any lane but main until M8).
+## running in the lane changes nothing. unknown_id (unknown skill or action, action of another skill), level_too_low,
+## missing_inputs (artisan action without its ingredients), lane_unavailable (any lane but main until M8).
 func start(skill_id: StringName, action_id: StringName, lane: StringName = MAIN) -> CommandResult:
 	if lane != MAIN:
 		return CommandResult.fail(Reasons.LANE_UNAVAILABLE)
@@ -199,7 +200,11 @@ func _advance_lane(lane_id: StringName, delta_ms: int) -> void:
 # Resolves one cycle. False when the lane is no longer running this cycle's lane (stopped by the outcome, or
 # replaced/stopped by a listener of the signals).
 func _complete_cycle(lane_id: StringName, lane: _Lane) -> bool:
-	var outcome: ActionOutcome = GatheringResolver.resolve(_session, lane.action)
+	var outcome: ActionOutcome
+	if lane.action.is_artisan():
+		outcome = ArtisanResolver.resolve(_session, lane.action)
+	else:
+		outcome = GatheringResolver.resolve(_session, lane.action)
 	if not outcome.ok:
 		stop(lane_id, outcome.reason)
 		return false
@@ -220,10 +225,12 @@ func _cycle_interval(lane: _Lane) -> int:
 
 # &"" when the action can start now, otherwise the failure reason.
 func _start_check(action: ActionDef) -> StringName:
-	if action == null or action.is_artisan():
+	if action == null:
 		return Reasons.UNKNOWN_ID
 	if _session.skills.get_level(action.skill_id) < action.level:
 		return Reasons.LEVEL_TOO_LOW
+	if action.is_artisan():
+		return ArtisanResolver.can_start(_session, action).reason
 	return &""
 
 

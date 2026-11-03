@@ -16,6 +16,8 @@ const SKILL: StringName = &"test_gather"
 const TWIG: StringName = &"gather_twig"
 const BUNDLE: StringName = &"gather_bundle"
 const INTERVAL_STAT: StringName = &"skill_interval_pct"
+const CRAFT_SKILL: StringName = &"test_craft"
+const PLANK: StringName = &"craft_plank"
 
 var _tmp_root: String = PreRun.test_dir("test_action_runner")
 var _fast_data: GameData = null
@@ -77,7 +79,7 @@ func test_start_failures_change_nothing() -> void:
 	assert_eq(_runner.start(&"no_skill", TWIG).reason, Reasons.UNKNOWN_ID)
 	assert_eq(_runner.start(SKILL, &"no_action").reason, Reasons.UNKNOWN_ID)
 	assert_eq(_runner.start(&"test_gather_b", TWIG).reason, Reasons.UNKNOWN_ID)
-	assert_eq(_runner.start(&"test_craft", &"craft_plank").reason, Reasons.UNKNOWN_ID)
+	assert_eq(_runner.start(&"test_craft", &"craft_plank").reason, Reasons.MISSING_INPUTS)
 	assert_eq(_runner.start(SKILL, &"gather_log").reason, Reasons.LEVEL_TOO_LOW)
 	assert_eq(_runner.start(SKILL, BUNDLE, &"secondary").reason, Reasons.LANE_UNAVAILABLE)
 	assert_eq(_runner.get_lane()["action"], TWIG)
@@ -310,3 +312,50 @@ func _write(path: String, text: String) -> void:
 	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
 	file.store_string(text)
 	file.close()
+
+
+## M3-01: artisan actions start with the inputs in the bank and stop with the outcome's reason.
+func test_artisan_start_needs_the_inputs() -> void:
+	assert_eq(_runner.start(CRAFT_SKILL, PLANK).reason, Reasons.MISSING_INPUTS)
+	assert_false(_runner.is_running())
+	TestFactory.give(_session, &"test_log", 1)
+	assert_eq(_runner.start(CRAFT_SKILL, PLANK).reason, Reasons.MISSING_INPUTS)
+	TestFactory.give(_session, &"test_log", 1)
+	assert_true(_runner.start(CRAFT_SKILL, PLANK).ok)
+	assert_eq(_runner.get_lane()["interval_ms"], 2000)
+
+
+func test_artisan_cycles_consume_until_the_inputs_run_out() -> void:
+	TestFactory.give(_session, &"test_log", 5)
+	_runner.start(CRAFT_SKILL, PLANK)
+	watch_signals(_session.events)
+	_session.advance(10000)
+	assert_signal_emit_count(_session.events, "action_completed", 2)
+	assert_eq(_session.bank.get_count(&"test_plank"), 2)
+	assert_eq(_session.bank.get_count(&"test_log"), 1)
+	assert_eq(_session.skills.get_xp(CRAFT_SKILL), 16)
+	assert_false(_runner.is_running())
+	assert_signal_emitted_with_parameters(_session.events, "action_stopped", [MAIN, CRAFT_SKILL, Reasons.MISSING_INPUTS])
+	assert_eq(_runner.stop_reasons_log(), [Reasons.MISSING_INPUTS] as Array[StringName])
+
+
+func test_artisan_inputs_sold_mid_cycle_fail_without_xp() -> void:
+	TestFactory.give(_session, &"test_log", 2)
+	_runner.start(CRAFT_SKILL, PLANK)
+	_session.advance(1000)
+	_session.bank.remove(&"test_log", 2)
+	_session.advance(1000)
+	assert_false(_runner.is_running())
+	assert_eq(_session.skills.get_xp(CRAFT_SKILL), 0)
+	assert_eq(_session.bank.get_count(&"test_plank"), 0)
+	assert_eq(_runner.stop_reasons_log(), [Reasons.MISSING_INPUTS] as Array[StringName])
+
+
+func test_artisan_lane_is_not_restored_without_inputs() -> void:
+	var lanes: Dictionary = {"main": {"skill": "test_craft", "action": "craft_plank", "elapsed_ms": 500}}
+	_runner.from_save({"lanes": lanes})
+	assert_false(_runner.is_running())
+	TestFactory.give(_session, &"test_log", 2)
+	_runner.from_save({"lanes": lanes})
+	assert_true(_runner.is_running())
+	assert_eq(_runner.get_lane()["elapsed_ms"], 500)

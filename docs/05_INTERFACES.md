@@ -655,8 +655,8 @@ func advance(delta_ms: int) -> void
 ```
 Comportamento (M1-10):
 - `start`: ordine dei controlli `lane_unavailable` (ogni corsia diversa da `main` fino a M8) → `unknown_id` (skill o
-  azione sconosciuta, azione di un'altra skill, azione con `inputs` fino a M3-01) → `level_too_low`; un errore non cambia
-  nulla. Avviare l'azione già in corso nella corsia è un no-op `ok` (il ciclo continua, nessun segnale). Altrimenti
+  azione sconosciuta, azione di un'altra skill) → `level_too_low` → `missing_inputs` (azione con `inputs` senza tutti gli
+  ingredienti nella bank, `ArtisanResolver.can_start`; stesso controllo in `from_save`); un errore non cambia nulla. Avviare l'azione già in corso nella corsia è un no-op `ok` (il ciclo continua, nessun segnale). Altrimenti
   l'azione in corso si ferma con `replaced`, poi `action_started`. Nella corsia main ferma anche il combattimento
   (`replaced`): la riga arriva con M4-03.
 - `stop` di una corsia ferma: no-op, nessun segnale. Ogni stop emette `action_stopped` e accoda il motivo al log;
@@ -672,6 +672,13 @@ Comportamento (M1-10):
   compreso): se non c'è, il ciclo non conta, nulla cambia e la corsia si ferma con `bank_full` (nessun `bank_rejected`:
   il feedback è `action_stopped(bank_full)`). Ciclo riuscito: `bank_changed` → `xp_gained`/`level_up` →
   segnali della maestria → `action_completed` (`outputs` comprende `rift_shard` se è uscito).
+- `ArtisanResolver` (M3-01): gli ingredienti si controllano all'avvio di ogni ciclo e di nuovo alla fine; se mancano (es.
+  venduti a metà ciclo) il ciclo fallisce con `missing_inputs`, nulla cambia, niente XP, e la corsia si ferma. Tiri sempre
+  in quest'ordine su `session.rng`: conservazione (F-08), poi doppio (F-06). Nessun frammento. Lo spazio nella bank si
+  controlla **prima** di ogni cambio, al netto degli ingredienti da consumare: le caselle liberate dagli ingredienti
+  consumati del tutto contano per i prodotti nuovi (per questo non si usa `Bank.can_add`, che guarda le caselle prima del
+  consumo); se non c'è posto il ciclo non conta, nulla è consumato e la corsia si ferma con `bank_full`. Ciclo conservato:
+  `consumed` vuoto, prodotti e XP pieni. Ordine dei segnali come per `GatheringResolver`.
 - Save (§6): `{"lanes": {lane: {"skill", "action", "elapsed_ms"}}}`, corsie ferme assenti. `from_save` tollerante: corsia
   sconosciuta, voce non oggetto, azione sconosciuta/di un'altra skill/non avviabile ora (livello, `inputs`) → `Log.warn`
   e corsia ferma; `elapsed_ms` non intero o negativo → `Log.warn` e ciclo da 0. Nessun segnale.
@@ -760,9 +767,19 @@ func price(entry_id: StringName) -> int               # F-17 per formula, altrim
 func can_buy(entry_id: StringName) -> CommandResult   # unknown_id, max_purchases, requirement_not_met, not_enough_gold, bank_full
 func buy(entry_id: StringName) -> CommandResult
 func sell_value(item_id: StringName, qty: int) -> int # F-18
-func sell(item_id: StringName, qty: int) -> CommandResult   # item_locked, not_sellable, not_enough_items, invalid_amount
+func sell(item_id: StringName, qty: int) -> CommandResult   # invalid_amount, unknown_id, item_locked, not_sellable, not_enough_items
 func rebuild_modifiers() -> void                      # sorgenti shop:<id> (F-19)
 ```
+Comportamento (M3-02):
+- `can_buy`/`buy`: controlli nell'ordine della firma; `max_purchases` 0 = illimitato; `bank_full` solo per effetti
+  `item` (`Bank.can_add`). Un errore non cambia nulla (oro non speso). Riuscito: oro speso, effetto applicato (oggetto
+  nella bank, oppure sorgente `shop:<id>` con valori × acquisti, F-19), poi `shop_purchased`.
+- `price` di una voce sconosciuta → 0. `sell_value` di un oggetto sconosciuto o con `qty <= 0` → 0.
+- `sell`: controlli nell'ordine della firma; riuscito: oggetti tolti, oro aggiunto, poi `item_sold`.
+- Save (§6): `{"purchases": {entry_id: n}}`, solo le voci comprate almeno una volta. `from_save` tollerante, con
+  `Log.warn`: `purchases` non oggetto → nessun acquisto; voce sconosciuta o conteggio non intero o ≤ 0 → scartato;
+  conteggio oltre `max_purchases` (se > 0) → limitato a `max_purchases`. Nessun segnale; i modificatori si ricostruiscono
+  con `rebuild_modifiers`.
 
 ### 5.12 RiftAltar (`systems/rift/rift_altar.gd`) — dipendenze: data, events, modifiers, bank, skills
 ```gdscript
