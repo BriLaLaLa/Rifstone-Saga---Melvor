@@ -11,8 +11,8 @@ Se la sessione si interrompe, si riparte da qui.
   assenti (807 file). Prova del Giocabile di M4: 8/8 (criteri di `06_ROADMAP.md` M4, verificati con i test e con
   l'avvio headless). `main` e i tag `m0-done`…`m4-done` pushati su `origin` a fine M4.
 - **Avanzamento M5**: M5-04 DONE (merge `8f40e08`); M5-00 DONE (correzioni della prova visiva di M4, richiesta
-  dell'utente; merge `09364ba`); M5-01 DONE (merge `447224b`); M5-02 DONE (merge `6c11beb`). run_checks su main dopo M5-02: 1103 test, 1102 passati, 1 pending, 0 falliti.
-- **Prossimo passo**: **M5-03** (COMBAT, L: motore a eventi, incontri e gruppi; ordine dei tiri in `05_INTERFACES.md` §5.10; note "da M5-01", "da M5-02", "da M5-04" e N1-N2 in `07_TASKS.md`) → M5-05 (UI, L) e M5-06 (dopo M5-03 e M5-04) → M5-07 (QA) → M5-08
+  dell'utente; merge `09364ba`); M5-01 DONE (merge `447224b`); M5-02 DONE (merge `6c11beb`); M5-03 DONE (merge `a3b01b1`). run_checks su main dopo M5-03: 1131 test, 1130 passati, 1 pending, 0 falliti.
+- **Prossimo passo**: **M5-05** (UI, L: pagina del combattimento) ∥ **M5-06** (COMBAT, S: `tools/sim_combat.gd`), note "da M5-03" in `07_TASKS.md` → M5-07 (QA) → M5-08
   (REV). Regole dei consumi di `CLAUDE.md`: massimo 2 agenti, test mirati, suite completa solo dopo il merge, review
   sul diff, sezioni nei brief.
 - **Decisioni aperte per l'utente** (`OPEN_QUESTIONS.md`, finché non risponde valgono i default): Q26 (nodi di Cavatura
@@ -23,8 +23,8 @@ Se la sessione si interrompe, si riparte da qui.
   formule = la prima; `block_chance` nei dati da M4, effetto in M5; save v1 → `version_unsupported` senza migrazione
   (M4-03); casi di `equip`/`unequip` in `05_INTERFACES.md` §5.9 (M4-06); API UI dell'Armeria in 05 §7 (M4-08);
   M4-10: `item_rarity_pct` letta col contesto dell'azione e maestria 1 con 0 XP, entrambe scritte in F-83.
-- **Follow-up registrati** (note "da M4-xx" e N* in `07_TASKS.md`): M5-03 `_combat_active()` tipizzato in
-  `equipment.gd` (N2); M5-07 `CLOSED_FORMULAS` del combattimento e `"10.6"` (chiude l'unico pending,
+- **Follow-up registrati** (note "da M4-xx" e N* in `07_TASKS.md`): M6-01 `GameData.has_area`/`has_monster`;
+  M6-02 save/load del motore in un file a parte prima degli agganci (`combat_engine.gd` a 398 righe); M5-07 `CLOSED_FORMULAS` del combattimento e `"10.6"` (chiude l'unico pending,
   `test_stat_registry_coverage.gd`); M7-01 caso `+N` di `ItemRoller.instance_modifiers` e `Equipment` che ascolta
   `armory_changed(uid, &"updated")`; M7-03 stub `ItemRoller.drop_chances`; M7-06 smoke con `upgrade > 0` ("+N" in
   `ArmoryTexts.piece_name`/`ArmoryCell`); M9-06 toast dei livelli sopra le finestre (N9); inoltro
@@ -106,7 +106,7 @@ Se la sessione si interrompe, si riparte da qui.
 | M5-00 | M5 | Correzioni della prova visiva di M4 (UI) | UI | DONE | task/M5-00 | merge 09364ba; fdfb49a, 7e0f186 (correzione del Reviewer: `ItemTooltipLines.COMBAT_TEXT` unica, riusata da ShopPage e Sidebar); richiesta dell'utente dopo M4: sorgente "Assetto: <nome>", lista degli assetti con quello in uso evidenziato, categoria "Combattimento" e Casella dell'Armeria nella categoria bank, modificatori della stessa stat sommati, nome nel colore della rarità, contatore "(+N indossati)"; firme in 05 §7; decisioni in DECISIONS_LOG; run_checks 1061 test, 1060 passati, 1 pending, 0 falliti |
 | M5-01 | M5 | Formule di combattimento | COMBAT | DONE | task/M5-01 | merge 447224b; f1da183; `CombatMath` (F-20…F-27, F-73, limite di F-75, parte pura di F-70), `test_combat_math.gd` (14 test, tutti gli esempi); caso `AR + ER ≤ 0` scritto in F-23; note "da M5-01" per M5-02/M5-03 in 07; decisioni in DECISIONS_LOG; run_checks 1075 test, 1074 passati, 1 pending, 0 falliti |
 | M5-02 | M5 | Statistiche per mano, razioni da campo, borsa del bottino | COMBAT | DONE | task/M5-02 | merge 6c11beb; a94638f, 6c156ef, f04d7cf (correzione del Reviewer: bonus esatti dell'esempio F-74 nel test); `total_without`, `CombatantStats`, `AutoEat`, `LootBag` con i test; esempio di F-29 riscritto (20 e +80% → 36), F-74 con AR dell'assetto; comportamenti e ordine dei tiri in 05 §5.10; note "da M5-02" per M5-03; run_checks 1103 test, 1102 passati, 1 pending, 0 falliti |
-| M5-03 | M5 | Motore a eventi, incontri e gruppi | COMBAT | TODO | | note ereditate N1-N2 (07_TASKS) |
+| M5-03 | M5 | Motore a eventi, incontri e gruppi | COMBAT | DONE | task/M5-03 | merge a3b01b1; c9cdf0b, eae2cc8 (correzione del Reviewer: stop del combattimento solo dalla corsia main (N1), test dell'esempio di F-31 "tiro 10, +25% → 12"); `CombatEngine`, `Encounter`, segnali di M5, registrazione nella sessione, contatori dello snapshot, N1-N2; comportamenti in 05 §5.10; note "da M5-03" per M5-05/06/07 e M6-01/02; run_checks 1131 test, 1130 passati, 1 pending, 0 falliti |
 | M5-04 | M5 | Contenuto: 4 aree, 12 mostri, gruppi | DATA | DONE | task/M5-04 | merge 8f40e08; be30f80; 4 aree e 12 mostri (tabella §8.5), gruppi, 16 materiali di bottino, icone `.svg` segnaposto, `test_combat_data.gd` (9 test); decisioni (a)-(d) in DECISIONS_LOG; note per M5-03/M5-06 in `07_TASKS.md` §M5; run_checks 1055 test, 1054 passati, 1 pending, 0 falliti |
 | M5-05 | M5 | Pagina del combattimento | UI | TODO | | |
 | M5-06 | M5 | Strumento di bilanciamento sim_combat | COMBAT | TODO | | |

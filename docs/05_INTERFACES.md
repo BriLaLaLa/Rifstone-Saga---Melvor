@@ -271,7 +271,8 @@ func hide_tooltip() -> void
 I segnali segnati M4…M7 li aggiunge (o cambia) in `core/autoload/event_bus.gd` e in `tests/core/autoload/test_event_bus.gd`
 il task che li emette per primo (ownership estesa alle sole righe del segnale). Fino ad allora `event_bus.gd` ha le firme
 precedenti: `monster_spawned` e le vecchie firme di `combat_started`, `combat_hit`, `monster_hp_changed`,
-`monster_killed`, `equipment_changed` spariscono con M4-06 (equipaggiamento) e M5-03 (motore).
+`monster_killed`, `equipment_changed` spariscono con M4-06 (equipaggiamento) e M5-03 (motore). Fatto: M5-03 ha tolto
+`monster_spawned` (sostituito da `encounter_started`) e scritto le firme di M5 in `event_bus.gd`.
 
 ## 4. Dati (`res://core/data/`)
 
@@ -298,6 +299,8 @@ func mastery_nodes(skill_id: StringName) -> Array[MasteryNodeDef]
 func area(id: StringName) -> AreaDef
 func areas() -> Array[AreaDef]                        # ordinate per order
 func monster(id: StringName) -> MonsterDef
+func has_area(id: StringName) -> bool                 # M6-01: senza push_error (save tolleranti)
+func has_monster(id: StringName) -> bool              # M6-01: senza push_error
 func shop_entry(id: StringName) -> ShopEntryDef
 func shop_entries() -> Array[ShopEntryDef]
 func character_xp_table() -> XpTable                  # M4-01: da character_curve (F-71)
@@ -899,6 +902,31 @@ Comportamento (M5-03):
   `on_damaged`, `on_low_hp`, `choose_target`, `modify_stats`; abilità in `systems/combat/ability_runner.gd` (F-79, F-80).
 - Save (§6): stato, area, nemici, PV, timer, mano, attesa, contatori, borsa, stato degli effetti e delle abilità.
   `from_save` tollerante: area o mostro sconosciuto → `idle` con `Log.warn` (borsa e contatori tenuti).
+- Comportamenti fissati da M5-03 (contratto, coperti da `test_combat_engine.gd`):
+  - `start` sulla stessa area già attiva: successo, nulla cambia; su un'altra area: `stop(replaced)` e nuovo avvio.
+    Ogni avvio: PV al massimo, mano 0, `combat_started`, `player_hp_changed`, primo incontro.
+  - A ogni nuovo incontro il timer dell'attacco base riparte dal proprio intervallo (come i nemici, F-77).
+  - Con due spade (assetto `alternate` e spada nell'offhand) la mano cambia dopo **ogni** attacco base, riuscito o no;
+    l'intervallo successivo è quello della nuova mano. In difesa valgono le stat della mano 0 (F-74: le stat non
+    d'attacco sono i totali normali).
+  - Un nemico morto nello stesso istante non attacca (01 §10.9, F-76); i morti restano nella lista con `hp` 0 (la
+    posizione non cambia); `target` -1 se non c'è nessun vivo.
+  - `combat.respawn_ms` 0: il nuovo incontro parte nello stesso istante.
+  - `between`: `enemies` vuoto in `get_state` e nel save; `get_state` in `idle` ha `player_hp` = massimo.
+  - Statistiche del giocatore in cache, scartate su `modifiers_changed`, `equipment_changed`, `character_level_up`;
+    se il nuovo massimo è minore, i PV attuali scendono al massimo (01 §10.9).
+  - `eat()` a PV pieni: `ok` senza consumare (come `AutoEat.eat_one`); il contatore `food_eaten` conta i pezzi tolti
+    dalla bank (differenza della quantità del cibo scelto), sia per `eat` sia per `after_hit`.
+  - `from_save`: stato diverso da `encounter`/`between` → `idle`; nemici malformati → `idle` con `Log.warn`; un
+    `encounter` senza nemici vivi riprende come `between` con `combat.respawn_ms` pieno; `hp` dei nemici limitato a
+    `[0, max]`, timer a `[0, intervallo]`; PV del giocatore ≥ 1 (il limite al massimo arriva con la ricostruzione dei
+    modificatori); conteggi `kills` di mostri non presenti in nessun gruppo scartati con `Log.warn`.
+- Helper interni (non contratto per gli altri moduli): `CombatEngine.PLAYER = -1` (convenzione di §3) e
+  `SHARD_ITEM = &"rift_shard"` (id fisso, come `GatheringResolver.SHARD_ITEM` e la regola del validatore degli
+  oggetti); `class_name Encounter` (`systems/combat/encounter.gd`): nemici di un incontro (`Enemy`: `def`, `stats`,
+  `hp`, `timer_ms`), `spawn` (F-77), `target(rule)` (F-76, regole `first`/`lowest_hp`/`highest_hp`),
+  `roll_attack` (ordine dei tiri sopra), `to_save`/`from_save`, e `find_area`/`is_known_monster` (da sostituire con
+  `GameData.has_area`/`has_monster`, §4, nota "da M5-03" per M6-01/M6-02 in `07_TASKS.md`).
 
 ### 5.11 Shop (`systems/shop/shop.gd`) — dipendenze: data, events, modifiers, bank, wallet, skills, character, armory
 ```gdscript

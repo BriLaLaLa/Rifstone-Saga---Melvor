@@ -1141,6 +1141,16 @@ Regole comuni a M4 (oltre a quelle in testa al file):
   **non** lo riemette (conta solo il contatore `food_eaten`). `CombatantStats.for_player(session, hand)` si ricalcola a
   ogni bisogno (o su `modifiers_changed`/`equipment_changed`), mai copiato nel save. F-31 (oro) e F-32 (drop) sono di
   M5-03, nell'ordine di 05 §5.10. **In caso di dubbio sull'ordine dei tiri vale 05 §5.10 / 02 F-75, non le note.**
+- **Nota (da M5-03) per M5-05** `get_state()` in `idle` ha `player_hp` pieno; `target` = -1 se non c'è nessun vivo;
+  indici dei segnali -1 = giocatore, 0..n-1 = posizione del nemico; in `between` la lista `enemies` è vuota; i nemici
+  morti (hp 0) restano nella lista dell'incontro; `start` su un'altra area durante un combattimento emette
+  `combat_stopped(replaced)` e riparte; "Raccogli tutto" = `combat.loot.collect_all()`. Comportamenti in 05 §5.10.
+- **Nota (da M5-03) per M5-06** Il simulatore guida il combattimento con `combat.start(area)` + `session.advance(ms)`;
+  contatori `total_kills()` / `deaths()` / `food_eaten()`; `combat.respawn_ms` 0 è gestito (utile per F-34); la morte
+  porta in `idle`: per continuare la simulazione va richiamato `start`.
+- **Nota (da M5-03) per M5-07** F-34 con un'area di prova da un solo gruppo con un solo `plains_boar` e `respawn_ms` 0;
+  le chiavi finte di `ProbeSession` devono essere diverse da `combat` (ora `SAVE_KEY` vera; in `test_game_session.gd`
+  la chiave finta è `duels`); stesso seme + save/load → stesso stato (`test_save_roundtrip_continues_identically`).
 
 ## M6 · Abilità e tratti
 
@@ -1153,6 +1163,16 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 | M6-05 | Scelta di tratti e abilità nella UI | UI | M6-03, M6-04 | `ui/pages/character/**`, `ui/pages/combat/**` (abilità e tratti attivi), i loro smoke |
 | M6-06 | Test di M6 | QA | M6-01…M6-05 | `tests/integration/test_build_flow.gd`, `tests/data/test_stat_registry_coverage.gd` |
 | M6-07 | Integrazione di M6 | REV | M6-01…M6-06 | merge, tag `m6-done` |
+
+- **Nota (da M5-03) per M6-01** Aggiungere `GameData.has_area(id)` e `has_monster(id)` senza `push_error` (05 §4),
+  con un test in `tests/core/data/test_game_data.gd` (ownership di M6-01 estesa a `core/data/game_data.gd`, solo
+  quelle due funzioni, e a quel test).
+- **Nota (da M5-03) per M6-02** `combat_engine.gd` è a 398 righe su 400: **prima** degli agganci spostare in un file a
+  parte della stessa cartella (es. `systems/combat/combat_save.gd`) il codice di save/load del motore (`new_game`,
+  `to_save`, `from_save`, `_load_counters`, `_int`, circa 80 righe), senza cambiare il formato di 05 §6 (ownership di
+  M6-02 estesa a quel file). Nello stesso task sostituire `Encounter.find_area`/`is_known_monster` con
+  `GameData.has_area`/`has_monster` di M6-01 (ownership estesa a `systems/combat/encounter.gd`). `SHARD_ITEM` resta un
+  id fisso (come `GatheringResolver.SHARD_ITEM`).
 
 ## M7 · Bottino
 
