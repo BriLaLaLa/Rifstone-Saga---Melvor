@@ -33,20 +33,14 @@ func after_each() -> void:
 
 
 func test_hatchet_chain_speeds_up_forestry() -> void:
-	pending("M4-07: crafted tools become Armory pieces (uid)")
-	return
 	_run_chain("hatchet")
 
 
 func test_pick_chain_speeds_up_quarrying() -> void:
-	pending("M4-07: crafted tools become Armory pieces (uid)")
-	return
 	_run_chain("pick")
 
 
 func test_rod_chain_speeds_up_angling() -> void:
-	pending("M4-07: crafted tools become Armory pieces (uid)")
-	return
 	_run_chain("rod")
 
 
@@ -89,7 +83,7 @@ func _run_chain(kind: String) -> void:
 	var slot: StringName = TOOL_SLOTS[kind]
 	var base_action: ActionDef = data.actions_for_skill(skill)[0]
 	var before_ms: int = _session.actions.current_interval_ms(base_action.id)
-	assert_eq(_session.bank.get_count(tool_def.id), 0, "starts without the tool")
+	assert_eq(_session.armory.instances().size(), 0, "starts without the tool")
 	# 1. raw materials from gathering cycles, then smelting, then forging
 	var ingot: StringName = smelt.outputs[0].item_id
 	var ingots_needed: int = 0
@@ -104,14 +98,20 @@ func _run_chain(kind: String) -> void:
 	_run_cycles(smelt, smelt_cycles)
 	assert_eq(_session.bank.get_count(ingot), ingots_needed, "%d cycles of %s" % [smelt_cycles, smelt.id])
 	_run_cycles(forge, 1)
-	assert_eq(_session.bank.get_count(tool_def.id), forge.outputs[0].qty, "the tool is in the bank")
+	var pieces: Array[ItemInstance] = _session.armory.instances()
+	assert_eq(pieces.size(), forge.outputs[0].qty, "the tool is in the Armory")
+	assert_eq(pieces[0].base_id, tool_def.id)
+	assert_eq(_session.bank.get_count(tool_def.id), 0, "not in the bank")
 	assert_eq(_session.bank.get_count(ingot), 0, "ingots consumed")
 	assert_gt(_session.skills.get_xp(&"forging"), 0, "forging XP earned")
 	# 2. equip: 1 unit from the bank to the slot
-	var result: CommandResult = _session.equipment.equip(0)  # M4-07: the uid of the crafted piece
+	var uid: int = pieces[0].uid
+	var result: CommandResult = _session.equipment.equip(uid)
 	assert_true(result.ok, "equip: %s" % result.reason)
 	assert_eq(_session.equipment.get_item(slot), tool_def.id)
-	assert_eq(_session.bank.get_count(tool_def.id), forge.outputs[0].qty - 1, "one unit left the bank")
+	assert_eq(_session.equipment.get_uid(slot), uid)
+	assert_true(_session.armory.is_worn(uid))
+	assert_eq(_session.armory.used(), forge.outputs[0].qty - 1, "the worn piece no longer takes a free slot")
 	# 3. faster gathering
 	var pct: float = _session.modifiers.total(INTERVAL_STAT, ModifierContext.for_skill(skill))
 	assert_almost_eq(pct, _item_interval_pct(tool_def, skill), 0.0001, "modifier equals the item data")
