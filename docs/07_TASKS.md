@@ -972,6 +972,13 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 - **Nota (da M4-03)** I requisiti dei pezzi (`character` e, per gli attrezzi, la skill dello slot) si controllano con
   `session.character.meets_requirements`, non con `SkillsSystem.meets_requirements` (che registra un errore sulla chiave
   `character`); nei test `TestFactory.set_character_level`.
+- **Nota (da M4-05)** `Armory.remove` rifiuta un pezzo indossato (`item_equipped`): Equipment chiama
+  `armory.set_worn(uid, false)` prima di qualsiasi `remove`. `set_worn` non controlla la capienza: il controllo
+  `armory_full` di togliere/scambiare (§5.9) lo fa Equipment con `armory.can_add` prima di cambiare gli slot. Il flag
+  indossato non è nel save dell'Armeria: `Equipment.from_save` lo rimette con `armory.set_worn(uid, true, true)`
+  (`quiet`, nessun segnale; l'Armeria è registrata prima di Equipment). Pending da togliere: 21 in `test_equipment.gd`
+  (15 di M4-02 + 6 di M4-05, `pending("M4-06: requisiti character, uid e assetti")`) e 2 in `test_item_conservation.gd`.
+  Nei test: `TestFactory.give_piece(session, base_id, rarity, ilvl)` restituisce l'`uid`.
 
 ### M4-07 · Artigianato verso l'Armeria
 - **Ruolo** CORE · **Stima** S · **Parallelizzabile** sì (con M4-09) · **Dipendenze** M4-05
@@ -989,6 +996,9 @@ Regole comuni a M4 (oltre a quelle in testa al file):
   dà agli affissi lo scope `skill:forestry`, mentre `test_hatchet` è della skill `test_gather`: un test che verifica
   l'effetto di un affisso d'attrezzo su un'azione delle fixture non lo vedrà (il validatore lo ammette perché `forestry`
   non esiste nelle fixture). Se serve, si controlla lo scope del modificatore, non l'effetto.
+- **Nota (da M4-05)** I 3 test di `test_crafting_chain.gd` sono `pending("M4-07: crafted tools become Armory pieces
+  (uid)")`: togliere il pending e renderli verdi (l'equipaggiamento per `uid` arriva con M4-06). `armory.create`
+  restituisce 0 se piena (con `armory_rejected`); `armory.can_add(n)` per il controllo prima del ciclo.
 
 ### M4-08 · Pagina dell'Armeria ed equipaggiamento
 - **Ruolo** UI · **Stima** L · **Parallelizzabile** no · **Dipendenze** M4-07, M4-09
@@ -1008,6 +1018,12 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 - **Nota (da M4-02)** Pending da chiudere: `test_bank_item_panel_smoke.gd::test_page_equips_and_chooses_food_through_the_model`
   (la bank non equipaggia più) e `test_tooltip.gd::test_show_item_weapon_lines` (requisito `character` e nome dello stile,
   Q42). L'ownership si estende a `res://ui/components/tooltip/item_tooltip_lines.gd` e `res://tests/ui/test_tooltip.gd`.
+- **Nota (da M4-05)** Altri pending da chiudere (`pending("M4-08: pezzi nell'Armeria, pagina da rifare")`):
+  `test_bank_item_panel_smoke.gd::test_equip_and_food_buttons_only_for_the_right_items` e
+  `test_equipment_page_smoke.gd` (3: `test_worn_piece_and_stats_with_sources`, `test_remove_returns_the_piece_to_the_bank`,
+  `test_summary_shows_the_tool_scoped_to_a_skill`). Durante M4-05 un test di posizionamento di `test_tooltip.gd` è
+  fallito in modo intermittente (non riprodotto nella suite dopo il merge): verificarlo e renderlo deterministico.
+  La vendita di un pezzo passa da `shop.sell_instance(uid)`.
 
 ### M4-09 · Pagina del personaggio, sidebar e shop
 - **Ruolo** UI · **Stima** M · **Parallelizzabile** sì (con M4-06, M4-07) · **Dipendenze** M4-05
@@ -1023,6 +1039,12 @@ Regole comuni a M4 (oltre a quelle in testa al file):
   finestre (`GameWindow`/tema).
 - **Nota (da M4-02)** `test_main_screen_smoke.gd`: `test_sidebar_rows_from_data` e `test_real_data_sidebar_and_first_page`
   sono `pending("M4-09")` (la sidebar cerca le skill di combattimento): togliere il pending e renderli verdi.
+- **Nota (da M4-05)** `sidebar.gd` ha ancora `&"combat"` in `CATEGORY_TITLES` e chiama `skills_by_category` su ogni
+  chiave (riga 61): con il validatore di M4-01 dà `Log.error("unknown skill category 'combat'")` ogni volta che la sidebar
+  si costruisce (visto in `test_main_screen_smoke`): toglierla. Anche `shop_page.gd:23` ha una voce `&"combat"` da
+  togliere. Pending `test_shop_page_smoke.gd::test_unlimited_entry_has_no_counter_and_item_entry_fills_the_bank`
+  (`pending("M4-09: gli attrezzi dello shop vanno nell'Armeria")`): l'attrezzo comprato è un pezzo dell'Armeria; il
+  rifiuto per Armeria piena è `armory_full`.
 
 ### M4-10 · Test di M4
 - **Ruolo** QA · **Stima** M · **Parallelizzabile** no · **Dipendenze** M4-01…M4-09
@@ -1035,6 +1057,11 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 - **Accettazione / Test** i file verdi; `armory_slots` e `item_rarity_pct` con il loro test reale.
 - **Nota (da M4-02)** `tests/data/test_config_files.gd:128` (`LATER_MILESTONE_BALANCE_KEYS`) supera i 120 caratteri:
   andare a capo (ownership estesa a quella riga).
+- **Nota (da M4-05)** Il ramo `bank_full` di `Shop.can_buy`/`buy` (effetto `item` su una base non `equipment`/`tool`)
+  non ha più test: né le fixture né i dati veri hanno una voce del genere. Aggiungere una voce di prova nelle fixture
+  (es. `test_buy_log`, effetto `item` su `test_log`) e un caso con bank piena (oro non speso); ownership estesa a
+  `tests/fixtures/data/shop/shop.json`, `tests/systems/shop/test_shop.gd` e ai conteggi delle voci dello shop nei test
+  che si rompono (solo quelle righe).
 
 ### M4-11 · Integrazione di M4
 - **Ruolo** REV · **Stima** S · **Dipendenze** M4-01…M4-10 · **Ownership** merge, tag `m4-done` · **Parallelizzabile** no ·
