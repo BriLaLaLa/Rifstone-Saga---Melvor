@@ -3,7 +3,7 @@ extends RefCounted
 ## Copy of the counters a summary compares before and after a stretch of play (offline, tests).
 ##
 ## `take` reads only the systems that exist: a missing system leaves its fields empty (0).
-## Each system's task fills its part: skills xp/levels (M1-08), bank and gold (M1-07), kills/deaths/food (M4).
+## Each system's task fills its part: skills xp/levels (M1-08), bank and gold (M1-07), kills/deaths/food (M5-03).
 
 var xp: Dictionary[StringName, int] = {}
 var levels: Dictionary[StringName, int] = {}
@@ -29,4 +29,8 @@ static func take(session: GameSession) -> SessionSnapshot:
 			snapshot.bank[stack["item"]] = stack["count"]
 	if session.wallet != null:
 		snapshot.gold = session.wallet.get_gold()
+	if session.combat != null:
+		snapshot.kills = session.combat.total_kills()
+		snapshot.deaths = session.combat.deaths()
+		snapshot.food_eaten = session.combat.food_eaten()
 	return snapshot

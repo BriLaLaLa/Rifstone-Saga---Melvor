@@ -336,8 +336,7 @@ func _touches_hands(target: StringName, leaving: Array[StringName]) -> bool:
 
 
 func _in_encounter() -> bool:
-	var combat: Variant = _session.get(&"combat")
-	return combat != null and bool((combat as Object).call(&"in_encounter"))
+	return _session.combat != null and _session.combat.in_encounter()
 
 
 # Applies a validated change: flags, slots, one rebuild, then the signals (emptied slots first).

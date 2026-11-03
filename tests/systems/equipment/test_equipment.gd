@@ -23,17 +23,6 @@ var _small_data: GameData = null
 var _session: GameSession = null
 
 
-class _FakeCombat extends RefCounted:
-	var active: bool = false
-
-	func in_encounter() -> bool:
-		return active
-
-
-class _CombatSession extends GameSession:
-	var combat: Object = null
-
-
 func before_all() -> void:
 	DirAccess.make_dir_recursive_absolute(_tmp_config)
 	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_ROOT.path_join("balance.json")))
@@ -66,13 +55,9 @@ func _small() -> GameSession:
 	return autofree(TestFactory.session(1234, _small_data))
 
 
-# Session with a `combat` field, like the real GameSession will have.
+# The real session: its CombatEngine answers `in_encounter`.
 func _with_combat() -> GameSession:
-	var events: GameEvents = GameEvents.new()
-	var session: _CombatSession = _CombatSession.new(TestFactory.fixture_data(), events, 1234)
-	session.add_child(events)
-	session.new_game()
-	return autofree(session)
+	return autofree(TestFactory.session(1234))
 
 
 # Fills the Armory with unworn helmets until it is full.
@@ -82,9 +67,10 @@ func _fill_armory() -> void:
 
 
 func _fake_combat(active: bool) -> void:
-	var combat: _FakeCombat = _FakeCombat.new()
-	combat.active = active
-	(_session as _CombatSession).combat = combat
+	if active:
+		assert_true(_session.combat.start(&"test_area").ok)
+	else:
+		_session.combat.stop()
 
 
 func _piece(base_id: StringName) -> int:
@@ -277,5 +263,5 @@ func test_offhand_displacing_two_handed_weapon_blocked_during_combat() -> void:
 
 func test_works_without_combat_system() -> void:
 	var blade: int = _piece(BLADE)
-	assert_null(_session.get(&"combat"))
+	assert_false(_session.combat.in_encounter(), "idle combat does not lock the hands")
 	assert_true(_session.equipment.equip(blade).ok)

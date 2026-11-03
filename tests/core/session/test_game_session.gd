@@ -138,12 +138,12 @@ func test_advance_without_systems_only_counts_play_time() -> void:
 
 func test_advance_follows_fixed_order_whatever_the_join_order() -> void:
 	var session: ProbeSession = _probe()
-	session.add_fake(&"combat", session.phase_combat())
+	session.add_fake(&"duels", session.phase_combat())
 	session.add_fake(&"lanes", session.phase_actions())
 	session.add_fake(&"fractures", session.phase_fractures())
 	session.advance(100)
 	session.advance(40)
-	assert_eq(session.calls, ["fractures:100", "lanes:100", "combat:100", "fractures:40", "lanes:40", "combat:40"])
+	assert_eq(session.calls, ["fractures:100", "lanes:100", "duels:100", "fractures:40", "lanes:40", "duels:40"])
 	assert_eq(session.play_time_ms, 140)
 
 
