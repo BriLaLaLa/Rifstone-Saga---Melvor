@@ -38,8 +38,8 @@ Se la sessione si interrompe, si riparte da qui.
 | M2-02 | M2 | Contenuto: Cavatura, Lenza, nodi della raccolta | DATA | DONE | task/M2-02 | merge d72ffe9, docs 2451b40; 704 test, 703 passati, 1 pending; ownership estesa a test_main_screen_smoke.gd; nodi di Cavatura e Lenza = valori di Selvicoltura, Q26 in OPEN_QUESTIONS (default: così, rivedere con Q15) |
 | M2-03 | M2 | Pannello della maestria | UI | DONE | task/M2-03 | merge ff61a7d, docs cd1bdc5; 732 test, 731 passati, 1 pending; soglia del pool in balance.json, UiStyle.MASTERY_*, MasteryButton nella scena (DECISIONS_LOG); ui_style.gd a 390 righe: divisione prevista in M3-05 |
 | M2-04 | M2 | Bank completa | UI | DONE | task/M2-04 | merge 6815fd2, docs 35b03c7; 717 test, 716 passati, 1 pending; rilascio fuori dalle caselle = in fondo; caselle vuote non disegnate (facoltativo) |
-| M2-05 | M2 | Test di M2 | QA | REVIEW | task/M2-05 | 8f522a5; 740 test, 739 passati, 1 pending; cartelle dei test uniche per checkout (prova in parallelo 6/6 verde); ownership estesa a test_gathering_resolver.gd e test_bank.gd |
-| M2-06 | M2 | Integrazione di M2 | REV | IN_PROGRESS | main | |
+| M2-05 | M2 | Test di M2 | QA | DONE | task/M2-05 | merge cd8693b, docs e77cf4d; 740 test, 739 passati, 1 pending; cartelle dei test uniche per checkout (PreRun.test_dir); ownership estesa a test_gathering_resolver.gd e test_bank.gd |
+| M2-06 | M2 | Integrazione di M2 | REV | DONE | main | tag m2-done su c4e12c0; 740 test, 739 passati, 1 pending; prova del Giocabile 50/50; follow-up M3: sfondo del pannello della maestria trasparente, toast dei livelli accumulati sopra le finestre |
 | M3-01 | M3 | Ricette dell'artigianato | CORE | TODO | | ownership estesa (da M1-09): mastery_bonuses di test_craft nelle fixture + caso F-11 artigianato in test_mastery_system.gd |
 | M3-02 | M3 | Shop (porting) | PORT | TODO | | |
 | M3-03 | M3 | Equipaggiamento e attrezzi | CORE | TODO | | |
