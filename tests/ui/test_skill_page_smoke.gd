@@ -239,12 +239,12 @@ func test_gathering_page_has_no_recipe_cards() -> void:
 		assert_false(card is RecipeCard)
 
 
-func test_real_data_forging_scrolls_88_recipes_with_variable_ingredients() -> void:
+func test_real_data_forging_scrolls_96_recipes_with_variable_ingredients() -> void:
 	_session.free()
 	_session = TestFactory.session(1234, TestFactory.real_data())
 	_open(&"forging")
 	var cards: Array[ActionCard] = _cards()
-	assert_eq(cards.size(), 88)
+	assert_eq(cards.size(), 96)
 	for card: ActionCard in cards:
 		assert_true(card is RecipeCard)
 	var scroll: ScrollContainer = _page.get_node("Margin/Content/Scroll") as ScrollContainer

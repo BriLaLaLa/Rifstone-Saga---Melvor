@@ -2,10 +2,10 @@ extends GutTest
 ## SkillsSystem: F-02 xp with skill_xp_pct, derived levels (F-01), one level_up per level, xp_cap, save, requirements.
 
 const SKILL: StringName = &"test_gather"
-const OTHER_SKILL: StringName = &"blade"
+const OTHER_SKILL: StringName = &"test_gather_b"
 const XP_PCT: StringName = &"skill_xp_pct"
 const SOURCE: StringName = &"test:xp"
-const FIXTURE_SKILL_COUNT: int = 9
+const FIXTURE_SKILL_COUNT: int = 4
 
 var _session: GameSession
 var _skills: SkillsSystem
@@ -151,7 +151,7 @@ func test_save_round_trip() -> void:
 	other.skills.from_save(saved)
 	assert_eq(other.skills.get_xp(SKILL), 15320)
 	assert_eq(other.skills.get_xp(OTHER_SKILL), 4100)
-	assert_eq(other.skills.get_xp(&"arcana"), 0)
+	assert_eq(other.skills.get_xp(&"test_craft"), 0)
 	assert_eq(other.skills.get_level(SKILL), _skills.get_level(SKILL))
 
 
@@ -159,7 +159,7 @@ func test_to_save_format() -> void:
 	_skills.add_xp(SKILL, 70)
 	var saved: Dictionary = _skills.to_save()
 	assert_eq(saved["test_gather"], {"xp": 70})
-	assert_eq(saved["blade"], {"xp": 0})
+	assert_eq(saved["test_gather_b"], {"xp": 0})
 
 
 func test_from_save_drops_unknown_and_malformed_entries() -> void:
@@ -169,22 +169,22 @@ func test_from_save_drops_unknown_and_malformed_entries() -> void:
 	_skills.from_save({
 		"test_gather": {"xp": 155.0},
 		"no_such_skill": {"xp": 10},
-		"arcana": {"xp": "lots"},
-		"guard": 12,
-		"vitality": {"xp": 1.5},
+		"test_craft": {"xp": "lots"},
+		"riftbinding": 12,
+		"test_gather_b": {"xp": 1.5},
 	})
 	assert_eq(_skills.get_xp(SKILL), 155)
 	assert_eq(_skills.get_level(SKILL), 3)
 	assert_eq(_skills.get_xp(OTHER_SKILL), 0)
-	assert_eq(_skills.get_xp(&"arcana"), 0)
-	assert_eq(_skills.get_xp(&"guard"), 0)
-	assert_eq(_skills.get_xp(&"vitality"), 0)
+	assert_eq(_skills.get_xp(&"test_craft"), 0)
+	assert_eq(_skills.get_xp(&"riftbinding"), 0)
+	assert_eq(_skills.get_xp(&"test_gather_b"), 0)
 	assert_signal_not_emitted(_session.events, "level_up")
 
 
 func test_from_save_limits_xp_to_zero_and_cap() -> void:
 	var cap: int = int(_session.data.balance_value("xp_curve.xp_cap"))
-	_skills.from_save({"test_gather": {"xp": cap + 1000}, "blade": {"xp": -5}})
+	_skills.from_save({"test_gather": {"xp": cap + 1000}, "test_gather_b": {"xp": -5}})
 	assert_eq(_skills.get_xp(SKILL), cap)
 	assert_eq(_skills.get_xp(OTHER_SKILL), 0)
 
