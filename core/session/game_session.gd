@@ -31,6 +31,7 @@ var character: CharacterSystem
 var armory: Armory
 var equipment: Equipment
 var actions: ActionRunner
+var combat: CombatEngine
 var shop: Shop
 # The other system fields of docs/05_INTERFACES.md §5.3 are declared by the task that creates each system.
 var slot: int = -1
@@ -144,6 +145,9 @@ func _create_systems() -> void:
 	actions = ActionRunner.new(self)
 	_join(ActionRunner.SAVE_KEY, actions.new_game, actions.to_save, actions.from_save)
 	_tick(_PHASE_ACTIONS, actions.advance)
+	combat = CombatEngine.new(self)
+	_join(CombatEngine.SAVE_KEY, combat.new_game, combat.to_save, combat.from_save)
+	_tick(_PHASE_COMBAT, combat.advance)
 	shop = Shop.new(self)
 	_join(Shop.SAVE_KEY, shop.new_game, shop.to_save, shop.from_save, shop.rebuild_modifiers)
 
