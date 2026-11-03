@@ -47,7 +47,7 @@ func test_item_weapon_example() -> void:
 		{"id": "emberbronze_blade", "name": "Lama di bronzo di brace", "category": "equipment",
 		 "icon": "res://assets/icons/items/emberbronze_blade.png", "value": 12, "sort_order": 100,
 		 "description": "Una lama corta, ancora tiepida di forgia.",
-		 "equip": {"slot": "weapon", "requirements": {"blade": 1},
+		 "equip": {"slot": "weapon", "kind": "sword", "grade": 1, "requirements": {"character": 1},
 		           "modifiers": [{"stat": "accuracy_bonus", "value": 8}, {"stat": "power_bonus", "value": 6}],
 		           "weapon": {"style": "blade", "attack_interval_ms": 2400, "two_handed": false}}}"""))
 	assert_not_null(item)
@@ -57,7 +57,9 @@ func test_item_weapon_example() -> void:
 	assert_eq(item.sort_order, 100)
 	assert_true(item.is_equippable())
 	assert_eq(item.equip.slot, &"weapon")
-	assert_eq(item.equip.requirements, {&"blade": 1})
+	assert_eq(item.equip.requirements, {&"character": 1})
+	assert_eq(item.equip.kind, &"sword")
+	assert_eq(item.equip.grade, 1)
 	assert_eq(item.equip.modifiers.size(), 2)
 	_assert_modifier(item.equip.modifiers[0], &"accuracy_bonus", 8.0, &"global", &"")
 	_assert_modifier(item.equip.modifiers[1], &"power_bonus", 6.0, &"global", &"")
@@ -72,11 +74,13 @@ func test_item_tool_example() -> void:
 		{"id": "emberbronze_hatchet", "name": "Accetta di bronzo di brace", "category": "tool",
 		 "icon": "res://assets/icons/items/emberbronze_hatchet.png", "value": 10, "sort_order": 10,
 		 "description": "Taglia più in fretta.",
-		 "equip": {"slot": "tool_forestry", "requirements": {"forestry": 1},
+		 "equip": {"slot": "tool_forestry", "grade": 1, "requirements": {"forestry": 1},
 		           "modifiers": [{"stat": "skill_interval_pct", "value": -5, "scope": "skill:forestry"}]}}"""))
 	assert_not_null(item)
 	assert_eq(item.category, &"tool")
 	assert_eq(item.equip.slot, &"tool_forestry")
+	assert_eq(item.equip.kind, &"", "no kind outside weapon and offhand slots")
+	assert_eq(item.equip.grade, 1)
 	assert_eq(item.equip.requirements, {&"forestry": 1})
 	_assert_modifier(item.equip.modifiers[0], &"skill_interval_pct", -5.0, &"skill", &"forestry")
 	assert_null(item.equip.weapon)
@@ -132,7 +136,7 @@ func test_item_fractional_int_is_null() -> void:
 func test_item_bad_modifier_in_equip_is_null() -> void:
 	assert_null(ItemDef.from_dict(_parse("""
 		{"id": "bad_blade", "name": "Lama", "category": "equipment", "icon": "", "value": 1, "sort_order": 1,
-		 "description": "", "equip": {"slot": "weapon", "requirements": {},
+		 "description": "", "equip": {"slot": "weapon", "kind": "sword", "grade": 1, "requirements": {},
 		 "modifiers": [{"stat": "power_bonus", "value": 1, "scope": "zone:x"}]}}""")))
 	assert_push_error(1)
 
@@ -158,27 +162,40 @@ func test_area_example() -> void:
 	var area: AreaDef = AreaDef.from_dict(_parse("""
 		{"id": "redrock_plains", "name": "Pianure di Roccarossa", "order": 1,
 		 "description": "Campi battuti dal vento ai piedi delle rocce rosse.",
-		 "requirements": {}, "monsters": ["plains_boar", "ember_rat", "redrock_raider"]}"""))
+		 "requirements": {"character": 1},
+		 "packs": [{"weight": 4, "monsters": ["plains_boar"]},
+		           {"weight": 2, "monsters": ["ember_rat", "plains_boar"]}]}"""))
 	assert_not_null(area)
 	assert_eq(area.id, &"redrock_plains")
 	assert_eq(area.name, "Pianure di Roccarossa")
 	assert_eq(area.description, "Campi battuti dal vento ai piedi delle rocce rosse.")
 	assert_eq(area.order, 1)
-	assert_eq(area.requirements.size(), 0)
-	assert_eq(area.monster_ids, [&"plains_boar", &"ember_rat", &"redrock_raider"] as Array[StringName])
+	assert_eq(area.requirements, {&"character": 1})
+	assert_eq(area.packs.size(), 2)
+	assert_eq(area.packs[0].weight, 4)
+	assert_eq(area.packs[0].monster_ids, [&"plains_boar"] as Array[StringName])
+	assert_eq(area.packs[1].monster_ids, [&"ember_rat", &"plains_boar"] as Array[StringName])
+	assert_eq(area.monster_ids, [&"plains_boar", &"ember_rat"] as Array[StringName], "distinct, first appearance")
 
 
 func test_area_requirements_are_typed() -> void:
 	var area: AreaDef = AreaDef.from_dict(_parse("""
-		{"id": "a", "name": "A", "order": 2, "description": "", "requirements": {"blade": 20, "vitality": 15},
-		 "monsters": ["m"]}"""))
-	assert_eq(area.requirements[&"blade"], 20)
-	assert_eq(typeof(area.requirements[&"vitality"]), TYPE_INT)
+		{"id": "a", "name": "A", "order": 2, "description": "", "requirements": {"character": 20},
+		 "packs": [{"weight": 1, "monsters": ["m"]}]}"""))
+	assert_eq(area.requirements[&"character"], 20)
+	assert_eq(typeof(area.requirements[&"character"]), TYPE_INT)
 
 
-func test_area_monsters_not_strings_is_null() -> void:
+func test_area_pack_monsters_not_strings_is_null() -> void:
 	assert_null(AreaDef.from_dict(_parse("""
-		{"id": "a", "name": "A", "order": 2, "description": "", "requirements": {}, "monsters": [3]}""")))
+		{"id": "a", "name": "A", "order": 2, "description": "", "requirements": {},
+		 "packs": [{"weight": 1, "monsters": [3]}]}""")))
+	assert_push_error(1)
+
+
+func test_area_without_packs_is_null() -> void:
+	assert_null(AreaDef.from_dict(_parse("""
+		{"id": "a", "name": "A", "order": 2, "description": "", "requirements": {}, "monsters": ["m"]}""")))
 	assert_push_error(1)
 
 
@@ -186,7 +203,7 @@ func test_monster_example() -> void:
 	var monster: MonsterDef = MonsterDef.from_dict(_parse("""
 		{"id": "plains_boar", "name": "Cinghiale delle pianure", "icon": "res://assets/icons/monsters/plains_boar.png",
 		 "description": "Testardo e affamato.",
-		 "hp": 20, "style": "blade", "attack_interval_ms": 2800,
+		 "hp": 20, "xp": 80, "style": "blade", "attack_interval_ms": 2800,
 		 "attack_level": 1, "power_level": 1, "defence_level": 1,
 		 "accuracy_bonus": 0, "power_bonus": 0, "evasion_bonus": 0, "damage_reduction": 0,
 		 "gold": [1, 4], "rift_shard_chance": 0.5,
@@ -197,6 +214,7 @@ func test_monster_example() -> void:
 	assert_eq(monster.icon, "res://assets/icons/monsters/plains_boar.png")
 	assert_eq(monster.description, "Testardo e affamato.")
 	assert_eq(monster.hp, 20)
+	assert_eq(monster.xp, 80)
 	assert_eq(monster.style, &"blade")
 	assert_eq(monster.attack_interval_ms, 2800)
 	assert_eq(monster.attack_level, 1)
@@ -219,7 +237,7 @@ func test_monster_example() -> void:
 
 func test_monster_bad_gold_is_null() -> void:
 	var d: Dictionary = _parse("""
-		{"id": "m", "name": "M", "icon": "", "description": "", "hp": 20, "style": "blade",
+		{"id": "m", "name": "M", "icon": "", "description": "", "hp": 20, "xp": 0, "style": "blade",
 		 "attack_interval_ms": 2800, "attack_level": 1, "power_level": 1, "defence_level": 1,
 		 "accuracy_bonus": 0, "power_bonus": 0, "evasion_bonus": 0, "damage_reduction": 0,
 		 "gold": 4, "rift_shard_chance": 0.5, "drops": []}""")
@@ -246,9 +264,19 @@ func test_shop_bank_slot_example() -> void:
 	assert_eq(entry.req_entries.size(), 0)
 	assert_eq(entry.req_skills.size(), 0)
 	assert_eq(entry.req_total_level, 0)
+	assert_eq(entry.req_character, 0, "no requirement")
 	assert_eq(entry.effect_modifiers.size(), 1)
 	_assert_modifier(entry.effect_modifiers[0], &"bank_slots", 1.0, &"global", &"")
 	assert_null(entry.effect_item)
+
+
+func test_shop_armory_slot_formula() -> void:
+	var entry: ShopEntryDef = ShopEntryDef.from_dict(_parse("""
+		{"id": "armory_slot", "name": "Casella dell'Armeria", "category": "bank", "description": "Una casella in più.",
+		 "cost": {"formula": "armory_slot"}, "max_purchases": 60, "requires": {},
+		 "effect": {"modifiers": [{"stat": "armory_slots", "value": 1}]}}"""))
+	assert_not_null(entry)
+	assert_eq(entry.cost_formula, &"armory_slot")
 
 
 func test_shop_auto_eat_example() -> void:
@@ -256,7 +284,7 @@ func test_shop_auto_eat_example() -> void:
 		{"id": "auto_eat_2", "name": "Razioni da campo II", "category": "combat",
 		 "description": "Mangia prima e più a lungo.",
 		 "cost": {"gold": 25000}, "max_purchases": 1,
-		 "requires": {"entries": ["auto_eat_1"], "skills": {"vitality": 25}},
+		 "requires": {"entries": ["auto_eat_1"], "character": 25},
 		 "effect": {"modifiers": [{"stat": "auto_eat_tier", "value": 1}]}}"""))
 	assert_not_null(entry)
 	assert_eq(entry.category, &"combat")
@@ -265,7 +293,8 @@ func test_shop_auto_eat_example() -> void:
 	assert_eq(entry.cost_formula, &"")
 	assert_eq(entry.max_purchases, 1)
 	assert_eq(entry.req_entries, [&"auto_eat_1"] as Array[StringName])
-	assert_eq(entry.req_skills, {&"vitality": 25})
+	assert_eq(entry.req_skills.size(), 0)
+	assert_eq(entry.req_character, 25)
 	assert_eq(entry.req_total_level, 0)
 	_assert_modifier(entry.effect_modifiers[0], &"auto_eat_tier", 1.0, &"global", &"")
 	assert_null(entry.effect_item)

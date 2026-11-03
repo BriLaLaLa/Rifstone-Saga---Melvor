@@ -9,6 +9,7 @@ var name: String = ""
 var description: String = ""
 var icon: String = ""
 var hp: int = 0
+var xp: int = 0
 var style: StringName = &""
 var attack_interval_ms: int = 0
 var attack_level: int = 0
@@ -33,6 +34,7 @@ static func from_dict(d: Dictionary) -> MonsterDef:
 	def.description = r.text("description")
 	def.icon = r.text("icon")
 	def.hp = r.integer("hp")
+	def.xp = r.integer("xp")
 	def.style = r.id("style")
 	def.attack_interval_ms = r.integer("attack_interval_ms")
 	def.attack_level = r.integer("attack_level")
