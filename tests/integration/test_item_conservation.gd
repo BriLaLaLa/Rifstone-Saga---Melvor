@@ -1,0 +1,217 @@
+extends GutTest
+## Integration (Lesson "single source of truth"): items are only created by completed cycles and live in one place.
+## Sum of the products of every `action_completed.outputs` (rift_shard included) = final bank - initial bank
+## (the initial bank is `start.items` of balance.json); the bank_changed deltas tell the same story.
+##
+## Randomness (F-06 double, F-07 shard) comes from fixed seeds; a test-only modifier source raises the chances so
+## that both rolls actually happen. The bank-full case uses a copy of the real config with `bank.base_slots` = 1,
+## written under user://test_item_conservation (not a save slot) and removed afterwards.
+
+const SEED: int = 424242
+const SKILL: StringName = &"forestry"
+const T1_ACTION: StringName = &"cut_redbirch"
+const T2_ACTION: StringName = &"cut_ashpine"
+const T2_LEVEL: int = 10
+const SHARD: StringName = &"rift_shard"
+const TICK_MS: int = 100
+const RUN_MS: int = 600000
+const HALF_RUN_MS: int = 300000
+const IDLE_MS: int = 60000
+const BOOST_SOURCE: StringName = &"test:conservation"
+const DOUBLE_CHANCE: float = 35.0
+const SHARD_CHANCE: float = 25.0
+const CONTENT_ROOT: String = "res://data"
+const CONFIG_ROOT: String = "res://data/config"
+const TMP_CONFIG: String = "user://test_item_conservation"
+
+var _session: GameSession = null
+var _produced: Dictionary[StringName, int] = {}
+var _deltas: Dictionary[StringName, int] = {}
+var _cycles: int = 0
+var _doubles: int = 0
+var _stops: Array[StringName] = []
+
+
+func before_each() -> void:
+	_produced.clear()
+	_deltas.clear()
+	_cycles = 0
+	_doubles = 0
+	_stops.clear()
+
+
+func after_each() -> void:
+	if _session != null:
+		_session.free()
+	_session = null
+
+
+func after_all() -> void:
+	if not DirAccess.dir_exists_absolute(TMP_CONFIG):
+		return
+	for file_name: String in DirAccess.get_files_at(TMP_CONFIG):
+		DirAccess.remove_absolute(TMP_CONFIG.path_join(file_name))
+	DirAccess.remove_absolute(TMP_CONFIG)
+
+
+func test_initial_bank_is_start_items() -> void:
+	_session = _watched_session(TestFactory.real_data())
+	var expected: Dictionary[StringName, int] = {}
+	for entry: Variant in _session.data.balance_value("start.items") as Array:
+		var d: Dictionary = entry
+		var id := StringName(str(d["item"]))
+		expected[id] = expected.get(id, 0) + int(d["qty"])
+	assert_eq(_bank_counts(_session), expected)
+
+
+func test_default_chances_products_equal_bank_gain() -> void:
+	_session = _watched_session(TestFactory.real_data())
+	var start: Dictionary[StringName, int] = _bank_counts(_session)
+	_session.actions.start(SKILL, T1_ACTION)
+	_advance_in_ticks(_session, RUN_MS)
+	assert_eq(_cycles, 200, "600 000 / 3000 (F-03)")
+	_assert_conserved(start)
+
+
+func test_boosted_double_and_shard_products_equal_bank_gain() -> void:
+	_session = _watched_session(TestFactory.real_data())
+	_boost(_session)
+	var start: Dictionary[StringName, int] = _bank_counts(_session)
+	_session.actions.start(SKILL, T1_ACTION)
+	_advance_in_ticks(_session, RUN_MS)
+	assert_gt(_doubles, 0, "doubles happened (F-06)")
+	assert_gt(_produced.get(SHARD, 0), 0, "shards happened (F-07)")
+	assert_eq(_produced[&"redbirch_log"], _cycles + _doubles, "1 log per cycle, 2 when doubled")
+	_assert_conserved(start)
+
+
+func test_switching_actions_keeps_conservation() -> void:
+	_session = _watched_session(TestFactory.real_data())
+	_boost(_session)
+	var start: Dictionary[StringName, int] = _bank_counts(_session)
+	_session.actions.start(SKILL, T1_ACTION)
+	_advance_in_ticks(_session, HALF_RUN_MS)
+	TestFactory.set_level(_session, SKILL, T2_LEVEL)
+	assert_true(_session.actions.start(SKILL, T2_ACTION).ok)
+	_advance_in_ticks(_session, HALF_RUN_MS)
+	_session.actions.stop()
+	_advance_in_ticks(_session, IDLE_MS)
+	assert_gt(_produced.get(&"ashpine_log", 0), 0)
+	_assert_conserved(start)
+
+
+func test_bank_full_cycle_adds_nothing() -> void:
+	_session = _watched_session(_one_slot_data())
+	assert_eq(_session.bank.capacity(), 1, "bank.base_slots = 1")
+	# A shard needs a second slot: the first cycle that rolls one does not count and stops the lane.
+	var mods: Array[Modifier] = [Modifier.make(&"rift_shard_chance", SHARD_CHANCE)]
+	_session.modifiers.set_source(BOOST_SOURCE, mods)
+	var start: Dictionary[StringName, int] = _bank_counts(_session)
+	_session.actions.start(SKILL, T1_ACTION)
+	_advance_in_ticks(_session, RUN_MS)
+	assert_eq(_stops, [Reasons.BANK_FULL] as Array[StringName], "stopped by the full bank")
+	assert_false(_session.actions.is_running())
+	assert_eq(_produced.get(SHARD, 0), 0, "the rejected shard is in no outputs")
+	assert_eq(_session.bank.get_count(SHARD), 0, "and not in the bank")
+	assert_gt(_cycles, 0)
+	assert_eq(_session.skills.get_xp(SKILL), _cycles * 10, "XP only for counted cycles (10 per T1 cycle)")
+	_assert_conserved(start)
+
+
+func test_items_are_in_one_place_only() -> void:
+	_session = _watched_session(TestFactory.real_data())
+	_boost(_session)
+	_session.actions.start(SKILL, T1_ACTION)
+	_advance_in_ticks(_session, RUN_MS)
+	var seen: Dictionary[StringName, bool] = {}
+	var stacks: Array = _session.to_save(0)["modules"]["bank"]["stacks"]
+	for entry: Dictionary in stacks:
+		var id := StringName(str(entry["item"]))
+		assert_false(seen.has(id), "%s appears in a single stack" % id)
+		seen[id] = true
+		assert_eq(int(entry["count"]), _session.bank.get_count(id), "the save is the bank")
+	assert_eq(stacks.size(), _session.bank.used())
+
+
+func _assert_conserved(start: Dictionary[StringName, int]) -> void:
+	var gain: Dictionary[StringName, int] = {}
+	var final: Dictionary[StringName, int] = _bank_counts(_session)
+	for id: StringName in final:
+		var diff: int = final[id] - start.get(id, 0)
+		if diff != 0:
+			gain[id] = diff
+	for id: StringName in start:
+		if not final.has(id):
+			gain[id] = -start[id]
+	assert_eq(gain, _produced, "bank gain = sum of action_completed outputs")
+	assert_eq(_deltas, _produced, "bank_changed deltas = sum of outputs")
+
+
+func _watched_session(data: GameData) -> GameSession:
+	var session: GameSession = TestFactory.session(SEED, data)
+	session.events.action_completed.connect(_on_action_completed)
+	session.events.bank_changed.connect(_on_bank_changed)
+	session.events.action_stopped.connect(_on_action_stopped)
+	return session
+
+
+func _boost(session: GameSession) -> void:
+	var mods: Array[Modifier] = [
+		Modifier.make(&"double_item_chance", DOUBLE_CHANCE),
+		Modifier.make(&"rift_shard_chance", SHARD_CHANCE),
+	]
+	session.modifiers.set_source(BOOST_SOURCE, mods)
+
+
+func _bank_counts(session: GameSession) -> Dictionary[StringName, int]:
+	var counts: Dictionary[StringName, int] = {}
+	for stack: Dictionary in session.bank.stacks():
+		counts[stack["item"]] = int(stack["count"])
+	return counts
+
+
+# Real content with a config copy where the bank has a single slot.
+func _one_slot_data() -> GameData:
+	DirAccess.make_dir_recursive_absolute(TMP_CONFIG)
+	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_ROOT.path_join("balance.json")))
+	(balance["bank"] as Dictionary)["base_slots"] = 1
+	_write(TMP_CONFIG.path_join("balance.json"), JSON.stringify(balance))
+	_write(TMP_CONFIG.path_join("stats.json"), FileAccess.get_file_as_string(CONFIG_ROOT.path_join("stats.json")))
+	var data: GameData = GameData.load_from_dirs(CONTENT_ROOT, TMP_CONFIG)
+	assert_true(data.is_valid(), "one-slot data valid: %s" % "\n".join(data.errors))
+	return data
+
+
+func _write(path: String, text: String) -> void:
+	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
+	file.store_string(text)
+	file.close()
+
+
+func _advance_in_ticks(session: GameSession, ms: int) -> void:
+	@warning_ignore("integer_division")
+	var ticks: int = ms / TICK_MS
+	for i: int in ticks:
+		session.advance(TICK_MS)
+
+
+func _on_action_completed(_lane: StringName, _skill_id: StringName, action_id: StringName,
+		outputs: Dictionary) -> void:
+	_cycles += 1
+	var action: ActionDef = _session.data.action(action_id)
+	for output: ItemQty in action.outputs:
+		if int(outputs.get(output.item_id, 0)) > output.qty:
+			_doubles += 1
+			break
+	for key: Variant in outputs:
+		var id := StringName(str(key))
+		_produced[id] = _produced.get(id, 0) + int(outputs[key])
+
+
+func _on_bank_changed(item_id: StringName, _new_count: int, delta: int) -> void:
+	if delta != 0:
+		_deltas[item_id] = _deltas.get(item_id, 0) + delta
+
+
+func _on_action_stopped(_lane: StringName, _skill_id: StringName, reason: StringName) -> void:
+	_stops.append(reason)
