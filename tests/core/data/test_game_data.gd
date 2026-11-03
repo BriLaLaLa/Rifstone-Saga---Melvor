@@ -13,7 +13,7 @@ var _data: GameData = null
 
 
 func before_all() -> void:
-	_data = GameData.load_from_dirs(FIXTURE_ROOT, V.Bridge.config_root())
+	_data = GameData.load_from_dirs(FIXTURE_ROOT, V.CONFIG_ROOT)
 
 
 func after_all() -> void:
@@ -74,7 +74,7 @@ func test_xp_tables_come_from_the_curves() -> void:
 
 func test_stats_registry_is_built() -> void:
 	assert_true(_data.stats.has(&"skill_interval_pct"))
-	assert_eq(_data.stats.ids().size(), 21)
+	assert_eq(_data.stats.ids().size(), 24)
 
 
 func test_item_lookup() -> void:
@@ -231,7 +231,7 @@ func test_shop_character_requirement() -> void:
 func test_invalid_data_has_errors_and_no_defs() -> void:
 	var root: String = _copy_fixtures()
 	_rewrite(root.path_join("items/misc.json"), "rift_shard", "rift_dust")
-	var data: GameData = GameData.load_from_dirs(root, V.Bridge.config_root())
+	var data: GameData = GameData.load_from_dirs(root, V.CONFIG_ROOT)
 	assert_false(data.is_valid())
 	assert_string_contains("\n".join(data.errors), "required item 'rift_shard'")
 	assert_eq(data.items().size(), 0)
@@ -246,7 +246,7 @@ func test_broken_json_file_is_reported_with_its_path() -> void:
 	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
 	file.store_string("{\"entries\": [")
 	file.close()
-	var data: GameData = GameData.load_from_dirs(root, V.Bridge.config_root())
+	var data: GameData = GameData.load_from_dirs(root, V.CONFIG_ROOT)
 	assert_false(data.is_valid())
 	assert_string_contains("\n".join(data.errors), path)
 
@@ -254,7 +254,7 @@ func test_broken_json_file_is_reported_with_its_path() -> void:
 func test_missing_content_folder_is_reported() -> void:
 	var root: String = _copy_fixtures()
 	_remove_dir(root.path_join("mastery"))
-	var data: GameData = GameData.load_from_dirs(root, V.Bridge.config_root())
+	var data: GameData = GameData.load_from_dirs(root, V.CONFIG_ROOT)
 	assert_false(data.is_valid())
 	assert_string_contains("\n".join(data.errors), root.path_join("mastery") + ": folder not found")
 
@@ -270,7 +270,7 @@ func test_data_registry_reload_matches_validity() -> void:
 func test_doc_in_a_level_map_is_skipped_by_the_defs() -> void:
 	var root: String = _copy_fixtures()
 	_rewrite(root.path_join("combat/areas.json"), "\"requirements\": {}", "\"requirements\": {\"_doc\": \"none\"}")
-	var data: GameData = GameData.load_from_dirs(root, V.Bridge.config_root())
+	var data: GameData = GameData.load_from_dirs(root, V.CONFIG_ROOT)
 	assert_true(data.is_valid(), "; ".join(data.errors))
 	assert_eq(data.area(&"test_area").requirements, {} as Dictionary[StringName, int])
 

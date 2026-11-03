@@ -27,9 +27,9 @@
     "max_level": 99
   },
   "mastery": {
-    "base_factor": 1.0,
+    "base_factor": 1,
     "per_level": 0.1,
-    "ratio_weight": 3.0,
+    "ratio_weight": 3,
     "pool_share_pct": 20,
     "pool_cap_per_item": 300000,
     "pool_warning_pct": 95
@@ -69,12 +69,12 @@
       "style": "blade",
       "attack_interval_ms": 2400
     },
-    "hp_skill": "vitality",
-    "defence_skill": "guard",
+    "dual_wield": {
+      "interval_mult": 0.75
+    },
     "hp_base": 50,
-    "hp_per_vitality": 10,
-    "xp_per_damage_style": 4,
-    "xp_per_damage_vitality": 1,
+    "hp_per_level": 10,
+    "max_pack_size": 6,
     "auto_eat_tiers": [
       null,
       {
@@ -92,6 +92,40 @@
     ],
     "respawn_ms": 1500,
     "loot_bag_base_slots": 12
+  },
+  "character_curve": {
+    "base": 70,
+    "growth": 1.1,
+    "linear": 8,
+    "max_level": 99,
+    "xp_cap": 50000000
+  },
+  "character": {
+    "start_class": "rift_blade"
+  },
+  "armory": {
+    "base_slots": 40,
+    "slot_cost_base": 1000,
+    "slot_cost_growth": 1.12,
+    "slot_cost_cap": 2000000
+  },
+  "rarity": {
+    "craft": {
+      "magic_base_pct": 10,
+      "magic_per_mastery_level": 0.4,
+      "rare_base_pct": 1,
+      "rare_per_mastery_level": 0.1
+    },
+    "affix_count": {
+      "magic": [
+        1,
+        2
+      ],
+      "rare": [
+        3,
+        4
+      ]
+    }
   },
   "rift": {
     "sockets": [

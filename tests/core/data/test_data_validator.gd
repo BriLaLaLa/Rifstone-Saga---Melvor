@@ -9,15 +9,14 @@ const CONFIG_ROOT: String = "res://data/config"
 const BALANCE: String = "balance.json"
 const STATS: String = "stats.json"
 const SKILLS: String = "skills.json"
-const Bridge: GDScript = preload("res://tests/core/data/m4_config_bridge.gd")
 
 
 ## The `raw` dictionary of DataValidator for the fixtures, read like GameData does (fresh copy at every call).
 static func fixture_raw() -> Dictionary:
 	var errors: PackedStringArray = []
 	var raw: Dictionary = {
-		"balance": _read([Bridge.config_root().path_join(GameData.BALANCE_FILE)], errors),
-		"stats": _read([Bridge.config_root().path_join(GameData.STATS_FILE)], errors),
+		"balance": _read([CONFIG_ROOT.path_join(GameData.BALANCE_FILE)], errors),
+		"stats": _read([CONFIG_ROOT.path_join(GameData.STATS_FILE)], errors),
 	}
 	for section: String in GameData.CONTENT_FILES:
 		raw[section] = _read([FIXTURE_ROOT.path_join(GameData.CONTENT_FILES[section])], errors)

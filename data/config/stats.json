@@ -209,6 +209,36 @@
       "description": "Livello delle razioni da campo: mangia da solo sotto una soglia di punti vita.",
       "formula": "F-30",
       "test": "tests/systems/combat/test_auto_eat.gd::test_tier_thresholds"
+    },
+    {
+      "id": "armory_slots",
+      "name": "Caselle dell'Armeria",
+      "format": "flat",
+      "min": 0,
+      "max": 10000,
+      "description": "Aggiunge caselle extra all'Armeria.",
+      "formula": "F-82",
+      "test": "tests/systems/armory/test_armory.gd::test_capacity_uses_armory_slots"
+    },
+    {
+      "id": "item_rarity_pct",
+      "name": "Rarità degli oggetti",
+      "format": "pct",
+      "min": 0,
+      "max": 1000,
+      "description": "Aumenta la probabilità di ottenere pezzi magici e rari.",
+      "formula": "F-83",
+      "test": "tests/systems/items/test_item_roller.gd::test_item_rarity_pct"
+    },
+    {
+      "id": "block_chance",
+      "name": "Parata",
+      "format": "pct",
+      "min": 0,
+      "max": 50,
+      "description": "Probabilità di parare un colpo con lo scudo.",
+      "formula": "F-75",
+      "test": "tests/systems/combat/test_combat_engine.gd::test_block_chance"
     }
   ]
 }
