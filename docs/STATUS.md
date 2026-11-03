@@ -3,6 +3,18 @@
 Aggiornato dall'Orchestratore (unico che modifica questo file). Stati: TODO / IN_PROGRESS / REVIEW / DONE / BLOCKED.
 Se la sessione si interrompe, si riparte da qui.
 
+## Ripartenza (aggiornata il 2026-11-03)
+- **Stato**: M2 completata, tag `m2-done` su `c4e12c0`; `main` e i tag `m0-done`, `m1-done`, `m2-done` pushati su `origin`.
+  Suite su main: 740 test, 739 passati, 1 pending (stat di M3/M4, diventa errore in M6-07).
+- **Prossimo passo**: attendere l'OK esplicito dell'utente per **M3**; poi M3-01… secondo `07_TASKS.md`, con le regole dei
+  consumi di `CLAUDE.md` (massimo 2 agenti, test mirati, suite completa solo dopo il merge, review sul diff, sezioni nei brief).
+- **Decisioni aperte per l'utente**: Q26 (nodi di Cavatura e Lenza con i valori di Selvicoltura; default: così, rivedere con Q15).
+- **Follow-up già registrati** (note in `07_TASKS.md`): divisione di `ui_style.gd` (390/400) in M3-05 o nel primo task M3
+  che aggiunge costanti `UiStyle`; sfondo del pannello della maestria trasparente e toast dei livelli accumulati sopra le
+  finestre (UI, M3-05 o polish); `skill_page.gd` 223 righe, ricontare in M3-05.
+- **Pulizia a mano**: worktree finiti in `C:/Users/Davide/Desktop/AI/RSI-worktrees/` (branch tutti mergiati) e cartella
+  vuota `rifstone-saga---melvor/` nella root.
+
 | ID | Milestone | Titolo | Ruolo | Stato | Branch | Note |
 |---|---|---|---|---|---|---|
 | M0-01 | M0 | Root, project.godot, cartelle, git | REV | DONE | task/M0-01 | merge 5e82b06, docs ad92606; c6b5573; sottocartella svuotata, cartella vuota bloccata da processo (da rimuovere a mano); criterio --quit sostituito con --editor --quit |

@@ -61,6 +61,21 @@ Agenti: `.claude/agents/` (un file per ruolo di `08_TEAM.md`).
   - Se il push fallisce per autenticazione: fermarsi e dirlo all'utente, che lo fa a mano.
   - `.gitignore` esclude `.godot/`, `export/`, i file temporanei, i salvataggi e gli slot di test.
 
+## Consumi (regole dell'utente)
+1. **Modelli**: i ruoli implementativi (Core, Data/Content, UI, Combat, Porting, QA) usano `model: sonnet` nei file di
+   `.claude/agents/`; il Reviewer/Integrator resta com'è.
+2. **Output dei test**: GUT sempre con il log minimo (`-glog=0`) e l'output filtrato con `grep`/`tail` (solo riepilogo e
+   test falliti). Mai leggere l'output completo della suite.
+3. **Test mirati**: durante un task l'agente lancia solo i test della sua cartella
+   (`-s addons/gut/gut_cmdln.gd -gdir=res://tests/<cartella> -ginclude_subdirs -glog=0`). La suite completa
+   (`run_checks.ps1`) gira **una volta sola**, dopo il merge su main.
+4. **Review sul diff**: il Reviewer legge il diff del branch e i criteri del task, non i file interi.
+5. **Letture mirate**: i brief indicano le **sezioni** dei documenti da leggere, non i documenti interi.
+6. **Task piccoli accorpati**: due o più task S consecutivi dello stesso ruolo vanno allo stesso agente in un'unica sessione.
+7. **Parallelismo**: massimo **2** agenti insieme.
+8. **Sessioni per milestone**: dopo lo stop di fine milestone l'utente apre una sessione nuova che riparte da
+   `docs/STATUS.md`. STATUS.md va tenuto sempre aggiornato (stato di ogni task, hash, prossimo passo).
+
 ## Comandi
 Godot: `C:\Users\Davide\Desktop\GODOT\Godot_v4.5-stable_win64_console.exe` (variabile `$env:GODOT`).
 

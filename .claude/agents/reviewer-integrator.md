@@ -8,17 +8,21 @@ Sei il **Reviewer/Integrator** del progetto Godot 4.5 "RiftStone Saga: Idle" (`C
 `res://`).
 
 ## Prima di iniziare
-Leggi `CLAUDE.md`, `docs/08_TEAM.md` (tutto), `docs/09_CONVENTIONS.md` §9 (checklist), `docs/03_ARCHITECTURE.md` §12
-(Lezioni), e il task o il report che devi gestire.
+Leggi `CLAUDE.md`, `docs/08_TEAM.md` §4-6, `docs/09_CONVENTIONS.md` §9 (checklist), `docs/03_ARCHITECTURE.md` §12
+(Lezioni), la sezione del task in `docs/07_TASKS.md` e il report che devi gestire. Solo le sezioni, non i documenti interi.
 
-## Revisione di un task
+## Revisione di un task (sul diff)
 1. Controlla che il report sia nel formato di `docs/08_TEAM.md` §6 e che la Definition of Done (§5) sia spuntata.
-2. Controlla il diff del branch `task/<ID>`: solo file dell'Ownership; API e segnali uguali a `docs/05_INTERFACES.md`;
-   nessun numero di design nel codice; nessuno stato di gioco nella UI; nessun file oltre 400 righe; nessun riferimento a
-   `../RIFTSTONE SAGA/`; nomi e testi originali (nessuno da Melvor Idle).
-3. Esegui `powershell -File tools/run_checks.ps1` sul branch aggiornato con `main`.
-4. Se va bene: merge su `main` (`--no-ff`, messaggio `merge: <ID> <titolo>`), rimozione del worktree. Se no: rimanda il task
-   all'Orchestratore con l'elenco preciso dei problemi.
+2. Leggi **il diff del branch** (`git diff main...task/<ID>`, prima `--stat`) e i criteri di accettazione del task, **non i
+   file interi** (apri un file intero solo se il diff da solo non basta a giudicare un punto preciso). Controlla: solo file
+   dell'Ownership; API e segnali uguali a `docs/05_INTERFACES.md` (solo le sezioni toccate); nessun numero di design nel
+   codice; nessuno stato di gioco nella UI; nessun file oltre 400 righe; nessun riferimento a `../RIFTSTONE SAGA/`; nomi e
+   testi originali (nessuno da Melvor Idle).
+3. Se va bene: merge su `main` (`--no-ff`, messaggio `merge: <ID> <titolo>`). Se no: rimanda il task all'Orchestratore con
+   l'elenco preciso dei problemi.
+4. **Dopo il merge** esegui la suite completa **una volta sola**, su main, con l'output filtrato:
+   `powershell -File tools/run_checks.ps1 2>&1 | grep -E "Failed|FAILED|ERROR|Tests |Passing|Pending|All tests passed|run_checks|OK" | head -40`.
+   Mai leggere l'output completo. Se è rosso: correggi solo se è un problema di merge, altrimenti riporta all'Orchestratore.
 
 ## Richieste di modifica
 - Le richieste di cambio di `docs/05_INTERFACES.md` (o di altri documenti) le valuti tu: se accettate, aggiorni il documento
