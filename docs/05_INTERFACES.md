@@ -1225,21 +1225,25 @@ func uid() -> int                                   # 0 se chiuso
 
 class_name ArmoryCell extends PanelContainer        # ui/pages/armory/armory_cell.gd (+ .tscn), interna ad ArmoryPage (M4-08)
 signal pressed(uid: int)                            # clic sinistro
-signal hover_started(uid: int)                      # la pagina mostra il tooltip del pezzo (Tooltips.show_text)
+signal hover_started(uid: int)                      # la pagina mostra il tooltip del pezzo (Tooltips.show_text con titolo vuoto: il nome nel colore della rarità è la prima riga del corpo, ItemTooltipLines.colored_title, M5-00)
 signal hover_ended
 func set_piece(inst: ItemInstance, base: ItemDef, worn: bool, selected: bool) -> void   # icona, bordo di rarità, "+N", segni bloccato/indossato
 func uid() -> int                                   # 0 prima del primo set_piece; non legge la sessione
 
 class_name ArmoryTexts extends RefCounted           # ui/pages/armory/armory_texts.gd, solo statiche, senza stato (M4-08)
 const RARITY_NAMES: Dictionary[StringName, String]  # common/magic/rare -> Comune/Magico/Raro (testi di presentazione, come Q42)
+const CAPACITY_TEXT: String                         # "Pezzi: %s / %s" (M5-00)
+const CAPACITY_WORN_TEXT: String                    # "Pezzi: %s / %s (+%s indossati)" (M5-00)
+static func capacity_text(used: int, capacity: int, worn: int) -> String   # contatore dell'Armeria; "(+N indossati)" solo se worn > 0 (i pezzi indossati non occupano capienza)
 static func rarity_name(rarity: StringName) -> String               # sconosciuta: Log.warn e l'id
 static func piece_name(inst: ItemInstance, base: ItemDef) -> String # "Nome +N" se upgrade > 0, altrimenti il nome della base
 static func affix_lines(inst: ItemInstance, data: GameData) -> PackedStringArray   # "<AffixDef.name> <valore> (grado N)"; affisso assente: Log.warn, nessuna riga
 static func comparison_lines(candidate: Array[Modifier], worn: Array[Modifier], data: GameData) -> PackedStringArray   # differenze per (stat, scope), formato di modifier_lines
 
 class_name CharacterPage extends Page            # ui/pages/character/character_page.gd (+ .tscn), rotta character (M4-09)
-# Classe (ClassDef.name/description), livello e XpBar del personaggio (character.get_level/get_progress), assetto attuale
-# e assetti della classe, valori base F-70 (CombatantStats.for_player da M5; in M4 i valori di CombatMath non ci sono
+# Classe (ClassDef.name/description), livello e XpBar del personaggio (character.get_level/get_progress), sezione Assetto
+# (titolo ItemTooltipLines.SETUP_LABEL) con gli assetti della classe in lista e quello in uso evidenziato (M5-00: niente
+# riga "In uso", niente CurrentSetupLabel), valori base F-70 (CombatantStats.for_player da M5; in M4 i valori di CombatMath non ci sono
 # ancora: solo livello, XP, classe e assetto). Da M6 gli slot di tratti e abilità (loadout). Ridisegno su
 # character_xp_gained, character_level_up, equipment_changed (scollegati in unbind).
 
@@ -1251,7 +1255,8 @@ class_name CombatPage extends Page               # ui/pages/combat/combat_page.g
 class_name EquipmentStatsText extends RefCounted # ui/pages/equipment/equipment_stats_text.gd, testi di EquipmentPage (M3-07), senza stato
 static func slot_text(slot: StringName, data: GameData) -> String     # etichetta; tool_<id> -> "Attrezzo: <nome skill dai dati>" o "Attrezzo"
 static func summary(session: GameSession) -> String                  # BBCode: blocco globale + un blocco per skill (for_skill meno le sorgenti globali)
-static func source_name(source_id: StringName, session: GameSession) -> String   # nome leggibile di una sorgente (05 §5.2)
+static func source_name(source_id: StringName, session: GameSession) -> String   # nome leggibile di una sorgente (05 §5.2); setup:<id> -> "Assetto: <SetupDef.name>" (M5-00)
+const SOURCE_SETUP_PREFIX: String                # "setup:" (M5-00)
 
 class_name MasteryPanel extends GameWindow       # ui/pages/mastery/mastery_panel.gd (+ .tscn), figlia di SkillPage
 const POOL_WARNING_KEY: String = "mastery.pool_warning_pct"   # soglia dell'avviso letta da session.data.balance_value
@@ -1358,7 +1363,11 @@ func footer_text() -> String
 class_name ItemTooltipLines extends RefCounted     # ui/components/tooltip/item_tooltip_lines.gd, solo statiche
 static func subtitle(item: ItemDef, count: int) -> String          # categoria e, se count > 0, "Quantità: 1.250"
 static func body(item: ItemDef, data: GameData) -> PackedStringArray   # requisiti, arma, modificatori, cibo, valore
-static func modifier_lines(mods: Array[Modifier], data: GameData) -> PackedStringArray
+static func modifier_lines(mods: Array[Modifier], data: GameData) -> PackedStringArray   # una riga per (stat, scope): i modificatori con la stessa stat e lo stesso scope si sommano (ordine di prima comparsa, M5-00)
+static func colored_title(text: String, color: Color) -> String    # nome in grassetto nel colore dato (nome del pezzo nel colore della rarità, M5-00)
+const SETUP_LABEL: String                                          # "Assetto" (M5-00)
+const SETUP_SOURCE_TEXT: String                                    # "Assetto: %s", sorgente setup:<id> (M5-00)
+const COMBAT_TEXT: String                                          # "Combattimento": voce della sidebar e categoria combat dello shop, definizione unica (M5-00)
 static func format_stat(format: String, value: float) -> String    # pct "+5%", flat "+8", flag "Sì"/"No"
 static func category_name(category: StringName) -> String
 static func escape(text: String) -> String                         # BBCode dei testi dei dati

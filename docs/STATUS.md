@@ -10,11 +10,9 @@ Se la sessione si interrompe, si riparte da qui.
   1 pending, 0 falliti**; validate_data verde su fixture e dati veri; file ≤ 400 righe (129 file); riferimenti vietati
   assenti (807 file). Prova del Giocabile di M4: 8/8 (criteri di `06_ROADMAP.md` M4, verificati con i test e con
   l'avvio headless). `main` e i tag `m0-done`…`m4-done` pushati su `origin` a fine M4.
-- **Avanzamento M5**: M5-04 DONE (merge `8f40e08`; run_checks 1055 test, 1054 passati, 1 pending, 0 falliti);
-  M5-00 (UI, correzioni della prova visiva di M4, richiesta dell'utente) IN CORSO su `task/M5-00`.
-- **Prossimo passo**: **M5 · Combattimento a gruppi** (`07_TASKS.md` §M5), dopo l'OK dell'utente. Si parte con **M5-01**
-  (COMBAT, formule) e **M5-04** (DATA, 4 aree e 12 mostri) **in parallelo** (dipendono solo da M4-11, ownership
-  disgiunte); poi M5-02 (dopo M5-01) → M5-03 (L) → M5-05 (UI, L) e M5-06 (dopo M5-03 e M5-04) → M5-07 (QA) → M5-08
+- **Avanzamento M5**: M5-04 DONE (merge `8f40e08`); M5-00 DONE (correzioni della prova visiva di M4, richiesta
+  dell'utente; merge `09364ba`). run_checks su main dopo M5-00: 1061 test, 1060 passati, 1 pending, 0 falliti.
+- **Prossimo passo**: **M5-01** (COMBAT, formule di combattimento); poi M5-02 (dopo M5-01) → M5-03 (L) → M5-05 (UI, L) e M5-06 (dopo M5-03 e M5-04) → M5-07 (QA) → M5-08
   (REV). Regole dei consumi di `CLAUDE.md`: massimo 2 agenti, test mirati, suite completa solo dopo il merge, review
   sul diff, sezioni nei brief.
 - **Decisioni aperte per l'utente** (`OPEN_QUESTIONS.md`, finché non risponde valgono i default): Q26 (nodi di Cavatura
@@ -105,7 +103,7 @@ Se la sessione si interrompe, si riparte da qui.
 | M4-09 | M4 | Pagina del personaggio, sidebar e shop | UI | DONE | task/M4-09 | merge 71fafa6; 0755b3d, main riunito nel branch 1a81dbd, correzione del Reviewer ce4430f (`Equipment.setup()` tipizzato al posto di `has_method`, `equipment_changed(slot, uid)`, test dell'assetto evidenziato); sfondo della maestria con override locale accettato in via provvisoria (spostamento nel tema su M4-08); categoria `combat` della fixture dello shop su M4-10; run_checks 997 test, 986 passati, 11 pending, 0 falliti; worktree non rimosso |
 | M4-10 | M4 | Test di M4 | QA | DONE | task/M4-10 | merge 213678a; 46c4c50, eb2a3e2, 082d1c8, 02b14b1, bd182bc; test nuovi `test_reform_flow` (7), `test_save_v2` (11), divisi `test_item_conservation_equipment`, `test_equipment_setups`; `test_buy_log` e bank piena nello shop; voci `combat` della fixture spostate in `bank`; `FORMULA_MILESTONES` del combattimento → M5; decisioni (a)-(d) in DECISIONS_LOG (scope di `item_rarity_pct` e maestria 1 scritti in F-83, `.uid` committati, inoltro `build_theme` lasciato); run_checks 1046 test, 1045 passati, 1 pending, 0 falliti |
 | M4-11 | M4 | Integrazione di M4 | REV | DONE | main | tag m4-done sul commit docs di M4-11; run_checks 1046 test, 1045 passati, 1 pending, 0 falliti; prova del Giocabile 8/8 (test + avvio headless); Lezioni checklist ok; worktree M4-10 rimosso; main e m4-done pushati |
-| M5-00 | M5 | Correzioni della prova visiva di M4 (UI) | UI | IN CORSO | task/M5-00 | richiesta dell'utente dopo M4; ownership in `07_TASKS.md` §M5 |
+| M5-00 | M5 | Correzioni della prova visiva di M4 (UI) | UI | DONE | task/M5-00 | merge 09364ba; fdfb49a, 7e0f186 (correzione del Reviewer: `ItemTooltipLines.COMBAT_TEXT` unica, riusata da ShopPage e Sidebar); richiesta dell'utente dopo M4: sorgente "Assetto: <nome>", lista degli assetti con quello in uso evidenziato, categoria "Combattimento" e Casella dell'Armeria nella categoria bank, modificatori della stessa stat sommati, nome nel colore della rarità, contatore "(+N indossati)"; firme in 05 §7; decisioni in DECISIONS_LOG; run_checks 1061 test, 1060 passati, 1 pending, 0 falliti |
 | M5-01 | M5 | Formule di combattimento | COMBAT | TODO | | |
 | M5-02 | M5 | Statistiche per mano, razioni da campo, borsa del bottino | COMBAT | TODO | | |
 | M5-03 | M5 | Motore a eventi, incontri e gruppi | COMBAT | TODO | | note ereditate N1-N2 (07_TASKS) |
