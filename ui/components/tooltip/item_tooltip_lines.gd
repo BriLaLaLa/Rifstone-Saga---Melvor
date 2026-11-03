@@ -2,6 +2,8 @@ class_name ItemTooltipLines
 extends RefCounted
 ## Builds the BBCode lines of an item tooltip from an ItemDef (display only, no game state).
 ##
+## Numbers use NumberFormat (ui/theme/number_format.gd).
+##
 ## Ported from the item part of the previous game's tooltip: there it read loose item dictionaries with rarity,
 ## upgrade levels and a hard-coded list of stat names. Here every modifier line takes its label and format from
 ## `StatRegistry.info()` (docs/04_DATA_SCHEMA.md §2): `pct` is shown with "%", `flat` as a signed number, `flag` as
@@ -21,15 +23,13 @@ const CATEGORY_NAMES: Dictionary[StringName, String] = {
 const FORMAT_PCT: String = "pct"
 const FORMAT_FLAT: String = "flat"
 const FORMAT_FLAG: String = "flag"
-## Numbers are shown with at most two decimals.
-const HUNDREDTHS: int = 100
 
 
 ## Subtitle under the name: category and, when `count` > 0, the quantity.
 static func subtitle(item: ItemDef, count: int) -> String:
 	var parts: PackedStringArray = PackedStringArray([category_name(item.category)])
 	if count > 0:
-		parts.append("Quantità: %s" % format_int(count))
+		parts.append("Quantità: %s" % NumberFormat.format_int(count))
 	return "  ·  ".join(parts)
 
 
@@ -52,9 +52,9 @@ static func body(item: ItemDef, data: GameData) -> PackedStringArray:
 		if item.infusion_unique:
 			lines.append(_muted("Unica: non si incastona in più prese"))
 	if item.is_food():
-		lines.append("Cura %s punti vita" % _value(format_int(item.food_heal)))
+		lines.append("Cura %s punti vita" % _value(NumberFormat.format_int(item.food_heal)))
 	if item.value > 0:
-		lines.append(_muted("Valore: %s oro" % format_int(item.value)))
+		lines.append(_muted("Valore: %s oro" % NumberFormat.format_int(item.value)))
 	else:
 		lines.append(_muted("Non vendibile"))
 	return lines
@@ -87,7 +87,7 @@ static func format_stat(format: String, value: float) -> String:
 		FORMAT_FLAG:
 			return "Sì" if value != 0.0 else "No"
 	Log.warn(LOG_CATEGORY, "tooltip: unknown stat format '%s'" % format)
-	return format_number(value)
+	return NumberFormat.format_number(value)
 
 
 static func category_name(category: StringName) -> String:
@@ -95,27 +95,6 @@ static func category_name(category: StringName) -> String:
 		Log.warn(LOG_CATEGORY, "tooltip: unknown item category '%s'" % category)
 		return String(category)
 	return CATEGORY_NAMES[category]
-
-
-## Integer with "." as thousands separator (1250 -> "1.250").
-static func format_int(value: int) -> String:
-	var digits: String = str(absi(value))
-	var out: String = ""
-	while digits.length() > 3:
-		out = "." + digits.right(3) + out
-		digits = digits.left(digits.length() - 3)
-	return ("-" if value < 0 else "") + digits + out
-
-
-## Number in Italian notation: thousands with ".", decimals with "," (at most two, no trailing zeros).
-@warning_ignore("integer_division")
-static func format_number(value: float) -> String:
-	var hundredths: int = roundi(absf(value) * HUNDREDTHS)
-	var text: String = ("-" if value < 0.0 and hundredths > 0 else "") + format_int(hundredths / HUNDREDTHS)
-	var fraction: String = ("%02d" % (hundredths % HUNDREDTHS)).rstrip("0")
-	if not fraction.is_empty():
-		text += "," + fraction
-	return text
 
 
 ## Escapes BBCode in data texts.
@@ -135,7 +114,7 @@ static func _requirement_lines(equip: EquipInfo, data: GameData) -> PackedString
 
 
 static func _weapon_line(weapon: WeaponInfo, data: GameData) -> String:
-	var seconds: String = format_number(weapon.attack_interval_ms / 1000.0)
+	var seconds: String = NumberFormat.format_number(weapon.attack_interval_ms / 1000.0)
 	var line: String = "Stile %s, un attacco ogni %s s" % [_skill_name(weapon.style, data), _value(seconds)]
 	if weapon.two_handed:
 		line += ", a due mani"
@@ -145,9 +124,9 @@ static func _weapon_line(weapon: WeaponInfo, data: GameData) -> String:
 ## Display name of a modifier scope; empty for global modifiers.
 static func _scope_name(mod: Modifier, data: GameData) -> String:
 	match mod.scope_kind:
-		&"skill":
+		Modifier.SCOPE_SKILL:
 			return _skill_name(mod.scope_id, data)
-		&"action":
+		Modifier.SCOPE_ACTION:
 			var action: ActionDef = data.action(mod.scope_id)
 			return escape(action.name) if action != null else String(mod.scope_id)
 	return ""
@@ -160,7 +139,7 @@ static func _skill_name(skill_id: StringName, data: GameData) -> String:
 
 
 static func _signed(value: float) -> String:
-	return ("+" if value > 0.0 else "") + format_number(value)
+	return ("+" if value > 0.0 else "") + NumberFormat.format_number(value)
 
 
 static func _value(text: String) -> String:

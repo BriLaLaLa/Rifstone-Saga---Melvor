@@ -183,11 +183,6 @@ static func _default_name(id: StringName) -> String:
 	return String(id)
 
 
-## Integer with "." as thousands separator (1250 -> "1.250").
+## Item quantity of a toast, via NumberFormat (1250 -> "1.250").
 static func _format_count(value: int) -> String:
-	var digits: String = str(absi(value))
-	var out: String = ""
-	while digits.length() > 3:
-		out = "." + digits.right(3) + out
-		digits = digits.left(digits.length() - 3)
-	return ("-" if value < 0 else "") + digits + out
+	return NumberFormat.format_int(value)
