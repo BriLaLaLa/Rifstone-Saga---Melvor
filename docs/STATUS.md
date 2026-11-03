@@ -60,7 +60,8 @@ Se la sessione si interrompe, si riparte da qui.
 | M3-05 | M3 | Pagina skill: variante artigianato | UI | DONE | task/M3-05 | merge 52835f5, docs 9e448b0, 2e7494e; b023268 rimandato (assert sempre vero, numero nudo), corretto in ff75f6b; 800 test, 799 passati, 1 pending; build_theme non spostato (nessuna costante UiStyle nuova) |
 | M3-06 | M3 | Shop e vendita | UI | DONE | task/M3-06 | merge 444d051, docs c4cc394, 5d08b00; 1a56aa5 rimandato (rotta shop, oro scritto a mano), corretto in a267a0a; 813 test, 812 passati, 1 pending; ownership estesa a ROUTES di page_host.gd e test_main_screen_smoke.gd |
 | M3-07 | M3 | Pagina equipaggiamento | UI | DONE | task/M3-07 | merge 0063967, docs b7c972d, 273bd24; ba9cd4d rimandato (nomi di skill scritti a mano, riepilogo senza attrezzi), corretto in 04a8f07; 825 test, 824 passati, 1 pending; ownership estesa a ROUTES e test_main_screen_smoke.gd |
-| M3-08 | M3 | Test di M3 | QA | IN_PROGRESS | task/M3-08 | |
+| M3-08 | M3 | Test di M3 | QA | DONE | task/M3-08 | merge b29e214, docs 245cbd3; 836 test, 834 passati, 2 pending (stat M4; bug from_save due mani + offhand, chiuso da M3-11) |
+| M3-11 | M3 | from_save: arma a due mani e offhand insieme | CORE | IN_PROGRESS | task/M3-11 | bug trovato da M3-08; regola in 05 §5.9 (245cbd3): offhand scartato con Log.warn |
 | M3-09 | M3 | Integrazione di M3 | REV | TODO | | |
 | M4-01 | M4 | Formule di combattimento | COMBAT | TODO | | |
 | M4-02 | M4 | Statistiche, razioni da campo, borsa del bottino | COMBAT | TODO | | |
