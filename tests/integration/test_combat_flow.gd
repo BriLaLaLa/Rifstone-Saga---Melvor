@@ -217,6 +217,8 @@ func test_death_loses_only_the_loot_bag() -> void:
 	assert_eq(s.equipment.get_uid(&"offhand"), offhand)
 	assert_eq(int(s.combat.get_state()["player_hp"]), s.combat.player_stats().max_hp, "hp back to the maximum")
 	assert_false(s.combat.is_active())
+	assert_eq(s.combat.area_id(), &"", "idle has no area (05 5.10)")
+	assert_eq(String(s.combat.to_save()["area"]), "", "nor in the save")
 	assert_true(s.combat.start(AREA).ok, "a new start after the death works")
 
 
@@ -297,6 +299,7 @@ func test_combat_and_main_action_replace_each_other() -> void:
 	assert_true(s.actions.start(&"forestry", &"cut_redbirch").ok)
 	assert_false(s.combat.is_active(), "an action stops the combat")
 	assert_eq(s.combat.stop_reasons_log().back(), Reasons.REPLACED)
+	assert_eq(String(s.combat.get_state()["area"]), "", "idle has no area (05 5.10)")
 	assert_eq(int(s.combat.get_state()["player_hp"]), s.combat.player_stats().max_hp, "idle shows the full hp")
 	_run(s, 10000)
 	assert_true(s.actions.is_running())
