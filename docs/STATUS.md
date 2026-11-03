@@ -6,8 +6,8 @@ Se la sessione si interrompe, si riparte da qui.
 ## Ripartenza (aggiornata il 2026-11-03)
 - **Stato**: M4 in corso. **M4-01 + M4-02 DONE**, merge congiunto `16e6306` su `main` (correzioni del Reviewer sul
   branch in `df9bc0d`). **M4-04 DONE**, merge `ef00713`. **M4-03 DONE**, merge `f6ed43c` (main riunito nel branch in
-  `ef4bb5d`). **M4-05 DONE**, merge `a85cb8c` (`789ff61`, correzioni del Reviewer `bb59448`). Suite (run_checks dopo
-  M4-05): 982 test, 946 passati, 36 pending, 0 falliti; validate_data verde su fixture e dati veri. M3 completata, tag
+  `ef4bb5d`). **M4-05 DONE**, merge `a85cb8c` (`789ff61`, correzioni del Reviewer `bb59448`). **M4-06 DONE**, merge `558447b` (`437037c`). Suite (run_checks
+  dopo M4-06): 990 test, 976 passati, 14 pending, 0 falliti; validate_data verde su fixture e dati veri. M3 completata, tag
   `m3-done` su `ca18ee6`; `main` e i tag `m0-done`…`m3-done` pushati su `origin` (il push di M4 si fa a fine
   milestone). Visione v2 approvata (D1-D6), R-00 fatto.
 - **Prossimo passo**: **M4-06** (Equipaggiamento con `uid` e assetti; note "da M4-02", "da M4-03", "da M4-05" in
@@ -102,7 +102,7 @@ Se la sessione si interrompe, si riparte da qui.
 | M4-03 | M4 | Personaggio e salvataggio v2 | CORE | DONE | task/M4-03 | merge f6ed43c; 765664e, merge di main ef4bb5d; 20 test nuovi; ownership estesa: 2 righe di `test_skills_system.gd` (snapshot e `total_level`); run_checks 959 test, 937 passati, 22 pending, 0 falliti; worktree non rimosso |
 | M4-04 | M4 | ItemRoller e istanze | CORE | DONE | task/M4-04 | merge ef00713; 78d3e1a; 14 test propri; run_checks 939 test, 917 passati, 22 pending, 0 falliti; worktree non rimosso |
 | M4-05 | M4 | Armeria, bank e shop | CORE | DONE | task/M4-05 | merge a85cb8c; 789ff61, correzioni del Reviewer bb59448 (`set_worn` con `quiet`, una sola costante delle categorie, pending doppio); ownership estesa: solo righe `pending` + `return` in 5 file di test (regola comune di M4); run_checks 982 test, 946 passati, 36 pending, 0 falliti; worktree non rimosso |
-| M4-06 | M4 | Equipaggiamento con uid e assetti | CORE | TODO | | |
+| M4-06 | M4 | Equipaggiamento con uid e assetti | CORE | DONE | task/M4-06 | merge 558447b; 437037c; casi non fissati da §5.9 accettati e documentati in 05 §5.9; ownership estesa (regola comune di M4): `bank_page.gd`/`equipment_page.gd` solo chiamanti e connessioni `food_changed`/`equipment_changed(int)`, `test_equipment_save.gd` nuovo (divisione del test), `test_crafting_chain.gd` segnaposto `equip(0)`; run_checks 990 test, 976 passati, 14 pending, 0 falliti; note per M4-07, M4-08, M4-10, M7-01; worktree non rimosso |
 | M4-07 | M4 | Artigianato verso l'Armeria | CORE | TODO | | |
 | M4-08 | M4 | Pagina dell'Armeria ed equipaggiamento | UI | TODO | | dopo M4-09 (page_host.gd); spostamento build_theme |
 | M4-09 | M4 | Pagina del personaggio, sidebar e shop | UI | TODO | | sfondo del pannello della maestria |
