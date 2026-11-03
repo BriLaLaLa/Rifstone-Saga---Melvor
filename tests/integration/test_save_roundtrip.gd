@@ -3,7 +3,7 @@ extends GutTest
 ## middle of a cycle (elapsed_ms) and with the RNG advanced; afterwards both copies produce the same sequences.
 ##
 ## The copy is created with a different seed, so everything it does afterwards comes from the save (rng block
-## included). The disk variant goes through SaveService (base_dir user://test_saves, set by gut_pre_run.gd).
+## included). The disk variant goes through SaveService (base_dir PreRun.save_dir(), set by gut_pre_run.gd).
 
 const SEED: int = 77001
 const OTHER_SEED: int = 5
@@ -11,7 +11,7 @@ const NOW_MS: int = 1793603600000
 const SKILL: StringName = &"forestry"
 const ACTION: StringName = &"cut_redbirch"
 const SHARD: StringName = &"rift_shard"
-const TEST_DIR: String = "user://test_saves"
+const PreRun := preload("res://tests/helpers/gut_pre_run.gd")
 const TEST_SLOT: int = 1
 # 20 whole cycles of 3000 ms (F-03, T1) plus 1500 ms: the lane is half way through cycle 21.
 const MID_CYCLE_RUN_MS: int = 61500
@@ -25,6 +25,7 @@ const SHARD_SOURCE: StringName = &"test:roundtrip"
 const SHARD_CHANCE: float = 30.0
 const DOUBLE_CHANCE: float = 40.0
 
+var _test_dir: String = PreRun.save_dir()
 var _sessions: Array[GameSession] = []
 var _outputs: Dictionary = {}
 
@@ -32,14 +33,14 @@ var _outputs: Dictionary = {}
 func before_each() -> void:
 	_sessions.clear()
 	_outputs.clear()
-	_clear_dir(TEST_DIR)
+	_clear_dir(_test_dir)
 
 
 func after_each() -> void:
 	for session: GameSession in _sessions:
 		session.free()
 	_sessions.clear()
-	_clear_dir(TEST_DIR)
+	_clear_dir(_test_dir)
 
 
 func test_new_game_roundtrip_is_identical() -> void:
@@ -120,7 +121,7 @@ func test_roundtrip_through_the_slot_file() -> void:
 	original.slot = TEST_SLOT
 	var saved: Dictionary = original.to_save(NOW_MS)
 	assert_true(SaveService.write_slot(TEST_SLOT, saved).ok)
-	assert_true(SaveService.slot_path(TEST_SLOT).begins_with(TEST_DIR), "never a real slot")
+	assert_true(SaveService.slot_path(TEST_SLOT).begins_with(_test_dir), "never a real slot")
 	var read: Dictionary = SaveService.read_slot(TEST_SLOT)
 	assert_false(read.is_empty(), "readable: %s" % SaveService.last_error)
 	var copy: GameSession = _new_session(OTHER_SEED)

@@ -9,7 +9,7 @@ extends GutTest
 
 const FIXTURE_ROOT: String = "res://tests/fixtures/data"
 const CONFIG_ROOT: String = "res://data/config"
-const TMP_ROOT: String = "user://test_action_runner"
+const PreRun := preload("res://tests/helpers/gut_pre_run.gd")
 const NOW_MS: int = 1793603600000
 const MAIN: StringName = &"main"
 const SKILL: StringName = &"test_gather"
@@ -17,6 +17,7 @@ const TWIG: StringName = &"gather_twig"
 const BUNDLE: StringName = &"gather_bundle"
 const INTERVAL_STAT: StringName = &"skill_interval_pct"
 
+var _tmp_root: String = PreRun.test_dir("test_action_runner")
 var _fast_data: GameData = null
 var _small_data: GameData = null
 var _session: GameSession = null
@@ -24,7 +25,7 @@ var _runner: ActionRunner = null
 
 
 func before_all() -> void:
-	var content: String = TMP_ROOT.path_join("content")
+	var content: String = _tmp_root.path_join("content")
 	_copy_json_tree(FIXTURE_ROOT, content)
 	var path: String = content.path_join("actions/test_gather.json")
 	var gather: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(path))
@@ -33,7 +34,7 @@ func before_all() -> void:
 			entry["interval_ms"] = 1000
 	_write(path, JSON.stringify(gather))
 	_fast_data = GameData.load_from_dirs(content, CONFIG_ROOT)
-	var config: String = TMP_ROOT.path_join("config")
+	var config: String = _tmp_root.path_join("config")
 	DirAccess.make_dir_recursive_absolute(config)
 	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_ROOT.path_join("balance.json")))
 	(balance["bank"] as Dictionary)["base_slots"] = 1
@@ -44,7 +45,7 @@ func before_all() -> void:
 
 
 func after_all() -> void:
-	_remove_tree(TMP_ROOT)
+	_remove_tree(_tmp_root)
 
 
 func before_each() -> void:

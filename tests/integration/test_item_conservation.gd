@@ -5,7 +5,7 @@ extends GutTest
 ##
 ## Randomness (F-06 double, F-07 shard) comes from fixed seeds; a test-only modifier source raises the chances so
 ## that both rolls actually happen. The bank-full case uses a copy of the real config with `bank.base_slots` = 1,
-## written under user://test_item_conservation (not a save slot) and removed afterwards.
+## written under PreRun.test_dir() (not a save slot) and removed afterwards.
 
 const SEED: int = 424242
 const SKILL: StringName = &"forestry"
@@ -22,8 +22,9 @@ const DOUBLE_CHANCE: float = 35.0
 const SHARD_CHANCE: float = 25.0
 const CONTENT_ROOT: String = "res://data"
 const CONFIG_ROOT: String = "res://data/config"
-const TMP_CONFIG: String = "user://test_item_conservation"
+const PreRun := preload("res://tests/helpers/gut_pre_run.gd")
 
+var _tmp_config: String = PreRun.test_dir("test_item_conservation")
 var _session: GameSession = null
 var _produced: Dictionary[StringName, int] = {}
 var _deltas: Dictionary[StringName, int] = {}
@@ -47,11 +48,11 @@ func after_each() -> void:
 
 
 func after_all() -> void:
-	if not DirAccess.dir_exists_absolute(TMP_CONFIG):
+	if not DirAccess.dir_exists_absolute(_tmp_config):
 		return
-	for file_name: String in DirAccess.get_files_at(TMP_CONFIG):
-		DirAccess.remove_absolute(TMP_CONFIG.path_join(file_name))
-	DirAccess.remove_absolute(TMP_CONFIG)
+	for file_name: String in DirAccess.get_files_at(_tmp_config):
+		DirAccess.remove_absolute(_tmp_config.path_join(file_name))
+	DirAccess.remove_absolute(_tmp_config)
 
 
 func test_initial_bank_is_start_items() -> void:
@@ -172,12 +173,12 @@ func _bank_counts(session: GameSession) -> Dictionary[StringName, int]:
 
 # Real content with a config copy where the bank has a single slot.
 func _one_slot_data() -> GameData:
-	DirAccess.make_dir_recursive_absolute(TMP_CONFIG)
+	DirAccess.make_dir_recursive_absolute(_tmp_config)
 	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_ROOT.path_join("balance.json")))
 	(balance["bank"] as Dictionary)["base_slots"] = 1
-	_write(TMP_CONFIG.path_join("balance.json"), JSON.stringify(balance))
-	_write(TMP_CONFIG.path_join("stats.json"), FileAccess.get_file_as_string(CONFIG_ROOT.path_join("stats.json")))
-	var data: GameData = GameData.load_from_dirs(CONTENT_ROOT, TMP_CONFIG)
+	_write(_tmp_config.path_join("balance.json"), JSON.stringify(balance))
+	_write(_tmp_config.path_join("stats.json"), FileAccess.get_file_as_string(CONFIG_ROOT.path_join("stats.json")))
+	var data: GameData = GameData.load_from_dirs(CONTENT_ROOT, _tmp_config)
 	assert_true(data.is_valid(), "one-slot data valid: %s" % "\n".join(data.errors))
 	return data
 

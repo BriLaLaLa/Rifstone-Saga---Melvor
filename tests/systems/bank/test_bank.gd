@@ -6,29 +6,30 @@ extends GutTest
 
 const FIXTURE_ROOT: String = "res://tests/fixtures/data"
 const CONFIG_ROOT: String = "res://data/config"
-const TMP_CONFIG: String = "user://test_bank/config"
+const PreRun := preload("res://tests/helpers/gut_pre_run.gd")
 const SMALL_BASE_SLOTS: int = 2
 const START_ITEMS: Array[Dictionary] = [{"item": "test_log", "qty": 3}, {"item": "test_twig", "qty": 5}]
 
+var _tmp_config: String = PreRun.test_dir("test_bank").path_join("config")
 var _small_data: GameData = null
 var _session: GameSession = null
 
 
 func before_all() -> void:
-	DirAccess.make_dir_recursive_absolute(TMP_CONFIG)
+	DirAccess.make_dir_recursive_absolute(_tmp_config)
 	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_ROOT.path_join("balance.json")))
 	(balance["bank"] as Dictionary)["base_slots"] = SMALL_BASE_SLOTS
 	(balance["start"] as Dictionary)["items"] = START_ITEMS
-	_write(TMP_CONFIG.path_join("balance.json"), JSON.stringify(balance))
-	_write(TMP_CONFIG.path_join("stats.json"), FileAccess.get_file_as_string(CONFIG_ROOT.path_join("stats.json")))
-	_small_data = GameData.load_from_dirs(FIXTURE_ROOT, TMP_CONFIG)
+	_write(_tmp_config.path_join("balance.json"), JSON.stringify(balance))
+	_write(_tmp_config.path_join("stats.json"), FileAccess.get_file_as_string(CONFIG_ROOT.path_join("stats.json")))
+	_small_data = GameData.load_from_dirs(FIXTURE_ROOT, _tmp_config)
 
 
 func after_all() -> void:
 	for file: String in ["balance.json", "stats.json"]:
-		DirAccess.remove_absolute(TMP_CONFIG.path_join(file))
-	DirAccess.remove_absolute(TMP_CONFIG)
-	DirAccess.remove_absolute(TMP_CONFIG.get_base_dir())
+		DirAccess.remove_absolute(_tmp_config.path_join(file))
+	DirAccess.remove_absolute(_tmp_config)
+	DirAccess.remove_absolute(_tmp_config.get_base_dir())
 
 
 func before_each() -> void:

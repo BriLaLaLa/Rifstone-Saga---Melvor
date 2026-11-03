@@ -1,35 +1,36 @@
 extends GutTest
 ## SaveStore: atomic write, .bak fallback, SlotInfo from the header, version checks, no writes unless asked.
 ##
-## Each test uses its own SaveStore instance pointed at user://test_saves (emptied before each test), never the
+## Each test uses its own SaveStore instance pointed at PreRun.save_dir() (emptied before each test), never the
 ## real saves folder. SLOT_COUNT stands for `slots.count` of balance.json, passed in as the caller will.
 
-const TEST_DIR: String = "user://test_saves"
-const UNTOUCHED_DIR: String = "user://test_saves/untouched"
+const PreRun := preload("res://tests/helpers/gut_pre_run.gd")
 const SLOT_COUNT: int = 4
 const TARGET_BYTES: int = 200 * 1024
 const SLOW_WRITE_MS: float = 30.0
 
+var _test_dir: String = PreRun.save_dir()
+var _untouched_dir: String = PreRun.save_dir().path_join("untouched")
 var _store: SaveStore
 
 
 func before_each() -> void:
-	_clear_dir(TEST_DIR)
+	_clear_dir(_test_dir)
 	_store = autofree(SaveStore.new()) as SaveStore
-	_store.base_dir = TEST_DIR
+	_store.base_dir = _test_dir
 	_store.configure(SLOT_COUNT)
 
 
 func after_all() -> void:
-	_clear_dir(TEST_DIR)
+	_clear_dir(_test_dir)
 
 
 func test_hook_points_autoload_at_test_saves() -> void:
-	assert_eq(SaveService.base_dir, TEST_DIR)
+	assert_eq(SaveService.base_dir, _test_dir)
 
 
 func test_slot_path_format() -> void:
-	assert_eq(_store.slot_path(2), TEST_DIR + "/slot_2.json")
+	assert_eq(_store.slot_path(2), _test_dir + "/slot_2.json")
 
 
 func test_write_then_read_round_trip() -> void:
@@ -165,7 +166,7 @@ func test_list_slots_covers_every_configured_slot() -> void:
 
 func test_list_slots_before_configure_is_empty() -> void:
 	var store: SaveStore = autofree(SaveStore.new()) as SaveStore
-	store.base_dir = TEST_DIR
+	store.base_dir = _test_dir
 	assert_eq(store.list_slots().size(), 0)
 
 
@@ -207,17 +208,17 @@ func test_delete_empty_slot_succeeds() -> void:
 
 func test_no_write_unless_asked() -> void:
 	var store: SaveStore = autofree(SaveStore.new()) as SaveStore
-	store.base_dir = UNTOUCHED_DIR
+	store.base_dir = _untouched_dir
 	store.configure(SLOT_COUNT)
 	store.list_slots()
 	store.read_slot(1)
 	store.read_slot_info(2)
 	store.slot_exists(3)
 	store.slot_path(4)
-	assert_false(DirAccess.dir_exists_absolute(UNTOUCHED_DIR), "reads never create the folder")
+	assert_false(DirAccess.dir_exists_absolute(_untouched_dir), "reads never create the folder")
 	_store.list_slots()
 	_store.read_slot(1)
-	assert_eq(DirAccess.get_files_at(TEST_DIR).size(), 0, "reads never create files")
+	assert_eq(DirAccess.get_files_at(_test_dir).size(), 0, "reads never create files")
 
 
 func test_write_200_kb_and_measure() -> void:

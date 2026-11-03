@@ -2,16 +2,17 @@ extends GutTest
 ## Game: new game, continue, autosave driven by GameClock, end_session, delete, lifecycle signals.
 ##
 ## Uses a private instance of game.gd on the real data and the EventBus, never the Game autoload. SaveService points
-## at user://test_saves (gut_pre_run.gd), emptied before each test. GameClock time is simulated by calling its
+## at PreRun.save_dir() (gut_pre_run.gd), emptied before each test. GameClock time is simulated by calling its
 ## _process with exact binary fractions of a second; its time source is replaced and restored.
 
 const GameScript := preload("res://core/autoload/game.gd")
-const TEST_DIR: String = "user://test_saves"
+const PreRun := preload("res://tests/helpers/gut_pre_run.gd")
 const FRAME_S: float = 0.5
 const FRAME_MS: int = 500
 const NOW_MS: int = 1793600000000
 const MAX_EXACT_JSON_INT: int = 9007199254740992
 
+var _test_dir: String = PreRun.save_dir()
 var _game: GameScript
 var _saved_time_source: Callable
 var _saves: Array[int] = []
@@ -21,7 +22,7 @@ var _ended: Array[int] = []
 
 
 func before_each() -> void:
-	_clear_dir(TEST_DIR)
+	_clear_dir(_test_dir)
 	_saved_time_source = GameClock.time_source
 	GameClock.time_source = func() -> int: return NOW_MS
 	_saves.clear()
@@ -43,7 +44,7 @@ func after_each() -> void:
 	EventBus.session_started.disconnect(_on_event_bus_session_started)
 	EventBus.session_ended.disconnect(_on_event_bus_session_ended)
 	GameClock.time_source = _saved_time_source
-	_clear_dir(TEST_DIR)
+	_clear_dir(_test_dir)
 
 
 func test_ready_configures_slots_from_balance() -> void:
@@ -121,7 +122,7 @@ func test_new_game_while_playing_fails_with_slot_active() -> void:
 func test_first_save_failure_discards_the_session() -> void:
 	var saved_dir: String = SaveService.base_dir
 	# A file where the folder should be: the store cannot create it.
-	var blocker: String = TEST_DIR.path_join("blocker")
+	var blocker: String = _test_dir.path_join("blocker")
 	FileAccess.open(blocker, FileAccess.WRITE).close()
 	SaveService.base_dir = blocker
 	var result: CommandResult = _game.new_game(1, "Davide")
@@ -227,7 +228,7 @@ func test_continue_empty_slot_fails() -> void:
 
 
 func test_continue_corrupted_slot_fails() -> void:
-	DirAccess.make_dir_recursive_absolute(TEST_DIR)
+	DirAccess.make_dir_recursive_absolute(_test_dir)
 	var file: FileAccess = FileAccess.open(SaveService.slot_path(1), FileAccess.WRITE)
 	file.store_string("not json")
 	file.close()
