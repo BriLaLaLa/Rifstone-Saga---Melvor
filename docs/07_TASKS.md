@@ -760,6 +760,12 @@ Regole per tutti i task:
 - **Nota (da M2-03)** `ui_style.gd` è a 390 righe: costanti `UiStyle.*` nuove solo dopo lo spostamento di `build_theme`
   descritto nella nota di M3-05 (lo fa il primo dei tre task UI di M3 che ne ha bisogno).
 - **Accettazione / Test** smoke; nessuna stat mostrata che non sia nel registro.
+- **Nota (Reviewer, revisione di M3-07)** Ownership estesa a `res://ui/screens/main/page_host.gd` (solo la voce
+  `&"equipment"` di `ROUTES`) e a `res://tests/ui/test_main_screen_smoke.gd` (solo i punti che davano Equipaggiamento
+  "In arrivo": `test_show_page_of_every_valid_route`, `test_unavailable_pages_are_refused`, `test_sidebar_rows_from_data`).
+  `BankItemPanel.equip_requested` / `food_requested` ed `EquipmentPage` sono dichiarati in 05 §7. Prima revisione
+  rimandata: etichette degli slot attrezzo con nomi di skill scritti a mano (e diversi dai dati), riepilogo senza le
+  sorgenti con ambito di skill degli attrezzi.
 
 ### M3-08 · Test di M3
 - **Ruolo** QA · **Stima** S · **Parallelizzabile** no · **Dipendenze** M3-01…M3-07
