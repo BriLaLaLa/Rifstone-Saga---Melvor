@@ -4,7 +4,8 @@ extends GutTest
 ## refresh on events, everything disconnected by unbind.
 
 const SCENE: PackedScene = preload("res://ui/pages/shop/shop_page.tscn")
-const OBSERVED: Array[StringName] = [&"shop_purchased", &"item_sold", &"gold_changed", &"bank_changed", &"level_up"]
+const OBSERVED: Array[StringName] = [&"shop_purchased", &"item_sold", &"gold_changed", &"bank_changed", &"level_up",
+		&"character_level_up", &"armory_capacity_changed"]
 
 var _session: GameSession
 var _page: ShopPage
@@ -73,21 +74,31 @@ func test_missing_requirements_are_listed() -> void:
 	assert_false(_row_label(&"test_upgrade_1", "RequiresLabel").visible)
 
 
-func test_unlimited_entry_has_no_counter_and_item_entry_fills_the_bank() -> void:
-	pending("M4-09: gli attrezzi dello shop vanno nell'Armeria")
-	return
+func test_unlimited_entry_has_no_counter_and_item_entry_fills_the_armory() -> void:
 	_open()
 	_session.wallet.add_gold(150)
 	assert_false(_row_label(&"test_buy_hatchet", "CountLabel").visible)
 	assert_true(_row_label(&"test_upgrade_1", "CountLabel").visible)
 	assert_false(_buy(&"test_buy_hatchet").disabled)
 	_buy(&"test_buy_hatchet").pressed.emit()
-	assert_eq(_session.bank.get_count(&"test_hatchet"), 1, "item entry put the item in the bank")
+	assert_eq(_session.armory.used(), 1, "the tool is a piece of the Armory")
+	assert_eq(_session.bank.get_count(&"test_hatchet"), 0, "not in the bank")
+
+
+func test_character_requirement_is_listed_and_follows_the_level() -> void:
+	_session.data.shop_entry(&"test_buy_hatchet").req_character = 5
+	_open()
+	_session.wallet.add_gold(500)
+	assert_string_contains(_row_label(&"test_buy_hatchet", "RequiresLabel").text, "livello del personaggio 5")
+	assert_true(_buy(&"test_buy_hatchet").disabled)
+	_session.character.add_xp(_session.data.character_xp_table().xp_for_level(5))
+	assert_false(_row_label(&"test_buy_hatchet", "RequiresLabel").visible)
+	assert_false(_buy(&"test_buy_hatchet").disabled)
 
 
 func test_sections_follow_categories() -> void:
 	_open()
-	for category: String in ["bank", "combat", "tools"]:
+	for category: String in ["bank", "tools"]:
 		assert_not_null(_page.find_child("Section_%s" % category, true, false), category)
 
 

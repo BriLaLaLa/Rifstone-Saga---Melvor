@@ -1,11 +1,25 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://ui/pages/mastery/mastery_panel.gd" id="1_panel"]
 [ext_resource type="Script" path="res://ui/pages/mastery/mastery_node_tree.gd" id="2_tree"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_window"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+bg_color = Color(0.086, 0.071, 0.086, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.79, 0.64, 0.36, 1)
+anti_aliasing = false
+
 [node name="MasteryPanel" type="PanelContainer"]
 offset_right = 1240.0
 offset_bottom = 800.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_window")
 script = ExtResource("1_panel")
 title = "Maestria"
 default_size = Vector2(1240, 800)

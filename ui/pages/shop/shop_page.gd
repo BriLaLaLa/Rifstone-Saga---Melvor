@@ -17,10 +17,10 @@ const BUY_TEXT: String = "Compra"
 const REQUIRES_TEXT: String = "Richiede: %s"
 const REQ_SKILL_TEXT: String = "%s livello %s"
 const REQ_TOTAL_TEXT: String = "livello totale %s"
+const REQ_CHARACTER_TEXT: String = "livello del personaggio %s"
 const REQ_SEPARATOR: String = ", "
 const CATEGORY_TEXTS: Dictionary[StringName, String] = {
 	&"bank": "Bank",
-	&"combat": "Combattimento",
 	&"materials": "Materiali",
 	&"tools": "Attrezzi",
 }
@@ -31,6 +31,7 @@ const REFUSED_TEXTS: Dictionary[StringName, String] = {
 	Reasons.REQUIREMENT_NOT_MET: "Requisiti non soddisfatti.",
 	Reasons.NOT_ENOUGH_GOLD: "Oro insufficiente.",
 	Reasons.BANK_FULL: "La bank è piena.",
+	Reasons.ARMORY_FULL: "L'Armeria è piena.",
 }
 const REFUSED_TEXT_DEFAULT: String = "Acquisto non riuscito."
 const MARGIN: int = 16
@@ -72,6 +73,8 @@ func bind(session: GameSession) -> void:
 	events.gold_changed.connect(_on_gold_changed)
 	events.bank_changed.connect(_on_bank_changed)
 	events.level_up.connect(_on_level_up)
+	events.character_level_up.connect(_on_character_level_up)
+	events.armory_capacity_changed.connect(_on_armory_capacity_changed)
 	_build_rows()
 	_refresh()
 
@@ -90,6 +93,10 @@ func unbind() -> void:
 			events.bank_changed.disconnect(_on_bank_changed)
 		if events.level_up.is_connected(_on_level_up):
 			events.level_up.disconnect(_on_level_up)
+		if events.character_level_up.is_connected(_on_character_level_up):
+			events.character_level_up.disconnect(_on_character_level_up)
+		if events.armory_capacity_changed.is_connected(_on_armory_capacity_changed):
+			events.armory_capacity_changed.disconnect(_on_armory_capacity_changed)
 	_session = null
 
 
@@ -216,6 +223,8 @@ func _missing_requirements(entry: ShopEntryDef) -> String:
 			parts.append(REQ_SKILL_TEXT % [skill.name if skill != null else String(skill_id), level])
 	if _session.skills.total_level() < entry.req_total_level:
 		parts.append(REQ_TOTAL_TEXT % entry.req_total_level)
+	if entry.req_character > _session.character.get_level():
+		parts.append(REQ_CHARACTER_TEXT % entry.req_character)
 	return REQ_SEPARATOR.join(parts)
 
 
@@ -246,4 +255,12 @@ func _on_bank_changed(_item_id: StringName, _new_count: int, _delta: int) -> voi
 
 
 func _on_level_up(_skill_id: StringName, _new_level: int) -> void:
+	_refresh()
+
+
+func _on_character_level_up(_new_level: int) -> void:
+	_refresh()
+
+
+func _on_armory_capacity_changed(_used: int, _capacity: int) -> void:
 	_refresh()
