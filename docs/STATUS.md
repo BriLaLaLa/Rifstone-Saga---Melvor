@@ -4,16 +4,21 @@ Aggiornato dall'Orchestratore (unico che modifica questo file). Stati: TODO / IN
 Se la sessione si interrompe, si riparte da qui.
 
 ## Ripartenza (aggiornata il 2026-11-03)
-- **Stato**: M3 avviata (OK utente 2026-11-03). M2 completata, tag `m2-done` su `c4e12c0`; `main` e i tag `m0-done`, `m1-done`, `m2-done` pushati su `origin`.
-  Suite su main: 740 test, 739 passati, 1 pending (stat di M3/M4, diventa errore in M6-07).
-- **Prossimo passo**: M3 in corso, task in parallelo a coppie (M3-01+M3-04, poi M3-02, M3-03, M3-05..M3-09); vedere la tabella.
+- **Stato**: M3 completata, tag `m3-done` su `ca18ee6`; `main` e i tag `m0-done`…`m3-done` pushati su `origin`.
+  Suite su main: 837 test, 836 passati, 1 pending (14 stat di M4, diventa errore in M6-07). Prova del Giocabile 10/10.
+- **Prossimo passo**: attendere l'OK esplicito dell'utente per **M4**; poi M4-01… secondo `07_TASKS.md`, con le regole dei
   consumi di `CLAUDE.md` (massimo 2 agenti, test mirati, suite completa solo dopo il merge, review sul diff, sezioni nei brief).
 - **Decisioni aperte per l'utente**: Q26 (nodi di Cavatura e Lenza con i valori di Selvicoltura; default: così, rivedere con Q15).
-- **Follow-up già registrati** (note in `07_TASKS.md`): divisione di `ui_style.gd` (390/400) in M3-05 o nel primo task M3
-  che aggiunge costanti `UiStyle`; sfondo del pannello della maestria trasparente e toast dei livelli accumulati sopra le
-  finestre (UI, M3-05 o polish); `skill_page.gd` 223 righe, ricontare in M3-05.
-- **Pulizia a mano**: worktree finiti in `C:/Users/Davide/Desktop/AI/RSI-worktrees/` (branch tutti mergiati) e cartella
-  vuota `rifstone-saga---melvor/` nella root.
+- **Decisioni prese in M3** (DECISIONS_LOG): `test_crafting_data.gd` nuovo file dei dati; impugnature `*_grip` restano;
+  `bank.max_purchasable` tolta (unica definizione = `max_purchases` di `bank_slot`, M3-10); `from_save` con due mani e
+  offhand scarta l'offhand (05 §5.9, M3-11).
+- **Follow-up già registrati** (note in `07_TASKS.md`): su M4-05 spostamento di `build_theme` da `ui_style.gd` (390/400),
+  sfondo trasparente del pannello della maestria, pulizia del test `tool_forestry`; su M6-06 toast dei livelli sopra le
+  finestre; su M5-02 debito di stile di `test_crafting_data.gd`; su M4-03 `_combat_active()` tipizzato in `equipment.gd`.
+- **Prova manuale consigliata** (non verificabile in headless): aspetto delle pagine Shop ed Equipaggiamento, vendita e
+  trascinamento con clic reali.
+- **Pulizia a mano**: cartella `C:/Users/Davide/Desktop/AI/RSI-worktrees/M3-03` (worktree già staccato da git, file
+  bloccati da un processo Godot rimasto aperto) e cartella vuota `rifstone-saga---melvor/` nella root.
 
 | ID | Milestone | Titolo | Ruolo | Stato | Branch | Note |
 |---|---|---|---|---|---|---|
@@ -61,8 +66,8 @@ Se la sessione si interrompe, si riparte da qui.
 | M3-06 | M3 | Shop e vendita | UI | DONE | task/M3-06 | merge 444d051, docs c4cc394, 5d08b00; 1a56aa5 rimandato (rotta shop, oro scritto a mano), corretto in a267a0a; 813 test, 812 passati, 1 pending; ownership estesa a ROUTES di page_host.gd e test_main_screen_smoke.gd |
 | M3-07 | M3 | Pagina equipaggiamento | UI | DONE | task/M3-07 | merge 0063967, docs b7c972d, 273bd24; ba9cd4d rimandato (nomi di skill scritti a mano, riepilogo senza attrezzi), corretto in 04a8f07; 825 test, 824 passati, 1 pending; ownership estesa a ROUTES e test_main_screen_smoke.gd |
 | M3-08 | M3 | Test di M3 | QA | DONE | task/M3-08 | merge b29e214, docs 245cbd3; 836 test, 834 passati, 2 pending (stat M4; bug from_save due mani + offhand, chiuso da M3-11) |
-| M3-11 | M3 | from_save: arma a due mani e offhand insieme | CORE | IN_PROGRESS | task/M3-11 | bug trovato da M3-08; regola in 05 §5.9 (245cbd3): offhand scartato con Log.warn |
-| M3-09 | M3 | Integrazione di M3 | REV | TODO | | |
+| M3-11 | M3 | from_save: arma a due mani e offhand insieme | CORE | DONE | task/M3-11 | merge 0159747; 3538bb7; bug trovato da M3-08; regola in 05 §5.9 (245cbd3): offhand scartato con Log.warn |
+| M3-09 | M3 | Integrazione di M3 | REV | DONE | main | docs 5eb8222, ca18ee6; tag m3-done su ca18ee6; 837 test, 836 passati, 1 pending; prova del Giocabile 10/10 |
 | M4-01 | M4 | Formule di combattimento | COMBAT | TODO | | |
 | M4-02 | M4 | Statistiche, razioni da campo, borsa del bottino | COMBAT | TODO | | |
 | M4-03 | M4 | Motore del combattimento | COMBAT | TODO | | ownership estesa (da M1-10): riga stop del combattimento in action_runner.gd start; chiave finta combat in test_game_session.gd |
