@@ -10,7 +10,7 @@ extends Node
 ## of a real-time Timer node so that it stops whenever the clock is paused (menu, offline) and so that tests can
 ## simulate it with GameClock alone. It starts on entering `playing` and stops in end_session.
 ##
-## Configuration comes from balance.json in _ready (tick, catch-up, autosave interval, slot count).
+## Configuration comes from balance.json in _ready (tick, catch-up, autosave interval, slot count, name length).
 ## Commands that start a game fail with slot_active while a session is open: the caller ends it first.
 
 const LOG_CATEGORY: String = "game"
@@ -18,9 +18,9 @@ const TICK_MS_KEY: String = "tick_ms"
 const MAX_CATCHUP_MS_KEY: String = "max_catchup_ms"
 const AUTOSAVE_INTERVAL_KEY: String = "autosave_interval_ms"
 const SLOT_COUNT_KEY: String = "slots.count"
-# Player name length after strip_edges (docs/05_INTERFACES.md §2, docs/01_GDD.md §1).
-const PLAYER_NAME_MIN_LENGTH: int = 1
-const PLAYER_NAME_MAX_LENGTH: int = 24
+# Player name length after strip_edges (docs/01_GDD.md §1); SlotTexts reads the same keys for its message.
+const NAME_MIN_LENGTH_KEY: String = "player_name.min_length"
+const NAME_MAX_LENGTH_KEY: String = "player_name.max_length"
 const STATE_MENU: StringName = &"menu"
 const STATE_LOADING: StringName = &"loading"
 const STATE_OFFLINE: StringName = &"offline"
@@ -37,6 +37,8 @@ var state: StringName = STATE_MENU
 var last_offline_summary: RefCounted = null
 
 var _slot_count: int = 0
+var _name_min_length: int = 0
+var _name_max_length: int = 0
 var _autosave_interval_ms: int = 0
 var _autosave_elapsed_ms: int = 0
 
@@ -50,6 +52,8 @@ func _ready() -> void:
 	GameClock.configure(int(data.balance_value(TICK_MS_KEY)), int(data.balance_value(MAX_CATCHUP_MS_KEY)))
 	_autosave_interval_ms = int(data.balance_value(AUTOSAVE_INTERVAL_KEY))
 	_slot_count = int(data.balance_value(SLOT_COUNT_KEY))
+	_name_min_length = int(data.balance_value(NAME_MIN_LENGTH_KEY))
+	_name_max_length = int(data.balance_value(NAME_MAX_LENGTH_KEY))
 	SaveService.configure(_slot_count)
 
 
@@ -66,12 +70,12 @@ func list_slots() -> Array[SlotInfo]:
 	return SaveService.list_slots()
 
 
-## Name 1-24 characters after strip (invalid_name); creates the session, new_game(), saves, then `playing`.
+## Name length after strip within player_name.min_length-max_length of balance.json (invalid_name); creates the session, new_game(), saves, then `playing`.
 ## Fails with slot_active while a session is open, io_error for a slot out of range or when the first save fails
 ## (in that case the session is discarded and nothing changes).
 func new_game(slot: int, player_name: String) -> CommandResult:
 	var clean_name: String = player_name.strip_edges()
-	if clean_name.length() < PLAYER_NAME_MIN_LENGTH or clean_name.length() > PLAYER_NAME_MAX_LENGTH:
+	if clean_name.length() < _name_min_length or clean_name.length() > _name_max_length:
 		return CommandResult.fail(Reasons.INVALID_NAME)
 	var check: CommandResult = _check_can_start(slot)
 	if not check.ok:

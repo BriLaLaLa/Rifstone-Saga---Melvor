@@ -144,6 +144,9 @@ func test_invalid_name_shows_message() -> void:
 	(_select.get_node("%StartButton") as Button).pressed.emit()
 	assert_eq(_message(), SlotTexts.reason_text(Reasons.INVALID_NAME))
 	assert_string_contains(_message(), "da 1 a 24 caratteri")
+	assert_string_contains(_message(), "da %d a %d caratteri" % [
+		int(DataRegistry.data.balance_value("player_name.min_length")),
+		int(DataRegistry.data.balance_value("player_name.max_length"))], "limits read from balance.json")
 	assert_true((_select.get_node("%NamePanel") as Control).visible, "still on the name step")
 	assert_eq(_started, 0)
 

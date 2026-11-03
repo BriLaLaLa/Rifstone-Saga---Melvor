@@ -2,8 +2,8 @@ class_name SlotTexts
 extends RefCounted
 ## Italian texts of the slot screens: command errors, slot states, save date and play time (display only).
 ##
-## The name length in the invalid_name message comes from the Game coordinator's constants, so the rule has a
-## single definition. Numbers use NumberFormat.format_int.
+## The name length in the invalid_name message is read from balance.json with the Game coordinator's keys, so the
+## rule has a single definition. Numbers use NumberFormat.format_int.
 
 const GameScript := preload("res://core/autoload/game.gd")
 const STATE_EMPTY := &"empty"
@@ -33,7 +33,9 @@ const MINUTES_PER_HOUR: int = 60
 ## Message for a failed command.
 static func reason_text(reason: StringName) -> String:
 	if reason == Reasons.INVALID_NAME:
-		return INVALID_NAME_TEXT % [GameScript.PLAYER_NAME_MIN_LENGTH, GameScript.PLAYER_NAME_MAX_LENGTH]
+		var data: GameData = DataRegistry.data
+		return INVALID_NAME_TEXT % [int(data.balance_value(GameScript.NAME_MIN_LENGTH_KEY)),
+				int(data.balance_value(GameScript.NAME_MAX_LENGTH_KEY))]
 	if REASON_TEXTS.has(reason):
 		return REASON_TEXTS[reason]
 	return UNKNOWN_REASON_TEXT % reason

@@ -12,6 +12,8 @@ const EXPECTED_BALANCE: Dictionary = {
 	"max_catchup_ms": 5000.0,
 	"autosave_interval_ms": 10000.0,
 	"slots.count": 4.0,
+	"player_name.min_length": 1.0,
+	"player_name.max_length": 24.0,
 	"start.gold": 50.0,
 	"start.items": [],
 	"xp_curve.base": 70.0,
