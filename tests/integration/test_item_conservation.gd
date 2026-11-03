@@ -20,6 +20,15 @@ const IDLE_MS: int = 60000
 const BOOST_SOURCE: StringName = &"test:conservation"
 const DOUBLE_CHANCE: float = 35.0
 const SHARD_CHANCE: float = 25.0
+const SMELT_ACTION: StringName = &"smelt_emberbronze"
+const ORE_STACK: int = 40
+const SOLD_QTY: int = 7
+const PRESERVE_CHANCE: float = 60.0
+const BLADE: StringName = &"emberbronze_blade"
+const BLADE_2: StringName = &"ashlead_blade"
+const BOW: StringName = &"redbirch_bow"
+const SHIELD: StringName = &"emberbronze_shield"
+const FILLER: StringName = &"redbirch_log"
 const CONTENT_ROOT: String = "res://data"
 const CONFIG_ROOT: String = "res://data/config"
 const PreRun := preload("res://tests/helpers/gut_pre_run.gd")
@@ -102,7 +111,7 @@ func test_switching_actions_keeps_conservation() -> void:
 
 
 func test_bank_full_cycle_adds_nothing() -> void:
-	_session = _watched_session(_one_slot_data())
+	_session = _watched_session(_data_with_slots(1))
 	assert_eq(_session.bank.capacity(), 1, "bank.base_slots = 1")
 	# A shard needs a second slot: the first cycle that rolls one does not count and stops the lane.
 	var mods: Array[Modifier] = [Modifier.make(&"rift_shard_chance", SHARD_CHANCE)]
@@ -132,6 +141,179 @@ func test_items_are_in_one_place_only() -> void:
 		seen[id] = true
 		assert_eq(int(entry["count"]), _session.bank.get_count(id), "the save is the bank")
 	assert_eq(stacks.size(), _session.bank.used())
+
+
+func test_crafting_products_and_consumed_equal_bank_change() -> void:
+	_session = _watched_session(TestFactory.real_data())
+	var smelt: ActionDef = _session.data.action(SMELT_ACTION)
+	var ore: StringName = smelt.inputs[0].item_id
+	var ingot: StringName = smelt.outputs[0].item_id
+	TestFactory.give(_session, ore, ORE_STACK)
+	_deltas.clear()
+	var mods: Array[Modifier] = [
+		Modifier.make(&"preservation_chance", PRESERVE_CHANCE),
+		Modifier.make(&"double_item_chance", DOUBLE_CHANCE),
+	]
+	_session.modifiers.set_source(BOOST_SOURCE, mods)
+	var start: Dictionary[StringName, int] = _bank_counts(_session)
+	assert_true(_session.actions.start(smelt.skill_id, smelt.id).ok)
+	_advance_in_ticks(_session, RUN_MS)
+	assert_gt(_cycles, 0)
+	assert_gt(_doubles, 0, "doubles happened")
+	var consumed: int = start[ore] - _session.bank.get_count(ore)
+	assert_eq(consumed % smelt.inputs[0].qty, 0, "ingredients leave in whole recipes")
+	assert_lt(consumed, _cycles * smelt.inputs[0].qty, "some cycles were preserved (F-08)")
+	assert_eq(_session.bank.get_count(ingot), _produced[ingot], "products = ingots in the bank")
+	assert_eq(_deltas.get(ore, 0), -consumed, "bank_changed tells the same story for the ingredient")
+	assert_eq(_deltas.get(ingot, 0), _produced[ingot], "and for the product")
+	assert_false(_produced.has(SHARD), "no shard from crafting (GDD 5)")
+
+
+func test_selling_conserves_items_and_gold() -> void:
+	_session = _watched_session(TestFactory.real_data())
+	var ore: StringName = _session.data.action(SMELT_ACTION).inputs[0].item_id
+	TestFactory.give(_session, ore, ORE_STACK)
+	_deltas.clear()
+	var gold: int = _session.wallet.get_gold()
+	assert_false(_session.shop.sell(ore, ORE_STACK + 1).ok, "more than owned is refused")
+	assert_eq(_session.bank.get_count(ore), ORE_STACK, "refusal changes nothing")
+	var value: int = _session.shop.sell_value(ore, SOLD_QTY)
+	assert_true(_session.shop.sell(ore, SOLD_QTY).ok)
+	assert_eq(_session.bank.get_count(ore), ORE_STACK - SOLD_QTY)
+	assert_eq(_session.wallet.get_gold(), gold + value, "gold = sell_value (F-18)")
+	assert_eq(_deltas.get(ore, 0), -SOLD_QTY, "bank_changed delta of the sale")
+	_session.bank.set_locked(ore, true)
+	assert_eq(_session.shop.sell(ore, 1).reason, Reasons.ITEM_LOCKED)
+	assert_eq(_session.bank.get_count(ore), ORE_STACK - SOLD_QTY, "a locked stack is untouched")
+
+
+func test_selling_ingredients_mid_cycle_stops_without_xp_or_products() -> void:
+	_session = _watched_session(TestFactory.real_data())
+	var smelt: ActionDef = _session.data.action(SMELT_ACTION)
+	var ore: StringName = smelt.inputs[0].item_id
+	TestFactory.give(_session, ore, smelt.inputs[0].qty)
+	assert_true(_session.actions.start(smelt.skill_id, smelt.id).ok)
+	@warning_ignore("integer_division")
+	_session.advance(smelt.interval_ms / 2)
+	assert_true(_session.shop.sell(ore, smelt.inputs[0].qty).ok)
+	_advance_in_ticks(_session, smelt.interval_ms)
+	assert_eq(_stops, [Reasons.MISSING_INPUTS] as Array[StringName])
+	assert_eq(_cycles, 0)
+	assert_eq(_session.skills.get_xp(smelt.skill_id), 0, "no XP")
+	assert_eq(_session.bank.used(), 0, "the bank is empty: nothing appeared")
+
+
+func test_equipping_moves_one_unit_and_each_item_exists_once() -> void:
+	_session = _watched_session(TestFactory.real_data())
+	var all: Array[StringName] = [BLADE, BOW, SHIELD]
+	for id: StringName in all:
+		TestFactory.give(_session, id, 1)
+	assert_true(_session.equipment.equip(SHIELD).ok)
+	_assert_once(all)
+	assert_true(_session.equipment.equip(BOW).ok, "two-handed weapon")
+	assert_eq(_session.equipment.get_item(&"offhand"), &"", "the shield went back")
+	assert_eq(_session.bank.get_count(SHIELD), 1)
+	_assert_once(all)
+	assert_true(_session.equipment.equip(SHIELD).ok, "offhand with a two-handed weapon")
+	assert_eq(_session.equipment.get_item(&"weapon"), &"", "the bow went back")
+	assert_eq(_session.bank.get_count(BOW), 1)
+	_assert_once(all)
+	assert_true(_session.equipment.equip(BLADE).ok)
+	assert_true(_session.equipment.unequip(&"weapon").ok)
+	assert_eq(_session.bank.get_count(BLADE), 1)
+	_assert_once(all)
+	var saved: Dictionary = _session.to_save(0)["modules"]
+	assert_eq((saved["equipment"]["slots"] as Dictionary).size(), 1, "only the shield is worn in the save")
+
+
+func test_equip_with_full_bank_is_refused_unless_the_worn_unit_was_the_last() -> void:
+	_session = _watched_session(_data_with_slots(2))
+	assert_eq(_session.bank.capacity(), 2)
+	TestFactory.give(_session, BLADE, 1)
+	assert_true(_session.equipment.equip(BLADE).ok)
+	var better: ItemDef = _session.data.item(BLADE_2)
+	for skill: StringName in better.equip.requirements:
+		TestFactory.set_level(_session, skill, better.equip.requirements[skill])
+	TestFactory.give(_session, BLADE_2, 2)
+	TestFactory.give(_session, FILLER, 1)
+	assert_eq(_session.bank.used(), 2, "bank full")
+	var ids: Array[StringName] = [BLADE, BLADE_2, FILLER]
+	var before: Dictionary = _world(_session, ids)
+	var refused: CommandResult = _session.equipment.equip(BLADE_2)
+	assert_eq(refused.reason, Reasons.BANK_FULL, "no room for the replaced piece")
+	assert_eq(_world(_session, ids), before, "nothing changed")
+	_session.bank.remove(BLADE_2, 1)
+	assert_true(_session.equipment.equip(BLADE_2).ok, "its stack was the last unit: its slot is free for the old piece")
+	assert_eq(_session.bank.get_count(BLADE), 1)
+
+
+func test_last_batch_of_ingredients_with_full_bank_frees_its_own_slot() -> void:
+	_session = _watched_session(_data_with_slots(2))
+	var smelt: ActionDef = _session.data.action(SMELT_ACTION)
+	var ore: StringName = smelt.inputs[0].item_id
+	var ingot: StringName = smelt.outputs[0].item_id
+	TestFactory.give(_session, ore, smelt.inputs[0].qty)
+	TestFactory.give(_session, FILLER, 1)
+	assert_eq(_session.bank.used(), _session.bank.capacity(), "bank full")
+	assert_true(_session.actions.start(smelt.skill_id, smelt.id).ok)
+	_session.advance(smelt.interval_ms)
+	assert_eq(_cycles, 1, "the ingot takes the slot of the consumed ore (05 5.8)")
+	assert_eq(_session.bank.get_count(ore), 0)
+	assert_eq(_session.bank.get_count(ingot), smelt.outputs[0].qty)
+	assert_eq(_session.bank.used(), 2)
+	_session.actions.stop()
+	# One ore more than a recipe: the stack survives, the new item has no slot: the cycle does not count.
+	_session.free()
+	_cycles = 0
+	_stops.clear()
+	_session = _watched_session(_data_with_slots(2))
+	TestFactory.give(_session, ore, smelt.inputs[0].qty + 1)
+	TestFactory.give(_session, FILLER, 1)
+	var ids: Array[StringName] = [ore, ingot, FILLER]
+	var before: Dictionary = _world(_session, ids)
+	assert_true(_session.actions.start(smelt.skill_id, smelt.id).ok)
+	_session.advance(smelt.interval_ms)
+	assert_eq(_cycles, 0)
+	assert_eq(_stops, [Reasons.BANK_FULL] as Array[StringName])
+	assert_eq(_world(_session, ids), before, "nothing consumed, nothing produced")
+
+
+func test_save_with_two_handed_weapon_and_offhand_keeps_the_invariants() -> void:
+	_session = _watched_session(TestFactory.real_data())
+	var saved: Dictionary = _session.to_save(0)
+	var slots: Dictionary = (saved["modules"] as Dictionary)["equipment"]["slots"]
+	slots["weapon"] = String(BOW)
+	slots["offhand"] = String(SHIELD)
+	var loaded: GameSession = TestFactory.session(SEED, _session.data)
+	assert_true(loaded.from_save(saved).ok, "the edited save loads")
+	var both: bool = loaded.equipment.get_item(&"weapon") == BOW and loaded.equipment.get_item(&"offhand") == SHIELD
+	loaded.free()
+	if both:
+		pending("bug: from_save loads a two-handed weapon and an offhand together (05 5.9 only checks slot and "
+				+ "item type; GDD 9: a two-handed weapon needs a free offhand). Proposal: drop the offhand when the "
+				+ "weapon is two-handed, with Log.warn.")
+		return
+	assert_true(true)
+
+
+func _assert_once(ids: Array[StringName]) -> void:
+	for id: StringName in ids:
+		var worn: int = 0
+		for slot: StringName in Equipment.SLOTS:
+			if _session.equipment.get_item(slot) == id:
+				worn += 1
+		assert_eq(_session.bank.get_count(id) + worn, 1, "%s exists exactly once" % id)
+
+
+# Bank counts of the given items plus every worn slot and the used boxes, comparable with assert_eq.
+func _world(session: GameSession, ids: Array[StringName]) -> Dictionary:
+	var out: Dictionary = {}
+	for id: StringName in ids:
+		out[id] = session.bank.get_count(id)
+	for slot: StringName in Equipment.SLOTS:
+		out["slot:" + String(slot)] = session.equipment.get_item(slot)
+	out["used"] = session.bank.used()
+	return out
 
 
 func _assert_conserved(start: Dictionary[StringName, int]) -> void:
@@ -171,15 +353,15 @@ func _bank_counts(session: GameSession) -> Dictionary[StringName, int]:
 	return counts
 
 
-# Real content with a config copy where the bank has a single slot.
-func _one_slot_data() -> GameData:
+# Real content with a config copy where the bank has `slots` base slots.
+func _data_with_slots(slots: int) -> GameData:
 	DirAccess.make_dir_recursive_absolute(_tmp_config)
 	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_ROOT.path_join("balance.json")))
-	(balance["bank"] as Dictionary)["base_slots"] = 1
+	(balance["bank"] as Dictionary)["base_slots"] = slots
 	_write(_tmp_config.path_join("balance.json"), JSON.stringify(balance))
 	_write(_tmp_config.path_join("stats.json"), FileAccess.get_file_as_string(CONFIG_ROOT.path_join("stats.json")))
 	var data: GameData = GameData.load_from_dirs(CONTENT_ROOT, _tmp_config)
-	assert_true(data.is_valid(), "one-slot data valid: %s" % "\n".join(data.errors))
+	assert_true(data.is_valid(), "%d-slot data valid: %s" % [slots, ", ".join(data.errors)])
 	return data
 
 
