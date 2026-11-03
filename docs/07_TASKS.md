@@ -822,6 +822,10 @@ Regole per tutti i task:
 ### M3-09 · Integrazione di M3
 - **Ruolo** REV · **Stima** S · **Dipendenze** M3-01…M3-08, M3-10, M3-11 · **Ownership** merge, tag `m3-done` · **Parallelizzabile** no ·
   **Leggere** `08_TEAM.md` §4-6 · **Descrizione / Accettazione / Test** come M1-20.
+- **Esito (Reviewer)** Suite su main dopo M3-11: 837 test, 836 passati, 1 pending (stat di M4); `run_checks` OK. Prova
+  del Giocabile in headless con `TestFactory` e dati veri (probe temporaneo, non versionato): 10/10 voci, 53 asserzioni.
+  Follow-up annotati su M4-05 (`build_theme`, sfondo del pannello della maestria, pulizia del test `tool_forestry`) e
+  M6-06 (toast sopra le finestre); il debito di `test_crafting_data.gd` è già su M5-02. Tag `m3-done`.
 
 ---
 
