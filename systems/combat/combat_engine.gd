@@ -71,6 +71,7 @@ func stop(reason: StringName = Reasons.STOPPED_BY_USER) -> void:
 	if _state == STATE_IDLE:
 		return
 	_state = STATE_IDLE
+	_area_id = &""
 	_encounter = Encounter.new()
 	_between_ms = 0
 	_stop_log.append(reason)
