@@ -13,7 +13,6 @@ const CAPACITY_STAT: StringName = &"armory_slots"
 const CHANGE_ADDED: StringName = &"added"
 const CHANGE_REMOVED: StringName = &"removed"
 const CHANGE_UPDATED: StringName = &"updated"
-const EQUIPPABLE_CATEGORIES: Array[StringName] = [&"equipment", &"tool"]
 
 var _data: GameData
 var _events: GameEvents
@@ -100,14 +99,17 @@ func is_worn(uid: int) -> bool:
 	return _worn.has(uid)
 
 
-## Only Equipment calls this. Changes used().
-func set_worn(uid: int, worn: bool) -> void:
+## Only Equipment calls this. Changes used(). `quiet` (only Equipment.from_save) sets the flag without signals.
+func set_worn(uid: int, worn: bool, quiet: bool = false) -> void:
 	if not _items.has(uid) or _worn.has(uid) == worn:
 		return
 	if worn:
 		_worn[uid] = true
 	else:
 		_worn.erase(uid)
+	if quiet:
+		_known_capacity = capacity()
+		return
 	_events.armory_changed.emit(uid, CHANGE_UPDATED)
 	_emit_capacity()
 
@@ -191,7 +193,7 @@ func _clear() -> void:
 
 
 func _is_piece_base(base_id: StringName) -> bool:
-	return _data.has_item(base_id) and _data.item(base_id).category in EQUIPPABLE_CATEGORIES \
+	return _data.has_item(base_id) and _data.item(base_id).category in Bank.PIECE_CATEGORIES \
 			and _data.item(base_id).equip != null
 
 

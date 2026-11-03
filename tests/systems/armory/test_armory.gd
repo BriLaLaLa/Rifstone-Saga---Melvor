@@ -140,6 +140,16 @@ func test_worn_pieces_do_not_count_for_capacity() -> void:
 	assert_eq(_armory.used(), SMALL_SLOTS)
 
 
+func test_quiet_set_worn_emits_nothing() -> void:
+	var uid: int = TestFactory.give_piece(_session, &"test_blade")
+	watch_signals(_session.events)
+	_armory.set_worn(uid, true, true)
+	assert_true(_armory.is_worn(uid))
+	assert_eq(_armory.used(), 0)
+	assert_signal_not_emitted(_session.events, "armory_changed")
+	assert_signal_not_emitted(_session.events, "armory_capacity_changed")
+
+
 func test_remove_rules_and_uid_not_reused() -> void:
 	var a: int = TestFactory.give_piece(_session, &"test_blade")
 	var b: int = TestFactory.give_piece(_session, &"test_helm")
