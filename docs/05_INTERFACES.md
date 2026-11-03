@@ -873,6 +873,33 @@ func set_xp(table: XpTable, xp: int) -> void
 class_name ConfirmDialog extends ConfirmationDialog   # ui/components/confirm_dialog/confirm_dialog.gd
 static func ask(parent: Node, title: String, text: String) -> bool   # coroutine
 
+# ui/screens/main_menu/main_menu.gd (scena principale, senza class_name): variabili iniettabili, prima di _ready
+var game: GameScript = null                        # preload di core/autoload/game.gd; null = autoload Game
+var data: GameData = null                          # dati da controllare; null = DataRegistry.data
+var scene_changer: Callable = Callable()           # (path: String) -> Error; non valido = change_scene_to_file
+
+class_name SlotSelect extends Control              # ui/screens/slot_select/slot_select.gd (+ .tscn), figlia del menu
+signal game_started                                # solo dopo new_game/continue_game con ok
+signal closed                                      # "Menu principale": il menu torna visibile
+const MODE_NEW := &"new"                           # = SlotRow.MODE_NEW
+const MODE_CONTINUE := &"continue"                 # = SlotRow.MODE_CONTINUE
+var game: GameScript = null                        # null = autoload Game; da impostare prima di open
+func open(mode: StringName) -> void                # rilegge list_slots() e mostra l'elenco
+
+class_name SlotRow extends PanelContainer          # ui/screens/slot_select/slot_row.gd (+ .tscn), interna a SlotSelect
+signal chosen(slot: int)
+signal delete_requested(slot: int)
+func setup(info: SlotInfo, mode: StringName) -> void   # dopo l'ingresso nell'albero; tiene solo il numero dello slot
+
+class_name SlotTexts extends RefCounted            # ui/screens/slot_select/slot_texts.gd, solo statiche e costanti
+const STATE_EMPTY / STATE_OK / STATE_CORRUPTED / STATE_UNSUPPORTED  # i valori di SlotInfo.state
+static func reason_text(reason: StringName) -> String   # invalid_name con Game.PLAYER_NAME_MIN/MAX_LENGTH
+static func state_text(state: StringName) -> String
+static func slot_title(info: SlotInfo) -> String        # "Slot 2" o "Slot 2  ·  Aria"
+static func slot_details(info: SlotInfo) -> String      # data, tempo di gioco, livello totale; o il testo dello stato
+static func play_time(ms: int) -> String                # "12 min", "1 h 05 min"
+static func saved_at(unix_ms: int) -> String            # data e ora locali "03/11/2026 14:05"
+
 class_name ToastManager extends Control            # ui/components/toast/toast_manager.gd (nella MainScreen)
 var events: GameEvents = null                      # null = autoload EventBus; i test passano GameEvents.new()
 var time_source: Callable = Time.get_ticks_msec    # () -> int, millisecondi
@@ -922,6 +949,14 @@ I requisiti sono in grigio: il tooltip non legge la sessione.
 sommati per oggetto in una finestra di `UiStyle.TOAST_GROUP_MS` dal primo aumento), `level_up`, `action_stopped`
 (nessun toast per `stopped_by_user` e `replaced`); `session_ended` scarta i gruppi aperti. Al massimo
 `UiStyle.TOAST_MAX_VISIBLE` toast visibili, gli altri in coda. Le costanti di presentazione sono `UiStyle.TOAST_*`.
+`ConfirmDialog.ask` aggiunge il dialogo (esclusivo) sotto `parent`, aspetta la risposta (Conferma → `true`; Annulla, Esc,
+chiusura → `false`) e lo libera; il segnale interno `_answered` non fa parte del contratto. I test rispondono emettendo
+`confirmed`/`canceled` sul figlio `ConfirmDialog`.
+Menu e `SlotSelect` (M1-13): nessun file scritto aprendo e chiudendo il menu (solo `list_slots`); Nuova partita/Continua
+solo con `data.is_valid()`, Continua solo con uno slot `ok`. `SlotSelect` rilegge `list_slots()` a ogni ridisegno, chiede
+conferma prima di sovrascrivere uno slot `ok` e prima di `delete_slot`; danneggiati e non supportati si possono solo
+eliminare; ogni comando fallito mostra `SlotTexts.reason_text`. Il menu cambia scena solo dopo `game_started`; se il cambio
+fallisce: `Log.error`, `end_session(true)` e messaggio. I test usano una sottoclasse di `game.gd` mai aggiunta all'albero.
 Le pagine non tengono stato di gioco: solo riferimenti alla sessione e ai nodi. Ogni ridisegno legge dai getter.
 
 ## 8. Helper dei test (`res://tests/helpers/`)

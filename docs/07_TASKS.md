@@ -337,6 +337,11 @@ Regole per tutti i task:
   mostrare: `invalid_name`, `slot_active`, `io_error`, `corrupted`, `version_unsupported` (`05_INTERFACES.md` §2).
   `new_game` sovrascrive senza chiedere: la conferma è del menu. Cambiare scena solo con `CommandResult.ok`; in caso di
   errore `Game` è già in `menu`, senza sessione e con il clock in pausa.
+- **Nota (review M1-13)** Fatto. Contratti in `05_INTERFACES.md` §7 (`SlotSelect`, `SlotRow`, `SlotTexts`, variabili
+  iniettabili del menu, `ConfirmDialog`). Due test di `test_main_menu_smoke.gd` usano l'autoload `Game` vero (accettato:
+  provano il menu reale; chiamano solo `list_slots` e un `new_game` rifiutato per `invalid_name`, quindi nessuna sessione
+  né clock avviati): dipendono da `user://test_saves` senza uno slot 1 danneggiato lasciato da altri test; se un giorno
+  diventano instabili, svuotare la cartella in `before_each`. Follow-up delle costanti di presentazione su M1-15.
 
 ### M1-14 · Schermata principale: sidebar, barra in alto, PageHost
 - **Ruolo** UI · **Stima** M · **Parallelizzabile** sì · **Dipendenze** M1-11, M1-17
@@ -368,6 +373,13 @@ Regole per tutti i task:
   è `null` (liberata), `state = menu`, clock in pausa; i nodi della schermata si scollegano su `session_ended` (emesso
   prima di liberare la sessione) e non toccano più la sessione. `session_started` arriva a sessione pronta e già salvata,
   prima del cambio scena: la schermata legge `Game.session` in `_ready`, non aspetta il segnale.
+- **Nota (da M1-13)** (1) `SlotTexts` (`res://ui/screens/slot_select/slot_texts.gd`, ownership estesa alle sole chiamate
+  `ItemTooltipLines.format_int` in `slot_details` e `play_time`, e al commento in testa) passa a `NumberFormat.format_int`
+  quando `format_int` esce da `ItemTooltipLines`; M1-14 si mergia dopo M1-13 e il Reviewer di M1-14 verifica che non resti
+  nessuna chiamata a `ItemTooltipLines.format_int`. (2) Ritorno al menu dal pulsante della barra in alto:
+  `Game.end_session(true)` e poi `get_tree().change_scene_to_file("res://ui/screens/main_menu/main_menu.tscn")`; il menu
+  rilegge gli slot in `_ready`. (3) Il menu, se `change_scene_to_file` verso `main_screen.tscn` fallisce, chiude la
+  sessione: la schermata deve quindi caricarsi senza errori anche con la sessione appena creata.
 
 ### M1-15 · Pagina skill (raccolta) e componenti base
 - **Ruolo** UI · **Stima** M · **Parallelizzabile** sì · **Dipendenze** M1-14, M1-16
@@ -379,6 +391,15 @@ Regole per tutti i task:
   continua (letta ogni frame da `get_progress`), motivo di stop come toast.
 - **Accettazione** la barra non tiene stato (solo lettura); l'intervallo mostrato coincide con `current_interval_ms`.
 - **Test** smoke della pagina con la fixture `test_gather`.
+- **Follow-up di M1-13** (ownership estesa: `res://ui/theme/ui_style.gd` solo costanti `MENU_*`/`SLOT_*`/`DIALOG_*`,
+  `res://ui/components/confirm_dialog/confirm_dialog.gd`, `res://ui/screens/main_menu/main_menu.gd/.tscn`,
+  `res://ui/screens/slot_select/slot_select.gd/.tscn`, `slot_row.gd/.tscn`; da fare dopo il merge di M1-14, che tocca
+  `ui_style.gd`): le costanti di presentazione oggi locali diventano `UiStyle` (`09_CONVENTIONS.md` §2):
+  `ConfirmDialog.DIALOG_SIZE` → `UiStyle.DIALOG_SIZE`; larghezza del pannello del menu (520) → `MENU_PANEL_WIDTH`, del
+  pannello degli slot (820) → `SLOT_PANEL_WIDTH`, altezza dei pulsanti del menu e degli slot (44) → `MENU_BUTTON_HEIGHT`
+  (impostate in `_ready` dagli script, i `.tscn` tengono solo la struttura); la dimensione 36 del titolo del menu
+  (`theme_override_font_sizes` in `main_menu.tscn`) diventa una costante o una variante del tema. Se `ui_style.gd`
+  supererebbe 400 righe, fermarsi e chiedere al Reviewer come dividerlo. Test esistenti verdi, nessun cambio di firme.
 
 ### M1-16 · Tooltip e GameWindow portati
 - **Ruolo** PORT · **Stima** M · **Parallelizzabile** sì · **Dipendenze** M1-04, M0-04
@@ -732,6 +753,10 @@ Regole per tutti i task:
   salvataggio e di `_start_playing`); la costante `STATE_OFFLINE` esiste già. Durante l'offline il clock resta in pausa
   (si avvia in `_start_playing`); `last_offline_summary` va tipizzato `OfflineSummary`; `session_started` resta l'ultimo
   passo. Aggiungere a `test_game.gd` (ownership da estendere) i casi con offline.
+- **Nota (da M1-13)** Se `continue_game` diventa una coroutine, `SlotSelect._continue_game`
+  (`res://ui/screens/slot_select/slot_select.gd`, ownership estesa a quel metodo) deve fare `await` e impedire un secondo
+  click durante lo stato `offline`; aggiornare i `FakeGame` di `tests/ui/test_slot_select_smoke.gd` e
+  `test_main_menu_smoke.gd` (stesse firme di `game.gd`).
 
 ### M6-02 · Schermate dell'offline
 - **Ruolo** UI · **Stima** M · **Parallelizzabile** no · **Dipendenze** M6-01
@@ -751,6 +776,11 @@ Regole per tutti i task:
 - **Descrizione** Togliere qualità 3D/supersampling e `GameState`; aggiungere `log_level`; "Salva ed esci" → `Game.end_session(true)`.
 - **Accettazione** impostazioni salvate solo in `user://settings.cfg`; nessuno stato di gioco lì.
 - **Test** `test_game_settings.gd` (default, salvataggio su file di prova).
+- **Nota (da M1-13)** Nel menu il pulsante è `%SettingsButton` di `main_menu.tscn` (oggi `disabled` con tooltip "Disponibili
+  in un prossimo aggiornamento"): attivarlo, togliere il tooltip e collegarlo in `main_menu.gd` (ownership estesa a
+  `main_menu.tscn` per quelle proprietà e a `tests/ui/test_main_menu_smoke.gd` per l'asserzione `SettingsButton.disabled`,
+  che oggi ha il messaggio sbagliato "settings arrive with M1-12"); correggere anche il commento in testa a
+  `main_menu.gd` ("Settings (M1-12)" → M6-03).
 
 ### M6-04 · Sistema dei suggerimenti
 - **Ruolo** CORE · **Stima** S · **Parallelizzabile** sì · **Dipendenze** M5-05
