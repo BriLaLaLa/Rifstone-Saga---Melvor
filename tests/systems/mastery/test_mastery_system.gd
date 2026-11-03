@@ -1,6 +1,6 @@
 extends GutTest
 ## MasterySystem: per-action mastery (F-09/F-10), pool share and cap (F-12/F-13), per-action bonuses (F-11),
-## pool spending (F-14), skills/actions without mastery, save, node placeholders until M2-01.
+## pool spending (F-14), skills/actions without mastery, save. Nodes: test_mastery_nodes.gd.
 ##
 ## Fixture skill test_gather: mastery actions gather_twig (3000 ms) and gather_log (4000 ms), cap 600,000;
 ## gather_bundle has `mastery: false`. Combat skills and riftbinding have no mastery.
@@ -212,13 +212,6 @@ func test_actions_and_skills_without_mastery() -> void:
 	assert_false(_session.modifiers.has_source(&"mastery_item:gather_bundle"))
 	assert_signal_not_emitted(_session.events, "mastery_xp_gained")
 	assert_signal_not_emitted(_session.events, "mastery_pool_changed")
-
-
-func test_node_methods_wait_for_m2_01() -> void:
-	assert_eq(_mastery.node_cost(&"test_gather_n1"), 0)
-	assert_false(_mastery.owns_node(&"test_gather_n1"))
-	assert_eq(_mastery.can_buy_node(&"test_gather_n1").reason, Reasons.UNKNOWN_ID)
-	assert_eq(_mastery.buy_node(&"test_gather_n1").reason, Reasons.UNKNOWN_ID)
 
 
 func test_to_save_writes_every_skill_with_mastery() -> void:

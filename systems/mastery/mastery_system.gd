@@ -6,7 +6,8 @@ extends RefCounted
 ## `has_mastery` skill. Levels derive from the F-09 table; xp stops at the max-level total. A cycle gives F-10 mxp and
 ## F-12 pool share up to the F-13 cap; the pool can be spent on an action (F-14). Per-action bonuses (F-11) are the
 ## `mastery_item:<action_id>` modifier sources, rebuilt from the levels and refreshed on every mastery level up.
-## Mastery nodes (F-15, `mastery_node:*`) arrive with M2-01: until then the node methods answer `unknown_id`.
+## Mastery nodes (docs/01_GDD.md §6.3) cost F-15 of the pool cap, need their prerequisites and are permanent once
+## bought; each owned node is the `mastery_node:<node_id>` source with the node's modifiers.
 ## Signals go to the session EventBus after the state changed; `new_game`/`from_save` emit nothing.
 ## Dependencies: data, events, modifiers.
 
@@ -16,6 +17,7 @@ const SHARE_PCT_KEY: String = "mastery.pool_share_pct"
 const CAP_PER_ITEM_KEY: String = "mastery.pool_cap_per_item"
 const XP_PCT_STAT: StringName = &"mastery_xp_pct"
 const ITEM_SOURCE_PREFIX: String = "mastery_item:"
+const NODE_SOURCE_PREFIX: String = "mastery_node:"
 const SAVE_POOL_KEY: String = "pool"
 const SAVE_ACTIONS_KEY: String = "actions"
 const SAVE_NODES_KEY: String = "nodes"
@@ -34,6 +36,11 @@ var _caps: Dictionary[StringName, int] = {}
 # State: action id -> mastery xp; skill id -> pool xp.
 var _xp: Dictionary[StringName, int] = {}
 var _pool: Dictionary[StringName, int] = {}
+# Nodes of the has_mastery skills: node id -> def; skill id -> its node ids (data order).
+var _node_defs: Dictionary[StringName, MasteryNodeDef] = {}
+var _nodes_of: Dictionary[StringName, Array] = {}
+# State: owned node ids (permanent).
+var _owned: Dictionary[StringName, bool] = {}
 
 
 func _init(session: GameSession) -> void:
@@ -54,28 +61,38 @@ func _init(session: GameSession) -> void:
 			_skill_of[action.id] = skill.id
 		_actions_of[skill.id] = ids
 		_caps[skill.id] = MasteryMath.pool_cap(ids.size(), per_item)
+		var node_ids: Array[StringName] = []
+		for node: MasteryNodeDef in _data.mastery_nodes(skill.id):
+			node_ids.append(node.id)
+			_node_defs[node.id] = node
+		_nodes_of[skill.id] = node_ids
 	_reset()
 
 
-## Every tracked action at 0 mastery xp, every pool empty.
+## Every tracked action at 0 mastery xp, every pool empty, no node owned.
 func new_game() -> void:
 	_reset()
 
 
 ## {skill_id: {"pool": int, "actions": {action_id: xp}, "nodes": []}} for every skill with mastery (§6).
-## Nodes are written empty until M2-01.
+## `nodes` lists the owned node ids of the skill in data order.
 func to_save() -> Dictionary:
 	var d: Dictionary = {}
 	for skill_id: StringName in _actions_of:
 		var actions: Dictionary = {}
 		for action_id: StringName in _actions_of[skill_id]:
 			actions[String(action_id)] = _xp[action_id]
-		d[String(skill_id)] = {SAVE_POOL_KEY: _pool[skill_id], SAVE_ACTIONS_KEY: actions, SAVE_NODES_KEY: []}
+		var nodes: Array = []
+		for node_id: StringName in _nodes_of[skill_id]:
+			if _owned.has(node_id):
+				nodes.append(String(node_id))
+		d[String(skill_id)] = {SAVE_POOL_KEY: _pool[skill_id], SAVE_ACTIONS_KEY: actions, SAVE_NODES_KEY: nodes}
 	return d
 
 
 ## Missing entries start at 0. Unknown skills or actions and malformed values are reported and dropped;
-## xp is limited to 0..max-level total and the pool to 0..cap. Nodes are ignored until M2-01.
+## xp is limited to 0..max-level total and the pool to 0..cap. Unknown node ids, nodes of another skill and
+## non-id entries of `nodes` are reported and dropped.
 func from_save(d: Dictionary) -> void:
 	_reset()
 	for key: Variant in d:
@@ -159,38 +176,67 @@ func spend_pool_on_action(action_id: StringName, amount: int) -> CommandResult:
 	return CommandResult.success()
 
 
-## F-15 cost of a node. Not implemented until M2-01: 0.
-func node_cost(_node_id: StringName) -> int:
-	return 0
+## F-15: ceil(pool cap of the node's skill × cost_pct / 100); 0 for an unknown node.
+func node_cost(node_id: StringName) -> int:
+	var node: MasteryNodeDef = _node_defs.get(node_id)
+	if node == null:
+		return 0
+	return MasteryMath.node_cost(_caps[node.skill_id], node.cost_pct)
 
 
-## Not implemented until M2-01: no node is owned.
-func owns_node(_node_id: StringName) -> bool:
-	return false
+func owns_node(node_id: StringName) -> bool:
+	return _owned.has(node_id)
 
 
-## Not implemented until M2-01: unknown_id.
-func can_buy_node(_node_id: StringName) -> CommandResult:
-	return CommandResult.fail(Reasons.UNKNOWN_ID)
+## Checks in order: unknown_id (not a node of a skill with mastery), node_owned, node_prereq_missing (a required
+## node is not owned), pool_insufficient (pool below node_cost). Changes nothing.
+func can_buy_node(node_id: StringName) -> CommandResult:
+	var node: MasteryNodeDef = _node_defs.get(node_id)
+	if node == null:
+		return CommandResult.fail(Reasons.UNKNOWN_ID)
+	if _owned.has(node_id):
+		return CommandResult.fail(Reasons.NODE_OWNED)
+	for required: StringName in node.requires:
+		if not _owned.has(required):
+			return CommandResult.fail(Reasons.NODE_PREREQ_MISSING)
+	if _pool[node.skill_id] < node_cost(node_id):
+		return CommandResult.fail(Reasons.POOL_INSUFFICIENT)
+	return CommandResult.success()
 
 
-## Not implemented until M2-01: unknown_id.
-func buy_node(_node_id: StringName) -> CommandResult:
-	return CommandResult.fail(Reasons.UNKNOWN_ID)
+## Buys a node: its F-15 cost leaves the pool and the node stays owned for good. Effects in order: state →
+## `mastery_node:<node_id>` source (one modifiers_changed) → mastery_node_purchased → mastery_pool_changed (only if
+## the pool changed). On error (see can_buy_node) nothing changes and nothing is emitted.
+func buy_node(node_id: StringName) -> CommandResult:
+	var check: CommandResult = can_buy_node(node_id)
+	if not check.ok:
+		return check
+	var node: MasteryNodeDef = _node_defs[node_id]
+	var new_pool: int = _pool[node.skill_id] - node_cost(node_id)
+	_owned[node_id] = true
+	_apply_node_bonus(node)
+	_events.mastery_node_purchased.emit(node.skill_id, node_id)
+	_change_pool(node.skill_id, new_pool)
+	return CommandResult.success()
 
 
-## Registers the `mastery_item:<action_id>` source of every tracked action from its level (F-11); actions without
-## a bonus have no source. Called inside the GameSession.rebuild_modifiers batch. (`mastery_node:*`: M2-01.)
+## Registers, in one batch, the `mastery_item:<action_id>` source of every tracked action from its level (F-11;
+## actions without a bonus have no source) and the `mastery_node:<node_id>` source of every owned node.
+## Called inside the GameSession.rebuild_modifiers batch.
 func rebuild_modifiers() -> void:
 	_modifiers.begin_batch()
 	for action_id: StringName in _xp:
 		_apply_item_bonus(action_id)
+	for node_id: StringName in _node_defs:
+		if _owned.has(node_id):
+			_apply_node_bonus(_node_defs[node_id])
 	_modifiers.end_batch()
 
 
 func _reset() -> void:
 	_xp.clear()
 	_pool.clear()
+	_owned.clear()
 	for skill_id: StringName in _actions_of:
 		_pool[skill_id] = 0
 		for action_id: StringName in _actions_of[skill_id]:
@@ -207,6 +253,7 @@ func _load_skill(skill_id: StringName, entry: Dictionary) -> void:
 			_pool[skill_id] = _caps[skill_id]
 		else:
 			_pool[skill_id] = pool
+	_load_nodes(skill_id, entry.get(SAVE_NODES_KEY, []))
 	var actions: Variant = entry.get(SAVE_ACTIONS_KEY, {})
 	if not actions is Dictionary:
 		Log.warn(LOG_CATEGORY, "invalid actions for skill '%s': start at 0" % skill_id)
@@ -221,6 +268,23 @@ func _load_skill(skill_id: StringName, entry: Dictionary) -> void:
 			Log.warn(LOG_CATEGORY, "invalid mastery xp for action '%s': starts at 0" % action_id)
 			continue
 		_xp[action_id] = mini(xp, _max_xp)
+
+
+# Owned nodes of a save entry: only ids (strings) of the skill's own nodes are kept.
+func _load_nodes(skill_id: StringName, nodes: Variant) -> void:
+	if not nodes is Array:
+		Log.warn(LOG_CATEGORY, "invalid nodes for skill '%s': none owned" % skill_id)
+		return
+	for entry: Variant in nodes:
+		if not (entry is String or entry is StringName):
+			Log.warn(LOG_CATEGORY, "invalid mastery node entry '%s' of skill '%s' ignored" % [entry, skill_id])
+			continue
+		var node_id: StringName = StringName(entry)
+		var node: MasteryNodeDef = _node_defs.get(node_id)
+		if node == null or node.skill_id != skill_id:
+			Log.warn(LOG_CATEGORY, "unknown mastery node '%s' of skill '%s' ignored" % [node_id, skill_id])
+			continue
+		_owned[node_id] = true
 
 
 # Adds mastery xp (capped at the max level), refreshes the action's bonus on a level up, then emits.
@@ -271,6 +335,15 @@ func _apply_item_bonus(action_id: StringName) -> void:
 		_modifiers.clear_source(source_id)
 	else:
 		_modifiers.set_source(source_id, mods)
+
+
+# The node's modifiers (scopes from the data) as source mastery_node:<id>; no modifiers → no source.
+func _apply_node_bonus(node: MasteryNodeDef) -> void:
+	var source_id: StringName = StringName(NODE_SOURCE_PREFIX + String(node.id))
+	if node.modifiers.is_empty():
+		_modifiers.clear_source(source_id)
+	else:
+		_modifiers.set_source(source_id, node.modifiers)
 
 
 # int from an int or an integral float (JSON); null otherwise.
