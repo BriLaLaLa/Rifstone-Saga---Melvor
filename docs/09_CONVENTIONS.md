@@ -92,6 +92,9 @@ Base: la guida di stile ufficiale di GDScript (Godot 4). Qui sotto ciò che teni
 - Unit test su classi isolate con la `TestFactory`; mai l'autoload `Game` con slot veri. Ogni sessione creata si libera.
 - Ogni esempio numerico di `02_FORMULAS.md` è un test con gli stessi numeri; i test casuali usano semi fissi.
 - Nome del test: `test_<comportamento>` (`test_bank_full_rejects_new_item`).
+- Ogni cartella che un test scrive sotto `user://` passa da `PreRun.test_dir("<nome>")` (o `PreRun.save_dir()` per i
+  salvataggi), con `const PreRun := preload("res://tests/helpers/gut_pre_run.gd")`: mai un percorso `user://...` scritto
+  a mano, così due suite in due worktree possono girare insieme (`05_INTERFACES.md` §8).
 - Un test che non può ancora girare (dipende da una milestone futura) usa `pending("motivo, task <ID>")`.
 
 ## 7. Git e commit

@@ -14,7 +14,7 @@ Sei il **QA/Test Engineer** del progetto Godot 4.5 "RiftStone Saga: Idle" (`C:\U
 
 ## Cosa fai
 - Test di integrazione in `res://tests/integration/` che usano solo API pubbliche di `docs/05_INTERFACES.md` e la
-  `TestFactory`; semi fissi; sessioni sempre liberate; mai slot veri (`user://test_saves`).
+  `TestFactory`; semi fissi; sessioni sempre liberate; mai slot veri (`PreRun.save_dir()`; ogni cartella sotto `user://` da `PreRun.test_dir()`).
 - Test che verificano le Lezioni da RiftStone: isolamento degli slot, nessun salvataggio prima dello slot, conservazione
   degli oggetti (un oggetto in un solo posto), copertura delle stat (ogni stat di `stats.json` ha il suo test).
 - Strumenti in `res://tools/` (tranne `build_ui_theme.gd` e `validate_data.gd`): script PowerShell e script `SceneTree`

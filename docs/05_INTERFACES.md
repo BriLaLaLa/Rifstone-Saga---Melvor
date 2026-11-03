@@ -95,7 +95,7 @@ func configure(tick_ms: int, max_catchup_ms: int) -> void   # chiamata da Game c
 
 ### `SaveService` (`core/autoload/save_service.gd`, `class_name SaveStore extends Node`)
 ```gdscript
-var base_dir: String = "user://saves"     # i test lo cambiano in user://test_saves
+var base_dir: String = "user://saves"     # i test lo cambiano in PreRun.save_dir() (§8)
 var last_error: StringName
 func configure(slot_count: int) -> void
 func slot_path(slot: int) -> String       # base_dir + "/slot_%d.json"
@@ -1130,5 +1130,13 @@ static func set_level(session: GameSession, skill_id: StringName, level: int) ->
 un `GameEvents` figlio della sessione (si libera con lei), mai l'autoload `EventBus`, mai slot veri. `give` (M1-07) e
 `set_level` (M1-08) sono implementati: in caso di fallimento `push_error` + `assert`. GUT segnala `test_factory.gd`
 come ignorato (prefisso `test_` ma non estende `GutTest`): avviso innocuo.
-`tests/helpers/gut_pre_run.gd`: imposta `SaveService.base_dir = "user://test_saves"` e svuota la cartella.
+`tests/helpers/gut_pre_run.gd` (`extends GutHookScript`, M2-05): imposta `SaveService.base_dir = save_dir()` e svuota
+la cartella. Tutti i worktree condividono la stessa `user://`, quindi ogni cartella scritta dai test sta sotto una radice
+propria della checkout:
+```gdscript
+static func checkout_root() -> String          # user://test_runs/<primi 12 caratteri dell'md5 di globalize_path("res://")>
+static func test_dir(name: String) -> String   # checkout_root()/<name>: cartella di lavoro di un file di test
+static func save_dir() -> String               # test_dir("test_saves"): base_dir di SaveService nei test
+```
+I test lo raggiungono con `const PreRun := preload("res://tests/helpers/gut_pre_run.gd")` (nessun `class_name`).
 Ogni test libera la sessione con `autofree()` (GUT) o `session.free()`.

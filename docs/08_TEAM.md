@@ -44,7 +44,7 @@ Reviewer/Integrator. Ogni ruolo ha un file agente in `.claude/agents/`.
 3. Contenuti originali: nessun nome, testo, codice, asset o tabella copiati da Melvor Idle.
 4. Le Lezioni da RiftStone (`CLAUDE.md`) sono vincoli: un task che le viola non passa la revisione.
 5. Nessun lancio del gioco su uno slot vero durante lo sviluppo automatico: si usano la `TestFactory` e
-   `user://test_saves`.
+   le cartelle di `PreRun` (`tests/helpers/gut_pre_run.gd`, `05_INTERFACES.md` §8).
 
 ## 5. Definition of Done
 Un task è finito quando **tutto** questo è vero:
