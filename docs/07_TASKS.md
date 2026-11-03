@@ -1111,6 +1111,7 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 
 | ID | Titolo | Ruolo | Dipendenze | Ownership |
 |---|---|---|---|---|
+| M5-00 | Correzioni della prova visiva di M4 (richiesta dell'utente dopo M4) | UI | M4-11 | `ui/pages/{equipment,character,shop,armory}/**`, `item_tooltip_lines.gd`, `ui_style.gd`, categoria di `armory_slot` in `data/shop/shop.json`, test speculari in `tests/ui` |
 | M5-01 | Formule di combattimento (F-20…F-27, F-70, F-73, F-75) | COMBAT | M4-11 | `systems/combat/combat_math.gd`, `tests/systems/combat/test_combat_math.gd` |
 | M5-02 | Statistiche per mano, razioni da campo, borsa del bottino | COMBAT | M5-01 | `systems/combat/combatant_stats.gd`, `auto_eat.gd`, `loot_bag.gd`, `core/modifiers/modifier_service.gd` (`total_without`), i loro test |
 | M5-03 | Motore a eventi, incontri e gruppi | COMBAT (L) | M5-02 | `systems/combat/combat_engine.gd` (oltre 400 righe: `encounter.gd` nella stessa cartella), `tests/systems/combat/test_combat_engine.gd`, `core/session/game_session.gd`, `session_snapshot.gd` (`kills`, `deaths`, `food_eaten`), `event_bus.gd` e `test_event_bus.gd` (segnali di combattimento di §3), note ereditate N1-N2 |
@@ -1119,6 +1120,14 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 | M5-06 | Strumento di bilanciamento `tools/sim_combat.gd` | COMBAT (S) | M5-03, M5-04 | `tools/sim_combat.gd`, `tests/tools/test_sim_combat.gd`; criteri di `02_FORMULAS.md` §8.5 misurati nel report; tarare l'XP dei mostri (Q41, default 4 × PV) |
 | M5-07 | Test di M5 (F-34, equivalenza, flusso con morte e parata) | QA | M5-01…M5-06 | `tests/integration/test_reference_encounter.gd`, `test_combat_flow.gd`, `tests/data/test_stat_registry_coverage.gd` (`CLOSED_FORMULAS` di combattimento e `"10.6"`) |
 | M5-08 | Integrazione di M5 | REV | M5-01…M5-07 | merge, tag `m5-done` |
+
+- **Nota (da M5-04) per M5-03 e M5-06** Icone dei mostri `.svg` (`res://assets/icons/monsters/<id>.svg`).
+  `rift_shard_chance` è una percentuale (0,5 = 0,5%). `gold` e `qty` arrivano dal JSON come float: convertirli con
+  `int()`. Un mostro ripetuto in un gruppo (`["plains_boar", "plains_boar"]`) è un'istanza separata per ogni voce.
+  L'XP a 4 × PV (Q41) è fissata da `tests/data/test_combat_data.gd::test_xp_is_four_times_hp_until_tuned` e dalla
+  costante `MONSTERS` dello stesso file: quando M5-06 tara l'XP li aggiorna (ownership estesa a quel test e a
+  `data/combat/monsters.json`, campo `xp`). Se i criteri di `02_FORMULAS.md` §8.5 non reggono, la leva sono i pesi dei
+  gruppi in `data/combat/areas.json` (ownership di M5-06 estesa a quel file, nel rispetto delle regole dei gruppi di §8.5).
 
 ## M6 · Abilità e tratti
 

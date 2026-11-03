@@ -272,7 +272,7 @@ Classe: `MasteryNodeDef`.
 
 ```json
 {"monsters": [
-  {"id": "plains_boar", "name": "Cinghiale delle pianure", "icon": "res://assets/icons/monsters/plains_boar.png",
+  {"id": "plains_boar", "name": "Cinghiale delle pianure", "icon": "res://assets/icons/monsters/plains_boar.svg",
    "description": "Testardo e affamato.",
    "hp": 20, "style": "blade", "attack_interval_ms": 2800,
    "attack_level": 1, "power_level": 1, "defence_level": 1,
