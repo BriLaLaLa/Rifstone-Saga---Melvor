@@ -346,7 +346,9 @@ Esempi: 10 caselle comprate → capienza 50; prezzo n 0 → 1.000; 1 → 1.120; 
 30 → 29.959. Test: `tests/systems/armory/test_armory.gd`, `tests/systems/shop/test_shop.gd::test_armory_slot_price`.
 
 ### F-83 Rarità nell'artigianato
-`M` = livello di maestria della ricetta, `k = 1 + T(item_rarity_pct, global)/100`.
+`M` = livello di maestria della ricetta (1-99, F-09: una ricetta senza XP di maestria è al livello 1; `M 0` negli esempi
+è solo il caso limite della funzione pura), `k = 1 + T(item_rarity_pct, ctx)/100` con `ctx` = contesto dell'azione
+(i modificatori globali valgono sempre; uno con scope di skill o azione vale solo lì).
 `p_magic = (rarity.craft.magic_base_pct + rarity.craft.magic_per_mastery_level × M) × k`;
 `p_rare = (rarity.craft.rare_base_pct + rarity.craft.rare_per_mastery_level × M) × k`; valori 10, 0.4, 1, 0.1.
 Se `p_rare > 100` → 100; se `p_magic + p_rare > 100` → `p_magic = 100 − p_rare`.
