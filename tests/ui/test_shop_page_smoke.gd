@@ -135,3 +135,15 @@ func _row_label(entry_id: StringName, node_name: String) -> Label:
 
 func _buy(entry_id: StringName) -> Button:
 	return _row(entry_id).find_child("BuyButton", true, false) as Button
+
+
+func test_combat_category_has_an_italian_title() -> void:
+	assert_eq(ShopPage.CATEGORY_TEXTS[&"combat"], "Combattimento")
+
+
+func test_armory_slot_is_in_the_category_of_the_bank_slot() -> void:
+	var shop: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/shop/shop.json"))
+	var categories: Dictionary = {}
+	for entry: Dictionary in shop["entries"]:
+		categories[entry["id"]] = entry["category"]
+	assert_eq(categories["armory_slot"], categories["bank_slot"])

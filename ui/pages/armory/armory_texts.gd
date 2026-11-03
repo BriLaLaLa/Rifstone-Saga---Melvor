@@ -10,9 +10,19 @@ const LOG_CATEGORY: String = "ui"
 const RARITY_NAMES: Dictionary[StringName, String] = {
 	&"common": "Comune", &"magic": "Magico", &"rare": "Raro",
 }
+const CAPACITY_TEXT: String = "Pezzi: %s / %s"
+const CAPACITY_WORN_TEXT: String = "Pezzi: %s / %s (+%s indossati)"
 const UPGRADE_TEXT: String = "+%d"
 const AFFIX_GRADE_TEXT: String = "grado %d"
 const LEVEL_TEXT: String = "Livello oggetto %d"
+
+
+## "Pezzi: used / capacity", plus "(+N indossati)" when some pieces are worn (they do not use the capacity).
+static func capacity_text(used: int, capacity: int, worn: int) -> String:
+	if worn > 0:
+		return CAPACITY_WORN_TEXT % [NumberFormat.format_int(used), NumberFormat.format_int(capacity),
+				NumberFormat.format_int(worn)]
+	return CAPACITY_TEXT % [NumberFormat.format_int(used), NumberFormat.format_int(capacity)]
 
 
 static func rarity_name(rarity: StringName) -> String:

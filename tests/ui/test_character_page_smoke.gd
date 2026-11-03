@@ -44,24 +44,26 @@ func test_lists_the_setups_of_the_class() -> void:
 		assert_not_null(_page.find_child("Setup_%s" % setup.id, true, false), setup.id)
 
 
-func test_current_setup_text_is_never_empty() -> void:
-	assert_string_contains(_label("%CurrentSetupLabel").text, "In uso: ")
-	_session.events.equipment_changed.emit(&"weapon", 0)
-	assert_string_contains(_label("%CurrentSetupLabel").text, "In uso: ")
-
-
 func test_equipped_weapon_highlights_its_setup() -> void:
-	assert_eq(_label("%CurrentSetupLabel").text, "In uso: Mani nude")
+	assert_null(_page.find_child("CurrentSetupLabel", true, false), "the setups are a list, no title in the middle")
+	assert_eq(_label("%SetupTitle").text, ItemTooltipLines.SETUP_LABEL)
+	var class_def: ClassDef = _session.character.class_def()
+	for setup: SetupDef in class_def.setups:
+		assert_eq(_row_color(setup.id), UiStyle.TEXT_2, "nothing worn: no setup highlighted")
 	assert_true(_session.equipment.equip(TestFactory.give_piece(_session, &"test_blade")).ok)
 	var current: SetupDef = _session.equipment.setup_def()
 	assert_not_null(current, "a sword has a setup")
-	assert_eq(_label("%CurrentSetupLabel").text, "In uso: %s" % current.name)
-	for setup: SetupDef in _session.character.class_def().setups:
-		var row: Label = _page.find_child("Setup_%s" % setup.id, true, false) as Label
-		var expected: StringName = &"HeaderLabel" if setup.id == current.id else &"MutedLabel"
-		assert_eq(row.theme_type_variation, expected, setup.id)
+	for setup: SetupDef in class_def.setups:
+		var expected: Color = UiStyle.GOLD_LIGHT if setup.id == current.id else UiStyle.TEXT_2
+		assert_eq(_row_color(setup.id), expected, setup.id)
+		assert_eq((_page.find_child("Setup_%s" % setup.id, true, false) as Label).text, setup.name)
 	_session.equipment.unequip(&"weapon")
-	assert_eq(_label("%CurrentSetupLabel").text, "In uso: Mani nude", "redraw on equipment_changed")
+	assert_eq(_row_color(current.id), UiStyle.TEXT_2, "redraw on equipment_changed")
+
+
+func _row_color(setup_id: StringName) -> Color:
+	var row: Label = _page.find_child("Setup_%s" % setup_id, true, false) as Label
+	return row.get_theme_color("font_color")
 
 
 func test_unbind_disconnects_everything() -> void:

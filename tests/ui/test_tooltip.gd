@@ -161,3 +161,17 @@ func _lines(text: String) -> PackedStringArray:
 func _process_frames(count: int) -> void:
 	for i: int in count:
 		await get_tree().process_frame
+
+
+func test_modifiers_of_the_same_stat_are_summed_in_one_line() -> void:
+	var mods: Array[Modifier] = [Modifier.make(&"power_bonus", 2.0), Modifier.make(&"damage_reduction", 3.0),
+			Modifier.make(&"power_bonus", 5.0)]
+	var lines: PackedStringArray = ItemTooltipLines.modifier_lines(mods, _data)
+	assert_eq(lines.size(), 2, "one line per stat")
+	assert_string_contains(lines[0], ItemTooltipLines.format_stat("flat", 7.0))
+
+
+func test_colored_title_uses_the_given_color() -> void:
+	var text: String = ItemTooltipLines.colored_title("Lama [x]", UiStyle.rarity_color(&"rare"))
+	assert_string_contains(text, UiStyle.RARITY_RARE.to_html(false))
+	assert_string_contains(text, "Lama [lb]x]")

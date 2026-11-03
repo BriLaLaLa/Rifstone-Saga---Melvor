@@ -202,3 +202,10 @@ func test_summary_shows_the_tool_scoped_to_a_skill() -> void:
 	assert_string_contains(text, ItemTooltipLines.format_stat(stat["format"], total))
 	_remove(&"tool_forestry").pressed.emit()
 	assert_string_contains(_stats_text(), "Nessun bonus attivo.")
+
+
+func test_setup_source_is_shown_as_text() -> void:
+	var setup: SetupDef = _session.character.class_def().setups[0]
+	var expected: String = "Assetto: %s" % setup.name
+	assert_eq(EquipmentStatsText.source_name(StringName("setup:%s" % setup.id), _session), expected)
+	assert_ne(expected, "setup:%s" % setup.id)

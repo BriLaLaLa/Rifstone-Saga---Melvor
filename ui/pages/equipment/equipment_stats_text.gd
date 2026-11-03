@@ -16,6 +16,7 @@ const SLOT_TEXTS: Dictionary[StringName, String] = {
 	&"ring": "Anello", &"weapon": "Arma", &"offhand": "Mano secondaria",
 }
 const SOURCE_EQUIPMENT_PREFIX: String = "equipment:"
+const SOURCE_SETUP_PREFIX: String = "setup:"
 const SOURCE_SHOP_PREFIX: String = "shop:"
 const SOURCE_TEXTS: Dictionary[String, String] = {
 	"mastery_item:": "Maestria (oggetto)",
@@ -95,6 +96,9 @@ static func source_name(source_id: StringName, session: GameSession) -> String:
 		var item: ItemDef = session.data.item(item_id) if item_id != &"" else null
 		var label: String = slot_text(slot, session.data)
 		return "%s (%s)" % [item.name, label] if item != null else label
+	if text.begins_with(SOURCE_SETUP_PREFIX):
+		return ItemTooltipLines.SETUP_SOURCE_TEXT % _setup_name(
+				StringName(text.trim_prefix(SOURCE_SETUP_PREFIX)), session)
 	if text.begins_with(SOURCE_SHOP_PREFIX):
 		var entry: ShopEntryDef = session.data.shop_entry(StringName(text.trim_prefix(SOURCE_SHOP_PREFIX)))
 		return entry.name if entry != null else text
@@ -102,6 +106,16 @@ static func source_name(source_id: StringName, session: GameSession) -> String:
 		if text.begins_with(prefix):
 			return SOURCE_TEXTS[prefix]
 	return text
+
+
+## Setup name from the class data; the id if the setup is not in the class.
+static func _setup_name(setup_id: StringName, session: GameSession) -> String:
+	var class_def: ClassDef = session.character.class_def()
+	if class_def != null:
+		for setup: SetupDef in class_def.setups:
+			if setup.id == setup_id:
+				return setup.name
+	return String(setup_id)
 
 
 ## The skill with this id, searched in the list without logging (the data logs an error for unknown ids).

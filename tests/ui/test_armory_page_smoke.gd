@@ -55,7 +55,7 @@ func test_a_cell_per_piece_with_rarity_color_and_markers() -> void:
 	assert_true(_cell(common).find_child("LockMarker", true, false).visible, "redraw on armory_changed")
 	assert_true(_session.equipment.equip(magic).ok)
 	assert_true(_cell(magic).find_child("WornMarker", true, false).visible, "redraw on equipment_changed")
-	assert_eq(_label("%CapacityLabel").text, "Pezzi: 2 / %s" % NumberFormat.format_int(_session.armory.capacity()),
+	assert_eq(_label("%CapacityLabel").text, "Pezzi: 2 / %s (+1 indossati)" % NumberFormat.format_int(_session.armory.capacity()),
 			"a worn piece does not use a slot")
 
 
@@ -316,3 +316,25 @@ func test_window_panel_variation_is_opaque_and_rarity_colors_come_from_the_style
 		assert_eq(box.bg_color.a, 1.0)
 	assert_eq(UiStyle.rarity_color(&"magic"), UiStyle.RARITY_MAGIC)
 	assert_eq(UiStyle.rarity_color(&"nonsense"), UiStyle.RARITY_UNKNOWN)
+
+
+func test_panel_and_tooltip_name_use_the_rarity_color() -> void:
+	var uid: int = TestFactory.give_piece(_session, BLADE, &"rare", 1)
+	_open()
+	_cell(uid).pressed.emit(uid)
+	assert_eq(_panel_label("NameLabel").get_theme_color("font_color"), UiStyle.RARITY_RARE)
+	_page._on_cell_hover_started(uid)
+	var tooltip: CustomTooltip = Tooltips.get_node("TooltipLayer/CustomTooltip") as CustomTooltip
+	assert_not_null(tooltip)
+	assert_string_contains(tooltip.body_text(), _session.data.item(BLADE).name)
+	_page._hide_tooltip()
+
+
+func test_capacity_counter_lists_the_worn_pieces() -> void:
+	var worn: int = TestFactory.give_piece(_session, HELM)
+	TestFactory.give_piece(_session, HELM)
+	_open()
+	assert_false(_label("%CapacityLabel").text.contains("indossati"), "no worn pieces: no suffix")
+	assert_true(_session.equipment.equip(worn).ok)
+	var capacity: String = NumberFormat.format_int(_session.armory.capacity())
+	assert_eq(_label("%CapacityLabel").text, "Pezzi: 1 / %s (+1 indossati)" % capacity)

@@ -8,9 +8,6 @@ extends Page
 ## `Equipment.setup()` (05 §5.9). It keeps no game state, only references to its own nodes.
 
 const LEVEL_TEXT: String = "Livello %s"
-const SETUP_TITLE_TEXT: String = "Assetto"
-const CURRENT_SETUP_TEXT: String = "In uso: %s"
-const UNARMED_NAME: String = "Mani nude"
 const NOTE_TEXT: String = "I valori di combattimento, i tratti e le abilità arrivano con le prossime tappe."
 const NO_CLASS_TEXT: String = "Classe non disponibile"
 const MARGIN: int = 16
@@ -26,7 +23,6 @@ var _session: GameSession = null
 @onready var _description_label: Label = %DescriptionLabel
 @onready var _xp_bar: XpBar = %XpBar
 @onready var _setup_title: Label = %SetupTitle
-@onready var _current_setup_label: Label = %CurrentSetupLabel
 @onready var _setup_list: VBoxContainer = %SetupList
 @onready var _note_label: Label = %NoteLabel
 
@@ -35,7 +31,7 @@ func _ready() -> void:
 	for side: String in ["margin_left", "margin_top", "margin_right", "margin_bottom"]:
 		_margin.add_theme_constant_override(side, MARGIN)
 	_content.add_theme_constant_override("separation", SECTION_SEPARATION)
-	_setup_title.text = SETUP_TITLE_TEXT
+	_setup_title.text = ItemTooltipLines.SETUP_LABEL
 	_note_label.text = NOTE_TEXT
 
 
@@ -95,10 +91,9 @@ func _refresh() -> void:
 	if table != null:
 		_xp_bar.set_xp(table, _session.character.get_xp())
 	var current: StringName = _current_setup_id()
-	_current_setup_label.text = CURRENT_SETUP_TEXT % _current_setup_name(current)
 	for row: Node in _setup_list.get_children():
 		var is_current: bool = current != &"" and row.name == SETUP_ROW_NAME % current
-		(row as Label).theme_type_variation = &"HeaderLabel" if is_current else &"MutedLabel"
+		(row as Label).add_theme_color_override("font_color", UiStyle.GOLD_LIGHT if is_current else UiStyle.TEXT_2)
 
 
 ## Id of the worn setup among the setups of the class; `&""` if the hands are bare.
@@ -112,15 +107,6 @@ func _current_setup_id() -> StringName:
 			if setup.id == id:
 				return id
 	return &""
-
-
-func _current_setup_name(setup_id: StringName) -> String:
-	var class_def: ClassDef = _session.character.class_def()
-	if class_def != null:
-		for setup: SetupDef in class_def.setups:
-			if setup.id == setup_id:
-				return setup.name
-	return UNARMED_NAME
 
 
 func _on_character_xp_gained(_amount: int) -> void:
