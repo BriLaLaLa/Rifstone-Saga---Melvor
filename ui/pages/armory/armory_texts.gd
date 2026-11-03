@@ -13,9 +13,6 @@ const RARITY_NAMES: Dictionary[StringName, String] = {
 const UPGRADE_TEXT: String = "+%d"
 const AFFIX_GRADE_TEXT: String = "grado %d"
 const LEVEL_TEXT: String = "Livello oggetto %d"
-const KIND_NAMES: Dictionary[StringName, String] = {
-	&"sword": "Spada", &"greatsword": "Spadone", &"shield": "Scudo",
-}
 
 
 static func rarity_name(rarity: StringName) -> String:
@@ -23,10 +20,6 @@ static func rarity_name(rarity: StringName) -> String:
 		Log.warn(LOG_CATEGORY, "armory: unknown rarity '%s'" % rarity)
 		return String(rarity)
 	return RARITY_NAMES[rarity]
-
-
-static func kind_name(kind: StringName) -> String:
-	return KIND_NAMES.get(kind, String(kind))
 
 
 ## "Name +N" for an upgraded piece, "Name" otherwise.
