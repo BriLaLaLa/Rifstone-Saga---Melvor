@@ -13,10 +13,11 @@ const LOG_CATEGORY: String = "ui"
 const ROUTE_SEPARATOR: String = ":"
 const ROUTE_SKILL := &"skill"
 ## Route table: route -> page scene. A route that is not here is not available yet (the sidebar shows "In arrivo").
-## Later tasks add `shop`, `equipment`, `combat`, `rift`, `settings`.
+## Later tasks add `equipment`, `combat`, `rift`, `settings`.
 const ROUTES: Dictionary[StringName, String] = {
 	ROUTE_SKILL: "res://ui/pages/skill/skill_page.tscn",
 	&"bank": "res://ui/pages/bank/bank_page.tscn",
+	&"shop": "res://ui/pages/shop/shop_page.tscn",
 }
 ## Skill categories drawn by the skill page (combat skills belong to the combat page).
 const SKILL_PAGE_CATEGORIES: Array[StringName] = [&"gathering", &"artisan"]

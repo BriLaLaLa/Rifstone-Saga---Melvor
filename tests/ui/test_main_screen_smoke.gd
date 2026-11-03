@@ -39,7 +39,7 @@ func test_scene_instantiates_with_injected_session() -> void:
 func test_show_page_of_every_valid_route() -> void:
 	var host: PageHost = _page_host()
 	watch_signals(host)
-	for page_id: StringName in [&"bank", &"skill:test_craft", &"skill:test_gather"]:
+	for page_id: StringName in [&"bank", &"shop", &"skill:test_craft", &"skill:test_gather"]:
 		assert_true(host.has_page(page_id), "%s available" % page_id)
 		host.show_page(page_id)
 		assert_eq(host.current_page_id(), page_id)
@@ -51,7 +51,7 @@ func test_show_page_of_every_valid_route() -> void:
 
 func test_unavailable_pages_are_refused() -> void:
 	var host: PageHost = _page_host()
-	for page_id: StringName in [&"shop", &"equipment", &"combat", &"rift", &"settings", &"skill:blade",
+	for page_id: StringName in [&"equipment", &"combat", &"rift", &"settings", &"skill:blade",
 			&"skill:not_a_skill", &"bank:extra", &"skill:"]:
 		assert_false(host.has_page(page_id), "%s not available" % page_id)
 		host.show_page(page_id)
@@ -94,11 +94,12 @@ func test_sidebar_rows_from_data() -> void:
 	var blade: Button = rows.get_node("SkillBlade") as Button
 	assert_true(blade.disabled, "combat skill page not available yet")
 	assert_eq(blade.tooltip_text, "In arrivo")
-	for page_name: String in ["Shop", "Equipment", "Combat", "Rift", "Settings"]:
+	for page_name: String in ["Equipment", "Combat", "Rift", "Settings"]:
 		var row: Button = rows.get_node(page_name) as Button
 		assert_true(row.disabled, "%s disabled" % page_name)
 		assert_eq(_label(row, "Side").text, "In arrivo")
 	assert_false((rows.get_node("Bank") as Button).disabled)
+	assert_false((rows.get_node("Shop") as Button).disabled)
 	var skill_rows: int = 0
 	for child: Node in rows.get_children():
 		if child is Button and child.visible and String(child.name).begins_with("Skill"):

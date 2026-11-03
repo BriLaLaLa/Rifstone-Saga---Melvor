@@ -9,7 +9,8 @@ extends Page
 ## Player actions are bank commands: a click on a cell opens the item panel (lock / unlock = `set_locked`); dragging
 ## a cell onto another moves it to that cell's index (`move_stack`), onto the grid outside the cells to the last
 ## index; "Ordina" = `sort_stacks`. The grid changes only through the events of the bank: a
-## refused command moves nothing and shows its reason. Selling, equipping and food come with M3-06 / M3-07.
+## refused command moves nothing and shows its reason. Selling = `shop.sell` (from the item panel); equipping and
+## food come with M3-07.
 ## It keeps no game state: only the session reference, its nodes and presentation state (search text, the item of
 ## the panel, the hovered cell whose tooltip is refreshed after a redraw).
 
@@ -25,7 +26,10 @@ const SORT_TOOLTIP: String = "Ordina per categoria e poi per tipo di oggetto."
 ## Reason of a refused bank command -> text shown above the grid; other reasons: REFUSED_TEXT_DEFAULT.
 const REFUSED_TEXTS: Dictionary[StringName, String] = {
 	Reasons.UNKNOWN_ID: "L'oggetto non è più nella bank.",
-	Reasons.INVALID_AMOUNT: "Posizione non valida.",
+	Reasons.INVALID_AMOUNT: "Quantità o posizione non valida.",
+	Reasons.ITEM_LOCKED: "L'oggetto è bloccato: sbloccalo per venderlo.",
+	Reasons.NOT_SELLABLE: "Questo oggetto non si vende.",
+	Reasons.NOT_ENOUGH_ITEMS: "Non ci sono abbastanza oggetti.",
 }
 const REFUSED_TEXT_DEFAULT: String = "Operazione non riuscita."
 const STACK_ITEM_KEY: String = "item"
@@ -75,6 +79,7 @@ func _ready() -> void:
 	_sort_button.tooltip_text = SORT_TOOLTIP
 	_sort_button.pressed.connect(_on_sort_button_pressed)
 	_item_panel.lock_requested.connect(_on_item_panel_lock_requested)
+	_item_panel.sell_requested.connect(_on_item_panel_sell_requested)
 	_item_panel.close_requested.connect(_on_item_panel_close_requested)
 	_grid.set_drag_forwarding(Callable(), _can_drop_on_grid, _drop_on_grid)
 
@@ -256,6 +261,11 @@ func _on_cell_mouse_exited(cell: ItemSlotView) -> void:
 func _on_item_panel_lock_requested(item_id: StringName, locked: bool) -> void:
 	if _session != null:
 		_show_result(_session.bank.set_locked(item_id, locked))
+
+
+func _on_item_panel_sell_requested(item_id: StringName, qty: int) -> void:
+	if _session != null:
+		_show_result(_session.shop.sell(item_id, qty))
 
 
 func _on_item_panel_close_requested() -> void:
