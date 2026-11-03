@@ -175,7 +175,8 @@ func test_areas_and_monsters() -> void:
 
 func test_shop_entries_in_file_order() -> void:
 	assert_eq(_ids(_data.shop_entries()),
-			[&"bank_slot", &"test_upgrade_1", &"test_upgrade_2", &"test_buy_hatchet"] as Array[StringName])
+			[&"bank_slot", &"test_upgrade_1", &"test_upgrade_2", &"test_buy_hatchet",
+					&"test_buy_log"] as Array[StringName])
 	assert_eq(_data.shop_entry(&"bank_slot").cost_formula, &"bank_slot")
 	assert_eq(_data.shop_entry(&"test_buy_hatchet").effect_item.item_id, &"test_hatchet")
 

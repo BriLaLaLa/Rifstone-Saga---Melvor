@@ -11,8 +11,9 @@ const RES_PREFIX: String = "res://"
 const SEPARATOR: String = "::"
 const TEST_FUNC_PREFIX: String = "test_"
 # Formulas whose milestone is closed (M1): F-02 skill xp, F-03 interval, F-06 double, F-07 shard, F-10 mastery,
-# F-16 bank capacity; M3: F-08 preservation. A milestone that closes adds its formulas here.
-const CLOSED_FORMULAS: Array[String] = ["F-02", "F-03", "F-06", "F-07", "F-08", "F-10", "F-16"]
+# F-16 bank capacity; M3: F-08 preservation; M4: F-82 Armory capacity, F-83 item rarity.
+# A milestone that closes adds its formulas here.
+const CLOSED_FORMULAS: Array[String] = ["F-02", "F-03", "F-06", "F-07", "F-08", "F-10", "F-16", "F-82", "F-83"]
 # The stats whose effect M1 delivers: they must be covered by the closed formulas above.
 const M1_STATS: Array[StringName] = [
 	&"skill_interval_pct", &"skill_xp_pct", &"mastery_xp_pct", &"double_item_chance", &"rift_shard_chance",

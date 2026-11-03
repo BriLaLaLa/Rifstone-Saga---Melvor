@@ -98,7 +98,7 @@ func test_character_requirement_is_listed_and_follows_the_level() -> void:
 
 func test_sections_follow_categories() -> void:
 	_open()
-	for category: String in ["bank", "tools"]:
+	for category: String in ["bank", "tools", "materials"]:
 		assert_not_null(_page.find_child("Section_%s" % category, true, false), category)
 
 
