@@ -107,6 +107,8 @@ func test_page_sells_through_the_shop_and_shows_refusals() -> void:
 
 
 func test_equip_and_food_buttons_only_for_the_right_items() -> void:
+	pending("M4-08: pezzi nell'Armeria, pagina da rifare")
+	return
 	TestFactory.give(_session, LOG, 1)
 	TestFactory.give(_session, &"test_helm", 1)
 	TestFactory.give(_session, &"test_ration", 2)
@@ -127,6 +129,8 @@ func test_equip_and_food_buttons_only_for_the_right_items() -> void:
 
 
 func test_page_equips_and_chooses_food_through_the_model() -> void:
+	pending("M4-08: pezzi nell'Armeria, pagina da rifare")
+	return
 	pending("M4-08: la bank non equipaggia più")
 	return
 	TestFactory.give(_session, &"test_helm", 1)

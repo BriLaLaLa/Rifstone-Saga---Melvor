@@ -19,6 +19,7 @@ func before_all() -> void:
 	DirAccess.make_dir_recursive_absolute(_tmp_config)
 	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_ROOT.path_join("balance.json")))
 	(balance["bank"] as Dictionary)["base_slots"] = 1
+	(balance["armory"] as Dictionary)["base_slots"] = 1
 	(balance["start"] as Dictionary)["items"] = []
 	_write(_tmp_config.path_join("balance.json"), JSON.stringify(balance))
 	_write(_tmp_config.path_join("stats.json"), FileAccess.get_file_as_string(CONFIG_ROOT.path_join("stats.json")))
@@ -88,29 +89,78 @@ func test_requirements_and_max_purchases() -> void:
 		TestFactory.set_level(_session, skill.id, maxi(10, _session.skills.get_level(skill.id)))
 	var needed: int = _session.data.shop_entry(&"test_upgrade_2").req_total_level
 	assert_gte(_session.total_level(), needed)
+	assert_eq(_shop.can_buy(&"test_upgrade_2").reason, Reasons.REQUIREMENT_NOT_MET, "character level 20 missing")
+	TestFactory.set_character_level(_session, 20)
 	assert_true(_shop.buy(&"test_upgrade_2").ok)
 	assert_eq(_session.modifiers.total(&"auto_eat_tier"), 2.0)
 
 
-func test_item_effect_goes_to_bank_and_is_repeatable() -> void:
+func test_piece_effect_goes_to_armory_and_is_repeatable() -> void:
 	_gold(300)
 	assert_true(_shop.buy(&"test_buy_hatchet").ok)
 	assert_true(_shop.buy(&"test_buy_hatchet").ok)
-	assert_eq(_session.bank.get_count(&"test_hatchet"), 2)
+	assert_eq(_session.bank.get_count(&"test_hatchet"), 0, "a piece is never in the bank")
+	var pieces: Array[ItemInstance] = _session.armory.instances()
+	assert_eq(pieces.size(), 2)
+	assert_eq(pieces[0].base_id, &"test_hatchet")
+	assert_eq(pieces[0].rarity, &"common")
+	assert_eq(pieces[0].affixes.size(), 0)
+	assert_ne(pieces[0].uid, pieces[1].uid)
 	assert_eq(_shop.purchase_count(&"test_buy_hatchet"), 2)
 	assert_false(_session.modifiers.has_source(&"shop:test_buy_hatchet"))
 
 
-func test_buy_item_with_full_bank_keeps_gold() -> void:
+func test_buy_piece_with_full_armory_keeps_gold() -> void:
 	var small: GameSession = autofree(TestFactory.session(1234, _small_data))
 	small.wallet.add_gold(1000)
-	TestFactory.give(small, &"test_log", 1)
-	assert_false(small.bank.can_add(&"test_hatchet"), "bank must be full for this test")
+	TestFactory.give_piece(small, &"test_blade")
+	assert_false(small.armory.can_add(1), "the Armory must be full for this test")
 	var gold: int = small.wallet.get_gold()
 	var r: CommandResult = small.shop.buy(&"test_buy_hatchet")
-	assert_eq(r.reason, Reasons.BANK_FULL)
+	assert_eq(r.reason, Reasons.ARMORY_FULL)
 	assert_eq(small.wallet.get_gold(), gold)
 	assert_eq(small.shop.purchase_count(&"test_buy_hatchet"), 0)
+	assert_eq(small.armory.used(), 1)
+
+
+func test_armory_slot_price() -> void:
+	var real: GameSession = autofree(TestFactory.session(1234, TestFactory.real_data()))
+	var f82: Dictionary = {0: 1000, 1: 1120, 2: 1254, 5: 1762, 10: 3105, 20: 9646, 30: 29959}
+	for n: int in f82:
+		real.shop.from_save({"purchases": {"armory_slot": n} if n > 0 else {}})
+		assert_eq(real.shop.price(&"armory_slot"), f82[n], "F-82 n=%d" % n)
+	real.shop.new_game()
+	real.wallet.add_gold(5000)
+	var capacity: int = real.armory.capacity()
+	assert_true(real.shop.buy(&"armory_slot").ok)
+	real.rebuild_modifiers()
+	assert_eq(real.armory.capacity(), capacity + 1)
+	assert_eq(real.shop.price(&"armory_slot"), 1120)
+
+
+func test_sell_instance() -> void:
+	var uid: int = TestFactory.give_piece(_session, &"test_blade")
+	var value: int = _session.data.item(&"test_blade").value
+	assert_gt(value, 0)
+	var gold: int = _session.wallet.get_gold()
+	watch_signals(_session.events)
+	assert_true(_shop.sell_instance(uid).ok)
+	assert_eq(_session.wallet.get_gold(), gold + value)
+	assert_false(_session.armory.has(uid))
+	assert_signal_emitted_with_parameters(_session.events, "item_sold", [&"test_blade", 1, value])
+
+
+func test_sell_instance_rejections() -> void:
+	var uid: int = TestFactory.give_piece(_session, &"test_blade")
+	var gold: int = _session.wallet.get_gold()
+	assert_eq(_shop.sell_instance(999).reason, Reasons.UNKNOWN_ID)
+	_session.armory.set_locked(uid, true)
+	assert_eq(_shop.sell_instance(uid).reason, Reasons.ITEM_LOCKED)
+	_session.armory.set_locked(uid, false)
+	_session.armory.set_worn(uid, true)
+	assert_eq(_shop.sell_instance(uid).reason, Reasons.ITEM_EQUIPPED)
+	assert_eq(_session.wallet.get_gold(), gold)
+	assert_true(_session.armory.has(uid))
 
 
 func test_f18_sell() -> void:

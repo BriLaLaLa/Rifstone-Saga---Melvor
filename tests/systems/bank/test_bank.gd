@@ -243,12 +243,12 @@ func test_move_stack_failures_change_nothing() -> void:
 
 
 func test_sort_stacks_by_category_then_sort_order() -> void:
-	for id: StringName in [&"rift_shard", &"test_blade", &"test_plank", &"test_ration", &"test_twig",
-			&"test_hatchet", &"test_infusion", &"test_log"]:
+	for id: StringName in [&"rift_shard", &"test_plank", &"test_ration", &"test_twig",
+			&"test_infusion", &"test_log"]:
 		TestFactory.give(_session, id, 1)
 	_session.bank.sort_stacks()
-	assert_eq(_ids(_session.bank), [&"test_twig", &"test_log", &"test_plank", &"test_ration", &"test_blade",
-			&"test_hatchet", &"test_infusion", &"rift_shard"] as Array[StringName])
+	assert_eq(_ids(_session.bank), [&"test_twig", &"test_log", &"test_plank", &"test_ration",
+			&"test_infusion", &"rift_shard"] as Array[StringName])
 
 
 func test_to_save_format() -> void:
@@ -298,3 +298,25 @@ func test_snapshot_reads_bank_and_gold() -> void:
 	var snapshot: SessionSnapshot = SessionSnapshot.take(_session)
 	assert_eq(snapshot.bank, {&"test_log": 6, &"rift_shard": 1} as Dictionary[StringName, int])
 	assert_eq(snapshot.gold, _session.wallet.get_gold())
+
+
+func test_not_stackable_pieces() -> void:
+	watch_signals(_session.events)
+	for id: StringName in [&"test_blade", &"test_hatchet"]:
+		assert_false(_session.bank.can_add(id), "can_add %s" % id)
+		assert_eq(_session.bank.add(id, 1).reason, Reasons.NOT_STACKABLE)
+		assert_eq(_session.bank.add(id, 0).reason, Reasons.NOT_STACKABLE, "before invalid_amount")
+	assert_eq(_session.bank.add(&"nope", 1).reason, Reasons.UNKNOWN_ID, "unknown_id comes first")
+	assert_eq(_session.bank.used(), 0)
+	assert_signal_not_emitted(_session.events, "bank_changed")
+	assert_signal_not_emitted(_session.events, "bank_rejected")
+
+
+func test_from_save_drops_pieces() -> void:
+	_session.bank.from_save({"stacks": [
+		{"item": "test_blade", "count": 1, "locked": false},
+		{"item": "test_log", "count": 4, "locked": true},
+		{"item": "test_hatchet", "count": 2},
+	]})
+	assert_eq(_ids(_session.bank), [&"test_log"] as Array[StringName])
+	assert_eq(_session.bank.get_count(&"test_log"), 4)

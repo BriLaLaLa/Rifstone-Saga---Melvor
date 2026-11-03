@@ -28,6 +28,7 @@ var bank: Bank
 var skills: SkillsSystem
 var mastery: MasterySystem
 var character: CharacterSystem
+var armory: Armory
 var equipment: Equipment
 var actions: ActionRunner
 var shop: Shop
@@ -136,6 +137,8 @@ func _create_systems() -> void:
 	_join(CharacterSystem.SAVE_KEY, character.new_game, character.to_save, character.from_save)
 	mastery = MasterySystem.new(self)
 	_join(MasterySystem.SAVE_KEY, mastery.new_game, mastery.to_save, mastery.from_save, mastery.rebuild_modifiers)
+	armory = Armory.new(self)
+	_join(Armory.SAVE_KEY, armory.new_game, armory.to_save, armory.from_save)
 	equipment = Equipment.new(self)
 	_join(Equipment.SAVE_KEY, equipment.new_game, equipment.to_save, equipment.from_save, equipment.rebuild_modifiers)
 	actions = ActionRunner.new(self)

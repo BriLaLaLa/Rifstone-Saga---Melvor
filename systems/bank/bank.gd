@@ -13,7 +13,9 @@ const BASE_SLOTS_KEY: String = "bank.base_slots"
 const START_ITEMS_KEY: String = "start.items"
 const CAPACITY_STAT: StringName = &"bank_slots"
 ## docs/05_INTERFACES.md §5.5: category order of `sort_stacks`.
-const SORT_CATEGORIES: Array[StringName] = [&"material", &"food", &"equipment", &"tool", &"infusion", &"misc"]
+const SORT_CATEGORIES: Array[StringName] = [&"material", &"food", &"infusion", &"misc"]
+## Categories held by the Armory as unique pieces: the bank rejects them (M4-05).
+const PIECE_CATEGORIES: Array[StringName] = [&"equipment", &"tool"]
 
 var _data: GameData
 var _events: GameEvents
@@ -49,12 +51,14 @@ func has(item_id: StringName, qty: int) -> bool:
 func can_add(item_id: StringName) -> bool:
 	if _counts.has(item_id):
 		return true
-	return _data.has_item(item_id) and used() < capacity()
+	return _data.has_item(item_id) and not _is_piece(item_id) and used() < capacity()
 
 
 func add(item_id: StringName, qty: int) -> CommandResult:
 	if not _data.has_item(item_id):
 		return CommandResult.fail(Reasons.UNKNOWN_ID)
+	if _is_piece(item_id):
+		return CommandResult.fail(Reasons.NOT_STACKABLE)
 	if qty <= 0:
 		return CommandResult.fail(Reasons.INVALID_AMOUNT)
 	var is_new: bool = not _counts.has(item_id)
@@ -172,6 +176,9 @@ func from_save(d: Dictionary) -> void:
 		var stack: Dictionary = entry if entry is Dictionary else {}
 		var item_id: StringName = StringName(str(stack.get("item", "")))
 		var count: Variant = stack.get("count")
+		if _is_piece(item_id):
+			Log.warn(LOG_CATEGORY, "stack %s dropped (equipment and tools live in the Armory)" % str(entry))
+			continue
 		if not _data.has_item(item_id) or _counts.has(item_id) or not _is_positive_int(count):
 			Log.warn(LOG_CATEGORY, "stack %s dropped (unknown, duplicate or bad count)" % str(entry))
 			continue
@@ -232,3 +239,8 @@ static func _is_positive_int(v: Variant) -> bool:
 		var f: float = v
 		return f > 0.0 and f == floorf(f)
 	return false
+
+
+# True for an existing equipment or tool item: it is never stacked in the bank.
+func _is_piece(item_id: StringName) -> bool:
+	return _data.has_item(item_id) and _data.item(item_id).category in PIECE_CATEGORIES

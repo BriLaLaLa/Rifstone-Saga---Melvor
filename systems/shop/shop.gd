@@ -12,6 +12,12 @@ const LOG_CATEGORY: String = "shop"
 const SOURCE_PREFIX: String = "shop:"
 const PURCHASES_KEY: String = "purchases"
 const FORMULA_BANK_SLOT: StringName = &"bank_slot"
+const FORMULA_ARMORY_SLOT: StringName = &"armory_slot"
+const ARMORY_COST_BASE_KEY: String = "armory.slot_cost_base"
+const ARMORY_COST_GROWTH_KEY: String = "armory.slot_cost_growth"
+const ARMORY_COST_CAP_KEY: String = "armory.slot_cost_cap"
+const PIECE_RARITY: StringName = &"common"
+const PIECE_ILVL: int = 1
 const SLOT_COST_BASE_KEY: String = "bank.slot_cost_base"
 const SLOT_COST_GROWTH_KEY: String = "bank.slot_cost_growth"
 const SLOT_COST_CAP_KEY: String = "bank.slot_cost_cap"
@@ -22,6 +28,8 @@ var _modifiers: ModifierService
 var _bank: Bank
 var _wallet: Wallet
 var _skills: SkillsSystem
+var _character: CharacterSystem
+var _armory: Armory
 # Entry id -> definition, built once (the data is immutable).
 var _entries: Dictionary[StringName, ShopEntryDef] = {}
 # Entry id -> number of purchases (only entries bought at least once).
@@ -36,6 +44,8 @@ func _init(session: GameSession) -> void:
 	_bank = session.bank
 	_wallet = session.wallet
 	_skills = session.skills
+	_character = session.character
+	_armory = session.armory
 	for entry: ShopEntryDef in _data.shop_entries():
 		_entries[entry.id] = entry
 
@@ -51,10 +61,13 @@ func price(entry_id: StringName) -> int:
 	var entry: ShopEntryDef = _entries[entry_id]
 	if entry.cost_formula == FORMULA_BANK_SLOT:
 		return _slot_price(purchase_count(entry_id))
+	if entry.cost_formula == FORMULA_ARMORY_SLOT:
+		return _armory_slot_price(purchase_count(entry_id))
 	return entry.cost_gold
 
 
-## Checks in order: unknown_id, max_purchases, requirement_not_met, not_enough_gold, bank_full (item effects).
+## Checks in order: unknown_id, max_purchases, requirement_not_met, not_enough_gold, bank_full or armory_full
+## (item effects; equipment and tools go to the Armory as common pieces).
 func can_buy(entry_id: StringName) -> CommandResult:
 	if not _entries.has(entry_id):
 		return CommandResult.fail(Reasons.UNKNOWN_ID)
@@ -65,7 +78,10 @@ func can_buy(entry_id: StringName) -> CommandResult:
 		return CommandResult.fail(Reasons.REQUIREMENT_NOT_MET)
 	if _wallet.get_gold() < price(entry_id):
 		return CommandResult.fail(Reasons.NOT_ENOUGH_GOLD)
-	if entry.effect_item != null and not _bank.can_add(entry.effect_item.item_id):
+	if entry.effect_item != null and _gives_pieces(entry):
+		if not _armory.can_add(entry.effect_item.qty):
+			return CommandResult.fail(Reasons.ARMORY_FULL)
+	elif entry.effect_item != null and not _bank.can_add(entry.effect_item.item_id):
 		return CommandResult.fail(Reasons.BANK_FULL)
 	return CommandResult.success()
 
@@ -80,7 +96,7 @@ func buy(entry_id: StringName) -> CommandResult:
 	if not paid.ok:
 		return paid
 	if entry.effect_item != null:
-		var given: CommandResult = _bank.add(entry.effect_item.item_id, entry.effect_item.qty)
+		var given: CommandResult = _give_item(entry.effect_item)
 		if not given.ok:
 			# Cannot happen after can_buy; refund so that no gold is ever lost.
 			_wallet.add_gold(price(entry_id))
@@ -115,6 +131,27 @@ func sell(item_id: StringName, qty: int) -> CommandResult:
 	var gold: int = sell_value(item_id, qty)
 	_wallet.add_gold(gold)
 	_events.item_sold.emit(item_id, qty, gold)
+	return CommandResult.success()
+
+
+## Sells a piece of the Armory for F-18 with qty 1. Checks in order: unknown_id, item_locked, item_equipped,
+## not_sellable (value 0).
+func sell_instance(uid: int) -> CommandResult:
+	var inst: ItemInstance = _armory.get_instance(uid)
+	if inst == null:
+		return CommandResult.fail(Reasons.UNKNOWN_ID)
+	if inst.locked:
+		return CommandResult.fail(Reasons.ITEM_LOCKED)
+	if _armory.is_worn(uid):
+		return CommandResult.fail(Reasons.ITEM_EQUIPPED)
+	var gold: int = sell_value(inst.base_id, 1)
+	if gold <= 0:
+		return CommandResult.fail(Reasons.NOT_SELLABLE)
+	var removed: CommandResult = _armory.remove(uid)
+	if not removed.ok:
+		return removed
+	_wallet.add_gold(gold)
+	_events.item_sold.emit(inst.base_id, 1, gold)
 	return CommandResult.success()
 
 
@@ -169,7 +206,12 @@ func _requirements_met(entry: ShopEntryDef) -> bool:
 	for required: StringName in entry.req_entries:
 		if purchase_count(required) < 1:
 			return false
-	if not entry.req_skills.is_empty() and not _skills.meets_requirements(entry.req_skills):
+	var mixed: Dictionary = {}
+	for skill_id: StringName in entry.req_skills:
+		mixed[skill_id] = entry.req_skills[skill_id]
+	if entry.req_character > 0:
+		mixed[CharacterSystem.REQUIREMENT_KEY] = entry.req_character
+	if not mixed.is_empty() and not _character.meets_requirements(mixed):
 		return false
 	return _skills.total_level() >= entry.req_total_level
 
@@ -195,3 +237,30 @@ static func _as_positive_int(v: Variant) -> Variant:
 	if v is int and int(v) > 0:
 		return int(v)
 	return null
+
+
+# F-82: min(cap, floor(base x growth^n)).
+func _armory_slot_price(bought: int) -> int:
+	var base: float = float(_data.balance_value(ARMORY_COST_BASE_KEY))
+	var growth: float = float(_data.balance_value(ARMORY_COST_GROWTH_KEY))
+	var cap: int = int(_data.balance_value(ARMORY_COST_CAP_KEY))
+	return mini(cap, floori(base * pow(growth, bought)))
+
+
+# True when the item effect is a unique piece (equipment or tool): it goes to the Armory, not to the bank.
+func _gives_pieces(entry: ShopEntryDef) -> bool:
+	return _is_piece(entry.effect_item.item_id)
+
+
+func _is_piece(item_id: StringName) -> bool:
+	return _data.has_item(item_id) and _data.item(item_id).category in Bank.PIECE_CATEGORIES
+
+
+# Bank stack, or `qty` common pieces of ilvl 1 in the Armory.
+func _give_item(effect: ItemQty) -> CommandResult:
+	if not _is_piece(effect.item_id):
+		return _bank.add(effect.item_id, effect.qty)
+	for i: int in effect.qty:
+		if _armory.create(effect.item_id, PIECE_RARITY, PIECE_ILVL) == 0:
+			return CommandResult.fail(Reasons.ARMORY_FULL)
+	return CommandResult.success()

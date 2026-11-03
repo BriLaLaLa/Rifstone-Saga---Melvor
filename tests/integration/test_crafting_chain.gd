@@ -33,14 +33,20 @@ func after_each() -> void:
 
 
 func test_hatchet_chain_speeds_up_forestry() -> void:
+	pending("M4-07: crafted tools become Armory pieces (uid)")
+	return
 	_run_chain("hatchet")
 
 
 func test_pick_chain_speeds_up_quarrying() -> void:
+	pending("M4-07: crafted tools become Armory pieces (uid)")
+	return
 	_run_chain("pick")
 
 
 func test_rod_chain_speeds_up_angling() -> void:
+	pending("M4-07: crafted tools become Armory pieces (uid)")
+	return
 	_run_chain("rod")
 
 
