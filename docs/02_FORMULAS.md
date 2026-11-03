@@ -655,15 +655,15 @@ sezione (`auto_loot`: `"10.6"` = `01_GDD §10.6`; `04_DATA_SCHEMA.md` §2). Con 
 | `preservation_chance` | 0 | 80 | probabilità di non consumare ingredienti | F-08 | `tests/systems/actions/test_artisan_resolver.gd::test_preservation_cap` |
 | `rift_shard_chance` | 0 | 100 | aumenta la probabilità di frammento | F-07 | `tests/systems/actions/test_gathering_resolver.gd::test_rift_shard_chance` |
 | `bank_slots` | 0 | 10000 | caselle extra della bank | F-16 | `tests/systems/bank/test_bank.gd::test_capacity_uses_bank_slots` |
-| `accuracy_bonus` | −1000 | 100000 | precisione piatta | F-20 | `tests/systems/combat/test_combat_math.gd::test_accuracy_rating` |
-| `accuracy_pct` | −90 | 1000 | precisione percentuale | F-20 | `tests/systems/combat/test_combat_math.gd::test_accuracy_pct` |
-| `power_bonus` | −1000 | 100000 | danno massimo piatto | F-22 | `tests/systems/combat/test_combat_math.gd::test_max_hit` |
-| `power_pct` | −90 | 1000 | danno massimo percentuale | F-22 | `tests/systems/combat/test_combat_math.gd::test_power_pct` |
-| `evasion_bonus` | −1000 | 100000 | evasione piatta | F-21 | `tests/systems/combat/test_combat_math.gd::test_evasion_rating` |
-| `evasion_pct` | −90 | 1000 | evasione percentuale | F-21 | `tests/systems/combat/test_combat_math.gd::test_evasion_pct` |
-| `damage_reduction` | 0 | 80 | riduzione del danno subito | F-25 | `tests/systems/combat/test_combat_math.gd::test_damage_reduction_cap` |
-| `attack_interval_pct` | −90 | 200 | velocità d'attacco | F-26 | `tests/systems/combat/test_combat_math.gd::test_attack_interval_min` |
-| `max_hp_flat` | 0 | 100000 | PV massimi piatti | F-27 | `tests/systems/combat/test_combat_math.gd::test_max_hp` |
+| `accuracy_bonus` | −1000 | 100000 | precisione piatta | F-20 | `tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats` |
+| `accuracy_pct` | −90 | 1000 | precisione percentuale | F-20 | `tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats` |
+| `power_bonus` | −1000 | 100000 | danno massimo piatto | F-22 | `tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats` |
+| `power_pct` | −90 | 1000 | danno massimo percentuale | F-22 | `tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats` |
+| `evasion_bonus` | −1000 | 100000 | evasione piatta | F-21 | `tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats` |
+| `evasion_pct` | −90 | 1000 | evasione percentuale | F-21 | `tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats` |
+| `damage_reduction` | 0 | 80 | riduzione del danno subito | F-25 | `tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats` |
+| `attack_interval_pct` | −90 | 200 | velocità d'attacco | F-26 | `tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats` |
+| `max_hp_flat` | 0 | 100000 | PV massimi piatti | F-27 | `tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats` |
 | `food_healing_pct` | 0 | 500 | cura del cibo | F-29 | `tests/systems/combat/test_auto_eat.gd::test_food_healing_pct` |
 | `gold_drop_pct` | 0 | 1000 | oro dai mostri | F-31 | `tests/systems/combat/test_combat_engine.gd::test_gold_drop_pct` |
 | `loot_bag_slots` | 0 | 100 | caselle della borsa | F-33 | `tests/systems/combat/test_loot_bag.gd::test_capacity_uses_loot_bag_slots` |

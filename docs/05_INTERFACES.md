@@ -913,6 +913,10 @@ Comportamento (M5-03):
     posizione non cambia); `target` -1 se non c'è nessun vivo.
   - `combat.respawn_ms` 0: il nuovo incontro parte nello stesso istante.
   - `between`: `enemies` vuoto in `get_state` e nel save; `get_state` in `idle` ha `player_hp` = massimo.
+  - In `idle` (dopo `stop`, morte, sostituzione o un load in `idle`) `area_id()`, `get_state()["area"]` e il campo `area`
+    del save sono `""` (deciso in M5-07). Nel save di un motore in `idle` contano solo borsa e contatori: `player_hp`,
+    `player_timer_ms`, `hand` e `between_ms` si scrivono `0` (normalizzazione da fare in M6-02, nota "da M5-07"), così
+    save → load → save di un motore fermo è identico byte per byte.
   - Statistiche del giocatore in cache, scartate su `modifiers_changed`, `equipment_changed`, `character_level_up`;
     se il nuovo massimo è minore, i PV attuali scendono al massimo (01 §10.9).
   - `eat()` a PV pieni: `ok` senza consumare (come `AutoEat.eat_one`); il contatore `food_eaten` conta i pezzi tolti

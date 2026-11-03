@@ -1183,6 +1183,11 @@ Regole comuni a M4 (oltre a quelle in testa al file):
   M6-02 estesa a quel file). Nello stesso task sostituire `Encounter.find_area`/`is_known_monster` con
   `GameData.has_area`/`has_monster` di M6-01 (ownership estesa a `systems/combat/encounter.gd`). `SHARD_ITEM` resta un
   id fisso (come `GatheringResolver.SHARD_ITEM`).
+- **Nota (da M5-07) per M6-02** `combat_engine.gd` è a **399** righe (M5-07 ha aggiunto `_area_id = &""` in `stop`).
+  Nello spostamento del save/load: in `idle` `to_save` scrive `player_hp`, `player_timer_ms`, `hand` e `between_ms` a
+  `0` (05 §5.10), perché oggi un motore fermo dopo `stop`/morte salva `player_hp` = massimo e il timer, mentre lo
+  stesso motore ricaricato salva `0` (save → load → save non identico). Test in `test_combat_engine.gd`: dopo una
+  morte e dopo `stop`, save → load → save identico e `area` `""`.
 
 ## M7 · Bottino
 
