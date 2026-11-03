@@ -58,8 +58,8 @@ Se la sessione si interrompe, si riparte da qui.
 | M3-03 | M3 | Equipaggiamento e attrezzi | CORE | DONE | task/M3-03 | merge 01ee4fc, docs e457b88, f262cb7; 796 test, 795 passati, 1 pending; ownership estesa a fixture equipment.json e test_game_data.gd (conteggio); worktree non rimosso (file bloccati, forse da un GUT appeso) |
 | M3-04 | M3 | Contenuto: Forgiatura, Focolare, Intaglio, shop | DATA | DONE | task/M3-04 | merge 0af98c4, fix eb72044 (smoke sidebar), docs ff02bc6, 2f67367; 746 test, 745 passati, 1 pending; ownership estesa a test_crafting_data.gd; impugnature restano (DECISIONS_LOG) |
 | M3-05 | M3 | Pagina skill: variante artigianato | UI | DONE | task/M3-05 | merge 52835f5, docs 9e448b0, 2e7494e; b023268 rimandato (assert sempre vero, numero nudo), corretto in ff75f6b; 800 test, 799 passati, 1 pending; build_theme non spostato (nessuna costante UiStyle nuova) |
-| M3-06 | M3 | Shop e vendita | UI | IN_PROGRESS | task/M3-06 | |
-| M3-07 | M3 | Pagina equipaggiamento | UI | TODO | | |
+| M3-06 | M3 | Shop e vendita | UI | DONE | task/M3-06 | merge 444d051, docs c4cc394, 5d08b00; 1a56aa5 rimandato (rotta shop, oro scritto a mano), corretto in a267a0a; 813 test, 812 passati, 1 pending; ownership estesa a ROUTES di page_host.gd e test_main_screen_smoke.gd |
+| M3-07 | M3 | Pagina equipaggiamento | UI | IN_PROGRESS | task/M3-07 | |
 | M3-08 | M3 | Test di M3 | QA | TODO | | |
 | M3-09 | M3 | Integrazione di M3 | REV | TODO | | |
 | M4-01 | M4 | Formule di combattimento | COMBAT | TODO | | |
