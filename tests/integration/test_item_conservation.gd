@@ -1,5 +1,6 @@
 extends GutTest
 ## Integration (Lesson "single source of truth"): items are only created by completed cycles and live in one place.
+## Pieces (Armory, equipment): test_item_conservation_equipment.gd.
 ## Sum of the products of every `action_completed.outputs` (rift_shard included) = final bank - initial bank
 ## (the initial bank is `start.items` of balance.json); the bank_changed deltas tell the same story.
 ##
@@ -24,9 +25,6 @@ const SMELT_ACTION: StringName = &"smelt_emberbronze"
 const ORE_STACK: int = 40
 const SOLD_QTY: int = 7
 const PRESERVE_CHANCE: float = 60.0
-const SWORD: StringName = &"emberbronze_sword"
-const GREATSWORD: StringName = &"emberbronze_greatsword"
-const SHIELD: StringName = &"emberbronze_shield"
 const FILLER: StringName = &"redbirch_log"
 const CONTENT_ROOT: String = "res://data"
 const CONFIG_ROOT: String = "res://data/config"
@@ -202,51 +200,6 @@ func test_selling_ingredients_mid_cycle_stops_without_xp_or_products() -> void:
 	assert_eq(_session.bank.used(), 0, "the bank is empty: nothing appeared")
 
 
-func test_equipping_moves_one_piece_and_each_piece_exists_once() -> void:
-	_session = _watched_session(TestFactory.real_data())
-	var sword: int = TestFactory.give_piece(_session, SWORD)
-	var great: int = TestFactory.give_piece(_session, GREATSWORD)
-	var shield: int = TestFactory.give_piece(_session, SHIELD)
-	var all: Array[int] = [sword, great, shield]
-	assert_true(_session.equipment.equip(shield).ok)
-	_assert_once(all)
-	assert_true(_session.equipment.equip(great).ok, "two-handed weapon")
-	assert_eq(_session.equipment.get_uid(&"offhand"), 0, "the shield went back")
-	assert_false(_session.armory.is_worn(shield))
-	_assert_once(all)
-	assert_true(_session.equipment.equip(shield).ok, "offhand with a two-handed weapon")
-	assert_eq(_session.equipment.get_uid(&"weapon"), 0, "the greatsword went back")
-	assert_false(_session.armory.is_worn(great))
-	_assert_once(all)
-	assert_true(_session.equipment.equip(sword).ok)
-	assert_true(_session.equipment.unequip(&"weapon").ok)
-	assert_false(_session.armory.is_worn(sword))
-	_assert_once(all)
-	var saved: Dictionary = _session.to_save(0)["modules"]
-	assert_eq((saved["equipment"]["slots"] as Dictionary).size(), 1, "only the shield is worn in the save")
-	assert_eq(_session.bank.used(), 0, "the bank was never involved")
-
-
-func test_equip_with_full_armory_is_refused_when_pieces_return_without_room() -> void:
-	_session = _watched_session(_data_with_slots(40, 4))
-	assert_eq(_session.armory.capacity(), 4)
-	var sword: int = TestFactory.give_piece(_session, SWORD)
-	var shield: int = TestFactory.give_piece(_session, SHIELD)
-	assert_true(_session.equipment.equip(sword).ok)
-	assert_true(_session.equipment.equip(shield).ok)
-	var great: int = TestFactory.give_piece(_session, GREATSWORD)
-	var filler: int = TestFactory.give_piece(_session, SWORD)
-	TestFactory.give_piece(_session, SWORD)
-	TestFactory.give_piece(_session, SWORD)
-	assert_eq(_session.armory.used(), 4, "Armory full")
-	var before: Dictionary = _pieces_world(_session)
-	assert_eq(_session.equipment.equip(great).reason, Reasons.ARMORY_FULL, "two pieces would return, one place is taken")
-	assert_eq(_pieces_world(_session), before, "nothing changed")
-	assert_true(_session.armory.remove(filler).ok)
-	assert_true(_session.equipment.equip(great).ok, "room for the piece that returns beyond the one worn")
-	assert_true(_session.armory.used() <= _session.armory.capacity())
-
-
 func test_last_batch_of_ingredients_with_full_bank_frees_its_own_slot() -> void:
 	_session = _watched_session(_data_with_slots(2))
 	var smelt: ActionDef = _session.data.action(SMELT_ACTION)
@@ -278,34 +231,6 @@ func test_last_batch_of_ingredients_with_full_bank_frees_its_own_slot() -> void:
 	assert_eq(_world(_session, ids), before, "nothing consumed, nothing produced")
 
 
-func test_save_with_two_handed_weapon_and_offhand_keeps_the_invariants() -> void:
-	_session = _watched_session(TestFactory.real_data())
-	var great: int = TestFactory.give_piece(_session, GREATSWORD)
-	var shield: int = TestFactory.give_piece(_session, SHIELD)
-	var saved: Dictionary = _session.to_save(0)
-	var slots: Dictionary = (saved["modules"] as Dictionary)["equipment"]["slots"]
-	slots["weapon"] = great
-	slots["offhand"] = shield
-	var loaded: GameSession = TestFactory.session(SEED, _session.data)
-	assert_true(loaded.from_save(saved).ok, "the edited save loads")
-	assert_eq(loaded.equipment.get_item(&"weapon"), GREATSWORD, "the two-handed weapon is kept")
-	assert_eq(loaded.equipment.get_uid(&"offhand"), 0, "the offhand is dropped")
-	assert_true(loaded.armory.has(shield), "the shield is still in the Armory")
-	assert_false(loaded.armory.is_worn(shield), "and is not worn")
-	loaded.free()
-
-
-func _assert_once(uids: Array[int]) -> void:
-	for uid: int in uids:
-		var worn: int = 0
-		for slot: StringName in Equipment.SLOTS:
-			if _session.equipment.get_uid(slot) == uid:
-				worn += 1
-		assert_true(_session.armory.has(uid), "%d is in the Armory" % uid)
-		assert_eq(worn, 1 if _session.armory.is_worn(uid) else 0, "%d worn in one slot iff flagged worn" % uid)
-
-
-# Bank counts of the given items plus every worn slot and the used boxes, comparable with assert_eq.
 func _world(session: GameSession, ids: Array[StringName]) -> Dictionary:
 	var out: Dictionary = {}
 	for id: StringName in ids:
@@ -313,16 +238,6 @@ func _world(session: GameSession, ids: Array[StringName]) -> Dictionary:
 	for slot: StringName in Equipment.SLOTS:
 		out["slot:" + String(slot)] = session.equipment.get_item(slot)
 	out["used"] = session.bank.used()
-	return out
-
-
-# Worn uids per slot, the Armory pieces and its used places.
-func _pieces_world(session: GameSession) -> Dictionary:
-	var out: Dictionary = {}
-	for slot: StringName in Equipment.SLOTS:
-		out["slot:" + String(slot)] = session.equipment.get_uid(slot)
-	out["count"] = session.armory.instances().size()
-	out["used"] = session.armory.used()
 	return out
 
 

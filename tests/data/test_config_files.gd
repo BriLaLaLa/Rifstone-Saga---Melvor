@@ -125,7 +125,9 @@ const EXPECTED_STATS: Dictionary = {
 const STAT_FIELDS: Array[String] = ["id", "name", "format", "min", "max", "description", "formula", "test"]
 const STAT_FORMATS: Array[String] = ["pct", "flat", "flag"]
 const LATER_MILESTONE_STATS: Array[String] = ["upgrade_success_pct", "fracture_duration_pct", "parallel_lanes"]
-const LATER_MILESTONE_BALANCE_KEYS: Array[String] = ["traits", "abilities", "upgrade", "rift_stone", "salvage", "sockets", "fractures", "parallel"]
+const LATER_MILESTONE_BALANCE_KEYS: Array[String] = [
+	"traits", "abilities", "upgrade", "rift_stone", "salvage", "sockets", "fractures", "parallel",
+]
 
 
 func _load_json(path: String) -> Variant:

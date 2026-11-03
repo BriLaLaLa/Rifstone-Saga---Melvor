@@ -216,3 +216,24 @@ func _write(path: String, text: String) -> void:
 	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
 	file.store_string(text)
 	file.close()
+
+
+func test_buy_item_effect_goes_to_the_bank() -> void:
+	_gold(100)
+	var before: int = _session.wallet.get_gold()
+	assert_true(_shop.buy(&"test_buy_log").ok)
+	assert_eq(_session.bank.get_count(&"test_log"), 1)
+	assert_eq(_session.wallet.get_gold(), before - 20)
+
+
+func test_buy_item_with_full_bank_keeps_gold() -> void:
+	var small: GameSession = autofree(TestFactory.session(1234, _small_data))
+	small.wallet.add_gold(100)
+	TestFactory.give(small, &"test_twig", 1)
+	assert_false(small.bank.can_add(&"test_log"), "the bank must be full for this test")
+	var gold: int = small.wallet.get_gold()
+	var r: CommandResult = small.shop.buy(&"test_buy_log")
+	assert_eq(r.reason, Reasons.BANK_FULL)
+	assert_eq(small.wallet.get_gold(), gold, "gold not spent")
+	assert_eq(small.shop.purchase_count(&"test_buy_log"), 0)
+	assert_eq(small.bank.get_count(&"test_log"), 0)
