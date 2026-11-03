@@ -722,6 +722,10 @@ Regole per tutti i task:
   `bank.is_locked` dall'ultimo `show_item`.
 - **Nota (da M3-04)** `shop.json` ha 9 voci nelle categorie `bank`, `combat`, `tools`; gli attrezzi del novizio hanno
   `max_purchases` 0 (illimitato, `04_DATA_SCHEMA.md` §9): nessun contatore "x/max" per loro.
+- **Nota (Reviewer, revisione di M3-06)** Ownership estesa a `res://ui/screens/main/page_host.gd` (solo la voce
+  `&"shop"` di `ROUTES`) e a `res://tests/ui/test_main_screen_smoke.gd` (solo i punti che davano Shop "In arrivo":
+  `test_unavailable_pages_are_refused` e `test_sidebar_rows_from_data`, da aggiornare con Shop disponibile).
+  `BankItemPanel.sell_requested` e `ShopPage` sono dichiarati in 05 §7.
 - **Nota (da M3-02)** Lo shop è `session.shop` (05 §5.11): stato e motivo del pulsante Compra da `can_buy` (ordine
   `unknown_id`, `max_purchases`, `requirement_not_met`, `not_enough_gold`, `bank_full`), prezzo da `price`, contatore da
   `purchase_count`; vendita con `sell_value` per l'anteprima e `sell` (motivi `invalid_amount`, `unknown_id`,
