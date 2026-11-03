@@ -33,8 +33,9 @@ Se la sessione si interrompe, si riparte da qui.
 | M1-18 | M1 | Bank minima | UI | DONE | task/M1-18 | merge 74e3ca7; follow-up di M1-15: NumberFormat.format_seconds, eliminare il segnaposto |
 | M1-19 | M1 | Test di integrazione di M1 | QA | DONE | task/M1-19 | merge dc3500e; ownership estesa: tools/run_checks.ps1 (validate_data.gd su fixture e dati veri); 621 test, 1 pending (stat M3/M4, errore in M6-07) |
 | M1-20 | M1 | Integrazione di M1 | REV | DONE | main | tag m1-done su c0529c8; 676 test, 675 passati, 1 pending; prova del Giocabile 38/38 |
-| M2-01 | M2 | Nodi della maestria | CORE | TODO | | |
-| M2-02 | M2 | Contenuto: Cavatura, Lenza, nodi della raccolta | DATA | TODO | | aggiungere quarrying e angling a GATHERING_WITH_ACTIONS in test_data_validity.gd |
+| M2-00 | M2 | Limite del nome in balance.json | CORE | IN_PROGRESS | task/M2-00 | richiesta utente dopo M1 (DECISIONS_LOG) |
+| M2-01 | M2 | Nodi della maestria | CORE | IN_PROGRESS | task/M2-01 | |
+| M2-02 | M2 | Contenuto: Cavatura, Lenza, nodi della raccolta | DATA | IN_PROGRESS | task/M2-02 | aggiungere quarrying e angling a GATHERING_WITH_ACTIONS in test_data_validity.gd |
 | M2-03 | M2 | Pannello della maestria | UI | TODO | | |
 | M2-04 | M2 | Bank completa | UI | TODO | | |
 | M2-05 | M2 | Test di M2 | QA | TODO | | |
