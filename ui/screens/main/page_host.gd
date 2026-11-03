@@ -12,14 +12,11 @@ signal page_changed(page_id: StringName)
 const LOG_CATEGORY: String = "ui"
 const ROUTE_SEPARATOR: String = ":"
 const ROUTE_SKILL := &"skill"
-## Temporary page of the routes whose real page does not exist yet.
-const PLACEHOLDER_SCENE: String = "res://ui/screens/main/placeholder_page.tscn"
 ## Route table: route -> page scene. A route that is not here is not available yet (the sidebar shows "In arrivo").
-## M1-15 sets `&"skill"` to res://ui/pages/skill/skill_page.tscn, M1-18 sets `&"bank"` to
-## res://ui/pages/bank/bank_page.tscn; later tasks add `shop`, `equipment`, `combat`, `rift`, `settings`.
+## Later tasks add `shop`, `equipment`, `combat`, `rift`, `settings`.
 const ROUTES: Dictionary[StringName, String] = {
 	ROUTE_SKILL: "res://ui/pages/skill/skill_page.tscn",
-	&"bank": PLACEHOLDER_SCENE,
+	&"bank": "res://ui/pages/bank/bank_page.tscn",
 }
 ## Skill categories drawn by the skill page (combat skills belong to the combat page).
 const SKILL_PAGE_CATEGORIES: Array[StringName] = [&"gathering", &"artisan"]

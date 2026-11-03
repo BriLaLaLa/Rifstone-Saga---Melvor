@@ -16,13 +16,10 @@ const LANE_ACTION_KEY: String = "action"
 const LEVEL_TEXT: String = "Livello %s"
 const LOCKED_TEXT: String = "Richiede il livello %s"
 const XP_TEXT: String = "%s XP"
-const SECONDS_TEXT: String = "%s s"
 const MASTERY_TEXT: String = "Liv. %s"
 const NO_MASTERY_TEXT: String = "Nessuna"
 const START_TEXT: String = "Avvia"
 const STOP_TEXT: String = "Ferma"
-## Decimal separator of NumberFormat: whole seconds get ",0" so every interval has one decimal ("3,0 s").
-const DECIMAL_SEPARATOR: String = ","
 
 var _action: ActionDef = null
 
@@ -103,12 +100,9 @@ func action_id() -> StringName:
 	return _action.id if _action != null else &""
 
 
-## Milliseconds as seconds with at least one decimal, via NumberFormat: 3000 -> "3,0 s", 2700 -> "2,7 s".
+## Milliseconds as seconds with at least one decimal (NumberFormat.format_seconds): 3000 -> "3,0 s".
 static func seconds_text(ms: int) -> String:
-	var text: String = NumberFormat.format_number(ms / 1000.0)
-	if not text.contains(DECIMAL_SEPARATOR):
-		text += DECIMAL_SEPARATOR + "0"
-	return SECONDS_TEXT % text
+	return NumberFormat.format_seconds(ms)
 
 
 func _on_toggle_button_pressed() -> void:
