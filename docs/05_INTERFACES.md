@@ -828,10 +828,14 @@ var style: StringName; var accuracy: int; var evasion: int; var max_hit: int; va
 var attack_interval_ms: int; var damage_reduction: float; var max_hp: int; var block_chance: float
 static func for_player(session: GameSession, hand: int = 0) -> CombatantStats   # F-70; hand 1 = offhand (F-74)
 static func for_monster(monster: MonsterDef, data: GameData) -> CombatantStats
+    # M5-02: sempre ricalcolati (niente nel save); block_chance 0 senza scudo nell'offhand; mostri senza modificatori,
+    # intervallo con F-26 (pct 0, quindi minimo combat.min_attack_interval_ms)
 
 class_name AutoEat extends RefCounted
 static func eat_one(session: GameSession, hp: int, max_hp: int) -> int      # nuovo hp; -1 se nessun cibo (F-29)
+    # M5-02: a PV pieni non mangia (nessun pezzo tolto, hp invariato); food_eaten(item, healed) con la cura reale
 static func after_hit(session: GameSession, hp: int, max_hp: int) -> int   # F-30; nuovo hp
+    # M5-02: soglia floor(max_hp × threshold/100), obiettivo ceil(max_hp × target/100); tier 0 o hp ≤ 0: nulla
 
 class_name LootBag extends RefCounted
 func _init(session: GameSession) -> void
@@ -839,9 +843,14 @@ func items() -> Array[Dictionary]          # [{"item": StringName, "qty": int}]
 func used() -> int
 func capacity() -> int                     # F-33
 func add(item_id: StringName, qty: int) -> bool    # con auto_loot prova prima la bank; false = perso (loot_lost)
+    # M5-02: qty ≤ 0 → true, nulla; auto_loot (T ≥ 1): bank se can_add e add riesce, altrimenti la borsa; tipo nuovo
+    # a borsa piena → loot_lost(item, qty) e false; altrimenti somma e loot_bag_changed(used, capacity)
 func collect_all() -> CommandResult        # bank_full se qualcosa resta
+    # M5-02: sposta ogni tipo che entra; loot_bag_changed alla fine
 func lose_all() -> void                    # morte
-func to_save() -> Array
+    # M5-02: un loot_lost per tipo, poi loot_bag_changed
+func to_save() -> Array                    # [{"item": String, "qty": int}] in ordine di inserimento (§6)
+    # from_save tollerante: voci malformate o oggetti sconosciuti saltati con Log.warn, duplicati sommati, nessun segnale
 func from_save(a: Array) -> void
 
 class_name CombatEngine extends RefCounted
@@ -873,6 +882,15 @@ Comportamento (M5-03):
 - `advance` ripete: `next` = minimo tra i timer attivi (attacco base, abilità (M6), nemici vivi, attesa `BETWEEN`,
   impulso della Pietra (M7)); se `next > resto` scala tutti i timer del resto e si ferma; altrimenti scala `next` e
   risolve tutti i timer a 0 nell'ordine F-76. Equivalenza obbligatoria: `advance(1000)` = dieci `advance(100)`.
+- **Ordine dei tiri di un attacco** (contratto per il determinismo: stesso seme → stessa sequenza di `Rng`):
+  1. colpo: `roll(hit_chance)` (F-23); mancato → fine (nessun altro tiro);
+  2. parata, solo se il difensore è il giocatore con `block_chance > 0` (scudo): `roll_pct(block_chance)` (F-75);
+     parato → danno 0, fine (nessun tiro del danno, nessun `after_hit`);
+  3. danno: intero uniforme in `[min_hit, max_hit]` (F-22);
+  4. senza tiri: `triangle` → `triangle_damage` (F-24) → `effective_dr` con la relazione dell'attaccante →
+     `damage_after_dr` (F-25); poi i PV e, se il difensore è il giocatore vivo, `AutoEat.after_hit` (F-30).
+  Uccisione, nell'ordine: oro (F-31), drop nell'ordine dei dati (F-32, un tiro di probabilità e poi uno di quantità per
+  voce), frammento (F-07).
 - Uccisione: XP al personaggio (F-28), oro (F-31), drop (F-32) e frammento (F-07) nella borsa, `monster_killed`;
   ultimo nemico → `encounter_cleared`, stato `between` per `combat.respawn_ms`, poi nuovo gruppo (F-77) e
   `encounter_started`. Morte: `lose_all`, PV al massimo, `player_died`, stop `player_died`.

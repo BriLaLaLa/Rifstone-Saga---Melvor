@@ -216,7 +216,7 @@ Esempi: `plains_boar` (xp 80), +0% → 80; +25% → 100; gruppo di 3 `plains_boa
 
 ### F-29 Cura del cibo
 `heal = floor(food.heal × (1 + T(food_healing_pct)/100))`; `hp = min(max_hp, hp + heal)`.
-Esempi: 30 e +20% → 36; 20 e 0 → 20. Test: `tests/systems/combat/test_auto_eat.gd`.
+Esempi: 20 e +80% → 36 (il cibo dell'esempio di F-30); 20 e 0 → 20. Test: `tests/systems/combat/test_auto_eat.gd`.
 
 ### F-30 Razioni da campo
 `tier = clamp(floor(T(auto_eat_tier)), 0, 3)`; soglie in `combat.auto_eat_tiers[tier] = {threshold_pct, target_pct}`:
@@ -283,7 +283,8 @@ Con due spade le stat d'attacco (`accuracy_bonus`, `accuracy_pct`, `power_bonus`
 `T(stat)` senza la sorgente dell'altra mano (`equipment:offhand` per la principale, `equipment:weapon` per l'offhand),
 poi limitate da `stats.json` (`ModifierService.total_without`). Le altre stat sono i totali normali.
 Esempio: spada T3 in mano (acc 24, pot 18), spada T1 in offhand (acc 8, pot 6), anello acc +5: mano principale acc 29,
-pot 18; offhand acc 13, pot 6. Test: `tests/systems/combat/test_combatant_stats.gd::test_dual_wield_hand_stats`.
+pot 18; offhand acc 13, pot 6 (sono i bonus). Al livello 1, con l'`accuracy_pct` dell'assetto `dual_swords` (F-72),
+AR 639 / 510 e danno massimo 15 / 12. Test: `tests/systems/combat/test_combatant_stats.gd::test_dual_wield_hand_stats`.
 
 ### F-75 Parata
 Se il giocatore ha uno scudo (`kind: shield`) nell'offhand e un nemico lo colpisce (F-23 riuscito), si tira
