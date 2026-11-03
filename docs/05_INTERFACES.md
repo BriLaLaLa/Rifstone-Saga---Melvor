@@ -655,8 +655,8 @@ func advance(delta_ms: int) -> void
 ```
 Comportamento (M1-10):
 - `start`: ordine dei controlli `lane_unavailable` (ogni corsia diversa da `main` fino a M8) → `unknown_id` (skill o
-  azione sconosciuta, azione di un'altra skill, azione con `inputs` fino a M3-01) → `level_too_low`; un errore non cambia
-  nulla. Avviare l'azione già in corso nella corsia è un no-op `ok` (il ciclo continua, nessun segnale). Altrimenti
+  azione sconosciuta, azione di un'altra skill) → `level_too_low` → `missing_inputs` (azione con `inputs` senza tutti gli
+  ingredienti nella bank, `ArtisanResolver.can_start`; stesso controllo in `from_save`); un errore non cambia nulla. Avviare l'azione già in corso nella corsia è un no-op `ok` (il ciclo continua, nessun segnale). Altrimenti
   l'azione in corso si ferma con `replaced`, poi `action_started`. Nella corsia main ferma anche il combattimento
   (`replaced`): la riga arriva con M4-03.
 - `stop` di una corsia ferma: no-op, nessun segnale. Ogni stop emette `action_stopped` e accoda il motivo al log;
@@ -672,6 +672,13 @@ Comportamento (M1-10):
   compreso): se non c'è, il ciclo non conta, nulla cambia e la corsia si ferma con `bank_full` (nessun `bank_rejected`:
   il feedback è `action_stopped(bank_full)`). Ciclo riuscito: `bank_changed` → `xp_gained`/`level_up` →
   segnali della maestria → `action_completed` (`outputs` comprende `rift_shard` se è uscito).
+- `ArtisanResolver` (M3-01): gli ingredienti si controllano all'avvio di ogni ciclo e di nuovo alla fine; se mancano (es.
+  venduti a metà ciclo) il ciclo fallisce con `missing_inputs`, nulla cambia, niente XP, e la corsia si ferma. Tiri sempre
+  in quest'ordine su `session.rng`: conservazione (F-08), poi doppio (F-06). Nessun frammento. Lo spazio nella bank si
+  controlla **prima** di ogni cambio, al netto degli ingredienti da consumare: le caselle liberate dagli ingredienti
+  consumati del tutto contano per i prodotti nuovi (per questo non si usa `Bank.can_add`, che guarda le caselle prima del
+  consumo); se non c'è posto il ciclo non conta, nulla è consumato e la corsia si ferma con `bank_full`. Ciclo conservato:
+  `consumed` vuoto, prodotti e XP pieni. Ordine dei segnali come per `GatheringResolver`.
 - Save (§6): `{"lanes": {lane: {"skill", "action", "elapsed_ms"}}}`, corsie ferme assenti. `from_save` tollerante: corsia
   sconosciuta, voce non oggetto, azione sconosciuta/di un'altra skill/non avviabile ora (livello, `inputs`) → `Log.warn`
   e corsia ferma; `elapsed_ms` non intero o negativo → `Log.warn` e ciclo da 0. Nessun segnale.
