@@ -30,7 +30,7 @@ Se la sessione si interrompe, si riparte da qui.
 | M1-15 | M1 | Pagina skill (raccolta) e componenti base | UI | DONE | task/M1-15 | merge c634e35; follow-up di M1-13: costanti MENU_/SLOT_/DIALOG_ in UiStyle (ownership estesa, 07_TASKS) |
 | M1-16 | M1 | Tooltip e GameWindow portati | PORT | DONE | task/M1-16 | merge 1981acd; Tooltips.data iniettabile (05 §2) |
 | M1-17 | M1 | Toast portati | PORT | DONE | task/M1-17 | merge ecbf36b, docs aae6438; 386ea12..a6d6f0a; 18 test, run_checks 200/200; bank_changed con delta |
-| M1-18 | M1 | Bank minima | UI | IN_PROGRESS | task/M1-18 | follow-up di M1-15: NumberFormat.format_seconds, eliminare il segnaposto |
+| M1-18 | M1 | Bank minima | UI | REVIEW | task/M1-18 | follow-up di M1-15: NumberFormat.format_seconds, eliminare il segnaposto; in review |
 | M1-19 | M1 | Test di integrazione di M1 | QA | DONE | task/M1-19 | merge dc3500e; ownership estesa: tools/run_checks.ps1 (validate_data.gd su fixture e dati veri); 621 test, 1 pending (stat M3/M4, errore in M6-07) |
 | M1-20 | M1 | Integrazione di M1 | REV | TODO | | |
 | M2-01 | M2 | Nodi della maestria | CORE | TODO | | |
