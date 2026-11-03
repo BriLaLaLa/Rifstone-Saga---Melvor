@@ -597,8 +597,8 @@ Regole per tutti i task:
   Lo smoke porta il pool a un valore preciso con `mastery.to_save()`/`from_save()` (nessun segnale): va bene per
   preparare lo stato, ma la parte "raccolta lunga → pool" deve passare dal runner con il seme fisso. Lo stato di un nodo
   nella UI è `MasteryNodeView.state_of` (`owns_node`, poi `can_buy_node(id).reason`); nel flusso si verifica
-  direttamente su `owns_node`/`can_buy_node`. `balance.json` ha ora 59 chiavi obbligatorie (`mastery.pool_warning_pct`
-  = 95, solo presentazione: nessuna formula F-xx la usa).
+  direttamente su `owns_node`/`can_buy_node`. `balance.json` aveva allora 59 chiavi obbligatorie, 58 da M3-10
+  (`mastery.pool_warning_pct` = 95, solo presentazione: nessuna formula F-xx la usa).
 
 ### M2-06 · Integrazione di M2
 - **Ruolo** REV · **Stima** S · **Parallelizzabile** no · **Dipendenze** M2-01…M2-05
@@ -894,6 +894,15 @@ Regole per tutti i task:
   "In arrivo" (`PageHost.has_page` le esclude: `SKILL_PAGE_CATEGORIES` = raccolta, artigianato): decidere se la loro voce
   apre la pagina del combattimento (es. `has_page` vero e `show_page` che porta a `combat`) o resta solo informativa
   (livello), aggiornando `05_INTERFACES.md` §7 e `test_main_screen_smoke.gd`.
+- **Nota (da M3-09)** `res://ui/theme/ui_style.gd` è ancora a 390 righe: nessun task UI di M3 ha spostato `build_theme()`.
+  Se la pagina del combattimento ha bisogno di costanti `UiStyle.*` nuove, fare prima lo spostamento descritto nella nota
+  di M3-05 (`UiThemeBuilder`), con la stessa ownership estesa (`ui_style.gd` e il file nuovo, solo lo spostamento).
+- **Nota (da M3-09)** Follow-up UI aperti da M2, da chiudere qui (ownership estesa, solo questi punti):
+  - sfondo del pannello della maestria trasparente (`res://ui/pages/mastery/mastery_panel.tscn`): deve avere lo stile
+    di pannello delle altre finestre (`GameWindow`/tema);
+  - in `res://tests/ui/test_equipment_page_smoke.gd`, `test_tool_slot_label_takes_the_skill_name_from_the_data`:
+    togliere il ciclo sui nomi di skill scritti come stringhe e l'helper `_skill_name` (il confronto esatto con il valore
+    atteso ricavato dai dati basta).
 
 ### M4-06 · Test di M4
 - **Ruolo** QA · **Stima** M · **Parallelizzabile** no · **Dipendenze** M4-01…M4-05
@@ -1026,6 +1035,9 @@ Regole per tutti i task:
 - **Leggere** `01_GDD.md` §13-14; `05_INTERFACES.md` §3
 - **Descrizione** Banner del livello, particelle del frammento, carta del suggerimento; solo ascolto di segnali.
 - **Accettazione / Test** smoke; nessuna modifica dello stato.
+- **Nota (da M3-09)** Follow-up aperto da M2: i toast dei livelli si accumulano e compaiono sopra le finestre (pannello
+  della maestria, `GameWindow`). Con il banner del livello decidere il livello di disegno dei toast e il loro limite;
+  ownership estesa a `res://ui/components/toast/**` per questo solo punto.
 
 ### M6-07 · Regressione, prestazioni, foto della UI
 - **Ruolo** QA · **Stima** M · **Parallelizzabile** no · **Dipendenze** M6-01…M6-06
