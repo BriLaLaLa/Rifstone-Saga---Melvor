@@ -1040,6 +1040,10 @@ Regole comuni a M4 (oltre a quelle in testa al file):
   quel file). La sidebar ha già la voce `armory` ("In arrivo" finché manca la rotta) e `CharacterPage` mostra l'assetto
   con `equipment.setup()`; `test_main_screen_smoke.gd::test_sidebar_rows_from_data` controlla `Armory` disabilitata:
   aggiornarlo quando la rotta esiste.
+- **Nota (da M4-07)** Gli attrezzi e i pezzi forgiati sono istanze dell'Armeria (mai nella bank): la pagina li elenca
+  da `armory.instances()` e li equipaggia per `uid`. L'artigianato si ferma con `action_stopped(armory_full)`: aggiungere
+  il testo in `ui/components/toast/toast_manager.gd` `STOP_TEXTS` (es. "Armeria piena"; oggi cade su
+  `STOP_TEXT_DEFAULT`; ownership estesa a quella riga e a un caso di `test_toast_manager.gd`).
 
 ### M4-09 · Pagina del personaggio, sidebar e shop
 - **Ruolo** UI · **Stima** M · **Parallelizzabile** sì (con M4-06, M4-07) · **Dipendenze** M4-05
@@ -1085,6 +1089,11 @@ Regole comuni a M4 (oltre a quelle in testa al file):
   dello shop mostra col nome grezzo (`CATEGORY_TEXTS` non la ha più): spostare quelle voci in una categoria esistente
   (`bank`, `materials`, `tools`) già che la fixture cambia per `test_buy_log`, e aggiornare i conteggi per categoria nei
   test che si rompono (solo quelle righe).
+- **Nota (da M4-07)** Nelle fixture nessuna ricetta produce un pezzo: i test di `test_artisan_resolver.gd` usano
+  un'`ActionDef` costruita nel test (`test_blade`; per la maestria con l'id `craft_plank`). Il flusso di M4-10 (forgia
+  con maestria diversa) va fatto sui dati veri o con una ricetta di pezzo nelle fixture. `ArtisanResolver` legge
+  `item_rarity_pct` con il contesto dell'azione (globale + scope della skill/azione), F-83 dice "global": oggi nessun
+  modificatore con scope ha quella stat; se ne arriva uno, decidere (Reviewer).
 
 ### M4-11 · Integrazione di M4
 - **Ruolo** REV · **Stima** S · **Dipendenze** M4-01…M4-10 · **Ownership** merge, tag `m4-done` · **Parallelizzabile** no ·
