@@ -27,6 +27,7 @@ var wallet: Wallet
 var bank: Bank
 var skills: SkillsSystem
 var mastery: MasterySystem
+var character: CharacterSystem
 var equipment: Equipment
 var actions: ActionRunner
 var shop: Shop
@@ -117,9 +118,9 @@ func rebuild_modifiers() -> void:
 	modifiers.end_batch()
 
 
-## Sum of the skill levels.
+## Sum of the skill levels plus the character level.
 func total_level() -> int:
-	return skills.total_level()
+	return skills.total_level() + character.get_level()
 
 
 # Per system, in dependency order: `wallet = Wallet.new(self)` then
@@ -131,6 +132,8 @@ func _create_systems() -> void:
 	_join(Bank.SAVE_KEY, bank.new_game, bank.to_save, bank.from_save)
 	skills = SkillsSystem.new(self)
 	_join(SkillsSystem.SAVE_KEY, skills.new_game, skills.to_save, skills.from_save)
+	character = CharacterSystem.new(self)
+	_join(CharacterSystem.SAVE_KEY, character.new_game, character.to_save, character.from_save)
 	mastery = MasterySystem.new(self)
 	_join(MasterySystem.SAVE_KEY, mastery.new_game, mastery.to_save, mastery.from_save, mastery.rebuild_modifiers)
 	equipment = Equipment.new(self)

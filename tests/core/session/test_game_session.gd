@@ -100,7 +100,7 @@ func test_to_save_writes_the_header() -> void:
 	assert_eq(saved["created_at_unix_ms"], 1793600000000)
 	assert_eq(saved["saved_at_unix_ms"], NOW_MS)
 	assert_eq(saved["play_time_ms"], 3600000)
-	assert_eq(saved["total_level"], session.data.skills().size())
+	assert_eq(saved["total_level"], session.data.skills().size() + 1)
 	assert_eq(saved["rng"], session.rng.to_save())
 	assert_eq((saved["rng"] as Dictionary)["seed"], 918273)
 	var modules: Dictionary = saved["modules"]
@@ -265,8 +265,8 @@ func test_snapshot_reads_registered_systems() -> void:
 	TestFactory.give(session, &"test_log", 3)
 	session.wallet.add_gold(7)
 	var snapshot: SessionSnapshot = SessionSnapshot.take(session)
-	assert_eq(snapshot.xp.size(), session.data.skills().size())
-	assert_eq(snapshot.levels.size(), session.data.skills().size())
+	assert_eq(snapshot.xp.size(), session.data.skills().size() + 1)
+	assert_eq(snapshot.levels.size(), session.data.skills().size() + 1)
 	assert_eq(snapshot.xp[skill_id], session.skills.get_xp(skill_id))
 	assert_eq(snapshot.levels[skill_id], 2)
 	assert_eq(snapshot.bank.size(), session.bank.used())
@@ -291,3 +291,11 @@ func _session(seed_value: int = 1234) -> GameSession:
 func _probe(seed_value: int = 1234) -> ProbeSession:
 	var events: GameEvents = autofree(GameEvents.new())
 	return autofree(ProbeSession.new(TestFactory.fixture_data(), events, seed_value))
+
+
+func test_real_session_total_level_includes_character() -> void:
+	var session: GameSession = autofree(TestFactory.session())
+	session.new_game()
+	assert_eq(session.total_level(), session.skills.total_level() + session.character.get_level())
+	assert_true(((session.to_save(0))["modules"] as Dictionary).has("character"))
+	assert_eq((session.to_save(0))["format_version"], 2)

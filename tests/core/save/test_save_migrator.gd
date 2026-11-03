@@ -1,7 +1,7 @@
 extends GutTest
 ## SaveMigrator: version check and migration chain.
 ##
-## CURRENT_VERSION is 1 and there are no real migrations yet, so the chain is driven through migrate_chain
+## CURRENT_VERSION is 2 and there is no real migration (a v1 save is unsupported), so the chain is driven through migrate_chain
 ## with fake steps defined here and targets above CURRENT_VERSION.
 
 
@@ -42,28 +42,28 @@ func _broken_step(_from_version: int) -> Callable:
 	return Callable(FakeSteps, &"broken")
 
 
-func test_current_version_is_one() -> void:
-	assert_eq(SaveMigrator.CURRENT_VERSION, 1)
+func test_current_version_is_two() -> void:
+	assert_eq(SaveMigrator.CURRENT_VERSION, 2)
 
 
 func test_can_load_current_version() -> void:
-	assert_true(SaveMigrator.can_load({"format_version": 1}))
-	assert_true(SaveMigrator.can_load({"format_version": 1.0}), "JSON numbers arrive as float")
+	assert_true(SaveMigrator.can_load({"format_version": 2}))
+	assert_true(SaveMigrator.can_load({"format_version": 2.0}), "JSON numbers arrive as float")
 
 
 func test_can_load_rejects_newer_version() -> void:
-	assert_false(SaveMigrator.can_load({"format_version": 2}))
-	assert_false(SaveMigrator.can_load({"format_version": 2.0}))
+	assert_false(SaveMigrator.can_load({"format_version": 3}))
+	assert_false(SaveMigrator.can_load({"format_version": 3.0}))
 
 
 func test_can_load_rejects_missing_or_invalid_version() -> void:
 	assert_false(SaveMigrator.can_load({}))
-	assert_false(SaveMigrator.can_load({"format_version": "1"}))
-	assert_false(SaveMigrator.can_load({"format_version": 1.5}))
+	assert_false(SaveMigrator.can_load({"format_version": "2"}))
+	assert_false(SaveMigrator.can_load({"format_version": 2.5}))
 
 
 func test_migrate_current_version_returns_equal_copy() -> void:
-	var d: Dictionary = {"format_version": 1, "modules": {"wallet": {"gold": 5}}}
+	var d: Dictionary = {"format_version": 2, "modules": {"wallet": {"gold": 5}}}
 	var out: Dictionary = SaveMigrator.migrate(d)
 	assert_eq(out, d)
 	out["modules"]["wallet"]["gold"] = 99
@@ -71,12 +71,12 @@ func test_migrate_current_version_returns_equal_copy() -> void:
 
 
 func test_migrate_float_version_becomes_int() -> void:
-	var out: Dictionary = SaveMigrator.migrate({"format_version": 1.0})
+	var out: Dictionary = SaveMigrator.migrate({"format_version": 2.0})
 	assert_typeof(out["format_version"], TYPE_INT)
 
 
 func test_migrate_newer_version_returns_empty() -> void:
-	assert_eq(SaveMigrator.migrate({"format_version": 2}), {})
+	assert_eq(SaveMigrator.migrate({"format_version": 3}), {})
 
 
 func test_migrate_without_migration_file_returns_empty() -> void:
@@ -114,3 +114,8 @@ func test_chain_with_missing_step_returns_empty() -> void:
 
 func test_chain_with_failing_step_returns_empty() -> void:
 	assert_eq(SaveMigrator.migrate_chain({"format_version": 1}, 2, _broken_step), {})
+
+
+func test_v1_save_is_loadable_by_header_but_not_migratable() -> void:
+	assert_true(SaveMigrator.can_load({"format_version": 1}))
+	assert_eq(SaveMigrator.migrate({"format_version": 1}), {}, "there is no migration_1_to_2.gd (D3)")
