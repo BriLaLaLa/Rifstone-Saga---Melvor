@@ -196,7 +196,7 @@ func test_artisan_skill_refuses_start_until_recipes() -> void:
 	assert_false(cards.is_empty())
 	_button(cards[0]).pressed.emit()
 	assert_false(_session.actions.is_running())
-	assert_eq(_label(_page, "%MessageLabel").text, SkillPage.REFUSED_TEXTS[Reasons.UNKNOWN_ID])
+	assert_eq(_label(_page, "%MessageLabel").text, SkillPage.REFUSED_TEXTS[Reasons.MISSING_INPUTS])
 
 
 func test_real_data_forestry_page() -> void:
