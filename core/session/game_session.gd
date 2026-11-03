@@ -27,6 +27,7 @@ var wallet: Wallet
 var bank: Bank
 var skills: SkillsSystem
 var mastery: MasterySystem
+var equipment: Equipment
 var actions: ActionRunner
 var shop: Shop
 # The other system fields of docs/05_INTERFACES.md §5.3 are declared by the task that creates each system.
@@ -132,6 +133,8 @@ func _create_systems() -> void:
 	_join(SkillsSystem.SAVE_KEY, skills.new_game, skills.to_save, skills.from_save)
 	mastery = MasterySystem.new(self)
 	_join(MasterySystem.SAVE_KEY, mastery.new_game, mastery.to_save, mastery.from_save, mastery.rebuild_modifiers)
+	equipment = Equipment.new(self)
+	_join(Equipment.SAVE_KEY, equipment.new_game, equipment.to_save, equipment.from_save, equipment.rebuild_modifiers)
 	actions = ActionRunner.new(self)
 	_join(ActionRunner.SAVE_KEY, actions.new_game, actions.to_save, actions.from_save)
 	_tick(_PHASE_ACTIONS, actions.advance)
