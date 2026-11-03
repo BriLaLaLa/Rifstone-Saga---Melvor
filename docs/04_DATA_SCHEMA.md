@@ -67,7 +67,7 @@ l'elenco delle chiavi obbligatorie, `DataValidator.REQUIRED_BALANCE_KEYS`).
               "pool_warning_pct": 95},
   "action": {"min_interval_ms": 250},
   "gathering": {"rift_shard_base_chance_pct": 0.5},
-  "bank": {"base_slots": 24, "slot_cost_base": 400, "slot_cost_growth": 1.09, "slot_cost_cap": 2000000, "max_purchasable": 150},
+  "bank": {"base_slots": 24, "slot_cost_base": 400, "slot_cost_growth": 1.09, "slot_cost_cap": 2000000},
   "combat": {
     "acc_level_offset": 8, "acc_bonus_offset": 50,
     "maxhit_level_offset": 10, "maxhit_bonus_offset": 40, "min_hit_ratio": 0.1,

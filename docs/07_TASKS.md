@@ -777,8 +777,22 @@ Regole per tutti i task:
   offhand entrambi pieni (save modificato a mano) oggi viene caricato così com'è, perché `from_save` controlla solo slot
   e tipo dell'oggetto. Se il caso fallisce un'invariante, riportarlo al Reviewer, non correggerlo nel test.
 
+### M3-10 · Unica definizione del massimo di caselle comprabili
+- **Ruolo** CORE · **Stima** S · **Parallelizzabile** no · **Dipendenze** M3-02, M3-03
+- **Ownership** `res://data/config/balance.json` (solo la chiave `bank.max_purchasable`), `res://core/data/data_validator.gd`
+  (solo l'elenco delle chiavi obbligatorie), `res://tests/data/test_config_files.gd` (solo la riga della chiave)
+- **Leggere** `01_GDD.md` §8; `04_DATA_SCHEMA.md` §3 (`bank`) e §9 (`max_purchases`); `02_FORMULAS.md` F-17
+- **Descrizione** Il massimo di caselle della bank comprabili ha due definizioni: `bank.max_purchasable` in `balance.json`
+  (chiave obbligatoria per il validatore, non letta da nessun sistema) e `max_purchases` della voce `bank_slot` in
+  `data/shop/shop.json` (quella usata dallo shop). Togliere `bank.max_purchasable` da `balance.json`, dalle chiavi
+  obbligatorie di `data_validator.gd` e da `test_config_files.gd`. Unica definizione: `max_purchases` di `bank_slot` in
+  `shop.json`. I documenti sono già aggiornati (DECISIONS_LOG, M3-10).
+- **Accettazione** nessuna occorrenza di `max_purchasable` in `data/`, `core/`, `systems/`, `tests/`; `validate_data` OK su
+  dati veri e fixture; test di `res://tests/data` e `res://tests/core` verdi.
+- **Test** `test_config_files.gd` (senza la chiave tolta).
+
 ### M3-09 · Integrazione di M3
-- **Ruolo** REV · **Stima** S · **Dipendenze** M3-01…M3-08 · **Ownership** merge, tag `m3-done` · **Parallelizzabile** no ·
+- **Ruolo** REV · **Stima** S · **Dipendenze** M3-01…M3-08, M3-10 · **Ownership** merge, tag `m3-done` · **Parallelizzabile** no ·
   **Leggere** `08_TEAM.md` §4-6 · **Descrizione / Accettazione / Test** come M1-20.
 
 ---

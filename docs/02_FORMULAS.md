@@ -129,7 +129,7 @@ Esempio: 3 caselle comprate → 27. Test: `tests/systems/bank/test_bank.gd`.
 
 ### F-17 Prezzo della prossima casella
 `n` = caselle già comprate. `price(n) = min(bank.slot_cost_cap, floor(bank.slot_cost_base × bank.slot_cost_growth^n))`
-Parametri: `slot_cost_base = 400`, `slot_cost_growth = 1.09`, `slot_cost_cap = 2000000`, `max_purchasable = 150`.
+Parametri: `slot_cost_base = 400`, `slot_cost_growth = 1.09`, `slot_cost_cap = 2000000`. Massimo di caselle comprabili: `max_purchases` della voce `bank_slot` (§8.6, `data/shop/shop.json`, 150).
 | n | prezzo | n | prezzo |
 |---|---|---|---|
 | 0 | 400 | 20 | 2.241 |
@@ -388,7 +388,7 @@ n4 `[0,2]`, n5 `[2,2]`, n6 `[1,3]`.
 | `mastery.pool_warning_pct` | 95 | MasteryPanel: avviso del pool quasi pieno (`01_GDD.md` §6.2); > 0 e ≤ 100 |
 | `action.min_interval_ms` | 250 | F-03 |
 | `gathering.rift_shard_base_chance_pct` | 0.5 | F-07 |
-| `bank.{base_slots, slot_cost_base, slot_cost_growth, slot_cost_cap, max_purchasable}` | 24, 400, 1.09, 2000000, 150 | F-16, F-17 |
+| `bank.{base_slots, slot_cost_base, slot_cost_growth, slot_cost_cap}` | 24, 400, 1.09, 2000000 | F-16, F-17 (il massimo di caselle comprabili è `max_purchases` di `bank_slot`, §8.6) |
 | `combat.{acc_level_offset, acc_bonus_offset}` | 8, 50 | F-20, F-21 |
 | `combat.{maxhit_level_offset, maxhit_bonus_offset, min_hit_ratio}` | 10, 40, 0.1 | F-22 |
 | `combat.{hit_chance_min, hit_chance_max}` | 0.05, 0.95 | F-23 |

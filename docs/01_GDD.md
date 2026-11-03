@@ -173,7 +173,7 @@ perdono); oggetto sconosciuto in un salvataggio (scartato al caricamento, con av
 - Unica valuta: **Oro** (`gold`, intero ≥ 0).
 - Vendere: oro = `item.value × quantità` (F-18). Oggetti con `value = 0` non si vendono.
 - Lo shop ha voci (`data/shop/shop.json`), per categoria:
-  - **Bank**: "Casella della bank" (+1 `bank_slots`), prezzo crescente F-17, massimo `bank.max_purchasable`;
+  - **Bank**: "Casella della bank" (+1 `bank_slots`), prezzo crescente F-17, massimo = `max_purchases` della voce `bank_slot` in `shop.json`;
   - **Combattimento**: "Razioni da campo I/II/III" (stat `auto_eat_tier`, una alla volta, in ordine),
     "Raccolta automatica del bottino" (`auto_loot`), "Tasca della borsa" (+4 `loot_bag_slots`, max 3);
   - **Materiali**: oggetti base comprabili (es. sale, spago) a prezzo fisso;
