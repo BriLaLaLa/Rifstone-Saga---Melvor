@@ -22,3 +22,4 @@ func test_fail_with_empty_reason_is_a_programming_error() -> void:
 
 func test_each_call_returns_a_new_instance() -> void:
 	assert_ne(CommandResult.success(), CommandResult.success())
+	assert_ne(CommandResult.fail(Reasons.IO_ERROR), CommandResult.fail(Reasons.IO_ERROR))
