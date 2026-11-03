@@ -2,7 +2,7 @@ extends GutTest
 ## StatRegistry: building from the parsed stats array, errors on malformed entries, info and clamp_total.
 
 const STATS_PATH: String = "res://data/config/stats.json"
-const MVP_STAT_COUNT: int = 21
+const MVP_STAT_COUNT: int = 24
 
 
 func test_from_array_registers_valid_stats() -> void:

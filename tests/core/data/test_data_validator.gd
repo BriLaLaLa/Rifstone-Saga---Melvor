@@ -142,7 +142,7 @@ func test_unknown_top_level_field_is_an_error() -> void:
 # --- balance.json ------------------------------------------------------------------------------------------------
 
 func test_required_balance_keys_are_all_in_the_real_file() -> void:
-	assert_eq(DataValidator.REQUIRED_BALANCE_KEYS.size(), 58)
+	assert_eq(DataValidator.REQUIRED_BALANCE_KEYS.size(), 72)
 	for key: String in DataValidator.REQUIRED_BALANCE_KEYS:
 		assert_not_null(DataValidator.lookup(file_of(fixture_raw(), "balance", BALANCE), key), key)
 
@@ -240,10 +240,16 @@ func test_start_items_must_exist() -> void:
 	_expect(raw, [BALANCE, "field 'start.items[0].item': unknown item 'ghost_item'"])
 
 
-func test_combat_skills_of_balance_must_exist() -> void:
+func test_start_class_of_balance_must_exist() -> void:
 	var raw: Dictionary = fixture_raw()
-	(file_of(raw, "balance", BALANCE)["combat"] as Dictionary)["hp_skill"] = "stamina"
-	_expect(raw, [BALANCE, "field 'combat.hp_skill': unknown skill 'stamina'"])
+	(file_of(raw, "balance", BALANCE)["character"] as Dictionary)["start_class"] = "ghost"
+	_expect(raw, [BALANCE, "field 'character.start_class': unknown class 'ghost'"])
+
+
+func test_keys_removed_by_the_reform_are_unknown() -> void:
+	var raw: Dictionary = fixture_raw()
+	(file_of(raw, "balance", BALANCE)["combat"] as Dictionary)["hp_skill"] = "vitality"
+	_expect(raw, [BALANCE, "unknown key 'combat.hp_skill'"])
 
 
 # --- stats.json --------------------------------------------------------------------------------------------------
@@ -304,10 +310,22 @@ func test_skill_color_must_be_rrggbb() -> void:
 	_expect(raw, [SKILLS, "skill 'test_gather'", "field 'color' must be #rrggbb"])
 
 
-func test_combat_skill_cannot_have_mastery() -> void:
+func test_combat_is_not_a_skill_category() -> void:
 	var raw: Dictionary = fixture_raw()
-	_skill(raw, 4)["has_mastery"] = true
-	_expect(raw, [SKILLS, "skill 'blade'", "combat skills must have 'has_mastery': false"])
+	_skill(raw, 0)["category"] = "combat"
+	_expect(raw, [SKILLS, "skill 'test_gather'", "field 'category' must be one of"])
+
+
+func test_has_mastery_does_not_depend_on_the_category() -> void:
+	var raw: Dictionary = fixture_raw()
+	_skill(raw, 3)["has_mastery"] = true  # riftbinding is artisan and had none
+	assert_eq(validate(raw), PackedStringArray())
+
+
+func test_character_is_a_reserved_skill_id() -> void:
+	var raw: Dictionary = fixture_raw()
+	_skill(raw, 1)["id"] = "character"
+	_expect(raw, [SKILLS, "skill 'character'", "id 'character' is reserved"])
 
 
 func test_mastery_bonuses_need_has_mastery() -> void:

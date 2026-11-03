@@ -19,12 +19,17 @@ const EQUIP_SLOTS: PackedStringArray = [
 ]
 const TOOL_SLOT_PREFIX: String = "tool_"
 const WEAPON_SLOT: String = "weapon"
+const OFFHAND_SLOT: String = "offhand"
+const GRADE_MAX: int = 8
+const TWO_HANDED_KIND: String = "greatsword"
+const WEAPON_KINDS: PackedStringArray = ["greatsword", "sword"]  # kinds of slot weapon
+const OFFHAND_SLOT_KINDS: PackedStringArray = ["shield"]  # kinds of slot offhand (a sword stays in slot weapon)
 const RIFT_SHARD_ID: StringName = &"rift_shard"
 const RIFT_SHARD_CATEGORY: String = "misc"
 const ACTION_FIELDS: PackedStringArray = ["id", "name", "level", "interval_ms", "xp", "mastery", "inputs",
 	"outputs", "icon"]
 const SHOP_CATEGORIES: PackedStringArray = ["bank", "combat", "tools", "materials"]  # M8 adds "lanes"
-const SHOP_FORMULAS: PackedStringArray = ["bank_slot"]
+const SHOP_FORMULAS: PackedStringArray = ["bank_slot", "armory_slot"]
 const SHOP_FIELDS: PackedStringArray = ["id", "name", "description", "category", "cost", "max_purchases",
 	"requires", "effect"]
 
@@ -81,26 +86,61 @@ static func _sub_object(v: DataValidatorRules, e: Dictionary, key: String, wante
 
 
 static func _equip(v: DataValidatorRules, equip: Dictionary, category: String) -> void:
-	v.keys(equip, ["slot", "requirements", "modifiers", "weapon"], "equip")
+	v.keys(equip, ["slot", "requirements", "modifiers", "grade", "kind", "weapon"], "equip")
 	var slot: String = ""
 	if v.one_of(equip, "slot", EQUIP_SLOTS, "equip"):
 		slot = equip["slot"] as String
-		if slot.begins_with(TOOL_SLOT_PREFIX) and category != "tool":
-			v.fail("slot '%s' is only for category 'tool'" % slot)
-	v.level_map(equip, "requirements", "equip")
+		if slot.begins_with(TOOL_SLOT_PREFIX) != (category == "tool"):
+			v.fail("slot '%s' does not fit category '%s' (tool slots are only for tools)" % [slot, category])
+	_requirements(v, equip, category, slot)
 	v.modifiers(equip, "modifiers", "equip")
+	v.integer(equip, "grade", 1, GRADE_MAX, "equip")
+	var kind: String = _kind(v, equip, slot)
 	if equip.has("weapon") and slot != WEAPON_SLOT:
 		v.fail("field 'equip.weapon' is allowed only with slot '%s'" % WEAPON_SLOT)
-	if not equip.has("weapon") or slot != WEAPON_SLOT:
+	if slot != WEAPON_SLOT:
 		return
 	var weapon: Dictionary = v.object(equip, "weapon", "equip")
-	if not equip["weapon"] is Dictionary:
+	if not equip.get("weapon") is Dictionary:
 		return
 	v.keys(weapon, ["style", "attack_interval_ms", "two_handed"], "equip.weapon")
 	v.one_of(weapon, "style", DataValidatorRules.STYLES, "equip.weapon")
 	v.integer(weapon, "attack_interval_ms", maxf(v.min_attack_interval_ms, 1), DataValidatorRules.NO_LIMIT,
 			"equip.weapon")
-	v.flag(weapon, "two_handed", "equip.weapon")
+	if v.flag(weapon, "two_handed", "equip.weapon") and not kind.is_empty() \
+			and weapon["two_handed"] != (kind == TWO_HANDED_KIND):
+		v.fail("field 'equip.weapon.two_handed' must be %s for kind '%s'" % [kind == TWO_HANDED_KIND, kind])
+
+
+# Requirements: equipment only has the character level; a tool only the skill of its slot (`tool_<skill>`) when that
+# skill exists, otherwise any skills.
+static func _requirements(v: DataValidatorRules, equip: Dictionary, category: String, slot: String) -> void:
+	v.level_map(equip, "requirements", "equip", DataValidatorRules.LEVELS_CHARACTER if category == "equipment"
+			else DataValidatorRules.LEVELS_SKILLS)
+	var reqs: Variant = equip.get("requirements")
+	if category != "tool" or not reqs is Dictionary or not slot.begins_with(TOOL_SLOT_PREFIX):
+		return
+	var slot_skill: String = slot.trim_prefix(TOOL_SLOT_PREFIX)
+	if not v.skills.has(StringName(slot_skill)):
+		return
+	for key: Variant in reqs as Dictionary:
+		if str(key) != slot_skill and str(key) != DataValidatorRules.DOC_KEY:
+			v.fail("field 'equip.requirements.%s': a tool in slot '%s' only requires skill '%s'" % [key, slot,
+					slot_skill])
+
+
+# `kind`: required for weapon and offhand slots, forbidden otherwise; returns it ("" if absent or invalid).
+static func _kind(v: DataValidatorRules, equip: Dictionary, slot: String) -> String:
+	if slot.is_empty():
+		return ""
+	if slot != WEAPON_SLOT and slot != OFFHAND_SLOT:
+		if equip.has("kind"):
+			v.fail("field 'equip.kind' is allowed only with slots '%s' and '%s'" % [WEAPON_SLOT, OFFHAND_SLOT])
+		return ""
+	var allowed: PackedStringArray = WEAPON_KINDS if slot == WEAPON_SLOT else OFFHAND_SLOT_KINDS
+	if not v.one_of(equip, "kind", allowed, "equip"):
+		return ""
+	return equip["kind"] as String
 
 
 static func validate_actions(v: DataValidatorRules, files: Dictionary[String, Dictionary]) -> void:
@@ -141,11 +181,13 @@ static func validate_shop(v: DataValidatorRules, files: Dictionary[String, Dicti
 			elif cost.has("formula"):
 				v.one_of(cost, "formula", SHOP_FORMULAS, "cost")
 			var req: Dictionary = v.object(e, "requires")
-			v.keys(req, ["entries", "skills", "total_level"], "requires")
+			v.keys(req, ["entries", "skills", "total_level", "character"], "requires")
 			if req.has("entries"):
 				v.id_list(req, "entries", v.shop_entries, "shop entry", 0, "requires")
 			if req.has("skills"):
 				v.level_map(req, "skills", "requires")
+			if req.has("character"):
+				v.integer(req, "character", 1, v.max_character_level, "requires")
 			if req.has("total_level"):
 				v.integer(req, "total_level", 0, DataValidatorRules.NO_LIMIT, "requires")
 			var effect: Dictionary = _one_of_two(v, e, "effect", "modifiers", "item")

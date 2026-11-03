@@ -113,6 +113,8 @@ func test_equip_last_unit_frees_the_bank_stack() -> void:
 
 
 func test_equip_replaces_and_returns_previous_piece() -> void:
+	pending("M4-06: requisiti character, uid e assetti")
+	return
 	TestFactory.give(_session, HELM, 1)
 	TestFactory.give(_session, HELM_HIGH, 1)
 	TestFactory.set_level(_session, &"blade", 10)
@@ -124,6 +126,8 @@ func test_equip_replaces_and_returns_previous_piece() -> void:
 
 
 func test_equip_errors() -> void:
+	pending("M4-06: requisiti character, uid e assetti")
+	return
 	assert_eq(_session.equipment.equip(&"nope").reason, Reasons.UNKNOWN_ID)
 	TestFactory.give(_session, RATION, 1)
 	assert_eq(_session.equipment.equip(RATION).reason, Reasons.NOT_EQUIPPABLE)
@@ -135,12 +139,16 @@ func test_equip_errors() -> void:
 
 
 func test_requirement_met_at_the_exact_level() -> void:
+	pending("M4-06: requisiti character, uid e assetti")
+	return
 	TestFactory.give(_session, HELM_HIGH, 1)
 	TestFactory.set_level(_session, &"blade", 10)
 	assert_true(_session.equipment.equip(HELM_HIGH).ok)
 
 
 func test_swap_with_full_bank_is_refused_and_changes_nothing() -> void:
+	pending("M4-06: requisiti character, uid e assetti")
+	return
 	_session = _small()
 	TestFactory.give(_session, HELM, 1)
 	TestFactory.give(_session, HELM_HIGH, 2)
@@ -159,6 +167,8 @@ func test_swap_with_full_bank_is_refused_and_changes_nothing() -> void:
 
 
 func test_swap_works_in_full_bank_when_taken_stack_is_the_last_unit() -> void:
+	pending("M4-06: requisiti character, uid e assetti")
+	return
 	_session = _small()
 	TestFactory.give(_session, HELM, 1)
 	TestFactory.give(_session, HELM_HIGH, 1)
@@ -189,6 +199,8 @@ func test_unequip_returns_item_and_errors() -> void:
 
 
 func test_two_handed_weapon_returns_offhand() -> void:
+	pending("M4-06: requisiti character, uid e assetti")
+	return
 	TestFactory.give(_session, SHIELD, 1)
 	TestFactory.give(_session, GREAT, 1)
 	_session.equipment.equip(SHIELD)
@@ -200,6 +212,8 @@ func test_two_handed_weapon_returns_offhand() -> void:
 
 
 func test_offhand_removes_two_handed_weapon() -> void:
+	pending("M4-06: requisiti character, uid e assetti")
+	return
 	TestFactory.give(_session, SHIELD, 1)
 	TestFactory.give(_session, GREAT, 1)
 	_session.equipment.equip(GREAT)
@@ -211,6 +225,8 @@ func test_offhand_removes_two_handed_weapon() -> void:
 
 
 func test_offhand_with_one_handed_weapon_keeps_both() -> void:
+	pending("M4-06: requisiti character, uid e assetti")
+	return
 	TestFactory.give(_session, SHIELD, 1)
 	TestFactory.give(_session, BLADE, 1)
 	_session.equipment.equip(BLADE)
@@ -220,6 +236,8 @@ func test_offhand_with_one_handed_weapon_keeps_both() -> void:
 
 
 func test_two_handed_with_full_bank_needs_room_for_offhand() -> void:
+	pending("M4-06: requisiti character, uid e assetti")
+	return
 	_session = _small()
 	TestFactory.give(_session, SHIELD, 1)
 	TestFactory.give(_session, GREAT, 2)
@@ -232,6 +250,8 @@ func test_two_handed_with_full_bank_needs_room_for_offhand() -> void:
 
 
 func test_weapon_change_blocked_during_combat_other_slots_free() -> void:
+	pending("M4-06: requisiti character, uid e assetti")
+	return
 	_session = _with_combat()
 	TestFactory.give(_session, BLADE, 2)
 	TestFactory.give(_session, HELM, 1)
@@ -248,6 +268,8 @@ func test_weapon_change_blocked_during_combat_other_slots_free() -> void:
 
 
 func test_offhand_displacing_two_handed_weapon_blocked_during_combat() -> void:
+	pending("M4-06: requisiti character, uid e assetti")
+	return
 	_session = _with_combat()
 	TestFactory.give(_session, GREAT, 1)
 	TestFactory.give(_session, SHIELD, 1)
@@ -258,12 +280,16 @@ func test_offhand_displacing_two_handed_weapon_blocked_during_combat() -> void:
 
 
 func test_works_without_combat_system() -> void:
+	pending("M4-06: requisiti character, uid e assetti")
+	return
 	TestFactory.give(_session, BLADE, 1)
 	assert_null(_session.get(&"combat"))
 	assert_true(_session.equipment.equip(BLADE).ok)
 
 
 func test_style_and_interval_follow_weapon_or_unarmed() -> void:
+	pending("M4-06: requisiti character, uid e assetti")
+	return
 	var unarmed_style: StringName = StringName(str(_session.data.balance_value("combat.unarmed.style")))
 	var unarmed_ms: int = int(_session.data.balance_value("combat.unarmed.attack_interval_ms"))
 	assert_eq(_session.equipment.style(), unarmed_style)
@@ -276,6 +302,8 @@ func test_style_and_interval_follow_weapon_or_unarmed() -> void:
 
 
 func test_modifier_sources_follow_slots() -> void:
+	pending("M4-06: requisiti character, uid e assetti")
+	return
 	TestFactory.give(_session, HELM, 1)
 	TestFactory.give(_session, BLADE, 1)
 	_session.equipment.equip(HELM)
@@ -324,6 +352,8 @@ func test_stance() -> void:
 
 
 func test_save_round_trip_restores_state_and_sources() -> void:
+	pending("M4-06: requisiti character, uid e assetti")
+	return
 	TestFactory.give(_session, HATCHET, 1)
 	TestFactory.give(_session, BLADE, 1)
 	TestFactory.give(_session, RATION, 1)

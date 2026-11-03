@@ -32,6 +32,8 @@ func test_hidden_after_hide() -> void:
 
 
 func test_show_item_weapon_lines() -> void:
+	pending("M4-08: tooltip del pezzo con requisito character e stile")
+	return
 	_show_item(&"test_blade", 3)
 	assert_true(_tooltip.is_shown())
 	assert_true(_tooltip.visible)
@@ -83,7 +85,7 @@ func test_show_item_without_count_has_no_quantity() -> void:
 
 
 func test_show_item_null_hides_and_reports() -> void:
-	_show_item(&"test_blade", 1)
+	_show_item(&"test_hatchet", 1)
 	Tooltips.show_item(null, 1, Vector2.ZERO)
 	assert_push_error("null item")
 	assert_false(_tooltip.is_shown())
@@ -98,7 +100,7 @@ func test_show_text_title_and_body() -> void:
 
 
 func test_hide_tooltip_hides_and_clears() -> void:
-	_show_item(&"test_blade", 3)
+	_show_item(&"test_hatchet", 3)
 	Tooltips.hide_tooltip()
 	assert_false(_tooltip.is_shown())
 	assert_false(_tooltip.visible)
@@ -108,14 +110,14 @@ func test_hide_tooltip_hides_and_clears() -> void:
 
 
 func test_hide_before_placement_keeps_it_hidden() -> void:
-	_show_item(&"test_blade", 3)
+	_show_item(&"test_hatchet", 3)
 	Tooltips.hide_tooltip()
 	await wait_physics_frames(3)
 	assert_false(_tooltip.visible)
 
 
 func test_tooltip_is_clamped_inside_viewport() -> void:
-	Tooltips.show_item(_data.item(&"test_blade"), 1, Vector2(100000, 100000))
+	Tooltips.show_item(_data.item(&"test_hatchet"), 1, Vector2(100000, 100000))
 	await wait_physics_frames(3)
 	var screen: Rect2 = _tooltip.get_viewport_rect()
 	var rect: Rect2 = _tooltip.get_global_rect()

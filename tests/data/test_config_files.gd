@@ -53,12 +53,10 @@ const EXPECTED_BALANCE: Dictionary = {
 	"combat.min_attack_interval_ms": 800.0,
 	"combat.unarmed.style": "blade",
 	"combat.unarmed.attack_interval_ms": 2400.0,
-	"combat.hp_skill": "vitality",
-	"combat.defence_skill": "guard",
+	"combat.dual_wield.interval_mult": 0.75,
+	"combat.max_pack_size": 6.0,
 	"combat.hp_base": 50.0,
-	"combat.hp_per_vitality": 10.0,
-	"combat.xp_per_damage_style": 4.0,
-	"combat.xp_per_damage_vitality": 1.0,
+	"combat.hp_per_level": 10.0,
 	"combat.auto_eat_tiers.0": null,
 	"combat.auto_eat_tiers.1.threshold_pct": 30.0,
 	"combat.auto_eat_tiers.1.target_pct": 60.0,
@@ -68,6 +66,24 @@ const EXPECTED_BALANCE: Dictionary = {
 	"combat.auto_eat_tiers.3.target_pct": 90.0,
 	"combat.respawn_ms": 1500.0,
 	"combat.loot_bag_base_slots": 12.0,
+	"character_curve.base": 70.0,
+	"character_curve.growth": 1.1,
+	"character_curve.linear": 8.0,
+	"character_curve.max_level": 99.0,
+	"character_curve.xp_cap": 50000000.0,
+	"character.start_class": "rift_blade",
+	"armory.base_slots": 40.0,
+	"armory.slot_cost_base": 1000.0,
+	"armory.slot_cost_growth": 1.12,
+	"armory.slot_cost_cap": 2000000.0,
+	"rarity.craft.magic_base_pct": 10.0,
+	"rarity.craft.magic_per_mastery_level": 0.4,
+	"rarity.craft.rare_base_pct": 1.0,
+	"rarity.craft.rare_per_mastery_level": 0.1,
+	"rarity.affix_count.magic.0": 1.0,
+	"rarity.affix_count.magic.1": 2.0,
+	"rarity.affix_count.rare.0": 3.0,
+	"rarity.affix_count.rare.1": 4.0,
 	"rift.sockets.0.level": 1.0,
 	"rift.sockets.1.level": 20.0,
 	"rift.sockets.2.level": 40.0,
@@ -78,7 +94,7 @@ const EXPECTED_BALANCE: Dictionary = {
 	"offline.chunk_ms": 60000.0,
 }
 
-## The 21 MVP stats of 02_FORMULAS.md §11: id -> [min, max, formula].
+## The 24 stats of M1-M4 of 02_FORMULAS.md §11: id -> [min, max, formula].
 const EXPECTED_STATS: Dictionary = {
 	"skill_interval_pct": [-80.0, 100.0, "F-03"],
 	"skill_xp_pct": [0.0, 1000.0, "F-02"],
@@ -101,12 +117,15 @@ const EXPECTED_STATS: Dictionary = {
 	"loot_bag_slots": [0.0, 100.0, "F-33"],
 	"auto_loot": [0.0, 1.0, "10.6"],
 	"auto_eat_tier": [0.0, 3.0, "F-30"],
+	"armory_slots": [0.0, 10000.0, "F-82"],
+	"item_rarity_pct": [0.0, 1000.0, "F-83"],
+	"block_chance": [0.0, 50.0, "F-75"],
 }
 
 const STAT_FIELDS: Array[String] = ["id", "name", "format", "min", "max", "description", "formula", "test"]
 const STAT_FORMATS: Array[String] = ["pct", "flat", "flag"]
-const LATER_MILESTONE_STATS: Array[String] = ["fracture_duration_pct", "parallel_lanes"]
-const LATER_MILESTONE_BALANCE_KEYS: Array[String] = ["fractures", "parallel"]
+const LATER_MILESTONE_STATS: Array[String] = ["upgrade_success_pct", "fracture_duration_pct", "parallel_lanes"]
+const LATER_MILESTONE_BALANCE_KEYS: Array[String] = ["traits", "abilities", "upgrade", "rift_stone", "salvage", "sockets", "fractures", "parallel"]
 
 
 func _load_json(path: String) -> Variant:
@@ -184,12 +203,12 @@ func test_balance_has_no_unexpected_keys() -> void:
 func test_balance_has_no_later_milestone_sections() -> void:
 	var root: Dictionary = _load_dict(BALANCE_PATH)
 	for key: String in LATER_MILESTONE_BALANCE_KEYS:
-		assert_false(root.has(key), "balance.json has no '%s' section (M7/M8)" % key)
+		assert_false(root.has(key), "balance.json has no '%s' section (M6+)" % key)
 
 
-func test_stats_has_exactly_21_mvp_stats() -> void:
+func test_stats_has_exactly_24_stats() -> void:
 	var stats: Array = _stats()
-	assert_eq(stats.size(), 21, "stats.json lists the 21 MVP stats")
+	assert_eq(stats.size(), 24, "stats.json lists the 24 stats of M1-M4")
 	var ids: Array[String] = []
 	for entry: Variant in stats:
 		if entry is Dictionary:
@@ -197,10 +216,10 @@ func test_stats_has_exactly_21_mvp_stats() -> void:
 	for id: String in EXPECTED_STATS:
 		assert_has(ids, id, "stat %s present" % id)
 	for id: String in ids:
-		assert_true(EXPECTED_STATS.has(id), "stat %s is an MVP stat" % id)
+		assert_true(EXPECTED_STATS.has(id), "stat %s is a registered stat" % id)
 		assert_eq(ids.count(id), 1, "stat id %s is unique" % id)
 	for id: String in LATER_MILESTONE_STATS:
-		assert_does_not_have(ids, id, "M7/M8 stat %s absent" % id)
+		assert_does_not_have(ids, id, "later-milestone stat %s absent" % id)
 
 
 func test_stats_have_required_fields_and_valid_values() -> void:

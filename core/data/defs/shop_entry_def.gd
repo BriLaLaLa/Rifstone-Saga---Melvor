@@ -4,8 +4,8 @@ extends RefCounted
 ##
 ## `cost` has `gold` (-> `cost_gold`, else 0) or `formula` (-> `cost_formula`, else &""); `effect` has `modifiers`
 ## (-> `effect_modifiers`, else empty) or `item` (-> `effect_item`, else null). Having neither is a conversion error;
-## having both is left to DataValidator (M1-04). `requires` is required (it may be `{}`); its `entries`, `skills` and
-## `total_level` are optional (empty / 0). Effect modifiers without `scope` are global.
+## having both is left to DataValidator (M1-04). `requires` is required (it may be `{}`); its `entries`, `skills`,
+## `character` (character level) and `total_level` are optional (empty / 0). Effect modifiers without `scope` are global.
 ## `from_dict` returns null (after logging, see DefReader) if a field is missing or mistyped.
 
 var id: StringName = &""
@@ -13,11 +13,12 @@ var name: String = ""
 var description: String = ""
 var category: StringName = &""
 var cost_gold: int = 0
-var cost_formula: StringName = &""
+var cost_formula: StringName = &""  # &"", &"bank_slot" (F-17) or &"armory_slot" (F-82)
 var max_purchases: int = 0
 var req_entries: Array[StringName] = []
 var req_skills: Dictionary[StringName, int] = {}
 var req_total_level: int = 0
+var req_character: int = 0  # character level, 0 = no requirement
 var effect_modifiers: Array[Modifier] = []
 var effect_item: ItemQty = null
 
@@ -57,6 +58,8 @@ static func _read_requires(def: ShopEntryDef, requires: DefReader, parent: DefRe
 		def.req_skills = requires.level_map("skills")
 	if requires.has("total_level"):
 		def.req_total_level = requires.integer("total_level")
+	if requires.has("character"):
+		def.req_character = requires.integer("character")
 	parent.absorb(requires.ok)
 
 

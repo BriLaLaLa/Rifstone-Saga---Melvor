@@ -109,14 +109,18 @@ func test_equip_slot_must_be_known() -> void:
 func test_tool_slots_are_only_for_tools() -> void:
 	var raw: Dictionary = V.fixture_raw()
 	_equip(raw, "equipment.json")["slot"] = "tool_angling"
-	_expect(raw, ["equipment.json", "item 'test_blade'", "slot 'tool_angling' is only for category 'tool'"])
+	_expect(raw, ["equipment.json", "item 'test_blade'", "slot 'tool_angling' does not fit category 'equipment'"])
 
 
-func test_equip_requirements_need_known_skills_and_levels() -> void:
+func test_equip_requirements_by_category() -> void:
 	var raw: Dictionary = V.fixture_raw()
-	_equip(raw, "equipment.json")["requirements"] = {"sorcery": 1, "blade": 120}
-	_expect(raw, ["equipment.json", "item 'test_blade'", "field 'equip.requirements.sorcery': unknown skill"])
-	_expect(raw, ["equipment.json", "item 'test_blade'", "field 'equip.requirements.blade' must be >= 1 and <= 99"])
+	_equip(raw, "equipment.json")["requirements"] = {"sorcery": 1, "character": 120}
+	_expect(raw, ["equipment.json", "item 'test_blade'", "field 'equip.requirements.sorcery': only 'character'"])
+	_expect(raw, ["equipment.json", "item 'test_blade'", "field 'equip.requirements.character' must be >= 1 and <= 99"])
+	raw = V.fixture_raw()
+	_equip(raw, "tools.json")["requirements"] = {"test_gather": 100, "character": 5}
+	_expect(raw, ["tools.json", "item 'test_hatchet'", "field 'equip.requirements.test_gather' must be >= 1 and <= 99"])
+	_expect(raw, ["tools.json", "item 'test_hatchet'", "field 'equip.requirements.character': unknown skill"])
 
 
 func test_equip_modifier_scope_must_point_to_known_ids() -> void:
@@ -133,6 +137,7 @@ func test_equip_modifier_scope_must_point_to_known_ids() -> void:
 func test_weapon_is_only_for_the_weapon_slot() -> void:
 	var raw: Dictionary = V.fixture_raw()
 	_equip(raw, "equipment.json")["slot"] = "offhand"
+	_equip(raw, "equipment.json")["kind"] = "shield"
 	_expect(raw, ["equipment.json", "item 'test_blade'", "field 'equip.weapon' is allowed only with slot 'weapon'"])
 
 
@@ -164,13 +169,6 @@ func test_action_file_skill_must_exist() -> void:
 	var path: String = V.FIXTURE_ROOT.path_join("actions/sorcery.json")
 	raw["actions"][path] = {"skill": "sorcery", "actions": []}
 	_expect(raw, ["sorcery.json", "field 'skill': unknown skill 'sorcery'"])
-
-
-func test_action_file_skill_must_be_gathering_or_artisan() -> void:
-	var raw: Dictionary = V.fixture_raw()
-	var path: String = V.FIXTURE_ROOT.path_join("actions/blade.json")
-	raw["actions"][path] = {"skill": "blade", "actions": []}
-	_expect(raw, ["blade.json", "skill 'blade' has category 'combat'"])
 
 
 func test_action_ids_are_unique_across_files() -> void:
@@ -239,4 +237,4 @@ func test_doc_in_a_level_map_is_allowed() -> void:
 	(_equip(raw, "equipment.json")["requirements"] as Dictionary)["_doc"] = "minimum levels"
 	assert_eq(V.validate(raw), PackedStringArray())
 	(_equip(raw, "equipment.json")["requirements"] as Dictionary)["_doc"] = 5
-	_expect(raw, ["equipment.json", "item 'test_blade'", "field 'equip.requirements._doc': unknown skill '_doc'"])
+	_expect(raw, ["equipment.json", "item 'test_blade'", "field 'equip.requirements._doc': only 'character'"])

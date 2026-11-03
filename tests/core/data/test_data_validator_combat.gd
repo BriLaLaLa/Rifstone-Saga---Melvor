@@ -113,13 +113,34 @@ func test_mastery_node_modifier_scope_is_checked() -> void:
 
 # --- areas and monsters ------------------------------------------------------------------------------------------
 
-func test_area_needs_known_monsters() -> void:
+func test_area_packs_need_known_monsters() -> void:
 	var raw: Dictionary = V.fixture_raw()
 	var area: Dictionary = V.entry_of(raw, "areas", AREAS, "areas", 0)
-	area["monsters"] = ["test_monster_a", "dragon"]
-	_expect(raw, [AREAS, "area 'test_area'", "field 'monsters': unknown monster 'dragon'"])
-	area["monsters"] = []
-	_expect(raw, [AREAS, "area 'test_area'", "field 'monsters' needs at least 1 entries"])
+	area["packs"] = [{"weight": 1, "monsters": ["test_monster_a", "dragon"]}]
+	_expect(raw, [AREAS, "area 'test_area'", "field 'packs[0].monsters': unknown monster 'dragon'"])
+	area["packs"] = [{"weight": 1, "monsters": []}]
+	_expect(raw, [AREAS, "area 'test_area'", "field 'packs[0].monsters' needs at least 1 entries"])
+	area["packs"] = []
+	_expect(raw, [AREAS, "area 'test_area'", "field 'packs' needs at least 1 entries"])
+
+
+func test_area_monsters_field_no_longer_exists() -> void:
+	var raw: Dictionary = V.fixture_raw()
+	V.entry_of(raw, "areas", AREAS, "areas", 0)["monsters"] = ["test_monster_a"]
+	_expect(raw, [AREAS, "area 'test_area'", "unknown field 'monsters'"])
+
+
+func test_area_pack_weight_and_size() -> void:
+	var raw: Dictionary = V.fixture_raw()
+	var area: Dictionary = V.entry_of(raw, "areas", AREAS, "areas", 0)
+	area["packs"] = [{"weight": 0, "monsters": ["test_monster_a", "test_monster_a", "test_monster_a",
+			"test_monster_a", "test_monster_a", "test_monster_a", "test_monster_a"]}]
+	_expect(raw, [AREAS, "area 'test_area'", "field 'packs[0].weight' must be >= 1"])
+	_expect(raw, [AREAS, "area 'test_area'", "field 'packs[0].monsters' has 7 monsters, at most 6"])
+	(area["packs"] as Array)[0]["monsters"] = ["test_monster_a", "test_monster_a", "test_monster_a",
+			"test_monster_a", "test_monster_a", "test_monster_a"]
+	(area["packs"] as Array)[0]["weight"] = 1
+	assert_eq(V.validate(raw), PackedStringArray(), "6 monsters, repeats allowed")
 
 
 func test_area_order_is_unique_and_requirements_are_checked() -> void:
@@ -127,22 +148,24 @@ func test_area_order_is_unique_and_requirements_are_checked() -> void:
 	var areas: Array = V.file_of(raw, "areas", AREAS)["areas"] as Array
 	var second: Dictionary = (areas[0] as Dictionary).duplicate(true)
 	second["id"] = "test_area_b"
-	second["requirements"] = {"guard": 0}
+	second["requirements"] = {"character": 0, "test_gather": 5}
 	areas.append(second)
 	_expect(raw, [AREAS, "area 'test_area_b'", "duplicate order 1"])
-	_expect(raw, [AREAS, "area 'test_area_b'", "field 'requirements.guard' must be >= 1"])
+	_expect(raw, [AREAS, "area 'test_area_b'", "field 'requirements.character' must be >= 1"])
+	_expect(raw, [AREAS, "area 'test_area_b'", "field 'requirements.test_gather': only 'character' is allowed"])
 
 
 func test_monster_numbers_are_in_range() -> void:
 	var raw: Dictionary = V.fixture_raw()
 	var m: Dictionary = _monster(raw, 0)
 	m["hp"] = 0
+	m["xp"] = -1
 	m["attack_interval_ms"] = 700
 	m["defence_level"] = 100
 	m["evasion_bonus"] = -1
 	m["damage_reduction"] = 81
 	m["rift_shard_chance"] = 101
-	for fragment: String in ["field 'hp' must be >= 1", "field 'attack_interval_ms' must be >= 800",
+	for fragment: String in ["field 'hp' must be >= 1", "field 'xp' must be >= 0", "field 'attack_interval_ms' must be >= 800",
 			"field 'defence_level' must be >= 1 and <= 99", "field 'evasion_bonus' must be >= 0",
 			"field 'damage_reduction' must be >= 0 and <= 80", "field 'rift_shard_chance' must be >= 0 and <= 100"]:
 		_expect(raw, [MONSTERS, "monster 'test_monster_a'", fragment])
@@ -173,6 +196,18 @@ func test_monster_drops_are_checked() -> void:
 	_expect(raw, [MONSTERS, "monster 'test_monster_a'", "field 'drops[0].qty' must be [a, b] with 1 <= min"])
 
 
+func test_monster_xp_is_required() -> void:
+	var raw: Dictionary = V.fixture_raw()
+	_monster(raw, 0).erase("xp")
+	_expect(raw, [MONSTERS, "monster 'test_monster_a'", "missing field 'xp'"])
+
+
+func test_monster_cannot_drop_equipment_before_m7() -> void:
+	var raw: Dictionary = V.fixture_raw()
+	((_monster(raw, 0)["drops"] as Array)[0] as Dictionary)["item"] = "test_helm"
+	_expect(raw, [MONSTERS, "monster 'test_monster_a'", "field 'drops[0].item'", "pieces drop as instances"])
+
+
 func test_monster_has_at_most_4_drops() -> void:
 	var raw: Dictionary = V.fixture_raw()
 	var drops: Array = _monster(raw, 0)["drops"] as Array
@@ -197,6 +232,12 @@ func test_shop_cost_needs_exactly_one_of_gold_and_formula() -> void:
 	_expect(raw, [SHOP, "shop entry 'test_upgrade_1'", "field 'cost' needs exactly one of 'gold' and 'formula'"])
 
 
+func test_shop_armory_slot_formula_is_valid() -> void:
+	var raw: Dictionary = V.fixture_raw()
+	_shop(raw, 0)["cost"] = {"formula": "armory_slot"}
+	assert_eq(V.validate(raw), PackedStringArray())
+
+
 func test_shop_cost_values_are_checked() -> void:
 	var raw: Dictionary = V.fixture_raw()
 	_shop(raw, 0)["cost"] = {"formula": "bank_slot_v2"}
@@ -214,9 +255,9 @@ func test_shop_unlimited_purchases_only_for_item_effects() -> void:
 func test_shop_requires_are_checked() -> void:
 	var raw: Dictionary = V.fixture_raw()
 	_shop(raw, 2)["requires"] = {"entries": ["test_upgrade_0"], "skills": {"sorcery": 5}, "total_level": -1,
-			"gold": 5}
+			"character": 100, "gold": 5}
 	for fragment: String in ["field 'requires.entries': unknown shop entry 'test_upgrade_0'",
-			"field 'requires.skills.sorcery': unknown skill", "field 'requires.total_level' must be >= 0",
+			"field 'requires.skills.sorcery': unknown skill", "field 'requires.total_level' must be >= 0", "field 'requires.character' must be >= 1 and <= 99",
 			"unknown field 'requires.gold'"]:
 		_expect(raw, [SHOP, "shop entry 'test_upgrade_2'", fragment])
 

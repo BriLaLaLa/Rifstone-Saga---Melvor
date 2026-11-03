@@ -12,6 +12,7 @@ const FORGE_PREFIX: String = "forge_"
 const INTERVAL_STAT: StringName = &"skill_interval_pct"
 const MIN_INTERVAL_KEY: String = "action.min_interval_ms"
 const GATHERING: StringName = &"gathering"
+const ARTISAN: StringName = &"artisan"
 const TOOL_KINDS: Array[String] = ["hatchet", "pick", "rod"]
 const TOOL_SLOTS: Dictionary[String, StringName] = {
 	"hatchet": &"tool_forestry", "pick": &"tool_quarrying", "rod": &"tool_angling",
@@ -90,7 +91,7 @@ func _run_chain(kind: String) -> void:
 		if input.item_id == ingot:
 			ingots_needed = input.qty
 		else:
-			_gather(input.item_id, input.qty)
+			_obtain(input.item_id, input.qty)
 	var smelt_cycles: int = ceili(float(ingots_needed) / float(smelt.outputs[0].qty))
 	for input: ItemQty in smelt.inputs:
 		_gather(input.item_id, input.qty * smelt_cycles)
@@ -147,8 +148,23 @@ func _gather(item_id: StringName, qty: int) -> void:
 	assert_gte(_session.bank.get_count(item_id) - start, qty, "%d x %s gathered" % [qty, item_id])
 
 
-func _gathering_action_for(item_id: StringName) -> ActionDef:
-	for skill: SkillDef in _session.data.skills_by_category(GATHERING):
+# Gathers `qty` of an item, or crafts it from gathered inputs when no gathering action produces it (the handle).
+func _obtain(item_id: StringName, qty: int) -> void:
+	if _gathering_action_for(item_id) != null:
+		_gather(item_id, qty)
+		return
+	var recipe: ActionDef = _gathering_action_for(item_id, ARTISAN)
+	assert_not_null(recipe, "an artisan action produces %s" % item_id)
+	if recipe == null:
+		return
+	var cycles: int = ceili(float(qty) / float(recipe.outputs[0].qty))
+	for input: ItemQty in recipe.inputs:
+		_gather(input.item_id, input.qty * cycles)
+	_run_cycles(recipe, cycles)
+
+
+func _gathering_action_for(item_id: StringName, category: StringName = GATHERING) -> ActionDef:
+	for skill: SkillDef in _session.data.skills_by_category(category):
 		for action: ActionDef in _session.data.actions_for_skill(skill.id):
 			if action.level > _session.skills.get_level(skill.id):
 				continue

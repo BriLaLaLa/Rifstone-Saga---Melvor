@@ -1,6 +1,8 @@
 {
   "areas": [
     {"id": "test_area", "name": "Area di prova", "order": 1, "description": "Area per i test.",
-     "requirements": {}, "monsters": ["test_monster_a", "test_monster_b"]}
+     "requirements": {},
+     "packs": [{"weight": 3, "monsters": ["test_monster_a"]},
+               {"weight": 1, "monsters": ["test_monster_a", "test_monster_b"]}]}
   ]
 }

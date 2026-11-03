@@ -21,7 +21,9 @@ const M1_STATS: Array[StringName] = [
 # Formula -> milestone that implements it (for the pending messages).
 const FORMULA_MILESTONES: Dictionary[String, String] = {
 	"F-20": "M4", "F-21": "M4", "F-22": "M4", "F-25": "M4", "F-26": "M4", "F-27": "M4",
-	"F-29": "M4", "F-30": "M4", "F-31": "M4", "F-33": "M4", "F-50": "M7", "F-51": "M8",
+	"F-29": "M4", "F-30": "M4", "F-31": "M4", "F-33": "M4", "F-50": "M10", "F-51": "M11",
+	# Armory and rarity (M4); block_chance is delivered with the combat engine (M5).
+	"F-75": "M5", "F-82": "M4", "F-83": "M4",
 	# auto_loot: its formula field is "10.6" (docs/01_GDD.md §10.6, loot bag).
 	"10.6": "M4",
 }

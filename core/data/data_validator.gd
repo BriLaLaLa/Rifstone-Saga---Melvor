@@ -2,11 +2,12 @@ class_name DataValidator
 extends RefCounted
 ## Schema and cross-reference checks of the game data (docs/04_DATA_SCHEMA.md, docs/03_ARCHITECTURE.md §10).
 ## `raw` has one key per section ("balance", "stats", "skills", "items", "actions", "mastery", "areas", "monsters",
-## "shop"); each value maps the path of every loaded file of that section to its top-level object (single-file
-## sections have one entry). The paths appear in the messages and give the file name that the schema compares with
-## (`skill` of actions and mastery files, `category` of items). Every problem is appended to `errors` as
-## `<file>: <kind> '<id>': <message>`, never pushed to the debugger. Toolkit, mastery, combat: DataValidatorRules;
-## items, actions, shop: DataValidatorItems.
+## "shop", "classes", "affixes"); each value maps the path of every loaded file of that section to its top-level object
+## (single-file sections have one entry). The paths appear in the messages and give the file name that the schema
+## compares with (`skill` of actions and mastery files, `category` of items, `id` of classes). Every problem is
+## appended to `errors` as `<file>: <kind> '<id>': <message>`, never pushed to the debugger. Toolkit, mastery:
+## DataValidatorRules; items, actions, shop: DataValidatorItems; areas, monsters, classes, affixes:
+## DataValidatorClasses.
 
 ## Every key of 02_FORMULAS.md §9 of the MVP, as dotted paths. Values that are objects in the table are listed
 ## by their fields; arrays are leaves. M7 adds `fractures.*`, M8 `parallel.*`.
@@ -24,21 +25,33 @@ const REQUIRED_BALANCE_KEYS: PackedStringArray = [
 	"combat.triangle.advantage_damage_mult", "combat.triangle.disadvantage_damage_mult",
 	"combat.triangle.defender_dr_mult", "combat.triangle.beats.blade", "combat.triangle.beats.arcana",
 	"combat.triangle.beats.marksmanship", "combat.min_attack_interval_ms", "combat.unarmed.style",
-	"combat.unarmed.attack_interval_ms", "combat.hp_skill", "combat.defence_skill", "combat.hp_base",
-	"combat.hp_per_vitality", "combat.xp_per_damage_style", "combat.xp_per_damage_vitality", "combat.auto_eat_tiers",
-	"combat.respawn_ms", "combat.loot_bag_base_slots", "rift.sockets", "offline.cap_ms", "offline.min_ms",
+	"combat.unarmed.attack_interval_ms", "combat.hp_base", "combat.hp_per_level", "combat.dual_wield.interval_mult",
+	"combat.max_pack_size", "combat.auto_eat_tiers",
+	"combat.respawn_ms", "combat.loot_bag_base_slots",
+	"character_curve.base", "character_curve.growth", "character_curve.linear", "character_curve.max_level",
+	"character_curve.xp_cap", "character.start_class",
+	"armory.base_slots", "armory.slot_cost_base", "armory.slot_cost_growth", "armory.slot_cost_cap",
+	"rarity.craft.magic_base_pct", "rarity.craft.magic_per_mastery_level", "rarity.craft.rare_base_pct",
+	"rarity.craft.rare_per_mastery_level", "rarity.affix_count.magic", "rarity.affix_count.rare",
+	"rift.sockets", "offline.cap_ms", "offline.min_ms",
 	"offline.chunk_ms",
 ]
-## Balance keys holding an array, a combat style or a skill id; every other required key holds a number.
-const BALANCE_LIST_KEYS: PackedStringArray = ["start.items", "combat.auto_eat_tiers", "rift.sockets"]
+## Balance keys holding an array, a combat style or a class id; every other required key holds a number.
+const BALANCE_LIST_KEYS: PackedStringArray = [
+	"start.items", "combat.auto_eat_tiers", "rift.sockets", "rarity.affix_count.magic", "rarity.affix_count.rare",
+]
 const BALANCE_STYLE_KEYS: PackedStringArray = [
 	"combat.triangle.beats.blade", "combat.triangle.beats.arcana", "combat.triangle.beats.marksmanship",
 	"combat.unarmed.style",
 ]
-const BALANCE_SKILL_KEYS: PackedStringArray = ["combat.hp_skill", "combat.defence_skill"]
+const BALANCE_CLASS_KEYS: PackedStringArray = ["character.start_class"]
+const AFFIX_COUNT_KEYS: PackedStringArray = ["rarity.affix_count.magic", "rarity.affix_count.rare"]
+const AFFIX_COUNT_MAX: int = 6
+const PACK_SIZE_MAX: int = 6  # format limit of combat.max_pack_size
+const START_ITEM_FORBIDDEN_CATEGORIES: PackedStringArray = ["equipment", "tool"]  # they live in the Armory only
 ## Sections made of one file (the others are folders, possibly empty).
-const SINGLE_FILE_SECTIONS: PackedStringArray = ["balance", "stats", "skills", "areas", "monsters", "shop"]
-const SKILL_CATEGORIES: PackedStringArray = ["gathering", "artisan", "combat"]
+const SINGLE_FILE_SECTIONS: PackedStringArray = ["balance", "stats", "skills", "areas", "monsters", "shop", "affixes"]
+const SKILL_CATEGORIES: PackedStringArray = ["gathering", "artisan"]
 const STAT_FIELDS: PackedStringArray = ["id", "name", "format", "min", "max", "description", "formula", "test"]
 const STAT_FORMULA_PATTERN: String = "^(F-[0-9]{2}|[0-9]+(\\.[0-9]+)*)$"
 const STAT_TEST_PATTERN: String = "^[^:]+\\.gd::[A-Za-z_][A-Za-z0-9_]*$"
@@ -62,13 +75,16 @@ static func validate(raw: Dictionary, errors: PackedStringArray) -> void:
 	_collect(v.actions, _files(raw, "actions"), "actions")
 	_collect(v.monsters, _files(raw, "monsters"), "monsters")
 	_collect(v.shop_entries, _files(raw, "shop"), "entries")
+	_collect_classes(v, _files(raw, "classes"))
 	_validate_skills(v, _files(raw, "skills"))
 	DataValidatorItems.validate_items(v, _files(raw, "items"))
 	_validate_balance_refs(v, _files(raw, "balance"))
 	DataValidatorItems.validate_actions(v, _files(raw, "actions"))
 	v.validate_mastery(_files(raw, "mastery"))
-	v.validate_areas(_files(raw, "areas"))
-	v.validate_monsters(_files(raw, "monsters"))
+	DataValidatorClasses.validate_areas(v, _files(raw, "areas"))
+	DataValidatorClasses.validate_monsters(v, _files(raw, "monsters"))
+	DataValidatorClasses.validate_classes(v, _files(raw, "classes"))
+	DataValidatorClasses.validate_affixes(v, _files(raw, "affixes"))
 	DataValidatorItems.validate_shop(v, _files(raw, "shop"))
 	errors.append_array(v.errors)
 
@@ -134,6 +150,13 @@ static func _collect(into: Dictionary[StringName, Dictionary], files: Dictionary
 				into[StringName((e as Dictionary)["id"] as String)] = e as Dictionary
 
 
+# Classes are one object per file (`id` = file name): their ids are collected for the references.
+static func _collect_classes(v: DataValidatorRules, files: Dictionary[String, Dictionary]) -> void:
+	for path: String in files:
+		if files[path].get("id") is String:
+			v.classes[StringName(files[path]["id"] as String)] = files[path]
+
+
 # --- balance.json ------------------------------------------------------------------------------------------------
 
 static func _validate_balance(v: DataValidatorRules, files: Dictionary[String, Dictionary]) -> void:
@@ -155,6 +178,11 @@ static func _validate_balance(v: DataValidatorRules, files: Dictionary[String, D
 		_pool_warning_pct(v, balance)
 		v.min_action_interval_ms = _limit(balance, "action.min_interval_ms")
 		v.min_attack_interval_ms = _limit(balance, "combat.min_attack_interval_ms")
+		v.max_character_level = _curve_max_level(v, balance, "character_curve")
+		v.max_pack_size = _limit(balance, "combat.max_pack_size")
+		if v.max_pack_size < 1.0:
+			v.max_pack_size = DataValidatorRules.NO_LIMIT
+		DataValidatorClasses.validate_balance(v, balance)
 
 
 static func _balance_value(v: DataValidatorRules, key: String, value: Variant) -> void:
@@ -164,9 +192,9 @@ static func _balance_value(v: DataValidatorRules, key: String, value: Variant) -
 	elif key in BALANCE_STYLE_KEYS:
 		if not value is String or not DataValidatorRules.STYLES.has(value as String):
 			v.fail("key '%s' must be one of %s, got %s" % [key, DataValidatorRules.STYLES, JSON.stringify(value)])
-	elif key in BALANCE_SKILL_KEYS:
+	elif key in BALANCE_CLASS_KEYS:
 		if not value is String:
-			v.fail("key '%s' must be a skill id, got %s" % [key, JSON.stringify(value)])
+			v.fail("key '%s' must be a class id, got %s" % [key, JSON.stringify(value)])
 	elif not DataValidatorRules.is_number(value):
 		v.fail("key '%s' must be a number, got %s" % [key, JSON.stringify(value)])
 
@@ -228,17 +256,28 @@ static func _limit(balance: Dictionary, key: String) -> float:
 	return float(value) if DataValidatorRules.is_number(value) else 0.0
 
 
-# References of balance.json, checked once skills and items are known: start.items and the combat skills.
+# References of balance.json, checked once items and classes are known: start.items and the start class.
 static func _validate_balance_refs(v: DataValidatorRules, files: Dictionary[String, Dictionary]) -> void:
 	for path: String in files:
 		v.at_file(path)
 		var start: Variant = lookup(files[path], "start")
 		if start is Dictionary and (start as Dictionary).get("items") is Array:
 			v.item_qty_list(start as Dictionary, "items", 0, "start")
-		var combat: Variant = lookup(files[path], "combat")
-		for key: String in BALANCE_SKILL_KEYS:
-			if combat is Dictionary and (combat as Dictionary).get(key.get_slice(".", 1)) is String:
-				v.ref(combat as Dictionary, key.get_slice(".", 1), v.skills, "skill", "combat")
+			_start_items_are_stackable(v, (start as Dictionary)["items"] as Array)
+		var character: Variant = lookup(files[path], "character")
+		for key: String in BALANCE_CLASS_KEYS:
+			if character is Dictionary and (character as Dictionary).get(key.get_slice(".", 1)) is String:
+				v.ref(character as Dictionary, key.get_slice(".", 1), v.classes, "class", "character")
+
+
+# Equipment and tools exist only as Armory instances: they cannot be start items.
+static func _start_items_are_stackable(v: DataValidatorRules, list: Array) -> void:
+	for e: Variant in list:
+		if not e is Dictionary or not (e as Dictionary).get("item") is String:
+			continue
+		var item: StringName = StringName((e as Dictionary)["item"] as String)
+		if v.items.has(item) and START_ITEM_FORBIDDEN_CATEGORIES.has(str(v.items[item].get("category"))):
+			v.fail("field 'start.items': '%s' is %s, pieces live in the Armory" % [item, v.items[item].get("category")])
 
 
 # --- stats.json (the entry checks of StatRegistry.from_array are reused, with the file in front) ----------------
@@ -282,6 +321,8 @@ static func _validate_skills(v: DataValidatorRules, files: Dictionary[String, Di
 		for index: int in list.size():
 			var e: Dictionary = list[index]
 			v.entry("skill", index, e, seen, SKILL_FIELDS, orders)
+			if e.get("id") == DataValidatorRules.CHARACTER_KEY:
+				v.fail("id '%s' is reserved (the character level in requirements)" % DataValidatorRules.CHARACTER_KEY)
 			v.one_of(e, "category", SKILL_CATEGORIES)
 			icon(v, e, SKILL_ICON_DIR)
 			if v.text(e, "color") and color.search(e["color"] as String) == null:
@@ -291,8 +332,6 @@ static func _validate_skills(v: DataValidatorRules, files: Dictionary[String, Di
 
 
 static func _skill_mastery(v: DataValidatorRules, e: Dictionary, has_mastery: bool) -> void:
-	if has_mastery and e.get("category") == "combat":
-		v.fail("combat skills must have 'has_mastery': false")
 	if e.has("mastery_bonuses") and not has_mastery:
 		v.fail("field 'mastery_bonuses' is allowed only with 'has_mastery': true")
 	if not e.has("mastery_bonuses") or not has_mastery:

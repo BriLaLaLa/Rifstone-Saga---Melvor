@@ -82,7 +82,7 @@ func test_requirements_and_max_purchases() -> void:
 	assert_true(_shop.buy(&"test_upgrade_1").ok)
 	assert_eq(_shop.buy(&"test_upgrade_1").reason, Reasons.MAX_PURCHASES)
 	assert_eq(_shop.buy(&"test_upgrade_2").reason, Reasons.REQUIREMENT_NOT_MET, "needs skill and total level")
-	TestFactory.set_level(_session, &"vitality", 10)
+	TestFactory.set_level(_session, &"test_gather", 10)
 	assert_eq(_shop.can_buy(&"test_upgrade_2").reason, Reasons.REQUIREMENT_NOT_MET, "total level still low")
 	for skill: SkillDef in _session.data.skills():
 		TestFactory.set_level(_session, skill.id, maxi(10, _session.skills.get_level(skill.id)))
