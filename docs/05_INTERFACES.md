@@ -602,13 +602,23 @@ func rebuild_modifiers() -> void                                   # sorgenti ma
 - `spend_pool_on_action`: errori nell'ordine `unknown_id` (azione senza maestria o sconosciuta) → `invalid_amount`
   (`amount ≤ 0`) → `mastery_max` (già al 99) → `pool_insufficient` (pool 0); in errore nessun cambio di stato né segnale.
 - F-11: sorgente `mastery_item:<action_id>` con scope `action:<id>` solo se ha almeno un modificatore (altrimenti
-  `clear_source`). `rebuild_modifiers` (in M1-09) registra solo `mastery_item:*`; `mastery_node:*` arriva con M2-01.
-- Metodi dei nodi fino a M2-01: `node_cost` → 0, `owns_node` → false, `can_buy_node`/`buy_node` → `unknown_id`.
-- Save (§6): `{skill_id: {"pool": int, "actions": {action_id: xp}, "nodes": []}}` per ogni skill con maestria (`nodes`
-  vuoto e ignorato al caricamento fino a M2-01). `new_game` e `from_save` non emettono segnali. `from_save` tollerante:
-  skill sconosciute o senza maestria, voci non oggetto, azioni sconosciute o di un'altra skill, valori non interi o
-  negativi (i float interi del JSON sono accettati) → `Log.warn` e scartati (a 0); `actions` non oggetto → azioni a 0
-  (il pool resta); pool oltre il tetto e xp oltre il 99 → limitati (pool con `Log.warn`).
+  `clear_source`). `rebuild_modifiers` registra in **un solo batch** (un `modifiers_changed`) le sorgenti
+  `mastery_item:*` e le `mastery_node:<node_id>` dei nodi posseduti.
+- Nodi (M2-01, `01_GDD.md` §6.3): `node_cost(id)` = F-15 sul tetto del pool della skill del nodo (`get_pool_cap`);
+  id sconosciuto → 0. `owns_node` di un id sconosciuto → false. `can_buy_node` controlla senza cambiare nulla, errori
+  nell'ordine `unknown_id` (non è un nodo di una skill con maestria) → `node_owned` → `node_prereq_missing` (un nodo di
+  `requires` non posseduto) → `pool_insufficient` (pool < `node_cost`; pool = costo basta). `buy_node`: stessi errori
+  (in errore nessun cambio né segnale); ordine degli effetti: stato (nodo posseduto, pool − costo) → sorgente
+  `mastery_node:<node_id>` con i modificatori del nodo e i loro scope dei dati (un `modifiers_changed`; nodo senza
+  modificatori → nessuna sorgente) → `mastery_node_purchased(skill_id, node_id)` → `mastery_pool_changed` (solo se il
+  pool cambia). I nodi sono permanenti: spendere il pool (F-14) non li toglie; `new_game` li azzera.
+- Save (§6): `{skill_id: {"pool": int, "actions": {action_id: xp}, "nodes": [node_id, …]}}` per ogni skill con maestria;
+  `nodes` = nodi posseduti della skill nell'ordine dei dati. `new_game` e `from_save` non emettono segnali. `from_save`
+  tollerante: skill sconosciute o senza maestria, voci non oggetto, azioni sconosciute o di un'altra skill, valori non
+  interi o negativi (i float interi del JSON sono accettati) → `Log.warn` e scartati (a 0); `actions` non oggetto →
+  azioni a 0 (il pool resta); pool oltre il tetto e xp oltre il 99 → limitati (pool con `Log.warn`). `nodes` non lista →
+  nessun nodo (`Log.warn`); voci non stringa, id sconosciuti o di un'altra skill → `Log.warn` e scartati; i
+  prerequisiti **non** si ricontrollano al caricamento (un nodo salvato resta posseduto).
 
 ### 5.8 Azioni (`systems/actions/`) — dipendenze: data, events, modifiers, bank, skills, mastery, rng, combat (solo `stop`)
 ```gdscript

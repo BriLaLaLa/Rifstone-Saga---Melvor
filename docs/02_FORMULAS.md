@@ -119,7 +119,7 @@ Test: `test_mastery_system.gd`.
 
 ### F-15 Costo di un nodo
 `cost = ceil(pool_cap × node.cost_pct / 100)`. Esempio: cap 2.400.000, 10% → 240.000; 7,5% → 180.000.
-Test: `test_mastery_system.gd`.
+Test: `tests/systems/mastery/test_mastery_nodes.gd` (`test_f15_examples`, `test_node_cost_uses_the_pool_cap_of_the_skill`, `test_f15_real_forestry_nodes`).
 
 ## 4. Bank, oro, shop
 
