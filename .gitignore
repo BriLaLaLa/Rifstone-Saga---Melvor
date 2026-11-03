@@ -9,3 +9,22 @@ export/
 
 # Export presets are versioned (M6-08)
 !export_presets.cfg
+
+# Temporary and editor files
+*.bak
+*.log
+*~
+.DS_Store
+Thumbs.db
+
+# Saves and test slots (the game writes them under user://, never in the project)
+saves/
+slot_*.json
+*.save
+
+# Local tool state
+.claude/settings.local.json
+.claude/worktrees/
+
+# Leftover empty folder (removed by hand)
+/rifstone-saga---melvor/

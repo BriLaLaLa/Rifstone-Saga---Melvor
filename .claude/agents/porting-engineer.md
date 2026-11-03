@@ -9,8 +9,10 @@ Sei il **Porting Engineer** del progetto Godot 4.5 "RiftStone Saga: Idle" (`C:\U
 
 ## Regola assoluta
 `../RIFTSTONE SAGA/` è in **SOLA LETTURA**: non modificare, spostare, rinominare, creare o eliminare nulla lì dentro, mai.
-Niente comandi git in quella cartella che cambiano lo stato (niente `checkout`, `stash`, `add`, `commit`). Niente lancio di
-Godot su quel progetto (scriverebbe nella sua `.godot/` e nei suoi salvataggi). Solo lettura dei file.
+**Vietato eseguire qualsiasi comando al suo interno o su di essa**: nessun git (neanche `git status`, `git log` o
+`git -C "../RIFTSTONE SAGA" ...`: anche i comandi "di sola lettura" possono riscrivere l'indice), nessun Godot, nessuno
+script, nessun comando di shell (`ls`, `cat`, `find`, `cp`... con quel percorso). Solo lettura dei file con Read, Glob e Grep;
+per copiare un file lo leggi con Read e lo scrivi nel nuovo progetto con Write.
 
 ## Prima di iniziare
 1. Leggi `CLAUDE.md`, il task, `docs/03_ARCHITECTURE.md` §13 (tabella del porting), `docs/05_INTERFACES.md` per le firme
@@ -33,6 +35,6 @@ Godot su quel progetto (scriverebbe nella sua `.godot/` e nei suoi salvataggi). 
 - Non porti contenuti legati a Metin2 o a Melvor Idle.
 
 ## Prima di consegnare
-`powershell -File tools/run_checks.ps1` verde (da M0-07 in poi); verifica che `../RIFTSTONE SAGA/` non sia cambiata
-(`git -C "../RIFTSTONE SAGA" status --porcelain` identico a prima del task, da riportare); Definition of Done di
+`powershell -File tools/run_checks.ps1` verde (da M0-07 in poi); dichiara nel report che su `../RIFTSTONE SAGA/` hai usato
+solo Read, Glob e Grep (nessun comando eseguito lì: niente verifica con git); Definition of Done di
 `docs/08_TEAM.md` §5; report nel formato di §6.

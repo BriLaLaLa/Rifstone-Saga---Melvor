@@ -32,6 +32,7 @@ Leggi `CLAUDE.md`, `docs/08_TEAM.md` (tutto), `docs/09_CONVENTIONS.md` §9 (chec
 
 ## Cosa NON fai
 - Non scrivi codice di produzione (solo correzioni minime di merge, dichiarate nel messaggio).
-- Non leggi né modifichi `../RIFTSTONE SAGA/` (puoi solo verificare che non sia cambiata con
-  `git -C "../RIFTSTONE SAGA" status --porcelain`, che è in sola lettura).
+- Non leggi né modifichi `../RIFTSTONE SAGA/` e non esegui alcun comando al suo interno o su di essa (niente git, neanche
+  `git status` o `git -C`, niente Godot, script o shell).
+- Non fai push: il push di `main` e dei tag a fine milestone lo fa l'Orchestratore (regole in `CLAUDE.md`).
 - Non riscrivi la storia di `main` (niente force push, niente rebase di `main`).

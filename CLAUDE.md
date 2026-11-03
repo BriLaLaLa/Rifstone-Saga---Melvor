@@ -11,6 +11,10 @@ equipaggiamento, combattimento a timer con triangolo, Altare del Rift, offline f
 | `C:\Users\Davide\Desktop\AI\RIFTSTONE SAGA - Melvor\` (questa) | **il nuovo progetto**: tutto il gioco nasce qui, `res://` = questa cartella |
 | `C:\Users\Davide\Desktop\AI\RIFTSTONE SAGA\` (`../RIFTSTONE SAGA/`) | gioco precedente, **solo riferimento, SOLA LETTURA**. Mai modificare, spostare o creare file lì. La legge solo il Porting Engineer. Il nuovo progetto non la referenzia mai (niente `preload`, percorsi o dipendenze): il codice riusato si **copia** con i task di porting |
 
+**`../RIFTSTONE SAGA/`: solo lettura di file.** È vietato eseguire qualsiasi comando al suo interno o su di essa (git,
+anche `git -C`/`git status`; Godot; script; shell). Si usano solo strumenti di lettura dei file (Read, Glob, Grep). La regola
+va nel brief di ogni task di porting.
+
 ## Documenti (`docs/`)
 - [00_VISION.md](docs/00_VISION.md): pitch, pilastri, differenze da Melvor, fuori scope
 - [01_GDD.md](docs/01_GDD.md): regole di ogni sistema, stati, casi limite
@@ -47,6 +51,15 @@ Agenti: `.claude/agents/` (un file per ruolo di `08_TEAM.md`).
 - **Un solo sistema di modificatori** (`ModifierService`), usato da tutte le formule.
 - **Ogni parametro di design ha un'unica definizione** in un file di dati (`balance.json`, `stats.json`, `data/`).
 - **Nessun file di scena o script oltre ~400 righe.**
+
+## Regole operative dell'Orchestratore
+- **Brief senza parafrasi del design**: mai riscrivere formule, valori o regole di design nei brief. Si cita l'ID e il
+  documento (es. "F-10 in `02_FORMULAS.md`", "`01_GDD.md` §6.3") e l'agente li legge dalla fonte.
+- **Repository remoto** `origin` = `https://github.com/BriLaLaLa/Rifstone-Saga---Melvor.git`.
+  - Push di `main` e del tag `mN-done` solo a fine milestone, dopo il tag; mai durante la milestone (niente push dei branch `task/*`).
+  - Mai force push. Se il remote ha commit che `main` non contiene: fermarsi e chiedere all'utente.
+  - Se il push fallisce per autenticazione: fermarsi e dirlo all'utente, che lo fa a mano.
+  - `.gitignore` esclude `.godot/`, `export/`, i file temporanei, i salvataggi e gli slot di test.
 
 ## Comandi
 Godot: `C:\Users\Davide\Desktop\GODOT\Godot_v4.5-stable_win64_console.exe` (variabile `$env:GODOT`).
