@@ -669,6 +669,11 @@ Regole per tutti i task:
   `stormzinc_ore`, `duskcobalt_ore`, `glimmerite_ore`, `palecinnabar_ore`, `emberheart_ore`, `riftite_ore`; pesci crudi
   di Lenza T1-T8 (Focolare): `brookfin`, `ashgill`, `redscale`, `dusk_eel`, `shard_gar`, `mist_barbel`, `ember_sturgeon`,
   `riftmaw`. `sort_order` di `materials.json` già usati: legni 10-80, minerali 110-180, pesci 210-280.
+- **Nota (review)** Ownership estesa a `res://tests/data/test_crafting_data.gd` (nuovo): i casi nuovi non entravano in
+  `test_data_validity.gd` sotto le 400 righe. Fatto: 88 ricette di Forgiatura (lingotti, lame, 6 armature, 3 attrezzi con
+  2 lingotti + 1 legno dello stesso grado), 8 di Focolare (`seared_<pesce>`), 24 di Intaglio (arco, bastone arcano,
+  impugnatura `<legno>_grip`, tenuta: §8.2 la elenca); `sort_order` di `materials.json` usati in più: lingotti 310-380,
+  impugnature 410-480.
 
 ### M3-05 · Pagina skill: variante artigianato
 - **Ruolo** UI · **Stima** M · **Parallelizzabile** sì · **Dipendenze** M3-01, M1-15
@@ -678,6 +683,8 @@ Regole per tutti i task:
 - **Descrizione** Carta ricetta con ingredienti (posseduti/richiesti, evidenziati se mancano) e prodotti; probabilità di
   conservazione e di doppio prodotto lette da `modifiers.total`.
 - **Accettazione / Test** smoke con la fixture `test_craft`.
+- **Nota (da M3-04)** Con i dati veri la Forgiatura ha 88 ricette in una pagina (la lista deve scorrere) e gli attrezzi
+  hanno 2 ingredienti (lingotto e legno): la carta ricetta mostra un numero variabile di ingredienti.
 - **Nota (da M1-15)** Oggi la `SkillPage` crea una `ActionCard` anche per le ricette e il runner rifiuta lo `start`
   con `unknown_id` (testo "Questa azione non è ancora disponibile."): `test_artisan_skill_refuses_start_until_recipes`
   va sostituito dai casi della carta ricetta. I motivi `missing_inputs` e `bank_full` hanno già un testo in
@@ -703,6 +710,8 @@ Regole per tutti i task:
   `tests/ui/test_bank_item_panel_smoke.gd` (ownership estesa). Un oggetto bloccato non si vende (`01_GDD.md` §7).
   Oggi il pulsante Blocca deduce il valore da inviare dal proprio testo: se la sezione cambia il pannello, leggere
   `bank.is_locked` dall'ultimo `show_item`.
+- **Nota (da M3-04)** `shop.json` ha 9 voci nelle categorie `bank`, `combat`, `tools`; gli attrezzi del novizio hanno
+  `max_purchases` 0 (illimitato, `04_DATA_SCHEMA.md` §9): nessun contatore "x/max" per loro.
 - **Nota (da M2-03)** `ui_style.gd` è a 390 righe: costanti `UiStyle.*` nuove solo dopo lo spostamento di `build_theme`
   descritto nella nota di M3-05 (lo fa il primo dei tre task UI di M3 che ne ha bisogno).
 
@@ -717,6 +726,9 @@ Regole per tutti i task:
   scelta del cibo) mandati da `BankPage`; ownership estesa a `bank_item_panel.tscn`, `bank_page.gd` (solo collegamento e
   testi dei motivi) e `tests/ui/test_bank_item_panel_smoke.gd` (condivisi con M3-06, il secondo fa rebase).
   `bank_item_panel.gd` 95 righe, `bank_page.gd` 280: ricontare il limite di 400.
+- **Nota (da M3-04)** Dati veri: archi e bastoni arcani sono `two_handed` (liberano l'`offhand`), lo scudo va in
+  `offhand`; le descrizioni dei cibi ripetono la cura ("Cura 20 punti vita."): la pagina mostri `food.heal` letto dai
+  dati, non la descrizione, come valore.
 - **Nota (da M2-03)** `ui_style.gd` è a 390 righe: costanti `UiStyle.*` nuove solo dopo lo spostamento di `build_theme`
   descritto nella nota di M3-05 (lo fa il primo dei tre task UI di M3 che ne ha bisogno).
 - **Accettazione / Test** smoke; nessuna stat mostrata che non sia nel registro.
@@ -728,6 +740,9 @@ Regole per tutti i task:
   artigianato, vendita, equipaggiamento. **Leggere** `01_GDD.md` §5, §9 · **Accettazione / Test** i file verdi.
 - **Nota (da M1-19)** Ownership estesa a `res://tests/data/test_stat_registry_coverage.gd`: aggiungere `"F-08"` a
   `CLOSED_FORMULAS` (`preservation_chance`; il test `test_artisan_resolver.gd::test_preservation_cap` deve esistere).
+- **Nota (da M3-04)** Catena con i dati veri: `smelt_<metallo>` (2 minerali → lingotto), `forge_<metallo>_hatchet|pick|rod`
+  (2 lingotti + 1 `<legno>_log` dello stesso grado) → slot `tool_forestry|tool_quarrying|tool_angling`, modificatore
+  `skill_interval_pct` con scope `skill:<skill>`.
 
 ### M3-09 · Integrazione di M3
 - **Ruolo** REV · **Stima** S · **Dipendenze** M3-01…M3-08 · **Ownership** merge, tag `m3-done` · **Parallelizzabile** no ·
@@ -781,6 +796,9 @@ Regole per tutti i task:
 - **Leggere** `02_FORMULAS.md` §8.5; `04_DATA_SCHEMA.md` §8
 - **Descrizione** 4 aree e 12 mostri della tabella, con nomi e descrizioni originali; drop (max 4 per mostro).
 - **Accettazione / Test** valori uguali a §8.5 (il test li confronta).
+- **Nota (da M3-04)** `sort_order` di `materials.json` già usati: legni 10-80, minerali 110-180, pesci 210-280, lingotti
+  310-380, impugnature 410-480: i drop partono da 510. `test_data_validity.gd` è a 275 righe; i casi artigianato sono in
+  `tests/data/test_crafting_data.gd`.
 
 ### M4-05 · Pagina del combattimento
 - **Ruolo** UI · **Stima** L · **Parallelizzabile** sì · **Dipendenze** M4-03
@@ -832,6 +850,10 @@ Regole per tutti i task:
 - **Accettazione / Test** dati validi, numeri uguali alla tabella.
 - **Nota (da M2-02)** `test_data_validity.gd` ha già `FORESTRY_NODES`, `_nodes_by_skill`, `_assert_node_like` e il
   controllo del totale 55-65% su ogni file di `data/mastery/`; i nodi della raccolta ricopiano §8.8 (`OPEN_QUESTIONS.md` Q26).
+- **Nota (da M3-04)** Id delle azioni di artigianato per i nodi: `smelt_<metallo>`, `forge_<metallo>_<pezzo>`,
+  `cook_<pesce>` (prodotto `seared_<pesce>`), `carve_<legno>_bow|staff|grip` (gli id esatti sono nei file di
+  `data/actions/`). Ownership estesa a `res://tests/data/test_crafting_data.gd` per un debito di stile di M3-04: 8 righe
+  oltre i 120 caratteri e le costanti `METALS`…`WEAPONS` dichiarate dopo le prime funzioni (vanno in testa).
 
 ### M5-03 · Pagina dell'Altare
 - **Ruolo** UI · **Stima** M · **Parallelizzabile** sì · **Dipendenze** M5-01, M3-05
