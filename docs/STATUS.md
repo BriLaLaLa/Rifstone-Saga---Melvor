@@ -25,9 +25,9 @@ Se la sessione si interrompe, si riparte da qui.
 | M1-10 | M1 | ActionRunner e raccolta | CORE | DONE | task/M1-10 | merge 9278936; stop del combattimento in start rimandato al task M4 che registra CombatEngine (annotato su M4-03) |
 | M1-11 | M1 | Game: menu → slot → partita | CORE | DONE | task/M1-11 | merge e137972, docs 2a32cea; tipizzare Game.session (GameSession) e list_slots (Array[SlotInfo]); chiamare GameClock.configure da balance.json; autosave sul tempo di GameClock invece del Timer (DECISIONS_LOG); proposta aperta: limite 1-24 del nome in balance.json |
 | M1-12 | M1 | Contenuto: le 12 skill e Selvicoltura | DATA | DONE | task/M1-12 | merge 9201158; Ownership estesa a areas/monsters/shop.json vuoti (DECISIONS_LOG) |
-| M1-13 | M1 | Menu principale e scelta dello slot | UI | REVIEW | task/M1-13 | in review; SlotTexts usa ItemTooltipLines.format_int: da passare a NumberFormat al merge di M1-14 |
-| M1-14 | M1 | Schermata principale: sidebar, barra in alto, PageHost | UI | REVIEW | task/M1-14 | follow-up di M1-16 (ownership estesa, 07_TASKS): NumberFormat, costanti TOOLTIP_/WINDOW_ in UiStyle, test_game_window.gd, Modifier.SCOPE_*; in coda dopo M1-13 |
-| M1-15 | M1 | Pagina skill (raccolta) e componenti base | UI | TODO | | |
+| M1-13 | M1 | Menu principale e scelta dello slot | UI | DONE | task/M1-13 | merge 8e125be; SlotTexts usa ItemTooltipLines.format_int: da passare a NumberFormat al merge di M1-14 (annotato su M1-14) |
+| M1-14 | M1 | Schermata principale: sidebar, barra in alto, PageHost | UI | REVIEW | task/M1-14 | follow-up di M1-16 (ownership estesa, 07_TASKS): NumberFormat, costanti TOOLTIP_/WINDOW_ in UiStyle, test_game_window.gd, Modifier.SCOPE_*; in review |
+| M1-15 | M1 | Pagina skill (raccolta) e componenti base | UI | TODO | | follow-up di M1-13: costanti MENU_/SLOT_/DIALOG_ in UiStyle (ownership estesa, 07_TASKS) |
 | M1-16 | M1 | Tooltip e GameWindow portati | PORT | DONE | task/M1-16 | merge 1981acd; Tooltips.data iniettabile (05 §2) |
 | M1-17 | M1 | Toast portati | PORT | DONE | task/M1-17 | merge ecbf36b, docs aae6438; 386ea12..a6d6f0a; 18 test, run_checks 200/200; bank_changed con delta |
 | M1-18 | M1 | Bank minima | UI | TODO | | |
