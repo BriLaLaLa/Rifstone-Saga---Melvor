@@ -133,7 +133,7 @@ func test_total_level_sums_every_skill() -> void:
 	TestFactory.set_level(_session, SKILL, 10)
 	TestFactory.set_level(_session, OTHER_SKILL, 5)
 	assert_eq(_skills.total_level(), FIXTURE_SKILL_COUNT - 2 + 10 + 5)
-	assert_eq(_session.total_level(), _skills.total_level())
+	assert_eq(_session.total_level(), _skills.total_level() + 1)
 
 
 func test_set_level_reaches_the_exact_level() -> void:
@@ -199,7 +199,7 @@ func test_session_saves_and_loads_the_skills_module() -> void:
 	_skills.add_xp(SKILL, 155)
 	var saved: Dictionary = _session.to_save(0)
 	assert_eq((saved["modules"] as Dictionary)[String(SkillsSystem.SAVE_KEY)], _skills.to_save())
-	assert_eq(saved["total_level"], FIXTURE_SKILL_COUNT + 2)
+	assert_eq(saved["total_level"], FIXTURE_SKILL_COUNT + 3)
 	var other: GameSession = autofree(TestFactory.session())
 	assert_true(other.from_save(SaveCodec.decode(SaveCodec.encode(saved))).ok)
 	assert_eq(other.skills.get_xp(SKILL), 155)
@@ -208,7 +208,7 @@ func test_session_saves_and_loads_the_skills_module() -> void:
 func test_snapshot_copies_xp_and_levels() -> void:
 	_skills.add_xp(SKILL, 155)
 	var snapshot: SessionSnapshot = SessionSnapshot.take(_session)
-	assert_eq(snapshot.xp.size(), FIXTURE_SKILL_COUNT)
+	assert_eq(snapshot.xp.size(), FIXTURE_SKILL_COUNT + 1)
 	assert_eq(snapshot.xp[SKILL], 155)
 	assert_eq(snapshot.levels[SKILL], 3)
 	assert_eq(snapshot.levels[OTHER_SKILL], 1)

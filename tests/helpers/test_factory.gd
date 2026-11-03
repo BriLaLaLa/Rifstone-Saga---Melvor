@@ -64,3 +64,16 @@ static func _load(content_root: String) -> GameData:
 	var data: GameData = GameData.load_from_dirs(content_root, CONFIG_ROOT)
 	assert(data.is_valid(), "test data in %s is not valid: %s" % [content_root, "\n".join(data.errors)])
 	return data
+
+
+## Raises the character to `level` through character.add_xp with the missing xp (emits character_* signals).
+## Call it before adding skill_xp_pct modifiers and only upwards: it asserts the level is exactly reached.
+static func set_character_level(session: GameSession, level: int) -> void:
+	assert(session != null, "TestFactory.set_character_level needs a session")
+	var missing: int = session.data.character_xp_table().xp_for_level(level) - session.character.get_xp()
+	if missing > 0:
+		session.character.add_xp(missing)
+	var reached: int = session.character.get_level()
+	if reached != level:
+		push_error("TestFactory.set_character_level(%d): level is %d" % [level, reached])
+	assert(reached == level, "TestFactory.set_character_level did not reach the level")

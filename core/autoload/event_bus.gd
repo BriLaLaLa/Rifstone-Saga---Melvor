@@ -23,6 +23,10 @@ signal mastery_level_up(skill_id: StringName, action_id: StringName, new_level: 
 signal mastery_pool_changed(skill_id: StringName, pool_xp: int)
 signal mastery_node_purchased(skill_id: StringName, node_id: StringName)
 
+# Character
+signal character_xp_gained(amount: int)
+signal character_level_up(new_level: int)
+
 # Bank, wallet, equipment, modifiers
 signal bank_changed(item_id: StringName, new_count: int, delta: int)
 signal bank_capacity_changed(used: int, capacity: int)
