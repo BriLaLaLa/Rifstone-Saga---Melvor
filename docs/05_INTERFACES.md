@@ -937,6 +937,13 @@ func set_progress(progress: float) -> void        # 0..1 letto da actions.get_pr
 func action_id() -> StringName                    # &"" prima di setup
 static func seconds_text(ms: int) -> String       # = NumberFormat.format_seconds(ms): 3000 -> "3,0 s", 2700 -> "2,7 s"
 
+class_name RecipeCard extends ActionCard         # ui/pages/skill/recipe_card.gd (+ .tscn ereditata da action_card.tscn), M3-05
+# nessun segnale nuovo (usa toggle_requested); stesse setup/redraw. SkillPage la crea per le azioni con inputs.
+# redraw aggiunge: una riga per ingrediente distinto con "posseduti / richiesti" (bank.get_count; UiStyle.BAD se mancano),
+# preservation_chance e double_item_chance da modifiers.total con ModifierContext.for_action, Avvia disabilitato se
+# ArtisanResolver.can_start fallisce (tranne la ricetta in corso, che si può sempre fermare).
+# SkillPage la ridisegna anche su bank_changed (collegato solo se la pagina ha ricette).
+
 class_name BankPage extends Page                 # ui/pages/bank/bank_page.gd (+ .tscn), rotta bank
 const REFUSED_TEXTS: Dictionary[StringName, String]   # motivo di un comando della bank -> testo; altri: REFUSED_TEXT_DEFAULT
 const REFUSED_TEXT_DEFAULT: String
