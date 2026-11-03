@@ -2,21 +2,13 @@ class_name GameWindow
 extends PanelContainer
 ## Movable in-game window with a title bar (Cinzel title, close button) dragged to move it.
 ##
-## Ported from the previous game's HUD window, unchanged except for snake_case, full typing and exported texts.
+## Ported from the previous game's HUD window, unchanged except for snake_case, full typing, exported texts and the
+## layout constants, which are `UiStyle.WINDOW_*`.
 ## In its scene the window has a `VBox` child holding the page; the title bar and a separator are added on top of
 ## it here. The owner screen opens and closes it with `toggle()` (and closes the last opened one on Esc).
 
 signal opened
 signal closed
-
-## Free space kept around the window when it is first placed (pixels).
-const PLACE_MARGIN: float = 40.0
-## Minimum distance from the top edge when it is first placed (pixels).
-const PLACE_TOP: float = 10.0
-## Part of the title bar that must stay inside the parent area while dragging (pixels).
-const DRAG_KEEP_VISIBLE := Vector2(80, 40)
-const HEADER_SEPARATION: int = 8
-const CLOSE_BUTTON_SIDE: int = 32
 
 @export var title: String = "Finestra"
 @export var close_tooltip: String = "Chiudi (Esc)"
@@ -31,7 +23,7 @@ func _ready() -> void:
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	var vb: VBoxContainer = $VBox as VBoxContainer
-	vb.add_theme_constant_override("separation", HEADER_SEPARATION)
+	vb.add_theme_constant_override("separation", UiStyle.WINDOW_HEADER_SEPARATION)
 	var header := HBoxContainer.new()
 	header.name = "Header"
 	header.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -43,7 +35,7 @@ func _ready() -> void:
 	title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	header.add_child(title_label)
-	var close: Button = UiStyle.icon_button("x", close_tooltip, CLOSE_BUTTON_SIDE)
+	var close: Button = UiStyle.icon_button("x", close_tooltip, UiStyle.WINDOW_CLOSE_BUTTON_SIDE)
 	close.flat = true
 	close.pressed.connect(close_window)
 	header.add_child(close)
@@ -87,10 +79,11 @@ func _gui_input(event: InputEvent) -> void:
 func _place_default() -> void:
 	_placed = true
 	var area: Vector2 = get_parent_area_size()
-	size = Vector2(minf(default_size.x, area.x - PLACE_MARGIN), minf(default_size.y, area.y - PLACE_MARGIN))
+	var free_area: Vector2 = area - Vector2(UiStyle.WINDOW_PLACE_MARGIN, UiStyle.WINDOW_PLACE_MARGIN)
+	size = Vector2(minf(default_size.x, free_area.x), minf(default_size.y, free_area.y))
 	size = size.max(get_combined_minimum_size())
 	position = ((area - size) * 0.5).floor()
-	position.y = maxf(position.y, PLACE_TOP)
+	position.y = maxf(position.y, UiStyle.WINDOW_PLACE_TOP)
 
 
 func _on_header_gui_input(event: InputEvent) -> void:
@@ -108,4 +101,5 @@ func _on_header_gui_input(event: InputEvent) -> void:
 	if motion != null and _drag_from != Vector2.INF:
 		var area: Vector2 = get_parent_area_size()
 		var p: Vector2 = motion.global_position - _drag_from - get_parent_control().global_position
-		position = p.clamp(Vector2(-size.x + DRAG_KEEP_VISIBLE.x, 0), area - DRAG_KEEP_VISIBLE)
+		var keep: Vector2 = UiStyle.WINDOW_DRAG_KEEP_VISIBLE
+		position = p.clamp(Vector2(-size.x + keep.x, 0), area - keep)

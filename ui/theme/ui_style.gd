@@ -28,6 +28,24 @@ const BANNER_MS: int = 2000
 const SIDEBAR_WIDTH: int = 260
 const TOP_BAR_HEIGHT: int = 56
 const WINDOW_MIN_SIZE := Vector2i(1280, 720)
+## Tooltip (Tooltips / CustomTooltip): CanvasLayer above every other layer of the UI.
+const TOOLTIP_LAYER: int = 100
+## Space between the cursor and the tooltip corner.
+const TOOLTIP_MOUSE_OFFSET := Vector2(15, -10)
+## Minimum distance of the tooltip from the viewport edges.
+const TOOLTIP_SCREEN_MARGIN: int = 10
+const TOOLTIP_MIN_WIDTH: int = 280
+const TOOLTIP_TITLE_FONT_SIZE: int = 18
+const TOOLTIP_SUBTITLE_FONT_SIZE: int = 13
+const TOOLTIP_BODY_FONT_SIZE: int = 15
+const TOOLTIP_FOOTER_FONT_SIZE: int = 14
+## GameWindow: free space kept around the window when it is first placed, and minimum distance from the top.
+const WINDOW_PLACE_MARGIN: float = 40.0
+const WINDOW_PLACE_TOP: float = 10.0
+## Part of the title bar that must stay inside the parent area while dragging a GameWindow.
+const WINDOW_DRAG_KEEP_VISIBLE := Vector2(80, 40)
+const WINDOW_HEADER_SEPARATION: int = 8
+const WINDOW_CLOSE_BUTTON_SIDE: int = 32
 
 # --- palette ---
 const BG := Color(0.055, 0.047, 0.063, 0.86)

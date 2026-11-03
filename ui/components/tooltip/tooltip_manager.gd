@@ -10,8 +10,6 @@ extends Node
 ## Tests set it to the fixture data (GameData.load_from_dirs("res://tests/fixtures/data", "res://data/config")).
 
 const TOOLTIP_SCENE: PackedScene = preload("res://ui/components/tooltip/custom_tooltip.tscn")
-## Above every other CanvasLayer of the UI.
-const TOOLTIP_LAYER: int = 100
 
 ## GameData for labels and names; null = the `DataRegistry` autoload's data.
 var data: GameData = null
@@ -23,7 +21,7 @@ var _tooltip: CustomTooltip
 func _ready() -> void:
 	_layer = CanvasLayer.new()
 	_layer.name = "TooltipLayer"
-	_layer.layer = TOOLTIP_LAYER
+	_layer.layer = UiStyle.TOOLTIP_LAYER
 	add_child(_layer)
 	_tooltip = TOOLTIP_SCENE.instantiate() as CustomTooltip
 	_layer.add_child(_tooltip)
