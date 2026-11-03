@@ -150,6 +150,10 @@ func from_save(d: Dictionary) -> void:
 		if not _entries.has(entry_id) or count == null:
 			Log.warn(LOG_CATEGORY, "purchase '%s' dropped (unknown entry or bad count)" % str(key))
 			continue
+		var limit: int = _entries[entry_id].max_purchases
+		if limit > 0 and count > limit:
+			Log.warn(LOG_CATEGORY, "purchase '%s' limited from %d to %d" % [key, count, limit])
+			count = limit
 		_purchases[entry_id] = count
 
 

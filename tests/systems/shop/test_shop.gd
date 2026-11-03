@@ -14,6 +14,7 @@ var _small_data: GameData = null
 var _session: GameSession = null
 var _shop: Shop = null
 
+
 func before_all() -> void:
 	DirAccess.make_dir_recursive_absolute(_tmp_config)
 	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_ROOT.path_join("balance.json")))
@@ -23,34 +24,38 @@ func before_all() -> void:
 	_write(_tmp_config.path_join("stats.json"), FileAccess.get_file_as_string(CONFIG_ROOT.path_join("stats.json")))
 	_small_data = GameData.load_from_dirs(FIXTURE_ROOT, _tmp_config)
 
+
 func after_all() -> void:
 	for file: String in ["balance.json", "stats.json"]:
 		DirAccess.remove_absolute(_tmp_config.path_join(file))
 	DirAccess.remove_absolute(_tmp_config)
 	DirAccess.remove_absolute(_tmp_config.get_base_dir())
 
+
 func before_each() -> void:
 	_session = autofree(TestFactory.session())
 	_shop = _session.shop
 
+
 func _gold(amount: int) -> void:
 	_session.wallet.add_gold(amount)
 
+
 func test_f17_price_table() -> void:
-	var data: GameData = _session.data
-	var base: float = float(data.balance_value("bank.slot_cost_base"))
-	var growth: float = float(data.balance_value("bank.slot_cost_growth"))
-	var cap: int = int(data.balance_value("bank.slot_cost_cap"))
 	for n: int in F17:
-		assert_eq(mini(cap, floori(base * pow(growth, n))), F17[n], "table n=%d" % n)
+		_shop.from_save({"purchases": {"bank_slot": n} if n > 0 else {}})
+		assert_eq(_shop.price(&"bank_slot"), F17[n], "table n=%d" % n)
+	_shop.new_game()
 	assert_eq(_shop.price(&"bank_slot"), 400)
 	_gold(1000)
 	assert_true(_shop.buy(&"bank_slot").ok)
 	assert_eq(_shop.price(&"bank_slot"), 436)
 	assert_eq(_session.wallet.get_gold(), _start_gold() + 1000 - 400)
 
+
 func _start_gold() -> int:
 	return int(_session.data.balance_value("start.gold"))
+
 
 func test_f19_modifier_scaled_by_purchases() -> void:
 	var capacity: int = _session.bank.capacity()
@@ -61,6 +66,7 @@ func test_f19_modifier_scaled_by_purchases() -> void:
 	assert_true(_session.modifiers.has_source(&"shop:bank_slot"))
 	assert_eq(_session.modifiers.total(&"bank_slots"), 2.0)
 
+
 func test_unknown_and_not_enough_gold() -> void:
 	assert_eq(_shop.buy(&"nope").reason, Reasons.UNKNOWN_ID)
 	var before: int = _session.wallet.get_gold()
@@ -68,6 +74,7 @@ func test_unknown_and_not_enough_gold() -> void:
 	assert_eq(r.reason, Reasons.NOT_ENOUGH_GOLD)
 	assert_eq(_session.wallet.get_gold(), before)
 	assert_eq(_shop.purchase_count(&"test_upgrade_1"), 0)
+
 
 func test_requirements_and_max_purchases() -> void:
 	_gold(10000)
@@ -79,10 +86,11 @@ func test_requirements_and_max_purchases() -> void:
 	assert_eq(_shop.can_buy(&"test_upgrade_2").reason, Reasons.REQUIREMENT_NOT_MET, "total level still low")
 	for skill: SkillDef in _session.data.skills():
 		TestFactory.set_level(_session, skill.id, maxi(10, _session.skills.get_level(skill.id)))
-	var total: int = _session.total_level()
-	if total >= 20:
-		assert_true(_shop.buy(&"test_upgrade_2").ok)
-		assert_eq(_session.modifiers.total(&"auto_eat_tier"), 2.0)
+	var needed: int = _session.data.shop_entry(&"test_upgrade_2").req_total_level
+	assert_gte(_session.total_level(), needed)
+	assert_true(_shop.buy(&"test_upgrade_2").ok)
+	assert_eq(_session.modifiers.total(&"auto_eat_tier"), 2.0)
+
 
 func test_item_effect_goes_to_bank_and_is_repeatable() -> void:
 	_gold(300)
@@ -91,6 +99,7 @@ func test_item_effect_goes_to_bank_and_is_repeatable() -> void:
 	assert_eq(_session.bank.get_count(&"test_hatchet"), 2)
 	assert_eq(_shop.purchase_count(&"test_buy_hatchet"), 2)
 	assert_false(_session.modifiers.has_source(&"shop:test_buy_hatchet"))
+
 
 func test_buy_item_with_full_bank_keeps_gold() -> void:
 	var small: GameSession = autofree(TestFactory.session(1234, _small_data))
@@ -103,6 +112,7 @@ func test_buy_item_with_full_bank_keeps_gold() -> void:
 	assert_eq(small.wallet.get_gold(), gold)
 	assert_eq(small.shop.purchase_count(&"test_buy_hatchet"), 0)
 
+
 func test_f18_sell() -> void:
 	TestFactory.give(_session, &"test_log", 25)
 	var gold: int = _session.wallet.get_gold()
@@ -111,6 +121,7 @@ func test_f18_sell() -> void:
 	assert_true(_shop.sell(&"test_log", 25).ok)
 	assert_eq(_session.wallet.get_gold(), gold + value * 25)
 	assert_eq(_session.bank.get_count(&"test_log"), 0)
+
 
 func test_sell_rejections() -> void:
 	TestFactory.give(_session, &"test_log", 5)
@@ -123,6 +134,7 @@ func test_sell_rejections() -> void:
 	assert_eq(_shop.sell(&"test_log", 1).reason, Reasons.ITEM_LOCKED)
 	assert_eq(_session.bank.get_count(&"test_log"), 5)
 
+
 func test_signals() -> void:
 	watch_signals(_session.events)
 	_gold(500)
@@ -132,6 +144,7 @@ func test_signals() -> void:
 	_shop.sell(&"test_log", 2)
 	assert_signal_emitted_with_parameters(_session.events, "item_sold",
 			[&"test_log", 2, _session.data.item(&"test_log").value * 2])
+
 
 func test_save_round_trip_rebuilds_modifiers() -> void:
 	_gold(2000)
@@ -143,9 +156,11 @@ func test_save_round_trip_rebuilds_modifiers() -> void:
 	assert_true(other.from_save(JSON.parse_string(JSON.stringify(saved))).ok)
 	assert_eq(other.shop.purchase_count(&"bank_slot"), 2)
 	assert_eq(other.modifiers.total(&"bank_slots"), 2.0)
-	other.shop.from_save({"purchases": {"bank_slot": -1, "ghost": 1, "test_upgrade_1": 1.0}})
+	other.shop.from_save({"purchases": {"bank_slot": -1, "ghost": 1, "test_upgrade_1": 3}})
 	assert_eq(other.shop.purchase_count(&"bank_slot"), 0)
 	assert_eq(other.shop.purchase_count(&"test_upgrade_1"), 1)
+	assert_eq(other.shop.purchase_count(&"test_upgrade_1"), 1, "3 limited to max_purchases")
+
 
 func _write(path: String, text: String) -> void:
 	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
