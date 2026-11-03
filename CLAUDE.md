@@ -1,9 +1,12 @@
 # RiftStone Saga: Idle
 
-Idle/incremental "skiller" in stile Melvor Idle (meccaniche studiate in clean room, contenuti originali) nell'universo
-di RiftStone. Godot **4.5 stable**, GDScript tipizzato, renderer GL Compatibility, PC desktop, **solo UI**.
-12 skill nell'MVP (3 raccolta, 3 artigianato, 5 combattimento, Legatura del Rift), maestria a nodi, bank, shop,
-equipaggiamento, combattimento a timer con triangolo, Altare del Rift, offline fino a 12 ore.
+Idle/incremental nell'universo di RiftStone con il **combattimento al centro** (visione v2, decisioni D1-D6 in
+`docs/DECISIONS_LOG.md`): idee da Melvor Idle, Metin2 e Path of Exile studiate in clean room, contenuti originali.
+Godot **4.5 stable**, GDScript tipizzato, renderer GL Compatibility, PC desktop, **solo UI**.
+MVP: una classe (Lama del Rift, solo spade in tre assetti) con livello del personaggio, tratti e abilità; combattimento
+automatico a gruppi con triangolo; Armeria di pezzi unici con rarità, affissi, raffinazione e castoni; Pietre del Rift;
+7 skill di supporto (3 raccolta, 3 artigianato, Legatura del Rift) con maestria a nodi; bank, shop, Altare del Rift,
+offline fino a 12 ore.
 
 ## Le due cartelle
 | Cartella | Ruolo |
@@ -106,5 +109,6 @@ l'import è innocuo.
 
 ## Stato
 M0 (Setup) completata, tag `m0-done`. M1 (Prima skill completa, Selvicoltura) completata, tag `m1-done`. M2 (Maestria a nodi e raccolta completa)
-completata, tag `m2-done`. M3 (Artigianato, shop, equipaggiamento) completata, tag `m3-done`. Prossima milestone: **M4**.
-Avanzamento dei task in `docs/STATUS.md`.
+completata, tag `m2-done`. M3 (Artigianato, shop, equipaggiamento) completata, tag `m3-done`. Visione v2 approvata e
+riportata nei documenti (R-00, fonte `docs/VISIONE_V2.md`). Prossima milestone: **M4 Riforma (personaggio e Armeria)**,
+dopo l'OK dell'utente per M4-01; l'MVP è M0-M9. Avanzamento dei task in `docs/STATUS.md`.

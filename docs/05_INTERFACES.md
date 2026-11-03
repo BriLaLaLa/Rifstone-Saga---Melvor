@@ -61,7 +61,13 @@ const VERSION_UNSUPPORTED := &"version_unsupported"
 const SLOT_ACTIVE := &"slot_active"
 const INVALID_NAME := &"invalid_name"
 const NOT_RUNNING := &"not_running"
+const ARMORY_FULL := &"armory_full"         # M4: Armeria piena (01_GDD §21)
+const NOT_STACKABLE := &"not_stackable"     # M4: equipment/tool rifiutati dalla bank
+const ITEM_EQUIPPED := &"item_equipped"     # M4: pezzo indossato (non si vende né si smantella)
+const SLOT_LOCKED := &"slot_locked"         # M6: slot di tratto/abilità non ancora aperto
+const UPGRADE_MAX := &"upgrade_max"         # M7: raffinazione già a +9
 ```
+Le costanti nuove le aggiunge il primo task che le usa (M4-01 per quelle di M4), con il test di `reasons.gd`.
 
 ## 2. Autoload
 
@@ -135,7 +141,7 @@ var play_time_ms: int
 var total_level: int
 
 class_name SaveMigrator extends RefCounted    # core/save/save_migrator.gd
-const CURRENT_VERSION: int = 1
+const CURRENT_VERSION: int = 2                 # 2 da M4-03 (save v2, D3); nessuna migrazione 1 → 2: un save v1 è version_unsupported
 static func can_load(d: Dictionary) -> bool          # format_version <= CURRENT_VERSION
 static func migrate(d: Dictionary) -> Dictionary     # applica migrations/migration_<a>_to_<b>.gd in catena
 static func migrate_chain(d: Dictionary, target_version: int, step_for: Callable) -> Dictionary
@@ -222,15 +228,28 @@ func hide_tooltip() -> void
 | `bank_capacity_changed` | `used: int, capacity: int` | Bank | variano caselle usate o capienza |
 | `bank_rejected` | `item_id: StringName, qty: int` | Bank | `add` fallita per bank piena |
 | `gold_changed` | `new_amount: int, delta: int` | Wallet | |
-| `equipment_changed` | `slot_id: StringName, item_id: StringName` | Equipment | `&""` = slot vuoto; anche per `&"food"` e `&"stance"` (item_id = id cibo / stance) |
+| `equipment_changed` | `slot_id: StringName, uid: int` | Equipment | M4: `uid` 0 = slot vuoto (prima: `item_id`; il segnale non si usa più per cibo e stance) |
+| `food_changed` | `item_id: StringName` | Equipment | M4: cibo scelto (`&""` = nessuno) |
+| `character_xp_gained` | `amount: int` | CharacterSystem | M4: ogni guadagno > 0 |
+| `character_level_up` | `new_level: int` | CharacterSystem | M4: un evento per livello |
+| `traits_changed` | — | Loadout | M6: tratti o abilità equipaggiati cambiati |
+| `armory_changed` | `uid: int, change: StringName` | Armory | M4: `change` = `&"added"`, `&"removed"`, `&"updated"` (blocco, raffinazione, indossato) |
+| `armory_capacity_changed` | `used: int, capacity: int` | Armory | M4 |
+| `armory_rejected` | `base_id: StringName, qty: int` | Armory | M4: istanze non create per Armeria piena |
+| `item_upgraded` | `uid: int, success: bool, new_level: int` | Armory | M7 |
+| `item_salvaged` | `uid: int, base_id: StringName, auto: bool` | Armory | M7: `auto` = dal filtro |
 | `modifiers_changed` | — | ModifierService | una volta per modifica o per batch |
-| `combat_started` | `area_id: StringName, monster_id: StringName` | CombatEngine | |
+| `combat_started` | `area_id: StringName` | CombatEngine | M5 (prima anche `monster_id`) |
 | `combat_stopped` | `reason: StringName` | CombatEngine | |
-| `monster_spawned` | `monster_id: StringName` | CombatEngine | |
-| `combat_hit` | `attacker: StringName, hit: bool, damage: int` | CombatEngine | `attacker` = `&"player"` o `&"monster"` |
+| `encounter_started` | `monster_ids: Array[StringName]` | CombatEngine | M5: in ordine di posizione (sostituisce `monster_spawned`) |
+| `encounter_cleared` | — | CombatEngine | M5: tutti i nemici morti, inizia `BETWEEN` |
+| `combat_hit` | `attacker: int, target: int, hit: bool, damage: int, blocked: bool` | CombatEngine | M5: `-1` = giocatore, `0..n-1` = posizione del nemico |
 | `player_hp_changed` | `hp: int, max_hp: int` | CombatEngine | |
-| `monster_hp_changed` | `hp: int, max_hp: int` | CombatEngine | |
-| `monster_killed` | `monster_id: StringName` | CombatEngine | |
+| `monster_hp_changed` | `index: int, hp: int, max_hp: int` | CombatEngine | M5 |
+| `monster_killed` | `index: int, monster_id: StringName` | CombatEngine | M5 |
+| `ability_used` | `ability_id: StringName, targets: Array[int]` | CombatEngine | M6 |
+| `trait_triggered` | `trait_id: StringName` | CombatEngine | M6: un effetto del tratto è scattato (feedback) |
+| `rift_stone_appeared` | `stone_id: StringName` | CombatEngine | M7 |
 | `player_died` | — | CombatEngine | |
 | `food_eaten` | `item_id: StringName, healed: int` | AutoEat | |
 | `loot_bag_changed` | `used: int, capacity: int` | LootBag | |
@@ -245,9 +264,14 @@ func hide_tooltip() -> void
 | `save_completed` | `slot: int` | Game | |
 | `save_failed` | `slot: int, reason: StringName` | Game | |
 | `notification_requested` | `text: String, kind: StringName` | qualunque sistema | `kind` = `&"info"`, `&"success"`, `&"warning"` |
-| `hint_triggered` (M6) | `hint_id: StringName` | HintsSystem | |
-| `fracture_opened` (M7) | `fracture_id: StringName, duration_ms: int` | FractureSystem | |
-| `fracture_closed` (M7) | `fracture_id: StringName` | FractureSystem | |
+| `hint_triggered` (M9) | `hint_id: StringName` | HintsSystem | |
+| `fracture_opened` (M10) | `fracture_id: StringName, duration_ms: int` | FractureSystem | |
+| `fracture_closed` (M10) | `fracture_id: StringName` | FractureSystem | |
+
+I segnali segnati M4…M7 li aggiunge (o cambia) in `core/autoload/event_bus.gd` e in `tests/core/autoload/test_event_bus.gd`
+il task che li emette per primo (ownership estesa alle sole righe del segnale). Fino ad allora `event_bus.gd` ha le firme
+precedenti: `monster_spawned` e le vecchie firme di `combat_started`, `combat_hit`, `monster_hp_changed`,
+`monster_killed`, `equipment_changed` spariscono con M4-06 (equipaggiamento) e M5-03 (motore).
 
 ## 4. Dati (`res://core/data/`)
 
@@ -276,8 +300,14 @@ func areas() -> Array[AreaDef]                        # ordinate per order
 func monster(id: StringName) -> MonsterDef
 func shop_entry(id: StringName) -> ShopEntryDef
 func shop_entries() -> Array[ShopEntryDef]
-func hints() -> Array[HintDef]                        # M6: lo aggiunge M6-04 (non esiste in M1-04)
-func fractures() -> Array[FractureDef]                # M7: lo aggiunge M7-01 (non esiste in M1-04)
+func character_xp_table() -> XpTable                  # M4-01: da character_curve (F-71)
+func character_class(id: StringName) -> ClassDef      # M4-01; null + Log.error se manca
+func classes() -> Array[ClassDef]                     # M4-01; ordinate per order
+func affix(id: StringName) -> AffixDef                # M4-01
+func affixes_for_slot(slot: StringName) -> Array[AffixDef]   # M4-01; ordine del file
+func rift_stone_for_area(area_id: StringName) -> RiftStoneDef   # M7
+func hints() -> Array[HintDef]                        # M9: lo aggiunge M9-04 (non esiste in M1-04)
+func fractures() -> Array[FractureDef]                # M10: lo aggiunge il task delle Fratture (non esiste in M1-04)
 const LOG_CATEGORY: String = "data"
 const BALANCE_FILE: String = "balance.json"           # in config_root
 const STATS_FILE: String = "stats.json"               # in config_root
@@ -294,7 +324,8 @@ static func list_json_files(dir: String, errors: PackedStringArray) -> PackedStr
 class_name DataValidator extends RefCounted
 const REQUIRED_BALANCE_KEYS: PackedStringArray       # tutte le chiavi di 02_FORMULAS.md §9 dell'MVP
 static func validate(raw: Dictionary, errors: PackedStringArray) -> void
-    # raw = {"balance", "stats", "skills", "items", "actions", "mastery", "areas", "monsters", "shop"}
+    # raw = {"balance", "stats", "skills", "items", "actions", "mastery", "areas", "monsters", "shop",
+    #        "classes" (cartella, M4-01), "affixes" (file unico, M4-01)}
     # ogni sezione: {percorso del file: oggetto di testa del file} (sezioni a file unico: esattamente una voce, altrimenti
     # errore; cartelle: una voce per .json, anche zero). Il percorso compare nei messaggi e dà il nome del file con cui
     # lo schema confronta `skill` (azioni, maestria) e `category` (oggetti)
@@ -345,8 +376,9 @@ class_name ItemDef
   var food_heal: int              # 0 se non cibo
   var infusion_modifiers: Array[Modifier]; var infusion_unique: bool
   func is_equippable() -> bool; func is_food() -> bool; func is_infusion() -> bool
-class_name EquipInfo  ; var slot: StringName; var requirements: Dictionary[StringName, int]
+class_name EquipInfo  ; var slot: StringName; var requirements: Dictionary[StringName, int]   # chiave &"character" = personaggio
                         var modifiers: Array[Modifier]; var weapon: WeaponInfo   # null se non arma
+                        var kind: StringName; var grade: int      # M4-01: &"" se lo slot non è weapon/offhand
 class_name WeaponInfo ; var style: StringName; var attack_interval_ms: int; var two_handed: bool
 class_name SkillDef
   var id: StringName; var name: String; var description: String; var category: StringName
@@ -362,10 +394,12 @@ class_name MasteryNodeDef
   var id: StringName; var skill_id: StringName; var name: String; var description: String
   var cost_pct: float; var requires: Array[StringName]; var pos: Vector2i; var modifiers: Array[Modifier]
 class_name AreaDef    ; var id: StringName; var name: String; var description: String; var order: int
-                        var requirements: Dictionary[StringName, int]; var monster_ids: Array[StringName]
+                        var requirements: Dictionary[StringName, int]; var packs: Array[PackDef]   # M4-01 (packs)
+                        var monster_ids: Array[StringName]   # distinti, ricavati dai gruppi
+class_name PackDef    ; var weight: int; var monster_ids: Array[StringName]   # M4-01 (ripetibili, ordine = posizioni)
 class_name MonsterDef
   var id: StringName; var name: String; var description: String; var icon: String
-  var hp: int; var style: StringName; var attack_interval_ms: int
+  var hp: int; var xp: int; var style: StringName; var attack_interval_ms: int      # xp: M4-01
   var attack_level: int; var power_level: int; var defence_level: int
   var accuracy_bonus: int; var power_bonus: int; var evasion_bonus: int; var damage_reduction: float
   var gold_min: int; var gold_max: int; var rift_shard_chance: float; var drops: Array[DropEntry]
@@ -374,9 +408,28 @@ class_name ShopEntryDef
   var cost_gold: int; var cost_formula: StringName      # &"" oppure &"bank_slot"
   var max_purchases: int                                # 0 = illimitato
   var req_entries: Array[StringName]; var req_skills: Dictionary[StringName, int]; var req_total_level: int
+  var req_character: int                                # M4-01; 0 = nessun requisito
   var effect_modifiers: Array[Modifier]; var effect_item: ItemQty   # uno dei due
-class_name HintDef (M6)    ; var id: StringName; var title: String; var text: String; var trigger: StringName
-class_name FractureDef (M7); var id: StringName; var name: String; var description: String; var weight: int
+  # cost_formula: &"" oppure &"bank_slot" (F-17) oppure &"armory_slot" (F-82, M4-01)
+class_name ClassDef (M4)   ; var id: StringName; var name: String; var description: String; var order: int
+                             var weapon_kinds: Array[StringName]; var offhand_kinds: Array[StringName]
+                             var setups: Array[SetupDef]; var traits: Array[TraitDef]; var abilities: Array[AbilityDef]
+                             func setup_for(weapon_kind: StringName, offhand_kind: StringName) -> SetupDef   # null se nessuno (F-72)
+class_name SetupDef (M4)   ; var id: StringName; var name: String; var weapon_kind: StringName; var offhand_kind: StringName
+                             var alternate: bool; var modifiers: Array[Modifier]
+class_name TraitDef (M6)   ; var id: StringName; var name: String; var description: String; var unlock_level: int
+                             var setups: Array[StringName]; var effects: Array[TraitEffectDef]; var modifiers: Array[Modifier]
+class_name TraitEffectDef (M6) ; var type: StringName; var params: Dictionary    # parametri già validati (F-81)
+class_name AbilityDef (M6) ; var id: StringName; var name: String; var description: String; var unlock_level: int
+                             var setups: Array[StringName]; var kind: StringName; var cooldown_ms: int
+                             var power_mult: float; var targets: int; var heal_pct: float
+                             var modifiers: Array[Modifier]; var duration_ms: int   # solo i campi del kind; gli altri 0/vuoti
+class_name AffixDef (M4)   ; var id: StringName; var name: String; var stat: StringName; var slots: Array[StringName]
+                             var weight: int; var tiers: Array[AffixTier]
+class_name AffixTier (M4)  ; var min_ilvl: int; var min: float; var max: float; var step: float
+class_name RiftStoneDef (M7); campi di 04_DATA_SCHEMA §16
+class_name HintDef (M9)    ; var id: StringName; var title: String; var text: String; var trigger: StringName
+class_name FractureDef (M10); var id: StringName; var name: String; var description: String; var weight: int
                              var modifiers: Array[Modifier]; var bonus_area_id: StringName; var bonus_monster_id: StringName
 ```
 (`class_name X ; var ...` è notazione compatta: ogni classe è un file `snake_case` separato.)
@@ -434,22 +487,28 @@ func clear_source(source_id: StringName) -> void
 func clear_all() -> void
 func has_source(source_id: StringName) -> bool
 func total(stat: StringName, ctx: ModifierContext = null) -> float       # F-05; null = global
+func total_without(stat: StringName, ctx: ModifierContext, excluded: Array[StringName]) -> float
+    # M5-02: come total senza le sorgenti in excluded, poi limitato (F-74); ctx null = global
 func breakdown(stat: StringName, ctx: ModifierContext = null) -> Array[Dictionary]   # [{source, value}] per i tooltip
 func begin_batch() -> void           # sospende modifiers_changed
 func end_batch() -> void             # emette una sola volta se qualcosa è cambiato
 ```
-Id delle sorgenti: `equipment:<slot>`, `mastery_item:<action_id>`, `mastery_node:<node_id>`, `shop:<entry_id>`,
-`rift_socket:<index>`, `fracture:<id>` (M7).
+Id delle sorgenti: `equipment:<slot>` (modificatori dell'istanza: base × F-86 + affissi + castoni), `setup:<id>` (M4),
+`trait:<id>` (M6), `ability:<id>` (M6, buff temporanei del combattimento), `mastery_item:<action_id>`,
+`mastery_node:<node_id>`, `shop:<entry_id>`, `rift_socket:<index>` (M8), `fracture:<id>` (M10).
 
 ### 5.3 Sessione (`res://core/session/game_session.gd`)
 ```gdscript
 class_name GameSession extends Node
 var data: GameData; var events: GameEvents; var rng: RngService; var modifiers: ModifierService
 var wallet: Wallet; var bank: Bank; var skills: SkillsSystem; var mastery: MasterySystem
-var equipment: Equipment; var actions: ActionRunner; var combat: CombatEngine
-var shop: Shop; var rift: RiftAltar
-var hints: HintsSystem            # M6 (null prima)
-var fractures: FractureSystem     # M7 (null prima)
+var character: CharacterSystem   # M4-03
+var armory: Armory                # M4-05
+var loadout: Loadout              # M6-03 (null prima)
+var equipment: Equipment; var actions: ActionRunner; var combat: CombatEngine   # combat: M5-03
+var shop: Shop; var rift: RiftAltar   # rift: M8
+var hints: HintsSystem            # M9 (null prima)
+var fractures: FractureSystem     # M10 (null prima)
 var slot: int; var player_name: String; var created_at_unix_ms: int; var play_time_ms: int
 func _init(game_data: GameData, game_events: GameEvents, rng_seed: int) -> void
 func new_game() -> void                                  # stato iniziale 01_GDD §1.1 + rebuild_modifiers
@@ -463,7 +522,9 @@ class_name SessionSnapshot extends RefCounted            # core/session/session_
 var xp: Dictionary[StringName, int]; var levels: Dictionary[StringName, int]
 var bank: Dictionary[StringName, int]; var gold: int
 var kills: Dictionary[StringName, int]; var deaths: int; var food_eaten: int
+var armory_count: int                                    # M9-01: pezzi nell'Armeria
 static func take(session: GameSession) -> SessionSnapshot
+# xp/levels: anche la chiave &"character" (XP e livello del personaggio, M4-03); è riservata, nessuna skill la usa
 ```
 **Registrazione di un sistema** (M1-05). I campi tipizzati dei sistemi li dichiara il task che crea il sistema (prima
 non esistono). In `_create_systems()`, in ordine di dipendenza: una riga di creazione (`wallet = Wallet.new(self)`) e una
@@ -486,7 +547,7 @@ const _PHASE_FRACTURES: int; const _PHASE_ACTIONS: int; const _PHASE_COMBAT: int
   `Log.warn`, generatore invariato.
 - `RngService.to_save`: `state` come stringa decimale se `|state| > 2^53`; `from_save` accetta int, float interi e stringhe.
 - `total_level()` restituisce 0 finché non esiste `SkillsSystem` (M1-08); `SessionSnapshot.take` legge solo i sistemi
-  presenti (xp/livelli M1-08, bank/oro M1-07, kills/deaths/food_eaten M4-xx).
+  presenti (xp/livelli M1-08, personaggio M4-03, bank/oro M1-07, kills/deaths/food_eaten M5-03).
 - `game_session.gd` ≤ 200 righe (test). Da M1-07 i partecipanti al salvataggio stanno in
   `core/session/session_participants.gd` (`class_name SessionParticipants extends RefCounted`, con la classe interna
   `_Participant`): **helper interno** di `GameSession`, non un'API per gli altri moduli (nessuno lo usa o lo referenzia
@@ -494,7 +555,8 @@ const _PHASE_FRACTURES: int; const _PHASE_ACTIONS: int; const _PHASE_COMBAT: int
   assenti, non oggetti o sconosciuti come sopra) e `rebuild_modifiers` iterano tramite lui, nell'ordine di `_join`.
 - Ordine attuale di `_create_systems()`: `wallet`, `bank`, `skills`, `mastery` (`rebuild_fn = mastery.rebuild_modifiers`),
   `actions` (senza `rebuild_fn`; `_tick(_PHASE_ACTIONS, actions.advance)`). I task successivi aggiungono in coda, in ordine
-  di dipendenza.
+  di dipendenza. Con la riforma: `character` subito dopo `skills` (M4-03), `armory` prima di `equipment` (M4-05),
+  `equipment` dopo `armory` e `character` (M4-06 sposta la riga se serve), `combat` dopo `equipment` (M5-03).
 - Nei test, `ProbeSession` (`test_game_session.gd`) ridefinisce `_tick` registrando solo le fasi dei `FakeSystem`; le
   chiavi finte non devono coincidere con le `SAVE_KEY` dei sistemi veri (oggi `lanes`, `combat`, `fractures`): il task
   che registra un sistema con la stessa chiave rinomina quella finta.
@@ -515,8 +577,8 @@ func spend(amount: int) -> CommandResult           # invalid_amount, not_enough_
 const SAVE_KEY := &"bank"
 func get_count(item_id: StringName) -> int
 func has(item_id: StringName, qty: int) -> bool
-func can_add(item_id: StringName) -> bool          # già presente o casella libera
-func add(item_id: StringName, qty: int) -> CommandResult      # unknown_id, invalid_amount, bank_full
+func can_add(item_id: StringName) -> bool          # già presente o casella libera; false per equipment/tool (M4-05)
+func add(item_id: StringName, qty: int) -> CommandResult      # unknown_id, not_stackable (M4-05: equipment/tool), invalid_amount, bank_full
 func remove(item_id: StringName, qty: int) -> CommandResult   # invalid_amount, not_enough_items
 func capacity() -> int                             # F-16
 func used() -> int
@@ -543,6 +605,8 @@ func sort_stacks() -> void                         # per categoria (ordine: mate
 - `from_save` tollerante, ordine conservato: voci con id sconosciuto, duplicate, `count` non intero o ≤ 0 (i float interi
   del JSON sono accettati) → `Log.warn` e scartate; `locked` non booleano → false; `stacks` non lista → bank vuota.
   Non controlla la capienza (le caselle comprate non si perdono, `01_GDD.md` §7).
+- Da M4-05: `add` di un oggetto `equipment`/`tool` → `not_stackable` (dopo `unknown_id`, prima di `invalid_amount`),
+  nessun segnale; `from_save` scarta queste voci con `Log.warn`. `sort_stacks` non ha più le categorie `equipment`/`tool`.
 
 ### 5.6 SkillsSystem (`systems/skills/skills_system.gd`) — dipendenze: data, events, modifiers
 ```gdscript
@@ -624,7 +688,7 @@ func rebuild_modifiers() -> void                                   # sorgenti ma
 ```gdscript
 class_name ActionMath extends RefCounted
 static func interval_ms(base_ms: int, interval_pct: float, min_ms: int) -> int          # F-03
-static func secondary_interval_ms(interval_ms: int, penalty_pct: float) -> int          # F-51 (M8)
+static func secondary_interval_ms(interval_ms: int, penalty_pct: float) -> int          # F-51 (M11)
 
 class_name ActionOutcome extends RefCounted
 var ok: bool; var reason: StringName
@@ -641,7 +705,7 @@ static func resolve(session: GameSession, action: ActionDef) -> ActionOutcome   
 class_name ActionRunner extends RefCounted
 const SAVE_KEY := &"actions"
 const MAIN := &"main"
-const SECONDARY := &"secondary"                    # M8
+const SECONDARY := &"secondary"                    # M11
 func start(skill_id: StringName, action_id: StringName, lane: StringName = MAIN) -> CommandResult
     # unknown_id, level_too_low, missing_inputs, lane_unavailable, skill_in_other_lane; nella corsia main ferma il combattimento (REPLACED)
 func stop(lane: StringName = MAIN, reason: StringName = Reasons.STOPPED_BY_USER) -> void
@@ -649,16 +713,16 @@ func is_running(lane: StringName = MAIN) -> bool
 func get_lane(lane: StringName = MAIN) -> Dictionary     # {} oppure {"skill", "action", "elapsed_ms", "interval_ms"}
 func get_progress(lane: StringName = MAIN) -> float      # F-04
 func current_interval_ms(action_id: StringName, lane: StringName = MAIN) -> int
-func lanes_available() -> int                            # 1 nell'MVP; F-51 in M8
+func lanes_available() -> int                            # 1 nell'MVP; F-51 in M11
 func stop_reasons_log() -> Array[StringName]              # motivi di stop dall'ultima lettura (per OfflineSummary), poi svuota
 func advance(delta_ms: int) -> void
 ```
 Comportamento (M1-10):
-- `start`: ordine dei controlli `lane_unavailable` (ogni corsia diversa da `main` fino a M8) → `unknown_id` (skill o
+- `start`: ordine dei controlli `lane_unavailable` (ogni corsia diversa da `main` fino a M11) → `unknown_id` (skill o
   azione sconosciuta, azione di un'altra skill) → `level_too_low` → `missing_inputs` (azione con `inputs` senza tutti gli
   ingredienti nella bank, `ArtisanResolver.can_start`; stesso controllo in `from_save`); un errore non cambia nulla. Avviare l'azione già in corso nella corsia è un no-op `ok` (il ciclo continua, nessun segnale). Altrimenti
   l'azione in corso si ferma con `replaced`, poi `action_started`. Nella corsia main ferma anche il combattimento
-  (`replaced`): la riga arriva con M4-03.
+  (`replaced`): la riga arriva con M5-03.
 - `stop` di una corsia ferma: no-op, nessun segnale. Ogni stop emette `action_stopped` e accoda il motivo al log;
   `stop_reasons_log()` restituisce **tutti** i motivi dall'ultima lettura, in ordine (anche `stopped_by_user` e `replaced`),
   poi svuota; il log non è salvato e `new_game`/`from_save` lo svuotano.
@@ -666,7 +730,7 @@ Comportamento (M1-10):
   completa tutti i cicli che entrano nel passo. Dopo `from_save` l'intervallo è "da fissare" e si calcola al primo
   `advance` (i modificatori si ricostruiscono dopo il caricamento); `get_lane`/`get_progress` intanto usano quello attuale.
 - `get_lane` restituisce l'`interval_ms` del ciclo corrente; `current_interval_ms` quello che avrebbe un ciclo avviato ora
-  (id sconosciuto → 0 con `Log.error` di `GameData.action`; la corsia non conta fino a M8).
+  (id sconosciuto → 0 con `Log.error` di `GameData.action`; la corsia non conta fino a M11).
 - `GatheringResolver`: tiri sempre in quest'ordine su `session.rng`: doppio (F-06), poi frammento (F-07, quantità 1).
   Lo spazio nella bank si controlla **prima** di aggiungere (`can_add` e caselle libere per gli oggetti nuovi, frammento
   compreso): se non c'è, il ciclo non conta, nulla cambia e la corsia si ferma con `bank_full` (nessun `bank_rejected`:
@@ -679,44 +743,56 @@ Comportamento (M1-10):
   consumati del tutto contano per i prodotti nuovi (per questo non si usa `Bank.can_add`, che guarda le caselle prima del
   consumo); se non c'è posto il ciclo non conta, nulla è consumato e la corsia si ferma con `bank_full`. Ciclo conservato:
   `consumed` vuoto, prodotti e XP pieni. Ordine dei segnali come per `GatheringResolver`.
+- `ArtisanResolver` da M4-07: i prodotti `equipment`/`tool` (quantità dopo F-06) non vanno nella bank ma diventano
+  istanze con `session.armory.create(base, ItemRoller.roll_rarity(craft_chances(M, item_rarity_pct)), action.level)`
+  (F-83, F-85; `M` = livello di maestria dell'azione **prima** della maestria del ciclo). Lo spazio si controlla prima di
+  ogni cambio con `armory.can_add(qty)`: se manca, ciclo non contato, nulla consumato, stop `armory_full`. Tiri su
+  `session.rng`: conservazione, doppio, poi per ogni istanza rarità e affissi. `outputs` resta `{item_id: qty}`.
 - Save (§6): `{"lanes": {lane: {"skill", "action", "elapsed_ms"}}}`, corsie ferme assenti. `from_save` tollerante: corsia
   sconosciuta, voce non oggetto, azione sconosciuta/di un'altra skill/non avviabile ora (livello, `inputs`) → `Log.warn`
   e corsia ferma; `elapsed_ms` non intero o negativo → `Log.warn` e ciclo da 0. Nessun segnale.
 
-### 5.9 Equipment (`systems/equipment/equipment.gd`) — dipendenze: data, events, modifiers, bank, skills, combat (solo `is_active`)
+### 5.9 Equipment (`systems/equipment/equipment.gd`) — dipendenze: data, events, modifiers, bank, character, armory, combat (solo `in_encounter`)
+Firme da M4-06 (prima: `item_id` della bank negli slot e stance, M3-03).
 ```gdscript
 const SAVE_KEY := &"equipment"
 const SLOTS: Array[StringName] = [&"head", &"body", &"legs", &"feet", &"hands", &"neck", &"ring",
     &"weapon", &"offhand", &"tool_forestry", &"tool_quarrying", &"tool_angling"]
-const STANCES: Array[StringName] = [&"offensive", &"balanced", &"defensive"]
-func get_item(slot: StringName) -> StringName            # &"" se vuoto
-func equip(item_id: StringName) -> CommandResult         # unknown_id, not_equippable, requirement_not_met, not_enough_items, combat_active (arma), bank_full
-func unequip(slot: StringName) -> CommandResult          # slot_empty, bank_full, combat_active (solo arma)
+const UNARMED := &"unarmed"                              # assetto senza arma (F-72)
+func get_uid(slot: StringName) -> int                    # 0 se vuoto
+func get_item(slot: StringName) -> StringName            # base dell'istanza indossata; &"" se vuoto
+func slot_of(uid: int) -> StringName                     # &"" se non indossato
+func equip(uid: int, slot: StringName = &"") -> CommandResult
+    # unknown_id, not_equippable, requirement_not_met (livello, kind non ammesso dalla classe, combinazione senza assetto),
+    # combat_active (arma o offhand durante un incontro), armory_full; slot &"" = equip.slot della base
+func unequip(slot: StringName) -> CommandResult          # slot_empty, armory_full, combat_active (arma/offhand)
 func get_food() -> StringName
 func set_food(item_id: StringName) -> CommandResult      # &"" toglie; not_food; l'oggetto deve essere nella bank
-func get_stance() -> StringName
-func set_stance(stance: StringName) -> CommandResult     # unknown_id
-func weapon() -> ItemDef                                 # null = mani nude
-func style() -> StringName                               # stile dell'arma o combat.unarmed.style
-func base_attack_interval_ms() -> int
-func rebuild_modifiers() -> void                         # sorgenti equipment:<slot>
+func setup() -> StringName                               # F-72: id dell'assetto o UNARMED
+func setup_def() -> SetupDef                             # null con UNARMED
+func weapon() -> ItemDef                                 # base dell'arma; null = mani nude
+func offhand_weapon() -> ItemDef                         # base della spada nell'offhand; null se scudo o vuoto
+func style() -> StringName                               # weapon.style o combat.unarmed.style
+func base_attack_interval_ms() -> int                    # weapon, F-73 con assetto alternate, o combat.unarmed
+func rebuild_modifiers() -> void                         # sorgenti equipment:<slot> (Armory.instance_modifiers) e setup:<id>
 ```
-Comportamento (M3-03):
-- `equip` è atomico: controlli nell'ordine della firma, un errore non cambia nulla. `combat_active` vale quando cambia
-  l'arma, anche se a toglierla è uno scudo che sposta un'arma a due mani. Lo spazio nella bank per i pezzi spostati si
-  conta dopo aver tolto 1 unità dell'oggetto indossato: se era l'ultima, la sua casella si libera. Due mani: un'arma
-  `two_handed` riporta nella bank l'`offhand`, un `offhand` riporta nella bank l'arma a due mani. Riuscito: una sola
-  ricostruzione dei modificatori (batch), poi `equipment_changed` per ogni slot svuotato e infine per lo slot occupato.
-- Il controllo del combattimento è `null`-safe: senza `session.combat` (fino a M4) il combattimento non è attivo.
-- `set_food`: `&""` toglie la scelta; altrimenti `unknown_id`, `not_food`, `not_enough_items` (deve essere nella bank).
-  La scelta resta anche quando la bank esaurisce il cibo (il combattimento gestisce la mancanza di cibo).
-- Save (§6): `{"slots": {slot: item_id}, "food": item_id | "", "stance": stance}`, solo gli slot occupati. `from_save`
-  tollerante, con `Log.warn`: slot sconosciuto, oggetto sconosciuto, non equipaggiabile o di un altro slot → slot vuoto;
-  arma `two_handed` e `offhand` entrambi pieni (save modificato) → resta l'arma, `offhand` vuoto, il pezzo scartato
-  (come le altre voci non valide: nessun ritorno alla bank, che `from_save` non tocca) (M3-11); cibo non valido → nessuno; stance non valida → `offensive`. Nessun segnale; i modificatori si ricostruiscono con
-  `rebuild_modifiers`.
+Comportamento:
+- `equip` è atomico, controlli nell'ordine della firma; un errore non cambia nulla. `combat_active` vale per `weapon` e
+  `offhand` mentre `session.combat.in_encounter()` (null-safe). Le regole delle due mani e "senza arma solo scudo
+  nell'offhand" (`01_GDD.md` §9) spostano pezzi tra i non indossati: `armory_full` se non c'è posto per loro, al netto
+  del pezzo che si indossa. Riuscito: `armory.set_worn` per ogni pezzo cambiato, una sola ricostruzione dei
+  modificatori (batch), poi `equipment_changed(slot, uid)` per ogni slot svuotato e infine per lo slot occupato.
+- Requisiti: `character.meets_requirements(equip.requirements)`; `kind` in `weapon_kinds`/`offhand_kinds` della classe;
+  la coppia risultante (`weapon`, `offhand`) deve avere un assetto (`ClassDef.setup_for`) o essere senza arma con scudo.
+- `set_food`: come M3-03; emette `food_changed`.
+- Save (§6): `{"slots": {slot: uid}, "food": item_id | ""}`. `from_save` tollerante, con `Log.warn`: slot sconosciuto,
+  `uid` assente dall'Armeria o già usato in un altro slot, base non equipaggiabile o di un altro slot, combinazione senza
+  assetto → slot vuoto (il pezzo resta nell'Armeria, non indossato); arma a due mani con offhand → offhand vuoto (M3-11);
+  cibo non valido → nessuno; una chiave `stance` (save v1) non arriva mai (v1 non si carica). Chiama `armory.set_worn`
+  per i pezzi indossati. Nessun segnale.
 
-### 5.10 Combattimento (`systems/combat/`) — dipendenze: data, events, modifiers, rng, bank, wallet, skills, equipment, actions (solo `stop`)
+### 5.10 Combattimento (`systems/combat/`) — dipendenze: data, events, modifiers, rng, bank, wallet, character, equipment, armory, loadout (M6), actions (solo `stop`)
+Firme da M5 (motore a eventi e gruppi, `01_GDD.md` §10); `CombatMath` da M5-01.
 ```gdscript
 class_name CombatMath extends RefCounted
 static func accuracy_rating(level: int, bonus: float, pct: float, data: GameData) -> int     # F-20
@@ -729,13 +805,14 @@ static func triangle_damage(damage: int, relation: StringName, data: GameData) -
 static func effective_dr(defender_dr: float, relation: StringName, data: GameData) -> float  # F-25 (relation dell'attaccante)
 static func damage_after_dr(damage: int, dr_eff: float) -> int                               # F-25
 static func attack_interval_ms(base_ms: int, pct: float, data: GameData) -> int              # F-26
-static func max_hp(vitality_level: int, flat: float, data: GameData) -> int                  # F-27
-static func combat_xp(damage: int, style: StringName, stance: StringName, data: GameData) -> Dictionary  # F-28 {skill_id: xp base}
+static func dual_wield_base_ms(weapon_ms: int, offhand_ms: int, data: GameData) -> int       # F-73
+static func max_hp(character_level: int, flat: float, data: GameData) -> int                 # F-27
+static func block_chance(total: float, data: GameData) -> float                             # F-75 (limite dalla stat)
 
 class_name CombatantStats extends RefCounted
 var style: StringName; var accuracy: int; var evasion: int; var max_hit: int; var min_hit: int
-var attack_interval_ms: int; var damage_reduction: float; var max_hp: int
-static func for_player(session: GameSession) -> CombatantStats
+var attack_interval_ms: int; var damage_reduction: float; var max_hp: int; var block_chance: float
+static func for_player(session: GameSession, hand: int = 0) -> CombatantStats   # F-70; hand 1 = offhand (F-74)
 static func for_monster(monster: MonsterDef, data: GameData) -> CombatantStats
 
 class_name AutoEat extends RefCounted
@@ -755,35 +832,58 @@ func from_save(a: Array) -> void
 
 class_name CombatEngine extends RefCounted
 const SAVE_KEY := &"combat"
+const STATE_IDLE := &"idle"; const STATE_ENCOUNTER := &"encounter"; const STATE_BETWEEN := &"between"
+const STATE_RIFTSTONE := &"riftstone"      # M7
 var loot: LootBag
-func start(area_id: StringName, monster_id: StringName) -> CommandResult    # unknown_id, requirement_not_met; ferma la corsia main (REPLACED)
+func start(area_id: StringName) -> CommandResult    # unknown_id, requirement_not_met (character); ferma la corsia main (REPLACED)
 func stop(reason: StringName = Reasons.STOPPED_BY_USER) -> void
-func is_active() -> bool
+func is_active() -> bool                   # stato ≠ idle
+func in_encounter() -> bool                # encounter o riftstone
+func state() -> StringName
+func area_id() -> StringName
 func get_state() -> Dictionary
-    # {"area", "monster", "player_hp", "player_max_hp", "monster_hp", "monster_max_hp",
-    #  "player_timer_ms", "player_interval_ms", "monster_timer_ms", "monster_interval_ms", "respawn_ms"}
+    # copia per la UI: {"state", "area", "player_hp", "player_max_hp", "player_timer_ms", "player_interval_ms",
+    #  "hand", "between_ms", "enemies": [{"monster", "hp", "max_hp", "timer_ms", "interval_ms"}], "target": int,
+    #  "abilities": [{"id", "timer_ms", "cooldown_ms", "enabled"}] (M6), "buffs": {id: ms} (M6)}
 func eat() -> CommandResult                 # no_food, not_running
-func player_stats() -> CombatantStats
-func monster_stats() -> CombatantStats      # null se non in combattimento
+func player_stats(hand: int = 0) -> CombatantStats
+func enemy_stats(index: int) -> CombatantStats    # null se la posizione è vuota o morta
 func kills(monster_id: StringName) -> int
 func total_kills() -> Dictionary[StringName, int]
 func deaths() -> int
 func food_eaten() -> int
 func stop_reasons_log() -> Array[StringName]
-func advance(delta_ms: int) -> void
+func advance(delta_ms: int) -> void        # motore a eventi (01_GDD §10.10): salta al prossimo timer
 ```
+Comportamento (M5-03):
+- `advance` ripete: `next` = minimo tra i timer attivi (attacco base, abilità (M6), nemici vivi, attesa `BETWEEN`,
+  impulso della Pietra (M7)); se `next > resto` scala tutti i timer del resto e si ferma; altrimenti scala `next` e
+  risolve tutti i timer a 0 nell'ordine F-76. Equivalenza obbligatoria: `advance(1000)` = dieci `advance(100)`.
+- Uccisione: XP al personaggio (F-28), oro (F-31), drop (F-32) e frammento (F-07) nella borsa, `monster_killed`;
+  ultimo nemico → `encounter_cleared`, stato `between` per `combat.respawn_ms`, poi nuovo gruppo (F-77) e
+  `encounter_started`. Morte: `lose_all`, PV al massimo, `player_died`, stop `player_died`.
+- Agganci dei tratti (M6, `01_GDD.md` §20.3): il motore chiama gli effetti di `systems/combat/effects/` (classe base
+  `TraitEffect`, un file per tipo di F-81) nei punti `on_encounter_start`, `on_before_attack`, `on_hit`, `on_kill`,
+  `on_damaged`, `on_low_hp`, `choose_target`, `modify_stats`; abilità in `systems/combat/ability_runner.gd` (F-79, F-80).
+- Save (§6): stato, area, nemici, PV, timer, mano, attesa, contatori, borsa, stato degli effetti e delle abilità.
+  `from_save` tollerante: area o mostro sconosciuto → `idle` con `Log.warn` (borsa e contatori tenuti).
 
-### 5.11 Shop (`systems/shop/shop.gd`) — dipendenze: data, events, modifiers, bank, wallet, skills
+### 5.11 Shop (`systems/shop/shop.gd`) — dipendenze: data, events, modifiers, bank, wallet, skills, character, armory
 ```gdscript
 const SAVE_KEY := &"shop"
 func purchase_count(entry_id: StringName) -> int
-func price(entry_id: StringName) -> int               # F-17 per formula, altrimenti cost_gold
-func can_buy(entry_id: StringName) -> CommandResult   # unknown_id, max_purchases, requirement_not_met, not_enough_gold, bank_full
+func price(entry_id: StringName) -> int               # F-17 / F-82 per formula, altrimenti cost_gold
+func can_buy(entry_id: StringName) -> CommandResult   # unknown_id, max_purchases, requirement_not_met, not_enough_gold, bank_full, armory_full
 func buy(entry_id: StringName) -> CommandResult
 func sell_value(item_id: StringName, qty: int) -> int # F-18
 func sell(item_id: StringName, qty: int) -> CommandResult   # invalid_amount, unknown_id, item_locked, not_sellable, not_enough_items
+func sell_instance(uid: int) -> CommandResult         # M4-05: unknown_id, item_locked, item_equipped, not_sellable; F-18 con qty 1
 func rebuild_modifiers() -> void                      # sorgenti shop:<id> (F-19)
 ```
+Da M4-05: requisiti con `req_character` (`character.meets_requirements`); effetto `item` di una base `equipment`/`tool`
+→ `qty` istanze comuni con `armory.create(base, &"common", 1)`, controllo `armory_full` con `armory.can_add(qty)` al posto
+di `bank_full`; `price` con `cost_formula = &"armory_slot"` → F-82. `sell_instance` toglie il pezzo dall'Armeria e
+aggiunge l'oro, poi `item_sold(base_id, 1, gold)`.
 Comportamento (M3-02):
 - `can_buy`/`buy`: controlli nell'ordine della firma; `max_purchases` 0 = illimitato; `bank_full` solo per effetti
   `item` (`Bank.can_add`). Un errore non cambia nulla (oro non speso). Riuscito: oro speso, effetto applicato (oggetto
@@ -795,7 +895,7 @@ Comportamento (M3-02):
   conteggio oltre `max_purchases` (se > 0) → limitato a `max_purchases`. Nessun segnale; i modificatori si ricostruiscono
   con `rebuild_modifiers`.
 
-### 5.12 RiftAltar (`systems/rift/rift_altar.gd`) — dipendenze: data, events, modifiers, bank, skills
+### 5.12 RiftAltar (`systems/rift/rift_altar.gd`, M8) — dipendenze: data, events, modifiers, bank, skills
 ```gdscript
 const SAVE_KEY := &"rift"
 const SKILL := &"riftbinding"
@@ -835,15 +935,15 @@ static func apply(window: Window) -> void
 # chiavi: window_mode, window_size, ui_scale, vsync, fps_limit, volume, log_level
 ```
 
-### 5.15 M6-M8
+### 5.15 M9-M11
 ```gdscript
-class_name HintsSystem extends RefCounted      # systems/hints/hints_system.gd (M6); dipendenze: data, events
+class_name HintsSystem extends RefCounted      # systems/hints/hints_system.gd (M9); dipendenze: data, events
 const SAVE_KEY := &"hints"
 func is_seen(hint_id: StringName) -> bool
 func mark_seen(hint_id: StringName) -> void
 func connect_triggers() -> void                # ascolta session.events ed emette hint_triggered una volta per slot
 
-class_name FractureSystem extends RefCounted   # systems/fractures/fracture_system.gd (M7); dipendenze: data, events, modifiers, rng, combat
+class_name FractureSystem extends RefCounted   # systems/fractures/fracture_system.gd (M10); dipendenze: data, events, modifiers, rng, combat
 const SAVE_KEY := &"fractures"
 func active_id() -> StringName
 func time_left_ms() -> int
@@ -852,14 +952,102 @@ func bonus_monster_for_area(area_id: StringName) -> StringName
 func advance(delta_ms: int) -> void            # F-50
 func rebuild_modifiers() -> void               # sorgente fracture:<id>
 ```
-M8 non aggiunge classi: estende `ActionRunner` (corsia `SECONDARY`, `lanes_available()` con F-51).
+M11 non aggiunge classi: estende `ActionRunner` (corsia `SECONDARY`, `lanes_available()` con F-51). Le firme di M10
+si rivedono a inizio M10 (Fratture come mappe, `01_GDD.md` §17).
+
+### 5.16 CharacterSystem (`systems/character/character_system.gd`) — dipendenze: data, events, modifiers, skills
+```gdscript
+const SAVE_KEY := &"character"
+const REQUIREMENT_KEY := &"character"          # chiave riservata dei requisiti
+func class_id() -> StringName
+func class_def() -> ClassDef
+func get_xp() -> int
+func get_level() -> int                        # F-71
+func get_progress() -> float
+func add_xp(base_amount: int) -> int           # F-71 (skill_xp_pct global); restituisce l'XP data
+func meets_requirements(requirements: Dictionary) -> bool
+    # chiave "character" → get_level(); le altre → skills.meets_requirements; valore non numerico → false
+```
+- `new_game`: classe `character.start_class`, XP 0. `add_xp` emette `character_xp_gained` e poi un `character_level_up`
+  per livello, dopo il cambio. XP base negativa: `Log.error`, 0.
+- Save (§6): `{"class": id, "xp": int}`. `from_save` tollerante, con `Log.warn`: classe sconosciuta → `start_class`;
+  XP non intera o negativa → 0, oltre il tetto → tetto. Nessun segnale.
+- `GameSession.total_level()` = `skills.total_level() + character.get_level()` (da M4-03).
+
+### 5.16b Loadout (`systems/character/loadout.gd`, M6) — dipendenze: data, events, modifiers, character, equipment, combat (solo `in_encounter`)
+```gdscript
+const SAVE_KEY := &"loadout"
+func trait_slots() -> int                      # F-78
+func ability_slots() -> int                    # F-78
+func get_trait(slot_index: int) -> StringName  # &"" se vuoto
+func get_ability(slot_index: int) -> StringName
+func set_trait(slot_index: int, trait_id: StringName) -> CommandResult
+    # &"" toglie; slot_locked, unknown_id, level_too_low, requirement_not_met (già in un altro slot), combat_active
+func set_ability(slot_index: int, ability_id: StringName) -> CommandResult   # stessi motivi
+func active_traits() -> Array[TraitDef]        # in ordine di slot, ammessi dall'assetto attuale (equipment.setup())
+func active_abilities() -> Array[AbilityDef]   # in ordine di slot, ammesse dall'assetto attuale
+func rebuild_modifiers() -> void               # sorgenti trait:<id> dei tratti attivi
+```
+- Riuscito: `traits_changed`; su `equipment_changed` dell'arma/offhand ricostruisce i modificatori (l'assetto può
+  cambiare). `combat_active` se `session.combat != null and session.combat.in_encounter()`.
+- Save (§6): `{"traits": [id | ""], "abilities": [id | ""]}`. `from_save` tollerante: id sconosciuti, non della classe,
+  non sbloccati, duplicati o in slot non aperti → vuoti, con `Log.warn`. Nessun segnale.
+
+### 5.17 Armory (`systems/armory/armory.gd`) — dipendenze: data, events, modifiers, rng, bank, wallet
+```gdscript
+class_name ItemInstance extends RefCounted     # systems/items/item_instance.gd
+var uid: int; var base_id: StringName; var rarity: StringName; var ilvl: int
+var affixes: Array[AffixRoll]; var upgrade: int; var sockets: Array[StringName]; var locked: bool
+func duplicate_instance() -> ItemInstance
+func to_dict() -> Dictionary; static func from_dict(d: Dictionary, data: GameData) -> ItemInstance   # null se non valida
+class_name AffixRoll extends RefCounted        # systems/items/affix_roll.gd
+var affix_id: StringName; var tier: int; var value: float   # tier da 1
+
+class_name Armory extends RefCounted
+const SAVE_KEY := &"armory"
+func capacity() -> int                         # F-82
+func used() -> int                             # pezzi non indossati
+func can_add(count: int = 1) -> bool
+func add(inst: ItemInstance) -> int            # assegna il uid e lo restituisce; 0 + armory_rejected se piena
+func create(base_id: StringName, rarity: StringName, ilvl: int) -> int   # ItemRoller.create + add; 0 se piena o base non equipment/tool
+func get_instance(uid: int) -> ItemInstance    # copia; null se assente
+func instances() -> Array[ItemInstance]        # copie, ordine di inserimento
+func has(uid: int) -> bool
+func is_worn(uid: int) -> bool
+func set_worn(uid: int, worn: bool) -> void    # solo Equipment
+func set_locked(uid: int, locked: bool) -> CommandResult   # unknown_id
+func remove(uid: int) -> CommandResult         # unknown_id, item_locked, item_equipped
+func instance_modifiers(uid: int) -> Array[Modifier]       # ItemRoller.instance_modifiers
+# M7: upgrade(uid, use_seal) -> CommandResult (F-86), salvage(uid) -> CommandResult (F-88), filter / set_filter
+```
+- `add`/`create` emettono `armory_changed(uid, &"added")` e `armory_capacity_changed`; `remove`, `set_locked`,
+  `set_worn` emettono `armory_changed` (`removed`/`updated`); `set_worn` cambia `used()`.
+- `uid` crescenti da 1 (`next_uid` salvato), mai riusati.
+- Save (§6): `{"next_uid": int, "items": [ItemInstance.to_dict()]}` (`to_dict`: `uid`, `base`, `rarity`, `ilvl`,
+  `affixes` `[{"affix", "tier", "value"}]`, `upgrade`, `sockets`, `locked`). `from_save` tollerante: voce non valida, base
+  sconosciuta o non `equipment`/`tool`, `uid` duplicato → `Log.warn` e scartata; `next_uid` minore o uguale al massimo
+  `uid` → massimo + 1. Non controlla la capienza. Il flag indossato non si salva (lo rimette `Equipment.from_save`).
+
+### 5.18 ItemRoller (`systems/items/item_roller.gd`) — logica pura, nessuno stato
+```gdscript
+class_name ItemRoller extends RefCounted
+static func craft_chances(mastery_level: int, rarity_pct: float, data: GameData) -> Vector2   # F-83: x = magico, y = raro
+static func drop_chances(source: StringName, rarity_pct: float, data: GameData) -> Vector2     # F-84 (M7): &"monster" / &"rift_stone"
+static func roll_rarity(chances: Vector2, rng: RngService) -> StringName                     # F-83: &"common"/&"magic"/&"rare"
+static func roll_affixes(base: ItemDef, rarity: StringName, ilvl: int, data: GameData, rng: RngService) -> Array[AffixRoll]   # F-85
+static func create(base: ItemDef, rarity: StringName, ilvl: int, data: GameData, rng: RngService) -> ItemInstance   # uid 0
+static func instance_modifiers(inst: ItemInstance, data: GameData) -> Array[Modifier]
+    # base × F-86 (upgrade) + un modificatore per affisso (scope di 04_DATA_SCHEMA §15) + castoni (M8)
+```
+- Ordine dei tiri su `rng`: rarità (un `randf`), numero di affissi, poi per ogni affisso scelta, grado, valore (F-85).
 
 ## 6. Formato del salvataggio (`user://saves/slot_<n>.json`)
 
+Versione 2 da M4-03 (D3). Un save v1 non si carica (`version_unsupported`, nessuna migrazione).
 ```json
 {
-  "format_version": 1,
-  "game_version": "0.1.0",
+  "format_version": 2,
+  "game_version": "0.2.0",
   "slot": 2,
   "player_name": "Davide",
   "created_at_unix_ms": 1793600000000,
@@ -871,13 +1059,20 @@ M8 non aggiunge classi: estende `ActionRunner` (corsia `SECONDARY`, `lanes_avail
     "wallet": {"gold": 1250},
     "bank": {"stacks": [{"item": "redbirch_log", "count": 412, "locked": false},
                         {"item": "rift_shard", "count": 3, "locked": true}]},
-    "skills": {"forestry": {"xp": 15320}, "blade": {"xp": 4100}},
+    "skills": {"forestry": {"xp": 15320}, "forging": {"xp": 4100}},
     "mastery": {"forestry": {"pool": 2210, "actions": {"cut_redbirch": 9800}, "nodes": ["forestry_n1_quick_axe"]}},
-    "equipment": {"slots": {"weapon": "emberbronze_blade", "tool_forestry": "emberbronze_hatchet"},
-                  "food": "seared_brookfin", "stance": "balanced"},
+    "character": {"class": "rift_blade", "xp": 4100},
+    "loadout": {"traits": ["chain_cleave", ""], "abilities": ["whirl", ""]},
+    "armory": {"next_uid": 4, "items": [
+      {"uid": 1, "base": "emberbronze_sword", "rarity": "magic", "ilvl": 1,
+       "affixes": [{"affix": "keen", "tier": 1, "value": 4}], "upgrade": 0, "sockets": [], "locked": false},
+      {"uid": 3, "base": "emberbronze_hatchet", "rarity": "common", "ilvl": 1, "affixes": [], "upgrade": 0,
+       "sockets": [], "locked": true}]},
+    "equipment": {"slots": {"weapon": 1, "tool_forestry": 3}, "food": "seared_brookfin"},
     "actions": {"lanes": {"main": {"skill": "forestry", "action": "cut_redbirch", "elapsed_ms": 1200}}},
-    "combat": {"active": false, "area": "", "monster": "", "player_hp": 0, "monster_hp": 0,
-               "player_timer_ms": 0, "monster_timer_ms": 0, "respawn_ms": 0,
+    "combat": {"state": "between", "area": "redrock_plains", "player_hp": 52, "player_timer_ms": 800, "hand": 0,
+               "between_ms": 700, "enemies": [], "attack_count": 41, "kills_since_stone": 12,
+               "abilities": {"whirl": 3000}, "buffs": {}, "effects": {"chain_cleave": {"count": 2}},
                "loot": [{"item": "boar_tusk", "qty": 2}], "kills": {"plains_boar": 41}, "deaths": 1, "food_eaten": 12},
     "shop": {"purchases": {"bank_slot": 3, "auto_eat_1": 1}},
     "rift": {"sockets": ["inf_swift_hands", "", "", "", ""]},
@@ -889,7 +1084,8 @@ M8 non aggiunge classi: estende `ActionRunner` (corsia `SECONDARY`, `lanes_avail
 Regole: chiavi assenti in `modules` = stato di partita nuova per quel sistema (così aggiungere un sistema non richiede
 migrazioni); id sconosciuti al caricamento vengono scartati con `Log.warn`; enum sempre come stringhe; `total_level`,
 `player_name`, `saved_at_unix_ms`, `play_time_ms` in testa servono al menu senza caricare tutto. I modificatori e le
-statistiche derivate non si salvano. Lo stato del giocatore non esiste fuori da questo file.
+statistiche derivate non si salvano. Lo stato del giocatore non esiste fuori da questo file. In `combat.enemies` ogni
+voce è `{"monster", "hp", "timer_ms"}` (posizione = indice); `loadout` e `abilities`/`effects`/`buffs` di `combat` esistono da M6.
 
 ## 7. Contratti della UI (`res://ui/`)
 
@@ -905,8 +1101,9 @@ const ROUTE_SEPARATOR: String = ":"
 const ROUTE_SKILL := &"skill"
 const ROUTES: Dictionary[StringName, String]    # rotta -> scena della pagina (estende Page); assente = "In arrivo"
                                                 # oggi: skill -> skill_page.tscn, bank -> bank_page.tscn, shop -> shop_page.tscn (M3-06), equipment -> equipment_page.tscn (M3-07) (nessun segnaposto)
+                                                # aggiunte: armory -> armory_page.tscn (M4-08), character -> character_page.tscn (M4-09), combat -> combat_page.tscn (M5-05), rift (M8)
 func setup(session: GameSession) -> void        # null: unbind e liberazione della pagina corrente
-func show_page(page_id: StringName) -> void     # &"skill:<id>", &"bank", &"shop", &"equipment", &"combat", &"rift", &"settings"
+func show_page(page_id: StringName) -> void     # &"skill:<id>", &"character", &"combat", &"armory", &"equipment", &"bank", &"shop", &"rift", &"settings"
 func has_page(page_id: StringName) -> bool      # rotta in ROUTES; per skill:<id> skill di raccolta/artigianato con azioni
 func current_page_id() -> StringName            # &"" se nessuna pagina
 static func route_of(page_id: StringName) -> StringName      # &"skill:forestry" -> &"skill"
@@ -921,6 +1118,8 @@ signal page_requested(page_id: StringName)
 func bind(session: GameSession, is_available: Callable) -> void   # is_available: (page_id: StringName) -> bool
 func unbind() -> void
 func set_current(page_id: StringName) -> void
+# Da M4-09: voci fisse Personaggio, Combattimento, Armeria, Equipaggiamento, Bank, Shop (Altare da M8), poi le skill di
+# raccolta e artigianato dai dati (le 5 skill di combattimento non esistono più; niente voci "In arrivo" per loro).
 
 class_name TopBar extends PanelContainer        # ui/screens/main/top_bar.gd (+ .tscn): oro, caselle, nome · slot, Menu
 signal menu_requested
@@ -953,7 +1152,7 @@ const NO_MATCH_TEXT: String                      # griglia vuota per la ricerca 
 class_name BankItemPanel extends PanelContainer  # ui/pages/bank/bank_item_panel.gd (+ .tscn), interno a BankPage
 signal lock_requested(item_id: StringName, locked: bool)   # la pagina manda bank.set_locked; locked letto da bank.is_locked
 signal sell_requested(item_id: StringName, qty: int)       # M3-06: la pagina manda shop.sell e mostra il motivo (REFUSED_TEXTS)
-signal equip_requested(item_id: StringName)                # M3-07: la pagina manda equipment.equip; "Equipaggia" solo se is_equippable
+signal equip_requested(item_id: StringName)                # M3-07; tolto da M4-08 (equipment/tool non sono nella bank: si equipaggia dall'ArmoryPage)
 signal food_requested(item_id: StringName)                 # M3-07: la pagina manda equipment.set_food; "Usa come cibo" solo se is_food, disabilitato ("Cibo scelto") se è già il cibo
 signal close_requested
 func show_item(session: GameSession, item_id: StringName) -> bool   # rilegge tutto; false (e clear) se assente o sconosciuto
@@ -968,18 +1167,41 @@ class_name ShopPage extends Page                 # ui/pages/shop/shop_page.gd (+
 const REFUSED_TEXTS: Dictionary[StringName, String]   # motivo di can_buy/buy -> testo; altri: REFUSED_TEXT_DEFAULT
 const REFUSED_TEXT_DEFAULT: String
 # Righe di data.shop_entries() per categoria, costruite in bind. Prezzo da shop.price, "Acquisti x / max" solo se
-# max_purchases > 0, requisiti mancanti (req_entries, req_skills, req_total_level confrontati con shop e skills).
+# max_purchases > 0, requisiti mancanti (req_entries, req_character, req_skills, req_total_level confrontati con shop,
+# character e skills; req_character da M4-09).
 # Compra abilitato solo se shop.can_buy riesce, altrimenti motivo accanto al pulsante e nel tooltip; errore di buy in
 # %MessageLabel. Ridisegno su shop_purchased, item_sold, gold_changed, bank_changed, level_up (scollegati in unbind).
 
 class_name EquipmentPage extends Page            # ui/pages/equipment/equipment_page.gd (+ .tscn), rotta equipment (M3-07)
-const REFUSED_TEXTS: Dictionary[StringName, String]   # motivo di unequip/set_food/set_stance -> testo; altri: REFUSED_TEXT_DEFAULT
+const REFUSED_TEXTS: Dictionary[StringName, String]   # motivo di unequip/set_food -> testo; altri: REFUSED_TEXT_DEFAULT
 const REFUSED_TEXT_DEFAULT: String
-# Righe di Equipment.SLOTS (pezzo da equipment.get_item, "Rimuovi" = unequip), cibo (food_heal dai dati, quantità
-# dalla bank o "Esaurito", "Togli" = set_food(&"")), stance (set_stance). Riepilogo: solo stat del registro
+# Righe di Equipment.SLOTS (pezzo da equipment.get_uid + armory.get_instance: nome della base, rarità, "+N";
+# "Rimuovi" = unequip), assetto (equipment.setup(), nome da SetupDef o "Mani nude"), cibo (food_heal dai dati, quantità
+# dalla bank o "Esaurito", "Togli" = set_food(&"")). La stance non c'è più (M4-08). Riepilogo: solo stat del registro
 # (data.stats) con almeno una sorgente, totale da modifiers.total, sorgenti da modifiers.breakdown; per gli attrezzi
-# anche le sorgenti con ambito della skill (ModifierContext.for_skill). Si equipaggia dalla BankPage. Ridisegno su
-# equipment_changed, modifiers_changed, bank_changed (scollegati in unbind).
+# anche le sorgenti con ambito della skill (ModifierContext.for_skill). Si equipaggia dall'ArmoryPage. Ridisegno su
+# equipment_changed, food_changed, modifiers_changed, bank_changed, armory_changed (scollegati in unbind).
+
+class_name ArmoryPage extends Page               # ui/pages/armory/armory_page.gd (+ .tscn), rotta armory (M4-08)
+const REFUSED_TEXTS: Dictionary[StringName, String]   # motivo di equip/set_locked/sell_instance -> testo
+const REFUSED_TEXT_DEFAULT: String
+# Griglia di armory.instances() con filtro per slot e rarità (colori UiStyle.RARITY_*), capienza used/capacity.
+# Pannello del pezzo (ArmoryItemPanel, interno): nome della base, rarità, ilvl, affissi (AffixDef.name e valore),
+# modificatori (Armory.instance_modifiers), requisiti, confronto con il pezzo indossato nello stesso slot,
+# "Equipaggia" (per una spada: "In mano" / "Seconda mano"), "Blocca", "Vendi" (shop.sell_instance); da M7 raffina e
+# smantella. Nessuna copia dello stato: il pannello tiene solo l'uid. Ridisegno su armory_changed,
+# armory_capacity_changed, equipment_changed, character_level_up (scollegati in unbind).
+
+class_name CharacterPage extends Page            # ui/pages/character/character_page.gd (+ .tscn), rotta character (M4-09)
+# Classe (ClassDef.name/description), livello e XpBar del personaggio (character.get_level/get_progress), assetto attuale
+# e assetti della classe, valori base F-70 (CombatantStats.for_player da M5; in M4 i valori di CombatMath non ci sono
+# ancora: solo livello, XP, classe e assetto). Da M6 gli slot di tratti e abilità (loadout). Ridisegno su
+# character_xp_gained, character_level_up, equipment_changed (scollegati in unbind).
+
+class_name CombatPage extends Page               # ui/pages/combat/combat_page.gd (+ .tscn), rotta combat (M5-05)
+# 01_GDD §10.11: scelta dell'area (requisiti con character.meets_requirements), carta del giocatore e una carta per
+# nemico da combat.get_state(), numeri del danno su combat_hit, borsa con "Raccogli tutto", Mangia; nessuno stato
+# dell'incontro nella UI.
 
 class_name EquipmentStatsText extends RefCounted # ui/pages/equipment/equipment_stats_text.gd, testi di EquipmentPage (M3-07), senza stato
 static func slot_text(slot: StringName, data: GameData) -> String     # etichetta; tool_<id> -> "Attrezzo: <nome skill dai dati>" o "Attrezzo"
@@ -1192,7 +1414,11 @@ static func real_data() -> GameData                # res://data
 static func session(seed_value: int = 1234, data: GameData = null) -> GameSession   # GameEvents nuovo, new_game() fatto
 static func give(session: GameSession, item_id: StringName, qty: int) -> void        # via bank.add, assert ok
 static func set_level(session: GameSession, skill_id: StringName, level: int) -> void # via skills.add_xp con xp_for_level
+static func set_character_level(session: GameSession, level: int) -> void            # M4-03: via character.add_xp
+static func give_piece(session: GameSession, base_id: StringName, rarity: StringName = &"common", ilvl: int = 1) -> int
+    # M4-05: via armory.create, assert uid > 0; restituisce l'uid
 ```
+`give` di un oggetto `equipment`/`tool` da M4-05 fallisce (`not_stackable`): i test usano `give_piece`.
 `fixture_data()`/`real_data()` caricati una volta per esecuzione e condivisi (`GameData` è immutabile); `session()` crea
 un `GameEvents` figlio della sessione (si libera con lei), mai l'autoload `EventBus`, mai slot veri. `give` (M1-07) e
 `set_level` (M1-08) sono implementati: in caso di fallimento `push_error` + `assert`. GUT segnala `test_factory.gd`

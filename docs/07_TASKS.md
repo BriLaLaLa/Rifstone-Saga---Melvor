@@ -829,305 +829,277 @@ Regole per tutti i task:
 
 ---
 
-## M4 · Combattimento
+## Riforma (combattimento al centro)
 
-### M4-01 · Formule di combattimento
-- **Ruolo** COMBAT · **Stima** M · **Parallelizzabile** sì (anticipabile dopo M1-04) · **Dipendenze** M1-04
-- **Ownership** `res://systems/combat/combat_math.gd`, `res://tests/systems/combat/test_combat_math.gd`
-- **Leggere** `01_GDD.md` §10; `02_FORMULAS.md` F-20…F-28; `05_INTERFACES.md` §5.10
-- **Descrizione** Funzioni statiche pure, tutti i parametri da `balance.json`.
-- **Accettazione** tutti gli esempi di F-20…F-28 riprodotti.
-- **Test** `test_combat_math.gd` (incluse le funzioni elencate in `02_FORMULAS.md` §11 per le stat di combattimento).
+### R-00 · Riforma dei documenti
+- **Ruolo** REV · **Stima** M · **Dipendenze** M3-09 · **Parallelizzabile** no
+- **Ownership** `docs/**`, `CLAUDE.md` (righe di intro e sezione Stato)
+- **Descrizione** Riportare `VISIONE_V2.md` (D1-D6, Q27-Q40 con i default) nei documenti canonici. Fatto: vedi
+  `STATUS.md`. **Stop** dopo R-00 per l'OK dell'utente, prima di M4-01.
 
-### M4-02 · Statistiche, razioni da campo, borsa del bottino
-- **Ruolo** COMBAT · **Stima** M · **Parallelizzabile** no · **Dipendenze** M4-01, M3-09
-- **Ownership** `res://systems/combat/combatant_stats.gd`, `auto_eat.gd`, `loot_bag.gd`,
-  `res://tests/systems/combat/test_combatant_stats.gd`, `test_auto_eat.gd`, `test_loot_bag.gd`
-- **Leggere** `01_GDD.md` §10.5-10.6; `02_FORMULAS.md` F-27, F-29, F-30, F-33; `05_INTERFACES.md` §5.10
-- **Descrizione** `for_player` da livelli, equipaggiamento e `modifiers.total`; `for_monster` dai dati; razioni da campo
-  (livello dallo shop); borsa con `auto_loot`.
-- **Accettazione** esempio di F-30 (2 pezzi); borsa piena → `loot_lost`.
-- **Test** i tre file (inclusi `test_food_healing_pct`, `test_tier_thresholds`, `test_capacity_uses_loot_bag_slots`, `test_auto_loot_to_bank`).
+I task M4-xx…M8-xx precedenti (combattimento a duello, Legatura in M5, offline in M6, Fratture in M7, corsie in M8)
+sono **superati** e sostituiti da quelli sotto; le loro note ancora valide sono riportate nei task nuovi o in "Note
+ereditate" in fondo. Corrispondenze per leggere i riferimenti storici nei task chiusi di M0-M3 (e il commento
+`# Offline: M6-01` nel codice): vecchio M4 (duello) → M5, vecchio M5 (Legatura) → M8, vecchio M6 (offline e polish) →
+M9 (es. M6-01 → M9-01, M6-07 → M9-07), vecchio M7 → M10, vecchio M8 → M11; i follow-up "su M4-05" vanno a M4-08/M4-09,
+"su M5-02" a M4-02, "su M6-06" a M9-06.
 
-### M4-03 · Motore del combattimento
-- **Ruolo** COMBAT · **Stima** L · **Parallelizzabile** no · **Dipendenze** M4-02
-- **Ownership** `res://systems/combat/combat_engine.gd`, `res://tests/systems/combat/test_combat_engine.gd`,
-  `res://core/session/game_session.gd` (solo campo tipizzato e registrazione), `res://core/session/session_snapshot.gd`
-  (solo `kills`, `deaths`, `food_eaten` in `take`)
-- **Leggere** `01_GDD.md` §10; `02_FORMULAS.md` F-07, F-23…F-34; `05_INTERFACES.md` §5.10, §6
-- **Descrizione** Timer, ordine (prima il giocatore), più eventi per `advance`, respawn, uccisione (oro, drop, frammento),
-  XP per danno con stance, morte (borsa persa, PV al massimo), stato salvato e ripreso, contatori, mutua esclusione con la
-  corsia main.
-- **Accettazione** stato identico dopo salvataggio/caricamento a metà duello; equivalenza 1×1000 ms = 10×100 ms.
-- **Test** `test_combat_engine.gd` (inclusi `test_gold_drop_pct`, drop F-32, morte).
-- **Nota (da M1-10)** Ownership estesa a `res://systems/actions/action_runner.gd`, solo la riga dello stop del
-  combattimento in `start` (oggi un commento segnaposto prima di `stop(lane, Reasons.REPLACED)`, già solo corsia main):
-  `if _session.combat != null: _session.combat.stop(Reasons.REPLACED)`. E a `res://tests/core/session/test_game_session.gd`:
-  la chiave finta `combat` di `ProbeSession` va in conflitto con `CombatEngine.SAVE_KEY` (assert di `_join`): rinominarla
-  (es. `duels`) e aggiungere le asserzioni di `combat`. Avviare il combattimento chiama
-  `session.actions.stop(ActionRunner.MAIN, Reasons.REPLACED)` (no-op se la corsia è ferma).
-- **Nota (da M3-03)** `Equipment._combat_active()` oggi legge `_session.get(&"combat")` e chiama `is_active` in modo
-  dinamico, perché il campo non esiste. Con il campo tipizzato `var combat: CombatEngine` (deve avere `is_active() -> bool`)
-  sostituirlo con `_session.combat != null and _session.combat.is_active()`: ownership estesa a
-  `res://systems/equipment/equipment.gd`, solo quella funzione. Il motore legge lo stile, l'intervallo base, la stance e
-  il cibo da `session.equipment` (`style`, `base_attack_interval_ms`, `get_stance`, `get_food`): il cibo scelto può
-  essere a quantità 0 (caso `no_food`).
+## M4 · Riforma: personaggio e Armeria
 
-### M4-04 · Contenuto del combattimento
-- **Ruolo** DATA · **Stima** M · **Parallelizzabile** sì (con M4-01…M4-03) · **Dipendenze** M3-09
-- **Ownership** `res://data/combat/areas.json`, `monsters.json` (sostituiscono i file vuoti di M1-12),
-  `res://data/items/materials.json` (drop dei mostri),
-  `res://assets/icons/monsters/**`, `res://tests/data/test_data_validity.gd` (casi nuovi)
-- **Leggere** `02_FORMULAS.md` §8.5; `04_DATA_SCHEMA.md` §8
-- **Descrizione** 4 aree e 12 mostri della tabella, con nomi e descrizioni originali; drop (max 4 per mostro).
-- **Accettazione / Test** valori uguali a §8.5 (il test li confronta).
-- **Nota (da M3-04)** `sort_order` di `materials.json` già usati: legni 10-80, minerali 110-180, pesci 210-280, lingotti
-  310-380, impugnature 410-480: i drop partono da 510. `test_data_validity.gd` è a 275 righe; i casi artigianato sono in
-  `tests/data/test_crafting_data.gd`.
+Regole comuni a M4 (oltre a quelle in testa al file):
+- La riforma cambia firme già usate (equipaggiamento, bank, fixture). Un task di M4 che cambia una firma aggiorna i
+  chiamanti **solo** fino a far compilare e passare la suite (le sole righe necessarie, elencate nel report con il
+  motivo); le modifiche di aspetto e comportamento della UI restano ai task UI (M4-08, M4-09).
+- M4-01 e M4-02 si mergiano **insieme** (M4-02 parte dal branch `task/M4-01`): il validatore nuovo rifiuta i dati vecchi.
+  La suite completa gira dopo i due merge.
 
-### M4-05 · Pagina del combattimento
-- **Ruolo** UI · **Stima** L · **Parallelizzabile** sì · **Dipendenze** M4-03
-- **Ownership** `res://ui/pages/combat/**` (`combat_page`, `combat_hud`, `loot_bag_view`, `area_list`), `res://tests/ui/test_combat_page_smoke.gd`
-- **Leggere** `01_GDD.md` §10, §13; `05_INTERFACES.md` §3, §5.10
-- **Descrizione** Scelta di area e mostro (requisiti), barre PV e timer di entrambi, probabilità di colpire e danno massimo
-  (da `player_stats`/`monster_stats` e `CombatMath.hit_chance`), cibo e Mangia, stance, borsa con Raccogli tutto, numeri del
-  danno sui `combat_hit`.
-- **Accettazione / Test** smoke con la fixture; nessuno stato del duello nella UI.
-- **Nota (da M1-14)** La rotta `&"combat"` si aggiunge a `PageHost.ROUTES` (`res://ui/screens/main/page_host.gd`,
-  ownership estesa alla sola riga della rotta). Le 5 skill di combattimento oggi sono nella Sidebar disabilitate con
-  "In arrivo" (`PageHost.has_page` le esclude: `SKILL_PAGE_CATEGORIES` = raccolta, artigianato): decidere se la loro voce
-  apre la pagina del combattimento (es. `has_page` vero e `show_page` che porta a `combat`) o resta solo informativa
-  (livello), aggiornando `05_INTERFACES.md` §7 e `test_main_screen_smoke.gd`.
-- **Nota (da M3-09)** `res://ui/theme/ui_style.gd` è ancora a 390 righe: nessun task UI di M3 ha spostato `build_theme()`.
-  Se la pagina del combattimento ha bisogno di costanti `UiStyle.*` nuove, fare prima lo spostamento descritto nella nota
-  di M3-05 (`UiThemeBuilder`), con la stessa ownership estesa (`ui_style.gd` e il file nuovo, solo lo spostamento).
-- **Nota (da M3-09)** Follow-up UI aperti da M2, da chiudere qui (ownership estesa, solo questi punti):
-  - sfondo del pannello della maestria trasparente (`res://ui/pages/mastery/mastery_panel.tscn`): deve avere lo stile
-    di pannello delle altre finestre (`GameWindow`/tema);
-  - in `res://tests/ui/test_equipment_page_smoke.gd`, `test_tool_slot_label_takes_the_skill_name_from_the_data`:
-    togliere il ciclo sui nomi di skill scritti come stringhe e l'helper `_skill_name` (il confronto esatto con il valore
-    atteso ricavato dai dati basta).
+### M4-01 · Schema e validatore della riforma
+- **Ruolo** CORE · **Stima** L · **Parallelizzabile** no · **Dipendenze** R-00
+- **Ownership** `res://core/data/defs/item_def.gd` (`EquipInfo.kind`, `grade`), `area_def.gd`, `monster_def.gd`,
+  `shop_entry_def.gd`, nuovi `pack_def.gd`, `class_def.gd`, `setup_def.gd`, `affix_def.gd`, `affix_tier.gd`;
+  `res://core/data/game_data.gd` (sezioni `classes`, `affixes`, accessi nuovi), `res://core/data/data_validator.gd`,
+  `data_validator_rules.gd`, `data_validator_items.gd` (se un file supera ~360 righe: `data_validator_classes.gd` nuovo,
+  stessa ownership), `res://core/common/reasons.gd` (costanti di M4), `res://tests/fixtures/data/**`,
+  `res://tests/core/data/**` (casi nuovi e conteggi), `res://tests/core/common/test_reasons.gd`; test che usano le 5
+  skill di combattimento delle fixture o le chiavi tolte: solo quelle righe
+- **Leggere** `04_DATA_SCHEMA.md` regole comuni, §3-5, §8-9, §13-15; `05_INTERFACES.md` §1, §4; `02_FORMULAS.md` §9
+- **Descrizione** Schema della riforma: niente categoria `combat`, chiave riservata `character` nei requisiti; `kind` e
+  `grade` dei pezzi e regole dei requisiti per categoria; `packs` delle aree e `xp` dei mostri; `requires.character` e
+  formula `armory_slot` dello shop; sezioni `classes` (cartella) e `affixes` (file unico); `REQUIRED_BALANCE_KEYS` con le
+  chiavi di M4 di §9 e senza quelle tolte dalla riforma; accessi di `GameData` di §4; costanti di `Reasons` di M4.
+  Fixture: niente skill di combattimento, classe `test_class`, pezzi con i tre `kind`, affissi, area con 2 gruppi.
+- **Accettazione** fixture valide; ogni regola nuova ha almeno un caso di errore con il messaggio atteso; `combat` come
+  categoria di skill e un requisito `{"blade": n}` su un equipaggiamento sono errori; `character.start_class`
+  inesistente è un errore; `has_mastery` non dipende più dalla categoria.
+- **Test** `tests/core/data/test_data_validator*.gd`, `test_game_data.gd`, test delle Def nuove (`test_class_def.gd`,
+  `test_affix_def.gd`, `test_pack_def.gd`).
 
-### M4-06 · Test di M4
-- **Ruolo** QA · **Stima** M · **Parallelizzabile** no · **Dipendenze** M4-01…M4-05
-- **Ownership** `res://tests/integration/test_reference_duel.gd`, `test_combat_flow.gd`
-- **Leggere** `02_FORMULAS.md` F-34; `01_GDD.md` §10.7
-- **Descrizione** Duello di riferimento F-34 (1.000 duelli, intervallo 15-21 s); flusso con morte (borsa persa, bank intatta),
-  razioni da campo, cambio di stile e triangolo.
-- **Accettazione / Test** i file verdi.
-- **Nota (da M1-19)** Ownership estesa a `res://tests/data/test_stat_registry_coverage.gd`: aggiungere a `CLOSED_FORMULAS`
-  F-20, F-21, F-22, F-25, F-26, F-27, F-29, F-30, F-31, F-33 e `"10.6"` (`auto_loot`: in `stats.json` il campo `formula`
-  è la sezione del GDD, come ammette `04_DATA_SCHEMA.md` §2); dopo M4 nessuna stat dell'MVP resta in `pending`.
+### M4-02 · Contenuto della riforma
+- **Ruolo** DATA · **Stima** L · **Parallelizzabile** no (branch da `task/M4-01`) · **Dipendenze** M4-01
+- **Ownership** `res://data/skills/skills.json`, `res://data/config/balance.json`, `res://data/config/stats.json`,
+  `res://data/classes/rift_blade.json`, `res://data/affixes/affixes.json`, `res://data/items/equipment.json`,
+  `tools.json`, `materials.json` (anime dello scudo, manici), `res://data/actions/forging.json`, `woodwright.json`,
+  `res://data/shop/shop.json`, icone segnaposto relative, `res://tests/data/test_data_validity.gd`,
+  `test_crafting_data.gd`, `test_config_files.gd`, `test_stat_registry_coverage.gd` (solo la mappa formula →
+  milestone per F-70…F-89); test che citano id tolti (archi, bastoni, `*_blade`, skill di combattimento): solo quelle righe
+- **Leggere** `02_FORMULAS.md` §8.2, §8.4, §8.6, §8.9, §9, §11; `04_DATA_SCHEMA.md` §3-6, §9, §14-15; `01_GDD.md` §19
+- **Descrizione** 7 skill; `balance.json` con le chiavi di M4 di §9 (non quelle segnate M6 e oltre) e senza quelle tolte;
+  `stats.json` con `armory_slots`, `item_rarity_pct`, `block_chance`; classe `rift_blade` con i 4 assetti
+  (`04_DATA_SCHEMA.md` §14), tratti e abilità vuoti; equipaggiamento di §8.4 (spade, spadoni, scudi, armature; archi e
+  bastoni tolti, Q37); attrezzi con `grade`; ricette di §8.2 (Forgiatura e Intaglio); voce `armory_slot` e requisiti
+  `character` di §8.6; affissi di §8.9. `sort_order` nuovi dopo quelli già usati (nota di M3-04).
+- **Accettazione** `validate_data.gd` verde sui dati veri; il test ricalcola i valori di §8.2, §8.4, §8.9 e della
+  tabella di §9; ogni slot ha almeno 4 affissi; nessun archi/bastoni/skill di combattimento nei dati.
+- **Test** casi nuovi nei file in Ownership.
+- **Nota (da M3-04/M5-02 vecchi)** `test_crafting_data.gd`: chiudere il debito di stile (righe oltre 120 caratteri,
+  costanti `METALS`…`WEAPONS` da spostare in testa) già che il file cambia.
 
-### M4-07 · Integrazione di M4
-- **Ruolo** REV · **Stima** S · **Dipendenze** M4-01…M4-06 · **Ownership** merge, tag `m4-done` · **Parallelizzabile** no ·
-  **Leggere** `08_TEAM.md` §4-6 · **Descrizione / Accettazione / Test** come M1-20.
+### M4-03 · Personaggio e salvataggio v2
+- **Ruolo** CORE · **Stima** M · **Parallelizzabile** sì (con M4-04) · **Dipendenze** M4-02
+- **Ownership** `res://systems/character/character_system.gd`, `res://tests/systems/character/test_character_system.gd`,
+  `res://core/session/game_session.gd` (campo, registrazione, `total_level`), `res://core/session/session_snapshot.gd`
+  (chiave `character`), `res://core/save/save_migrator.gd` (`CURRENT_VERSION`), `res://tests/core/save/**` (casi v1/v2),
+  `res://tests/core/session/**` (casi del personaggio), `res://tests/helpers/test_factory.gd` (`set_character_level`),
+  `res://core/autoload/event_bus.gd` e `res://tests/core/autoload/test_event_bus.gd` (righe `character_xp_gained`,
+  `character_level_up`)
+- **Leggere** `01_GDD.md` §1.1, §19; `02_FORMULAS.md` F-01, F-71; `05_INTERFACES.md` §2 (`SaveMigrator`), §3, §5.3,
+  §5.16, §6, §8
+- **Descrizione** `CharacterSystem` di §5.16 (classe, XP, livello, `meets_requirements`), registrato dopo `skills`;
+  `total_level` con il personaggio; save `format_version` 2 senza migrazioni; snapshot con `character`.
+- **Accettazione** esempi di F-71; un save v1 → `version_unsupported` (slot "versione non supportata"); salvataggio e
+  caricamento identici; `meets_requirements` con chiavi miste; nessun segnale in `new_game`/`from_save`.
+- **Test** `test_character_system.gd`, casi nuovi di `test_game_session.gd`, `test_save_migrator.gd`.
 
----
+### M4-04 · ItemRoller e istanze
+- **Ruolo** CORE · **Stima** M · **Parallelizzabile** sì (con M4-03) · **Dipendenze** M4-02
+- **Ownership** `res://systems/items/item_roller.gd`, `item_instance.gd`, `affix_roll.gd`,
+  `res://tests/systems/items/test_item_roller.gd`, `test_item_instance.gd`
+- **Leggere** `01_GDD.md` §22; `02_FORMULAS.md` F-83, F-85, F-86 (solo il moltiplicatore), §8.9;
+  `04_DATA_SCHEMA.md` §15; `05_INTERFACES.md` §5.17 (`ItemInstance`, `AffixRoll`), §5.18
+- **Descrizione** Logica pura: probabilità e tiro della rarità, affissi a gradi, creazione dell'istanza, modificatori
+  dell'istanza (base × F-86 + affissi con lo scope dello slot); `to_dict`/`from_dict` dell'istanza.
+- **Accettazione** esempi di F-83 e F-85 riprodotti; stesso seme → stessa istanza; ordine dei tiri di §5.18; un affisso
+  non si ripete sullo stesso pezzo; affissi degli attrezzi con scope `skill:<skill>`; `from_dict` rifiuta base
+  sconosciuta, rarità non valida, affisso non ammesso dallo slot.
+- **Test** i due file (incluso `test_item_rarity_pct`, `test_craft_rarity`, `test_affix_rolls`).
 
-## M5 · Legatura del Rift
+### M4-05 · Armeria, bank e shop
+- **Ruolo** CORE · **Stima** M · **Parallelizzabile** no · **Dipendenze** M4-03, M4-04
+- **Ownership** `res://systems/armory/armory.gd`, `res://tests/systems/armory/test_armory.gd`,
+  `res://systems/bank/bank.gd` (`not_stackable`), `res://tests/systems/bank/test_bank.gd` (casi nuovi),
+  `res://systems/shop/shop.gd`, `res://tests/systems/shop/test_shop.gd`, `res://core/session/game_session.gd` (campo e
+  registrazione), `res://tests/helpers/test_factory.gd` (`give_piece`), `event_bus.gd` e `test_event_bus.gd` (righe dei
+  segnali `armory_*`)
+- **Leggere** `01_GDD.md` §7, §8, §21; `02_FORMULAS.md` F-17, F-18, F-82; `05_INTERFACES.md` §3, §5.5, §5.11, §5.17, §8
+- **Descrizione** `Armory` di §5.17 (istanze, `uid`, capienza, indossato, blocco, rimozione, save); la bank rifiuta
+  `equipment`/`tool`; lo shop con `req_character`, prezzo `armory_slot`, attrezzi nell'Armeria e `sell_instance`.
+- **Accettazione** esempi di F-82; un pezzo non è mai nella bank; `uid` mai riusati anche dopo salvataggio e
+  caricamento; Armeria piena → `armory_full` senza cambi (oro non speso); pezzo indossato o bloccato non si vende.
+- **Test** i file in Ownership (inclusi `test_capacity_uses_armory_slots`, `test_armory_slot_price`).
 
-### M5-01 · Altare del Rift
-- **Ruolo** CORE · **Stima** M · **Parallelizzabile** sì (con M5-02) · **Dipendenze** M4-07
-- **Ownership** `res://systems/rift/rift_altar.gd`, `res://tests/systems/rift/test_rift_altar.gd`, `res://core/session/game_session.gd` (solo registrazione)
-- **Leggere** `01_GDD.md` §11; `02_FORMULAS.md` §8.7; `05_INTERFACES.md` §5.12
-- **Descrizione** Prese sbloccate per livello, incastona, togli (distrugge), `unique`, sorgenti `rift_socket:<i>`.
-- **Accettazione** l'infusione esce dalla bank; i modificatori cambiano `total`; togliere la distrugge.
-- **Test** `test_rift_altar.gd`.
+### M4-06 · Equipaggiamento con `uid` e assetti
+- **Ruolo** CORE · **Stima** M · **Parallelizzabile** no · **Dipendenze** M4-05
+- **Ownership** `res://systems/equipment/equipment.gd`, `res://tests/systems/equipment/test_equipment.gd`,
+  `res://core/session/game_session.gd` (ordine di registrazione), `event_bus.gd` e `test_event_bus.gd` (righe
+  `equipment_changed`, `food_changed`); chiamanti di `equip`/`get_stance`/`set_stance` nella UI e nei test: solo le righe
+  per compilare (regola comune di M4)
+- **Leggere** `01_GDD.md` §9, §19; `02_FORMULAS.md` F-72, F-73; `04_DATA_SCHEMA.md` §5, §14; `05_INTERFACES.md` §5.9
+- **Descrizione** Slot con `uid`, stance tolta, requisiti `character`, tipi d'arma della classe, `offhand` con scudo o
+  seconda spada, due mani, assetto derivato con la sorgente `setup:<id>`, `base_attack_interval_ms` con F-73.
+- **Accettazione** esempi di F-72 e F-73; combinazioni senza assetto rifiutate; togliere l'arma con una spada
+  nell'offhand toglie anche quella; `armory_full` senza cambi; `from_save` dei casi di §5.9; il controllo del
+  combattimento resta `null`-safe (`session.combat` non esiste fino a M5).
+- **Test** `test_equipment.gd` (incluso `test_setup_derivation`).
 
-### M5-02 · Contenuto della Legatura del Rift e nodi dell'artigianato
-- **Ruolo** DATA · **Stima** M · **Parallelizzabile** sì · **Dipendenze** M4-07
-- **Ownership** `res://data/actions/riftbinding.json`, `res://data/items/infusions.json`, `res://data/mastery/forging.json`,
-  `hearthcraft.json`, `woodwright.json`, `riftbinding.json`, icone segnaposto, `res://tests/data/test_data_validity.gd` (casi nuovi)
-- **Leggere** `02_FORMULAS.md` §8.7-8.8; `04_DATA_SCHEMA.md` §5-7
-- **Descrizione** 9 ricette e 9 infusioni della tabella §8.7; nodi della maestria delle 4 skill di artigianato.
-- **Accettazione / Test** dati validi, numeri uguali alla tabella.
-- **Nota (da M2-02)** `test_data_validity.gd` ha già `FORESTRY_NODES`, `_nodes_by_skill`, `_assert_node_like` e il
-  controllo del totale 55-65% su ogni file di `data/mastery/`; i nodi della raccolta ricopiano §8.8 (`OPEN_QUESTIONS.md` Q26).
-- **Nota (da M3-04)** Id delle azioni di artigianato per i nodi: `smelt_<metallo>`, `forge_<metallo>_<pezzo>`,
-  `cook_<pesce>` (prodotto `seared_<pesce>`), `carve_<legno>_bow|staff|grip` (gli id esatti sono nei file di
-  `data/actions/`). Ownership estesa a `res://tests/data/test_crafting_data.gd` per un debito di stile di M3-04: 8 righe
-  oltre i 120 caratteri e le costanti `METALS`…`WEAPONS` dichiarate dopo le prime funzioni (vanno in testa).
+### M4-07 · Artigianato verso l'Armeria
+- **Ruolo** CORE · **Stima** S · **Parallelizzabile** sì (con M4-09) · **Dipendenze** M4-05
+- **Ownership** `res://systems/actions/artisan_resolver.gd`, `res://tests/systems/actions/test_artisan_resolver.gd`
+- **Leggere** `01_GDD.md` §5, §21; `02_FORMULAS.md` F-06, F-08, F-83; `05_INTERFACES.md` §5.8
+- **Descrizione** I prodotti `equipment`/`tool` diventano istanze (rarità dalla maestria, `ilvl` = livello della ricetta).
+- **Accettazione** doppio prodotto → 2 istanze; Armeria senza posto → ciclo non contato, nulla consumato, stop
+  `armory_full`; maestria alta → più rari (seme fisso); ordine dei tiri di §5.8.
+- **Test** casi nuovi di `test_artisan_resolver.gd`.
 
-### M5-03 · Pagina dell'Altare
-- **Ruolo** UI · **Stima** M · **Parallelizzabile** sì · **Dipendenze** M5-01, M3-05
-- **Ownership** `res://ui/pages/rift/**`, `res://ui/pages/bank/bank_item_panel.gd` (pulsante Incastona), `res://tests/ui/test_rift_page_smoke.gd`
-- **Leggere** `01_GDD.md` §11; `05_INTERFACES.md` §5.12
-- **Descrizione** 5 prese (bloccate con livello richiesto), scelta dell'infusione dalla bank, conferma prima di togliere,
-  totale dei modificatori dell'Altare. Le ricette si fanno dalla pagina skill della Legatura (già generica).
-- **Accettazione / Test** smoke.
+### M4-08 · Pagina dell'Armeria ed equipaggiamento
+- **Ruolo** UI · **Stima** L · **Parallelizzabile** no · **Dipendenze** M4-07, M4-09
+- **Ownership** `res://ui/pages/armory/**`, `res://ui/pages/equipment/**`, `res://ui/pages/bank/bank_item_panel.gd`
+  (+ `.tscn`, tolto "Equipaggia"), `res://ui/pages/bank/bank_page.gd` (collegamento tolto),
+  `res://ui/screens/main/page_host.gd` (rotta `armory`), `res://ui/theme/ui_style.gd` e `res://ui/theme/ui_theme_builder.gd`
+  (nuovo: spostamento di `build_theme()`, costanti `RARITY_*`), `res://tests/ui/test_armory_page_smoke.gd`,
+  `test_equipment_page_smoke.gd`, `test_bank_page_smoke.gd`, `test_main_screen_smoke.gd`
+- **Leggere** `01_GDD.md` §9, §13, §21-22; `05_INTERFACES.md` §3, §5.9, §5.17, §7
+- **Descrizione** `ArmoryPage` e `EquipmentPage` di §7; la bank non equipaggia più.
+- **Accettazione / Test** smoke con la fixture; nessuno stato di gioco nella UI (il pannello tiene solo l'`uid`);
+  equipaggiare una spada nell'offhand dalla pagina; rarità con i colori di `UiStyle`.
+- **Nota (da M3-05/M3-09)** `ui_style.gd` è a 390 righe: prima di aggiungere costanti spostare `build_theme()` in
+  `UiThemeBuilder` (solo lo spostamento, tema rigenerato e committato una volta).
+- **Nota (da M3-09)** In `test_equipment_page_smoke.gd`, `test_tool_slot_label_takes_the_skill_name_from_the_data`:
+  togliere il ciclo sui nomi di skill scritti come stringhe e l'helper `_skill_name`.
 
-### M5-04 · Test di M5
-- **Ruolo** QA · **Stima** S · **Parallelizzabile** no · **Dipendenze** M5-01…M5-03
-- **Ownership** `res://tests/integration/test_rift_flow.gd` · **Leggere** `01_GDD.md` §11
-- **Descrizione** frammenti → infusione → presa → effetto misurabile (intervallo o precisione) → salvataggio/caricamento identico.
-- **Accettazione / Test** verde.
+### M4-09 · Pagina del personaggio, sidebar e shop
+- **Ruolo** UI · **Stima** M · **Parallelizzabile** sì (con M4-06, M4-07) · **Dipendenze** M4-05
+- **Ownership** `res://ui/pages/character/**`, `res://ui/screens/main/sidebar.gd` (+ `.tscn`),
+  `res://ui/screens/main/page_host.gd` (rotta `character`, `has_page` senza skill di combattimento),
+  `res://ui/pages/shop/shop_page.gd` (requisito `character`), `res://ui/pages/mastery/mastery_panel.tscn` (sfondo),
+  `res://tests/ui/test_character_page_smoke.gd`, `test_main_screen_smoke.gd`, `test_shop_page_smoke.gd`
+- **Leggere** `01_GDD.md` §19; `05_INTERFACES.md` §3, §5.16, §7 (PageHost, Sidebar, ShopPage, CharacterPage)
+- **Descrizione** `CharacterPage` di §7 (classe, livello, XP, assetto); sidebar con le voci fisse di §7 e senza le
+  5 skill di combattimento; requisiti `character` nella pagina dello shop.
+- **Accettazione / Test** smoke; la sidebar non ha voci "In arrivo" per skill che non esistono; nessuno stato nella UI.
+- **Nota (da M3-09)** Sfondo del pannello della maestria trasparente: deve avere lo stile di pannello delle altre
+  finestre (`GameWindow`/tema).
 
-### M5-05 · Integrazione di M5
-- **Ruolo** REV · **Stima** S · **Dipendenze** M5-01…M5-04 · **Ownership** merge, tag `m5-done` · **Parallelizzabile** no ·
-  **Leggere** `08_TEAM.md` §4-6 · **Descrizione / Accettazione / Test** come M1-20.
+### M4-10 · Test di M4
+- **Ruolo** QA · **Stima** M · **Parallelizzabile** no · **Dipendenze** M4-01…M4-09
+- **Ownership** `res://tests/integration/test_reform_flow.gd`, `res://tests/integration/test_save_v2.gd`,
+  `res://tests/data/test_stat_registry_coverage.gd` (`CLOSED_FORMULAS`: F-82, F-83)
+- **Leggere** `01_GDD.md` §1, §9, §21-22; `05_INTERFACES.md` §6; `09_CONVENTIONS.md` §6
+- **Descrizione** Flusso: forgia di una spada, uno scudo e uno spadone con maestria diversa → istanze con rarità →
+  equipaggiamento nei tre assetti → salvataggio e caricamento identici (slot, `uid`, affissi); Armeria piena durante
+  l'artigianato; save v1 rifiutato; due slot indipendenti anche per Armeria e personaggio.
+- **Accettazione / Test** i file verdi; `armory_slots` e `item_rarity_pct` con il loro test reale.
 
----
-
-## M6 · Offline e polish (fine dell'MVP)
-
-### M6-01 · Simulazione offline
-- **Ruolo** CORE · **Stima** M · **Parallelizzabile** sì (con M6-03, M6-04) · **Dipendenze** M5-05
-- **Ownership** `res://core/offline/offline_simulator.gd`, `offline_summary.gd`, `res://core/autoload/game.gd` (punto
-  `# Offline: M6-01` in `continue_game` e stato `offline`), `res://core/autoload/event_bus.gd` (solo la firma di
-  `offline_completed`, tipizzata con `OfflineSummary`), la riga `offline_completed` di
-  `res://tests/core/autoload/test_event_bus.gd`, `res://tests/core/offline/test_offline_simulator.gd`
-- **Leggere** `01_GDD.md` §12; `02_FORMULAS.md` F-40, F-41; `03_ARCHITECTURE.md` §8; `05_INTERFACES.md` §5.13
-- **Descrizione** Come da documenti; usa solo `session.advance`; riepilogo da snapshot e `stop_reasons_log`.
-- **Accettazione** esempi F-40/F-41; equivalenza dei blocchi; 12 h di raccolta e 12 h di combattimento simulate in < 10 s
-  ciascuna (misura nel report).
-- **Test** `test_offline_simulator.gd` (con `yield_frames = false`).
-- **Nota (da M1-11)** In `continue_game` l'offline va nel punto `# Offline: M6-01` (dopo `_attach`, prima del
-  salvataggio e di `_start_playing`); la costante `STATE_OFFLINE` esiste già. Durante l'offline il clock resta in pausa
-  (si avvia in `_start_playing`); `last_offline_summary` va tipizzato `OfflineSummary`; `session_started` resta l'ultimo
-  passo. Aggiungere a `test_game.gd` (ownership da estendere) i casi con offline.
-- **Nota (da M1-13)** Se `continue_game` diventa una coroutine, `SlotSelect._continue_game`
-  (`res://ui/screens/slot_select/slot_select.gd`, ownership estesa a quel metodo) deve fare `await` e impedire un secondo
-  click durante lo stato `offline`; aggiornare i `FakeGame` di `tests/ui/test_slot_select_smoke.gd` e
-  `test_main_menu_smoke.gd` (stesse firme di `game.gd`).
-
-### M6-02 · Schermate dell'offline
-- **Ruolo** UI · **Stima** M · **Parallelizzabile** no · **Dipendenze** M6-01
-- **Ownership** `res://ui/screens/offline/**`, `res://ui/screens/main/main_screen.gd` (apertura del riepilogo), `res://tests/ui/test_offline_dialog_smoke.gd`
-- **Leggere** `01_GDD.md` §12; `05_INTERFACES.md` §3, §5.13
-- **Descrizione** Overlay con barra (`offline_progress`), poi finestra del riepilogo (tempo, limite, XP e livelli, oggetti
-  +/−, oro, uccisioni, morti, cibo, motivi di stop).
-- **Accettazione / Test** smoke con un `OfflineSummary` finto.
-
-### M6-03 · Impostazioni (porting)
-- **Ruolo** PORT · **Stima** M · **Parallelizzabile** sì · **Dipendenze** M1-20
-- **Ownership** `res://core/settings/game_settings.gd`, `res://ui/settings/**`, `res://ui/screens/main_menu/main_menu.gd`
-  (abilitare Impostazioni), `res://tests/core/settings/test_game_settings.gd`
-- **Leggere** `01_GDD.md` §16; `03_ARCHITECTURE.md` §13; `05_INTERFACES.md` §5.14
-- **Sorgente** `../RIFTSTONE SAGA/scripts/systems/GameSettings.gd` → `res://core/settings/game_settings.gd`;
-  `../RIFTSTONE SAGA/scripts/ui/SettingsPanel.gd` → `res://ui/settings/settings_panel.gd`.
-- **Descrizione** Togliere qualità 3D/supersampling e `GameState`; aggiungere `log_level`; "Salva ed esci" → `Game.end_session(true)`.
-- **Accettazione** impostazioni salvate solo in `user://settings.cfg`; nessuno stato di gioco lì.
-- **Test** `test_game_settings.gd` (default, salvataggio su file di prova).
-- **Nota (da M1-13)** Nel menu il pulsante è `%SettingsButton` di `main_menu.tscn` (oggi `disabled` con tooltip "Disponibili
-  in un prossimo aggiornamento"): attivarlo, togliere il tooltip e collegarlo in `main_menu.gd` (ownership estesa a
-  `main_menu.tscn` per quelle proprietà e a `tests/ui/test_main_menu_smoke.gd` per l'asserzione `SettingsButton.disabled`,
-  che oggi ha il messaggio sbagliato "settings arrive with M1-12"); correggere anche il commento in testa a
-  `main_menu.gd` ("Settings (M1-12)" → M6-03).
-
-### M6-04 · Sistema dei suggerimenti
-- **Ruolo** CORE · **Stima** S · **Parallelizzabile** sì · **Dipendenze** M5-05
-- **Ownership** `res://systems/hints/hints_system.gd`, `res://core/data/defs/hint_def.gd`, `res://core/data/game_data.gd`
-  (`hints()`), `res://core/data/data_validator.gd` (regole di `hints.json`), `res://core/autoload/event_bus.gd`
-  (segnale `hint_triggered`), `res://core/session/game_session.gd` (registrazione), `res://tests/systems/hints/test_hints_system.gd`
-- **Leggere** `01_GDD.md` §14; `04_DATA_SCHEMA.md` §10; `05_INTERFACES.md` §3, §5.15
-- **Descrizione** Trigger di §10 collegati agli eventi della sessione; una volta per slot. Il validatore è in 3 file
-  (`data_validator.gd`, `data_validator_rules.gd`, `data_validator_items.gd`): le regole nuove vanno nel file del dominio o,
-  se un file supera ~360 righe, in un file proprio (`data_validator_hints.gd`, stessa ownership).
-- **Accettazione / Test** un suggerimento visto in uno slot non è visto nell'altro.
-
-### M6-05 · Contenuto dei suggerimenti
-- **Ruolo** DATA · **Stima** S · **Parallelizzabile** sì · **Dipendenze** M6-04
-- **Ownership** `res://data/hints/hints.json`, `res://tests/data/test_data_validity.gd` (casi nuovi)
-- **Leggere** `04_DATA_SCHEMA.md` §10 · **Descrizione** un suggerimento per trigger, testi originali brevi ·
-  **Accettazione / Test** dati validi.
-
-### M6-06 · Feedback visivo e carta dei suggerimenti
-- **Ruolo** UI · **Stima** M · **Parallelizzabile** sì · **Dipendenze** M6-04, M4-05
-- **Ownership** `res://ui/feedback/**`, `res://ui/components/hint_card/**`, `res://ui/screens/main/main_screen.tscn` (istanze
-  di banner e carta), `res://tests/ui/test_feedback_smoke.gd`
-- **Leggere** `01_GDD.md` §13-14; `05_INTERFACES.md` §3
-- **Descrizione** Banner del livello, particelle del frammento, carta del suggerimento; solo ascolto di segnali.
-- **Accettazione / Test** smoke; nessuna modifica dello stato.
-- **Nota (da M3-09)** Follow-up aperto da M2: i toast dei livelli si accumulano e compaiono sopra le finestre (pannello
-  della maestria, `GameWindow`). Con il banner del livello decidere il livello di disegno dei toast e il loro limite;
-  ownership estesa a `res://ui/components/toast/**` per questo solo punto.
-
-### M6-07 · Regressione, prestazioni, foto della UI
-- **Ruolo** QA · **Stima** M · **Parallelizzabile** no · **Dipendenze** M6-01…M6-06
-- **Ownership** `res://tests/data/test_stat_registry_coverage.gd` (modalità rigida: niente più `pending`),
-  `res://tests/integration/test_offline_performance.gd`, `res://tools/ui_shots/**`
-- **Leggere** `01_GDD.md` §12; `02_FORMULAS.md` §11; `09_CONVENTIONS.md` §6
-- **Descrizione** Ogni stat ha il suo test reale; prestazioni dell'offline; `tools/ui_shots/ui_shots.tscn` che fotografa ogni
-  pagina su una sessione della `TestFactory` (mai su uno slot vero).
-- **Accettazione** suite completa verde; foto generate in una cartella passata da riga di comando.
-- **Test** i file elencati.
-- **Nota (da M1-19)** Modalità rigida: `test_stats_of_open_milestones` fallisce (non più `pending`) se una stat di
-  `stats.json` non ha il suo test; `CLOSED_FORMULAS` e `FORMULA_MILESTONES` restano la mappa formula → milestone. Le stat
-  di M7/M8 (`fracture_duration_pct` F-50, `parallel_lanes` F-51) entrano in `CLOSED_FORMULAS` con i loro task.
-
-### M6-08 · Rilascio dell'MVP
-- **Ruolo** REV · **Stima** S · **Parallelizzabile** no · **Dipendenze** M6-01…M6-07
-- **Ownership** `res://export_presets.cfg`, merge, tag `m6-mvp` e `m6-done`, `docs/` (stato finale)
-- **Leggere** `08_TEAM.md` §4-6; `06_ROADMAP.md` M6
-- **Descrizione** Preset "Windows Desktop" (pck incorporato, esclusi `tests/*`, `tools/*`, `addons/gut/*`, `docs/*`, `*.md`),
-  esportazione di prova, checklist delle Lezioni (`03_ARCHITECTURE.md` §12) spuntata nel report.
-- **Accettazione** l'eseguibile parte, crea uno slot, gioca, chiude, riapre con l'offline. **Test** suite completa.
+### M4-11 · Integrazione di M4
+- **Ruolo** REV · **Stima** S · **Dipendenze** M4-01…M4-10 · **Ownership** merge, tag `m4-done` · **Parallelizzabile** no ·
+  **Leggere** `08_TEAM.md` §4-6; `06_ROADMAP.md` M4 · **Descrizione / Accettazione / Test** come M1-20 (prova del Giocabile di M4).
 
 ---
 
-## M7 · Fratture del Rift (dopo l'MVP)
+## M5 · Combattimento a gruppi
 
-### M7-01 · Sistema delle Fratture
-- **Ruolo** CORE · **Stima** M · **Parallelizzabile** sì (con M7-02) · **Dipendenze** M6-08
-- **Ownership** `res://systems/fractures/fracture_system.gd`, `res://core/data/defs/fracture_def.gd`, `res://core/data/game_data.gd`
-  (`fractures()`), `res://core/data/data_validator.gd` (regole nuove e chiavi `fractures.*`), `res://core/autoload/event_bus.gd`
-  (`fracture_opened`, `fracture_closed`), `res://core/session/game_session.gd` (registrazione e `advance`),
-  `res://systems/combat/combat_engine.gd` (solo uso di `bonus_monster_for_area` nella scelta del mostro),
-  `res://tests/systems/fractures/test_fracture_system.gd`
-- **Leggere** `01_GDD.md` §17; `02_FORMULAS.md` F-50; `04_DATA_SCHEMA.md` §11; `05_INTERFACES.md` §5.15
-- **Descrizione / Accettazione** F-50 riprodotta; stato salvato; funziona anche durante l'offline. **Test** il file (incluso `test_duration_pct`).
-  Il validatore è in 3 file (`data_validator.gd`, `data_validator_rules.gd`, `data_validator_items.gd`): le regole nuove
-  vanno nel file del dominio o, se un file supera ~360 righe, in un file proprio (`data_validator_fractures.gd`, stessa ownership).
-- **Nota (da M1-10)** Se `FractureSystem.SAVE_KEY` è `fractures`, rinominare la chiave finta `fractures` di `ProbeSession`
-  in `res://tests/core/session/test_game_session.gd` (ownership estesa, solo quella chiave).
+| ID | Titolo | Ruolo | Dipendenze | Ownership |
+|---|---|---|---|---|
+| M5-01 | Formule di combattimento (F-20…F-27, F-70, F-73, F-75) | COMBAT | M4-11 | `systems/combat/combat_math.gd`, `tests/systems/combat/test_combat_math.gd` |
+| M5-02 | Statistiche per mano, razioni da campo, borsa del bottino | COMBAT | M5-01 | `systems/combat/combatant_stats.gd`, `auto_eat.gd`, `loot_bag.gd`, `core/modifiers/modifier_service.gd` (`total_without`), i loro test |
+| M5-03 | Motore a eventi, incontri e gruppi | COMBAT (L) | M5-02 | `systems/combat/combat_engine.gd` (oltre 400 righe: `encounter.gd` nella stessa cartella), `tests/systems/combat/test_combat_engine.gd`, `core/session/game_session.gd`, `session_snapshot.gd` (`kills`, `deaths`, `food_eaten`), `event_bus.gd` e `test_event_bus.gd` (segnali di combattimento di §3), note ereditate N1-N2 |
+| M5-04 | Contenuto: 4 aree, 12 mostri, gruppi | DATA | M4-11 | `data/combat/areas.json`, `monsters.json`, `data/items/materials.json` (drop), `assets/icons/monsters/**`, `tests/data/test_combat_data.gd` (nuovo) |
+| M5-05 | Pagina del combattimento | UI (L) | M5-03 | `ui/pages/combat/**`, `ui/screens/main/page_host.gd` (rotta `combat`), `sidebar.gd` (voce Combattimento), `ui/pages/character/**` (valori F-70), `tests/ui/test_combat_page_smoke.gd` |
+| M5-06 | Strumento di bilanciamento `tools/sim_combat.gd` | COMBAT (S) | M5-03, M5-04 | `tools/sim_combat.gd`, `tests/tools/test_sim_combat.gd`; criteri di `02_FORMULAS.md` §8.5 misurati nel report |
+| M5-07 | Test di M5 (F-34, equivalenza, flusso con morte e parata) | QA | M5-01…M5-06 | `tests/integration/test_reference_encounter.gd`, `test_combat_flow.gd`, `tests/data/test_stat_registry_coverage.gd` (`CLOSED_FORMULAS` di combattimento e `"10.6"`) |
+| M5-08 | Integrazione di M5 | REV | M5-01…M5-07 | merge, tag `m5-done` |
 
-### M7-02 · Dati delle Fratture
-- **Ruolo** DATA · **Stima** S · **Parallelizzabile** sì · **Dipendenze** M6-08
-- **Ownership** `res://data/fractures/fractures.json`, `res://data/config/balance.json` (`fractures`), `res://data/config/stats.json`
-  (`fracture_duration_pct`), `res://tests/data/test_config_files.gd`, `test_data_validity.gd` (casi nuovi)
-- **Leggere** `02_FORMULAS.md` §9, §11; `04_DATA_SCHEMA.md` §11 · **Descrizione** 8 Fratture originali · **Accettazione / Test** dati validi.
+## M6 · Abilità e tratti
 
-### M7-03 · Indicatore delle Fratture
-- **Ruolo** UI · **Stima** S · **Dipendenze** M7-01 · **Parallelizzabile** sì · **Ownership** `res://ui/components/fracture_badge/**`,
-  `res://ui/screens/main/top_bar.gd` (istanza), `res://tests/ui/test_fracture_badge_smoke.gd` · **Leggere** `01_GDD.md` §17 ·
-  **Descrizione** badge con nome, tempo rimasto, tooltip dei modificatori · **Accettazione / Test** smoke.
+| ID | Titolo | Ruolo | Dipendenze | Ownership |
+|---|---|---|---|---|
+| M6-01 | Def, validatore e `Loadout` | CORE | M5-08 | `core/data/defs/trait_def.gd`, `trait_effect_def.gd`, `ability_def.gd`, `class_def.gd`, validatore (regole di tratti e abilità, chiavi `traits`/`abilities`), `data/config/balance.json` (solo quelle chiavi), `systems/character/loadout.gd`, `core/session/game_session.gd`, `event_bus.gd` (`traits_changed`), fixture della classe, i loro test |
+| M6-02 | Agganci del motore e 8 tipi di effetto | COMBAT (L) | M6-01 | `systems/combat/effects/**`, `combat_engine.gd` (agganci), `combatant_stats.gd` (`modify_stats`), `event_bus.gd` (`trait_triggered`), `tests/systems/combat/effects/**` |
+| M6-03 | Abilità attive | COMBAT | M6-02 | `systems/combat/ability_runner.gd`, `combat_engine.gd` (chiamate, sorgenti `ability:<id>`), `event_bus.gd` (`ability_used`), `tests/systems/combat/test_abilities.gd` |
+| M6-04 | Contenuto: 12 tratti e 6 abilità | DATA | M6-01 | `data/classes/rift_blade.json`, `tests/data/test_class_data.gd` (nuovo) |
+| M6-05 | Scelta di tratti e abilità nella UI | UI | M6-03, M6-04 | `ui/pages/character/**`, `ui/pages/combat/**` (abilità e tratti attivi), i loro smoke |
+| M6-06 | Test di M6 | QA | M6-01…M6-05 | `tests/integration/test_build_flow.gd`, `tests/data/test_stat_registry_coverage.gd` |
+| M6-07 | Integrazione di M6 | REV | M6-01…M6-06 | merge, tag `m6-done` |
 
-### M7-04 · Test di M7 — **Ruolo** QA · **Stima** S · **Dipendenze** M7-01…M7-03 · **Parallelizzabile** no ·
-**Ownership** `res://tests/integration/test_fracture_flow.gd` · **Leggere** `01_GDD.md` §17 · **Descrizione** apertura, effetto,
-chiusura, salvataggio, offline · **Accettazione / Test** verde.
+## M7 · Bottino
 
-### M7-05 · Integrazione di M7 — **Ruolo** REV · **Stima** S · **Dipendenze** M7-01…M7-04 · **Parallelizzabile** no ·
-**Ownership** merge, tag `m7-done`, aggiornamento di `05_INTERFACES.md` se servito · **Leggere** `08_TEAM.md` · **Test** suite.
+- M7-01 · Raffinazione F-86 (CORE; M6-07; `systems/armory/**` con `upgrade.gd`, `stats.json`/`balance.json` delle chiavi di M7 con il validatore).
+- M7-02 · Smantellamento F-88 e filtro automatico (CORE; M7-01; `systems/armory/**` con `salvage.gd`, save del filtro).
+- M7-03 · Drop di equipaggiamento con rarità F-84 nell'Armeria (COMBAT; M7-02; `combat_engine.gd`, `item_roller.gd`).
+- M7-04 · Pietre del Rift F-87 (COMBAT; M7-03; `systems/combat/rift_stone.gd`, `combat_engine.gd`, `RiftStoneDef`).
+- M7-05 · Contenuto: anelli, amuleti, drop, Pietre, Sigillo (DATA; M7-01; `data/items/**`, `data/combat/**`).
+- M7-06 · Armeria completa: raffina, smantella, filtro; Pietra nella pagina del combattimento (UI; M7-04; `ui/pages/armory/**`, `ui/pages/combat/**`).
+- M7-07 · Test di M7 (QA; M7-01…M7-06). M7-08 · Integrazione di M7 (REV; tag `m7-done`).
 
-## M8 · Azioni in parallelo (dopo l'MVP)
+## M8 · Legatura del Rift
 
-### M8-01 · Corsia secondaria
-- **Ruolo** CORE · **Stima** M · **Parallelizzabile** sì (con M8-02) · **Dipendenze** M6-08
-- **Ownership** `res://systems/actions/action_runner.gd` (se supera 400 righe: estrarre `action_lane.gd` nella stessa cartella),
-  `res://core/data/data_validator.gd` (chiave `parallel.interval_penalty_pct` e categoria dello shop `lanes`),
-  `res://tests/systems/actions/test_action_runner.gd` (casi nuovi)
-- **Leggere** `01_GDD.md` §18; `02_FORMULAS.md` F-51; `05_INTERFACES.md` §5.8
-- **Descrizione** `lanes_available`, corsia `secondary` solo per azioni non di combattimento, skill diverse, penalità F-51,
-  ordine di risoluzione main → secondary.
-- **Accettazione** F-51 riprodotta; `skill_in_other_lane`; ingredienti contesi risolti nell'ordine.
-- **Test** casi nuovi (incluso `test_secondary_lane_unlock`).
-- **Nota (da M1-10)** Il runner ha già `LANE_ORDER` (main → secondary) e le corsie in `_lanes` (classe interna `_Lane`);
-  vanno sbloccati: `start` (oggi `lane_unavailable` per ogni corsia ≠ main), `from_save` (scarta le corsie ≠ main con
-  `Log.warn`), `current_interval_ms` (ignora la corsia), `lanes_available` (1); `ActionMath.secondary_interval_ms` (F-51)
-  è già testato. Aggiungere `skill_in_other_lane`. Lo stop del combattimento resta solo per la corsia main.
+- M8-01 · Altare del Rift (CORE; M7-08; `systems/rift/rift_altar.gd`, note ereditate N3).
+- M8-02 · Contenuto: Legatura, infusioni, nodi della maestria dell'artigianato (DATA; M7-08; note ereditate N4).
+- M8-03 · Castoni F-89, pietre e valute del Rift (CORE; M8-01; `systems/armory/**` con `sockets.gd`, categorie `stone`/`currency` nel validatore).
+- M8-04 · Contenuto: pietre e valute (DATA; M8-03; `data/items/stones.json`, `currencies.json`, `riftbinding.json`).
+- M8-05 · Pagine dell'Altare e dei castoni (UI; M8-01, M8-03; `ui/pages/rift/**`, `ui/pages/armory/**`, pulsante Incastona di `bank_item_panel.gd`).
+- M8-06 · Test di M8 (QA). M8-07 · Integrazione di M8 (REV; tag `m8-done`).
 
-### M8-02 · Dati di M8 — **Ruolo** DATA · **Stima** S · **Dipendenze** M6-08 · **Parallelizzabile** sì ·
-**Ownership** `res://data/shop/shop.json` (`second_thought`), `res://data/config/balance.json` (`parallel`), `res://data/config/stats.json`
-(`parallel_lanes`), `res://tests/data/test_config_files.gd` · deve essere mergiato **dopo** M8-01 (il validatore accetta le chiavi nuove) · **Leggere** `02_FORMULAS.md` §8.6, §9, §11 · **Accettazione / Test** dati validi.
+## M9 · Offline e polish (fine dell'MVP)
 
-### M8-03 · UI a due corsie — **Ruolo** UI · **Stima** M · **Dipendenze** M8-01 · **Parallelizzabile** sì ·
-**Ownership** `res://ui/pages/skill/**`, `res://ui/screens/main/top_bar.gd` (indicatore delle corsie), `res://tests/ui/test_skill_page_smoke.gd` ·
-**Leggere** `01_GDD.md` §18 · **Descrizione** scelta della corsia all'avvio, due barre di progresso · **Accettazione / Test** smoke.
+- M9-01 · Simulazione offline con motore a eventi e filtro (CORE; M8-07; `core/offline/**`, note ereditate N5-N6).
+- M9-02 · Schermate dell'offline, riepilogo con personaggio e Armeria (UI; M9-01; `ui/screens/offline/**`).
+- M9-03 · Impostazioni, porting (PORT; M4-11; `core/settings/**`, `ui/settings/**`, nota ereditata N7).
+- M9-04 · Sistema dei suggerimenti (CORE; M8-07; `systems/hints/**`, nota ereditata N8).
+- M9-05 · Contenuto dei suggerimenti (DATA; M9-04; `data/hints/hints.json`).
+- M9-06 · Feedback visivo e carta dei suggerimenti (UI; M9-04, M5-05; `ui/feedback/**`, nota ereditata N9).
+- M9-07 · Regressione, prestazioni (12 h con gruppi da 6 < 10 s), foto della UI (QA; M9-01…M9-06; nota ereditata N10).
+- M9-08 · Rilascio dell'MVP: preset Windows, eseguibile di prova, checklist delle Lezioni (REV; tag `m9-mvp`, `m9-done`).
 
-### M8-04 · Test di M8 — **Ruolo** QA · **Stima** S · **Dipendenze** M8-01…M8-03 · **Parallelizzabile** no ·
-**Ownership** `res://tests/integration/test_parallel_lanes.gd` · **Descrizione** combattimento + raccolta, offline con due corsie ·
-**Accettazione / Test** verde.
+## M10-M12 (dopo l'MVP)
 
-### M8-05 · Integrazione di M8 — **Ruolo** REV · **Stima** S · **Dipendenze** M8-01…M8-04 · **Parallelizzabile** no ·
-**Ownership** merge, tag `m8-done` · **Test** suite.
+- M10 · Fratture come mappe: task da definire a fine M9 (`01_GDD.md` §17 da rivedere; nota ereditata N11).
+- M11 · Azioni in parallelo: corsia secondaria, dati, UI, test, integrazione (`01_GDD.md` §18, F-51; nota ereditata N12).
+- M12+ · Seconda classe, boss, dungeon: da definire.
+
+## Note ereditate dai task superati
+
+- **N1 (da M1-10)** `action_runner.gd` `start`: sostituire il commento segnaposto prima di `stop(lane, Reasons.REPLACED)`
+  con `if _session.combat != null: _session.combat.stop(Reasons.REPLACED)` (solo corsia main). In
+  `tests/core/session/test_game_session.gd` la chiave finta `combat` di `ProbeSession` va rinominata (es. `duels`), con le
+  asserzioni di `combat`. Avviare il combattimento chiama `session.actions.stop(ActionRunner.MAIN, Reasons.REPLACED)`.
+  Ownership di M5-03 estesa a quelle righe.
+- **N2 (da M3-03)** `Equipment._combat_active()` oggi legge `_session.get(&"combat")` in modo dinamico: con il campo
+  tipizzato `var combat: CombatEngine` diventa `_session.combat != null and _session.combat.in_encounter()` (ownership
+  di M5-03 estesa a quella funzione). Il cibo scelto può essere a quantità 0 (caso `no_food`).
+- **N3 (da M5-01 vecchio)** Altare: prese per livello di Legatura, incastona, togli (distrugge), `unique`, sorgenti
+  `rift_socket:<i>` (`01_GDD.md` §11, §8.7).
+- **N4 (da M2-02/M3-04)** `test_data_validity.gd` ha già `FORESTRY_NODES`, `_nodes_by_skill`, `_assert_node_like` e il
+  controllo del totale 55-65% su ogni file di `data/mastery/` (Q26). Id delle azioni di artigianato per i nodi:
+  `smelt_<metallo>`, `forge_<metallo>_<pezzo>`, `cook_<pesce>`, `carve_<legno>_<pezzo>` (id esatti nei file di
+  `data/actions/`, cambiati da M4-02).
+- **N5 (da M1-11)** In `continue_game` l'offline va nel punto `# Offline: M6-01` (dopo `_attach`, prima del salvataggio e
+  di `_start_playing`); `STATE_OFFLINE` esiste già; clock in pausa durante l'offline; `last_offline_summary` tipizzato
+  `OfflineSummary`; `session_started` resta l'ultimo passo; casi con offline in `test_game.gd`. Ownership: `game.gd`,
+  `event_bus.gd` (firma di `offline_completed`) e la sua riga in `test_event_bus.gd`. `GameSession.advance` aumenta
+  `play_time_ms` solo online.
+- **N6 (da M1-13)** Se `continue_game` diventa una coroutine, `SlotSelect._continue_game` deve fare `await` e impedire un
+  secondo click durante `offline`; aggiornare i `FakeGame` di `test_slot_select_smoke.gd` e `test_main_menu_smoke.gd`.
+- **N7 (da M1-13)** `%SettingsButton` di `main_menu.tscn` (oggi `disabled`): attivarlo, togliere il tooltip, collegarlo in
+  `main_menu.gd`; correggere l'asserzione di `test_main_menu_smoke.gd` e il commento "Settings (M1-12)". Sorgente del
+  porting e regole di `03_ARCHITECTURE.md` §13 (solo lettura di `../RIFTSTONE SAGA/`, nessun comando).
+- **N8 (da M1-04)** `GameData._clear()` non azzera `_balance`/`stats`; il validatore va completato sulla struttura di
+  `auto_eat_tiers` e `rift.sockets` (le regole su `hp_skill`/`defence_skill` non servono più: chiavi tolte in M4-01).
+  Il validatore è in più file: regole nuove nel file del dominio o in `data_validator_hints.gd`.
+- **N9 (da M3-09)** I toast dei livelli si accumulano sopra le finestre: con il banner del livello decidere livello di
+  disegno e limite dei toast (ownership estesa a `ui/components/toast/**`).
+- **N10 (da M1-19)** Modalità rigida di `test_stat_registry_coverage.gd`: nessuna stat in `pending`; `CLOSED_FORMULAS` e
+  `FORMULA_MILESTONES` restano la mappa formula → milestone; le stat di M10/M11 entrano con i loro task.
+- **N11 (da M7-01 vecchio)** Se `FractureSystem.SAVE_KEY` è `fractures`, rinominare la chiave finta di `ProbeSession`.
+- **N12 (da M1-10/M8-01 vecchio)** Il runner ha già `LANE_ORDER` e `_lanes`; da sbloccare `start`, `from_save`,
+  `current_interval_ms`, `lanes_available`; `ActionMath.secondary_interval_ms` (F-51) è già testato; aggiungere
+  `skill_in_other_lane`; lo stop del combattimento resta solo per la corsia main.

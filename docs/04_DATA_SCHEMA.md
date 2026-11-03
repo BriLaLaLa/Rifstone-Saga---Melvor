@@ -12,7 +12,9 @@ Regole comuni a tutti i tipi:
 - Nessun campo sconosciuto (il validatore lo segnala come errore, per scovare refusi). Fa eccezione `_doc`, stringa di
   commento ammessa a qualunque livello e ignorata, anche dentro le mappe `{skill_id: livello}` (`requirements`,
   `requires.skills`); un `_doc` che non è una stringa è un campo sconosciuto.
-- Nomi e testi originali: niente nomi di skill, oggetti o mostri presi da Melvor Idle.
+- Nomi e testi originali: niente nomi di skill, oggetti, mostri, classi, tratti, affissi o valute presi da Melvor Idle,
+  Metin2, Path of Exile o No Rest for the Wicked (clean room esteso, `DECISIONS_LOG.md` D1-D6).
+- Requisiti di livello (`requirements`, `requires`): la chiave riservata `character` è il livello del personaggio.
 
 ## 1. Modificatore (oggetto annidato)
 
@@ -76,20 +78,33 @@ l'elenco delle chiavi obbligatorie, `DataValidator.REQUIRED_BALANCE_KEYS`).
                  "beats": {"blade": "arcana", "arcana": "marksmanship", "marksmanship": "blade"}},
     "min_attack_interval_ms": 800,
     "unarmed": {"style": "blade", "attack_interval_ms": 2400},
-    "hp_skill": "vitality", "defence_skill": "guard",
-    "hp_base": 50, "hp_per_vitality": 10,
-    "xp_per_damage_style": 4, "xp_per_damage_vitality": 1,
+    "hp_base": 50, "hp_per_level": 10,
+    "dual_wield": {"interval_mult": 0.75},
+    "max_pack_size": 6,
     "auto_eat_tiers": [null, {"threshold_pct": 30, "target_pct": 60},
                        {"threshold_pct": 40, "target_pct": 75}, {"threshold_pct": 50, "target_pct": 90}],
     "respawn_ms": 1500, "loot_bag_base_slots": 12
+  },
+  "character_curve": {"base": 70, "growth": 1.1, "linear": 8, "max_level": 99, "xp_cap": 50000000},
+  "character": {"start_class": "rift_blade"},
+  "armory": {"base_slots": 40, "slot_cost_base": 1000, "slot_cost_growth": 1.12, "slot_cost_cap": 2000000},
+  "rarity": {
+    "craft": {"magic_base_pct": 10, "magic_per_mastery_level": 0.4, "rare_base_pct": 1, "rare_per_mastery_level": 0.1},
+    "affix_count": {"magic": [1, 2], "rare": [3, 4]}
   },
   "rift": {"sockets": [{"level": 1}, {"level": 20}, {"level": 40}, {"level": 60}, {"level": 80}]},
   "offline": {"cap_ms": 43200000, "min_ms": 60000, "chunk_ms": 60000}
 }
 ```
+Riforma di M4 (M4-01, D3): tolte `combat.hp_skill`, `combat.defence_skill`, `combat.hp_per_vitality`,
+`combat.xp_per_damage_style`, `combat.xp_per_damage_vitality`. `character.start_class` deve essere l'id di una classe
+di `data/classes/`. `rarity.affix_count.*` sono coppie `[min, max]` di interi 0..6 con min ≤ max.
+`combat.dual_wield.interval_mult` > 0 e ≤ 1. `combat.max_pack_size` intero 1..6 (limite di formato del validatore).
+Chiavi aggiunte dopo (dal task che le usa, `02_FORMULAS.md` §9): `traits`, `abilities` (M6); `rarity.drop`,
+`rarity.rift_stone`, `upgrade`, `rift_stone`, `salvage` (M7); `sockets` (M8).
 `start.items` è una lista di `{"item": id, "qty": n}`. `player_name.min_length` e `max_length` (lunghezza del nome dopo
 `strip_edges`) sono interi ≥ 1 con `min_length` ≤ `max_length`. `mastery.pool_warning_pct` è un numero > 0 e ≤ 100
-(percentuale del tetto del pool da cui la UI avvisa che il pool è quasi pieno). In M7 si aggiunge `fractures`, in M8 `parallel` (vedi §11, §12).
+(percentuale del tetto del pool da cui la UI avvisa che il pool è quasi pieno). In M10 si aggiunge `fractures`, in M11 `parallel` (vedi §11, §12).
 
 ## 4. `data/skills/skills.json`
 
@@ -107,13 +122,13 @@ l'elenco delle chiavi obbligatorie, `DataValidator.REQUIRED_BALANCE_KEYS`).
 ```
 | Campo | Tipo | Vincoli |
 |---|---|---|
-| `id` | String | nei dati veri: i 12 id di `00_VISION.md` (lo controlla `tests/data/test_data_validity.gd`, non il validatore, così le fixture possono avere skill di prova). Gli stili di combattimento hanno id uguale alla loro skill (`blade`, `marksmanship`, `arcana`) |
+| `id` | String | nei dati veri: i 7 id di `00_VISION.md` (lo controlla `tests/data/test_data_validity.gd`, non il validatore, così le fixture possono avere skill di prova). `character` è riservato (chiave dei requisiti del personaggio, §5): nessuna skill può chiamarsi così |
 | `name`, `description` | String | |
-| `category` | String | `gathering`, `artisan`, `combat` (Legatura del Rift = `artisan`) |
+| `category` | String | `gathering`, `artisan` (Legatura del Rift = `artisan`); `combat` non esiste più (M4-01, D3) |
 | `order` | int | posizione nella sidebar, unico |
 | `icon` | String | percorso `res://assets/icons/skills/…`, `.svg` o `.png` (se il file manca, icona segnaposto della UI) |
 | `color` | String | `#rrggbb` |
-| `has_mastery` | bool | `false` obbligatorio per `combat` |
+| `has_mastery` | bool | |
 | `mastery_bonuses` | array | solo se `has_mastery`; ogni regola ha **o** `every_levels` (1..99) **o** `at_level` (1..99) e `modifiers` (lo `scope` qui è ignorato: vale sempre `action:<azione>`) |
 
 Classe: `SkillDef`.
@@ -139,9 +154,11 @@ ognuno `{"items": [...]}`. Campi comuni:
 | Campo | Tipo | Vincoli |
 |---|---|---|
 | `slot` | String | `head`, `body`, `legs`, `feet`, `hands`, `neck`, `ring`, `weapon`, `offhand`, `tool_forestry`, `tool_quarrying`, `tool_angling` (i `tool_*` solo per `category: tool`) |
-| `requirements` | object | `{skill_id: livello}`, può essere vuoto |
-| `modifiers` | array | modificatori (§1) |
-| `weapon` | object | solo con `slot: weapon`: `style` (`blade`/`marksmanship`/`arcana`), `attack_interval_ms` (≥ 800), `two_handed` (bool) |
+| `requirements` | object | `{skill_id | "character": livello}`, può essere vuoto. `equipment`: solo la chiave `character`; `tool`: solo la skill dello slot (`tool_<skill>`) |
+| `modifiers` | array | modificatori (§1): i valori **base** del pezzo (la raffinazione li moltiplica, F-86; gli affissi si aggiungono, §15) |
+| `grade` | int | 1..8, grado del pezzo (affissi, raffinazione, smantellamento) |
+| `kind` | String | obbligatorio per `slot: weapon` e `slot: offhand`, vietato per gli altri: `greatsword`, `sword`, `shield` (`greatsword`/`sword` solo con `weapon`, `shield` solo con `slot: offhand`). Una `sword` ha `slot: weapon` ma si può indossare anche nell'`offhand` se la classe lo ammette |
+| `weapon` | object | solo con `slot: weapon`: `style` (`blade`/`marksmanship`/`arcana`), `attack_interval_ms` (≥ 800), `two_handed` (bool; `true` se e solo se `kind: greatsword`) |
 
 `food`: `{"heal": int ≥ 1}`. `infusion`: `{"modifiers": [...], "unique": bool}` (default `false`); `modifiers` ha almeno
 1 modificatore (un'infusione senza effetto sarebbe decorativa).
@@ -153,10 +170,10 @@ Esempi:
  "description": "Legno chiaro venato di rosso, comune nelle Pianure di Roccarossa."}
 ```
 ```json
-{"id": "emberbronze_blade", "name": "Lama di bronzo di brace", "category": "equipment",
- "icon": "res://assets/icons/items/emberbronze_blade.png", "value": 12, "sort_order": 100,
+{"id": "emberbronze_sword", "name": "Spada di bronzo di brace", "category": "equipment",
+ "icon": "res://assets/icons/items/emberbronze_sword.png", "value": 14, "sort_order": 100,
  "description": "Una lama corta, ancora tiepida di forgia.",
- "equip": {"slot": "weapon", "requirements": {"blade": 1},
+ "equip": {"slot": "weapon", "kind": "sword", "grade": 1, "requirements": {"character": 1},
            "modifiers": [{"stat": "accuracy_bonus", "value": 8}, {"stat": "power_bonus", "value": 6}],
            "weapon": {"style": "blade", "attack_interval_ms": 2400, "two_handed": false}}}
 ```
@@ -164,7 +181,7 @@ Esempi:
 {"id": "emberbronze_hatchet", "name": "Accetta di bronzo di brace", "category": "tool",
  "icon": "res://assets/icons/items/emberbronze_hatchet.png", "value": 10, "sort_order": 10,
  "description": "Taglia più in fretta.",
- "equip": {"slot": "tool_forestry", "requirements": {"forestry": 1},
+ "equip": {"slot": "tool_forestry", "grade": 1, "requirements": {"forestry": 1},
            "modifiers": [{"stat": "skill_interval_pct", "value": -5, "scope": "skill:forestry"}]}}
 ```
 ```json
@@ -177,6 +194,8 @@ Esempi:
  "infusion": {"modifiers": [{"stat": "skill_interval_pct", "value": -3}], "unique": false}}
 ```
 L'oggetto `rift_shard` (categoria `misc`) è obbligatorio: lo usano F-07 e la Legatura del Rift.
+Gli oggetti `equipment` e `tool` sono **basi**: nel gioco esistono solo come istanze dell'Armeria (`01_GDD.md` §21);
+non entrano mai nella bank e non possono essere in `start.items`. Categorie aggiunte dopo: `stone`, `currency` (M8).
 Classi: `ItemDef` (con `EquipInfo`, `WeaponInfo` come sotto-oggetti tipizzati nello stesso file), `ItemQty`.
 
 ## 6. `data/actions/<skill>.json`
@@ -236,15 +255,20 @@ Classe: `MasteryNodeDef`.
 {"areas": [
   {"id": "redrock_plains", "name": "Pianure di Roccarossa", "order": 1,
    "description": "Campi battuti dal vento ai piedi delle rocce rosse.",
-   "requirements": {}, "monsters": ["plains_boar", "ember_rat", "redrock_raider"]}
+   "requirements": {"character": 1},
+   "packs": [{"weight": 4, "monsters": ["plains_boar"]},
+             {"weight": 2, "monsters": ["ember_rat", "plains_boar"]}]}
 ]}
 ```
 | Campo | Tipo | Vincoli |
 |---|---|---|
 | `id`, `name`, `description` | String | |
 | `order` | int | unico |
-| `requirements` | object | `{skill_id: livello}`, può essere vuoto |
-| `monsters` | array di id | almeno 1, mostri esistenti |
+| `requirements` | object | `{"character": livello}`, può essere vuoto |
+| `packs` | array | almeno 1 gruppo (D5); ogni gruppo `{weight: int ≥ 1, monsters: array di id}` con 1..`combat.max_pack_size` mostri esistenti (ripetibili) |
+
+`AreaDef.monster_ids` (mostri distinti dei gruppi, in ordine di prima comparsa) lo calcola `from_dict`. Il campo
+`monsters` (M1-M3) non esiste più.
 
 ```json
 {"monsters": [
@@ -253,13 +277,14 @@ Classe: `MasteryNodeDef`.
    "hp": 20, "style": "blade", "attack_interval_ms": 2800,
    "attack_level": 1, "power_level": 1, "defence_level": 1,
    "accuracy_bonus": 0, "power_bonus": 0, "evasion_bonus": 0, "damage_reduction": 0,
-   "gold": [1, 4], "rift_shard_chance": 0.5,
+   "gold": [1, 4], "rift_shard_chance": 0.5, "xp": 80,
    "drops": [{"item": "boar_tusk", "chance_pct": 25, "qty": [1, 1]}]}
 ]}
 ```
 | Campo | Tipo | Vincoli |
 |---|---|---|
 | `hp` | int | ≥ 1 |
+| `xp` | int | ≥ 0, XP del personaggio per uccisione (F-28) |
 | `style` | String | `blade`, `marksmanship`, `arcana` |
 | `attack_interval_ms` | int | ≥ `combat.min_attack_interval_ms` |
 | `attack_level`, `power_level`, `defence_level` | int | 1..99 |
@@ -267,10 +292,11 @@ Classe: `MasteryNodeDef`.
 | `damage_reduction` | float | 0..80 |
 | `gold` | `[min, max]` | 0 ≤ min ≤ max |
 | `rift_shard_chance` | float | 0..100 |
-| `drops` | array | `{item, chance_pct 0..100, qty [min ≥ 1, max ≥ min]}`, max 4 voci |
+| `drops` | array | `{item, chance_pct 0..100, qty [min ≥ 1, max ≥ min]}`, max 4 voci; voci `equipment` solo da M7 (istanze, F-84) |
 
-Classi: `AreaDef`, `MonsterDef`, `DropEntry`. Icone dei mostri in `res://assets/icons/monsters/`.
-Fino a M4-04 i due file esistono vuoti (`{"_doc": …, "areas": []}`, `{"_doc": …, "monsters": []}`, creati da M1-12).
+Classi: `AreaDef`, `PackDef`, `MonsterDef`, `DropEntry`. Icone dei mostri in `res://assets/icons/monsters/`.
+Fino a M5-04 i due file esistono vuoti (`{"_doc": …, "areas": []}`, `{"_doc": …, "monsters": []}`, creati da M1-12); lo schema con `packs` e `xp` è di M4-01.
+In M7 si aggiunge `data/combat/rift_stones.json` (§16).
 
 ## 9. `data/shop/shop.json`
 
@@ -283,7 +309,7 @@ Fino a M4-04 i due file esistono vuoti (`{"_doc": …, "areas": []}`, `{"_doc": 
   {"id": "auto_eat_2", "name": "Razioni da campo II", "category": "combat",
    "description": "Mangia prima e più a lungo.",
    "cost": {"gold": 25000}, "max_purchases": 1,
-   "requires": {"entries": ["auto_eat_1"], "skills": {"vitality": 25}},
+   "requires": {"entries": ["auto_eat_1"], "character": 25},
    "effect": {"modifiers": [{"stat": "auto_eat_tier", "value": 1}]}},
   {"id": "novice_hatchet", "name": "Accetta del novizio", "category": "tools",
    "description": "Un'accetta semplice.", "cost": {"gold": 150}, "max_purchases": 0,
@@ -292,24 +318,24 @@ Fino a M4-04 i due file esistono vuoti (`{"_doc": …, "areas": []}`, `{"_doc": 
 ```
 | Campo | Tipo | Vincoli |
 |---|---|---|
-| `category` | String | `bank`, `combat`, `tools`, `materials`, `lanes` (ammessa dal validatore solo da M8) |
-| `cost` | object | **o** `{"gold": int ≥ 1}` **o** `{"formula": "bank_slot"}` (F-17); nessun'altra formula nell'MVP |
+| `category` | String | `bank`, `combat`, `tools`, `materials`, `lanes` (ammessa dal validatore solo da M11) |
+| `cost` | object | **o** `{"gold": int ≥ 1}` **o** `{"formula": "bank_slot"}` (F-17) **o** `{"formula": "armory_slot"}` (F-82); nessun'altra formula nell'MVP |
 | `max_purchases` | int | ≥ 0; 0 = illimitato (solo per effetti `item`) |
-| `requires` | object | facoltativi `entries` (id dello shop), `skills` (`{skill: livello}`), `total_level` (int ≥ 0) |
-| `effect` | object | **o** `modifiers` **o** `item` (`{item, qty}`) |
+| `requires` | object | facoltativi `entries` (id dello shop), `character` (int 1..99), `skills` (`{skill: livello}`), `total_level` (int ≥ 0) |
+| `effect` | object | **o** `modifiers` **o** `item` (`{item, qty}`); un `item` `equipment`/`tool` crea `qty` istanze comuni nell'Armeria |
 
 Classe: `ShopEntryDef`. Fino a M3-04 il file esiste vuoto (`{"_doc": …, "entries": []}`, creato da M1-12).
 
-## 10. `data/hints/hints.json` (M6)
+## 10. `data/hints/hints.json` (M9)
 
 ```json
 {"hints": [{"id": "first_action", "title": "Il primo passo", "text": "Scegli un'azione e premi Avvia.",
             "trigger": "session_started_new"}]}
 ```
 `trigger`: uno di `session_started_new`, `bank_full`, `first_shard`, `mastery_node_affordable`, `player_died`,
-`first_level_10`. Classe: `HintDef` (aggiunta in M6 in `core/data/defs/hint_def.gd`).
+`first_level_10`. Classe: `HintDef` (aggiunta in M9 in `core/data/defs/hint_def.gd`).
 
-## 11. `data/fractures/fractures.json` (M7)
+## 11. `data/fractures/fractures.json` (M10)
 
 ```json
 {"fractures": [{"id": "verdant_rift", "name": "Frattura verdeggiante", "description": "Il legno cresce più in fretta.",
@@ -320,15 +346,99 @@ Classe: `ShopEntryDef`. Fino a M3-04 il file esiste vuoto (`{"_doc": …, "entri
 `balance.json` riceve `"fractures": {"interval_min_ms": 7200000, "interval_max_ms": 14400000, "duration_ms": 1800000}`.
 Classe: `FractureDef`.
 
-## 12. Aggiunte di M8
+## 12. Aggiunte di M11
 
 `balance.json`: `"parallel": {"interval_penalty_pct": 40}`; `stats.json`: `parallel_lanes`; `shop.json`: `second_thought`.
 
 ## 13. Dati di test (`res://tests/fixtures/data/`)
 
 Stessa struttura di `res://data/`, contenuto minimo e **stabile** (i test non dipendono dal contenuto vero):
-2 skill di raccolta (`test_gather`, `test_gather_b`), 1 di artigianato (`test_craft`), 5 di combattimento, `riftbinding`;
-4 azioni, 8 oggetti (incluso `rift_shard`), 1 area con 2 mostri, 4 voci dello shop, 3 nodi di maestria.
+2 skill di raccolta (`test_gather`, `test_gather_b`), 1 di artigianato (`test_craft`), `riftbinding` (nessuna skill di
+combattimento da M4-01); 4 azioni, gli oggetti di prova (incluso `rift_shard`; pezzi con `kind` `sword`, `greatsword`,
+`shield` e un attrezzo), 1 area con 2 mostri in 2 gruppi, 4 voci dello shop, 3 nodi di maestria, 1 classe di prova
+(`test_class`, i 4 assetti di `rift_blade`) e `affixes/affixes.json` con almeno 4 affissi (uno per attrezzi).
 La cartella delle fixture **non** contiene `config/`: `TestFactory` carica il contenuto dalle fixture e `balance.json`/
 `stats.json` da `res://data/config/` con `GameData.load_from_dirs(content_root, config_root)`. Così parametri e stat
 restano definiti in un solo posto.
+
+## 14. `data/classes/<id>.json` (M4; tratti e abilità da M6)
+
+Un file per classe (D2). Nell'MVP solo `rift_blade.json`.
+```json
+{"id": "rift_blade", "name": "Lama del Rift", "order": 1,
+ "description": "Combatte solo con le spade, in tre assetti.",
+ "weapon_kinds": ["greatsword", "sword"], "offhand_kinds": ["shield", "sword"],
+ "setups": [
+   {"id": "greatsword", "name": "Spadone", "weapon": "greatsword", "offhand": "", "modifiers": []},
+   {"id": "sword_shield", "name": "Spada e scudo", "weapon": "sword", "offhand": "shield", "modifiers": []},
+   {"id": "dual_swords", "name": "Due spade", "weapon": "sword", "offhand": "sword", "alternate": true,
+    "modifiers": [{"stat": "accuracy_pct", "value": -10}]},
+   {"id": "sword", "name": "Spada", "weapon": "sword", "offhand": "", "modifiers": []}
+ ],
+ "traits": [], "abilities": []}
+```
+| Campo | Tipo | Vincoli |
+|---|---|---|
+| `id`, `name`, `description` | String | `id` uguale al nome del file |
+| `order` | int | unico |
+| `weapon_kinds`, `offhand_kinds` | array di String | valori di `equip.kind` (§5); `weapon_kinds` non vuoto |
+| `setups` | array | almeno 1; `id` unico nella classe e diverso da `unarmed` (riservato, F-72); `weapon` in `weapon_kinds`; `offhand` `""` o in `offhand_kinds`; coppia (`weapon`, `offhand`) unica; `alternate` bool (default `false`, ammesso solo se `offhand` è un tipo d'arma); `modifiers` (§1, scope `global`) |
+| `traits` | array | da M6 (sotto); in M4 vuoto |
+| `abilities` | array | da M6 (sotto); in M4 vuoto |
+
+Tratto (M6):
+```json
+{"id": "chain_cleave", "name": "Fendente a catena", "description": "Ogni terzo attacco colpisce tutti i nemici.",
+ "unlock_level": 5, "setups": [],
+ "effects": [{"type": "every_nth_attack_all", "params": {"n": 3}}], "modifiers": []}
+```
+`unlock_level` 1..99; `setups` id della classe (vuoto = tutti); `effects` **almeno 1** (un tratto di soli modificatori
+è vietato), `type` tra quelli di F-81 con i parametri della tabella (tipi e intervalli controllati dal validatore);
+`modifiers` facoltativi (sorgente `trait:<id>`).
+
+Abilità (M6):
+```json
+{"id": "whirl", "name": "Mulinello", "description": "Un giro di spadone che colpisce tutti.",
+ "unlock_level": 1, "setups": ["greatsword"], "kind": "cleave", "cooldown_ms": 9000,
+ "params": {"power_mult": 1.2, "targets": 0}}
+```
+`kind`: `strike` (`power_mult` > 0), `cleave` (`power_mult` > 0, `targets` int ≥ 0, 0 = tutti), `heal`
+(`heal_pct` 1..100), `buff` (`modifiers` almeno 1, `duration_ms` ≥ 1000); `cooldown_ms` ≥ `combat.min_attack_interval_ms`.
+I nomi provvisori dei tratti di `VISIONE_V2.md` §3.3 si possono usare o sostituire (originali). Classi: `ClassDef`,
+`SetupDef`, `TraitDef`, `TraitEffectDef`, `AbilityDef`.
+
+## 15. `data/affixes/affixes.json` (M4)
+
+```json
+{"affixes": [
+  {"id": "keen", "name": "Affilato", "stat": "accuracy_bonus", "slots": ["weapon", "offhand"], "weight": 10,
+   "tiers": [{"min_ilvl": 1, "min": 3, "max": 6}, {"min_ilvl": 20, "min": 7, "max": 12},
+             {"min_ilvl": 45, "min": 13, "max": 20}]},
+  {"id": "woodsman", "name": "del Boscaiolo", "stat": "skill_interval_pct", "slots": ["tool_forestry"], "weight": 10,
+   "tiers": [{"min_ilvl": 1, "min": -2, "max": -1}]}
+]}
+```
+| Campo | Tipo | Vincoli |
+|---|---|---|
+| `id`, `name` | String | `name` è il testo mostrato sul pezzo |
+| `stat` | String | stat di `stats.json` (nessuna stat decorativa) |
+| `slots` | array | slot di §5 (almeno 1); con un `tool_<skill>` lo scope del modificatore è `skill:<skill>`, altrimenti `global` |
+| `weight` | int | ≥ 1 (F-85) |
+| `tiers` | array | almeno 1, `min_ilvl` crescente 1..99; `min ≤ max`; `step` facoltativo > 0 (default 1) con `(max − min)` multiplo di `step` |
+
+Classi: `AffixDef`, `AffixTier`. Nell'MVP ogni slot d'equipaggiamento ha almeno 4 affissi ammessi (un raro ne chiede 4).
+
+## 16. Aggiunte di M7 (bottino)
+
+- `data/items/equipment.json`: anelli (`neck`/`ring` con `grade`, requisito `character`) solo da drop (Q30).
+- `data/combat/rift_stones.json`: `{"rift_stones": [{"id", "name", "description", "icon", "area", "hp", "xp",
+  "pulse_damage", "pulse_ms", "summon_pack" (indice di `packs` dell'area o `null`), "shards": [min, max], "drops": [...]}]}`,
+  una per area (F-87).
+- `data/items/materials.json`: Sigillo di salvaguardia (`upgrade.seal_item`).
+- `balance.json`: `rarity.drop`, `rarity.rift_stone`, `upgrade`, `rift_stone`, `salvage`; `stats.json`: `upgrade_success_pct`.
+
+## 17. Aggiunte di M8 (Legatura)
+
+Categorie di oggetti `stone` (`{"stone": {"modifiers": [...]}}`, almeno 1 modificatore) e `currency`
+(`{"currency": {"effect": "to_magic" | "to_rare" | "reroll"}}`) nei file `stones.json` e `currencies.json`;
+`balance.json`: `sockets`. Ricette di `riftbinding.json` per infusioni, pietre e valute.

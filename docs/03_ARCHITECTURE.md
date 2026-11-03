@@ -31,7 +31,8 @@ res://
 │   ├── common/                   ← command_result.gd, reasons.gd
 │   ├── data/                     ← game_data.gd, json_loader.gd, data_validator.gd
 │   │   └── defs/                 ← item_def.gd, skill_def.gd, action_def.gd, monster_def.gd, area_def.gd,
-│   │                               shop_entry_def.gd, mastery_node_def.gd, item_qty.gd, drop_entry.gd, fracture_def.gd (M7)
+│   │                               shop_entry_def.gd, mastery_node_def.gd, item_qty.gd, drop_entry.gd, fracture_def.gd (M10),
+│   │                               class_def.gd, setup_def.gd, affix_def.gd, affix_tier.gd, pack_def.gd (M4), trait_def.gd, trait_effect_def.gd, ability_def.gd (M6)
 │   ├── modifiers/                ← modifier.gd, modifier_context.gd, modifier_service.gd, stat_registry.gd
 │   ├── progression/              ← xp_table.gd
 │   ├── session/                  ← game_session.gd, session_participants.gd, rng_service.gd, session_snapshot.gd
@@ -45,27 +46,34 @@ res://
 │   ├── mastery/                  ← mastery_system.gd, mastery_math.gd
 │   ├── actions/                  ← action_runner.gd, action_math.gd, action_outcome.gd,
 │   │                               gathering_resolver.gd, artisan_resolver.gd
+│   ├── character/                ← character_system.gd (M4), loadout.gd (M6)
+│   ├── items/                    ← item_roller.gd, item_instance.gd, affix_roll.gd (M4)
+│   ├── armory/                   ← armory.gd (M4; raffinazione e smantellamento M7, eventuali file propri)
 │   ├── equipment/                ← equipment.gd
-│   ├── combat/                   ← combat_engine.gd, combat_math.gd, combatant_stats.gd, auto_eat.gd, loot_bag.gd
+│   ├── combat/                   ← combat_engine.gd, combat_math.gd, combatant_stats.gd, auto_eat.gd, loot_bag.gd,
+│   │   │                           ability_runner.gd (M6)
+│   │   └── effects/              ← trait_effect.gd + un file per tipo di effetto (M6, F-81)
 │   ├── shop/                     ← shop.gd
-│   ├── rift/                     ← rift_altar.gd
-│   ├── hints/                    ← hints_system.gd (M6)
-│   └── fractures/                ← fracture_system.gd (M7)
+│   ├── rift/                     ← rift_altar.gd (M8)
+│   ├── hints/                    ← hints_system.gd (M9)
+│   └── fractures/                ← fracture_system.gd (M10)
 ├── data/
 │   ├── config/                   ← balance.json, stats.json
-│   ├── skills/skills.json
+│   ├── skills/skills.json        ← 7 skill di supporto
+│   ├── classes/<id>.json         ← classi (M4: rift_blade.json)
+│   ├── affixes/affixes.json      ← affissi (M4)
 │   ├── items/                    ← materials.json, equipment.json, tools.json, food.json, infusions.json, misc.json
-│   ├── actions/<skill>.json      ← una per skill non di combattimento (7 file)
+│   ├── actions/<skill>.json      ← una per skill (7 file)
 │   ├── mastery/<skill>.json      ← nodi della maestria (7 file)
-│   ├── combat/                   ← areas.json, monsters.json
+│   ├── combat/                   ← areas.json, monsters.json, rift_stones.json (M7)
 │   ├── shop/shop.json
-│   ├── hints/hints.json          (M6)
-│   └── fractures/fractures.json  (M7)
+│   ├── hints/hints.json          (M9)
+│   └── fractures/fractures.json  (M10)
 ├── ui/
 │   ├── theme/                    ← ui_style.gd, number_format.gd (M1-14), riftstone_idle_theme.tres (generato)
 │   ├── components/               ← game_window/, tooltip/, toast/, item_slot/, progress/, confirm_dialog/
 │   ├── screens/                  ← main_menu/, slot_select/, main/ (main_screen, sidebar, top_bar, page_host), offline/
-│   ├── pages/                    ← skill/, bank/, shop/, equipment/, combat/, rift/, mastery/
+│   ├── pages/                    ← skill/, bank/, shop/, equipment/, armory/, character/, combat/, rift/, mastery/
 │   ├── settings/                 ← settings_panel
 │   └── feedback/                 ← level_up_banner, shard_burst
 ├── assets/
@@ -75,7 +83,7 @@ res://
 │   ├── ui/frames/                ← cornici 9-slice
 │   └── audio/
 ├── tools/                        ← build_ui_theme.gd, validate_data.gd, check_file_sizes.gd,
-│                                   check_forbidden_refs.gd, run_tests.ps1, run_checks.ps1, ui_shots/ (M6)
+│                                   check_forbidden_refs.gd, run_tests.ps1, run_checks.ps1, ui_shots/ (M9), sim_combat.gd (M5)
 └── tests/                        ← specchio di core/ e systems/
     ├── helpers/                  ← gut_pre_run.gd, test_factory.gd
     ├── fixtures/data/            ← set di dati minimo e stabile per i test (stessa struttura di res://data)
@@ -121,8 +129,8 @@ classDiagram
       +events: GameEvents
       +rng: RngService
       +modifiers: ModifierService
-      +wallet, bank, skills, mastery
-      +equipment, actions, combat, shop, rift
+      +wallet, bank, skills, mastery, character
+      +armory, equipment, loadout, actions, combat, shop, rift
       +advance(delta_ms)
       +to_save() Dictionary
       +from_save(d)
@@ -176,21 +184,28 @@ flowchart TD
     GR & ArR --> BK[Bank]
     GR & ArR --> SK[SkillsSystem]
     GR & ArR --> MS[MasterySystem]
+    ArR --> AM[Armory]
     CE --> CM[CombatMath]
     CE --> EQ[Equipment]
+    CE --> LO[Loadout M6]
     CE --> BK
-    CE --> SK
+    CE --> CH[CharacterSystem]
     CE --> WL[Wallet]
-    SH[Shop] --> BK & WL
+    CE --> AM
+    SH[Shop] --> BK & WL & AM & CH
     RA[RiftAltar] --> BK & SK
-    EQ --> BK
-    BK & SK & MS & EQ & SH & RA & AR & CE --> MOD[ModifierService]
+    EQ --> BK & AM & CH
+    LO --> CH & EQ
+    CH --> SK
+    AM --> IR[ItemRoller]
+    BK & SK & MS & EQ & SH & RA & AR & CE & CH & AM & LO --> MOD[ModifierService]
     MOD --> SR[StatRegistry]
-    BK & SK & MS & EQ & SH & RA & CE --> GD[GameData]
+    BK & SK & MS & EQ & SH & RA & CE & CH & AM & LO & IR --> GD[GameData]
 ```
 
-Regola: i sistemi "foglia" (`Wallet`, `Bank`, `SkillsSystem`, `MasterySystem`, `ModifierService`) non conoscono
-azioni, combattimento o UI. `ActionRunner` e `CombatEngine` orchestrano. La UI non è mai chiamata dalla logica.
+Regola: i sistemi "foglia" (`Wallet`, `Bank`, `SkillsSystem`, `MasterySystem`, `ModifierService`, `ItemRoller`) non
+conoscono azioni, combattimento o UI. Eccezioni dichiarate (una sola lettura, null-safe): `Equipment` e `Loadout`
+chiedono `combat.in_encounter()`; `ActionRunner` chiama `combat.stop`. `ActionRunner` e `CombatEngine` orchestrano. La UI non è mai chiamata dalla logica.
 
 ## 5. Comandi, letture, segnali
 
@@ -230,7 +245,7 @@ sequenceDiagram
 - `GameClock._process(delta)` accumula millisecondi reali e, per ogni `tick_ms` (100) intero accumulato, emette
   `ticked(tick_ms)`; massimo `max_catchup_ms` per frame (il resto si scarta). `set_paused(true)` durante menu e offline.
 - `Game` collega `GameClock.ticked` a `session.advance(delta_ms)` solo quando la sessione è in stato `PLAYING`.
-- `GameSession.advance(delta_ms)` chiama in ordine fisso: `fractures.advance` (M7) → `actions.advance` → `combat.advance`
+- `GameSession.advance(delta_ms)` chiama in ordine fisso: `fractures.advance` (M10) → `actions.advance` → `combat.advance`
   → `play_time_ms += delta_ms`.
 - Ogni `advance` gestisce **più eventi nello stesso passo** (es. due cicli d'azione da 250 ms in 600 ms): è la
   condizione che rende identici online e offline (test di equivalenza F-41).
@@ -299,17 +314,19 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    EQ[Equipment: equipment:slot] --> MS[ModifierService]
+    EQ[Equipment: equipment:slot, setup:id] --> MS[ModifierService]
+    LO[Loadout: trait:id M6] --> MS
+    CE[CombatEngine: ability:id M6] --> MS
     MI[MasterySystem: mastery_item:action] --> MS
     MN[MasterySystem: mastery_node:id] --> MS
     SH[Shop: shop:entry] --> MS
     RA[RiftAltar: rift_socket:i] --> MS
-    FR[FractureSystem: fracture:id M7] --> MS
+    FR[FractureSystem: fracture:id M10] --> MS
     MS -->|"total(stat, ctx)"| F1[ActionMath F-03]
-    MS --> F2[SkillsSystem F-02]
+    MS --> F2[SkillsSystem F-02, CharacterSystem F-71]
     MS --> F3[MasteryMath F-10]
-    MS --> F4[CombatantStats F-20..F-27]
-    MS --> F5[Bank F-16, LootBag F-33, AutoEat F-30]
+    MS --> F4[CombatantStats F-20..F-27, F-70, F-74]
+    MS --> F5[Bank F-16, Armory F-82, ItemRoller F-83, LootBag F-33, AutoEat F-30]
 ```
 
 - Un **modificatore** è `{stat, value, scope}`. Le sorgenti si registrano con `set_source(source_id, mods)`: chiamarlo
@@ -343,10 +360,10 @@ flowchart TD
 
 | Lezione | Come la rispettiamo | Verifica |
 |---|---|---|
-| **Niente god object** | Ogni dominio ha un modulo: `Wallet`, `Bank`, `SkillsSystem`, `MasterySystem`, `Equipment`, `ActionRunner`, `CombatEngine`, `Shop`, `RiftAltar`; salvataggio in `SaveStore`, coordinamento in `Game`. `GameSession` contiene solo riferimenti e `advance/to_save/from_save` (≤ 200 righe) | revisione (M*-REV), `tools/check_file_sizes.gd` |
-| **Unica fonte di verità** | Gli oggetti posseduti stanno solo in `Bank` (più equip indossato, borsa del bottino, prese: un pezzo è sempre in un solo posto). Il cibo scelto è un riferimento alla bank. La UI non ha variabili di stato di gioco: legge con i getter dopo i segnali | test di integrazione "conservazione degli oggetti"; regola di revisione "nessuna var di stato nella UI" |
+| **Niente god object** | Ogni dominio ha un modulo: `Wallet`, `Bank`, `SkillsSystem`, `MasterySystem`, `CharacterSystem`, `Loadout`, `Armory` (+ `ItemRoller` puro), `Equipment`, `ActionRunner`, `CombatEngine` (+ un file per tipo di effetto), `Shop`, `RiftAltar`; salvataggio in `SaveStore`, coordinamento in `Game`. `GameSession` contiene solo riferimenti e `advance/to_save/from_save` (≤ 200 righe) | revisione (M*-REV), `tools/check_file_sizes.gd` |
+| **Unica fonte di verità** | Gli oggetti impilabili stanno solo in `Bank` (più borsa del bottino e prese); ogni pezzo di equipaggiamento è un'istanza solo nell'`Armory`, gli slot ne tengono il `uid` (un pezzo è sempre in un solo posto). Il cibo scelto è un riferimento alla bank. La UI non ha variabili di stato di gioco: legge con i getter dopo i segnali | test di integrazione "conservazione degli oggetti"; regola di revisione "nessuna var di stato nella UI" |
 | **Nessuna stat decorativa** | `stats.json` elenca ogni stat con formula e test; `DataValidator` rifiuta stat sconosciute; la UI mostra solo stat del registro | `tests/data/test_stat_registry_coverage.gd` controlla che ogni stat abbia un test che esiste |
-| **Tutto per slot** | Tutto lo stato del giocatore è in `GameSession` e nel file dello slot (anche stance, cibo scelto, azione in corso, suggerimenti). Fuori dallo slot solo le impostazioni, che non sono stato di gioco | `test_slot_isolation.gd` |
+| **Tutto per slot** | Tutto lo stato del giocatore è in `GameSession` e nel file dello slot (anche classe, tratti e abilità equipaggiati, filtro dell'Armeria, cibo scelto, azione in corso, suggerimenti). Fuori dallo slot solo le impostazioni, che non sono stato di gioco | `test_slot_isolation.gd` |
 | **Nessun salvataggio prima dello slot** | Niente sessione = niente salvataggio; autosave creato solo all'ingresso in partita | `test_game_no_save_before_slot.gd` |
 | **Un solo sistema di modificatori** | `ModifierService` con sorgenti sostituibili; tutte le formule leggono `total()`; vietati campi "bonus" paralleli nei sistemi | revisione + test F-05 |
 | **Parametri con unica definizione** | Numeri di design solo in `balance.json`/`stats.json`/dati; i limiti delle stat solo in `stats.json`; costanti di presentazione solo in `ui_style.gd`. Il codice non contiene numeri di bilanciamento | voce "numeri di design nel codice" della lista di revisione (`09_CONVENTIONS.md` §9); test dei dati che leggono i valori da `balance.json` |
@@ -374,8 +391,8 @@ nuovo progetto punta alla cartella di RiftStone.
 | `scripts/ui/TooltipManager.gd`, `scripts/ui/CustomTooltip.gd`, `scenes/ui/CustomTooltip.tscn` | `ui/components/tooltip/` | togliere l'accesso a `/root/GameState`; ricevere `ItemDef` + quantità invece di dizionari; mostrare i modificatori leggendo `StatRegistry` per le etichette | M1-16 |
 | `scripts/ui/LootNotificationManager.gd`, `LootNotification.gd`, `scenes/ui/LootNotification.tscn` | `ui/components/toast/` | da "chiamato da tutti" a "ascolta EventBus"; raggruppamento 1 s; tipi `info/success/warning` | M1-17 |
 | `scripts/systems/Shop.gd` | `systems/shop/shop.gd` | da classe statica con JSON proprio a sistema della sessione che usa `GameData`; prezzi e valori solo dai dati (eliminata la regola "60 × livello" scritta nel codice); acquisti, requisiti, modificatori, F-17 | M3-02 |
-| `scripts/systems/GameSettings.gd` | `core/settings/game_settings.gd` | togliere qualità 3D/supersampling; aggiungere livello dei log; tipizzazione | M6-03 |
-| `scripts/ui/SettingsPanel.gd` | `ui/settings/settings_panel.gd` | togliere `GameState`; "Salva ed esci" chiama `Game.end_session(true)`; niente "rivedi suggerimenti" globale (è per slot) | M6-03 |
+| `scripts/systems/GameSettings.gd` | `core/settings/game_settings.gd` | togliere qualità 3D/supersampling; aggiungere livello dei log; tipizzazione | M9-03 |
+| `scripts/ui/SettingsPanel.gd` | `ui/settings/settings_panel.gd` | togliere `GameState`; "Salva ed esci" chiama `Game.end_session(true)`; niente "rivedi suggerimenti" globale (è per slot) | M9-03 |
 
 Idee riprese senza copiare codice (le scrive chi implementa, leggendo solo questi documenti): scrittura del salvataggio
 con flush prima della chiusura; tabella dei drop `{item, chance}`; razioni da campo (da `AutoPotion`); suggerimenti

@@ -5,16 +5,25 @@ Se la sessione si interrompe, si riparte da qui.
 
 ## Ripartenza (aggiornata il 2026-11-03)
 - **Stato**: M3 completata, tag `m3-done` su `ca18ee6`; `main` e i tag `m0-done`…`m3-done` pushati su `origin`.
-  Suite su main: 837 test, 836 passati, 1 pending (14 stat di M4, diventa errore in M6-07). Prova del Giocabile 10/10.
-- **Prossimo passo**: attendere l'OK esplicito dell'utente per **M4**; poi M4-01… secondo `07_TASKS.md`, con le regole dei
-  consumi di `CLAUDE.md` (massimo 2 agenti, test mirati, suite completa solo dopo il merge, review sul diff, sezioni nei brief).
-- **Decisioni aperte per l'utente**: Q26 (nodi di Cavatura e Lenza con i valori di Selvicoltura; default: così, rivedere con Q15).
+  Suite su main: 837 test, 836 passati, 1 pending (stat del combattimento, diventa errore in M9-07). Prova del Giocabile 10/10.
+  **Visione v2 approvata** (D1-D6, `VISIONE_V2.md`; Q27-Q40 con i default): **R-00 fatto** (solo documenti, nessun codice):
+  `00_VISION`, `01_GDD` (§1-3, §5, §7-12, §14-26), `02_FORMULAS` (§5 rivista, §5a F-70…F-81, §5b F-82…F-89, §8.2,
+  §8.4-8.6, §8.9, §9, §11), `03_ARCHITECTURE`, `04_DATA_SCHEMA` (§3-5, §8-9, §13-17), `05_INTERFACES` (§1, §3, §4,
+  §5.2-5.3, §5.5, §5.8-5.11, §5.15-5.18, §6, §7, §8), `06_ROADMAP` (M4-M12), `07_TASKS` (R-00, M4 completo, M5-M9),
+  `OPEN_QUESTIONS`, `DECISIONS_LOG` (D1-D6, scelte di R-00).
+- **Prossimo passo**: attendere l'OK esplicito dell'utente per **M4-01** (stop di R-00); poi M4-01 + M4-02 (si mergiano
+  insieme), M4-03 ∥ M4-04, … secondo `07_TASKS.md`, con le regole dei consumi di `CLAUDE.md` (massimo 2 agenti, test
+  mirati, suite completa solo dopo il merge, review sul diff, sezioni nei brief).
+- **Da aggiornare fuori da `docs/`** (non nell'ownership di R-00): `.claude/agents/reviewer.md` cita M6-08 per il rilascio
+  (ora M9-08); eventuali altri file agente che citano le vecchie M4-M8.
+- **Decisioni aperte per l'utente**: Q26 (nodi di Cavatura e Lenza); Q27-Q40 (valgono i default).
 - **Decisioni prese in M3** (DECISIONS_LOG): `test_crafting_data.gd` nuovo file dei dati; impugnature `*_grip` restano;
   `bank.max_purchasable` tolta (unica definizione = `max_purchases` di `bank_slot`, M3-10); `from_save` con due mani e
   offhand scarta l'offhand (05 §5.9, M3-11).
-- **Follow-up già registrati** (note in `07_TASKS.md`): su M4-05 spostamento di `build_theme` da `ui_style.gd` (390/400),
-  sfondo trasparente del pannello della maestria, pulizia del test `tool_forestry`; su M6-06 toast dei livelli sopra le
-  finestre; su M5-02 debito di stile di `test_crafting_data.gd`; su M4-03 `_combat_active()` tipizzato in `equipment.gd`.
+- **Follow-up già registrati** (note in `07_TASKS.md`): su M4-08 spostamento di `build_theme` da `ui_style.gd` (390/400)
+  e pulizia del test `tool_forestry`; su M4-09 sfondo trasparente del pannello della maestria; su M4-02 debito di stile
+  di `test_crafting_data.gd`; su M5-03 `_combat_active()` tipizzato in `equipment.gd` (N2); su M9-06 toast dei livelli
+  sopra le finestre (N9).
 - **Prova manuale consigliata** (non verificabile in headless): aspetto delle pagine Shop ed Equipaggiamento, vendita e
   trascinamento con clic reali.
 - **Pulizia a mano**: cartella `C:/Users/Davide/Desktop/AI/RSI-worktrees/M3-03` (worktree già staccato da git, file
@@ -68,33 +77,53 @@ Se la sessione si interrompe, si riparte da qui.
 | M3-08 | M3 | Test di M3 | QA | DONE | task/M3-08 | merge b29e214, docs 245cbd3; 836 test, 834 passati, 2 pending (stat M4; bug from_save due mani + offhand, chiuso da M3-11) |
 | M3-11 | M3 | from_save: arma a due mani e offhand insieme | CORE | DONE | task/M3-11 | merge 0159747; 3538bb7; bug trovato da M3-08; regola in 05 §5.9 (245cbd3): offhand scartato con Log.warn |
 | M3-09 | M3 | Integrazione di M3 | REV | DONE | main | docs 5eb8222, ca18ee6; tag m3-done su ca18ee6; 837 test, 836 passati, 1 pending; prova del Giocabile 10/10 |
-| M4-01 | M4 | Formule di combattimento | COMBAT | TODO | | |
-| M4-02 | M4 | Statistiche, razioni da campo, borsa del bottino | COMBAT | TODO | | |
-| M4-03 | M4 | Motore del combattimento | COMBAT | TODO | | ownership estesa (da M1-10): riga stop del combattimento in action_runner.gd start; chiave finta combat in test_game_session.gd |
-| M4-04 | M4 | Contenuto del combattimento | DATA | TODO | | |
-| M4-05 | M4 | Pagina del combattimento | UI | TODO | | |
-| M4-06 | M4 | Test di M4 | QA | TODO | | |
-| M4-07 | M4 | Integrazione di M4 | REV | TODO | | |
-| M5-01 | M5 | Altare del Rift | CORE | TODO | | |
-| M5-02 | M5 | Contenuto della Legatura del Rift e nodi dell'artigianato | DATA | TODO | | |
-| M5-03 | M5 | Pagina dell'Altare | UI | TODO | | |
-| M5-04 | M5 | Test di M5 | QA | TODO | | |
-| M5-05 | M5 | Integrazione di M5 | REV | TODO | | |
-| M6-01 | M6 | Simulazione offline | CORE | TODO | | ownership aggiunta: event_bus.gd (solo firma offline_completed: OfflineSummary) e riga offline_completed di test_event_bus.gd; tipizzare Game.last_offline_summary; GameSession.advance aumenta play_time_ms: decidere se l offline lo conta (GDD) |
-| M6-02 | M6 | Schermate dell'offline | UI | TODO | | |
-| M6-03 | M6 | Impostazioni (porting) | PORT | TODO | | |
-| M6-04 | M6 | Sistema dei suggerimenti | CORE | TODO | | da review M1-04: GameData._clear() non azzera _balance/stats; validatore: hp_skill/defence_skill di categoria combat, struttura di auto_eat_tiers e rift.sockets |
-| M6-05 | M6 | Contenuto dei suggerimenti | DATA | TODO | | |
-| M6-06 | M6 | Feedback visivo e carta dei suggerimenti | UI | TODO | | |
-| M6-07 | M6 | Regressione, prestazioni, foto della UI | QA | TODO | | |
-| M6-08 | M6 | Rilascio dell'MVP | REV | TODO | | |
-| M7-01 | M7 | Sistema delle Fratture | CORE | TODO | | |
-| M7-02 | M7 | Dati delle Fratture | DATA | TODO | | |
-| M7-03 | M7 | Indicatore delle Fratture | UI | TODO | | |
-| M7-04 | M7 | Test di M7 | QA | TODO | | |
-| M7-05 | M7 | Integrazione di M7 | REV | TODO | | |
-| M8-01 | M8 | Corsia secondaria | CORE | TODO | | |
-| M8-02 | M8 | Dati di M8 | DATA | TODO | | |
-| M8-03 | M8 | UI a due corsie | UI | TODO | | |
-| M8-04 | M8 | Test di M8 | QA | TODO | | |
-| M8-05 | M8 | Integrazione di M8 | REV | TODO | | |
+| R-00 | M4 | Riforma dei documenti (visione v2) | REV | DONE | main | solo docs; commit dell'Orchestratore; stop per l'OK dell'utente prima di M4-01 |
+| M4-01 | M4 | Schema e validatore della riforma | CORE | TODO | | merge insieme a M4-02 |
+| M4-02 | M4 | Contenuto della riforma | DATA | TODO | | branch da task/M4-01 |
+| M4-03 | M4 | Personaggio e salvataggio v2 | CORE | TODO | | parallelo con M4-04 |
+| M4-04 | M4 | ItemRoller e istanze | CORE | TODO | | parallelo con M4-03 |
+| M4-05 | M4 | Armeria, bank e shop | CORE | TODO | | |
+| M4-06 | M4 | Equipaggiamento con uid e assetti | CORE | TODO | | |
+| M4-07 | M4 | Artigianato verso l'Armeria | CORE | TODO | | |
+| M4-08 | M4 | Pagina dell'Armeria ed equipaggiamento | UI | TODO | | dopo M4-09 (page_host.gd); spostamento build_theme |
+| M4-09 | M4 | Pagina del personaggio, sidebar e shop | UI | TODO | | sfondo del pannello della maestria |
+| M4-10 | M4 | Test di M4 | QA | TODO | | |
+| M4-11 | M4 | Integrazione di M4 | REV | TODO | | tag m4-done |
+| M5-01 | M5 | Formule di combattimento | COMBAT | TODO | | |
+| M5-02 | M5 | Statistiche per mano, razioni da campo, borsa del bottino | COMBAT | TODO | | |
+| M5-03 | M5 | Motore a eventi, incontri e gruppi | COMBAT | TODO | | note ereditate N1-N2 (07_TASKS) |
+| M5-04 | M5 | Contenuto: 4 aree, 12 mostri, gruppi | DATA | TODO | | |
+| M5-05 | M5 | Pagina del combattimento | UI | TODO | | |
+| M5-06 | M5 | Strumento di bilanciamento sim_combat | COMBAT | TODO | | |
+| M5-07 | M5 | Test di M5 | QA | TODO | | |
+| M5-08 | M5 | Integrazione di M5 | REV | TODO | | tag m5-done |
+| M6-01 | M6 | Def, validatore e Loadout | CORE | TODO | | |
+| M6-02 | M6 | Agganci del motore e 8 tipi di effetto | COMBAT | TODO | | |
+| M6-03 | M6 | Abilità attive | COMBAT | TODO | | |
+| M6-04 | M6 | Contenuto: 12 tratti e 6 abilità | DATA | TODO | | |
+| M6-05 | M6 | Scelta di tratti e abilità nella UI | UI | TODO | | |
+| M6-06 | M6 | Test di M6 | QA | TODO | | |
+| M6-07 | M6 | Integrazione di M6 | REV | TODO | | tag m6-done |
+| M7-01 | M7 | Raffinazione | CORE | TODO | | |
+| M7-02 | M7 | Smantellamento e filtro automatico | CORE | TODO | | |
+| M7-03 | M7 | Drop di equipaggiamento con rarità | COMBAT | TODO | | |
+| M7-04 | M7 | Pietre del Rift | COMBAT | TODO | | |
+| M7-05 | M7 | Contenuto: gioielli, drop, Pietre, Sigillo | DATA | TODO | | |
+| M7-06 | M7 | Armeria completa e Pietra nella UI | UI | TODO | | |
+| M7-07 | M7 | Test di M7 | QA | TODO | | |
+| M7-08 | M7 | Integrazione di M7 | REV | TODO | | tag m7-done |
+| M8-01 | M8 | Altare del Rift | CORE | TODO | | nota N3 |
+| M8-02 | M8 | Contenuto: Legatura e nodi dell'artigianato | DATA | TODO | | nota N4 |
+| M8-03 | M8 | Castoni, pietre e valute del Rift | CORE | TODO | | |
+| M8-04 | M8 | Contenuto: pietre e valute | DATA | TODO | | |
+| M8-05 | M8 | Pagine dell'Altare e dei castoni | UI | TODO | | |
+| M8-06 | M8 | Test di M8 | QA | TODO | | |
+| M8-07 | M8 | Integrazione di M8 | REV | TODO | | tag m8-done |
+| M9-01 | M9 | Simulazione offline | CORE | TODO | | note N5-N6 |
+| M9-02 | M9 | Schermate dell'offline | UI | TODO | | |
+| M9-03 | M9 | Impostazioni (porting) | PORT | TODO | | nota N7 |
+| M9-04 | M9 | Sistema dei suggerimenti | CORE | TODO | | nota N8 |
+| M9-05 | M9 | Contenuto dei suggerimenti | DATA | TODO | | |
+| M9-06 | M9 | Feedback visivo e carta dei suggerimenti | UI | TODO | | nota N9 |
+| M9-07 | M9 | Regressione, prestazioni, foto della UI | QA | TODO | | nota N10 |
+| M9-08 | M9 | Rilascio dell'MVP | REV | TODO | | tag m9-mvp, m9-done |
