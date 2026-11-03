@@ -11,8 +11,8 @@ const RES_PREFIX: String = "res://"
 const SEPARATOR: String = "::"
 const TEST_FUNC_PREFIX: String = "test_"
 # Formulas whose milestone is closed (M1): F-02 skill xp, F-03 interval, F-06 double, F-07 shard, F-10 mastery,
-# F-16 bank capacity. A milestone that closes adds its formulas here.
-const CLOSED_FORMULAS: Array[String] = ["F-02", "F-03", "F-06", "F-07", "F-10", "F-16"]
+# F-16 bank capacity; M3: F-08 preservation. A milestone that closes adds its formulas here.
+const CLOSED_FORMULAS: Array[String] = ["F-02", "F-03", "F-06", "F-07", "F-08", "F-10", "F-16"]
 # The stats whose effect M1 delivers: they must be covered by the closed formulas above.
 const M1_STATS: Array[StringName] = [
 	&"skill_interval_pct", &"skill_xp_pct", &"mastery_xp_pct", &"double_item_chance", &"rift_shard_chance",
@@ -20,7 +20,7 @@ const M1_STATS: Array[StringName] = [
 ]
 # Formula -> milestone that implements it (for the pending messages).
 const FORMULA_MILESTONES: Dictionary[String, String] = {
-	"F-08": "M3", "F-20": "M4", "F-21": "M4", "F-22": "M4", "F-25": "M4", "F-26": "M4", "F-27": "M4",
+	"F-20": "M4", "F-21": "M4", "F-22": "M4", "F-25": "M4", "F-26": "M4", "F-27": "M4",
 	"F-29": "M4", "F-30": "M4", "F-31": "M4", "F-33": "M4", "F-50": "M7", "F-51": "M8",
 	# auto_loot: its formula field is "10.6" (docs/01_GDD.md §10.6, loot bag).
 	"10.6": "M4",
