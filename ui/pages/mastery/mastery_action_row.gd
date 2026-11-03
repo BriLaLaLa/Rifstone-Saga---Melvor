@@ -19,7 +19,7 @@ var _action: ActionDef = null
 
 
 func _ready() -> void:
-	_icon.custom_minimum_size = Vector2(MasteryTexts.ACTION_ICON_SIDE, MasteryTexts.ACTION_ICON_SIDE)
+	_icon.custom_minimum_size = Vector2(UiStyle.MASTERY_ACTION_ICON_SIDE, UiStyle.MASTERY_ACTION_ICON_SIDE)
 	_select_button.pressed.connect(_on_select_button_pressed)
 
 

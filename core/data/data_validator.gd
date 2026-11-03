@@ -16,7 +16,8 @@ const REQUIRED_BALANCE_KEYS: PackedStringArray = [
 	"xp_curve.base", "xp_curve.growth", "xp_curve.linear", "xp_curve.max_level", "xp_curve.xp_cap",
 	"mastery_curve.base", "mastery_curve.growth", "mastery_curve.linear", "mastery_curve.max_level",
 	"mastery.base_factor", "mastery.per_level", "mastery.ratio_weight", "mastery.pool_share_pct",
-	"mastery.pool_cap_per_item", "action.min_interval_ms", "gathering.rift_shard_base_chance_pct",
+	"mastery.pool_cap_per_item", "mastery.pool_warning_pct", "action.min_interval_ms",
+	"gathering.rift_shard_base_chance_pct",
 	"bank.base_slots", "bank.slot_cost_base", "bank.slot_cost_growth", "bank.slot_cost_cap", "bank.max_purchasable",
 	"combat.acc_level_offset", "combat.acc_bonus_offset", "combat.maxhit_level_offset", "combat.maxhit_bonus_offset",
 	"combat.min_hit_ratio", "combat.hit_chance_min", "combat.hit_chance_max",
@@ -151,6 +152,7 @@ static func _validate_balance(v: DataValidatorRules, files: Dictionary[String, D
 		v.max_skill_level = _curve_max_level(v, balance, "xp_curve")
 		v.max_mastery_level = _curve_max_level(v, balance, "mastery_curve")
 		_name_length_limits(v, balance)
+		_pool_warning_pct(v, balance)
 		v.min_action_interval_ms = _limit(balance, "action.min_interval_ms")
 		v.min_attack_interval_ms = _limit(balance, "combat.min_attack_interval_ms")
 
@@ -211,6 +213,14 @@ static func _name_length_limits(v: DataValidatorRules, balance: Dictionary) -> v
 			valid = false
 	if valid and float(lookup(balance, "player_name.min_length")) > float(lookup(balance, "player_name.max_length")):
 		v.fail("key 'player_name.min_length' must be <= 'player_name.max_length'")
+
+
+# mastery.pool_warning_pct: share of the pool cap (> 0, <= 100) from which the UI warns that the pool is almost full
+# (a missing or non-number value is already reported by the key checks).
+static func _pool_warning_pct(v: DataValidatorRules, balance: Dictionary) -> void:
+	var value: Variant = lookup(balance, "mastery.pool_warning_pct")
+	if DataValidatorRules.is_number(value) and (float(value) <= 0.0 or float(value) > 100.0):
+		v.fail("key 'mastery.pool_warning_pct' must be > 0 and <= 100")
 
 
 static func _limit(balance: Dictionary, key: String) -> float:

@@ -142,7 +142,7 @@ func test_unknown_top_level_field_is_an_error() -> void:
 # --- balance.json ------------------------------------------------------------------------------------------------
 
 func test_required_balance_keys_are_all_in_the_real_file() -> void:
-	assert_eq(DataValidator.REQUIRED_BALANCE_KEYS.size(), 58)
+	assert_eq(DataValidator.REQUIRED_BALANCE_KEYS.size(), 59)
 	for key: String in DataValidator.REQUIRED_BALANCE_KEYS:
 		assert_not_null(DataValidator.lookup(file_of(fixture_raw(), "balance", BALANCE), key), key)
 
@@ -212,6 +212,26 @@ func test_player_name_min_length_must_not_exceed_max_length() -> void:
 	raw = fixture_raw()
 	(file_of(raw, "balance", BALANCE)["player_name"] as Dictionary)["min_length"] = 24
 	assert_eq(validate(raw), PackedStringArray(), "min equal to max is valid")
+
+
+func test_pool_warning_pct_is_required() -> void:
+	var raw: Dictionary = fixture_raw()
+	(file_of(raw, "balance", BALANCE)["mastery"] as Dictionary).erase("pool_warning_pct")
+	_expect(raw, [BALANCE, "missing key 'mastery.pool_warning_pct'"])
+	raw = fixture_raw()
+	(file_of(raw, "balance", BALANCE)["mastery"] as Dictionary)["pool_warning_pct"] = "95"
+	_expect(raw, [BALANCE, "key 'mastery.pool_warning_pct' must be a number"])
+
+
+func test_pool_warning_pct_must_be_a_share_of_the_cap() -> void:
+	for bad: float in [0.0, -5.0, 100.5]:
+		var raw: Dictionary = fixture_raw()
+		(file_of(raw, "balance", BALANCE)["mastery"] as Dictionary)["pool_warning_pct"] = bad
+		_expect(raw, [BALANCE, "key 'mastery.pool_warning_pct' must be > 0 and <= 100"])
+	for good: float in [100.0, 62.5]:
+		var raw: Dictionary = fixture_raw()
+		(file_of(raw, "balance", BALANCE)["mastery"] as Dictionary)["pool_warning_pct"] = good
+		assert_eq(validate(raw), PackedStringArray(), "%s is valid" % good)
 
 
 func test_start_items_must_exist() -> void:

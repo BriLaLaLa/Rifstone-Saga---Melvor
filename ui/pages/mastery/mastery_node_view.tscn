@@ -3,7 +3,6 @@
 [ext_resource type="Script" path="res://ui/pages/mastery/mastery_node_view.gd" id="1_node"]
 
 [node name="MasteryNodeView" type="PanelContainer"]
-custom_minimum_size = Vector2(240, 156)
 theme_type_variation = &"HudPanel"
 script = ExtResource("1_node")
 

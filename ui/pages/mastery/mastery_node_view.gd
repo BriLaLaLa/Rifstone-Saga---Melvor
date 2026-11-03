@@ -20,7 +20,7 @@ var _node: MasteryNodeDef = null
 
 
 func _ready() -> void:
-	custom_minimum_size = MasteryTexts.NODE_SIZE
+	custom_minimum_size = UiStyle.MASTERY_NODE_SIZE
 	_buy_button.text = MasteryTexts.BUY_TEXT
 	_buy_button.pressed.connect(_on_buy_button_pressed)
 
@@ -48,7 +48,7 @@ func redraw(session: GameSession) -> void:
 	_buy_button.visible = state == MasteryTexts.STATE_BUYABLE or state == MasteryTexts.STATE_UNAFFORDABLE
 	_buy_button.disabled = state != MasteryTexts.STATE_BUYABLE
 	var locked: bool = state == MasteryTexts.STATE_LOCKED
-	_content.modulate = Color(Color.WHITE, MasteryTexts.LOCKED_ALPHA) if locked else Color.WHITE
+	_content.modulate = Color(Color.WHITE, UiStyle.MASTERY_LOCKED_ALPHA) if locked else Color.WHITE
 	if state == MasteryTexts.STATE_OWNED:
 		_name_label.add_theme_color_override("font_color", UiStyle.GOOD)
 	else:

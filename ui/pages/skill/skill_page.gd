@@ -37,7 +37,6 @@ const REFUSED_TEXT_DEFAULT: String = "Impossibile avviare l'azione."
 var _session: GameSession = null
 var _skill: SkillDef = null
 var _cards: Dictionary[StringName, ActionCard] = {}
-var _mastery_button: Button = null
 var _mastery_panel: MasteryPanel = null
 
 @onready var _skill_icon: TextureRect = %SkillIcon
@@ -47,13 +46,14 @@ var _mastery_panel: MasteryPanel = null
 @onready var _status_label: Label = %StatusLabel
 @onready var _message_label: Label = %MessageLabel
 @onready var _card_list: HFlowContainer = %Cards
+@onready var _mastery_button: Button = %MasteryButton
 
 
 func _ready() -> void:
 	set_process(false)
 	_message_label.add_theme_color_override("font_color", UiStyle.BAD)
 	_message_label.visible = false
-	_add_mastery_button()
+	_mastery_button.pressed.connect(_on_mastery_button_pressed)
 
 
 ## Reads the skill of `page_id` (`skill:<id>`), builds its cards and follows the session's events.
@@ -206,22 +206,6 @@ func _on_events_mastery_xp_gained(skill_id: StringName, action_id: StringName, _
 
 func _on_events_modifiers_changed() -> void:
 	_redraw()
-
-
-## The "Maestria" button of the header (shown in `bind` for skills with mastery), built here because the button is
-## the only part of this page owned by M2-03 (its node can move to skill_page.tscn unchanged).
-func _add_mastery_button() -> void:
-	_mastery_button = Button.new()
-	_mastery_button.name = "MasteryButton"
-	_mastery_button.text = MasteryTexts.OPEN_BUTTON_TEXT
-	_mastery_button.tooltip_text = MasteryTexts.OPEN_BUTTON_TOOLTIP
-	_mastery_button.focus_mode = Control.FOCUS_NONE
-	_mastery_button.size_flags_horizontal = Control.SIZE_EXPAND | Control.SIZE_SHRINK_END
-	_mastery_button.visible = false
-	_level_label.get_parent().add_child(_mastery_button)
-	_mastery_button.owner = self
-	_mastery_button.unique_name_in_owner = true
-	_mastery_button.pressed.connect(_on_mastery_button_pressed)
 
 
 ## Opens the mastery window of the skill (bound to the session while open) or closes it.

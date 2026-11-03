@@ -30,6 +30,7 @@ const EXPECTED_BALANCE: Dictionary = {
 	"mastery.ratio_weight": 3.0,
 	"mastery.pool_share_pct": 20.0,
 	"mastery.pool_cap_per_item": 300000.0,
+	"mastery.pool_warning_pct": 95.0,
 	"action.min_interval_ms": 250.0,
 	"gathering.rift_shard_base_chance_pct": 0.5,
 	"bank.base_slots": 24.0,

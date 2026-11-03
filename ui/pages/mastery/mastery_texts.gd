@@ -1,11 +1,10 @@
 class_name MasteryTexts
 extends RefCounted
-## Italian texts and presentation constants of the mastery panel (docs/01_GDD.md §6), display only.
+## Italian texts of the mastery panel (docs/01_GDD.md §6), display only. Presentation constants: `UiStyle.MASTERY_*`;
+## the pool warning threshold: `mastery.pool_warning_pct` of balance.json.
 ##
 ## Command errors of MasterySystem (`spend_pool_on_action`, `buy_node`) become the texts of REASON_TEXTS; the node
 ## states are the four of docs/07_TASKS.md M2-03 (owned, buyable, locked by prerequisites, pool too small).
-## The presentation constants below belong to the mastery panel only; they are kept here (not in UiStyle) while
-## UiStyle is edited by another task, and can move to `UiStyle.MASTERY_*` unchanged.
 
 const STATE_OWNED := &"owned"
 const STATE_BUYABLE := &"buyable"
@@ -29,8 +28,6 @@ const REASON_TEXTS: Dictionary[StringName, String] = {
 const REASON_TEXT_DEFAULT: String = "Operazione non riuscita."
 
 const WINDOW_TITLE: String = "Maestria: %s"
-const OPEN_BUTTON_TEXT: String = "Maestria"
-const OPEN_BUTTON_TOOLTIP: String = "Pool, maestria delle azioni e nodi"
 const POOL_TEXT: String = "%s / %s XP"
 const POOL_WARNING_TEXT: String = "Pool quasi pieno: oltre il tetto la maestria in più va persa."
 const LEVEL_TEXT: String = "Liv. %s"
@@ -45,18 +42,6 @@ const COST_TEXT: String = "Costo: %s XP (%s%% del tetto)"
 const REQUIRES_TEXT: String = "Richiede: %s"
 const NO_MASTERY_TEXT: String = "Questa skill non ha maestria."
 const NO_NODES_TEXT: String = "Nessun nodo per questa skill."
-
-# --- presentation constants (candidates for UiStyle.MASTERY_*) ---
-## The pool bar turns red and the warning appears from this fraction of the cap (docs/01_GDD.md §6.2: 95%).
-const POOL_WARNING_RATIO: float = 0.95
-## Size of a node card in the tree and space between two cells (pos = [col, row] of the data).
-const NODE_SIZE := Vector2(240, 156)
-const NODE_GAP := Vector2(32, 32)
-## Prerequisite links drawn between node cards.
-const LINK_WIDTH: float = 2.0
-const ACTION_ICON_SIDE: int = 36
-## Opacity of a node card whose prerequisites are missing.
-const LOCKED_ALPHA: float = 0.6
 
 
 ## Message for a failed mastery command.

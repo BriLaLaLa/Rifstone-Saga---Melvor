@@ -66,8 +66,10 @@ func test_pool_bar_reads_pool_and_cap() -> void:
 	assert_false(_label("%PoolWarning").visible, "25%: no warning")
 
 
-func test_pool_warning_from_95_percent_on_pool_changed() -> void:
-	var threshold: int = CAP * 95 / 100
+func test_pool_warning_from_the_balance_threshold_on_pool_changed() -> void:
+	var pct: float = float(_session.data.balance_value(MasteryPanel.POOL_WARNING_KEY))
+	assert_eq(pct, 95.0, "01_GDD.md §6.2, from balance.json")
+	var threshold: int = ceili(CAP * pct / 100.0)
 	_set_mastery(threshold - 1)
 	_open_panel()
 	assert_false(_label("%PoolWarning").visible, "just below 95%")
@@ -142,14 +144,14 @@ func test_spend_errors_show_the_reason() -> void:
 
 func test_node_tree_is_laid_out_by_pos() -> void:
 	_open_panel()
-	var step: Vector2 = MasteryTexts.NODE_SIZE + MasteryTexts.NODE_GAP
+	var step: Vector2 = UiStyle.MASTERY_NODE_SIZE + UiStyle.MASTERY_NODE_GAP
 	for node: MasteryNodeDef in _session.data.mastery_nodes(SKILL):
 		var view: MasteryNodeView = _view(node.id)
 		assert_eq(view.position, Vector2(node.pos) * step, "%s at pos %s" % [node.id, node.pos])
 		assert_eq(_label("%NameLabel", view).text, node.name)
 		assert_eq(view.tooltip_text, node.description)
 	var tree: MasteryNodeTree = _panel().get_node("%NodeTree") as MasteryNodeTree
-	assert_eq(tree.custom_minimum_size, step * Vector2(1, 2) + MasteryTexts.NODE_SIZE, "2 columns × 3 rows")
+	assert_eq(tree.custom_minimum_size, step * Vector2(1, 2) + UiStyle.MASTERY_NODE_SIZE, "2 columns × 3 rows")
 	var mods: String = (_view(N1).get_node("%ModifiersLabel") as RichTextLabel).get_parsed_text()
 	assert_true(mods.begins_with("Velocità delle azioni -3%"), "stat label of the registry: %s" % mods)
 	assert_eq(_label("%CostLabel", _view(N1)).text, "Costo: 30.000 XP (5% del tetto)")
@@ -234,8 +236,8 @@ func test_real_data_forestry_tree() -> void:
 	_open_page(&"forestry")
 	(_page.get_node("%MasteryButton") as Button).pressed.emit()
 	var tree: MasteryNodeTree = _panel().get_node("%NodeTree") as MasteryNodeTree
-	var step: Vector2 = MasteryTexts.NODE_SIZE + MasteryTexts.NODE_GAP
-	assert_eq(tree.custom_minimum_size, step * Vector2(2, 3) + MasteryTexts.NODE_SIZE, "3 columns × 4 rows")
+	var step: Vector2 = UiStyle.MASTERY_NODE_SIZE + UiStyle.MASTERY_NODE_GAP
+	assert_eq(tree.custom_minimum_size, step * Vector2(2, 3) + UiStyle.MASTERY_NODE_SIZE, "3 columns × 4 rows")
 	var nodes: Array[MasteryNodeDef] = _session.data.mastery_nodes(&"forestry")
 	assert_eq(tree.get_child_count(), nodes.size())
 	for node: MasteryNodeDef in nodes:

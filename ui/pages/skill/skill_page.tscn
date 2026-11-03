@@ -64,6 +64,15 @@ layout_mode = 2
 size_flags_vertical = 8
 theme_type_variation = &"HeaderLabel"
 
+[node name="MasteryButton" type="Button" parent="Margin/Content/Header/Row/Info/TitleRow"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 10
+tooltip_text = "Pool, maestria delle azioni e nodi"
+focus_mode = 0
+text = "Maestria"
+
 [node name="XpBar" parent="Margin/Content/Header/Row/Info" instance=ExtResource("2_xp")]
 unique_name_in_owner = true
 layout_mode = 2

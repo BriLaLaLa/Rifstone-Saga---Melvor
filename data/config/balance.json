@@ -31,7 +31,8 @@
     "per_level": 0.1,
     "ratio_weight": 3.0,
     "pool_share_pct": 20,
-    "pool_cap_per_item": 300000
+    "pool_cap_per_item": 300000,
+    "pool_warning_pct": 95
   },
   "action": {
     "min_interval_ms": 250

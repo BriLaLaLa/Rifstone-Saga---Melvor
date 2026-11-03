@@ -12,6 +12,8 @@ extends GameWindow
 
 const ROW_SCENE: PackedScene = preload("res://ui/pages/mastery/mastery_action_row.tscn")
 const LOG_CATEGORY: String = "ui"
+## balance.json key of the pool warning threshold (percent of the cap, docs/01_GDD.md §6.2).
+const POOL_WARNING_KEY: String = "mastery.pool_warning_pct"
 
 var _session: GameSession = null
 var _skill: SkillDef = null
@@ -131,7 +133,8 @@ func _redraw_pool() -> void:
 	var cap: int = _session.mastery.get_pool_cap(_skill.id)
 	_pool_bar.value = float(pool) / float(cap) if cap > 0 else 0.0
 	_pool_label.text = MasteryTexts.POOL_TEXT % [NumberFormat.format_int(pool), NumberFormat.format_int(cap)]
-	var warning: bool = cap > 0 and float(pool) >= float(cap) * MasteryTexts.POOL_WARNING_RATIO
+	var warning_pct: float = float(_session.data.balance_value(POOL_WARNING_KEY))
+	var warning: bool = cap > 0 and float(pool) * 100.0 >= float(cap) * warning_pct
 	if warning != _pool_warning.visible:
 		UiStyle.style_bar(_pool_bar, UiStyle.BAD if warning else UiStyle.PROGRESS)
 	_pool_warning.visible = warning
