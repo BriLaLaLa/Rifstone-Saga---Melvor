@@ -53,7 +53,8 @@ func test_clock_running_in_menu_writes_nothing() -> void:
 
 
 func test_invalid_name_writes_nothing() -> void:
-	for player_name: String in ["", "   ", "x".repeat(25)]:
+	var too_long: int = int(DataRegistry.data.balance_value("player_name.max_length")) + 1
+	for player_name: String in ["", "   ", "x".repeat(too_long)]:
 		var result: CommandResult = _game.new_game(1, player_name)
 		assert_eq(result.reason, Reasons.INVALID_NAME, "'%s'" % player_name)
 	assert_null(_game.session)

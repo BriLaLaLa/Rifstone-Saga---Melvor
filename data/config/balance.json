@@ -5,6 +5,10 @@
   "slots": {
     "count": 4
   },
+  "player_name": {
+    "min_length": 1,
+    "max_length": 24
+  },
   "start": {
     "gold": 50,
     "items": []

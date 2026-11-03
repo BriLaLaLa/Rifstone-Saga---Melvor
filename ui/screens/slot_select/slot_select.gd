@@ -5,7 +5,7 @@ extends Control
 ## Every redraw reads `Game.list_slots()`; every action is a Game command and a failed command shows its reason in
 ## Italian. Nothing here writes a file: only the commands new_game and delete_slot (after a confirmation) do.
 ## - New game: choose an empty slot, or a saved one after confirming the overwrite, then type the name and Start.
-##   The name rule (1-24 characters after strip) is Game's: an invalid name comes back as invalid_name.
+##   The name rule (length after strip, from balance.json) is Game's: an invalid name comes back as invalid_name.
 ## - Continue: only a saved slot can be loaded; damaged and unsupported slots can only be deleted.
 ## - Delete: any non-empty slot, after a confirmation.
 ## `game_started` is emitted only after new_game/continue_game returned ok: the main menu then changes scene.

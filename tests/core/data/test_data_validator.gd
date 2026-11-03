@@ -142,7 +142,7 @@ func test_unknown_top_level_field_is_an_error() -> void:
 # --- balance.json ------------------------------------------------------------------------------------------------
 
 func test_required_balance_keys_are_all_in_the_real_file() -> void:
-	assert_eq(DataValidator.REQUIRED_BALANCE_KEYS.size(), 56)
+	assert_eq(DataValidator.REQUIRED_BALANCE_KEYS.size(), 58)
 	for key: String in DataValidator.REQUIRED_BALANCE_KEYS:
 		assert_not_null(DataValidator.lookup(file_of(fixture_raw(), "balance", BALANCE), key), key)
 
@@ -183,6 +183,35 @@ func test_xp_curve_must_be_buildable() -> void:
 	(file_of(raw, "balance", BALANCE)["mastery_curve"] as Dictionary)["max_level"] = 9.5
 	_expect(raw, [BALANCE, "key 'xp_curve.growth' must be > 0"])
 	_expect(raw, [BALANCE, "key 'mastery_curve.max_level' must be an integer >= 1"])
+
+
+func test_missing_player_name_keys_are_errors() -> void:
+	var raw: Dictionary = fixture_raw()
+	(file_of(raw, "balance", BALANCE)["player_name"] as Dictionary).erase("min_length")
+	_expect(raw, [BALANCE, "missing key 'player_name.min_length'"])
+	raw = fixture_raw()
+	file_of(raw, "balance", BALANCE).erase("player_name")
+	_expect(raw, [BALANCE, "missing key 'player_name.min_length'"])
+	_expect(raw, [BALANCE, "missing key 'player_name.max_length'"])
+
+
+func test_player_name_lengths_must_be_positive_integers() -> void:
+	var raw: Dictionary = fixture_raw()
+	(file_of(raw, "balance", BALANCE)["player_name"] as Dictionary)["max_length"] = "24"
+	_expect(raw, [BALANCE, "key 'player_name.max_length' must be a number"])
+	for bad: float in [0.0, -1.0, 2.5]:
+		raw = fixture_raw()
+		(file_of(raw, "balance", BALANCE)["player_name"] as Dictionary)["min_length"] = bad
+		_expect(raw, [BALANCE, "key 'player_name.min_length' must be an integer >= 1"])
+
+
+func test_player_name_min_length_must_not_exceed_max_length() -> void:
+	var raw: Dictionary = fixture_raw()
+	(file_of(raw, "balance", BALANCE)["player_name"] as Dictionary)["min_length"] = 25
+	_expect(raw, [BALANCE, "key 'player_name.min_length' must be <= 'player_name.max_length'"])
+	raw = fixture_raw()
+	(file_of(raw, "balance", BALANCE)["player_name"] as Dictionary)["min_length"] = 24
+	assert_eq(validate(raw), PackedStringArray(), "min equal to max is valid")
 
 
 func test_start_items_must_exist() -> void:

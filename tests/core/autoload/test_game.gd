@@ -83,8 +83,22 @@ func test_new_seed_fits_in_53_bits() -> void:
 		_game.end_session(false)
 
 
-func test_name_of_24_characters_is_accepted() -> void:
-	assert_true(_game.new_game(1, "x".repeat(24)).ok)
+func test_name_at_the_limits_of_balance_is_accepted() -> void:
+	var min_length: int = int(DataRegistry.data.balance_value("player_name.min_length"))
+	var max_length: int = int(DataRegistry.data.balance_value("player_name.max_length"))
+	assert_eq([min_length, max_length], [1, 24], "values of 01_GDD.md §1")
+	assert_true(_game.new_game(1, "x".repeat(min_length)).ok)
+	_game.end_session(false)
+	assert_true(_game.new_game(2, " %s " % "x".repeat(max_length)).ok, "edges do not count")
+
+
+func test_name_outside_the_limits_of_balance_is_invalid() -> void:
+	var min_length: int = int(DataRegistry.data.balance_value("player_name.min_length"))
+	var max_length: int = int(DataRegistry.data.balance_value("player_name.max_length"))
+	for player_name: String in ["x".repeat(min_length - 1), "   ", "x".repeat(max_length + 1)]:
+		assert_eq(_game.new_game(1, player_name).reason, Reasons.INVALID_NAME, "'%s'" % player_name)
+	assert_null(_game.session)
+	assert_eq(_game.state, &"menu")
 
 
 func test_invalid_slot_fails_without_session() -> void:

@@ -11,7 +11,8 @@ extends RefCounted
 ## Every key of 02_FORMULAS.md §9 of the MVP, as dotted paths. Values that are objects in the table are listed
 ## by their fields; arrays are leaves. M7 adds `fractures.*`, M8 `parallel.*`.
 const REQUIRED_BALANCE_KEYS: PackedStringArray = [
-	"tick_ms", "max_catchup_ms", "autosave_interval_ms", "slots.count", "start.gold", "start.items",
+	"tick_ms", "max_catchup_ms", "autosave_interval_ms", "slots.count", "player_name.min_length",
+	"player_name.max_length", "start.gold", "start.items",
 	"xp_curve.base", "xp_curve.growth", "xp_curve.linear", "xp_curve.max_level", "xp_curve.xp_cap",
 	"mastery_curve.base", "mastery_curve.growth", "mastery_curve.linear", "mastery_curve.max_level",
 	"mastery.base_factor", "mastery.per_level", "mastery.ratio_weight", "mastery.pool_share_pct",
@@ -149,6 +150,7 @@ static func _validate_balance(v: DataValidatorRules, files: Dictionary[String, D
 		_unknown_balance_keys(v, balance, "")
 		v.max_skill_level = _curve_max_level(v, balance, "xp_curve")
 		v.max_mastery_level = _curve_max_level(v, balance, "mastery_curve")
+		_name_length_limits(v, balance)
 		v.min_action_interval_ms = _limit(balance, "action.min_interval_ms")
 		v.min_attack_interval_ms = _limit(balance, "combat.min_attack_interval_ms")
 
@@ -194,6 +196,21 @@ static func _curve_max_level(v: DataValidatorRules, balance: Dictionary, curve: 
 		v.fail("key '%s.max_level' must be an integer >= 1" % curve)
 		return DataValidatorRules.NO_LIMIT
 	return float(max_level)
+
+
+# player_name.min_length and max_length: integers >= 1 with min <= max (a missing or non-number value is already
+# reported by the key checks).
+static func _name_length_limits(v: DataValidatorRules, balance: Dictionary) -> void:
+	var valid: bool = true
+	for key: String in ["player_name.min_length", "player_name.max_length"]:
+		var value: Variant = lookup(balance, key)
+		if not DataValidatorRules.is_number(value):
+			valid = false
+		elif not DataValidatorRules.is_int(value) or float(value) < 1.0:
+			v.fail("key '%s' must be an integer >= 1" % key)
+			valid = false
+	if valid and float(lookup(balance, "player_name.min_length")) > float(lookup(balance, "player_name.max_length")):
+		v.fail("key 'player_name.min_length' must be <= 'player_name.max_length'")
 
 
 static func _limit(balance: Dictionary, key: String) -> float:
