@@ -903,7 +903,7 @@ signal page_changed(page_id: StringName)
 const ROUTE_SEPARATOR: String = ":"
 const ROUTE_SKILL := &"skill"
 const ROUTES: Dictionary[StringName, String]    # rotta -> scena della pagina (estende Page); assente = "In arrivo"
-                                                # oggi: skill -> skill_page.tscn, bank -> bank_page.tscn (nessun segnaposto)
+                                                # oggi: skill -> skill_page.tscn, bank -> bank_page.tscn, shop -> shop_page.tscn (M3-06) (nessun segnaposto)
 func setup(session: GameSession) -> void        # null: unbind e liberazione della pagina corrente
 func show_page(page_id: StringName) -> void     # &"skill:<id>", &"bank", &"shop", &"equipment", &"combat", &"rift", &"settings"
 func has_page(page_id: StringName) -> bool      # rotta in ROUTES; per skill:<id> skill di raccolta/artigianato con azioni
@@ -937,17 +937,37 @@ func set_progress(progress: float) -> void        # 0..1 letto da actions.get_pr
 func action_id() -> StringName                    # &"" prima di setup
 static func seconds_text(ms: int) -> String       # = NumberFormat.format_seconds(ms): 3000 -> "3,0 s", 2700 -> "2,7 s"
 
+class_name RecipeCard extends ActionCard         # ui/pages/skill/recipe_card.gd (+ .tscn ereditata da action_card.tscn), M3-05
+# nessun segnale nuovo (usa toggle_requested); stesse setup/redraw. SkillPage la crea per le azioni con inputs.
+# redraw aggiunge: una riga per ingrediente distinto con "posseduti / richiesti" (bank.get_count; UiStyle.BAD se mancano),
+# preservation_chance e double_item_chance da modifiers.total con ModifierContext.for_action, Avvia disabilitato se
+# ArtisanResolver.can_start fallisce (tranne la ricetta in corso, che si può sempre fermare).
+# SkillPage la ridisegna anche su bank_changed (collegato solo se la pagina ha ricette).
+
 class_name BankPage extends Page                 # ui/pages/bank/bank_page.gd (+ .tscn), rotta bank
 const REFUSED_TEXTS: Dictionary[StringName, String]   # motivo di un comando della bank -> testo; altri: REFUSED_TEXT_DEFAULT
 const REFUSED_TEXT_DEFAULT: String
 const NO_MATCH_TEXT: String                      # griglia vuota per la ricerca (con la bank non vuota)
 
 class_name BankItemPanel extends PanelContainer  # ui/pages/bank/bank_item_panel.gd (+ .tscn), interno a BankPage
-signal lock_requested(item_id: StringName, locked: bool)   # la pagina manda bank.set_locked
+signal lock_requested(item_id: StringName, locked: bool)   # la pagina manda bank.set_locked; locked letto da bank.is_locked
+signal sell_requested(item_id: StringName, qty: int)       # M3-06: la pagina manda shop.sell e mostra il motivo (REFUSED_TEXTS)
 signal close_requested
 func show_item(session: GameSession, item_id: StringName) -> bool   # rilegge tutto; false (e clear) se assente o sconosciuto
 func clear() -> void                             # nasconde e dimentica l'oggetto
 func item_id() -> StringName                     # &"" se chiuso
+# Tiene l'id mostrato e il riferimento alla sessione dell'ultimo show_item (solo per leggere: is_locked, get_count,
+# shop.sell_value a ogni uso; nessuna copia dello stato). Sezione vendita: cursore 1..quantità, anteprima
+# shop.sell_value, "Vendi" / "Tutti tranne 1" / "Tutti" (quantità lette dalla bank alla pressione); disabilitata con
+# una nota se l'oggetto è bloccato o ha valore 0.
+
+class_name ShopPage extends Page                 # ui/pages/shop/shop_page.gd (+ .tscn), rotta shop (M3-06)
+const REFUSED_TEXTS: Dictionary[StringName, String]   # motivo di can_buy/buy -> testo; altri: REFUSED_TEXT_DEFAULT
+const REFUSED_TEXT_DEFAULT: String
+# Righe di data.shop_entries() per categoria, costruite in bind. Prezzo da shop.price, "Acquisti x / max" solo se
+# max_purchases > 0, requisiti mancanti (req_entries, req_skills, req_total_level confrontati con shop e skills).
+# Compra abilitato solo se shop.can_buy riesce, altrimenti motivo accanto al pulsante e nel tooltip; errore di buy in
+# %MessageLabel. Ridisegno su shop_purchased, item_sold, gold_changed, bank_changed, level_up (scollegati in unbind).
 
 class_name MasteryPanel extends GameWindow       # ui/pages/mastery/mastery_panel.gd (+ .tscn), figlia di SkillPage
 const POOL_WARNING_KEY: String = "mastery.pool_warning_pct"   # soglia dell'avviso letta da session.data.balance_value
@@ -1105,13 +1125,13 @@ lo stesso quando la schermata esce dall'albero. Le voci della Sidebar senza pagi
 `bank_capacity_changed`. Numeri via `NumberFormat`; costanti di presentazione di tooltip e GameWindow in
 `UiStyle.TOOLTIP_*`/`UiStyle.WINDOW_*`.
 Pagina skill (M1-15): `SkillPage` legge la skill da `PageHost.argument_of(page_id)` in `bind` (skill sconosciuta:
-`Log.warn`, pagina vuota), crea una `ActionCard` per azione di `actions_for_skill` e si collega a sei segnali di
+`Log.warn`, pagina vuota), crea per ogni azione di `actions_for_skill` una `ActionCard` (una `RecipeCard` se ha `inputs`) e si collega a sei segnali di
 `session.events`: `xp_gained`, `level_up`, `action_started`, `action_stopped`, `mastery_xp_gained`, `modifiers_changed`
-(tutti scollegati in `unbind` e in `_exit_tree`). `_process` è attivo solo tra `bind` e `unbind` e legge soltanto
+(più `bank_changed` se ha ricette, per ridisegnare solo le `RecipeCard`; tutti scollegati in `unbind` e in `_exit_tree`). `_process` è attivo solo tra `bind` e `unbind` e legge soltanto
 `actions.get_progress()` (la carta dell'azione in corso riceve il progresso, le altre 0). L'intervallo mostrato è
 `actions.current_interval_ms`; una carta sotto il livello richiesto è bloccata (pulsante disabilitato). Un `start`
 rifiutato mostra `REFUSED_TEXTS` sotto l'intestazione; i motivi di stop del runner diventano toast nel `ToastManager`.
-Le ricette di artigianato (M3-05) oggi sono rifiutate dal runner (`unknown_id`). `ItemSlotView` tiene l'`ItemDef` e la
+`ItemSlotView` tiene l'`ItemDef` e la
 quantità dell'ultimo `set_item` solo per il proprio tooltip (copia di presentazione, mai letta da altri): chi la usa
 chiama di nuovo `set_item` quando la quantità cambia. Costanti di presentazione di menu, slot e dialogo:
 `UiStyle.MENU_PANEL_WIDTH`, `SLOT_PANEL_WIDTH`, `MENU_BUTTON_HEIGHT`, `MENU_TITLE_FONT_SIZE`, `DIALOG_SIZE`.

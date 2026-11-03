@@ -54,11 +54,11 @@ Se la sessione si interrompe, si riparte da qui.
 | M2-06 | M2 | Integrazione di M2 | REV | DONE | main | tag m2-done su c4e12c0; 740 test, 739 passati, 1 pending; prova del Giocabile 50/50; follow-up M3: sfondo del pannello della maestria trasparente, toast dei livelli accumulati sopra le finestre |
 | M3-01 | M3 | Ricette dell'artigianato | CORE | DONE | task/M3-01 | merge d94b5f2, fix b8d95b2 (smoke skill page: missing_inputs), docs be66510, 7375220, 2feac0d; 762 test, 761 passati, 1 pending; ownership estesa (da M1-09): mastery_bonuses di test_craft nelle fixture + caso F-11 artigianato in test_mastery_system.gd |
 | M3-02 | M3 | Shop (porting) | PORT | DONE | task/M3-02 | merge c16af12, docs ee819ae; a5c4a37 rimandato (test condizionale, F-17 non dallo shop, save senza limite), corretto in 6ce2020; 772 test, 771 passati, 1 pending |
-| M3-10 | M3 | Togliere bank.max_purchasable (doppione di max_purchases di bank_slot) | CORE | TODO | | proposta Reviewer accettata dall'Orchestratore: unica definizione in shop.json; task da scrivere in 07_TASKS (balance.json, data_validator.gd, test_config_files.gd; docs 01 §8, 04) |
-| M3-03 | M3 | Equipaggiamento e attrezzi | CORE | IN_PROGRESS | task/M3-03 | |
+| M3-10 | M3 | Togliere bank.max_purchasable (doppione di max_purchases di bank_slot) | CORE | TODO | | task in 07_TASKS (2e28f3d); docs già aggiornati; M3-09 dipende da M3-10 |
+| M3-03 | M3 | Equipaggiamento e attrezzi | CORE | DONE | task/M3-03 | merge 01ee4fc, docs e457b88, f262cb7; 796 test, 795 passati, 1 pending; ownership estesa a fixture equipment.json e test_game_data.gd (conteggio); worktree non rimosso (file bloccati, forse da un GUT appeso) |
 | M3-04 | M3 | Contenuto: Forgiatura, Focolare, Intaglio, shop | DATA | DONE | task/M3-04 | merge 0af98c4, fix eb72044 (smoke sidebar), docs ff02bc6, 2f67367; 746 test, 745 passati, 1 pending; ownership estesa a test_crafting_data.gd; impugnature restano (DECISIONS_LOG) |
-| M3-05 | M3 | Pagina skill: variante artigianato | UI | IN_PROGRESS | task/M3-05 | |
-| M3-06 | M3 | Shop e vendita | UI | TODO | | |
+| M3-05 | M3 | Pagina skill: variante artigianato | UI | DONE | task/M3-05 | merge 52835f5, docs 9e448b0, 2e7494e; b023268 rimandato (assert sempre vero, numero nudo), corretto in ff75f6b; 800 test, 799 passati, 1 pending; build_theme non spostato (nessuna costante UiStyle nuova) |
+| M3-06 | M3 | Shop e vendita | UI | IN_PROGRESS | task/M3-06 | |
 | M3-07 | M3 | Pagina equipaggiamento | UI | TODO | | |
 | M3-08 | M3 | Test di M3 | QA | TODO | | |
 | M3-09 | M3 | Integrazione di M3 | REV | TODO | | |

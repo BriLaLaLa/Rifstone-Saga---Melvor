@@ -9,12 +9,15 @@ extends Page
 ## `actions.stop`; a refused command shows its reason under the header. Stop reasons of the runner become toasts in the
 ## ToastManager of the main screen (`action_stopped`), not here.
 ## It keeps no game state: only the session reference and its nodes (cards by action id).
-## Artisan recipes get their own card in M3-05; until then their start is refused by the runner.
+## Artisan recipes (actions with inputs) get a RecipeCard (ingredients, chances), the others an ActionCard; the cards
+## of recipes are redrawn on `bank_changed` (owned ingredients; connected only by pages with recipes). The card list
+## scrolls (88 recipes in Forgiatura).
 ## Skills with mastery have a "Maestria" button in the header that opens the MasteryPanel (M2-03), a child window of
 ## the page (created on the first press, freed with the page): bound to the session only while open, closed when the
 ## page unbinds.
 
 const CARD_SCENE: PackedScene = preload("res://ui/pages/skill/action_card.tscn")
+const RECIPE_CARD_SCENE: PackedScene = preload("res://ui/pages/skill/recipe_card.tscn")
 const MASTERY_PANEL_SCENE: PackedScene = preload("res://ui/pages/mastery/mastery_panel.tscn")
 const LOG_CATEGORY: String = "ui"
 const LANE_ACTION_KEY: String = "action"
@@ -77,6 +80,8 @@ func bind(session: GameSession) -> void:
 	events.action_stopped.connect(_on_events_action_stopped)
 	events.mastery_xp_gained.connect(_on_events_mastery_xp_gained)
 	events.modifiers_changed.connect(_on_events_modifiers_changed)
+	if _has_recipe_cards():
+		events.bank_changed.connect(_on_events_bank_changed)
 	_redraw()
 	set_process(true)
 
@@ -93,6 +98,7 @@ func unbind() -> void:
 			[events.action_stopped, _on_events_action_stopped],
 			[events.mastery_xp_gained, _on_events_mastery_xp_gained],
 			[events.modifiers_changed, _on_events_modifiers_changed],
+			[events.bank_changed, _on_events_bank_changed],
 		]:
 			var event: Signal = connection[0]
 			var handler: Callable = connection[1]
@@ -122,7 +128,8 @@ func _build_cards() -> void:
 		child.queue_free()
 	_cards.clear()
 	for action: ActionDef in _session.data.actions_for_skill(_skill.id):
-		var action_card: ActionCard = CARD_SCENE.instantiate() as ActionCard
+		var scene: PackedScene = RECIPE_CARD_SCENE if not action.inputs.is_empty() else CARD_SCENE
+		var action_card: ActionCard = scene.instantiate() as ActionCard
 		_card_list.add_child(action_card)
 		action_card.setup(action, _session.data)
 		action_card.toggle_requested.connect(_on_card_toggle_requested)
@@ -208,6 +215,12 @@ func _on_events_modifiers_changed() -> void:
 	_redraw()
 
 
+func _on_events_bank_changed(_item_id: StringName, _new_count: int, _delta: int) -> void:
+	for action_id: StringName in _cards:
+		if _cards[action_id] is RecipeCard:
+			_cards[action_id].redraw(_session)
+
+
 ## Opens the mastery window of the skill (bound to the session while open) or closes it.
 func _on_mastery_button_pressed() -> void:
 	if _session == null or not _skill.has_mastery:
@@ -221,3 +234,10 @@ func _on_mastery_button_pressed() -> void:
 		add_child(_mastery_panel)
 	_mastery_panel.bind(_session, _skill.id)
 	_mastery_panel.open_window()
+
+
+func _has_recipe_cards() -> bool:
+	for action_id: StringName in _cards:
+		if _cards[action_id] is RecipeCard:
+			return true
+	return false
