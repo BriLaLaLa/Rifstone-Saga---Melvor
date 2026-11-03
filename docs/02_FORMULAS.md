@@ -178,7 +178,8 @@ Esempi: (1, 0, 0) → max 11, min 1; (10, 20, 0) → 30 / 3; (50, 60, 0) → 150
 ### F-23 Probabilità di colpire
 `hit = clamp(AR / (AR + ER), combat.hit_chance_min, combat.hit_chance_max)`; `min = 0.05`, `max = 0.95`.
 Esempi: 450 vs 450 → 0,50; 1.080 vs 450 → 0,7059; 450 vs 1.800 → 0,20; 100 vs 10.000 → 0,05; 10.000 vs 100 → 0,95;
-1.000 vs 0 → 0,95. Test: `test_combat_math.gd`.
+1.000 vs 0 → 0,95. Caso limite `AR + ER ≤ 0` (solo con `accuracy_pct`/`evasion_pct` ≤ −100): rapporto grezzo 1, poi
+il limite → `hit_chance_max`. Test: `test_combat_math.gd`.
 
 ### F-24 Triangolo
 Relazione dal punto di vista dell'attaccante: `blade` batte `arcana`, `arcana` batte `marksmanship`,

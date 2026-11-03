@@ -1128,6 +1128,15 @@ Regole comuni a M4 (oltre a quelle in testa al file):
   costante `MONSTERS` dello stesso file: quando M5-06 tara l'XP li aggiorna (ownership estesa a quel test e a
   `data/combat/monsters.json`, campo `xp`). Se i criteri di `02_FORMULAS.md` §8.5 non reggono, la leva sono i pesi dei
   gruppi in `data/combat/areas.json` (ownership di M5-06 estesa a quel file, nel rispetto delle regole dei gruppi di §8.5).
+- **Nota (da M5-01) per M5-02** `CombatMath` copre solo la parte pura di F-70 (`test_combat_math.gd::test_f70_base_values`):
+  `tests/systems/combat/test_combatant_stats.gd::test_player_base_from_character_level` (F-70 da `CombatantStats.for_player`,
+  mani nude, `L_char`) resta di M5-02. `CombatantStats.block_chance` passa da `CombatMath.block_chance` (limite della stat).
+- **Nota (da M5-01) per M5-03** Ordine di risoluzione di un colpo con le funzioni di `CombatMath`: `hit_chance` (F-23) →
+  se colpisce e il difensore è il giocatore con lo scudo, tiro della parata su `block_chance` (F-75, solo **dopo** un
+  colpo riuscito; parato = danno 0) → tiro in `[min_hit, max_hit]` (F-22) → `triangle(attaccante, difensore)` →
+  `triangle_damage` (F-24, troncato) → `effective_dr(dr del difensore, relazione dell'attaccante)` → `damage_after_dr`
+  (F-25). La relazione è sempre dal punto di vista di **chi attacca** (anche quando attacca un mostro). Il test del tiro
+  `test_combat_engine.gd::test_block_chance` (F-75) resta di M5-03.
 
 ## M6 · Abilità e tratti
 
