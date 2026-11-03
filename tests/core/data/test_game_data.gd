@@ -5,7 +5,7 @@ extends GutTest
 ## fixtures written under user://, changed one file at a time.
 
 const FIXTURE_ROOT: String = "res://tests/fixtures/data"
-const CONFIG_ROOT: String = "res://data/config"
+const V: GDScript = preload("res://tests/core/data/test_data_validator.gd")
 const PreRun := preload("res://tests/helpers/gut_pre_run.gd")
 
 var _tmp_root: String = PreRun.test_dir("test_game_data")
@@ -13,7 +13,7 @@ var _data: GameData = null
 
 
 func before_all() -> void:
-	_data = GameData.load_from_dirs(FIXTURE_ROOT, CONFIG_ROOT)
+	_data = GameData.load_from_dirs(FIXTURE_ROOT, V.Bridge.config_root())
 
 
 func after_all() -> void:
@@ -35,6 +35,10 @@ func _ids(defs: Array) -> Array[StringName]:
 			result.append((def as ShopEntryDef).id)
 		elif def is AreaDef:
 			result.append((def as AreaDef).id)
+		elif def is ClassDef:
+			result.append((def as ClassDef).id)
+		elif def is AffixDef:
+			result.append((def as AffixDef).id)
 	return result
 
 
@@ -96,24 +100,23 @@ func test_lists_are_copies() -> void:
 	_data.items().clear()
 	_data.skills().clear()
 	assert_eq(_data.items().size(), 12)
-	assert_eq(_data.skills().size(), 9)
+	assert_eq(_data.skills().size(), 4)
 
 
 func test_skills_are_ordered_by_order() -> void:
-	assert_eq(_ids(_data.skills()), [&"test_gather", &"test_gather_b", &"test_craft", &"blade", &"marksmanship",
-			&"arcana", &"vitality", &"guard", &"riftbinding"] as Array[StringName])
+	assert_eq(_ids(_data.skills()), [&"test_gather", &"test_gather_b", &"test_craft", &"riftbinding"] as Array[StringName])
 
 
 func test_skills_by_category() -> void:
-	assert_eq(_ids(_data.skills_by_category(&"combat")),
-			[&"blade", &"marksmanship", &"arcana", &"vitality", &"guard"] as Array[StringName])
+	assert_eq(_ids(_data.skills_by_category(&"gathering")), [&"test_gather", &"test_gather_b"] as Array[StringName])
 	assert_eq(_ids(_data.skills_by_category(&"artisan")), [&"test_craft", &"riftbinding"] as Array[StringName])
 	assert_eq(_data.skill(&"test_gather").mastery_bonuses.size(), 2)
 
 
 func test_skills_by_unknown_category_is_error() -> void:
 	assert_eq(_data.skills_by_category(&"farming").size(), 0)
-	assert_push_error("unknown skill category 'farming'")
+	assert_eq(_data.skills_by_category(&"combat").size(), 0, "combat is no longer a skill category")
+	assert_push_error(2)
 
 
 func test_actions_are_ordered_by_level_then_id() -> void:
@@ -158,8 +161,13 @@ func test_mastery_nodes() -> void:
 
 func test_areas_and_monsters() -> void:
 	assert_eq(_ids(_data.areas()), [&"test_area"] as Array[StringName])
-	assert_eq(_data.area(&"test_area").monster_ids, [&"test_monster_a", &"test_monster_b"] as Array[StringName])
+	var area: AreaDef = _data.area(&"test_area")
+	assert_eq(area.monster_ids, [&"test_monster_a", &"test_monster_b"] as Array[StringName])
+	assert_eq(area.packs.size(), 2)
+	assert_eq(area.packs[0].weight, 3)
+	assert_eq(area.packs[1].monster_ids, [&"test_monster_a", &"test_monster_b"] as Array[StringName])
 	var monster: MonsterDef = _data.monster(&"test_monster_b")
+	assert_eq(monster.xp, 200)
 	assert_eq(monster.gold_min, 5)
 	assert_eq(monster.gold_max, 12)
 	assert_eq(monster.drops.size(), 2)
@@ -172,12 +180,58 @@ func test_shop_entries_in_file_order() -> void:
 	assert_eq(_data.shop_entry(&"test_buy_hatchet").effect_item.item_id, &"test_hatchet")
 
 
+
+# --- M4: character, classes, affixes -----------------------------------------------------------------------------
+
+func test_character_xp_table_comes_from_character_curve() -> void:
+	assert_not_null(_data.character_xp_table())
+	assert_eq(_data.character_xp_table().level_for_xp(1236), 10, "F-71 example, same curve values as xp_curve")
+
+
+func test_classes_are_ordered_by_order() -> void:
+	assert_eq(_ids(_data.classes()), [&"test_class", &"rift_blade"] as Array[StringName])
+	var def: ClassDef = _data.character_class(&"test_class")
+	assert_eq(def.setups.size(), 4)
+	assert_eq(def.setup_for(&"sword", &"sword").id, &"dual_swords")
+
+
+func test_start_class_exists() -> void:
+	var start: StringName = StringName(_data.balance_value("character.start_class") as String)
+	assert_not_null(_data.character_class(start))
+
+
+func test_unknown_class_and_affix_are_null_with_error() -> void:
+	assert_null(_data.character_class(&"ghost"))
+	assert_null(_data.affix(&"ghost"))
+	assert_push_error(2)
+
+
+func test_affixes_for_slot_keep_the_file_order() -> void:
+	assert_eq(_ids(_data.affixes_for_slot(&"weapon")), [&"test_keen", &"test_mighty"] as Array[StringName])
+	assert_eq(_ids(_data.affixes_for_slot(&"head")), [&"test_mighty", &"test_nimble"] as Array[StringName])
+	assert_eq(_ids(_data.affixes_for_slot(&"tool_forestry")), [&"test_woodsman"] as Array[StringName])
+	assert_eq(_data.affixes_for_slot(&"ring").size(), 0)
+	assert_eq(_data.affix(&"test_mighty").tiers[1].step, 2.0)
+
+
+func test_item_kind_and_grade() -> void:
+	assert_eq(_data.item(&"test_greatsword").equip.kind, &"greatsword")
+	assert_true(_data.item(&"test_greatsword").equip.weapon.two_handed)
+	assert_eq(_data.item(&"test_shield").equip.kind, &"shield")
+	assert_eq(_data.item(&"test_helm_high").equip.grade, 2)
+	assert_eq(_data.item(&"test_helm_high").equip.requirements, {&"character": 10} as Dictionary[StringName, int])
+
+
+func test_shop_character_requirement() -> void:
+	assert_eq(_data.shop_entry(&"test_upgrade_2").req_character, 20)
+	assert_eq(_data.shop_entry(&"bank_slot").req_character, 0)
+
 # --- invalid data ------------------------------------------------------------------------------------------------
 
 func test_invalid_data_has_errors_and_no_defs() -> void:
 	var root: String = _copy_fixtures()
 	_rewrite(root.path_join("items/misc.json"), "rift_shard", "rift_dust")
-	var data: GameData = GameData.load_from_dirs(root, CONFIG_ROOT)
+	var data: GameData = GameData.load_from_dirs(root, V.Bridge.config_root())
 	assert_false(data.is_valid())
 	assert_string_contains("\n".join(data.errors), "required item 'rift_shard'")
 	assert_eq(data.items().size(), 0)
@@ -192,7 +246,7 @@ func test_broken_json_file_is_reported_with_its_path() -> void:
 	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
 	file.store_string("{\"entries\": [")
 	file.close()
-	var data: GameData = GameData.load_from_dirs(root, CONFIG_ROOT)
+	var data: GameData = GameData.load_from_dirs(root, V.Bridge.config_root())
 	assert_false(data.is_valid())
 	assert_string_contains("\n".join(data.errors), path)
 
@@ -200,7 +254,7 @@ func test_broken_json_file_is_reported_with_its_path() -> void:
 func test_missing_content_folder_is_reported() -> void:
 	var root: String = _copy_fixtures()
 	_remove_dir(root.path_join("mastery"))
-	var data: GameData = GameData.load_from_dirs(root, CONFIG_ROOT)
+	var data: GameData = GameData.load_from_dirs(root, V.Bridge.config_root())
 	assert_false(data.is_valid())
 	assert_string_contains("\n".join(data.errors), root.path_join("mastery") + ": folder not found")
 
@@ -216,7 +270,7 @@ func test_data_registry_reload_matches_validity() -> void:
 func test_doc_in_a_level_map_is_skipped_by_the_defs() -> void:
 	var root: String = _copy_fixtures()
 	_rewrite(root.path_join("combat/areas.json"), "\"requirements\": {}", "\"requirements\": {\"_doc\": \"none\"}")
-	var data: GameData = GameData.load_from_dirs(root, CONFIG_ROOT)
+	var data: GameData = GameData.load_from_dirs(root, V.Bridge.config_root())
 	assert_true(data.is_valid(), "; ".join(data.errors))
 	assert_eq(data.area(&"test_area").requirements, {} as Dictionary[StringName, int])
 

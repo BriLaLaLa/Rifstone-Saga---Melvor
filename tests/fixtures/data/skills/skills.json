@@ -20,21 +20,6 @@
      ]},
     {"id": "riftbinding", "name": "Legatura del Rift", "category": "artisan", "order": 9,
      "icon": "res://assets/icons/skills/riftbinding.png", "color": "#9060d0",
-     "description": "Infusioni per l'Altare del Rift.", "has_mastery": false},
-    {"id": "blade", "name": "Lama", "category": "combat", "order": 4,
-     "icon": "res://assets/icons/skills/blade.png", "color": "#c04040",
-     "description": "Precisione e danno in mischia.", "has_mastery": false},
-    {"id": "marksmanship", "name": "Mira", "category": "combat", "order": 5,
-     "icon": "res://assets/icons/skills/marksmanship.png", "color": "#40a040",
-     "description": "Precisione e danno a distanza.", "has_mastery": false},
-    {"id": "arcana", "name": "Arcano", "category": "combat", "order": 6,
-     "icon": "res://assets/icons/skills/arcana.png", "color": "#4060c0",
-     "description": "Precisione e danno arcani.", "has_mastery": false},
-    {"id": "vitality", "name": "Vitalità", "category": "combat", "order": 7,
-     "icon": "res://assets/icons/skills/vitality.png", "color": "#d06060",
-     "description": "Punti vita massimi.", "has_mastery": false},
-    {"id": "guard", "name": "Guardia", "category": "combat", "order": 8,
-     "icon": "res://assets/icons/skills/guard.png", "color": "#a0a0a0",
-     "description": "Evasione.", "has_mastery": false}
+     "description": "Infusioni per l'Altare del Rift.", "has_mastery": false}
   ]
 }

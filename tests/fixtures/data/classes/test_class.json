@@ -1,0 +1,14 @@
+{
+  "_doc": "Test fixture (04_DATA_SCHEMA.md §13): the four setups of rift_blade, without traits or abilities.",
+  "id": "test_class", "name": "Classe di prova", "order": 1,
+  "description": "Classe per i test.",
+  "weapon_kinds": ["greatsword", "sword"], "offhand_kinds": ["shield", "sword"],
+  "setups": [
+    {"id": "greatsword", "name": "Spadone", "weapon": "greatsword", "offhand": "", "modifiers": []},
+    {"id": "sword_shield", "name": "Spada e scudo", "weapon": "sword", "offhand": "shield", "modifiers": []},
+    {"id": "dual_swords", "name": "Due spade", "weapon": "sword", "offhand": "sword", "alternate": true,
+     "modifiers": [{"stat": "accuracy_pct", "value": -10}]},
+    {"id": "sword", "name": "Spada", "weapon": "sword", "offhand": "", "modifiers": []}
+  ],
+  "traits": [], "abilities": []
+}
