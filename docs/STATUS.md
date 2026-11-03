@@ -3,67 +3,45 @@
 Aggiornato dall'Orchestratore (unico che modifica questo file). Stati: TODO / IN_PROGRESS / REVIEW / DONE / BLOCKED.
 Se la sessione si interrompe, si riparte da qui.
 
-## Ripartenza (aggiornata il 2026-11-03)
-- **Stato**: M4 in corso. **M4-01 + M4-02 DONE**, merge congiunto `16e6306` su `main` (correzioni del Reviewer sul
-  branch in `df9bc0d`). **M4-04 DONE**, merge `ef00713`. **M4-03 DONE**, merge `f6ed43c` (main riunito nel branch in
-  `ef4bb5d`). **M4-05 DONE**, merge `a85cb8c` (`789ff61`, correzioni del Reviewer `bb59448`). **M4-06 DONE**, merge
-  `558447b` (`437037c`). **M4-09 DONE**, merge `71fafa6` (`0755b3d`, main riunito `1a81dbd`, correzione del Reviewer
-  `ce4430f`). **M4-07 DONE**, merge `13c65e2` (`c60cb6c`, test aggiunti dal Reviewer `e22c705`). **M4-08 DONE**,
-  merge `1464d72` (`e14561d`…`68e8dd5`, correzione del Reviewer `9a129e0`). Suite (run_checks dopo M4-08): 1026 test,
-  1025 passati, 1 pending, 0 falliti; validate_data verde su fixture e dati veri. M3
-  completata, tag `m3-done` su `ca18ee6`; `main` e i tag `m0-done`…`m3-done` pushati su `origin` (il push di M4 si fa
-  a fine milestone). Visione v2 approvata (D1-D6), R-00 fatto.
-- **Prossimo passo**: **M4-10** (Test di M4; note "da M4-02", "da M4-05", "da M4-06", "da M4-07", "da M4-08", "da
-  M4-09" in `07_TASKS.md`), poi M4-11, con le regole dei consumi di `CLAUDE.md` (massimo 2 agenti, test mirati, suite
-  completa solo dopo il merge, review sul diff, sezioni nei brief). I worktree `RSI-worktrees/M4-01`…`M4-09` si possono
-  rimuovere.
-- **Follow-up di M4-08**: API UI nuove registrate in `05_INTERFACES.md` §7 (`ArmoryItemPanel`, `ArmoryCell`,
-  `ArmoryTexts`, `UiStyle.rarity_color`, `UiThemeBuilder.build`, `ItemTooltipLines.style_name`/`requirement_text`/
-  `weapon_line`, testi Q42 come costanti); `UiStyle.build_theme()` resta come inoltro (nota su M4-10); "+N" da testare
-  in M7-06; `WindowPanel` opaco anche per menu e selezione slot (da verificare a mano).
-- **Follow-up di M4-07**: M4-08 pezzi e attrezzi da `armory.instances()`, testo `armory_full` negli `STOP_TEXTS` del
-  toast; M4-10 nessuna ricetta di pezzo nelle fixture, scope di `item_rarity_pct` nell'artigianato.
-- **Follow-up di M4-09**: M4-08 sfondo opaco della variante `WindowPanel` nel tema al posto dell'override locale di
-  `mastery_panel.tscn`, voce `Armory` della sidebar nel test quando la rotta esiste; M4-10 categoria `combat` della
-  fixture dello shop.
-- **Follow-up di M4-06**: casi di `equip`/`unequip` fissati in `05_INTERFACES.md` §5.9; M4-07 segnaposto `equip(0)` in
-  `test_crafting_chain.gd`; M4-08 resti della stance in `equipment_page.gd`, segnaposto `not_equippable` in
-  `bank_page.gd`, segnali `equipment_changed(slot, uid)` e `food_changed`; M4-10 due file di test oltre 400 righe;
-  M7-01 `Equipment` non ascolta `armory_changed(uid, updated)` (pezzo indossato raffinato).
-- **Follow-up di M4-05** (note "da M4-05" in `07_TASKS.md`): M4-06 `set_worn` prima di `remove`, `set_worn(uid, true,
-  true)` in `Equipment.from_save`, pending; M4-07 pending di `test_crafting_chain.gd`; M4-08 pending UI e
-  `test_tooltip` intermittente; M4-09 sidebar con `&"combat"` e pending dello shop; M4-10 ramo `bank_full` dello shop.
-- **Follow-up di M4-03**: M4-05 e M4-06 controllano i requisiti misti con `session.character.meets_requirements`
-  (`SkillsSystem.meets_requirements` registra un errore sulla chiave `character`).
-- **Pending aperti** (1, vecchio; lo chiude il task indicato, note in `07_TASKS.md`):
-  `test_stat_registry_coverage.gd` (stat del combattimento, errore da M6-07). Chiusi da M4-06 (23), M4-09 (3),
-  M4-07 (3) e M4-08 (7).
-- **Follow-up di M4-04** (note "da M4-04" in `07_TASKS.md`): M4-05 `from_dict` non controlla `uid`/unicità/castoni;
-  M4-07 rarità tirata dal chiamante e scope `skill:forestry` degli attrezzi nelle fixture; M7-01 caso `+N` di
-  `instance_modifiers`; M7-03 stub `drop_chances`.
-- **Follow-up di M4-02** (note "da M4-02" in `07_TASKS.md`): M4-03 `total_level` in `test_skills_system.gd` e requisiti
-  misti con `character`; M4-05 requisito `character` in `test_shop.gd`; M4-06 pending e costante `BOW`; M4-07
-  `test_crafting_chain.gd` con gli attrezzi nell'Armeria; M4-08 pending, ownership di `item_tooltip_lines.gd` (Q42);
-  M4-09 pending della sidebar; M4-10 riga lunga in `test_config_files.gd`.
-- **Da aggiornare fuori da `docs/`** (non nell'ownership di R-00): `.claude/agents/reviewer.md` cita M6-08 per il rilascio
-  (ora M9-08); eventuali altri file agente che citano le vecchie M4-M8.
-- **Decisioni aperte per l'utente**: Q26 (nodi di Cavatura e Lenza); Q27-Q40 (valgono i default); Q41 (XP dei mostri, da
-  tarare in M5-06); **Q42 nuova** (testi del tooltip dei pezzi senza skill di combattimento, default in OPEN_QUESTIONS).
-  Confermati come provvisori: affissi (`02_FORMULAS.md` §8.9), F-83, F-86.
-- **Decisioni prese in M4-01/M4-02** (DECISIONS_LOG): `dual_swords` `accuracy_pct −10` (Q39); `formula` di una stat con
-  più formule = la prima; `block_chance` nei dati da M4, effetto in M5; ponte `m4_config_bridge.gd` eliminato; test fuori
-  ownership adeguati dal Reviewer e pending dei task successivi.
-- **Follow-up già registrati** (note in `07_TASKS.md`): su M4-08 spostamento di `build_theme` da `ui_style.gd` (390/400)
-  e pulizia del test `tool_forestry`; su M4-09 sfondo trasparente del pannello della maestria; su M5-03
-  `_combat_active()` tipizzato in `equipment.gd` (N2); su M9-06 toast dei livelli sopra le finestre (N9). Il debito di
-  stile di `test_crafting_data.gd` è chiuso (M4-02).
-- **Prova manuale consigliata** (non verificabile in headless): aspetto delle pagine Shop ed Equipaggiamento, vendita e
-  trascinamento con clic reali. Da M4-08: (1) aspetto della griglia dell'Armeria e colori di rarità; (2) layout a
-  1600×900 e 1280×720; (3) tooltip sulle celle dell'Armeria; (4) sfondo opaco di `WindowPanel` (maestria, menu,
-  selezione slot); (5) sezione Assetto della pagina Equipaggiamento; (6) flusso forgia → Armeria → equip "In mano" /
-  "Seconda mano" → assetto "Due spade".
+## Ripartenza (aggiornata il 2026-11-03, fine M4)
+- **Stato**: **M4 completata**, tag `m4-done` sul commit docs di M4-11 (`main`). Merge di M4: M4-01+M4-02 `16e6306`,
+  M4-04 `ef00713`, M4-03 `f6ed43c`, M4-05 `a85cb8c`, M4-06 `558447b`, M4-09 `71fafa6`, M4-07 `13c65e2`, M4-08
+  `1464d72`, M4-10 `213678a` (docs `1c0cdae`). Suite (run_checks su main dopo M4-10): **1046 test, 1045 passati,
+  1 pending, 0 falliti**; validate_data verde su fixture e dati veri; file ≤ 400 righe (129 file); riferimenti vietati
+  assenti (807 file). Prova del Giocabile di M4: 8/8 (criteri di `06_ROADMAP.md` M4, verificati con i test e con
+  l'avvio headless). `main` e i tag `m0-done`…`m4-done` pushati su `origin` a fine M4.
+- **Prossimo passo**: **M5 · Combattimento a gruppi** (`07_TASKS.md` §M5), dopo l'OK dell'utente. Si parte con **M5-01**
+  (COMBAT, formule) e **M5-04** (DATA, 4 aree e 12 mostri) **in parallelo** (dipendono solo da M4-11, ownership
+  disgiunte); poi M5-02 (dopo M5-01) → M5-03 (L) → M5-05 (UI, L) e M5-06 (dopo M5-03 e M5-04) → M5-07 (QA) → M5-08
+  (REV). Regole dei consumi di `CLAUDE.md`: massimo 2 agenti, test mirati, suite completa solo dopo il merge, review
+  sul diff, sezioni nei brief.
+- **Decisioni aperte per l'utente** (`OPEN_QUESTIONS.md`, finché non risponde valgono i default): Q26 (nodi di Cavatura
+  e Lenza); Q27-Q40 (default); Q41 (XP dei mostri, da tarare in M5-06 con `tools/sim_combat.gd`); Q42 (testi del
+  tooltip dei pezzi senza skill di combattimento, default applicato in M4-08). Confermati come provvisori: affissi
+  (`02_FORMULAS.md` §8.9), F-83, F-86.
+- **Decisioni prese in M4** (DECISIONS_LOG): `dual_swords` `accuracy_pct −10` (Q39); `formula` di una stat con più
+  formule = la prima; `block_chance` nei dati da M4, effetto in M5; save v1 → `version_unsupported` senza migrazione
+  (M4-03); casi di `equip`/`unequip` in `05_INTERFACES.md` §5.9 (M4-06); API UI dell'Armeria in 05 §7 (M4-08);
+  M4-10: `item_rarity_pct` letta col contesto dell'azione e maestria 1 con 0 XP, entrambe scritte in F-83.
+- **Follow-up registrati** (note "da M4-xx" e N* in `07_TASKS.md`): M5-03 `_combat_active()` tipizzato in
+  `equipment.gd` (N2); M5-07 `CLOSED_FORMULAS` del combattimento e `"10.6"` (chiude l'unico pending,
+  `test_stat_registry_coverage.gd`); M7-01 caso `+N` di `ItemRoller.instance_modifiers` e `Equipment` che ascolta
+  `armory_changed(uid, &"updated")`; M7-03 stub `ItemRoller.drop_chances`; M7-06 smoke con `upgrade > 0` ("+N" in
+  `ArmoryTexts.piece_name`/`ArmoryCell`); M9-06 toast dei livelli sopra le finestre (N9); inoltro
+  `UiStyle.build_theme()` → `UiThemeBuilder.build()` da togliere nel primo task che tocca `tools/build_ui_theme.gd` o
+  `test_ui_style.gd` (nota "da M4-08"); filtro automatico dell'Armeria per slot in M7-02 (i filtri della pagina in M4
+  sono solo di presentazione).
+- **Pending aperti** (1): `test_stat_registry_coverage.gd` (15 stat del combattimento, etichette ora su M5; lo chiude
+  M5-07).
+- **Prova manuale consigliata** (non verificabile in headless): (1) aspetto della griglia dell'Armeria e colori di
+  rarità; (2) layout a 1600×900 e 1280×720; (3) tooltip sulle celle dell'Armeria; (4) sfondo opaco di `WindowPanel`
+  (maestria, menu, selezione slot); (5) sezione Assetto della pagina Equipaggiamento; (6) flusso forgia → Armeria →
+  equip "In mano" / "Seconda mano" → assetto "Due spade"; (7) aspetto delle pagine Shop ed Equipaggiamento, vendita e
+  trascinamento con clic reali; (8) lo slot 1 vero dell'utente (save v1 di M3) appare "versione non supportata" nel
+  menu e "Nuova partita" lo sovrascrive solo su richiesta.
 - **Pulizia a mano**: cartella `C:/Users/Davide/Desktop/AI/RSI-worktrees/M3-03` (worktree già staccato da git, file
-  bloccati da un processo Godot rimasto aperto) e cartella vuota `rifstone-saga---melvor/` nella root.
+  bloccati da un processo Godot) e cartella vuota `rifstone-saga---melvor/` nella root. I worktree di M4 sono tutti rimossi.
+- **Fuori da `docs/`**: nulla da aggiornare (`.claude/agents/reviewer-integrator.md` cita già M9-08 per il rilascio).
 
 | ID | Milestone | Titolo | Ruolo | Stato | Branch | Note |
 |---|---|---|---|---|---|---|
@@ -124,7 +102,7 @@ Se la sessione si interrompe, si riparte da qui.
 | M4-08 | M4 | Pagina dell'Armeria ed equipaggiamento | UI | DONE | task/M4-08 | merge 1464d72; e14561d, 90cc24e, ec9215b, 0052fb5, 68e8dd5, correzione del Reviewer 9a129e0 (tolti `ArmoryTexts.kind_name`/`KIND_NAMES` inutilizzati); API UI nuove registrate in 05 §7 (ArmoryItemPanel, ArmoryCell, ArmoryTexts, UiStyle.rarity_color/build_theme, UiThemeBuilder, ItemTooltipLines Q42); 7 pending chiusi; tooltip deterministico (frame di processo); run_checks 1026 test, 1025 passati, 1 pending, 0 falliti; note per M4-10 e M7-06; worktree non rimosso |
 | M4-09 | M4 | Pagina del personaggio, sidebar e shop | UI | DONE | task/M4-09 | merge 71fafa6; 0755b3d, main riunito nel branch 1a81dbd, correzione del Reviewer ce4430f (`Equipment.setup()` tipizzato al posto di `has_method`, `equipment_changed(slot, uid)`, test dell'assetto evidenziato); sfondo della maestria con override locale accettato in via provvisoria (spostamento nel tema su M4-08); categoria `combat` della fixture dello shop su M4-10; run_checks 997 test, 986 passati, 11 pending, 0 falliti; worktree non rimosso |
 | M4-10 | M4 | Test di M4 | QA | DONE | task/M4-10 | merge 213678a; 46c4c50, eb2a3e2, 082d1c8, 02b14b1, bd182bc; test nuovi `test_reform_flow` (7), `test_save_v2` (11), divisi `test_item_conservation_equipment`, `test_equipment_setups`; `test_buy_log` e bank piena nello shop; voci `combat` della fixture spostate in `bank`; `FORMULA_MILESTONES` del combattimento → M5; decisioni (a)-(d) in DECISIONS_LOG (scope di `item_rarity_pct` e maestria 1 scritti in F-83, `.uid` committati, inoltro `build_theme` lasciato); run_checks 1046 test, 1045 passati, 1 pending, 0 falliti |
-| M4-11 | M4 | Integrazione di M4 | REV | TODO | | tag m4-done |
+| M4-11 | M4 | Integrazione di M4 | REV | DONE | main | tag m4-done sul commit docs di M4-11; run_checks 1046 test, 1045 passati, 1 pending, 0 falliti; prova del Giocabile 8/8 (test + avvio headless); Lezioni checklist ok; worktree M4-10 rimosso; main e m4-done pushati |
 | M5-01 | M5 | Formule di combattimento | COMBAT | TODO | | |
 | M5-02 | M5 | Statistiche per mano, razioni da campo, borsa del bottino | COMBAT | TODO | | |
 | M5-03 | M5 | Motore a eventi, incontri e gruppi | COMBAT | TODO | | note ereditate N1-N2 (07_TASKS) |

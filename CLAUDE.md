@@ -110,5 +110,6 @@ l'import è innocuo.
 ## Stato
 M0 (Setup) completata, tag `m0-done`. M1 (Prima skill completa, Selvicoltura) completata, tag `m1-done`. M2 (Maestria a nodi e raccolta completa)
 completata, tag `m2-done`. M3 (Artigianato, shop, equipaggiamento) completata, tag `m3-done`. Visione v2 approvata e
-riportata nei documenti (R-00, fonte `docs/VISIONE_V2.md`). Prossima milestone: **M4 Riforma (personaggio e Armeria)**,
-dopo l'OK dell'utente per M4-01; l'MVP è M0-M9. Avanzamento dei task in `docs/STATUS.md`.
+riportata nei documenti (R-00, fonte `docs/VISIONE_V2.md`). M4 (Riforma: personaggio e Armeria) completata, tag
+`m4-done`. Prossima milestone: **M5 Combattimento a gruppi**, dopo l'OK dell'utente per M5-01/M5-04; l'MVP è M0-M9.
+Avanzamento dei task in `docs/STATUS.md`.
