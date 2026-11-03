@@ -712,7 +712,8 @@ Comportamento (M3-03):
   La scelta resta anche quando la bank esaurisce il cibo (il combattimento gestisce la mancanza di cibo).
 - Save (§6): `{"slots": {slot: item_id}, "food": item_id | "", "stance": stance}`, solo gli slot occupati. `from_save`
   tollerante, con `Log.warn`: slot sconosciuto, oggetto sconosciuto, non equipaggiabile o di un altro slot → slot vuoto;
-  cibo non valido → nessuno; stance non valida → `offensive`. Nessun segnale; i modificatori si ricostruiscono con
+  arma `two_handed` e `offhand` entrambi pieni (save modificato) → resta l'arma, `offhand` vuoto, il pezzo scartato
+  (come le altre voci non valide: nessun ritorno alla bank, che `from_save` non tocca) (M3-11); cibo non valido → nessuno; stance non valida → `offensive`. Nessun segnale; i modificatori si ricostruiscono con
   `rebuild_modifiers`.
 
 ### 5.10 Combattimento (`systems/combat/`) — dipendenze: data, events, modifiers, rng, bank, wallet, skills, equipment, actions (solo `stop`)

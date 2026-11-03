@@ -804,8 +804,23 @@ Regole per tutti i task:
   conteggio di `REQUIRED_BALANCE_KEYS` in `test_required_balance_keys_are_all_in_the_real_file`, 59 → 58).
   `balance.json` ha ora 58 chiavi obbligatorie.
 
+### M3-11 · Save con arma a due mani e offhand
+- **Ruolo** CORE · **Stima** S · **Parallelizzabile** no · **Dipendenze** M3-08
+- **Ownership** `res://systems/equipment/equipment.gd` (solo `from_save` e i suoi helper privati),
+  `res://tests/systems/equipment/test_equipment.gd` (caso nuovo), `res://tests/integration/test_item_conservation.gd`
+  (solo il corpo di `test_save_with_two_handed_weapon_and_offhand_keeps_the_invariants`)
+- **Leggere** `05_INTERFACES.md` §5.9 (regola del save tollerante); `01_GDD.md` §9 (arma a due mani)
+- **Descrizione** Bug trovato da M3-08: `Equipment.from_save` carica insieme un'arma `two_handed` e un `offhand`.
+  Applicare la regola di 05 §5.9 (M3-11) con `Log.warn`. Nel test di integrazione togliere il ramo `pending` e
+  l'`assert_true(true)` e sostituirli con le asserzioni vere (arma caricata, `offhand` vuoto, bank invariata):
+  `test_item_conservation.gd` è a 400 righe e non deve crescere (togliere righe quante se ne aggiungono).
+- **Accettazione** nessun `pending` nel test di integrazione; caso nuovo in `test_equipment.gd` (save con arma a due
+  mani e scudo → arma, `offhand` vuoto, nessun segnale); `res://tests/systems` e `res://tests/integration` verdi;
+  `check_file_sizes` OK.
+- **Test** `test_equipment.gd`, `test_item_conservation.gd`.
+
 ### M3-09 · Integrazione di M3
-- **Ruolo** REV · **Stima** S · **Dipendenze** M3-01…M3-08, M3-10 · **Ownership** merge, tag `m3-done` · **Parallelizzabile** no ·
+- **Ruolo** REV · **Stima** S · **Dipendenze** M3-01…M3-08, M3-10, M3-11 · **Ownership** merge, tag `m3-done` · **Parallelizzabile** no ·
   **Leggere** `08_TEAM.md` §4-6 · **Descrizione / Accettazione / Test** come M1-20.
 
 ---
