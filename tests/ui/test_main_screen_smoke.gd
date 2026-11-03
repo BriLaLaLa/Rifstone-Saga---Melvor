@@ -86,28 +86,26 @@ func test_changing_page_disconnects_the_old_page() -> void:
 
 
 func test_sidebar_rows_from_data() -> void:
-	pending("M4-09: sidebar senza skill di combattimento")
-	return
 	var rows: Node = _sidebar().get_node("%Entries")
 	var gather: Button = rows.get_node("SkillTestGather") as Button
 	assert_eq(gather.text, "Raccolta di prova")
 	assert_false(gather.disabled)
 	assert_true(gather.button_pressed, "row of the current page highlighted")
-	var blade: Button = rows.get_node("SkillBlade") as Button
-	assert_true(blade.disabled, "combat skill page not available yet")
-	assert_eq(blade.tooltip_text, "In arrivo")
-	for page_name: String in ["Combat", "Rift", "Settings"]:
+	assert_null(rows.get_node_or_null("SkillBlade"), "no combat skill rows")
+	for page_name: String in ["Combat", "Armory"]:
 		var row: Button = rows.get_node(page_name) as Button
-		assert_true(row.disabled, "%s disabled" % page_name)
+		assert_true(row.disabled, "%s disabled until its page exists" % page_name)
 		assert_eq(_label(row, "Side").text, "In arrivo")
-	assert_false((rows.get_node("Bank") as Button).disabled)
-	assert_false((rows.get_node("Shop") as Button).disabled)
-	assert_false((rows.get_node("Equipment") as Button).disabled)
+	for page_name: String in ["Character", "Bank", "Shop", "Equipment"]:
+		assert_false((rows.get_node(page_name) as Button).disabled, page_name)
+	assert_null(rows.get_node_or_null("Rift"), "no Altare row before M8")
+	assert_null(rows.get_node_or_null("Settings"))
 	var skill_rows: int = 0
 	for child: Node in rows.get_children():
 		if child is Button and child.visible and String(child.name).begins_with("Skill"):
 			skill_rows += 1
 	assert_eq(skill_rows, _session.data.skills().size(), "one row per skill of the data")
+	assert_eq(_sidebar().COMING_SOON_TEXT, "In arrivo")
 
 
 func test_sidebar_row_opens_its_page() -> void:
@@ -154,8 +152,6 @@ func test_menu_button_runs_the_menu_action() -> void:
 
 
 func test_real_data_sidebar_and_first_page() -> void:
-	pending("M4-09: sidebar senza skill di combattimento")
-	return
 	_screen.free()
 	_session.free()
 	_open(TestFactory.session(1234, TestFactory.real_data()))

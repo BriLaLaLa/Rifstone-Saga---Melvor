@@ -1,7 +1,7 @@
 class_name Sidebar
 extends PanelContainer
-## Left navigation of the main screen (docs/03_ARCHITECTURE.md §11): game sections (Bank, Shop, Equipaggiamento,
-## Combattimento, Altare del Rift, Impostazioni) and every skill of the data by category, with icon, name and level.
+## Left navigation of the main screen (docs/03_ARCHITECTURE.md §11): game sections (Personaggio, Combattimento,
+## Armeria, Equipaggiamento, Bank, Shop) and every gathering/artisan skill of the data by category, with icon, name and level.
 ##
 ## The rows are copies of the hidden `RowTemplate` and `SectionTemplate` of the scene (the layout lives there),
 ## built from the data in `bind`; a skill level is read from `session.skills` and redrawn on `level_up`.
@@ -17,18 +17,17 @@ const LEVEL_TEXT: String = "Liv. %s"
 const SECTIONS_TITLE: String = "Partita"
 ## Game sections, in order: page id, text, UI icon (UiStyle.icon).
 const SECTIONS: Array[Dictionary] = [
+	{"page": &"character", "text": "Personaggio", "icon": "user"},
+	{"page": &"combat", "text": "Combattimento", "icon": "sword"},
+	{"page": &"armory", "text": "Armeria", "icon": "star"},
+	{"page": &"equipment", "text": "Equipaggiamento", "icon": "shirt"},
 	{"page": &"bank", "text": "Bank", "icon": "box"},
 	{"page": &"shop", "text": "Shop", "icon": "building-store"},
-	{"page": &"equipment", "text": "Equipaggiamento", "icon": "shirt"},
-	{"page": &"combat", "text": "Combattimento", "icon": "sword"},
-	{"page": &"rift", "text": "Altare del Rift", "icon": "sparkles"},
-	{"page": &"settings", "text": "Impostazioni", "icon": "settings"},
 ]
-## Skill categories (04_DATA_SCHEMA.md §3) and their section titles, in order.
+## Skill categories (04_DATA_SCHEMA.md §3) and their section titles, in order (combat skills no longer exist).
 const CATEGORY_TITLES: Dictionary[StringName, String] = {
 	&"gathering": "Raccolta",
 	&"artisan": "Artigianato",
-	&"combat": "Abilità di combattimento",
 }
 
 var _session: GameSession = null
