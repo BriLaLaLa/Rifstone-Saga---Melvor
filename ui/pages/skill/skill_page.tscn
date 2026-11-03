@@ -1,0 +1,100 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://ui/pages/skill/skill_page.gd" id="1_page"]
+[ext_resource type="PackedScene" path="res://ui/components/progress/xp_bar.tscn" id="2_xp"]
+
+[node name="SkillPage" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_page")
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="Content" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Header" type="PanelContainer" parent="Margin/Content"]
+layout_mode = 2
+theme_type_variation = &"HudPanel"
+
+[node name="Row" type="HBoxContainer" parent="Margin/Content/Header"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="SkillIcon" type="TextureRect" parent="Margin/Content/Header/Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+size_flags_vertical = 4
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Info" type="VBoxContainer" parent="Margin/Content/Header/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="TitleRow" type="HBoxContainer" parent="Margin/Content/Header/Row/Info"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="NameLabel" type="Label" parent="Margin/Content/Header/Row/Info/TitleRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"TitleLabel"
+
+[node name="LevelLabel" type="Label" parent="Margin/Content/Header/Row/Info/TitleRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 8
+theme_type_variation = &"HeaderLabel"
+
+[node name="XpBar" parent="Margin/Content/Header/Row/Info" instance=ExtResource("2_xp")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="StatusRow" type="HBoxContainer" parent="Margin/Content/Header/Row/Info"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="StatusLabel" type="Label" parent="Margin/Content/Header/Row/Info/StatusRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"MutedLabel"
+text_overrun_behavior = 3
+
+[node name="MessageLabel" type="Label" parent="Margin/Content/Header/Row/Info/StatusRow"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+horizontal_alignment = 2
+text_overrun_behavior = 3
+
+[node name="Scroll" type="ScrollContainer" parent="Margin/Content"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Cards" type="HFlowContainer" parent="Margin/Content/Scroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12

@@ -11,8 +11,6 @@ signal _answered(accepted: bool)
 
 const OK_TEXT := "Conferma"
 const CANCEL_TEXT := "Annulla"
-## Initial size of the dialog (the text wraps inside it).
-const DIALOG_SIZE := Vector2i(460, 0)
 
 var _done: bool = false
 
@@ -32,7 +30,7 @@ static func ask(parent: Node, title: String, text: String) -> bool:
 	dialog.title = title
 	dialog.dialog_text = text
 	parent.add_child(dialog)
-	dialog.popup_centered(DIALOG_SIZE)
+	dialog.popup_centered(UiStyle.DIALOG_SIZE)
 	var accepted: bool = await dialog._answered
 	dialog.queue_free()
 	return accepted

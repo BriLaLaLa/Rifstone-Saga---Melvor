@@ -20,7 +20,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Panel" type="PanelContainer" parent="Center"]
-custom_minimum_size = Vector2(820, 0)
+unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"WindowPanel"
 
@@ -55,7 +55,6 @@ text = "NOME DEL PERSONAGGIO"
 
 [node name="NameEdit" type="LineEdit" parent="Center/Panel/Content/NamePanel"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 placeholder_text = "Scrivi un nome"
 
@@ -66,13 +65,13 @@ alignment = 2
 
 [node name="NameBackButton" type="Button" parent="Center/Panel/Content/NamePanel/NameButtons"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(140, 44)
+custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
 text = "Indietro"
 
 [node name="StartButton" type="Button" parent="Center/Panel/Content/NamePanel/NameButtons"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(160, 44)
+custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_type_variation = &"AccentButton"
 text = "Inizia"
@@ -90,6 +89,6 @@ layout_mode = 2
 
 [node name="BackButton" type="Button" parent="Center/Panel/Content/Footer"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(160, 44)
+custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 text = "Menu principale"

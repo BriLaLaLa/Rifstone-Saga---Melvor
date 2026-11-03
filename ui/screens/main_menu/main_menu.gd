@@ -30,18 +30,21 @@ var scene_changer: Callable = Callable()
 
 @onready var _background: ColorRect = %Background
 @onready var _menu_center: CenterContainer = %MenuCenter
+@onready var _menu_panel: PanelContainer = %MenuPanel
 @onready var _title_label: Label = %TitleLabel
 @onready var _version_label: Label = %VersionLabel
 @onready var _message_label: Label = %MessageLabel
 @onready var _new_game_button: Button = %NewGameButton
 @onready var _continue_button: Button = %ContinueButton
 @onready var _exit_button: Button = %ExitButton
+@onready var _buttons: VBoxContainer = %Buttons
 @onready var _slot_select: SlotSelect = %SlotSelect
 
 
 func _ready() -> void:
 	get_window().min_size = UiStyle.WINDOW_MIN_SIZE
 	_background.color = UiStyle.BG
+	_apply_layout()
 	_title_label.text = str(ProjectSettings.get_setting(NAME_SETTING, ""))
 	_version_label.text = "Versione %s" % str(ProjectSettings.get_setting(VERSION_SETTING, ""))
 	_message_label.add_theme_color_override("font_color", UiStyle.BAD)
@@ -126,3 +129,11 @@ func _on_slot_select_closed() -> void:
 
 func _on_slot_select_game_started() -> void:
 	_change_to_main_screen()
+
+
+# Presentation sizes from UiStyle (the scene keeps only the structure).
+func _apply_layout() -> void:
+	_menu_panel.custom_minimum_size.x = UiStyle.MENU_PANEL_WIDTH
+	_title_label.add_theme_font_size_override("font_size", UiStyle.MENU_TITLE_FONT_SIZE)
+	for button: Button in _buttons.get_children():
+		button.custom_minimum_size.y = UiStyle.MENU_BUTTON_HEIGHT
