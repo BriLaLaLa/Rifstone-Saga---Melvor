@@ -66,12 +66,20 @@ func test_changing_page_disconnects_the_old_page() -> void:
 	var on_skill: Dictionary[StringName, int] = {}
 	for signal_name: StringName in skill_page_signals:
 		on_skill[signal_name] = _count(signal_name)
-	var capacity_on_skill: int = _count(&"bank_capacity_changed")
+	# Events connected by the BankPage (M1-18), each exactly once.
+	var bank_page_signals: Array[StringName] = [&"bank_changed", &"bank_capacity_changed"]
+	var bank_on_skill: Dictionary[StringName, int] = {}
+	for signal_name: StringName in bank_page_signals:
+		bank_on_skill[signal_name] = _count(signal_name)
 	var old_page: Page = _pages(host)[0]
 	host.show_page(&"bank")
 	for signal_name: StringName in skill_page_signals:
 		assert_eq(_count(signal_name), on_skill[signal_name] - 1, "skill page disconnected from %s" % signal_name)
-	assert_eq(_count(&"bank_capacity_changed"), capacity_on_skill + 1, "bank page connected")
+	for signal_name: StringName in bank_page_signals:
+		assert_eq(_count(signal_name), bank_on_skill[signal_name] + 1, "bank page connected to %s" % signal_name)
+	host.show_page(&"skill:test_gather")
+	for signal_name: StringName in bank_page_signals:
+		assert_eq(_count(signal_name), bank_on_skill[signal_name], "bank page disconnected from %s" % signal_name)
 	assert_false(old_page.is_inside_tree(), "old page removed")
 	await wait_physics_frames(1)
 	assert_false(is_instance_valid(old_page), "old page freed")
