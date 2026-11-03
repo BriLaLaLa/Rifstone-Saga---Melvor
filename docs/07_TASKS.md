@@ -942,6 +942,11 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 - **Test** i file in Ownership (inclusi `test_capacity_uses_armory_slots`, `test_armory_slot_price`).
 - **Nota (da M4-02)** `test_shop.gd::test_requirements_and_max_purchases`: `test_upgrade_2` delle fixture chiede
   `character: 20`, oggi ignorato dallo shop; il caso va completato con `set_character_level`.
+- **Nota (da M4-04)** `ItemRoller.create(base, rarity, ilvl, data, rng)` non tira la rarità (la riceve) e restituisce
+  `uid` 0. `ItemInstance.from_dict` controlla base, rarità, affissi (ammessi dallo slot, non ripetuti, grado nel range) e
+  restituisce `null` con un warning; **non** controlla `uid > 0` né l'unicità né i castoni: in `Armory.from_save` sono
+  compito dell'Armeria (un'istanza `null` va gestita, nessuna perdita silenziosa). `get_instance`/`instances` usano
+  `duplicate_instance()`.
 
 ### M4-06 · Equipaggiamento con `uid` e assetti
 - **Ruolo** CORE · **Stima** M · **Parallelizzabile** no · **Dipendenze** M4-05
@@ -972,6 +977,11 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 - **Nota (da M4-02)** L'ownership si estende a `res://tests/integration/test_crafting_chain.gd`: con gli attrezzi come
   istanze i controlli "the tool is in the bank" e `equip(tool_def.id)` passano all'Armeria e all'`uid` (l'impugnatura
   si ottiene già con l'Intaglio, `_obtain`).
+- **Nota (da M4-04)** La rarità la tira il chiamante: `ItemRoller.roll_rarity(ItemRoller.craft_chances(M, T(item_rarity_pct)), rng)`
+  (un `randf`) prima di `armory.create`, che tira gli affissi sullo stesso `rng`. Nelle fixture lo slot `tool_forestry`
+  dà agli affissi lo scope `skill:forestry`, mentre `test_hatchet` è della skill `test_gather`: un test che verifica
+  l'effetto di un affisso d'attrezzo su un'azione delle fixture non lo vedrà (il validatore lo ammette perché `forestry`
+  non esiste nelle fixture). Se serve, si controlla lo scope del modificatore, non l'effetto.
 
 ### M4-08 · Pagina dell'Armeria ed equipaggiamento
 - **Ruolo** UI · **Stima** L · **Parallelizzabile** no · **Dipendenze** M4-07, M4-09
@@ -1053,8 +1063,12 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 ## M7 · Bottino
 
 - M7-01 · Raffinazione F-86 (CORE; M6-07; `systems/armory/**` con `upgrade.gd`, `stats.json`/`balance.json` delle chiavi di M7 con il validatore).
+  Nota (da M4-04): `ItemRoller.instance_modifiers` legge `upgrade.mod_pct_per_level` solo se `upgrade > 0` (chiave assente
+  fino a M7); ownership estesa a `tests/systems/items/test_item_roller.gd` per il caso `+N` (moltiplicatore di F-86).
 - M7-02 · Smantellamento F-88 e filtro automatico (CORE; M7-01; `systems/armory/**` con `salvage.gd`, save del filtro).
 - M7-03 · Drop di equipaggiamento con rarità F-84 nell'Armeria (COMBAT; M7-02; `combat_engine.gd`, `item_roller.gd`).
+  Nota (da M4-04): `ItemRoller.drop_chances` è uno stub che registra un errore e restituisce `Vector2.ZERO`; va
+  implementato con `test_item_roller.gd::test_drop_rarity` (ownership estesa al test).
 - M7-04 · Pietre del Rift F-87 (COMBAT; M7-03; `systems/combat/rift_stone.gd`, `combat_engine.gd`, `RiftStoneDef`).
 - M7-05 · Contenuto: anelli, amuleti, drop, Pietre, Sigillo (DATA; M7-01; `data/items/**`, `data/combat/**`).
 - M7-06 · Armeria completa: raffina, smantella, filtro; Pietra nella pagina del combattimento (UI; M7-04; `ui/pages/armory/**`, `ui/pages/combat/**`).
