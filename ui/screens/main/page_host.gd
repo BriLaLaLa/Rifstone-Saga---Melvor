@@ -18,7 +18,7 @@ const PLACEHOLDER_SCENE: String = "res://ui/screens/main/placeholder_page.tscn"
 ## M1-15 sets `&"skill"` to res://ui/pages/skill/skill_page.tscn, M1-18 sets `&"bank"` to
 ## res://ui/pages/bank/bank_page.tscn; later tasks add `shop`, `equipment`, `combat`, `rift`, `settings`.
 const ROUTES: Dictionary[StringName, String] = {
-	ROUTE_SKILL: PLACEHOLDER_SCENE,
+	ROUTE_SKILL: "res://ui/pages/skill/skill_page.tscn",
 	&"bank": PLACEHOLDER_SCENE,
 }
 ## Skill categories drawn by the skill page (combat skills belong to the combat page).

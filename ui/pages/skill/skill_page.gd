@@ -1,0 +1,200 @@
+class_name SkillPage
+extends Page
+## Generic page of a gathering or artisan skill (docs/01_GDD.md §4, docs/03_ARCHITECTURE.md §11), route
+## `skill:<skill_id>`: header with icon, name, level and XP bar; one ActionCard per action of the data.
+##
+## Every redraw reads the session: level and XP from `skills`, interval from `actions.current_interval_ms`, mastery
+## from `mastery`, the running action from `actions.get_lane`. The cycle bars are redrawn every frame from
+## `actions.get_progress` (the only `_process` work: reading and drawing). A card's button sends `actions.start` or
+## `actions.stop`; a refused command shows its reason under the header. Stop reasons of the runner become toasts in the
+## ToastManager of the main screen (`action_stopped`), not here.
+## It keeps no game state: only the session reference and its nodes (cards by action id).
+## Artisan recipes get their own card in M3-05; until then their start is refused by the runner.
+
+const CARD_SCENE: PackedScene = preload("res://ui/pages/skill/action_card.tscn")
+const LOG_CATEGORY: String = "ui"
+const LANE_ACTION_KEY: String = "action"
+const LEVEL_TEXT: String = "Livello %s"
+const IDLE_TEXT: String = "Nessuna azione in corso"
+const RUNNING_TEXT: String = "In corso: %s"
+const RUNNING_OTHER_TEXT: String = "In corso: %s (%s)"
+## Italian text of each refusal of `actions.start`; other reasons use REFUSED_TEXT_DEFAULT.
+const REFUSED_TEXTS: Dictionary[StringName, String] = {
+	Reasons.LEVEL_TOO_LOW: "Livello troppo basso per questa azione.",
+	Reasons.UNKNOWN_ID: "Questa azione non è ancora disponibile.",
+	Reasons.MISSING_INPUTS: "Materiali insufficienti.",
+	Reasons.BANK_FULL: "La bank è piena.",
+	Reasons.LANE_UNAVAILABLE: "Corsia non disponibile.",
+	Reasons.SKILL_IN_OTHER_LANE: "Questa skill è già attiva in un'altra corsia.",
+	Reasons.COMBAT_ACTIVE: "Combattimento in corso.",
+}
+const REFUSED_TEXT_DEFAULT: String = "Impossibile avviare l'azione."
+
+var _session: GameSession = null
+var _skill: SkillDef = null
+var _cards: Dictionary[StringName, ActionCard] = {}
+
+@onready var _skill_icon: TextureRect = %SkillIcon
+@onready var _name_label: Label = %NameLabel
+@onready var _level_label: Label = %LevelLabel
+@onready var _xp_bar: XpBar = %XpBar
+@onready var _status_label: Label = %StatusLabel
+@onready var _message_label: Label = %MessageLabel
+@onready var _card_list: HFlowContainer = %Cards
+
+
+func _ready() -> void:
+	set_process(false)
+	_message_label.add_theme_color_override("font_color", UiStyle.BAD)
+	_message_label.visible = false
+
+
+## Reads the skill of `page_id` (`skill:<id>`), builds its cards and follows the session's events.
+func bind(session: GameSession) -> void:
+	unbind()
+	var skill: SkillDef = session.data.skill(PageHost.argument_of(page_id))
+	if skill == null:
+		Log.warn(LOG_CATEGORY, "skill page '%s': unknown skill" % page_id)
+		return
+	_session = session
+	_skill = skill
+	_skill_icon.texture = ItemSlotView.icon_of(skill.icon)
+	_skill_icon.modulate = skill.color
+	_name_label.text = skill.name
+	_build_cards()
+	var events: GameEvents = _session.events
+	events.xp_gained.connect(_on_events_xp_gained)
+	events.level_up.connect(_on_events_level_up)
+	events.action_started.connect(_on_events_action_started)
+	events.action_stopped.connect(_on_events_action_stopped)
+	events.mastery_xp_gained.connect(_on_events_mastery_xp_gained)
+	events.modifiers_changed.connect(_on_events_modifiers_changed)
+	_redraw()
+	set_process(true)
+
+
+## Disconnects every event connected in `bind`.
+func unbind() -> void:
+	set_process(false)
+	if _session != null and is_instance_valid(_session):
+		var events: GameEvents = _session.events
+		for connection: Array in [
+			[events.xp_gained, _on_events_xp_gained],
+			[events.level_up, _on_events_level_up],
+			[events.action_started, _on_events_action_started],
+			[events.action_stopped, _on_events_action_stopped],
+			[events.mastery_xp_gained, _on_events_mastery_xp_gained],
+			[events.modifiers_changed, _on_events_modifiers_changed],
+		]:
+			var event: Signal = connection[0]
+			var handler: Callable = connection[1]
+			if event.is_connected(handler):
+				event.disconnect(handler)
+	_session = null
+	_skill = null
+
+
+
+
+func _process(_delta: float) -> void:
+	# Read-only: the cycle progress of the main lane goes to the card of the running action, 0 to the others.
+	var running_id: StringName = _running_action_id()
+	var progress: float = _session.actions.get_progress()
+	for action_id: StringName in _cards:
+		_cards[action_id].set_progress(progress if action_id == running_id else 0.0)
+
+
+func _exit_tree() -> void:
+	unbind()
+
+
+func _build_cards() -> void:
+	for child: Node in _card_list.get_children():
+		_card_list.remove_child(child)
+		child.queue_free()
+	_cards.clear()
+	for action: ActionDef in _session.data.actions_for_skill(_skill.id):
+		var action_card: ActionCard = CARD_SCENE.instantiate() as ActionCard
+		_card_list.add_child(action_card)
+		action_card.setup(action, _session.data)
+		action_card.toggle_requested.connect(_on_card_toggle_requested)
+		_cards[action.id] = action_card
+
+
+func _redraw() -> void:
+	_redraw_header()
+	for action_id: StringName in _cards:
+		_cards[action_id].redraw(_session)
+
+
+func _redraw_header() -> void:
+	_level_label.text = LEVEL_TEXT % NumberFormat.format_int(_session.skills.get_level(_skill.id))
+	_xp_bar.set_xp(_session.data.xp_table(), _session.skills.get_xp(_skill.id))
+	_redraw_status()
+
+
+func _redraw_status() -> void:
+	var running_id: StringName = _running_action_id()
+	if running_id == &"":
+		_status_label.text = IDLE_TEXT
+		return
+	var action: ActionDef = _session.data.action(running_id)
+	if action.skill_id == _skill.id:
+		_status_label.text = RUNNING_TEXT % action.name
+	else:
+		_status_label.text = RUNNING_OTHER_TEXT % [action.name, _session.data.skill(action.skill_id).name]
+
+
+func _running_action_id() -> StringName:
+	return _session.actions.get_lane().get(LANE_ACTION_KEY, &"")
+
+
+func _show_refusal(reason: StringName) -> void:
+	_message_label.text = REFUSED_TEXTS.get(reason, REFUSED_TEXT_DEFAULT)
+	_message_label.visible = true
+
+
+func _hide_refusal() -> void:
+	_message_label.text = ""
+	_message_label.visible = false
+
+
+func _on_card_toggle_requested(action_id: StringName) -> void:
+	if _session == null:
+		return
+	if _running_action_id() == action_id:
+		_session.actions.stop()
+		_hide_refusal()
+		return
+	var result: CommandResult = _session.actions.start(_skill.id, action_id)
+	if result.ok:
+		_hide_refusal()
+	else:
+		_show_refusal(result.reason)
+
+
+func _on_events_xp_gained(skill_id: StringName, _amount: int) -> void:
+	if skill_id == _skill.id:
+		_redraw_header()
+
+
+func _on_events_level_up(skill_id: StringName, _new_level: int) -> void:
+	if skill_id == _skill.id:
+		_redraw()
+
+
+func _on_events_action_started(_lane: StringName, _skill_id: StringName, _action_id: StringName) -> void:
+	_redraw()
+
+
+func _on_events_action_stopped(_lane: StringName, _skill_id: StringName, _reason: StringName) -> void:
+	_redraw()
+
+
+func _on_events_mastery_xp_gained(skill_id: StringName, action_id: StringName, _amount: int) -> void:
+	if skill_id == _skill.id and _cards.has(action_id):
+		_cards[action_id].redraw(_session)
+
+
+func _on_events_modifiers_changed() -> void:
+	_redraw()

@@ -1,0 +1,120 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://ui/pages/skill/action_card.gd" id="1_card"]
+[ext_resource type="PackedScene" path="res://ui/components/progress/xp_bar.tscn" id="2_xp"]
+[ext_resource type="Script" path="res://ui/components/progress/action_progress_bar.gd" id="3_bar"]
+
+[node name="ActionCard" type="PanelContainer"]
+custom_minimum_size = Vector2(320, 0)
+theme_type_variation = &"HudPanel"
+script = ExtResource("1_card")
+
+[node name="Content" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Top" type="HBoxContainer" parent="Content"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Icon" type="TextureRect" parent="Content/Top"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Titles" type="VBoxContainer" parent="Content/Top"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_constants/separation = 2
+
+[node name="NameLabel" type="Label" parent="Content/Top/Titles"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+mouse_filter = 1
+text_overrun_behavior = 3
+
+[node name="RequirementLabel" type="Label" parent="Content/Top/Titles"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text_overrun_behavior = 3
+
+[node name="Separator" type="HSeparator" parent="Content"]
+layout_mode = 2
+
+[node name="Stats" type="GridContainer" parent="Content"]
+layout_mode = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 6
+columns = 2
+
+[node name="XpName" type="Label" parent="Content/Stats"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "Esperienza"
+
+[node name="XpValue" type="Label" parent="Content/Stats"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Esperienza base di un ciclo"
+mouse_filter = 1
+
+[node name="IntervalName" type="Label" parent="Content/Stats"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "Intervallo"
+
+[node name="IntervalValue" type="Label" parent="Content/Stats"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Durata di un ciclo con i bonus attuali"
+mouse_filter = 1
+
+[node name="ProductsName" type="Label" parent="Content/Stats"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "Prodotto"
+
+[node name="Products" type="HBoxContainer" parent="Content/Stats"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="MasteryName" type="Label" parent="Content/Stats"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "Maestria"
+
+[node name="MasteryValue" type="Label" parent="Content/Stats"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MasteryBar" parent="Content" instance=ExtResource("2_xp")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+
+[node name="ProgressBar" type="ProgressBar" parent="Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 2
+max_value = 1.0
+step = 0.0
+show_percentage = false
+script = ExtResource("3_bar")
+
+[node name="ToggleButton" type="Button" parent="Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"AccentButton"
+text = "Avvia"

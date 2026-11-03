@@ -60,11 +60,17 @@ func test_unavailable_pages_are_refused() -> void:
 
 func test_changing_page_disconnects_the_old_page() -> void:
 	var host: PageHost = _page_host()
-	var level_up_on_skill: int = _count(&"level_up")
+	# Events connected by the SkillPage (M1-15), each exactly once.
+	var skill_page_signals: Array[StringName] = [&"xp_gained", &"level_up", &"action_started", &"action_stopped",
+			&"mastery_xp_gained", &"modifiers_changed"]
+	var on_skill: Dictionary[StringName, int] = {}
+	for signal_name: StringName in skill_page_signals:
+		on_skill[signal_name] = _count(signal_name)
 	var capacity_on_skill: int = _count(&"bank_capacity_changed")
 	var old_page: Page = _pages(host)[0]
 	host.show_page(&"bank")
-	assert_eq(_count(&"level_up"), level_up_on_skill - 1, "skill page disconnected from level_up")
+	for signal_name: StringName in skill_page_signals:
+		assert_eq(_count(signal_name), on_skill[signal_name] - 1, "skill page disconnected from %s" % signal_name)
 	assert_eq(_count(&"bank_capacity_changed"), capacity_on_skill + 1, "bank page connected")
 	assert_false(old_page.is_inside_tree(), "old page removed")
 	await wait_physics_frames(1)
