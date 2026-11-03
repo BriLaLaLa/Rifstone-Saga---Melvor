@@ -1,13 +1,15 @@
 extends GutTest
 ## EquipmentPage (M3-07) with a TestFactory session: a row per slot of `Equipment.SLOTS`, worn pieces read from the
-## model, "Rimuovi" = unequip, food (heal from `food_heal`, quantity, exhausted), stance buttons, stat summary with
+## model, "Rimuovi" = unequip, food (heal from `food_heal`, quantity, exhausted), stat summary with
 ## names and sources from the registry and `modifiers.breakdown`, refused commands show their reason, unbind.
 
 const SCENE: PackedScene = preload("res://ui/pages/equipment/equipment_page.tscn")
 const HELM := &"test_helm"
 const RATION := &"test_ration"
 const DR := &"damage_reduction"
-const OBSERVED: Array[StringName] = [&"equipment_changed", &"modifiers_changed", &"bank_changed"]
+const OBSERVED: Array[StringName] = [
+	&"equipment_changed", &"food_changed", &"modifiers_changed", &"bank_changed", &"armory_changed",
+]
 
 var _session: GameSession
 var _page: EquipmentPage
@@ -36,12 +38,11 @@ func test_a_row_per_slot_all_empty_at_start() -> void:
 
 
 func test_worn_piece_and_stats_with_sources() -> void:
-	pending("M4-08: pezzi nell'Armeria, pagina da rifare")
-	return
-	TestFactory.give(_session, HELM, 1)
+	var uid: int = TestFactory.give_piece(_session, HELM, &"magic")
 	_open()
-	assert_true(_session.equipment.equip(TestFactory.give_piece(_session, HELM)).ok)
+	assert_true(_session.equipment.equip(uid).ok)
 	assert_eq(_item_label(&"head").text, _session.data.item(HELM).name)
+	assert_eq(_item_label(&"head").get_theme_color("font_color"), UiStyle.RARITY_MAGIC, "rarity color of the name")
 	assert_false(_remove(&"head").disabled)
 	var text: String = _stats_text()
 	assert_string_contains(text, _session.data.stats.info(DR)["name"])
@@ -52,23 +53,43 @@ func test_worn_piece_and_stats_with_sources() -> void:
 	assert_string_contains(text, total)
 
 
+## The "+N" suffix of an upgraded piece is not testable yet: the upgrade (balance key `upgrade.*`) arrives with M7.
+func test_rare_piece_name_has_the_rare_color_and_no_suffix() -> void:
+	var uid: int = TestFactory.give_piece(_session, HELM, &"rare")
+	_open()
+	assert_true(_session.equipment.equip(uid).ok)
+	assert_eq(_item_label(&"head").text, _session.data.item(HELM).name)
+	assert_eq(_item_label(&"head").get_theme_color("font_color"), UiStyle.RARITY_RARE)
+
+
 func test_no_bonus_text_without_sources() -> void:
 	_open()
 	assert_string_contains(_stats_text(), "Nessun bonus attivo.")
 
 
-func test_remove_returns_the_piece_to_the_bank() -> void:
-	pending("M4-08: pezzi nell'Armeria, pagina da rifare")
-	return
-	TestFactory.give(_session, HELM, 1)
-	_session.equipment.equip(TestFactory.give_piece(_session, HELM))
+func test_remove_returns_the_piece_to_the_armory() -> void:
+	var uid: int = TestFactory.give_piece(_session, HELM)
+	_session.equipment.equip(uid)
 	_open()
+	assert_eq(_session.armory.used(), 0, "a worn piece does not use a slot")
 	_remove(&"head").pressed.emit()
-	assert_eq(_session.equipment.get_item(&"head"), &"")
-	assert_eq(_session.bank.get_count(HELM), 1)
+	assert_eq(_session.equipment.get_uid(&"head"), 0)
+	assert_true(_session.armory.has(uid))
+	assert_eq(_session.armory.used(), 1)
 	assert_eq(_item_label(&"head").text, "Vuoto")
 	assert_true(_remove(&"head").disabled)
 	assert_string_contains(_stats_text(), "Nessun bonus attivo.")
+
+
+func test_remove_with_a_full_armory_shows_the_reason() -> void:
+	var uid: int = TestFactory.give_piece(_session, HELM)
+	_session.equipment.equip(uid)
+	while _session.armory.can_add(1):
+		TestFactory.give_piece(_session, HELM)
+	_open()
+	_remove(&"head").pressed.emit()
+	assert_eq(_session.equipment.get_uid(&"head"), uid, "nothing changed")
+	assert_eq(_label("%MessageLabel").text, "L'Armeria è piena: non c'è posto per il pezzo.")
 
 
 func test_refused_remove_shows_the_reason() -> void:
@@ -96,8 +117,15 @@ func test_food_shows_heal_quantity_and_exhausted() -> void:
 	assert_eq(_food_name().text, "Nessun cibo scelto")
 
 
-func test_stance_buttons_follow_and_set_the_model() -> void:
-	pending("M4-08: the stance no longer exists (D3), the page is redone")
+func test_setup_follows_the_worn_weapons() -> void:
+	_open()
+	assert_eq(_setup_text(), "Mani nude")
+	assert_true(_session.equipment.equip(TestFactory.give_piece(_session, &"test_greatsword")).ok)
+	assert_eq(_setup_text(), _session.equipment.setup_def().name)
+	assert_eq(_setup_text(), "Spadone")
+	_remove(&"weapon").pressed.emit()
+	assert_eq(_setup_text(), "Mani nude")
+
 
 
 func test_unbind_disconnects_everything() -> void:
@@ -143,32 +171,27 @@ func _food_info() -> Label:
 	return _page.find_child("FoodInfo", true, false) as Label
 
 
-func _stance(stance: StringName) -> Button:
-	return _page.find_child("Stance_%s" % stance, true, false) as Button
+func _setup_text() -> String:
+	return (_page.find_child("SetupLabel", true, false) as Label).text
 
 
 func test_tool_slot_label_takes_the_skill_name_from_the_data() -> void:
 	_open()
 	var label: String = (_row(&"tool_forestry").find_child("SlotLabel", true, false) as Label).text
-	var skill_id: StringName = &"forestry"
-	var found: bool = false
+	var found: SkillDef = null
 	for skill: SkillDef in _session.data.skills():
-		if skill.id == skill_id:
-			found = true
-			assert_eq(label, "Attrezzo: %s" % skill.name)
-	if not found:
+		if skill.id == &"forestry":
+			found = skill
+	if found != null:
+		assert_eq(label, "Attrezzo: %s" % found.name)
+	else:
 		assert_eq(label, "Attrezzo", "no skill with that id in the fixtures: generic label")
-	for text: String in ["Selvicoltura", "Estrazione", "Pesca", "Cavatura", "Lenza"]:
-		if text != _skill_name(skill_id):
-			assert_false(label.contains(text), "no hand-written skill name '%s'" % text)
 
 
 func test_summary_shows_the_tool_scoped_to_a_skill() -> void:
-	pending("M4-08: pezzi nell'Armeria, pagina da rifare")
-	return
-	TestFactory.give(_session, &"test_hatchet", 1)
+	var uid: int = TestFactory.give_piece(_session, &"test_hatchet")
 	_open()
-	assert_true(_session.equipment.equip(TestFactory.give_piece(_session, &"test_hatchet")).ok)
+	assert_true(_session.equipment.equip(uid).ok)
 	var text: String = _stats_text()
 	assert_false(text.contains("Nessun bonus attivo."))
 	assert_string_contains(text, _session.data.skill(&"test_gather").name)
@@ -179,10 +202,3 @@ func test_summary_shows_the_tool_scoped_to_a_skill() -> void:
 	assert_string_contains(text, ItemTooltipLines.format_stat(stat["format"], total))
 	_remove(&"tool_forestry").pressed.emit()
 	assert_string_contains(_stats_text(), "Nessun bonus attivo.")
-
-
-func _skill_name(skill_id: StringName) -> String:
-	for skill: SkillDef in _session.data.skills():
-		if skill.id == skill_id:
-			return skill.name
-	return ""

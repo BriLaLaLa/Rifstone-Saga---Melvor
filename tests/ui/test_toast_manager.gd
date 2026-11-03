@@ -137,6 +137,11 @@ func test_action_stopped_shows_the_reason() -> void:
 	assert_eq(_accent(_toasts()[0]), UiStyle.BAD)
 
 
+func test_action_stopped_for_a_full_armory_has_its_own_text() -> void:
+	_events.action_stopped.emit(&"main", SKILL, Reasons.ARMORY_FULL)
+	assert_eq(_texts(), PackedStringArray(["test_skill: azione fermata (armeria piena)"]))
+
+
 func test_action_stopped_by_the_player_is_silent() -> void:
 	_events.action_stopped.emit(&"main", SKILL, Reasons.STOPPED_BY_USER)
 	_events.action_stopped.emit(&"main", SKILL, Reasons.REPLACED)

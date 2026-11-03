@@ -1,19 +1,21 @@
 class_name EquipmentPage
 extends Page
-## Equipment page (docs/01_GDD.md §9), route `equipment`: the 12 slots (tools included) with the worn piece and
-## "Rimuovi", the chosen food (heal, quantity in the bank, "Togli"), the stance buttons and the summary of the
-## stats with the sources of each one (`modifiers.breakdown`).
+## Equipment page (docs/01_GDD.md §9), route `equipment`: the 12 slots (tools included) with the worn piece (name in
+## the rarity color, "+N" of the upgrade) and "Rimuovi", the weapon setup derived from the pair of weapons, the
+## chosen food (heal, quantity in the bank, "Togli") and the summary of the stats with the sources of each one
+## (`modifiers.breakdown`).
 ##
-## Every redraw reads the session: `equipment.get_item` / `get_food` / `get_stance`, `bank.get_count`, the stat
-## names, formats and totals from `data.stats` and `modifiers`. Actions are equipment commands (`unequip`,
-## `set_food`, `set_stance`); a refused command shows its reason. The summary lists the stats that have at least
-## one source in the global context. Equipping happens from the bank page. The page keeps only references to its
-## own nodes.
+## Every redraw reads the session: `equipment.get_uid` / `setup_def` / `get_food`, `armory.get_instance`,
+## `bank.get_count`, the stat names, formats and totals from `data.stats` and `modifiers`. Actions are equipment
+## commands (`unequip`, `set_food`); a refused command shows its reason. The summary lists the stats that have at
+## least one source in the global context. Equipping happens from the Armory page. The page keeps only references
+## to its own nodes.
 
 const TITLE_TEXT: String = "Equipaggiamento"
 const SLOTS_TITLE_TEXT: String = "Slot"
 const FOOD_TITLE_TEXT: String = "Cibo"
-const STANCE_TITLE_TEXT: String = "Stance"
+const SETUP_TITLE_TEXT: String = "Assetto"
+const UNARMED_TEXT: String = "Mani nude"
 const STATS_TITLE_TEXT: String = "Statistiche"
 const EMPTY_SLOT_TEXT: String = "Vuoto"
 const NO_FOOD_TEXT: String = "Nessun cibo scelto"
@@ -22,14 +24,11 @@ const FOOD_COUNT_TEXT: String = "In bank: %s"
 const FOOD_EXHAUSTED_TEXT: String = "Esaurito"
 const REMOVE_TEXT: String = "Rimuovi"
 const CLEAR_FOOD_TEXT: String = "Togli"
-const STANCE_TEXTS: Dictionary[StringName, String] = {
-	&"offensive": "Offensiva", &"balanced": "Bilanciata", &"defensive": "Difensiva",
-}
 const REFUSED_TEXTS: Dictionary[StringName, String] = {
 	Reasons.UNKNOWN_ID: "Voce non valida.",
 	Reasons.SLOT_EMPTY: "Lo slot è già vuoto.",
 	Reasons.COMBAT_ACTIVE: "Non puoi cambiare arma durante il combattimento.",
-	Reasons.BANK_FULL: "La bank è piena: non c'è posto per il pezzo.",
+	Reasons.ARMORY_FULL: "L'Armeria è piena: non c'è posto per il pezzo.",
 	Reasons.NOT_FOOD: "Questo oggetto non è un cibo.",
 	Reasons.NOT_ENOUGH_ITEMS: "Non ci sono abbastanza oggetti.",
 }
@@ -45,11 +44,11 @@ const ROW_NAME: String = "Row_%s"
 var _session: GameSession = null
 ## Slot id -> {"cell": ItemSlotView, "name": Label, "button": Button} (presentation references).
 var _slot_rows: Dictionary[StringName, Dictionary] = {}
+var _setup_label: Label = null
 var _food_cell: ItemSlotView = null
 var _food_name: Label = null
 var _food_info: Label = null
 var _food_button: Button = null
-var _stance_buttons: Dictionary[StringName, Button] = {}
 
 @onready var _margin: MarginContainer = %Margin
 @onready var _content: VBoxContainer = %Content
@@ -59,7 +58,7 @@ var _stance_buttons: Dictionary[StringName, Button] = {}
 @onready var _message_label: Label = %MessageLabel
 @onready var _slots_box: VBoxContainer = %SlotsBox
 @onready var _food_box: VBoxContainer = %FoodBox
-@onready var _stance_box: VBoxContainer = %StanceBox
+@onready var _setup_box: VBoxContainer = %SetupBox
 @onready var _stats_title: Label = %StatsTitle
 @onready var _stats_text: RichTextLabel = %StatsText
 
@@ -67,7 +66,7 @@ var _stance_buttons: Dictionary[StringName, Button] = {}
 func _ready() -> void:
 	for side: String in ["margin_left", "margin_top", "margin_right", "margin_bottom"]:
 		_margin.add_theme_constant_override(side, MARGIN)
-	for box: Container in [_content, _main, _left, _slots_box, _food_box, _stance_box]:
+	for box: Container in [_content, _main, _left, _slots_box, _setup_box, _food_box]:
 		box.add_theme_constant_override("separation", SECTION_SEPARATION)
 	_title_label.text = TITLE_TEXT
 	_stats_title.text = STATS_TITLE_TEXT
@@ -82,6 +81,7 @@ func bind(session: GameSession) -> void:
 	_session.events.food_changed.connect(_on_food_changed)
 	_session.events.modifiers_changed.connect(_on_modifiers_changed)
 	_session.events.bank_changed.connect(_on_bank_changed)
+	_session.events.armory_changed.connect(_on_armory_changed)
 	_build()
 	_refresh()
 
@@ -96,6 +96,8 @@ func unbind() -> void:
 			events.food_changed.disconnect(_on_food_changed)
 		if events.modifiers_changed.is_connected(_on_modifiers_changed):
 			events.modifiers_changed.disconnect(_on_modifiers_changed)
+		if events.armory_changed.is_connected(_on_armory_changed):
+			events.armory_changed.disconnect(_on_armory_changed)
 		if events.bank_changed.is_connected(_on_bank_changed):
 			events.bank_changed.disconnect(_on_bank_changed)
 	_session = null
@@ -108,15 +110,18 @@ func _exit_tree() -> void:
 # --- Build (once per bind) --------------------------------------------------------------------------------------
 
 func _build() -> void:
-	for box: Container in [_slots_box, _food_box, _stance_box]:
+	for box: Container in [_slots_box, _setup_box, _food_box]:
 		for child: Node in box.get_children():
 			box.remove_child(child)
 			child.queue_free()
 	_slot_rows.clear()
-	_stance_buttons.clear()
 	_section_title(_slots_box, SLOTS_TITLE_TEXT)
 	for slot: StringName in Equipment.SLOTS:
 		_slot_rows[slot] = _new_slot_row(slot)
+	_section_title(_setup_box, SETUP_TITLE_TEXT)
+	_setup_label = Label.new()
+	_setup_label.name = "SetupLabel"
+	_setup_box.add_child(_setup_label)
 	_section_title(_food_box, FOOD_TITLE_TEXT)
 	_build_food_row()
 
@@ -197,19 +202,26 @@ func _refresh() -> void:
 		return
 	for slot: StringName in _slot_rows:
 		_refresh_slot(slot)
+	var setup: SetupDef = _session.equipment.setup_def()
+	_setup_label.text = setup.name if setup != null else UNARMED_TEXT
 	_refresh_food()
 	_stats_text.text = EquipmentStatsText.summary(_session)
 
 
 func _refresh_slot(slot: StringName) -> void:
 	var row: Dictionary = _slot_rows[slot]
-	var item: ItemDef = _item_of(_session.equipment.get_item(slot))
+	var inst: ItemInstance = _session.armory.get_instance(_session.equipment.get_uid(slot))
+	var item: ItemDef = _item_of(inst.base_id) if inst != null else null
 	var cell: ItemSlotView = row["cell"]
+	var name_label: Label = row["name"]
 	if item == null:
 		cell.clear()
+		name_label.text = EMPTY_SLOT_TEXT
+		name_label.remove_theme_color_override("font_color")
 	else:
 		cell.set_item(item, 0)
-	(row["name"] as Label).text = item.name if item != null else EMPTY_SLOT_TEXT
+		name_label.text = ArmoryTexts.piece_name(inst, item)
+		name_label.add_theme_color_override("font_color", UiStyle.rarity_color(inst.rarity))
 	(row["button"] as Button).disabled = item == null
 
 
@@ -256,6 +268,10 @@ func _on_food_changed(_item_id: StringName) -> void:
 
 
 func _on_modifiers_changed() -> void:
+	_refresh()
+
+
+func _on_armory_changed(_uid: int, _change: StringName) -> void:
 	_refresh()
 
 
