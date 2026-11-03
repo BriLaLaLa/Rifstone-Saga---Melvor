@@ -106,6 +106,48 @@ func test_page_sells_through_the_shop_and_shows_refusals() -> void:
 	assert_eq(panel.item_id(), &"", "panel closed when the stack is gone")
 
 
+func test_equip_and_food_buttons_only_for_the_right_items() -> void:
+	TestFactory.give(_session, LOG, 1)
+	TestFactory.give(_session, &"test_helm", 1)
+	TestFactory.give(_session, &"test_ration", 2)
+	_open_panel(LOG)
+	assert_false(_button("%EquipButton").visible)
+	assert_false(_button("%FoodButton").visible)
+	_panel.show_item(_session, &"test_helm")
+	assert_true(_button("%EquipButton").visible)
+	assert_false(_button("%FoodButton").visible)
+	_panel.show_item(_session, &"test_ration")
+	assert_false(_button("%EquipButton").visible)
+	assert_true(_button("%FoodButton").visible)
+	assert_eq(_button("%FoodButton").text, "Usa come cibo")
+	_session.equipment.set_food(&"test_ration")
+	_panel.show_item(_session, &"test_ration")
+	assert_true(_button("%FoodButton").disabled, "already the chosen food")
+	assert_eq(_button("%FoodButton").text, "Cibo scelto")
+
+
+func test_page_equips_and_chooses_food_through_the_model() -> void:
+	TestFactory.give(_session, &"test_helm", 1)
+	TestFactory.give(_session, &"test_ration", 2)
+	TestFactory.give(_session, &"test_helm_high", 1)
+	_page = PAGE_SCENE.instantiate() as BankPage
+	add_child(_page)
+	_page.bind(_session)
+	var panel: BankItemPanel = _page.get_node("%ItemPanel")
+	panel.show_item(_session, &"test_helm")
+	(panel.get_node("%EquipButton") as Button).pressed.emit()
+	assert_eq(_session.equipment.get_item(&"head"), &"test_helm")
+	assert_eq(_session.bank.get_count(&"test_helm"), 0)
+	panel.show_item(_session, &"test_ration")
+	(panel.get_node("%FoodButton") as Button).pressed.emit()
+	assert_eq(_session.equipment.get_food(), &"test_ration")
+	assert_true((panel.get_node("%FoodButton") as Button).disabled, "panel redrawn on equipment_changed")
+	panel.show_item(_session, &"test_helm_high")
+	(panel.get_node("%EquipButton") as Button).pressed.emit()
+	assert_eq(_session.equipment.get_item(&"head"), &"test_helm", "requirement not met: nothing changed")
+	assert_eq((_page.get_node("%MessageLabel") as Label).text, "Requisiti non soddisfatti.")
+
+
 func _open_panel(item_id: StringName) -> void:
 	_panel = PANEL_SCENE.instantiate() as BankItemPanel
 	add_child(_panel)

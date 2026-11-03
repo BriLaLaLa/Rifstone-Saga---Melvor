@@ -1,0 +1,152 @@
+extends GutTest
+## EquipmentPage (M3-07) with a TestFactory session: a row per slot of `Equipment.SLOTS`, worn pieces read from the
+## model, "Rimuovi" = unequip, food (heal from `food_heal`, quantity, exhausted), stance buttons, stat summary with
+## names and sources from the registry and `modifiers.breakdown`, refused commands show their reason, unbind.
+
+const SCENE: PackedScene = preload("res://ui/pages/equipment/equipment_page.tscn")
+const HELM := &"test_helm"
+const RATION := &"test_ration"
+const DR := &"damage_reduction"
+const OBSERVED: Array[StringName] = [&"equipment_changed", &"modifiers_changed", &"bank_changed"]
+
+var _session: GameSession
+var _page: EquipmentPage
+
+
+func before_each() -> void:
+	_session = TestFactory.session()
+
+
+func after_each() -> void:
+	if is_instance_valid(_page):
+		_page.free()
+	if is_instance_valid(_session):
+		_session.free()
+	await wait_physics_frames(1)
+
+
+func test_a_row_per_slot_all_empty_at_start() -> void:
+	_open()
+	for slot: StringName in Equipment.SLOTS:
+		assert_not_null(_row(slot), "row of %s" % slot)
+		assert_eq(_item_label(slot).text, "Vuoto")
+		assert_true(_remove(slot).disabled)
+	assert_eq(Equipment.SLOTS.size(), 12)
+	assert_eq(_label("%TitleLabel").text, "Equipaggiamento")
+
+
+func test_worn_piece_and_stats_with_sources() -> void:
+	TestFactory.give(_session, HELM, 1)
+	_open()
+	assert_true(_session.equipment.equip(HELM).ok)
+	assert_eq(_item_label(&"head").text, _session.data.item(HELM).name)
+	assert_false(_remove(&"head").disabled)
+	var text: String = _stats_text()
+	assert_string_contains(text, _session.data.stats.info(DR)["name"])
+	assert_string_contains(text, _session.data.item(HELM).name)
+	assert_string_contains(text, "Testa")
+	var total: String = ItemTooltipLines.format_stat(_session.data.stats.info(DR)["format"],
+			_session.modifiers.total(DR))
+	assert_string_contains(text, total)
+
+
+func test_no_bonus_text_without_sources() -> void:
+	_open()
+	assert_string_contains(_stats_text(), "Nessun bonus attivo.")
+
+
+func test_remove_returns_the_piece_to_the_bank() -> void:
+	TestFactory.give(_session, HELM, 1)
+	_session.equipment.equip(HELM)
+	_open()
+	_remove(&"head").pressed.emit()
+	assert_eq(_session.equipment.get_item(&"head"), &"")
+	assert_eq(_session.bank.get_count(HELM), 1)
+	assert_eq(_item_label(&"head").text, "Vuoto")
+	assert_true(_remove(&"head").disabled)
+	assert_string_contains(_stats_text(), "Nessun bonus attivo.")
+
+
+func test_refused_remove_shows_the_reason() -> void:
+	_open()
+	assert_false(_label("%MessageLabel").visible)
+	_remove(&"head").pressed.emit()
+	assert_true(_label("%MessageLabel").visible)
+	assert_eq(_label("%MessageLabel").text, "Lo slot è già vuoto.")
+	assert_eq(_session.equipment.get_item(&"head"), &"")
+
+
+func test_food_shows_heal_quantity_and_exhausted() -> void:
+	TestFactory.give(_session, RATION, 3)
+	_open()
+	assert_true(_session.equipment.set_food(RATION).ok)
+	var heal: int = _session.data.item(RATION).food_heal
+	assert_string_contains(_food_info().text, "Cura %s punti vita" % NumberFormat.format_int(heal))
+	assert_string_contains(_food_info().text, "In bank: 3")
+	assert_eq(_food_name().text, _session.data.item(RATION).name)
+	_session.bank.remove(RATION, 3)
+	assert_string_contains(_food_info().text, "Esaurito")
+	assert_eq(_session.equipment.get_food(), RATION, "choice kept at quantity 0")
+	_page.find_child("ClearFoodButton", true, false).pressed.emit()
+	assert_eq(_session.equipment.get_food(), &"")
+	assert_eq(_food_name().text, "Nessun cibo scelto")
+
+
+func test_stance_buttons_follow_and_set_the_model() -> void:
+	_open()
+	var current: StringName = _session.equipment.get_stance()
+	assert_true(_stance(current).button_pressed)
+	var other: StringName = &"defensive" if current != &"defensive" else &"balanced"
+	_stance(other).pressed.emit()
+	assert_eq(_session.equipment.get_stance(), other)
+	assert_true(_stance(other).button_pressed)
+	assert_false(_stance(current).button_pressed)
+	_session.equipment.set_stance(current)
+	assert_true(_stance(current).button_pressed, "model event redraws")
+
+
+func test_unbind_disconnects_everything() -> void:
+	_open()
+	_page.unbind()
+	for event_name: StringName in OBSERVED:
+		for connection: Dictionary in Signal(_session.events, event_name).get_connections():
+			assert_ne((connection["callable"] as Callable).get_object(), _page, "%s still connected" % event_name)
+
+
+func _open() -> void:
+	_page = SCENE.instantiate() as EquipmentPage
+	_page.page_id = &"equipment"
+	add_child(_page)
+	_page.bind(_session)
+
+
+func _label(path: String) -> Label:
+	return _page.get_node(path) as Label
+
+
+func _stats_text() -> String:
+	return (_page.get_node("%StatsText") as RichTextLabel).text
+
+
+func _row(slot: StringName) -> Node:
+	return _page.find_child("Row_%s" % slot, true, false)
+
+
+func _item_label(slot: StringName) -> Label:
+	return _row(slot).find_child("ItemLabel", true, false) as Label
+
+
+func _remove(slot: StringName) -> Button:
+	return _row(slot).find_child("RemoveButton", true, false) as Button
+
+
+func _food_name() -> Label:
+	return _page.find_child("FoodName", true, false) as Label
+
+
+func _food_info() -> Label:
+	return _page.find_child("FoodInfo", true, false) as Label
+
+
+func _stance(stance: StringName) -> Button:
+	return _page.find_child("Stance_%s" % stance, true, false) as Button
