@@ -1,0 +1,161 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://ui/pages/mastery/mastery_panel.gd" id="1_panel"]
+[ext_resource type="Script" path="res://ui/pages/mastery/mastery_node_tree.gd" id="2_tree"]
+
+[node name="MasteryPanel" type="PanelContainer"]
+offset_right = 1240.0
+offset_bottom = 800.0
+script = ExtResource("1_panel")
+title = "Maestria"
+default_size = Vector2(1240, 800)
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="PoolRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="PoolTitle" type="Label" parent="VBox/PoolRow"]
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+text = "POOL DI MAESTRIA"
+
+[node name="PoolBar" type="ProgressBar" parent="VBox/PoolRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+mouse_filter = 2
+max_value = 1.0
+step = 0.0
+show_percentage = false
+
+[node name="PoolLabel" type="Label" parent="VBox/PoolRow/PoolBar"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+vertical_alignment = 1
+text_overrun_behavior = 3
+
+[node name="Notices" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="MessageLabel" type="Label" parent="VBox/Notices"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+text_overrun_behavior = 3
+
+[node name="PoolWarning" type="Label" parent="VBox/Notices"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+horizontal_alignment = 2
+text_overrun_behavior = 3
+
+[node name="Body" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="Actions" type="VBoxContainer" parent="VBox/Body"]
+custom_minimum_size = Vector2(380, 0)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ActionsTitle" type="Label" parent="VBox/Body/Actions"]
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+text = "AZIONI"
+
+[node name="ActionsScroll" type="ScrollContainer" parent="VBox/Body/Actions"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ActionList" type="VBoxContainer" parent="VBox/Body/Actions/ActionsScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="SpendBox" type="PanelContainer" parent="VBox/Body/Actions"]
+layout_mode = 2
+theme_type_variation = &"HudPanel"
+
+[node name="Content" type="VBoxContainer" parent="VBox/Body/Actions/SpendBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SpendTarget" type="Label" parent="VBox/Body/Actions/SpendBox/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+text_overrun_behavior = 3
+
+[node name="AmountRow" type="HBoxContainer" parent="VBox/Body/Actions/SpendBox/Content"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="SpendSlider" type="HSlider" parent="VBox/Body/Actions/SpendBox/Content/AmountRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+min_value = 1.0
+value = 1.0
+rounded = true
+
+[node name="SpendAmount" type="Label" parent="VBox/Body/Actions/SpendBox/Content/AmountRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+horizontal_alignment = 2
+
+[node name="SpendButton" type="Button" parent="VBox/Body/Actions/SpendBox/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"AccentButton"
+text = "Spendi"
+
+[node name="Separator" type="VSeparator" parent="VBox/Body"]
+layout_mode = 2
+
+[node name="Nodes" type="VBoxContainer" parent="VBox/Body"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="NodesTitle" type="Label" parent="VBox/Body/Nodes"]
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+text = "NODI"
+
+[node name="EmptyLabel" type="Label" parent="VBox/Body/Nodes"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+
+[node name="NodesScroll" type="ScrollContainer" parent="VBox/Body/Nodes"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="NodeTree" type="Control" parent="VBox/Body/Nodes/NodesScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 0
+script = ExtResource("2_tree")

@@ -61,6 +61,13 @@ const BANK_CELL_SIZE := Vector2(48, 48)
 const BANK_PANEL_WIDTH: int = 320
 const BANK_PANEL_ICON_SIZE := Vector2(64, 64)
 const BANK_SEARCH_WIDTH: int = 260
+## Mastery panel: node card size and spacing in the tree (pos = [col, row]), width of the prerequisite links, action
+## icon side, opacity of a node card whose prerequisites are missing.
+const MASTERY_NODE_SIZE := Vector2(240, 156)
+const MASTERY_NODE_GAP := Vector2(32, 32)
+const MASTERY_LINK_WIDTH: float = 2.0
+const MASTERY_ACTION_ICON_SIDE: int = 36
+const MASTERY_LOCKED_ALPHA: float = 0.6
 
 # --- palette ---
 const BG := Color(0.055, 0.047, 0.063, 0.86)
