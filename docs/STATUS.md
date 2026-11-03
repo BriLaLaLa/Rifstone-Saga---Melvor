@@ -5,10 +5,10 @@ Se la sessione si interrompe, si riparte da qui.
 
 ## Ripartenza (aggiornata il 2026-11-03)
 - **Stato**: M4 in corso. **M4-01 + M4-02 DONE**, merge congiunto `16e6306` su `main` (correzioni del Reviewer sul
-  branch in `df9bc0d`). Suite (run_checks): 925 test, 903 passati, 22 pending, 0 falliti; validate_data verde su fixture
-  e dati veri. M3 completata, tag `m3-done` su `ca18ee6`; `main` e i tag `m0-done`…`m3-done` pushati su `origin`
+  branch in `df9bc0d`). **M4-04 DONE**, merge `ef00713`. Suite (run_checks dopo M4-04): 939 test, 917 passati,
+  22 pending, 0 falliti; validate_data verde su fixture e dati veri. M4-03 in corso. M3 completata, tag `m3-done` su `ca18ee6`; `main` e i tag `m0-done`…`m3-done` pushati su `origin`
   (il push di M4 si fa a fine milestone). Visione v2 approvata (D1-D6), R-00 fatto.
-- **Prossimo passo**: **M4-03 ∥ M4-04** (Personaggio e salvataggio v2; ItemRoller e istanze), poi M4-05, M4-06,
+- **Prossimo passo**: chiudere **M4-03** (Personaggio e salvataggio v2), poi M4-05 (note "da M4-04"), M4-06,
   M4-07 ∥ M4-09, M4-08, M4-10, M4-11, con le regole dei consumi di `CLAUDE.md` (massimo 2 agenti, test mirati, suite
   completa solo dopo il merge, review sul diff, sezioni nei brief). I worktree `RSI-worktrees/M4-01` e `M4-02` si
   possono rimuovere.
@@ -16,6 +16,9 @@ Se la sessione si interrompe, si riparte da qui.
   M4-06 `test_equipment.gd` (15) e `test_item_conservation.gd` (2); M4-08 `test_bank_item_panel_smoke.gd` (1) e
   `test_tooltip.gd::test_show_item_weapon_lines` (1); M4-09 `test_main_screen_smoke.gd` (2); vecchio:
   `test_stat_registry_coverage.gd` (stat del combattimento, errore da M6-07).
+- **Follow-up di M4-04** (note "da M4-04" in `07_TASKS.md`): M4-05 `from_dict` non controlla `uid`/unicità/castoni;
+  M4-07 rarità tirata dal chiamante e scope `skill:forestry` degli attrezzi nelle fixture; M7-01 caso `+N` di
+  `instance_modifiers`; M7-03 stub `drop_chances`.
 - **Follow-up di M4-02** (note "da M4-02" in `07_TASKS.md`): M4-03 `total_level` in `test_skills_system.gd` e requisiti
   misti con `character`; M4-05 requisito `character` in `test_shop.gd`; M4-06 pending e costante `BOW`; M4-07
   `test_crafting_chain.gd` con gli attrezzi nell'Armeria; M4-08 pending, ownership di `item_tooltip_lines.gd` (Q42);
@@ -89,7 +92,7 @@ Se la sessione si interrompe, si riparte da qui.
 | M4-01 | M4 | Schema e validatore della riforma | CORE | DONE | task/M4-01 | merge congiunto 16e6306 (con M4-02); 83f36fc, 4c1626c, df909ac, 3da8494, b6d4e51, e2a2ba3 |
 | M4-02 | M4 | Contenuto della riforma | DATA | DONE | task/M4-02 | merge 16e6306; 31cbcbf, 8855c5a, e3c1afa; correzioni del Reviewer df9bc0d; run_checks 925 test, 903 passati, 22 pending |
 | M4-03 | M4 | Personaggio e salvataggio v2 | CORE | TODO | | parallelo con M4-04 |
-| M4-04 | M4 | ItemRoller e istanze | CORE | TODO | | parallelo con M4-03 |
+| M4-04 | M4 | ItemRoller e istanze | CORE | DONE | task/M4-04 | merge ef00713; 78d3e1a; 14 test propri; run_checks 939 test, 917 passati, 22 pending, 0 falliti; worktree non rimosso |
 | M4-05 | M4 | Armeria, bank e shop | CORE | TODO | | |
 | M4-06 | M4 | Equipaggiamento con uid e assetti | CORE | TODO | | |
 | M4-07 | M4 | Artigianato verso l'Armeria | CORE | TODO | | |
