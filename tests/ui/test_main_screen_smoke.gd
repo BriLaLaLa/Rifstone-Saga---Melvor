@@ -156,7 +156,9 @@ func test_real_data_sidebar_and_first_page() -> void:
 	assert_eq(_page_host().current_page_id(), &"skill:forestry")
 	var rows: Node = _sidebar().get_node("%Entries")
 	assert_eq((rows.get_node("SkillForestry") as Button).text, "Selvicoltura")
-	assert_true((rows.get_node("SkillQuarrying") as Button).disabled, "no actions in the data yet")
+	assert_false((rows.get_node("SkillQuarrying") as Button).disabled, "quarrying has actions")
+	assert_false((rows.get_node("SkillAngling") as Button).disabled, "angling has actions")
+	assert_true((rows.get_node("SkillForging") as Button).disabled, "no forging actions until M3")
 
 
 func _open(session: GameSession) -> void:
