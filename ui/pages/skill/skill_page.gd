@@ -10,8 +10,12 @@ extends Page
 ## ToastManager of the main screen (`action_stopped`), not here.
 ## It keeps no game state: only the session reference and its nodes (cards by action id).
 ## Artisan recipes get their own card in M3-05; until then their start is refused by the runner.
+## Skills with mastery have a "Maestria" button in the header that opens the MasteryPanel (M2-03), a child window of
+## the page (created on the first press, freed with the page): bound to the session only while open, closed when the
+## page unbinds.
 
 const CARD_SCENE: PackedScene = preload("res://ui/pages/skill/action_card.tscn")
+const MASTERY_PANEL_SCENE: PackedScene = preload("res://ui/pages/mastery/mastery_panel.tscn")
 const LOG_CATEGORY: String = "ui"
 const LANE_ACTION_KEY: String = "action"
 const LEVEL_TEXT: String = "Livello %s"
@@ -33,6 +37,8 @@ const REFUSED_TEXT_DEFAULT: String = "Impossibile avviare l'azione."
 var _session: GameSession = null
 var _skill: SkillDef = null
 var _cards: Dictionary[StringName, ActionCard] = {}
+var _mastery_button: Button = null
+var _mastery_panel: MasteryPanel = null
 
 @onready var _skill_icon: TextureRect = %SkillIcon
 @onready var _name_label: Label = %NameLabel
@@ -47,6 +53,7 @@ func _ready() -> void:
 	set_process(false)
 	_message_label.add_theme_color_override("font_color", UiStyle.BAD)
 	_message_label.visible = false
+	_add_mastery_button()
 
 
 ## Reads the skill of `page_id` (`skill:<id>`), builds its cards and follows the session's events.
@@ -61,6 +68,7 @@ func bind(session: GameSession) -> void:
 	_skill_icon.texture = ItemSlotView.icon_of(skill.icon)
 	_skill_icon.modulate = skill.color
 	_name_label.text = skill.name
+	_mastery_button.visible = skill.has_mastery
 	_build_cards()
 	var events: GameEvents = _session.events
 	events.xp_gained.connect(_on_events_xp_gained)
@@ -90,10 +98,10 @@ func unbind() -> void:
 			var handler: Callable = connection[1]
 			if event.is_connected(handler):
 				event.disconnect(handler)
+	if _mastery_panel != null and is_instance_valid(_mastery_panel):
+		_mastery_panel.close_window()
 	_session = null
 	_skill = null
-
-
 
 
 func _process(_delta: float) -> void:
@@ -198,3 +206,34 @@ func _on_events_mastery_xp_gained(skill_id: StringName, action_id: StringName, _
 
 func _on_events_modifiers_changed() -> void:
 	_redraw()
+
+
+## The "Maestria" button of the header (shown in `bind` for skills with mastery), built here because the button is
+## the only part of this page owned by M2-03 (its node can move to skill_page.tscn unchanged).
+func _add_mastery_button() -> void:
+	_mastery_button = Button.new()
+	_mastery_button.name = "MasteryButton"
+	_mastery_button.text = MasteryTexts.OPEN_BUTTON_TEXT
+	_mastery_button.tooltip_text = MasteryTexts.OPEN_BUTTON_TOOLTIP
+	_mastery_button.focus_mode = Control.FOCUS_NONE
+	_mastery_button.size_flags_horizontal = Control.SIZE_EXPAND | Control.SIZE_SHRINK_END
+	_mastery_button.visible = false
+	_level_label.get_parent().add_child(_mastery_button)
+	_mastery_button.owner = self
+	_mastery_button.unique_name_in_owner = true
+	_mastery_button.pressed.connect(_on_mastery_button_pressed)
+
+
+## Opens the mastery window of the skill (bound to the session while open) or closes it.
+func _on_mastery_button_pressed() -> void:
+	if _session == null or not _skill.has_mastery:
+		return
+	if _mastery_panel != null and _mastery_panel.visible:
+		_mastery_panel.close_window()
+		return
+	if _mastery_panel == null:
+		_mastery_panel = MASTERY_PANEL_SCENE.instantiate() as MasteryPanel
+		_mastery_panel.title = MasteryTexts.WINDOW_TITLE % _skill.name
+		add_child(_mastery_panel)
+	_mastery_panel.bind(_session, _skill.id)
+	_mastery_panel.open_window()
