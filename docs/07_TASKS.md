@@ -689,6 +689,13 @@ Regole per tutti i task:
   con `unknown_id` (testo "Questa azione non è ancora disponibile."): `test_artisan_skill_refuses_start_until_recipes`
   va sostituito dai casi della carta ricetta. I motivi `missing_inputs` e `bank_full` hanno già un testo in
   `SkillPage.REFUSED_TEXTS`.
+- **Nota (da M3-01)** Ora `start` di una ricetta risponde `missing_inputs` quando mancano ingredienti (dopo
+  `level_too_low`) e la corsia si ferma con `missing_inputs` quando finiscono a metà serie (05 §5.8): nel merge di M3-01
+  `test_artisan_skill_refuses_start_until_recipes` è stato adattato (attende il testo di `missing_inputs`); va comunque
+  sostituito dai casi della carta ricetta. Per lo stato
+  "avviabile" della carta usare `ArtisanResolver.can_start(session, action)` (sola lettura); le probabilità con
+  `ModifierContext.for_action(skill_id, action_id)` (le regole di maestria di artigianato hanno scope di azione). La
+  fixture `test_craft` ha ora `mastery_bonuses` (uguali a `forging`).
 - **Nota (da M2-03)** `res://ui/theme/ui_style.gd` è a 390 righe su 400: prima di aggiungere costanti `UiStyle.*`
   (qui o in M3-06/M3-07, chi arriva prima) spostare `build_theme()` con i suoi `_add_*` e `_button_styles` (circa 185
   righe) in `res://ui/theme/ui_theme_builder.gd` (`class_name UiThemeBuilder`, solo statiche), lasciando
@@ -740,6 +747,10 @@ Regole per tutti i task:
   artigianato, vendita, equipaggiamento. **Leggere** `01_GDD.md` §5, §9 · **Accettazione / Test** i file verdi.
 - **Nota (da M1-19)** Ownership estesa a `res://tests/data/test_stat_registry_coverage.gd`: aggiungere `"F-08"` a
   `CLOSED_FORMULAS` (`preservation_chance`; il test `test_artisan_resolver.gd::test_preservation_cap` deve esistere).
+- **Nota (da M3-01)** `test_preservation_cap` esiste (somma 95 → 80, 10.000 cicli, seme fisso). Il controllo dello spazio
+  dell'artigianato conta le caselle liberate dagli ingredienti consumati del tutto (05 §5.8): un caso di conservazione
+  degli oggetti con l'ultimo lotto di ingredienti e la bank piena è utile. Facoltativo di M3-01 non fatto: `gather_bundle`
+  a 1000 ms per il caso letterale di F-03 (resta la copia `fast` sotto `user://` in `test_action_runner.gd`).
 - **Nota (da M3-04)** Catena con i dati veri: `smelt_<metallo>` (2 minerali → lingotto), `forge_<metallo>_hatchet|pick|rod`
   (2 lingotti + 1 `<legno>_log` dello stesso grado) → slot `tool_forestry|tool_quarrying|tool_angling`, modificatore
   `skill_interval_pct` con scope `skill:<skill>`.
