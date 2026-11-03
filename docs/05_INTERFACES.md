@@ -881,16 +881,31 @@ signal menu_requested
 func bind(session: GameSession) -> void
 func unbind() -> void
 
-class_name ItemSlotView extends PanelContainer  # ui/components/item_slot/item_slot.gd
+class_name SkillPage extends Page                # ui/pages/skill/skill_page.gd (+ .tscn), rotta skill:<id>
+const REFUSED_TEXTS: Dictionary[StringName, String]   # motivo di actions.start -> testo; altri: REFUSED_TEXT_DEFAULT
+
+class_name ActionCard extends PanelContainer      # ui/pages/skill/action_card.gd (+ .tscn), interna a SkillPage
+signal toggle_requested(action_id: StringName)    # la pagina manda start o stop
+func setup(action: ActionDef, data: GameData) -> void   # una volta, dopo l'ingresso nell'albero: parti dai dati
+func redraw(session: GameSession) -> void         # livello, intervallo (current_interval_ms), maestria, azione in corso
+func set_progress(progress: float) -> void        # 0..1 letto da actions.get_progress
+func action_id() -> StringName                    # &"" prima di setup
+static func seconds_text(ms: int) -> String       # 3000 -> "3,0 s", 2700 -> "2,7 s" (via NumberFormat)
+
+class_name ItemSlotView extends PanelContainer  # ui/components/item_slot/item_slot.gd (+ .tscn)
 signal pressed(item_id: StringName)
-func set_item(item: ItemDef, count: int, locked: bool = false) -> void
+func set_item(item: ItemDef, count: int, locked: bool = false) -> void   # count 0 = quantità non mostrata
 func clear() -> void
+func item_id() -> StringName                    # &"" se vuota
+static func icon_of(path: String) -> Texture2D  # icona dei dati; file assente: Log.warn e UiStyle.MISSING_ICON
 
 class_name ActionProgressBar extends ProgressBar   # ui/components/progress/action_progress_bar.gd
 func set_progress(value: float) -> void            # 0..1, animazione continua
 
-class_name XpBar extends Control                   # ui/components/progress/xp_bar.gd
-func set_xp(table: XpTable, xp: int) -> void
+class_name XpBar extends Control                   # ui/components/progress/xp_bar.gd (+ .tscn)
+func set_xp(table: XpTable, xp: int) -> void       # xp cumulativa; "<xp> / <xp del livello dopo> XP"
+func shown_progress() -> float                     # frazione del livello disegnata (test, accessibilità)
+func shown_text() -> String
 
 class_name ConfirmDialog extends ConfirmationDialog   # ui/components/confirm_dialog/confirm_dialog.gd
 static func ask(parent: Node, title: String, text: String) -> bool   # coroutine
@@ -992,6 +1007,17 @@ lo stesso quando la schermata esce dall'albero. Le voci della Sidebar senza pagi
 (`is_available` = `PageHost.has_page`); il livello delle skill si ridisegna su `level_up`, la TopBar su `gold_changed` e
 `bank_capacity_changed`. Numeri via `NumberFormat`; costanti di presentazione di tooltip e GameWindow in
 `UiStyle.TOOLTIP_*`/`UiStyle.WINDOW_*`.
+Pagina skill (M1-15): `SkillPage` legge la skill da `PageHost.argument_of(page_id)` in `bind` (skill sconosciuta:
+`Log.warn`, pagina vuota), crea una `ActionCard` per azione di `actions_for_skill` e si collega a sei segnali di
+`session.events`: `xp_gained`, `level_up`, `action_started`, `action_stopped`, `mastery_xp_gained`, `modifiers_changed`
+(tutti scollegati in `unbind` e in `_exit_tree`). `_process` è attivo solo tra `bind` e `unbind` e legge soltanto
+`actions.get_progress()` (la carta dell'azione in corso riceve il progresso, le altre 0). L'intervallo mostrato è
+`actions.current_interval_ms`; una carta sotto il livello richiesto è bloccata (pulsante disabilitato). Un `start`
+rifiutato mostra `REFUSED_TEXTS` sotto l'intestazione; i motivi di stop del runner diventano toast nel `ToastManager`.
+Le ricette di artigianato (M3-05) oggi sono rifiutate dal runner (`unknown_id`). `ItemSlotView` tiene l'`ItemDef` e la
+quantità dell'ultimo `set_item` solo per il proprio tooltip (copia di presentazione, mai letta da altri): chi la usa
+chiama di nuovo `set_item` quando la quantità cambia. Costanti di presentazione di menu, slot e dialogo:
+`UiStyle.MENU_PANEL_WIDTH`, `SLOT_PANEL_WIDTH`, `MENU_BUTTON_HEIGHT`, `MENU_TITLE_FONT_SIZE`, `DIALOG_SIZE`.
 
 ## 8. Helper dei test (`res://tests/helpers/`)
 
