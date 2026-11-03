@@ -40,7 +40,7 @@ func test_worn_piece_and_stats_with_sources() -> void:
 	return
 	TestFactory.give(_session, HELM, 1)
 	_open()
-	assert_true(_session.equipment.equip(HELM).ok)
+	assert_true(_session.equipment.equip(TestFactory.give_piece(_session, HELM)).ok)
 	assert_eq(_item_label(&"head").text, _session.data.item(HELM).name)
 	assert_false(_remove(&"head").disabled)
 	var text: String = _stats_text()
@@ -61,7 +61,7 @@ func test_remove_returns_the_piece_to_the_bank() -> void:
 	pending("M4-08: pezzi nell'Armeria, pagina da rifare")
 	return
 	TestFactory.give(_session, HELM, 1)
-	_session.equipment.equip(HELM)
+	_session.equipment.equip(TestFactory.give_piece(_session, HELM))
 	_open()
 	_remove(&"head").pressed.emit()
 	assert_eq(_session.equipment.get_item(&"head"), &"")
@@ -97,16 +97,7 @@ func test_food_shows_heal_quantity_and_exhausted() -> void:
 
 
 func test_stance_buttons_follow_and_set_the_model() -> void:
-	_open()
-	var current: StringName = _session.equipment.get_stance()
-	assert_true(_stance(current).button_pressed)
-	var other: StringName = &"defensive" if current != &"defensive" else &"balanced"
-	_stance(other).pressed.emit()
-	assert_eq(_session.equipment.get_stance(), other)
-	assert_true(_stance(other).button_pressed)
-	assert_false(_stance(current).button_pressed)
-	_session.equipment.set_stance(current)
-	assert_true(_stance(current).button_pressed, "model event redraws")
+	pending("M4-08: the stance no longer exists (D3), the page is redone")
 
 
 func test_unbind_disconnects_everything() -> void:
@@ -177,7 +168,7 @@ func test_summary_shows_the_tool_scoped_to_a_skill() -> void:
 	return
 	TestFactory.give(_session, &"test_hatchet", 1)
 	_open()
-	assert_true(_session.equipment.equip(&"test_hatchet").ok)
+	assert_true(_session.equipment.equip(TestFactory.give_piece(_session, &"test_hatchet")).ok)
 	var text: String = _stats_text()
 	assert_false(text.contains("Nessun bonus attivo."))
 	assert_string_contains(text, _session.data.skill(&"test_gather").name)

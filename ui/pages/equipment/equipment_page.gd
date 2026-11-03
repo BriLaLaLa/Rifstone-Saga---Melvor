@@ -79,6 +79,7 @@ func bind(session: GameSession) -> void:
 	unbind()
 	_session = session
 	_session.events.equipment_changed.connect(_on_equipment_changed)
+	_session.events.food_changed.connect(_on_food_changed)
 	_session.events.modifiers_changed.connect(_on_modifiers_changed)
 	_session.events.bank_changed.connect(_on_bank_changed)
 	_build()
@@ -91,6 +92,8 @@ func unbind() -> void:
 		var events: GameEvents = _session.events
 		if events.equipment_changed.is_connected(_on_equipment_changed):
 			events.equipment_changed.disconnect(_on_equipment_changed)
+		if events.food_changed.is_connected(_on_food_changed):
+			events.food_changed.disconnect(_on_food_changed)
 		if events.modifiers_changed.is_connected(_on_modifiers_changed):
 			events.modifiers_changed.disconnect(_on_modifiers_changed)
 		if events.bank_changed.is_connected(_on_bank_changed):
@@ -116,8 +119,6 @@ func _build() -> void:
 		_slot_rows[slot] = _new_slot_row(slot)
 	_section_title(_food_box, FOOD_TITLE_TEXT)
 	_build_food_row()
-	_section_title(_stance_box, STANCE_TITLE_TEXT)
-	_build_stance_row()
 
 
 func _section_title(parent: Container, text: String) -> void:
@@ -189,16 +190,6 @@ func _build_food_row() -> void:
 	_food_button.pressed.connect(_on_clear_food_pressed)
 
 
-func _build_stance_row() -> void:
-	var row: HBoxContainer = _new_row(_stance_box, ROW_NAME % "stance")
-	for stance: StringName in Equipment.STANCES:
-		var button: Button = _new_button(row, STANCE_TEXTS.get(stance, String(stance)))
-		button.name = "Stance_%s" % stance
-		button.toggle_mode = true
-		button.pressed.connect(_on_stance_pressed.bind(stance))
-		_stance_buttons[stance] = button
-
-
 # --- Refresh (reads the session) --------------------------------------------------------------------------------
 
 func _refresh() -> void:
@@ -207,9 +198,6 @@ func _refresh() -> void:
 	for slot: StringName in _slot_rows:
 		_refresh_slot(slot)
 	_refresh_food()
-	var stance: StringName = _session.equipment.get_stance()
-	for id: StringName in _stance_buttons:
-		_stance_buttons[id].set_pressed_no_signal(id == stance)
 	_stats_text.text = EquipmentStatsText.summary(_session)
 
 
@@ -259,12 +247,11 @@ func _on_clear_food_pressed() -> void:
 		_show_result(_session.equipment.set_food(&""))
 
 
-func _on_stance_pressed(stance: StringName) -> void:
-	if _session != null:
-		_show_result(_session.equipment.set_stance(stance))
+func _on_equipment_changed(_slot_id: StringName, _uid: int) -> void:
+	_refresh()
 
 
-func _on_equipment_changed(_slot_id: StringName, _item_id: StringName) -> void:
+func _on_food_changed(_item_id: StringName) -> void:
 	_refresh()
 
 
