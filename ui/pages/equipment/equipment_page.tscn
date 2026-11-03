@@ -1,0 +1,93 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/pages/equipment/equipment_page.gd" id="1_page"]
+
+[node name="EquipmentPage" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_page")
+
+[node name="Margin" type="MarginContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Content" type="VBoxContainer" parent="Margin"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Header" type="PanelContainer" parent="Margin/Content"]
+layout_mode = 2
+theme_type_variation = &"HudPanel"
+
+[node name="TitleLabel" type="Label" parent="Margin/Content/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"TitleLabel"
+
+[node name="MessageLabel" type="Label" parent="Margin/Content"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="Main" type="HBoxContainer" parent="Margin/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="LeftScroll" type="ScrollContainer" parent="Margin/Content/Main"]
+layout_mode = 2
+size_flags_horizontal = 3
+horizontal_scroll_mode = 0
+
+[node name="Left" type="VBoxContainer" parent="Margin/Content/Main/LeftScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SlotsBox" type="VBoxContainer" parent="Margin/Content/Main/LeftScroll/Left"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="FoodBox" type="VBoxContainer" parent="Margin/Content/Main/LeftScroll/Left"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="StanceBox" type="VBoxContainer" parent="Margin/Content/Main/LeftScroll/Left"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="StatsPanel" type="PanelContainer" parent="Margin/Content/Main"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"HudPanel"
+
+[node name="StatsScroll" type="ScrollContainer" parent="Margin/Content/Main/StatsPanel"]
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="StatsBox" type="VBoxContainer" parent="Margin/Content/Main/StatsPanel/StatsScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="StatsTitle" type="Label" parent="Margin/Content/Main/StatsPanel/StatsScroll/StatsBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+
+[node name="StatsText" type="RichTextLabel" parent="Margin/Content/Main/StatsPanel/StatsScroll/StatsBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+bbcode_enabled = true
+fit_content = true
+scroll_active = false

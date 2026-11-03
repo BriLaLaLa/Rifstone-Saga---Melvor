@@ -9,8 +9,8 @@ extends Page
 ## Player actions are bank commands: a click on a cell opens the item panel (lock / unlock = `set_locked`); dragging
 ## a cell onto another moves it to that cell's index (`move_stack`), onto the grid outside the cells to the last
 ## index; "Ordina" = `sort_stacks`. The grid changes only through the events of the bank: a
-## refused command moves nothing and shows its reason. Selling = `shop.sell` (from the item panel); equipping and
-## food come with M3-07.
+## refused command moves nothing and shows its reason. Selling = `shop.sell`, "Equipaggia" = `equipment.equip`,
+## "Usa come cibo" = `equipment.set_food` (all from the item panel).
 ## It keeps no game state: only the session reference, its nodes and presentation state (search text, the item of
 ## the panel, the hovered cell whose tooltip is refreshed after a redraw).
 
@@ -30,6 +30,11 @@ const REFUSED_TEXTS: Dictionary[StringName, String] = {
 	Reasons.ITEM_LOCKED: "L'oggetto è bloccato: sbloccalo per venderlo.",
 	Reasons.NOT_SELLABLE: "Questo oggetto non si vende.",
 	Reasons.NOT_ENOUGH_ITEMS: "Non ci sono abbastanza oggetti.",
+	Reasons.NOT_EQUIPPABLE: "Questo oggetto non si può equipaggiare.",
+	Reasons.REQUIREMENT_NOT_MET: "Requisiti non soddisfatti.",
+	Reasons.COMBAT_ACTIVE: "Non puoi cambiare arma durante il combattimento.",
+	Reasons.BANK_FULL: "La bank è piena.",
+	Reasons.NOT_FOOD: "Questo oggetto non è un cibo.",
 }
 const REFUSED_TEXT_DEFAULT: String = "Operazione non riuscita."
 const STACK_ITEM_KEY: String = "item"
@@ -80,6 +85,8 @@ func _ready() -> void:
 	_sort_button.pressed.connect(_on_sort_button_pressed)
 	_item_panel.lock_requested.connect(_on_item_panel_lock_requested)
 	_item_panel.sell_requested.connect(_on_item_panel_sell_requested)
+	_item_panel.equip_requested.connect(_on_item_panel_equip_requested)
+	_item_panel.food_requested.connect(_on_item_panel_food_requested)
 	_item_panel.close_requested.connect(_on_item_panel_close_requested)
 	_grid.set_drag_forwarding(Callable(), _can_drop_on_grid, _drop_on_grid)
 
@@ -90,6 +97,7 @@ func bind(session: GameSession) -> void:
 	_session = session
 	_session.events.bank_changed.connect(_on_events_bank_changed)
 	_session.events.bank_capacity_changed.connect(_on_events_bank_capacity_changed)
+	_session.events.equipment_changed.connect(_on_events_equipment_changed)
 	_redraw()
 
 
@@ -268,6 +276,16 @@ func _on_item_panel_sell_requested(item_id: StringName, qty: int) -> void:
 		_show_result(_session.shop.sell(item_id, qty))
 
 
+func _on_item_panel_equip_requested(item_id: StringName) -> void:
+	if _session != null:
+		_show_result(_session.equipment.equip(item_id))
+
+
+func _on_item_panel_food_requested(item_id: StringName) -> void:
+	if _session != null:
+		_show_result(_session.equipment.set_food(item_id))
+
+
 func _on_item_panel_close_requested() -> void:
 	_item_panel.clear()
 
@@ -287,4 +305,8 @@ func _on_events_bank_changed(_item_id: StringName, _new_count: int, _delta: int)
 
 
 func _on_events_bank_capacity_changed(_used: int, _capacity: int) -> void:
+	_redraw()
+
+
+func _on_events_equipment_changed(_slot_id: StringName, _item_id: StringName) -> void:
 	_redraw()

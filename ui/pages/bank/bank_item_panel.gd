@@ -6,11 +6,13 @@ extends PanelContainer
 ##
 ## Internal to BankPage. `show_item` reads everything from the session at every call; the panel keeps only the id
 ## of the item it shows and the session reference (presentation state, the page's selection). It never changes game
-## state: the buttons emit `lock_requested` / `sell_requested` and the page sends the command. Equipping and food
-## come with M3-07.
+## state: the buttons emit `lock_requested`, `sell_requested`, `equip_requested` and `food_requested`; the page sends
+## the command.
 
 signal lock_requested(item_id: StringName, locked: bool)
 signal sell_requested(item_id: StringName, qty: int)
+signal equip_requested(item_id: StringName)
+signal food_requested(item_id: StringName)
 signal close_requested
 
 const COUNT_TEXT: String = "Quantità: %s"
@@ -18,6 +20,9 @@ const LOCK_TEXT: String = "Blocca"
 const UNLOCK_TEXT: String = "Sblocca"
 const LOCKED_TEXT: String = "Bloccato: non si vende."
 const UNLOCKED_TEXT: String = "Non bloccato."
+const EQUIP_TEXT: String = "Equipaggia"
+const FOOD_TEXT: String = "Usa come cibo"
+const FOOD_ACTIVE_TEXT: String = "Cibo scelto"
 const SELL_TEXT: String = "Vendi"
 const SELL_ALL_BUT_ONE_TEXT: String = "Tutti tranne 1"
 const SELL_ALL_TEXT: String = "Tutti"
@@ -40,6 +45,8 @@ var _session: GameSession = null
 @onready var _lines_label: RichTextLabel = %LinesLabel
 @onready var _lock_button: Button = %LockButton
 @onready var _close_box: HBoxContainer = %CloseBox
+@onready var _equip_button: Button = %EquipButton
+@onready var _food_button: Button = %FoodButton
 @onready var _sell_section: VBoxContainer = %SellSection
 @onready var _sell_slider: HSlider = %SellSlider
 @onready var _sell_preview: Label = %SellPreview
@@ -58,6 +65,10 @@ func _ready() -> void:
 	close.pressed.connect(_on_close_pressed)
 	_close_box.add_child(close)
 	_lock_button.pressed.connect(_on_lock_button_pressed)
+	_equip_button.text = EQUIP_TEXT
+	_equip_button.pressed.connect(_on_equip_button_pressed)
+	_food_button.text = FOOD_TEXT
+	_food_button.pressed.connect(_on_food_button_pressed)
 	_sell_button.text = SELL_TEXT
 	_sell_but_one_button.text = SELL_ALL_BUT_ONE_TEXT
 	_sell_all_button.text = SELL_ALL_TEXT
@@ -90,6 +101,7 @@ func show_item(session: GameSession, item_id: StringName) -> bool:
 	_description_label.visible = not item.description.is_empty()
 	_lines_label.text = "\n".join(ItemTooltipLines.body(item, session.data))
 	_lock_button.text = UNLOCK_TEXT if locked else LOCK_TEXT
+	_refresh_actions(item)
 	_refresh_sell(item, count, locked, same_item)
 	visible = true
 	return true
@@ -108,6 +120,8 @@ func clear() -> void:
 	_lines_label.text = ""
 	_lock_button.text = LOCK_TEXT
 	_sell_section.visible = false
+	_equip_button.visible = false
+	_food_button.visible = false
 	visible = false
 
 
@@ -123,6 +137,27 @@ func _on_lock_button_pressed() -> void:
 
 func _on_close_pressed() -> void:
 	close_requested.emit()
+
+
+# --- Equip and food ---------------------------------------------------------------------------------------------
+
+## "Equipaggia" for equippable items, "Usa come cibo" for food (disabled while it is the chosen food).
+func _refresh_actions(item: ItemDef) -> void:
+	_equip_button.visible = item.is_equippable()
+	_food_button.visible = item.is_food()
+	var chosen: bool = _session.equipment.get_food() == item.id
+	_food_button.text = FOOD_ACTIVE_TEXT if chosen else FOOD_TEXT
+	_food_button.disabled = chosen
+
+
+func _on_equip_button_pressed() -> void:
+	if _item_id != &"" and _session != null:
+		equip_requested.emit(_item_id)
+
+
+func _on_food_button_pressed() -> void:
+	if _item_id != &"" and _session != null:
+		food_requested.emit(_item_id)
 
 
 # --- Sale section ---------------------------------------------------------------------------------------------
