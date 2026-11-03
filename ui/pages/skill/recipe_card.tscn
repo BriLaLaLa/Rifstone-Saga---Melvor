@@ -1,0 +1,41 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://ui/pages/skill/action_card.tscn" id="1_base"]
+[ext_resource type="Script" path="res://ui/pages/skill/recipe_card.gd" id="2_card"]
+
+[node name="RecipeCard" instance=ExtResource("1_base")]
+script = ExtResource("2_card")
+
+[node name="IngredientsName" type="Label" parent="Content/Stats" index="4"]
+layout_mode = 2
+size_flags_vertical = 0
+theme_type_variation = &"MutedLabel"
+text = "Ingredienti"
+
+[node name="Ingredients" type="VBoxContainer" parent="Content/Stats" index="5"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="PreservationName" type="Label" parent="Content/Stats" index="10"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text_overrun_behavior = 3
+
+[node name="PreservationValue" type="Label" parent="Content/Stats" index="11"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="DoubleName" type="Label" parent="Content/Stats" index="12"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text_overrun_behavior = 3
+
+[node name="DoubleValue" type="Label" parent="Content/Stats" index="13"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3

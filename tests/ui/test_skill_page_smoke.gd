@@ -190,13 +190,70 @@ func test_freeing_the_page_disconnects_everything() -> void:
 	assert_eq(_counts(), baseline)
 
 
-func test_artisan_skill_refuses_start_until_recipes() -> void:
+func test_recipe_gets_a_recipe_card_with_ingredients() -> void:
 	_open(&"test_craft")
-	var cards: Array[ActionCard] = _cards()
-	assert_false(cards.is_empty())
-	_button(cards[0]).pressed.emit()
+	var card: RecipeCard = _page.get_node("%Cards/CraftPlank") as RecipeCard
+	assert_not_null(card, "a recipe has a RecipeCard")
+	var text: Label = card.get_node("%Ingredients/IngredientTestLog/Text") as Label
+	assert_eq(text.text, "%s  0 / 2" % _session.data.item(&"test_log").name)
+	assert_eq(text.get_theme_color("font_color"), UiStyle.BAD, "short ingredient in red")
+	assert_true(_button(card).disabled, "cannot start without ingredients")
+	_session.bank.add(&"test_log", 5)
+	assert_eq(text.text, "%s  5 / 2" % _session.data.item(&"test_log").name, "redrawn on bank_changed")
+	assert_ne(text.get_theme_color("font_color"), UiStyle.BAD)
+	assert_false(_button(card).disabled)
+
+
+func test_recipe_card_start_and_stop() -> void:
+	_session.bank.add(&"test_log", 2)
+	_open(&"test_craft")
+	var card: RecipeCard = _page.get_node("%Cards/CraftPlank") as RecipeCard
+	_button(card).pressed.emit()
+	assert_eq(_running_action(), &"craft_plank")
+	assert_eq(_button(card).text, "Ferma")
+	_session.bank.remove(&"test_log", 2)
+	assert_false(_button(card).disabled, "the running recipe can always be stopped")
+	_button(card).pressed.emit()
 	assert_false(_session.actions.is_running())
-	assert_eq(_label(_page, "%MessageLabel").text, SkillPage.REFUSED_TEXTS[Reasons.MISSING_INPUTS])
+
+
+func test_recipe_card_chances_read_modifiers() -> void:
+	_open(&"test_craft")
+	var card: RecipeCard = _page.get_node("%Cards/CraftPlank") as RecipeCard
+	assert_eq(_label(card, "%PreservationValue").text, "0%")
+	assert_eq(_label(card, "%DoubleValue").text, "0%")
+	assert_eq(_label(card, "%PreservationName").text,
+			_session.data.stats.info(ArtisanResolver.PRESERVATION_STAT)["name"])
+	var mods: Array[Modifier] = [Modifier.make(ArtisanResolver.PRESERVATION_STAT, 12.5, &"skill", &"test_craft"),
+			Modifier.make(ArtisanResolver.DOUBLE_STAT, 5.0, &"skill", &"test_craft")]
+	_session.modifiers.set_source(&"test", mods)
+	var ctx: ModifierContext = ModifierContext.for_action(&"test_craft", &"craft_plank")
+	assert_eq(_label(card, "%PreservationValue").text, "%s%%" % NumberFormat.format_number(
+			_session.modifiers.total(ArtisanResolver.PRESERVATION_STAT, ctx)))
+	assert_eq(_label(card, "%DoubleValue").text, "5%")
+
+
+func test_gathering_page_has_no_recipe_cards() -> void:
+	_open(SKILL)
+	for card: ActionCard in _cards():
+		assert_false(card is RecipeCard)
+
+
+func test_real_data_forging_scrolls_88_recipes_with_variable_ingredients() -> void:
+	_session.free()
+	_session = TestFactory.session(1234, TestFactory.real_data())
+	_open(&"forging")
+	var cards: Array[ActionCard] = _cards()
+	assert_eq(cards.size(), 88)
+	for card: ActionCard in cards:
+		assert_true(card is RecipeCard)
+	var scroll: ScrollContainer = _page.get_node("Margin/Content/Scroll") as ScrollContainer
+	assert_not_null(scroll, "the card list is in a ScrollContainer")
+	assert_eq(scroll.horizontal_scroll_mode, ScrollContainer.SCROLL_MODE_DISABLED)
+	var counts: Dictionary[int, bool] = {}
+	for card: ActionCard in cards:
+		counts[(card.get_node("%Ingredients") as Control).get_child_count()] = true
+	assert_true(counts.size() >= 1)
 
 
 func test_real_data_forestry_page() -> void:
