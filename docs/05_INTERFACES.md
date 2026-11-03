@@ -1112,13 +1112,13 @@ lo stesso quando la schermata esce dall'albero. Le voci della Sidebar senza pagi
 `bank_capacity_changed`. Numeri via `NumberFormat`; costanti di presentazione di tooltip e GameWindow in
 `UiStyle.TOOLTIP_*`/`UiStyle.WINDOW_*`.
 Pagina skill (M1-15): `SkillPage` legge la skill da `PageHost.argument_of(page_id)` in `bind` (skill sconosciuta:
-`Log.warn`, pagina vuota), crea una `ActionCard` per azione di `actions_for_skill` e si collega a sei segnali di
+`Log.warn`, pagina vuota), crea per ogni azione di `actions_for_skill` una `ActionCard` (una `RecipeCard` se ha `inputs`) e si collega a sei segnali di
 `session.events`: `xp_gained`, `level_up`, `action_started`, `action_stopped`, `mastery_xp_gained`, `modifiers_changed`
-(tutti scollegati in `unbind` e in `_exit_tree`). `_process` è attivo solo tra `bind` e `unbind` e legge soltanto
+(più `bank_changed` se ha ricette, per ridisegnare solo le `RecipeCard`; tutti scollegati in `unbind` e in `_exit_tree`). `_process` è attivo solo tra `bind` e `unbind` e legge soltanto
 `actions.get_progress()` (la carta dell'azione in corso riceve il progresso, le altre 0). L'intervallo mostrato è
 `actions.current_interval_ms`; una carta sotto il livello richiesto è bloccata (pulsante disabilitato). Un `start`
 rifiutato mostra `REFUSED_TEXTS` sotto l'intestazione; i motivi di stop del runner diventano toast nel `ToastManager`.
-Le ricette di artigianato (M3-05) oggi sono rifiutate dal runner (`unknown_id`). `ItemSlotView` tiene l'`ItemDef` e la
+`ItemSlotView` tiene l'`ItemDef` e la
 quantità dell'ultimo `set_item` solo per il proprio tooltip (copia di presentazione, mai letta da altri): chi la usa
 chiama di nuovo `set_item` quando la quantità cambia. Costanti di presentazione di menu, slot e dialogo:
 `UiStyle.MENU_PANEL_WIDTH`, `SLOT_PANEL_WIDTH`, `MENU_BUTTON_HEIGHT`, `MENU_TITLE_FONT_SIZE`, `DIALOG_SIZE`.
