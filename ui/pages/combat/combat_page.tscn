@@ -1,0 +1,146 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://ui/pages/combat/combat_page.gd" id="1_page"]
+[ext_resource type="PackedScene" path="res://ui/pages/combat/combatant_card.tscn" id="2_card"]
+
+[node name="CombatPage" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_page")
+
+[node name="Margin" type="MarginContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Root" type="HBoxContainer" parent="Margin"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="AreaPanel" type="PanelContainer" parent="Margin/Root"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HudPanel"
+
+[node name="AreaBox" type="VBoxContainer" parent="Margin/Root/AreaPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="AreasTitle" type="Label" parent="Margin/Root/AreaPanel/AreaBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+
+[node name="AreaScroll" type="ScrollContainer" parent="Margin/Root/AreaPanel/AreaBox"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="AreaList" type="VBoxContainer" parent="Margin/Root/AreaPanel/AreaBox/AreaScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="MainColumn" type="VBoxContainer" parent="Margin/Root"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Header" type="PanelContainer" parent="Margin/Root/MainColumn"]
+layout_mode = 2
+theme_type_variation = &"HudPanel"
+
+[node name="HeaderRow" type="HBoxContainer" parent="Margin/Root/MainColumn/Header"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="AreaLabel" type="Label" parent="Margin/Root/MainColumn/Header/HeaderRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"TitleLabel"
+
+[node name="StateLabel" type="Label" parent="Margin/Root/MainColumn/Header/HeaderRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+
+[node name="FoodLabel" type="Label" parent="Margin/Root/MainColumn/Header/HeaderRow"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="EatButton" type="Button" parent="Margin/Root/MainColumn/Header/HeaderRow"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="StopButton" type="Button" parent="Margin/Root/MainColumn/Header/HeaderRow"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="MessageLabel" type="Label" parent="Margin/Root/MainColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="Field" type="HBoxContainer" parent="Margin/Root/MainColumn"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="PlayerCard" parent="Margin/Root/MainColumn/Field" instance=ExtResource("2_card")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="EnemyFlow" type="HFlowContainer" parent="Margin/Root/MainColumn/Field"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
+
+[node name="LootPanel" type="PanelContainer" parent="Margin/Root/MainColumn"]
+layout_mode = 2
+theme_type_variation = &"HudPanel"
+
+[node name="LootBox" type="VBoxContainer" parent="Margin/Root/MainColumn/LootPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LootHeader" type="HBoxContainer" parent="Margin/Root/MainColumn/LootPanel/LootBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="LootTitle" type="Label" parent="Margin/Root/MainColumn/LootPanel/LootBox/LootHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+
+[node name="LootCount" type="Label" parent="Margin/Root/MainColumn/LootPanel/LootBox/LootHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"MutedLabel"
+
+[node name="CollectButton" type="Button" parent="Margin/Root/MainColumn/LootPanel/LootBox/LootHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="LootScroll" type="ScrollContainer" parent="Margin/Root/MainColumn/LootPanel/LootBox"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="LootList" type="VBoxContainer" parent="Margin/Root/MainColumn/LootPanel/LootBox/LootScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
