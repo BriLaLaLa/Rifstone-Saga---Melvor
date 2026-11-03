@@ -579,6 +579,7 @@ func spend(amount: int) -> CommandResult           # invalid_amount, not_enough_
 ### 5.5 Bank (`systems/bank/bank.gd`) — dipendenze: data, events, modifiers
 ```gdscript
 const SAVE_KEY := &"bank"
+const PIECE_CATEGORIES: Array[StringName] = [&"equipment", &"tool"]   # M4-05: pezzi unici dell'Armeria, rifiutati dalla bank; li usano anche Armory e Shop
 func get_count(item_id: StringName) -> int
 func has(item_id: StringName, qty: int) -> bool
 func can_add(item_id: StringName) -> bool          # già presente o casella libera; false per equipment/tool (M4-05)
@@ -590,7 +591,7 @@ func stacks() -> Array[Dictionary]                 # copie: [{"item": StringName
 func is_locked(item_id: StringName) -> bool
 func set_locked(item_id: StringName, locked: bool) -> CommandResult   # unknown_id se non presente
 func move_stack(item_id: StringName, new_index: int) -> CommandResult
-func sort_stacks() -> void                         # per categoria (ordine: material, food, equipment, tool, infusion, misc), sort_order, id
+func sort_stacks() -> void                         # per categoria (ordine: material, food, infusion, misc; M4-05), sort_order, id
 ```
 - Capienza F-16 = `bank.base_slots + floori(total(bank_slots))`; su `modifiers_changed`, solo se la capienza cambia,
   `bank_capacity_changed(used, capacity)`. Lo emettono anche `add` di un oggetto nuovo e la casella liberata.
@@ -792,8 +793,8 @@ Comportamento:
 - Save (§6): `{"slots": {slot: uid}, "food": item_id | ""}`. `from_save` tollerante, con `Log.warn`: slot sconosciuto,
   `uid` assente dall'Armeria o già usato in un altro slot, base non equipaggiabile o di un altro slot, combinazione senza
   assetto → slot vuoto (il pezzo resta nell'Armeria, non indossato); arma a due mani con offhand → offhand vuoto (M3-11);
-  cibo non valido → nessuno; una chiave `stance` (save v1) non arriva mai (v1 non si carica). Chiama `armory.set_worn`
-  per i pezzi indossati. Nessun segnale.
+  cibo non valido → nessuno; una chiave `stance` (save v1) non arriva mai (v1 non si carica). Chiama
+  `armory.set_worn(uid, true, true)` (`quiet`) per i pezzi indossati. Nessun segnale.
 
 ### 5.10 Combattimento (`systems/combat/`) — dipendenze: data, events, modifiers, rng, bank, wallet, character, equipment, armory, loadout (M6), actions (solo `stop`)
 Firme da M5 (motore a eventi e gruppi, `01_GDD.md` §10); `CombatMath` da M5-01.
@@ -1018,7 +1019,7 @@ func get_instance(uid: int) -> ItemInstance    # copia; null se assente
 func instances() -> Array[ItemInstance]        # copie, ordine di inserimento
 func has(uid: int) -> bool
 func is_worn(uid: int) -> bool
-func set_worn(uid: int, worn: bool) -> void    # solo Equipment
+func set_worn(uid: int, worn: bool, quiet: bool = false) -> void   # solo Equipment; quiet = nessun segnale (Equipment.from_save)
 func set_locked(uid: int, locked: bool) -> CommandResult   # unknown_id
 func remove(uid: int) -> CommandResult         # unknown_id, item_locked, item_equipped
 func instance_modifiers(uid: int) -> Array[Modifier]       # ItemRoller.instance_modifiers
@@ -1030,7 +1031,8 @@ func instance_modifiers(uid: int) -> Array[Modifier]       # ItemRoller.instance
 - Save (§6): `{"next_uid": int, "items": [ItemInstance.to_dict()]}` (`to_dict`: `uid`, `base`, `rarity`, `ilvl`,
   `affixes` `[{"affix", "tier", "value"}]`, `upgrade`, `sockets`, `locked`). `from_save` tollerante: voce non valida, base
   sconosciuta o non `equipment`/`tool`, `uid` duplicato → `Log.warn` e scartata; `next_uid` minore o uguale al massimo
-  `uid` → massimo + 1. Non controlla la capienza. Il flag indossato non si salva (lo rimette `Equipment.from_save`).
+  `uid` → massimo + 1. Non controlla la capienza. Il flag indossato non si salva (lo rimette
+  `Equipment.from_save` con `set_worn(uid, true, true)`, senza segnali). `set_worn` non controlla la capienza.
 
 ### 5.18 ItemRoller (`systems/items/item_roller.gd`) — logica pura, nessuno stato
 ```gdscript
