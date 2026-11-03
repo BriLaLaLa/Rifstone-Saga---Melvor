@@ -33,6 +33,9 @@ signal bank_capacity_changed(used: int, capacity: int)
 signal bank_rejected(item_id: StringName, qty: int)
 signal gold_changed(new_amount: int, delta: int)
 signal equipment_changed(slot_id: StringName, item_id: StringName)
+signal armory_changed(uid: int, change: StringName)
+signal armory_capacity_changed(used: int, capacity: int)
+signal armory_rejected(base_id: StringName, qty: int)
 signal modifiers_changed()
 
 # Combat

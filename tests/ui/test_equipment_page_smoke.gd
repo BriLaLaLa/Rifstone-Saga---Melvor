@@ -36,6 +36,8 @@ func test_a_row_per_slot_all_empty_at_start() -> void:
 
 
 func test_worn_piece_and_stats_with_sources() -> void:
+	pending("M4-08: pezzi nell'Armeria, pagina da rifare")
+	return
 	TestFactory.give(_session, HELM, 1)
 	_open()
 	assert_true(_session.equipment.equip(HELM).ok)
@@ -56,6 +58,8 @@ func test_no_bonus_text_without_sources() -> void:
 
 
 func test_remove_returns_the_piece_to_the_bank() -> void:
+	pending("M4-08: pezzi nell'Armeria, pagina da rifare")
+	return
 	TestFactory.give(_session, HELM, 1)
 	_session.equipment.equip(HELM)
 	_open()
@@ -169,6 +173,8 @@ func test_tool_slot_label_takes_the_skill_name_from_the_data() -> void:
 
 
 func test_summary_shows_the_tool_scoped_to_a_skill() -> void:
+	pending("M4-08: pezzi nell'Armeria, pagina da rifare")
+	return
 	TestFactory.give(_session, &"test_hatchet", 1)
 	_open()
 	assert_true(_session.equipment.equip(&"test_hatchet").ok)

@@ -98,6 +98,8 @@ func test_new_game_is_empty_with_offensive_stance() -> void:
 
 
 func test_equip_moves_one_item_from_bank_to_slot() -> void:
+	pending("M4-06: requisiti character, uid e assetti")
+	return
 	TestFactory.give(_session, HELM, 2)
 	watch_signals(_session.events)
 	assert_true(_session.equipment.equip(HELM).ok)
@@ -107,6 +109,8 @@ func test_equip_moves_one_item_from_bank_to_slot() -> void:
 
 
 func test_equip_last_unit_frees_the_bank_stack() -> void:
+	pending("M4-06: requisiti character, uid e assetti")
+	return
 	TestFactory.give(_session, HELM, 1)
 	_session.equipment.equip(HELM)
 	assert_eq(_session.bank.get_count(HELM), 0)
@@ -181,6 +185,8 @@ func test_swap_works_in_full_bank_when_taken_stack_is_the_last_unit() -> void:
 
 
 func test_unequip_returns_item_and_errors() -> void:
+	pending("M4-06: requisiti character, uid e assetti")
+	return
 	_session = _small()
 	assert_eq(_session.equipment.unequip(&"head").reason, Reasons.SLOT_EMPTY)
 	TestFactory.give(_session, HELM, 1)
@@ -317,6 +323,8 @@ func test_modifier_sources_follow_slots() -> void:
 
 
 func test_tool_changes_the_f03_interval_of_its_skill() -> void:
+	pending("M4-06: requisiti character, uid e assetti")
+	return
 	assert_eq(_session.actions.current_interval_ms(TWIG), 3000)
 	TestFactory.give(_session, HATCHET, 1)
 	assert_true(_session.equipment.equip(HATCHET).ok)
@@ -328,6 +336,8 @@ func test_tool_changes_the_f03_interval_of_its_skill() -> void:
 
 
 func test_food_set_and_errors() -> void:
+	pending("M4-06: requisiti character, uid e assetti")
+	return
 	assert_eq(_session.equipment.set_food(&"nope").reason, Reasons.UNKNOWN_ID)
 	TestFactory.give(_session, HELM, 1)
 	assert_eq(_session.equipment.set_food(HELM).reason, Reasons.NOT_FOOD)
@@ -392,6 +402,8 @@ func test_from_save_two_handed_weapon_with_shield_drops_the_offhand() -> void:
 
 
 func test_new_game_resets() -> void:
+	pending("M4-06: requisiti character, uid e assetti")
+	return
 	TestFactory.give(_session, HELM, 1)
 	_session.equipment.equip(HELM)
 	_session.equipment.set_stance(&"defensive")

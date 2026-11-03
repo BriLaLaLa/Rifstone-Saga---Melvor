@@ -77,3 +77,15 @@ static func set_character_level(session: GameSession, level: int) -> void:
 	if reached != level:
 		push_error("TestFactory.set_character_level(%d): level is %d" % [level, reached])
 	assert(reached == level, "TestFactory.set_character_level did not reach the level")
+
+
+## Creates a piece in the Armory through armory.create and asserts it worked; returns its uid.
+static func give_piece(
+	session: GameSession, base_id: StringName, rarity: StringName = &"common", ilvl: int = 1
+) -> int:
+	assert(session != null, "TestFactory.give_piece needs a session")
+	var uid: int = session.armory.create(base_id, rarity, ilvl)
+	if uid <= 0:
+		push_error("TestFactory.give_piece(%s) failed: no uid" % base_id)
+	assert(uid > 0, "TestFactory.give_piece failed")
+	return uid
