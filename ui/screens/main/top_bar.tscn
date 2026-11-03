@@ -1,0 +1,66 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/screens/main/top_bar.gd" id="1_top_bar"]
+
+[node name="TopBar" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 56)
+theme_type_variation = &"HudPanel"
+script = ExtResource("1_top_bar")
+
+[node name="Row" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="GoldIcon" type="TextureRect" parent="Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Oro"
+expand_mode = 1
+stretch_mode = 5
+
+[node name="GoldLabel" type="Label" parent="Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+tooltip_text = "Oro"
+mouse_filter = 1
+vertical_alignment = 1
+text = "0"
+
+[node name="BankIcon" type="TextureRect" parent="Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Caselle della bank: usate / capienza"
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BankLabel" type="Label" parent="Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+tooltip_text = "Caselle della bank: usate / capienza"
+mouse_filter = 1
+vertical_alignment = 1
+text = "0 / 0"
+
+[node name="Spacer" type="Control" parent="Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="SlotLabel" type="Label" parent="Row"]
+unique_name_in_owner = true
+layout_mode = 2
+vertical_alignment = 1
+
+[node name="MenuButton" type="Button" parent="Row"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Salva e torna al menu principale"
+theme_override_constants/icon_max_width = 18
+text = "Menu"
