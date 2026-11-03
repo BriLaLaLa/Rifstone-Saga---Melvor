@@ -980,6 +980,11 @@ const REFUSED_TEXT_DEFAULT: String
 # anche le sorgenti con ambito della skill (ModifierContext.for_skill). Si equipaggia dalla BankPage. Ridisegno su
 # equipment_changed, modifiers_changed, bank_changed (scollegati in unbind).
 
+class_name EquipmentStatsText extends RefCounted # ui/pages/equipment/equipment_stats_text.gd, testi di EquipmentPage (M3-07), senza stato
+static func slot_text(slot: StringName, data: GameData) -> String     # etichetta; tool_<id> -> "Attrezzo: <nome skill dai dati>" o "Attrezzo"
+static func summary(session: GameSession) -> String                  # BBCode: blocco globale + un blocco per skill (for_skill meno le sorgenti globali)
+static func source_name(source_id: StringName, session: GameSession) -> String   # nome leggibile di una sorgente (05 §5.2)
+
 class_name MasteryPanel extends GameWindow       # ui/pages/mastery/mastery_panel.gd (+ .tscn), figlia di SkillPage
 const POOL_WARNING_KEY: String = "mastery.pool_warning_pct"   # soglia dell'avviso letta da session.data.balance_value
 func bind(session: GameSession, skill_id: StringName) -> void # skill senza maestria: Log.warn e NO_MASTERY_TEXT
