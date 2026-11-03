@@ -213,6 +213,18 @@ func test_armory_full_consumes_nothing() -> void:
 	assert_eq(_session.skills.get_xp(SKILL), 0)
 
 
+## Mixed recipe (piece + bank item): no Armory room = nothing consumed and the bank item is not added either.
+func test_mixed_recipe_with_full_armory_changes_nothing() -> void:
+	_fill_armory(_session)
+	TestFactory.give(_session, LOG_ITEM, 1)
+	var logs: int = _session.bank.get_count(LOG_ITEM)
+	var action: ActionDef = _piece_action()
+	action.outputs.append(_qty(PLANK_ITEM, 1))
+	assert_eq(ArtisanResolver.resolve(_session, action).reason, Reasons.ARMORY_FULL)
+	assert_eq(_session.bank.get_count(LOG_ITEM), logs)
+	assert_eq(_session.bank.get_count(PLANK_ITEM), 0)
+
+
 ## A doubled product needs room for both instances.
 func test_double_needs_room_for_both() -> void:
 	_set_mods([Modifier.make(DOUBLE, 100.0)])
@@ -234,17 +246,30 @@ func test_item_rarity_pct_gives_more_rare_pieces() -> void:
 	assert_gt(boosted, plain)
 
 
-func _count_rare(rarity_pct: float) -> int:
+## F-83: a high mastery level of the recipe gives more rare pieces than level 0 (same seed, 200 cycles each). The
+## action uses the id of a fixture mastery action so that the mastery system tracks it.
+func test_high_mastery_gives_more_rare_pieces() -> void:
+	var low: int = _count_rare(0.0, PLANK)
+	_session.free()
+	_session = autofree(TestFactory.session())
+	var save: Dictionary = _session.mastery.to_save()
+	(save[String(SKILL)]["actions"] as Dictionary)[String(PLANK)] = 1000000000
+	_session.mastery.from_save(save)
+	assert_gt(_session.mastery.get_mastery_level(PLANK), 0, "mastery raised")
+	var high: int = _count_rare(0.0, PLANK)
+	assert_gt(high, low)
+
+
+func _count_rare(rarity_pct: float, action_id: StringName = &"craft_blade") -> int:
 	_set_mods([Modifier.make(RARITY, rarity_pct)])
 	var rare: int = 0
 	for i: int in 200:
 		TestFactory.give(_session, LOG_ITEM, 1)
-		assert_true(ArtisanResolver.resolve(_session, _piece_action()).ok)
+		assert_true(ArtisanResolver.resolve(_session, _piece_action(1, action_id)).ok)
 		var inst: ItemInstance = _session.armory.instances()[0]
 		rare += 1 if inst.rarity == &"rare" else 0
 		assert_true(_session.armory.remove(inst.uid).ok)
 	return rare
-
 
 
 ## 05_INTERFACES 5.8: rolls in the order preservation, double, then rarity and affixes of each instance.
@@ -263,9 +288,9 @@ func test_roll_order_with_a_fixed_seed() -> void:
 		assert_eq(got.affixes.size(), expected.affixes.size())
 
 
-func _piece_action(qty: int = 1) -> ActionDef:
+func _piece_action(qty: int = 1, action_id: StringName = &"craft_blade") -> ActionDef:
 	var action := ActionDef.new()
-	action.id = &"craft_blade"
+	action.id = action_id
 	action.skill_id = SKILL
 	action.level = 7
 	action.interval_ms = 2000
