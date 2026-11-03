@@ -3,47 +3,53 @@
 Aggiornato dall'Orchestratore (unico che modifica questo file). Stati: TODO / IN_PROGRESS / REVIEW / DONE / BLOCKED.
 Se la sessione si interrompe, si riparte da qui.
 
-## Ripartenza (aggiornata il 2026-11-03, fine M4)
-- **Stato**: **M4 completata**, tag `m4-done` sul commit docs di M4-11 (`main`). Merge di M4: M4-01+M4-02 `16e6306`,
-  M4-04 `ef00713`, M4-03 `f6ed43c`, M4-05 `a85cb8c`, M4-06 `558447b`, M4-09 `71fafa6`, M4-07 `13c65e2`, M4-08
-  `1464d72`, M4-10 `213678a` (docs `1c0cdae`). Suite (run_checks su main dopo M4-10): **1046 test, 1045 passati,
-  1 pending, 0 falliti**; validate_data verde su fixture e dati veri; file ≤ 400 righe (129 file); riferimenti vietati
-  assenti (807 file). Prova del Giocabile di M4: 8/8 (criteri di `06_ROADMAP.md` M4, verificati con i test e con
-  l'avvio headless). `main` e i tag `m0-done`…`m4-done` pushati su `origin` a fine M4.
-- **Avanzamento M5**: M5-04 DONE (merge `8f40e08`); M5-00 DONE (correzioni della prova visiva di M4, richiesta
-  dell'utente; merge `09364ba`); M5-01 DONE (merge `447224b`); M5-02 DONE (merge `6c11beb`); M5-03 DONE (merge `a3b01b1`); M5-06 DONE (merge `ece8639`, correzione `766e66e`); M5-05 DONE (merge `2ff18ec`). run_checks su main dopo M5-05: 1153 test, 1152 passati, 1 pending, 0 falliti.
-- **Prossimo passo**: **M5-07** (QA: F-34, equivalenza, flusso con morte e parata, `CLOSED_FORMULAS`; note "da M5-03", "da M5-05" e "da M5-06" in `07_TASKS.md`) → M5-08
-  (REV). Regole dei consumi di `CLAUDE.md`: massimo 2 agenti, test mirati, suite completa solo dopo il merge, review
-  sul diff, sezioni nei brief.
+## Ripartenza (aggiornata il 2026-11-04, fine M5)
+- **Stato**: **M5 completata**, tag `m5-done` sul commit docs di M5-08 (`main`). Merge di M5: M5-04 `8f40e08`, M5-00
+  `09364ba`, M5-01 `447224b`, M5-02 `6c11beb`, M5-03 `a3b01b1`, M5-06 `ece8639` (correzione `766e66e`), M5-05
+  `2ff18ec`, M5-07 `60326bc` (docs `a840bcb`). Suite (run_checks su main dopo M5-07): **1168 test, 1168 passati,
+  0 pending, 0 falliti**; validate_data verde su fixture e dati veri; file ≤ 400 righe (141 file); riferimenti vietati
+  assenti (905 file). Prova del Giocabile di M5: 6/6 (criteri di `06_ROADMAP.md` M5, verificati con i test, con una
+  prova headless del Reviewer sui tre assetti × quattro aree e con l'avvio headless del menu). `main` e i tag
+  `m0-done`…`m5-done` pushati su `origin` a fine M5 (vedi riga M5-08).
+- **Prossimo passo**: **M6-01** (CORE: def, validatore e `Loadout`; note "da M5-03" per M6-01 in `07_TASKS.md`). Poi in
+  parallelo (massimo 2 agenti) **M6-02** (COMBAT, L: prima sposta il save/load del motore in un file a parte, note
+  "da M5-03" e "da M5-07") e **M6-04** (DATA), entrambi dopo M6-01; poi M6-03 (dopo M6-02), M6-05 (dopo M6-03 e
+  M6-04), M6-06 (QA), M6-07 (REV). Regole dei consumi di `CLAUDE.md`: test mirati, suite completa solo dopo il merge,
+  review sul diff, sezioni nei brief.
 - **Decisioni aperte per l'utente** (`OPEN_QUESTIONS.md`, finché non risponde valgono i default): Q26 (nodi di Cavatura
-  e Lenza); Q27-Q40 (default); Q41 (XP dei mostri: 4 × PV confermato da M5-06, tempi per area in Q41; decide l'utente) e Q43 (livello del criterio di §8.5, nuova) — strumento `tools/sim_combat.gd`); Q42 (testi del
-  tooltip dei pezzi senza skill di combattimento, default applicato in M4-08). Confermati come provvisori: affissi
-  (`02_FORMULAS.md` §8.9), F-83, F-86.
-- **Decisioni prese in M4** (DECISIONS_LOG): `dual_swords` `accuracy_pct −10` (Q39); `formula` di una stat con più
-  formule = la prima; `block_chance` nei dati da M4, effetto in M5; save v1 → `version_unsupported` senza migrazione
-  (M4-03); casi di `equip`/`unequip` in `05_INTERFACES.md` §5.9 (M4-06); API UI dell'Armeria in 05 §7 (M4-08);
-  M4-10: `item_rarity_pct` letta col contesto dell'azione e maestria 1 con 0 XP, entrambe scritte in F-83.
-- **Follow-up registrati** (note "da M4-xx" e N* in `07_TASKS.md`): M6-01 `GameData.has_area`/`has_monster`;
-  M6-02 save/load del motore in un file a parte prima degli agganci (`combat_engine.gd` a 398 righe); M5-07 `CLOSED_FORMULAS` del combattimento e `"10.6"` (chiude l'unico pending,
-  `test_stat_registry_coverage.gd`); M7-01 caso `+N` di `ItemRoller.instance_modifiers` e `Equipment` che ascolta
-  `armory_changed(uid, &"updated")`; M7-03 stub `ItemRoller.drop_chances`; M7-06 smoke con `upgrade > 0` ("+N" in
-  `ArmoryTexts.piece_name`/`ArmoryCell`); M9-06 toast dei livelli sopra le finestre (N9); inoltro
-  `UiStyle.build_theme()` → `UiThemeBuilder.build()` da togliere nel primo task che tocca `tools/build_ui_theme.gd` o
-  `test_ui_style.gd` (nota "da M4-08"); filtro automatico dell'Armeria per slot in M7-02 (i filtri della pagina in M4
-  sono solo di presentazione).
-- **Pending aperti** (1): `test_stat_registry_coverage.gd` (15 stat del combattimento, etichette ora su M5; lo chiude
-  M5-07).
+  e Lenza); Q27-Q40 (default); Q41 (XP dei mostri 4 × PV, confermato da M5-06; tempi stimati fino al 99: Pianure circa
+  10-12 min, Bosco 25-45 min, Miniere 2,5-3,5 h, Soglia 36-52 h; decide l'utente); Q42 (testi del tooltip dei pezzi
+  senza skill di combattimento, default applicato in M4-08); Q43 (livello del criterio di §8.5: default livello medio
+  dei mostri, criterio soddisfatto; al livello d'ingresso Miniere e Soglia restano sotto 60 uccisioni/ora). Confermati
+  come provvisori: affissi (`02_FORMULAS.md` §8.9), F-83, F-86.
+- **Decisioni prese in M5** (DECISIONS_LOG e 05 §5.10): comportamenti del motore fissati da M5-03; decisioni (a)-(d) di
+  M5-04 sul contenuto; M5-07: in `idle` `area` è `""` (`area_id()`, `get_state()`, save), le 9 stat di F-20…F-22 e
+  F-25…F-27 hanno come test `test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats` (effetto
+  stat → modificatori → `CombatantStats`, anche nella tabella del registro di 02).
+- **Follow-up registrati** (note in `07_TASKS.md`): M6-01 `GameData.has_area`/`has_monster`; **M6-02** save/load del
+  motore in un file a parte **prima** degli agganci (`combat_engine.gd` a **399** righe) e normalizzazione del save in
+  `idle` (`player_hp`, `player_timer_ms`, `hand`, `between_ms` a 0: oggi save → load → save di un motore fermo dopo
+  stop/morte non è identico; nota "da M5-07"); M7-01 caso `+N` di `ItemRoller.instance_modifiers` ed `Equipment` che
+  ascolta `armory_changed(uid, &"updated")`; M7-03 stub `ItemRoller.drop_chances`; M7-06 smoke con `upgrade > 0`; M9-06
+  toast dei livelli sopra le finestre (N9); inoltro `UiStyle.build_theme()` → `UiThemeBuilder.build()` (nota "da
+  M4-08"); filtro automatico dell'Armeria per slot in M7-02.
+- **Pending aperti**: nessuno.
 - **Prova manuale consigliata** (non verificabile in headless): (1) aspetto della griglia dell'Armeria e colori di
   rarità; (2) layout a 1600×900 e 1280×720; (3) tooltip sulle celle dell'Armeria; (4) sfondo opaco di `WindowPanel`
   (maestria, menu, selezione slot); (5) sezione Assetto della pagina Equipaggiamento; (6) flusso forgia → Armeria →
   equip "In mano" / "Seconda mano" → assetto "Due spade"; (7) aspetto delle pagine Shop ed Equipaggiamento, vendita e
   trascinamento con clic reali; (8) lo slot 1 vero dell'utente (save v1 di M3) appare "versione non supportata" nel
-  menu e "Nuova partita" lo sovrascrive solo su richiesta; (9) pagina del Combattimento (M5-05): aspetto e layout a
-  1280×720 e 1600×900 con 4 o più nemici, numeri dei colpi e loro dissolvenza, passaggio tra i gruppi (`between`),
-  messaggio di sconfitta (e sua scomparsa al nuovo avvio), valori F-70 nella pagina Personaggio.
+  menu e "Nuova partita" lo sovrascrive solo su richiesta; (9) pagina del Combattimento: aspetto e layout a 1280×720 e
+  1600×900 con 4 o più nemici, numeri dei colpi e loro dissolvenza, passaggio tra i gruppi (`between`), messaggio di
+  sconfitta (e sua scomparsa al nuovo avvio), valori F-70 nella pagina Personaggio; (10) combattimento giocato a mano:
+  avvio da un pulsante d'area, "Ferma", "Mangia" col cibo scelto, "Raccogli tutto" del bottino, parata visibile con lo
+  scudo (colpo a 0), cambio di area durante un incontro, avvio di un'azione di raccolta che ferma il combattimento;
+  (11) un salvataggio durante un incontro e il ricaricamento dal menu (stesso incontro, stessi PV).
 - **Pulizia a mano**: cartella `C:/Users/Davide/Desktop/AI/RSI-worktrees/M3-03` (worktree già staccato da git, file
-  bloccati da un processo Godot) e cartella vuota `rifstone-saga---melvor/` nella root. I worktree di M4 sono tutti rimossi.
-- **Fuori da `docs/`**: nulla da aggiornare (`.claude/agents/reviewer-integrator.md` cita già M9-08 per il rilascio).
+  bloccati da un processo Godot); cartella vuota `rifstone-saga---melvor/` nella root; cartella di prova rimasta da M4
+  `%APPDATA%/Godot/app_userdata/RiftStone Saga- Idle/m4_config_tmp/`. I worktree di M5 sono rimossi.
+- **Fuori da `docs/`**: `CLAUDE.md` § Stato da portare a "M5 completata, tag `m5-done`; prossima milestone M6 Abilità
+  e tratti" (non modificato dal Reviewer in M5-08: per cambiare `CLAUDE.md` serve l'OK diretto dell'utente).
 
 | ID | Milestone | Titolo | Ruolo | Stato | Branch | Note |
 |---|---|---|---|---|---|---|
@@ -113,7 +119,7 @@ Se la sessione si interrompe, si riparte da qui.
 | M5-05 | M5 | Pagina del combattimento | UI | DONE | task/M5-05 | merge 2ff18ec; 3b20cce, 6e365fc, 7c344a4 (merge di main), 1fbf299 (correzione del Reviewer: nomi dei valori F-70 da `stats.json` con `CombatTexts.stat_line`, messaggio di sconfitta tolto a ogni `combat_started`, test); `CombatPage`, `CombatantCard`, `CombatTexts`, rotta `combat`, valori F-70 nella CharacterPage; firme in 05 §7; run_checks 1153 test, 1152 passati, 1 pending, 0 falliti |
 | M5-06 | M5 | Strumento di bilanciamento sim_combat | COMBAT | DONE | task/M5-06 | merge ece8639; 3fc0471, e6d8530 (correzione del Reviewer: sessione liberata in `measure`, niente orfani), 766e66e (correzione del Reviewer dopo il merge: `print_rich` al posto di `print`, regola di `check_forbidden_refs`); `tools/sim_combat.gd` sul `CombatEngine` vero, nessun save, scenario dai dati; criterio di §8.5 soddisfatto al livello medio dei mostri (0 morti, 213/115/80/62 uccisioni/ora), sotto 60 in Miniere e Soglia al livello d'ingresso (Q43); XP 4 × PV invariata (Q41); run_checks 1142 test, 1141 passati, 1 pending, 0 falliti (prima esecuzione rossa solo su `check_forbidden_refs`, corretta e ricontrollata) |
 | M5-07 | M5 | Test di M5 | QA | DONE | task/M5-07 | merge 60326bc; d8b43a2, 49d05a2, 98e44b6, 25e9b77, 72ab086 (correzione del Reviewer BUG-M5-07-1: i 9 campi `test` delle stat di F-20…F-22/F-25…F-27 in `stats.json` puntano a `test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats`, `BROKEN_REFS` e pending tolti), 0564d90 (correzione del Reviewer: `stop` azzera l'area, contratto `idle` → `area` `""` in 05 §5.10; normalizzazione del save in `idle` a M6-02, nota "da M5-07"); F-34 18,58 s per uccisione (seme 34), `test_combat_flow.gd` 10 test, `CLOSED_FORMULAS` di M5 e `"10.6"`; run_checks 1168 test, 1168 passati, 0 pending, 0 falliti |
-| M5-08 | M5 | Integrazione di M5 | REV | TODO | | tag m5-done |
+| M5-08 | M5 | Integrazione di M5 | REV | DONE | main | tag m5-done sul commit docs di M5-08; run_checks 1168 test, 1168 passati, 0 pending, 0 falliti; prova del Giocabile 6/6 (test + prova headless dei tre assetti × quattro aree + avvio headless del menu); Lezioni checklist ok; worktree M5-07 rimosso; main e m5-done pushati |
 | M6-01 | M6 | Def, validatore e Loadout | CORE | TODO | | |
 | M6-02 | M6 | Agganci del motore e 8 tipi di effetto | COMBAT | TODO | | |
 | M6-03 | M6 | Abilità attive | COMBAT | TODO | | |
