@@ -1151,6 +1151,10 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 - **Nota (da M5-03) per M5-07** F-34 con un'area di prova da un solo gruppo con un solo `plains_boar` e `respawn_ms` 0;
   le chiavi finte di `ProbeSession` devono essere diverse da `combat` (ora `SAVE_KEY` vera; in `test_game_session.gd`
   la chiave finta è `duels`); stesso seme + save/load → stesso stato (`test_save_roundtrip_continues_identically`).
+- **Nota (da M5-05) per M5-07** Nodi della pagina del combattimento: `Area_<id>` (pulsanti delle aree), `Enemy_<i>`
+  (carte dei nemici per posizione), `PlayerCard`, `StopButton`, `EatButton`, `CollectButton`, `LootList`,
+  `MessageLabel`; le barre si aggiornano in `_process`: nei test chiamare `_page._process(0.0)` dopo `advance`. Abilità
+  e buff di `get_state()` restano vuoti fino a M6. Esempi in `tests/ui/test_combat_page_smoke.gd`.
 - **Nota (da M5-06) per M5-07** `tools/sim_combat.gd` si usa nei test con `preload("res://tools/sim_combat.gd")` e
   le funzioni statiche (`parse_args`, `measure(data, area, scope, opts)`, `report`, helper `auto_*`), come in
   `tests/tools/test_sim_combat.gd`; `measure` fissa il livello, ripristina `area.packs` e libera la sessione. Il set

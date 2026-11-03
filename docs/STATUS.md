@@ -11,8 +11,8 @@ Se la sessione si interrompe, si riparte da qui.
   assenti (807 file). Prova del Giocabile di M4: 8/8 (criteri di `06_ROADMAP.md` M4, verificati con i test e con
   l'avvio headless). `main` e i tag `m0-done`…`m4-done` pushati su `origin` a fine M4.
 - **Avanzamento M5**: M5-04 DONE (merge `8f40e08`); M5-00 DONE (correzioni della prova visiva di M4, richiesta
-  dell'utente; merge `09364ba`); M5-01 DONE (merge `447224b`); M5-02 DONE (merge `6c11beb`); M5-03 DONE (merge `a3b01b1`); M5-06 DONE (merge `ece8639`, correzione `766e66e`). run_checks su main dopo M5-06: 1142 test, 1141 passati, 1 pending, 0 falliti.
-- **Prossimo passo**: **M5-05** (UI, L: pagina del combattimento, in corso) → M5-07 (QA; note "da M5-03" e "da M5-06" in `07_TASKS.md`) → M5-08
+  dell'utente; merge `09364ba`); M5-01 DONE (merge `447224b`); M5-02 DONE (merge `6c11beb`); M5-03 DONE (merge `a3b01b1`); M5-06 DONE (merge `ece8639`, correzione `766e66e`); M5-05 DONE (merge `2ff18ec`). run_checks su main dopo M5-05: 1153 test, 1152 passati, 1 pending, 0 falliti.
+- **Prossimo passo**: **M5-07** (QA: F-34, equivalenza, flusso con morte e parata, `CLOSED_FORMULAS`; note "da M5-03", "da M5-05" e "da M5-06" in `07_TASKS.md`) → M5-08
   (REV). Regole dei consumi di `CLAUDE.md`: massimo 2 agenti, test mirati, suite completa solo dopo il merge, review
   sul diff, sezioni nei brief.
 - **Decisioni aperte per l'utente** (`OPEN_QUESTIONS.md`, finché non risponde valgono i default): Q26 (nodi di Cavatura
@@ -38,7 +38,9 @@ Se la sessione si interrompe, si riparte da qui.
   (maestria, menu, selezione slot); (5) sezione Assetto della pagina Equipaggiamento; (6) flusso forgia → Armeria →
   equip "In mano" / "Seconda mano" → assetto "Due spade"; (7) aspetto delle pagine Shop ed Equipaggiamento, vendita e
   trascinamento con clic reali; (8) lo slot 1 vero dell'utente (save v1 di M3) appare "versione non supportata" nel
-  menu e "Nuova partita" lo sovrascrive solo su richiesta.
+  menu e "Nuova partita" lo sovrascrive solo su richiesta; (9) pagina del Combattimento (M5-05): aspetto e layout a
+  1280×720 e 1600×900 con 4 o più nemici, numeri dei colpi e loro dissolvenza, passaggio tra i gruppi (`between`),
+  messaggio di sconfitta (e sua scomparsa al nuovo avvio), valori F-70 nella pagina Personaggio.
 - **Pulizia a mano**: cartella `C:/Users/Davide/Desktop/AI/RSI-worktrees/M3-03` (worktree già staccato da git, file
   bloccati da un processo Godot) e cartella vuota `rifstone-saga---melvor/` nella root. I worktree di M4 sono tutti rimossi.
 - **Fuori da `docs/`**: nulla da aggiornare (`.claude/agents/reviewer-integrator.md` cita già M9-08 per il rilascio).
@@ -108,7 +110,7 @@ Se la sessione si interrompe, si riparte da qui.
 | M5-02 | M5 | Statistiche per mano, razioni da campo, borsa del bottino | COMBAT | DONE | task/M5-02 | merge 6c11beb; a94638f, 6c156ef, f04d7cf (correzione del Reviewer: bonus esatti dell'esempio F-74 nel test); `total_without`, `CombatantStats`, `AutoEat`, `LootBag` con i test; esempio di F-29 riscritto (20 e +80% → 36), F-74 con AR dell'assetto; comportamenti e ordine dei tiri in 05 §5.10; note "da M5-02" per M5-03; run_checks 1103 test, 1102 passati, 1 pending, 0 falliti |
 | M5-03 | M5 | Motore a eventi, incontri e gruppi | COMBAT | DONE | task/M5-03 | merge a3b01b1; c9cdf0b, eae2cc8 (correzione del Reviewer: stop del combattimento solo dalla corsia main (N1), test dell'esempio di F-31 "tiro 10, +25% → 12"); `CombatEngine`, `Encounter`, segnali di M5, registrazione nella sessione, contatori dello snapshot, N1-N2; comportamenti in 05 §5.10; note "da M5-03" per M5-05/06/07 e M6-01/02; run_checks 1131 test, 1130 passati, 1 pending, 0 falliti |
 | M5-04 | M5 | Contenuto: 4 aree, 12 mostri, gruppi | DATA | DONE | task/M5-04 | merge 8f40e08; be30f80; 4 aree e 12 mostri (tabella §8.5), gruppi, 16 materiali di bottino, icone `.svg` segnaposto, `test_combat_data.gd` (9 test); decisioni (a)-(d) in DECISIONS_LOG; note per M5-03/M5-06 in `07_TASKS.md` §M5; run_checks 1055 test, 1054 passati, 1 pending, 0 falliti |
-| M5-05 | M5 | Pagina del combattimento | UI | TODO | | |
+| M5-05 | M5 | Pagina del combattimento | UI | DONE | task/M5-05 | merge 2ff18ec; 3b20cce, 6e365fc, 7c344a4 (merge di main), 1fbf299 (correzione del Reviewer: nomi dei valori F-70 da `stats.json` con `CombatTexts.stat_line`, messaggio di sconfitta tolto a ogni `combat_started`, test); `CombatPage`, `CombatantCard`, `CombatTexts`, rotta `combat`, valori F-70 nella CharacterPage; firme in 05 §7; run_checks 1153 test, 1152 passati, 1 pending, 0 falliti |
 | M5-06 | M5 | Strumento di bilanciamento sim_combat | COMBAT | DONE | task/M5-06 | merge ece8639; 3fc0471, e6d8530 (correzione del Reviewer: sessione liberata in `measure`, niente orfani), 766e66e (correzione del Reviewer dopo il merge: `print_rich` al posto di `print`, regola di `check_forbidden_refs`); `tools/sim_combat.gd` sul `CombatEngine` vero, nessun save, scenario dai dati; criterio di §8.5 soddisfatto al livello medio dei mostri (0 morti, 213/115/80/62 uccisioni/ora), sotto 60 in Miniere e Soglia al livello d'ingresso (Q43); XP 4 × PV invariata (Q41); run_checks 1142 test, 1141 passati, 1 pending, 0 falliti (prima esecuzione rossa solo su `check_forbidden_refs`, corretta e ricontrollata) |
 | M5-07 | M5 | Test di M5 | QA | TODO | | |
 | M5-08 | M5 | Integrazione di M5 | REV | TODO | | tag m5-done |

@@ -1289,14 +1289,37 @@ static func comparison_lines(candidate: Array[Modifier], worn: Array[Modifier], 
 class_name CharacterPage extends Page            # ui/pages/character/character_page.gd (+ .tscn), rotta character (M4-09)
 # Classe (ClassDef.name/description), livello e XpBar del personaggio (character.get_level/get_progress), sezione Assetto
 # (titolo ItemTooltipLines.SETUP_LABEL) con gli assetti della classe in lista e quello in uso evidenziato (M5-00: niente
-# riga "In uso", niente CurrentSetupLabel), valori base F-70 (CombatantStats.for_player da M5; in M4 i valori di CombatMath non ci sono
-# ancora: solo livello, XP, classe e assetto). Da M6 gli slot di tratti e abilità (loadout). Ridisegno su
-# character_xp_gained, character_level_up, equipment_changed (scollegati in unbind).
+# riga "In uso", niente CurrentSetupLabel), valori base F-70 (M5-05: sezione StatsTitle/StatsList,
+# CombatantStats.for_player in sola lettura, nomi delle stat da stats.json con CombatTexts.stat_line). Da M6 gli slot
+# di tratti e abilità (loadout). Ridisegno su character_xp_gained, character_level_up, equipment_changed e (M5-05)
+# modifiers_changed (scollegati in unbind).
 
 class_name CombatPage extends Page               # ui/pages/combat/combat_page.gd (+ .tscn), rotta combat (M5-05)
 # 01_GDD §10.11: scelta dell'area (requisiti con character.meets_requirements), carta del giocatore e una carta per
 # nemico da combat.get_state(), numeri del danno su combat_hit, borsa con "Raccogli tutto", Mangia; nessuno stato
 # dell'incontro nella UI.
+# M5-05: lettura di combat.get_state() sui segnali di combattimento (combat_started/stopped, encounter_*, *_hp_changed,
+# monster_killed, food_*, bank_changed, loot_bag_changed, equipment_changed, combat_hit, player_died, character_level_up)
+# e in _process (solo le barre di PV e timer, sola lettura); comandi combat.start/stop/eat e combat.loot.collect_all,
+# motivo del rifiuto in MessageLabel; messaggio di sconfitta su player_died, tolto al successivo combat_started.
+# Nodi per i test: Area_<id>, Enemy_<i>, PlayerCard, StopButton, EatButton, CollectButton, LootList, MessageLabel.
+# Costanti di presentazione: UiStyle.COMBAT_* (margini, larghezza della lista delle aree, carta, bordo del bersaglio,
+# barre, numero del colpo e dissolvenza, altezza del bottino, colore del timer).
+func bind(session: GameSession) -> void
+func unbind() -> void                            # anche in _exit_tree
+
+class_name CombatantCard extends PanelContainer  # ui/pages/combat/combatant_card.gd (+ .tscn), carta di un combattente, senza stato
+func setup(title: String, subtitle: String) -> void
+func redraw(hp: int, max_hp: int, timer_ms: int, interval_ms: int, is_target: bool) -> void
+func show_hit(hit: bool, damage: int, blocked: bool, color: Color) -> void   # danno, CombatTexts.MISS_TEXT o BLOCKED_TEXT, dissolvenza sul posto
+func hit_text() -> String; func shown_hp() -> int; func is_highlighted() -> bool; func shown_timer() -> float   # per i test
+
+class_name CombatTexts extends RefCounted        # ui/pages/combat/combat_texts.gd, testi fissi della pagina (come ArmoryTexts/MasteryTexts)
+# Titoli, stati (STATE_TEXTS per stato del motore), pulsanti, cibo, borsa, PV, intervallo, Mancato/Parato, REASON_TEXTS,
+# DEFEAT_TEXT; nomi di aree, mostri, cibo e bottino dai dati; requisito con ItemTooltipLines.CHARACTER_REQUIREMENT_TEXT.
+const STAT_NAME_SOURCES: Dictionary[StringName, StringName]   # accuracy/evasion/max_hp -> stat di stats.json da cui si legge il nome
+static func stat_line(data: GameData, key: StringName, value: int) -> String   # "<nome della stat>: <valore>" (CharacterPage, F-70)
+static func seconds_text(ms: int) -> String     # "2,0"
 
 class_name EquipmentStatsText extends RefCounted # ui/pages/equipment/equipment_stats_text.gd, testi di EquipmentPage (M3-07), senza stato
 static func slot_text(slot: StringName, data: GameData) -> String     # etichetta; tool_<id> -> "Attrezzo: <nome skill dai dati>" o "Attrezzo"
