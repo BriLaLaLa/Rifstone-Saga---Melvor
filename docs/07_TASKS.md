@@ -1094,6 +1094,12 @@ Regole comuni a M4 (oltre a quelle in testa al file):
   con maestria diversa) va fatto sui dati veri o con una ricetta di pezzo nelle fixture. `ArtisanResolver` legge
   `item_rarity_pct` con il contesto dell'azione (globale + scope della skill/azione), F-83 dice "global": oggi nessun
   modificatore con scope ha quella stat; se ne arriva uno, decidere (Reviewer).
+- **Nota (da M4-08)** La UI dell'Armeria è coperta dagli smoke di `tests/ui/` (fixture); il flusso di M4-10 resta sui
+  sistemi (nessun test UI nuovo). Il "+N" dell'upgrade (`ArmoryTexts.piece_name`, `ArmoryCell`) non ha un test con
+  `upgrade > 0` finché la raffinazione non esiste (nota su M7-06). `UiStyle.build_theme()` è un inoltro a
+  `UiThemeBuilder.build()` tenuto per `tools/build_ui_theme.gd` e `test_ui_style.gd`: un task che tocca quei file può
+  chiamare direttamente il builder e togliere l'inoltro. Pending aperti dopo M4-08: solo
+  `test_stat_registry_coverage.gd` (stat del combattimento, errore da M6-07).
 
 ### M4-11 · Integrazione di M4
 - **Ruolo** REV · **Stima** S · **Dipendenze** M4-01…M4-10 · **Ownership** merge, tag `m4-done` · **Parallelizzabile** no ·
@@ -1141,6 +1147,8 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 - M7-04 · Pietre del Rift F-87 (COMBAT; M7-03; `systems/combat/rift_stone.gd`, `combat_engine.gd`, `RiftStoneDef`).
 - M7-05 · Contenuto: anelli, amuleti, drop, Pietre, Sigillo (DATA; M7-01; `data/items/**`, `data/combat/**`).
 - M7-06 · Armeria completa: raffina, smantella, filtro; Pietra nella pagina del combattimento (UI; M7-04; `ui/pages/armory/**`, `ui/pages/combat/**`).
+  Nota (da M4-08): aggiungere a `tests/ui/test_armory_page_smoke.gd` e `test_equipment_page_smoke.gd` il caso di un pezzo
+  con `upgrade > 0` ("Nome +N" nel pannello, "+N" nella cella e nella riga dello slot); ownership estesa a quei test.
 - M7-07 · Test di M7 (QA; M7-01…M7-06). M7-08 · Integrazione di M7 (REV; tag `m7-done`).
 
 ## M8 · Legatura del Rift

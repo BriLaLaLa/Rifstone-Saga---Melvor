@@ -1167,7 +1167,7 @@ const NO_MATCH_TEXT: String                      # griglia vuota per la ricerca 
 class_name BankItemPanel extends PanelContainer  # ui/pages/bank/bank_item_panel.gd (+ .tscn), interno a BankPage
 signal lock_requested(item_id: StringName, locked: bool)   # la pagina manda bank.set_locked; locked letto da bank.is_locked
 signal sell_requested(item_id: StringName, qty: int)       # M3-06: la pagina manda shop.sell e mostra il motivo (REFUSED_TEXTS)
-signal equip_requested(item_id: StringName)                # M3-07; tolto da M4-08 (equipment/tool non sono nella bank: si equipaggia dall'ArmoryPage)
+                                                           # equip_requested (M3-07) tolto in M4-08: equipment/tool non sono nella bank, si equipaggia dall'ArmoryPage
 signal food_requested(item_id: StringName)                 # M3-07: la pagina manda equipment.set_food; "Usa come cibo" solo se is_food, disabilitato ("Cibo scelto") se è già il cibo
 signal close_requested
 func show_item(session: GameSession, item_id: StringName) -> bool   # rilegge tutto; false (e clear) se assente o sconosciuto
@@ -1190,8 +1190,9 @@ const REFUSED_TEXT_DEFAULT: String
 class_name EquipmentPage extends Page            # ui/pages/equipment/equipment_page.gd (+ .tscn), rotta equipment (M3-07)
 const REFUSED_TEXTS: Dictionary[StringName, String]   # motivo di unequip/set_food -> testo; altri: REFUSED_TEXT_DEFAULT
 const REFUSED_TEXT_DEFAULT: String
-# Righe di Equipment.SLOTS (pezzo da equipment.get_uid + armory.get_instance: nome della base, rarità, "+N";
-# "Rimuovi" = unequip), assetto (equipment.setup(), nome da SetupDef o "Mani nude"), cibo (food_heal dai dati, quantità
+# Righe di Equipment.SLOTS (pezzo da equipment.get_uid + armory.get_instance: nome della base nel colore
+# UiStyle.rarity_color, "+N" (ArmoryTexts.piece_name); "Rimuovi" = unequip), assetto (equipment.setup_def(): SetupDef.name
+# o "Mani nude"), cibo (food_heal dai dati, quantità
 # dalla bank o "Esaurito", "Togli" = set_food(&"")). La stance non c'è più (M4-08). Riepilogo: solo stat del registro
 # (data.stats) con almeno una sorgente, totale da modifiers.total, sorgenti da modifiers.breakdown; per gli attrezzi
 # anche le sorgenti con ambito della skill (ModifierContext.for_skill). Si equipaggia dall'ArmoryPage. Ridisegno su
@@ -1206,6 +1207,35 @@ const REFUSED_TEXT_DEFAULT: String
 # "Equipaggia" (per una spada: "In mano" / "Seconda mano"), "Blocca", "Vendi" (shop.sell_instance); da M7 raffina e
 # smantella. Nessuna copia dello stato: il pannello tiene solo l'uid. Ridisegno su armory_changed,
 # armory_capacity_changed, equipment_changed, character_level_up (scollegati in unbind).
+# Il confronto con il pezzo indossato elenca le differenze (candidato meno indossato) senza colori buono/cattivo.
+# Stato di presentazione ammesso: i due filtri e l'uid selezionato. Costanti di presentazione: UiStyle.ARMORY_*.
+
+class_name ArmoryItemPanel extends PanelContainer   # ui/pages/armory/armory_item_panel.gd (+ .tscn), interno ad ArmoryPage (M4-08)
+signal equip_requested(uid: int, slot: StringName)  # la pagina manda equipment.equip(uid, slot); slot &"" = slot della base, &"offhand" = "Seconda mano"
+signal unequip_requested(slot: StringName)          # la pagina manda equipment.unequip (slot letto da equipment.slot_of)
+signal lock_requested(uid: int, locked: bool)       # la pagina manda armory.set_locked
+signal sell_requested(uid: int)                     # la pagina manda shop.sell_instance
+signal close_requested
+func show_piece(session: GameSession, uid: int) -> bool   # rilegge armory, equipment, character, shop; false (e clear) se il pezzo non c'è più
+func clear() -> void                                # nasconde e dimentica il pezzo
+func uid() -> int                                   # 0 se chiuso
+# Tiene l'uid e il riferimento alla sessione dell'ultimo show_piece (solo per leggere, come BankItemPanel). Requisiti
+# in UiStyle.BAD se character.meets_requirements fallisce. "In mano"/"Seconda mano" solo per un'arma a una mano dello
+# slot weapon; "Vendi" disabilitato con una nota se il pezzo è indossato, bloccato o ha valore 0.
+
+class_name ArmoryCell extends PanelContainer        # ui/pages/armory/armory_cell.gd (+ .tscn), interna ad ArmoryPage (M4-08)
+signal pressed(uid: int)                            # clic sinistro
+signal hover_started(uid: int)                      # la pagina mostra il tooltip del pezzo (Tooltips.show_text)
+signal hover_ended
+func set_piece(inst: ItemInstance, base: ItemDef, worn: bool, selected: bool) -> void   # icona, bordo di rarità, "+N", segni bloccato/indossato
+func uid() -> int                                   # 0 prima del primo set_piece; non legge la sessione
+
+class_name ArmoryTexts extends RefCounted           # ui/pages/armory/armory_texts.gd, solo statiche, senza stato (M4-08)
+const RARITY_NAMES: Dictionary[StringName, String]  # common/magic/rare -> Comune/Magico/Raro (testi di presentazione, come Q42)
+static func rarity_name(rarity: StringName) -> String               # sconosciuta: Log.warn e l'id
+static func piece_name(inst: ItemInstance, base: ItemDef) -> String # "Nome +N" se upgrade > 0, altrimenti il nome della base
+static func affix_lines(inst: ItemInstance, data: GameData) -> PackedStringArray   # "<AffixDef.name> <valore> (grado N)"; affisso assente: Log.warn, nessuna riga
+static func comparison_lines(candidate: Array[Modifier], worn: Array[Modifier], data: GameData) -> PackedStringArray   # differenze per (stat, scope), formato di modifier_lines
 
 class_name CharacterPage extends Page            # ui/pages/character/character_page.gd (+ .tscn), rotta character (M4-09)
 # Classe (ClassDef.name/description), livello e XpBar del personaggio (character.get_level/get_progress), assetto attuale
@@ -1332,6 +1362,20 @@ static func modifier_lines(mods: Array[Modifier], data: GameData) -> PackedStrin
 static func format_stat(format: String, value: float) -> String    # pct "+5%", flat "+8", flag "Sì"/"No"
 static func category_name(category: StringName) -> String
 static func escape(text: String) -> String                         # BBCode dei testi dei dati
+const STYLE_NAMES: Dictionary[StringName, String]                  # Q42: blade/marksmanship/arcana -> Lama/Mira/Arcano (testi della UI, M4-08)
+const CHARACTER_REQUIREMENT_TEXT: String                           # Q42: "Richiede il livello %d del personaggio"
+static func style_name(style: StringName) -> String                # stile sconosciuto: Log.warn e l'id
+static func requirement_text(key: StringName, needed: int, data: GameData) -> String   # chiave character (CharacterSystem.REQUIREMENT_KEY) o skill
+static func weapon_line(weapon: WeaponInfo) -> String              # "Stile <nome>, un attacco ogni N s[, a due mani]"
+
+class_name UiStyle extends RefCounted              # ui/theme/ui_style.gd, costanti di presentazione e helper
+static func rarity_color(rarity: StringName) -> Color              # RARITY_COMMON/MAGIC/RARE; altro: RARITY_UNKNOWN (M4-08)
+static func build_theme() -> Theme                                 # inoltro a UiThemeBuilder.build() (tools/build_ui_theme.gd, test del tema)
+
+class_name UiThemeBuilder extends RefCounted       # ui/theme/ui_theme_builder.gd, solo statiche (M4-08)
+static func build() -> Theme                       # tema da UiStyle; riftstone_idle_theme.tres rigenerato con tools/build_ui_theme.gd
+# Variante WindowPanel opaca (UiStyle.BG_WINDOW_OPAQUE): la usano GameWindow (maestria), menu e SlotSelect; nessuna
+# scena ridefinisce lo sfondo dei pannelli con un override locale.
 
 class_name NumberFormat extends RefCounted         # ui/theme/number_format.gd, solo statiche; unica definizione dei formati
 static func format_int(value: int) -> String                       # "1.250"
