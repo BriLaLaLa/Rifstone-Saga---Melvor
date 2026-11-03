@@ -15,7 +15,6 @@ const SLOTS_TITLE_TEXT: String = "Slot"
 const FOOD_TITLE_TEXT: String = "Cibo"
 const STANCE_TITLE_TEXT: String = "Stance"
 const STATS_TITLE_TEXT: String = "Statistiche"
-const STATS_EMPTY_TEXT: String = "Nessun bonus attivo."
 const EMPTY_SLOT_TEXT: String = "Vuoto"
 const NO_FOOD_TEXT: String = "Nessun cibo scelto"
 const FOOD_HEAL_TEXT: String = "Cura %s punti vita"
@@ -23,23 +22,9 @@ const FOOD_COUNT_TEXT: String = "In bank: %s"
 const FOOD_EXHAUSTED_TEXT: String = "Esaurito"
 const REMOVE_TEXT: String = "Rimuovi"
 const CLEAR_FOOD_TEXT: String = "Togli"
-const SLOT_TEXTS: Dictionary[StringName, String] = {
-	&"head": "Testa", &"body": "Corpo", &"legs": "Gambe", &"feet": "Piedi", &"hands": "Mani", &"neck": "Collo",
-	&"ring": "Anello", &"weapon": "Arma", &"offhand": "Mano secondaria", &"tool_forestry": "Attrezzo: Selvicoltura",
-	&"tool_quarrying": "Attrezzo: Estrazione", &"tool_angling": "Attrezzo: Pesca",
-}
 const STANCE_TEXTS: Dictionary[StringName, String] = {
 	&"offensive": "Offensiva", &"balanced": "Bilanciata", &"defensive": "Difensiva",
 }
-## Prefix of a modifier source id -> text; the part after ":" is resolved by `_source_name`.
-const SOURCE_EQUIPMENT_PREFIX: String = "equipment:"
-const SOURCE_SHOP_PREFIX: String = "shop:"
-const SOURCE_TEXTS: Dictionary[String, String] = {
-	"mastery_item:": "Maestria (oggetto)",
-	"mastery_node:": "Maestria (nodo)",
-	"rift_socket:": "Altare del Rift",
-}
-const SOURCE_DEFAULT_TEXT: String = "%s"
 const REFUSED_TEXTS: Dictionary[StringName, String] = {
 	Reasons.UNKNOWN_ID: "Voce non valida.",
 	Reasons.SLOT_EMPTY: "Lo slot è già vuoto.",
@@ -56,8 +41,6 @@ const SLOT_NAME_WIDTH: int = 190
 const CELL_SIZE := Vector2(48, 48)
 const BUTTON_WIDTH: int = 110
 const ROW_NAME: String = "Row_%s"
-const DIM_TAG: String = "[color=#%s]%s[/color]"
-const VALUE_TAG: String = "[color=#%s]%s[/color]"
 
 var _session: GameSession = null
 ## Slot id -> {"cell": ItemSlotView, "name": Label, "button": Button} (presentation references).
@@ -173,7 +156,7 @@ func _new_slot_row(slot: StringName) -> Dictionary:
 	var row: HBoxContainer = _new_row(_slots_box, ROW_NAME % slot)
 	var slot_label: Label = Label.new()
 	slot_label.name = "SlotLabel"
-	slot_label.text = SLOT_TEXTS.get(slot, String(slot))
+	slot_label.text = EquipmentStatsText.slot_text(slot, _session.data)
 	slot_label.theme_type_variation = &"MutedLabel"
 	slot_label.custom_minimum_size.x = SLOT_NAME_WIDTH
 	row.add_child(slot_label)
@@ -227,7 +210,7 @@ func _refresh() -> void:
 	var stance: StringName = _session.equipment.get_stance()
 	for id: StringName in _stance_buttons:
 		_stance_buttons[id].set_pressed_no_signal(id == stance)
-	_refresh_stats()
+	_stats_text.text = EquipmentStatsText.summary(_session)
 
 
 func _refresh_slot(slot: StringName) -> void:
@@ -255,43 +238,6 @@ func _refresh_food() -> void:
 	_food_name.text = item.name
 	var stock: String = FOOD_COUNT_TEXT % NumberFormat.format_int(count) if count > 0 else FOOD_EXHAUSTED_TEXT
 	_food_info.text = "%s. %s" % [FOOD_HEAL_TEXT % NumberFormat.format_int(item.food_heal), stock]
-
-
-## One block per registered stat with at least one source in the global context: name and total from the registry
-## format, then one line per source with its own value.
-func _refresh_stats() -> void:
-	var dim: String = UiStyle.TEXT_2.to_html(false)
-	var accent: String = UiStyle.GOLD_LIGHT.to_html(false)
-	var lines: PackedStringArray = PackedStringArray()
-	for stat: StringName in _session.data.stats.ids():
-		var sources: Array[Dictionary] = _session.modifiers.breakdown(stat)
-		if sources.is_empty():
-			continue
-		var info: Dictionary = _session.data.stats.info(stat)
-		var format: String = info["format"] as String
-		lines.append("%s  %s" % [ItemTooltipLines.escape(info["name"] as String),
-				VALUE_TAG % [accent, ItemTooltipLines.format_stat(format, _session.modifiers.total(stat))]])
-		for source: Dictionary in sources:
-			lines.append(DIM_TAG % [dim, "    %s  %s" % [ItemTooltipLines.escape(_source_name(source["source"])),
-					ItemTooltipLines.format_stat(format, source["value"])]])
-	_stats_text.text = "\n".join(lines) if not lines.is_empty() else DIM_TAG % [dim, STATS_EMPTY_TEXT]
-
-
-## Readable name of a modifier source id (05 §5.2): the worn piece, the shop entry, or a generic text.
-func _source_name(source_id: StringName) -> String:
-	var text: String = String(source_id)
-	if text.begins_with(SOURCE_EQUIPMENT_PREFIX):
-		var slot: StringName = StringName(text.trim_prefix(SOURCE_EQUIPMENT_PREFIX))
-		var item: ItemDef = _item_of(_session.equipment.get_item(slot))
-		var slot_text: String = SLOT_TEXTS.get(slot, String(slot))
-		return "%s (%s)" % [item.name, slot_text] if item != null else slot_text
-	if text.begins_with(SOURCE_SHOP_PREFIX):
-		var entry: ShopEntryDef = _session.data.shop_entry(StringName(text.trim_prefix(SOURCE_SHOP_PREFIX)))
-		return entry.name if entry != null else text
-	for prefix: String in SOURCE_TEXTS:
-		if text.begins_with(prefix):
-			return SOURCE_TEXTS[prefix]
-	return SOURCE_DEFAULT_TEXT % text
 
 
 # --- Actions ----------------------------------------------------------------------------------------------------

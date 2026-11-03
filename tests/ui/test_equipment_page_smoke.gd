@@ -150,3 +150,42 @@ func _food_info() -> Label:
 
 func _stance(stance: StringName) -> Button:
 	return _page.find_child("Stance_%s" % stance, true, false) as Button
+
+
+func test_tool_slot_label_takes_the_skill_name_from_the_data() -> void:
+	_open()
+	var label: String = (_row(&"tool_forestry").find_child("SlotLabel", true, false) as Label).text
+	var skill_id: StringName = &"forestry"
+	var found: bool = false
+	for skill: SkillDef in _session.data.skills():
+		if skill.id == skill_id:
+			found = true
+			assert_eq(label, "Attrezzo: %s" % skill.name)
+	if not found:
+		assert_eq(label, "Attrezzo", "no skill with that id in the fixtures: generic label")
+	for text: String in ["Selvicoltura", "Estrazione", "Pesca", "Cavatura", "Lenza"]:
+		if text != _skill_name(skill_id):
+			assert_false(label.contains(text), "no hand-written skill name '%s'" % text)
+
+
+func test_summary_shows_the_tool_scoped_to_a_skill() -> void:
+	TestFactory.give(_session, &"test_hatchet", 1)
+	_open()
+	assert_true(_session.equipment.equip(&"test_hatchet").ok)
+	var text: String = _stats_text()
+	assert_false(text.contains("Nessun bonus attivo."))
+	assert_string_contains(text, _session.data.skill(&"test_gather").name)
+	assert_string_contains(text, _session.data.item(&"test_hatchet").name)
+	var stat: Dictionary = _session.data.stats.info(&"skill_interval_pct")
+	assert_string_contains(text, stat["name"])
+	var total: float = _session.modifiers.total(&"skill_interval_pct", ModifierContext.for_skill(&"test_gather"))
+	assert_string_contains(text, ItemTooltipLines.format_stat(stat["format"], total))
+	_remove(&"tool_forestry").pressed.emit()
+	assert_string_contains(_stats_text(), "Nessun bonus attivo.")
+
+
+func _skill_name(skill_id: StringName) -> String:
+	for skill: SkillDef in _session.data.skills():
+		if skill.id == skill_id:
+			return skill.name
+	return ""
