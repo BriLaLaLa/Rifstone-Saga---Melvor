@@ -690,7 +690,7 @@ const SLOTS: Array[StringName] = [&"head", &"body", &"legs", &"feet", &"hands", 
     &"weapon", &"offhand", &"tool_forestry", &"tool_quarrying", &"tool_angling"]
 const STANCES: Array[StringName] = [&"offensive", &"balanced", &"defensive"]
 func get_item(slot: StringName) -> StringName            # &"" se vuoto
-func equip(item_id: StringName) -> CommandResult         # unknown_id, not_equippable, requirement_not_met, not_enough_items, bank_full, combat_active (solo arma)
+func equip(item_id: StringName) -> CommandResult         # unknown_id, not_equippable, requirement_not_met, not_enough_items, combat_active (arma), bank_full
 func unequip(slot: StringName) -> CommandResult          # slot_empty, bank_full, combat_active (solo arma)
 func get_food() -> StringName
 func set_food(item_id: StringName) -> CommandResult      # &"" toglie; not_food; l'oggetto deve essere nella bank
@@ -701,6 +701,19 @@ func style() -> StringName                               # stile dell'arma o com
 func base_attack_interval_ms() -> int
 func rebuild_modifiers() -> void                         # sorgenti equipment:<slot>
 ```
+Comportamento (M3-03):
+- `equip` è atomico: controlli nell'ordine della firma, un errore non cambia nulla. `combat_active` vale quando cambia
+  l'arma, anche se a toglierla è uno scudo che sposta un'arma a due mani. Lo spazio nella bank per i pezzi spostati si
+  conta dopo aver tolto 1 unità dell'oggetto indossato: se era l'ultima, la sua casella si libera. Due mani: un'arma
+  `two_handed` riporta nella bank l'`offhand`, un `offhand` riporta nella bank l'arma a due mani. Riuscito: una sola
+  ricostruzione dei modificatori (batch), poi `equipment_changed` per ogni slot svuotato e infine per lo slot occupato.
+- Il controllo del combattimento è `null`-safe: senza `session.combat` (fino a M4) il combattimento non è attivo.
+- `set_food`: `&""` toglie la scelta; altrimenti `unknown_id`, `not_food`, `not_enough_items` (deve essere nella bank).
+  La scelta resta anche quando la bank esaurisce il cibo (il combattimento gestisce la mancanza di cibo).
+- Save (§6): `{"slots": {slot: item_id}, "food": item_id | "", "stance": stance}`, solo gli slot occupati. `from_save`
+  tollerante, con `Log.warn`: slot sconosciuto, oggetto sconosciuto, non equipaggiabile o di un altro slot → slot vuoto;
+  cibo non valido → nessuno; stance non valida → `offensive`. Nessun segnale; i modificatori si ricostruiscono con
+  `rebuild_modifiers`.
 
 ### 5.10 Combattimento (`systems/combat/`) — dipendenze: data, events, modifiers, rng, bank, wallet, skills, equipment, actions (solo `stop`)
 ```gdscript
