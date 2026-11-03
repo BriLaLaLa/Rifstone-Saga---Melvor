@@ -105,6 +105,17 @@ func test_f11_item_bonus_examples() -> void:
 	assert_eq(_session.modifiers.total(DOUBLE), 0.0)
 
 
+## F-11 artisan example (fixture rules = real artisan rules): L 50 -> +7.5 preservation; L 99 -> +13.5 and -5 interval.
+func test_f11_artisan_bonus_examples() -> void:
+	var ctx: ModifierContext = ModifierContext.for_action(CRAFT_SKILL, &"craft_plank")
+	_load({CRAFT_SKILL: {"actions": {&"craft_plank": _table.xp_for_level(50)}}})
+	assert_eq(_session.modifiers.total(&"preservation_chance", ctx), 7.5)
+	assert_eq(_session.modifiers.total(&"skill_interval_pct", ctx), 0.0)
+	_load({CRAFT_SKILL: {"actions": {&"craft_plank": _table.xp_for_level(99)}}})
+	assert_eq(_session.modifiers.total(&"preservation_chance", ctx), 13.5)
+	assert_eq(_session.modifiers.total(&"skill_interval_pct", ctx), -5.0)
+
+
 func test_item_bonus_source_only_when_it_has_modifiers() -> void:
 	_load({SKILL: {"actions": {TWIG: _table.xp_for_level(10)}}})
 	assert_true(_session.modifiers.has_source(&"mastery_item:gather_twig"))

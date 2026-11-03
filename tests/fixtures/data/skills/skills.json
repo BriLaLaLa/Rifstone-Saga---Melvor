@@ -13,7 +13,11 @@
      "description": "Seconda skill di raccolta per i test.", "has_mastery": true},
     {"id": "test_craft", "name": "Artigianato di prova", "category": "artisan", "order": 3,
      "icon": "res://assets/icons/skills/test_craft.png", "color": "#c08040",
-     "description": "Skill di artigianato per i test.", "has_mastery": true},
+     "description": "Skill di artigianato per i test.", "has_mastery": true,
+     "mastery_bonuses": [
+       {"every_levels": 10, "modifiers": [{"stat": "preservation_chance", "value": 1.5}]},
+       {"at_level": 99, "modifiers": [{"stat": "skill_interval_pct", "value": -5}]}
+     ]},
     {"id": "riftbinding", "name": "Legatura del Rift", "category": "artisan", "order": 9,
      "icon": "res://assets/icons/skills/riftbinding.png", "color": "#9060d0",
      "description": "Infusioni per l'Altare del Rift.", "has_mastery": false},
