@@ -61,6 +61,17 @@ const BANK_CELL_SIZE := Vector2(48, 48)
 const BANK_PANEL_WIDTH: int = 320
 const BANK_PANEL_ICON_SIZE := Vector2(64, 64)
 const BANK_SEARCH_WIDTH: int = 260
+## Armory page: outer margin, grid spacing, cell size, rarity border width, piece panel width and icon, filter width.
+const ARMORY_MARGIN: int = 16
+const ARMORY_SECTION_SEPARATION: int = 12
+const ARMORY_GRID_SEPARATION: int = 8
+const ARMORY_CELL_SIZE := Vector2(56, 56)
+const ARMORY_RARITY_BORDER: int = 2
+const ARMORY_PANEL_WIDTH: int = 360
+const ARMORY_PANEL_ICON_SIZE := Vector2(64, 64)
+const ARMORY_FILTER_WIDTH: int = 200
+const ARMORY_MARKER_SIZE: int = 8
+const ARMORY_CELL_FONT_SIZE: int = 13
 ## Mastery panel: node card size and spacing in the tree (pos = [col, row]), width of the prerequisite links, action
 ## icon side, opacity of a node card whose prerequisites are missing.
 const MASTERY_NODE_SIZE := Vector2(240, 156)
@@ -209,3 +220,15 @@ static func style_bar(bar: ProgressBar, fill: Color) -> void:
 ## Kept for the callers of the theme build; the builder lives in UiThemeBuilder.
 static func build_theme() -> Theme:
 	return UiThemeBuilder.build()
+
+
+## Color of a rarity (`common`, `magic`, `rare`) for names and borders of pieces; RARITY_UNKNOWN for anything else.
+static func rarity_color(rarity: StringName) -> Color:
+	match rarity:
+		&"common":
+			return RARITY_COMMON
+		&"magic":
+			return RARITY_MAGIC
+		&"rare":
+			return RARITY_RARE
+	return RARITY_UNKNOWN
