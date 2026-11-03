@@ -1151,6 +1151,12 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 - **Nota (da M5-03) per M5-07** F-34 con un'area di prova da un solo gruppo con un solo `plains_boar` e `respawn_ms` 0;
   le chiavi finte di `ProbeSession` devono essere diverse da `combat` (ora `SAVE_KEY` vera; in `test_game_session.gd`
   la chiave finta è `duels`); stesso seme + save/load → stesso stato (`test_save_roundtrip_continues_identically`).
+- **Nota (da M5-06) per M5-07** `tools/sim_combat.gd` si usa nei test con `preload("res://tools/sim_combat.gd")` e
+  le funzioni statiche (`parse_args`, `measure(data, area, scope, opts)`, `report`, helper `auto_*`), come in
+  `tests/tools/test_sim_combat.gd`; `measure` fissa il livello, ripristina `area.packs` e libera la sessione. Il set
+  del grado prende solo gli oggetti di categoria `equipment` (gli attrezzi di raccolta, categoria `tool`, sono
+  esclusi). F-34 non passa dal simulatore: serve un'area di prova da un solo gruppo con un solo `plains_boar` (nota
+  "da M5-03"). Criterio di §8.5 e livello di misura: Q43.
 
 ## M6 · Abilità e tratti
 
