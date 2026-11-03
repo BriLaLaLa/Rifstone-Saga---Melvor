@@ -859,6 +859,7 @@ signal page_changed(page_id: StringName)
 const ROUTE_SEPARATOR: String = ":"
 const ROUTE_SKILL := &"skill"
 const ROUTES: Dictionary[StringName, String]    # rotta -> scena della pagina (estende Page); assente = "In arrivo"
+                                                # oggi: skill -> skill_page.tscn, bank -> bank_page.tscn (nessun segnaposto)
 func setup(session: GameSession) -> void        # null: unbind e liberazione della pagina corrente
 func show_page(page_id: StringName) -> void     # &"skill:<id>", &"bank", &"shop", &"equipment", &"combat", &"rift", &"settings"
 func has_page(page_id: StringName) -> bool      # rotta in ROUTES; per skill:<id> skill di raccolta/artigianato con azioni
@@ -890,7 +891,9 @@ func setup(action: ActionDef, data: GameData) -> void   # una volta, dopo l'ingr
 func redraw(session: GameSession) -> void         # livello, intervallo (current_interval_ms), maestria, azione in corso
 func set_progress(progress: float) -> void        # 0..1 letto da actions.get_progress
 func action_id() -> StringName                    # &"" prima di setup
-static func seconds_text(ms: int) -> String       # 3000 -> "3,0 s", 2700 -> "2,7 s" (via NumberFormat)
+static func seconds_text(ms: int) -> String       # = NumberFormat.format_seconds(ms): 3000 -> "3,0 s", 2700 -> "2,7 s"
+
+class_name BankPage extends Page                 # ui/pages/bank/bank_page.gd (+ .tscn), rotta bank; nessuna API oltre Page
 
 class_name ItemSlotView extends PanelContainer  # ui/components/item_slot/item_slot.gd (+ .tscn)
 signal pressed(item_id: StringName)
@@ -969,6 +972,7 @@ static func escape(text: String) -> String                         # BBCode dei 
 class_name NumberFormat extends RefCounted         # ui/theme/number_format.gd, solo statiche; unica definizione dei formati
 static func format_int(value: int) -> String                       # "1.250"
 static func format_number(value: float) -> String                  # "1.250,5" (al massimo due decimali)
+static func format_seconds(ms: int) -> String                      # "3,0 s", "2,7 s", "0,25 s": da uno a due decimali
 
 class_name GameWindow extends PanelContainer       # ui/components/game_window/game_window.gd; figlio "VBox" con la pagina
 signal opened
@@ -1018,6 +1022,12 @@ Le ricette di artigianato (M3-05) oggi sono rifiutate dal runner (`unknown_id`).
 quantità dell'ultimo `set_item` solo per il proprio tooltip (copia di presentazione, mai letta da altri): chi la usa
 chiama di nuovo `set_item` quando la quantità cambia. Costanti di presentazione di menu, slot e dialogo:
 `UiStyle.MENU_PANEL_WIDTH`, `SLOT_PANEL_WIDTH`, `MENU_BUTTON_HEIGHT`, `MENU_TITLE_FONT_SIZE`, `DIALOG_SIZE`.
+Bank minima (M1-18): `BankPage` disegna una `ItemSlotView` per voce di `bank.stacks()`, nell'ordine della bank (caselle
+riusate per indice, quelle in più liberate; nessuna casella vuota disegnata), il contatore "Caselle: usate / capienza"
+da `bank.used()`/`bank.capacity()`, la riga di bank piena (`used >= capacity`) e "La bank è vuota.". Si collega a
+`bank_changed` e `bank_capacity_changed` di `session.events` e a ognuno rilegge tutto (nessuna copia delle quantità oltre
+quella di presentazione di `ItemSlotView`); scollega in `unbind` e in `_exit_tree`. Solo vista: blocco, ordine,
+spostamento e vendita arrivano con M2-04/M3-06. I secondi mostrati dalla UI passano tutti da `NumberFormat.format_seconds`.
 
 ## 8. Helper dei test (`res://tests/helpers/`)
 

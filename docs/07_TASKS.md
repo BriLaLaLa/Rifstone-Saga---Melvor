@@ -464,6 +464,9 @@ Regole per tutti i task:
   `ActionCard.seconds_text` con la costante `DECIMAL_SEPARATOR` in `res://ui/pages/skill/action_card.gd`):
   `NumberFormat.format_seconds(ms: int) -> String` ("3,0 s", "2,7 s", sempre almeno un decimale) diventa l'unica
   definizione; `ActionCard.seconds_text` la chiama (o sparisce, aggiornando `05_INTERFACES.md` §7 e `test_seconds_text`).
+- **Nota (review M1-18)** Fatto. Contratti in `05_INTERFACES.md` §7 (`BankPage`, `NumberFormat.format_seconds`,
+  `ActionCard.seconds_text` = `format_seconds`, rotte di `PageHost` senza segnaposto). `placeholder_page.gd/.tscn` e
+  `PLACEHOLDER_SCENE` eliminati. Follow-up per M2-04 annotati lì.
 
 ### M1-19 · Test di integrazione di M1
 - **Ruolo** QA · **Stima** M · **Parallelizzabile** no · **Dipendenze** M1-10, M1-11, M1-12
@@ -539,6 +542,15 @@ Regole per tutti i task:
   (`move_stack`), pulsante Ordina (`sort_stacks`), ricerca per nome. (Vendita, equipaggia, cibo: M3-06/M3-07.)
 - **Accettazione** l'ordine sopravvive al salvataggio; il trascinamento non sposta nulla se `move_stack` fallisce.
 - **Test** smoke aggiornato.
+- **Nota (da M1-18)** (1) Oggi la griglia non disegna caselle vuote (il GDD non le chiede): facoltativo mostrare le
+  caselle libere fino alla capienza. (2) Click sulle caselle: `ItemSlotView.pressed(item_id)` apre il pannello
+  dell'oggetto. (3) `CountLabel` di `item_slot.tscn` allarga la casella con numeri lunghi: clip o formato abbreviato
+  (ownership estesa a `res://ui/components/item_slot/item_slot.gd/.tscn` per questo solo punto; un formato abbreviato va
+  in `NumberFormat`, ownership estesa a `res://ui/theme/number_format.gd` e `tests/ui/test_number_format.gd`).
+  (4) Margini, spaziatura della griglia (8) e dimensione della casella di `bank_page.tscn` diventano costanti
+  `UiStyle.BANK_*` (es. `BANK_CELL_SIZE`, `BANK_GRID_SEPARATION`; ownership estesa a `res://ui/theme/ui_style.gd`, solo
+  costanti `BANK_*`; oggi 375 righe, ricontare il limite di 400). (5) Il tooltip già aperto su una casella non si
+  aggiorna se la quantità cambia mentre è visibile: rileggerla o richiudere/riaprire il tooltip su `bank_changed`.
 
 ### M2-05 · Test di M2
 - **Ruolo** QA · **Stima** S · **Parallelizzabile** no · **Dipendenze** M2-01…M2-04
