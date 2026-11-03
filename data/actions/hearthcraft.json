@@ -1,0 +1,22 @@
+{
+  "_doc": "Focolare (02_FORMULAS.md §8.2): pesce cotto T1-T8.",
+  "skill": "hearthcraft",
+  "actions": [
+    {"id": "cook_brookfin", "name": "Cucinare pinnarivo", "level": 1, "interval_ms": 2500, "xp": 9,
+     "mastery": true, "inputs": [{"item": "brookfin", "qty": 1}], "outputs": [{"item": "seared_brookfin", "qty": 1}]},
+    {"id": "cook_ashgill", "name": "Cucinare branchiacenere", "level": 10, "interval_ms": 2500, "xp": 16,
+     "mastery": true, "inputs": [{"item": "ashgill", "qty": 1}], "outputs": [{"item": "seared_ashgill", "qty": 1}]},
+    {"id": "cook_redscale", "name": "Cucinare scagliarossa", "level": 20, "interval_ms": 2500, "xp": 25,
+     "mastery": true, "inputs": [{"item": "redscale", "qty": 1}], "outputs": [{"item": "seared_redscale", "qty": 1}]},
+    {"id": "cook_dusk_eel", "name": "Cucinare anguilla del vespro", "level": 30, "interval_ms": 2500, "xp": 36,
+     "mastery": true, "inputs": [{"item": "dusk_eel", "qty": 1}], "outputs": [{"item": "seared_dusk_eel", "qty": 1}]},
+    {"id": "cook_shard_gar", "name": "Cucinare aguglia scheggiata", "level": 45, "interval_ms": 2500, "xp": 52,
+     "mastery": true, "inputs": [{"item": "shard_gar", "qty": 1}], "outputs": [{"item": "seared_shard_gar", "qty": 1}]},
+    {"id": "cook_mist_barbel", "name": "Cucinare barbo di nebbia", "level": 60, "interval_ms": 2500, "xp": 72,
+     "mastery": true, "inputs": [{"item": "mist_barbel", "qty": 1}], "outputs": [{"item": "seared_mist_barbel", "qty": 1}]},
+    {"id": "cook_ember_sturgeon", "name": "Cucinare storione di brace", "level": 75, "interval_ms": 2500, "xp": 97,
+     "mastery": true, "inputs": [{"item": "ember_sturgeon", "qty": 1}], "outputs": [{"item": "seared_ember_sturgeon", "qty": 1}]},
+    {"id": "cook_riftmaw", "name": "Cucinare fauce del Rift", "level": 90, "interval_ms": 2500, "xp": 130,
+     "mastery": true, "inputs": [{"item": "riftmaw", "qty": 1}], "outputs": [{"item": "seared_riftmaw", "qty": 1}]}
+  ]
+}
