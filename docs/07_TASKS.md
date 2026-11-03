@@ -495,6 +495,9 @@ Regole per tutti i task:
 - **Descrizione** Flusso: raccolta lunga → pool → acquisto nodi → l'intervallo cambia di quanto previsto; spesa del pool su
   un'azione → nuovo livello e bonus F-11.
 - **Accettazione / Test** il file verde con seme fisso.
+- **Nota (da M1-19)** `tests/data/test_stat_registry_coverage.gd` tiene in `CLOSED_FORMULAS` le formule delle milestone
+  chiuse che hanno stat. F-11…F-15 non hanno stat proprie in `stats.json`: nessuna modifica a quel file in M2 (se M2
+  aggiunge una stat, la formula va in `CLOSED_FORMULAS` con il test dell'effetto e il file entra nell'Ownership).
 
 ### M2-06 · Integrazione di M2
 - **Ruolo** REV · **Stima** S · **Parallelizzabile** no · **Dipendenze** M2-01…M2-05
@@ -592,6 +595,8 @@ Regole per tutti i task:
 - **Ownership** `res://tests/integration/test_crafting_chain.gd`, `res://tests/integration/test_item_conservation.gd` (casi nuovi)
 - **Descrizione** Catena minerale → lingotto → attrezzo → equipaggiato → raccolta più veloce; conservazione degli oggetti con
   artigianato, vendita, equipaggiamento. **Leggere** `01_GDD.md` §5, §9 · **Accettazione / Test** i file verdi.
+- **Nota (da M1-19)** Ownership estesa a `res://tests/data/test_stat_registry_coverage.gd`: aggiungere `"F-08"` a
+  `CLOSED_FORMULAS` (`preservation_chance`; il test `test_artisan_resolver.gd::test_preservation_cap` deve esistere).
 
 ### M3-09 · Integrazione di M3
 - **Ruolo** REV · **Stima** S · **Dipendenze** M3-01…M3-08 · **Ownership** merge, tag `m3-done` · **Parallelizzabile** no ·
@@ -662,6 +667,9 @@ Regole per tutti i task:
 - **Descrizione** Duello di riferimento F-34 (1.000 duelli, intervallo 15-21 s); flusso con morte (borsa persa, bank intatta),
   razioni da campo, cambio di stile e triangolo.
 - **Accettazione / Test** i file verdi.
+- **Nota (da M1-19)** Ownership estesa a `res://tests/data/test_stat_registry_coverage.gd`: aggiungere a `CLOSED_FORMULAS`
+  F-20, F-21, F-22, F-25, F-26, F-27, F-29, F-30, F-31, F-33 e `"10.6"` (`auto_loot`: in `stats.json` il campo `formula`
+  è la sezione del GDD, come ammette `04_DATA_SCHEMA.md` §2); dopo M4 nessuna stat dell'MVP resta in `pending`.
 
 ### M4-07 · Integrazione di M4
 - **Ruolo** REV · **Stima** S · **Dipendenze** M4-01…M4-06 · **Ownership** merge, tag `m4-done` · **Parallelizzabile** no ·
@@ -778,6 +786,9 @@ Regole per tutti i task:
   pagina su una sessione della `TestFactory` (mai su uno slot vero).
 - **Accettazione** suite completa verde; foto generate in una cartella passata da riga di comando.
 - **Test** i file elencati.
+- **Nota (da M1-19)** Modalità rigida: `test_stats_of_open_milestones` fallisce (non più `pending`) se una stat di
+  `stats.json` non ha il suo test; `CLOSED_FORMULAS` e `FORMULA_MILESTONES` restano la mappa formula → milestone. Le stat
+  di M7/M8 (`fracture_duration_pct` F-50, `parallel_lanes` F-51) entrano in `CLOSED_FORMULAS` con i loro task.
 
 ### M6-08 · Rilascio dell'MVP
 - **Ruolo** REV · **Stima** S · **Parallelizzabile** no · **Dipendenze** M6-01…M6-07

@@ -57,7 +57,7 @@ Comandi standard (dalla root del progetto o del worktree):
 powershell -File tools/run_tests.ps1
 ```
 ```bash
-# run_tests.ps1 + controlli di progetto (righe per file, riferimenti vietati)
+# run_tests.ps1 + validate_data.gd (fixture e dati veri) + controlli di progetto (righe per file, riferimenti vietati)
 powershell -File tools/run_checks.ps1
 ```
 ```bash

@@ -410,6 +410,8 @@ di presentazione: stanno in `res://ui/theme/ui_style.gd` (unica definizione), no
 ## 11. Registro delle stat (`stats.json`)
 
 Ogni stat: effetto, limiti del **totale**, formula, test che ne verifica l'effetto. Nessuna stat senza riga qui.
+Nel campo `formula` di `stats.json` va l'id `F-xx` oppure, se la regola è in una sezione del GDD, il solo numero di
+sezione (`auto_loot`: `"10.6"` = `01_GDD §10.6`; `04_DATA_SCHEMA.md` §2).
 
 | Stat | Min | Max | Effetto | Formula | Test dell'effetto |
 |---|---|---|---|---|---|
