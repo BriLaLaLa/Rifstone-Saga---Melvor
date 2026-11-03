@@ -1,0 +1,22 @@
+{
+  "_doc": "Lenza: un'azione per gradino T1-T8 di 02_FORMULAS.md §8.1 (livello, intervallo, XP, prodotto). I pesci crudi servono al Focolare (§8.2).",
+  "skill": "angling",
+  "actions": [
+    {"id": "catch_brookfin", "name": "Pescare pinnarivo", "level": 1, "interval_ms": 3000, "xp": 10,
+     "mastery": true, "inputs": [], "outputs": [{"item": "brookfin", "qty": 1}]},
+    {"id": "catch_ashgill", "name": "Pescare branchiacenere", "level": 10, "interval_ms": 3200, "xp": 18,
+     "mastery": true, "inputs": [], "outputs": [{"item": "ashgill", "qty": 1}]},
+    {"id": "catch_redscale", "name": "Pescare scagliarossa", "level": 20, "interval_ms": 3500, "xp": 28,
+     "mastery": true, "inputs": [], "outputs": [{"item": "redscale", "qty": 1}]},
+    {"id": "catch_dusk_eel", "name": "Pescare anguilla del vespro", "level": 30, "interval_ms": 3800, "xp": 40,
+     "mastery": true, "inputs": [], "outputs": [{"item": "dusk_eel", "qty": 1}]},
+    {"id": "catch_shard_gar", "name": "Pescare aguglia scheggiata", "level": 45, "interval_ms": 4200, "xp": 58,
+     "mastery": true, "inputs": [], "outputs": [{"item": "shard_gar", "qty": 1}]},
+    {"id": "catch_mist_barbel", "name": "Pescare barbo di nebbia", "level": 60, "interval_ms": 4600, "xp": 80,
+     "mastery": true, "inputs": [], "outputs": [{"item": "mist_barbel", "qty": 1}]},
+    {"id": "catch_ember_sturgeon", "name": "Pescare storione di brace", "level": 75, "interval_ms": 5000, "xp": 108,
+     "mastery": true, "inputs": [], "outputs": [{"item": "ember_sturgeon", "qty": 1}]},
+    {"id": "catch_riftmaw", "name": "Pescare fauce del Rift", "level": 90, "interval_ms": 5500, "xp": 145,
+     "mastery": true, "inputs": [], "outputs": [{"item": "riftmaw", "qty": 1}]}
+  ]
+}

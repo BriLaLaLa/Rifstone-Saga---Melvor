@@ -1,0 +1,31 @@
+{
+  "_doc": "Nodi della maestria di Lenza: stesso schema di 02_FORMULAS.md §8.8 (costi, prerequisiti, stat e valori di Selvicoltura), nomi a tema. Totale 60% del tetto del pool.",
+  "skill": "angling",
+  "nodes": [
+    {"id": "angling_n1_quick_cast", "name": "Lancio svelto",
+     "description": "Azioni di Lenza più rapide.",
+     "cost_pct": 5, "requires": [], "pos": [1, 0],
+     "modifiers": [{"stat": "skill_interval_pct", "value": -3, "scope": "skill:angling"}]},
+    {"id": "angling_n2_still_float", "name": "Galleggiante attento",
+     "description": "Più probabilità di ottenere pesce doppio.",
+     "cost_pct": 7.5, "requires": ["angling_n1_quick_cast"], "pos": [0, 1],
+     "modifiers": [{"stat": "double_item_chance", "value": 3, "scope": "skill:angling"}]},
+    {"id": "angling_n3_current_lore", "name": "Sapere delle correnti",
+     "description": "Più esperienza di Lenza.",
+     "cost_pct": 7.5, "requires": ["angling_n1_quick_cast"], "pos": [2, 1],
+     "modifiers": [{"stat": "skill_xp_pct", "value": 4, "scope": "skill:angling"}]},
+    {"id": "angling_n4_rift_ripple", "name": "Increspatura del Rift",
+     "description": "Più probabilità di pescare frammenti del Rift.",
+     "cost_pct": 10, "requires": ["angling_n2_still_float"], "pos": [0, 2],
+     "modifiers": [{"stat": "rift_shard_chance", "value": 0.25, "scope": "skill:angling"}]},
+    {"id": "angling_n5_calm_water", "name": "Acqua quieta",
+     "description": "Più maestria dalle azioni di Lenza.",
+     "cost_pct": 10, "requires": ["angling_n3_current_lore"], "pos": [2, 2],
+     "modifiers": [{"stat": "mastery_xp_pct", "value": 5, "scope": "skill:angling"}]},
+    {"id": "angling_n6_master", "name": "Voce del torrente",
+     "description": "Pesca ancora più rapida e più pesce doppio.",
+     "cost_pct": 20, "requires": ["angling_n4_rift_ripple", "angling_n5_calm_water"], "pos": [1, 3],
+     "modifiers": [{"stat": "skill_interval_pct", "value": -5, "scope": "skill:angling"},
+                   {"stat": "double_item_chance", "value": 5, "scope": "skill:angling"}]}
+  ]
+}
