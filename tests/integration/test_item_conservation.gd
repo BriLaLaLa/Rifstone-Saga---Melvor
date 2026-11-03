@@ -24,9 +24,8 @@ const SMELT_ACTION: StringName = &"smelt_emberbronze"
 const ORE_STACK: int = 40
 const SOLD_QTY: int = 7
 const PRESERVE_CHANCE: float = 60.0
-const BLADE: StringName = &"emberbronze_sword"
-const BLADE_2: StringName = &"ashlead_sword"
-const BOW: StringName = &"emberbronze_greatsword"
+const SWORD: StringName = &"emberbronze_sword"
+const GREATSWORD: StringName = &"emberbronze_greatsword"
 const SHIELD: StringName = &"emberbronze_shield"
 const FILLER: StringName = &"redbirch_log"
 const CONTENT_ROOT: String = "res://data"
@@ -203,52 +202,49 @@ func test_selling_ingredients_mid_cycle_stops_without_xp_or_products() -> void:
 	assert_eq(_session.bank.used(), 0, "the bank is empty: nothing appeared")
 
 
-func test_equipping_moves_one_unit_and_each_item_exists_once() -> void:
-	pending("M4-06: requisiti character, uid e assetti")
-	return
+func test_equipping_moves_one_piece_and_each_piece_exists_once() -> void:
 	_session = _watched_session(TestFactory.real_data())
-	var all: Array[StringName] = [BLADE, BOW, SHIELD]
-	for id: StringName in all:
-		TestFactory.give(_session, id, 1)
-	assert_true(_session.equipment.equip(SHIELD).ok)
+	var sword: int = TestFactory.give_piece(_session, SWORD)
+	var great: int = TestFactory.give_piece(_session, GREATSWORD)
+	var shield: int = TestFactory.give_piece(_session, SHIELD)
+	var all: Array[int] = [sword, great, shield]
+	assert_true(_session.equipment.equip(shield).ok)
 	_assert_once(all)
-	assert_true(_session.equipment.equip(BOW).ok, "two-handed weapon")
-	assert_eq(_session.equipment.get_item(&"offhand"), &"", "the shield went back")
-	assert_eq(_session.bank.get_count(SHIELD), 1)
+	assert_true(_session.equipment.equip(great).ok, "two-handed weapon")
+	assert_eq(_session.equipment.get_uid(&"offhand"), 0, "the shield went back")
+	assert_false(_session.armory.is_worn(shield))
 	_assert_once(all)
-	assert_true(_session.equipment.equip(SHIELD).ok, "offhand with a two-handed weapon")
-	assert_eq(_session.equipment.get_item(&"weapon"), &"", "the bow went back")
-	assert_eq(_session.bank.get_count(BOW), 1)
+	assert_true(_session.equipment.equip(shield).ok, "offhand with a two-handed weapon")
+	assert_eq(_session.equipment.get_uid(&"weapon"), 0, "the greatsword went back")
+	assert_false(_session.armory.is_worn(great))
 	_assert_once(all)
-	assert_true(_session.equipment.equip(BLADE).ok)
+	assert_true(_session.equipment.equip(sword).ok)
 	assert_true(_session.equipment.unequip(&"weapon").ok)
-	assert_eq(_session.bank.get_count(BLADE), 1)
+	assert_false(_session.armory.is_worn(sword))
 	_assert_once(all)
 	var saved: Dictionary = _session.to_save(0)["modules"]
 	assert_eq((saved["equipment"]["slots"] as Dictionary).size(), 1, "only the shield is worn in the save")
+	assert_eq(_session.bank.used(), 0, "the bank was never involved")
 
 
-func test_equip_with_full_bank_is_refused_unless_the_worn_unit_was_the_last() -> void:
-	pending("M4-06: requisiti character, uid e assetti")
-	return
-	_session = _watched_session(_data_with_slots(2))
-	assert_eq(_session.bank.capacity(), 2)
-	TestFactory.give(_session, BLADE, 1)
-	assert_true(_session.equipment.equip(BLADE).ok)
-	var better: ItemDef = _session.data.item(BLADE_2)
-	for skill: StringName in better.equip.requirements:
-		TestFactory.set_level(_session, skill, better.equip.requirements[skill])
-	TestFactory.give(_session, BLADE_2, 2)
-	TestFactory.give(_session, FILLER, 1)
-	assert_eq(_session.bank.used(), 2, "bank full")
-	var ids: Array[StringName] = [BLADE, BLADE_2, FILLER]
-	var before: Dictionary = _world(_session, ids)
-	var refused: CommandResult = _session.equipment.equip(BLADE_2)
-	assert_eq(refused.reason, Reasons.BANK_FULL, "no room for the replaced piece")
-	assert_eq(_world(_session, ids), before, "nothing changed")
-	_session.bank.remove(BLADE_2, 1)
-	assert_true(_session.equipment.equip(BLADE_2).ok, "its stack was the last unit: its slot is free for the old piece")
-	assert_eq(_session.bank.get_count(BLADE), 1)
+func test_equip_with_full_armory_is_refused_when_pieces_return_without_room() -> void:
+	_session = _watched_session(_data_with_slots(40, 4))
+	assert_eq(_session.armory.capacity(), 4)
+	var sword: int = TestFactory.give_piece(_session, SWORD)
+	var shield: int = TestFactory.give_piece(_session, SHIELD)
+	assert_true(_session.equipment.equip(sword).ok)
+	assert_true(_session.equipment.equip(shield).ok)
+	var great: int = TestFactory.give_piece(_session, GREATSWORD)
+	var filler: int = TestFactory.give_piece(_session, SWORD)
+	TestFactory.give_piece(_session, SWORD)
+	TestFactory.give_piece(_session, SWORD)
+	assert_eq(_session.armory.used(), 4, "Armory full")
+	var before: Dictionary = _pieces_world(_session)
+	assert_eq(_session.equipment.equip(great).reason, Reasons.ARMORY_FULL, "two pieces would return, one place is taken")
+	assert_eq(_pieces_world(_session), before, "nothing changed")
+	assert_true(_session.armory.remove(filler).ok)
+	assert_true(_session.equipment.equip(great).ok, "room for the piece that returns beyond the one worn")
+	assert_true(_session.armory.used() <= _session.armory.capacity())
 
 
 func test_last_batch_of_ingredients_with_full_bank_frees_its_own_slot() -> void:
@@ -284,25 +280,29 @@ func test_last_batch_of_ingredients_with_full_bank_frees_its_own_slot() -> void:
 
 func test_save_with_two_handed_weapon_and_offhand_keeps_the_invariants() -> void:
 	_session = _watched_session(TestFactory.real_data())
+	var great: int = TestFactory.give_piece(_session, GREATSWORD)
+	var shield: int = TestFactory.give_piece(_session, SHIELD)
 	var saved: Dictionary = _session.to_save(0)
 	var slots: Dictionary = (saved["modules"] as Dictionary)["equipment"]["slots"]
-	slots["weapon"] = String(BOW)
-	slots["offhand"] = String(SHIELD)
+	slots["weapon"] = great
+	slots["offhand"] = shield
 	var loaded: GameSession = TestFactory.session(SEED, _session.data)
 	assert_true(loaded.from_save(saved).ok, "the edited save loads")
-	assert_eq(loaded.equipment.get_item(&"weapon"), BOW, "the two-handed weapon is kept")
-	assert_eq(loaded.equipment.get_item(&"offhand"), &"", "the offhand is dropped")
-	assert_eq(loaded.bank.get_count(SHIELD), _session.bank.get_count(SHIELD), "the bank is untouched")
+	assert_eq(loaded.equipment.get_item(&"weapon"), GREATSWORD, "the two-handed weapon is kept")
+	assert_eq(loaded.equipment.get_uid(&"offhand"), 0, "the offhand is dropped")
+	assert_true(loaded.armory.has(shield), "the shield is still in the Armory")
+	assert_false(loaded.armory.is_worn(shield), "and is not worn")
 	loaded.free()
 
 
-func _assert_once(ids: Array[StringName]) -> void:
-	for id: StringName in ids:
+func _assert_once(uids: Array[int]) -> void:
+	for uid: int in uids:
 		var worn: int = 0
 		for slot: StringName in Equipment.SLOTS:
-			if _session.equipment.get_item(slot) == id:
+			if _session.equipment.get_uid(slot) == uid:
 				worn += 1
-		assert_eq(_session.bank.get_count(id) + worn, 1, "%s exists exactly once" % id)
+		assert_true(_session.armory.has(uid), "%d is in the Armory" % uid)
+		assert_eq(worn, 1 if _session.armory.is_worn(uid) else 0, "%d worn in one slot iff flagged worn" % uid)
 
 
 # Bank counts of the given items plus every worn slot and the used boxes, comparable with assert_eq.
@@ -313,6 +313,16 @@ func _world(session: GameSession, ids: Array[StringName]) -> Dictionary:
 	for slot: StringName in Equipment.SLOTS:
 		out["slot:" + String(slot)] = session.equipment.get_item(slot)
 	out["used"] = session.bank.used()
+	return out
+
+
+# Worn uids per slot, the Armory pieces and its used places.
+func _pieces_world(session: GameSession) -> Dictionary:
+	var out: Dictionary = {}
+	for slot: StringName in Equipment.SLOTS:
+		out["slot:" + String(slot)] = session.equipment.get_uid(slot)
+	out["count"] = session.armory.instances().size()
+	out["used"] = session.armory.used()
 	return out
 
 
@@ -354,10 +364,12 @@ func _bank_counts(session: GameSession) -> Dictionary[StringName, int]:
 
 
 # Real content with a config copy where the bank has `slots` base slots.
-func _data_with_slots(slots: int) -> GameData:
+func _data_with_slots(slots: int, armory_slots: int = -1) -> GameData:
 	DirAccess.make_dir_recursive_absolute(_tmp_config)
 	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_ROOT.path_join("balance.json")))
 	(balance["bank"] as Dictionary)["base_slots"] = slots
+	if armory_slots >= 0:
+		(balance["armory"] as Dictionary)["base_slots"] = armory_slots
 	_write(_tmp_config.path_join("balance.json"), JSON.stringify(balance))
 	_write(_tmp_config.path_join("stats.json"), FileAccess.get_file_as_string(CONFIG_ROOT.path_join("stats.json")))
 	var data: GameData = GameData.load_from_dirs(CONTENT_ROOT, _tmp_config)
