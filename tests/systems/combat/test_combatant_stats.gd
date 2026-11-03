@@ -51,6 +51,13 @@ func test_dual_wield_hand_stats() -> void:
 	_mods(&"equipment:weapon", [Modifier.make(&"accuracy_bonus", 24.0), Modifier.make(&"power_bonus", 18.0)])
 	_mods(&"equipment:offhand", [Modifier.make(&"accuracy_bonus", 8.0), Modifier.make(&"power_bonus", 6.0)])
 	_mods(&"test:ring", [Modifier.make(&"accuracy_bonus", 5.0)])
+	# The exact numbers of the F-74 example: main hand acc 29, pot 18; offhand acc 13, pot 6.
+	var without_off: Array[StringName] = [&"equipment:offhand"]
+	var without_main: Array[StringName] = [&"equipment:weapon"]
+	assert_eq(_session.modifiers.total_without(&"accuracy_bonus", null, without_off), 29.0)
+	assert_eq(_session.modifiers.total_without(&"power_bonus", null, without_off), 18.0)
+	assert_eq(_session.modifiers.total_without(&"accuracy_bonus", null, without_main), 13.0)
+	assert_eq(_session.modifiers.total_without(&"power_bonus", null, without_main), 6.0)
 	var main: CombatantStats = CombatantStats.for_player(_session, 0)
 	var off: CombatantStats = CombatantStats.for_player(_session, 1)
 	# accuracy bonus 29 / 13, power bonus 18 / 6 at level 1 (F-20, F-22); the dual_swords setup adds accuracy_pct -10
