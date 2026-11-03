@@ -23,7 +23,7 @@ Se la sessione si interrompe, si riparte da qui.
 | M1-08 | M1 | Skill ed esperienza | CORE | DONE | task/M1-08 | merge 718a32d; ownership estesa: GameSession.total_level(), TestFactory.set_level, SessionSnapshot.take (xp, livelli) |
 | M1-09 | M1 | Maestria per oggetto e pool | CORE | DONE | task/M1-09 | merge a65ac29 |
 | M1-10 | M1 | ActionRunner e raccolta | CORE | DONE | task/M1-10 | merge 9278936; stop del combattimento in start rimandato al task M4 che registra CombatEngine (annotato su M4-03) |
-| M1-11 | M1 | Game: menu → slot → partita | CORE | IN_PROGRESS | task/M1-11 | tipizzare Game.session (GameSession) e list_slots (Array[SlotInfo]); chiamare GameClock.configure da balance.json |
+| M1-11 | M1 | Game: menu → slot → partita | CORE | REVIEW | task/M1-11 | tipizzare Game.session (GameSession) e list_slots (Array[SlotInfo]); chiamare GameClock.configure da balance.json; in review; autosave sul tempo di GameClock invece del Timer (DECISIONS_LOG) |
 | M1-12 | M1 | Contenuto: le 12 skill e Selvicoltura | DATA | DONE | task/M1-12 | merge 9201158; Ownership estesa a areas/monsters/shop.json vuoti (DECISIONS_LOG) |
 | M1-13 | M1 | Menu principale e scelta dello slot | UI | TODO | | |
 | M1-14 | M1 | Schermata principale: sidebar, barra in alto, PageHost | UI | TODO | | follow-up di M1-16 (ownership estesa, 07_TASKS): NumberFormat, costanti TOOLTIP_/WINDOW_ in UiStyle, test_game_window.gd, Modifier.SCOPE_* |
