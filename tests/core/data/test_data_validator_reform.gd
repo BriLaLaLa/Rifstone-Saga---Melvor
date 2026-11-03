@@ -155,6 +155,8 @@ func test_class_needs_weapon_kinds_of_the_right_kind() -> void:
 	_class(raw)["offhand_kinds"] = ["shield", "bow"]
 	_expect(raw, [CLASS_FILE, "field 'weapon_kinds' needs at least 1 entries"])
 	_expect(raw, [CLASS_FILE, "field 'offhand_kinds': kind 'bow' must be one of"])
+	_class(raw)["offhand_kinds"] = ["shield", "greatsword"]
+	_expect(raw, [CLASS_FILE, "field 'offhand_kinds': kind 'greatsword' must be one of"])
 	_class(raw)["weapon_kinds"] = ["shield"]
 	_expect(raw, [CLASS_FILE, "field 'weapon_kinds': kind 'shield' must be one of"])
 

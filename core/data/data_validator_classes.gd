@@ -15,7 +15,8 @@ const CLASS_FIELDS: PackedStringArray = ["id", "name", "description", "order", "
 	"setups", "traits", "abilities"]
 const SETUP_FIELDS: PackedStringArray = ["id", "name", "weapon", "offhand", "alternate", "modifiers"]
 const WEAPON_KINDS: PackedStringArray = DataValidatorItems.WEAPON_KINDS
-const OFFHAND_KINDS: PackedStringArray = DataValidatorItems.OFFHAND_SLOT_KINDS + DataValidatorItems.WEAPON_KINDS
+# A greatsword is two-handed, so the only weapon kind allowed in the offhand is the one-handed sword.
+const OFFHAND_KINDS: PackedStringArray = DataValidatorItems.OFFHAND_SLOT_KINDS + PackedStringArray(["sword"])
 const UNARMED_SETUP: String = "unarmed"  # reserved setup id (F-72)
 const AFFIX_FIELDS: PackedStringArray = ["id", "name", "stat", "slots", "weight", "tiers"]
 const TIER_FIELDS: PackedStringArray = ["min_ilvl", "min", "max", "step"]
