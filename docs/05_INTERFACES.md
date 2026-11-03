@@ -903,7 +903,7 @@ signal page_changed(page_id: StringName)
 const ROUTE_SEPARATOR: String = ":"
 const ROUTE_SKILL := &"skill"
 const ROUTES: Dictionary[StringName, String]    # rotta -> scena della pagina (estende Page); assente = "In arrivo"
-                                                # oggi: skill -> skill_page.tscn, bank -> bank_page.tscn, shop -> shop_page.tscn (M3-06) (nessun segnaposto)
+                                                # oggi: skill -> skill_page.tscn, bank -> bank_page.tscn, shop -> shop_page.tscn (M3-06), equipment -> equipment_page.tscn (M3-07) (nessun segnaposto)
 func setup(session: GameSession) -> void        # null: unbind e liberazione della pagina corrente
 func show_page(page_id: StringName) -> void     # &"skill:<id>", &"bank", &"shop", &"equipment", &"combat", &"rift", &"settings"
 func has_page(page_id: StringName) -> bool      # rotta in ROUTES; per skill:<id> skill di raccolta/artigianato con azioni
@@ -952,6 +952,8 @@ const NO_MATCH_TEXT: String                      # griglia vuota per la ricerca 
 class_name BankItemPanel extends PanelContainer  # ui/pages/bank/bank_item_panel.gd (+ .tscn), interno a BankPage
 signal lock_requested(item_id: StringName, locked: bool)   # la pagina manda bank.set_locked; locked letto da bank.is_locked
 signal sell_requested(item_id: StringName, qty: int)       # M3-06: la pagina manda shop.sell e mostra il motivo (REFUSED_TEXTS)
+signal equip_requested(item_id: StringName)                # M3-07: la pagina manda equipment.equip; "Equipaggia" solo se is_equippable
+signal food_requested(item_id: StringName)                 # M3-07: la pagina manda equipment.set_food; "Usa come cibo" solo se is_food, disabilitato ("Cibo scelto") se è già il cibo
 signal close_requested
 func show_item(session: GameSession, item_id: StringName) -> bool   # rilegge tutto; false (e clear) se assente o sconosciuto
 func clear() -> void                             # nasconde e dimentica l'oggetto
@@ -968,6 +970,15 @@ const REFUSED_TEXT_DEFAULT: String
 # max_purchases > 0, requisiti mancanti (req_entries, req_skills, req_total_level confrontati con shop e skills).
 # Compra abilitato solo se shop.can_buy riesce, altrimenti motivo accanto al pulsante e nel tooltip; errore di buy in
 # %MessageLabel. Ridisegno su shop_purchased, item_sold, gold_changed, bank_changed, level_up (scollegati in unbind).
+
+class_name EquipmentPage extends Page            # ui/pages/equipment/equipment_page.gd (+ .tscn), rotta equipment (M3-07)
+const REFUSED_TEXTS: Dictionary[StringName, String]   # motivo di unequip/set_food/set_stance -> testo; altri: REFUSED_TEXT_DEFAULT
+const REFUSED_TEXT_DEFAULT: String
+# Righe di Equipment.SLOTS (pezzo da equipment.get_item, "Rimuovi" = unequip), cibo (food_heal dai dati, quantità
+# dalla bank o "Esaurito", "Togli" = set_food(&"")), stance (set_stance). Riepilogo: solo stat del registro
+# (data.stats) con almeno una sorgente, totale da modifiers.total, sorgenti da modifiers.breakdown; per gli attrezzi
+# anche le sorgenti con ambito della skill (ModifierContext.for_skill). Si equipaggia dalla BankPage. Ridisegno su
+# equipment_changed, modifiers_changed, bank_changed (scollegati in unbind).
 
 class_name MasteryPanel extends GameWindow       # ui/pages/mastery/mastery_panel.gd (+ .tscn), figlia di SkillPage
 const POOL_WARNING_KEY: String = "mastery.pool_warning_pct"   # soglia dell'avviso letta da session.data.balance_value
