@@ -8,7 +8,7 @@ extends Page
 ## `Equipment.setup()` (05 §5.9). It keeps no game state, only references to its own nodes.
 
 const LEVEL_TEXT: String = "Livello %s"
-const NOTE_TEXT: String = "I valori di combattimento, i tratti e le abilità arrivano con le prossime tappe."
+const NOTE_TEXT: String = "I tratti e le abilità arrivano con le prossime tappe."
 const NO_CLASS_TEXT: String = "Classe non disponibile"
 const MARGIN: int = 16
 const SECTION_SEPARATION: int = 12
@@ -24,6 +24,8 @@ var _session: GameSession = null
 @onready var _xp_bar: XpBar = %XpBar
 @onready var _setup_title: Label = %SetupTitle
 @onready var _setup_list: VBoxContainer = %SetupList
+@onready var _stats_title: Label = %StatsTitle
+@onready var _stats_list: VBoxContainer = %StatsList
 @onready var _note_label: Label = %NoteLabel
 
 
@@ -32,6 +34,7 @@ func _ready() -> void:
 		_margin.add_theme_constant_override(side, MARGIN)
 	_content.add_theme_constant_override("separation", SECTION_SEPARATION)
 	_setup_title.text = ItemTooltipLines.SETUP_LABEL
+	_stats_title.text = CombatTexts.STATS_TITLE
 	_note_label.text = NOTE_TEXT
 
 
@@ -43,6 +46,7 @@ func bind(session: GameSession) -> void:
 	events.character_xp_gained.connect(_on_character_xp_gained)
 	events.character_level_up.connect(_on_character_level_up)
 	events.equipment_changed.connect(_on_equipment_changed)
+	events.modifiers_changed.connect(_refresh_stats)
 	_build_setup_list()
 	_refresh()
 
@@ -55,6 +59,8 @@ func unbind() -> void:
 			events.character_xp_gained.disconnect(_on_character_xp_gained)
 		if events.character_level_up.is_connected(_on_character_level_up):
 			events.character_level_up.disconnect(_on_character_level_up)
+		if events.modifiers_changed.is_connected(_refresh_stats):
+			events.modifiers_changed.disconnect(_refresh_stats)
 		if events.equipment_changed.is_connected(_on_equipment_changed):
 			events.equipment_changed.disconnect(_on_equipment_changed)
 	_session = null
@@ -90,6 +96,7 @@ func _refresh() -> void:
 	var table: XpTable = _session.data.character_xp_table()
 	if table != null:
 		_xp_bar.set_xp(table, _session.character.get_xp())
+	_refresh_stats()
 	var current: StringName = _current_setup_id()
 	for row: Node in _setup_list.get_children():
 		var is_current: bool = current != &"" and row.name == SETUP_ROW_NAME % current
@@ -119,3 +126,22 @@ func _on_character_level_up(_new_level: int) -> void:
 
 func _on_equipment_changed(_slot_id: StringName, _uid: int) -> void:
 	_refresh()
+
+
+## Base combat values of F-70 (accuracy, evasion, damage, HP) from CombatantStats.for_player, one line each.
+func _refresh_stats() -> void:
+	if _session == null:
+		return
+	var stats: CombatantStats = CombatantStats.for_player(_session)
+	var lines: Array[String] = [
+		CombatTexts.stat_line(_session.data, &"accuracy", stats.accuracy),
+		CombatTexts.stat_line(_session.data, &"evasion", stats.evasion),
+		CombatTexts.STAT_DAMAGE_TEXT % [NumberFormat.format_int(stats.min_hit), NumberFormat.format_int(stats.max_hit)],
+		CombatTexts.stat_line(_session.data, &"max_hp", stats.max_hp),
+	]
+	while _stats_list.get_child_count() < lines.size():
+		var line := Label.new()
+		line.name = "Stat%d" % _stats_list.get_child_count()
+		_stats_list.add_child(line)
+	for i: int in lines.size():
+		(_stats_list.get_child(i) as Label).text = lines[i]

@@ -80,6 +80,19 @@ const MASTERY_LINK_WIDTH: float = 2.0
 const MASTERY_ACTION_ICON_SIDE: int = 36
 const MASTERY_LOCKED_ALPHA: float = 0.6
 
+## Combat page (M5-05): margins, area list width, combatant card size, target highlight border, hit number fade.
+const COMBAT_MARGIN: int = 16
+const COMBAT_SECTION_SEPARATION: int = 12
+const COMBAT_AREA_LIST_WIDTH: int = 300
+const COMBAT_CARD_SIZE := Vector2(260, 150)
+const COMBAT_TARGET_BORDER: int = 2
+const COMBAT_BAR_HEIGHT: int = 18
+const COMBAT_TIMER_BAR_HEIGHT: int = 8
+const COMBAT_HIT_FONT_SIZE: int = 24
+const COMBAT_HIT_FADE_SEC: float = 0.9
+const COMBAT_LOOT_MIN_HEIGHT: int = 140
+const COMBAT_TIMER_COLOR := Color("6f9bff")
+
 # --- palette ---
 const BG := Color(0.055, 0.047, 0.063, 0.86)
 const BG_WINDOW := Color(0.086, 0.071, 0.086, 0.95)

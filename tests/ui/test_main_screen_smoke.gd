@@ -39,7 +39,7 @@ func test_scene_instantiates_with_injected_session() -> void:
 func test_show_page_of_every_valid_route() -> void:
 	var host: PageHost = _page_host()
 	watch_signals(host)
-	for page_id: StringName in [&"bank", &"shop", &"equipment", &"skill:test_craft", &"skill:test_gather"]:
+	for page_id: StringName in [&"bank", &"shop", &"equipment", &"combat", &"skill:test_craft", &"skill:test_gather"]:
 		assert_true(host.has_page(page_id), "%s available" % page_id)
 		host.show_page(page_id)
 		assert_eq(host.current_page_id(), page_id)
@@ -51,7 +51,7 @@ func test_show_page_of_every_valid_route() -> void:
 
 func test_unavailable_pages_are_refused() -> void:
 	var host: PageHost = _page_host()
-	for page_id: StringName in [&"combat", &"rift", &"settings", &"skill:blade",
+	for page_id: StringName in [&"rift", &"settings", &"skill:blade",
 			&"skill:not_a_skill", &"bank:extra", &"skill:"]:
 		assert_false(host.has_page(page_id), "%s not available" % page_id)
 		host.show_page(page_id)
@@ -92,11 +92,7 @@ func test_sidebar_rows_from_data() -> void:
 	assert_false(gather.disabled)
 	assert_true(gather.button_pressed, "row of the current page highlighted")
 	assert_null(rows.get_node_or_null("SkillBlade"), "no combat skill rows")
-	for page_name: String in ["Combat"]:
-		var row: Button = rows.get_node(page_name) as Button
-		assert_true(row.disabled, "%s disabled until its page exists" % page_name)
-		assert_eq(_label(row, "Side").text, "In arrivo")
-	for page_name: String in ["Character", "Armory", "Bank", "Shop", "Equipment"]:
+	for page_name: String in ["Character", "Combat", "Armory", "Bank", "Shop", "Equipment"]:
 		assert_false((rows.get_node(page_name) as Button).disabled, page_name)
 	assert_null(rows.get_node_or_null("Rift"), "no Altare row before M8")
 	assert_null(rows.get_node_or_null("Settings"))
