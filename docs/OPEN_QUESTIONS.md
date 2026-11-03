@@ -28,6 +28,7 @@ in "Chiuse".
 | Q13 | Livelli oltre il 99? | No; l'XP continua fino a `xp_cap` |
 | Q14 | Skill da sbloccare (a pagamento) o tutte subito? | Tutte subito |
 | Q15 | Valori delle soglie delle razioni da campo, dei prezzi dello shop, dei mostri | quelli di `02_FORMULAS.md` §8-9, da rivedere dopo una prova di gioco a fine M4 |
+| Q26 | I nodi della maestria di Cavatura e Lenza devono differire da quelli di Selvicoltura (es. Cavatura più `double_item_chance`, Lenza più `rift_shard_chance`)? Le stat di raccolta del registro sono solo cinque e Selvicoltura le usa tutte | No per ora: stessi costi, prerequisiti, stat e valori di §8.8, nomi e testi a tema (M2-02); da rivedere con Q15 dopo una prova di gioco |
 
 ## Offline
 

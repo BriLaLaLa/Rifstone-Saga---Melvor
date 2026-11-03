@@ -548,6 +548,11 @@ Regole per tutti i task:
   maestria, spesa del pool (importo con cursore), albero dei nodi disposto per `pos` con stato (comprato, comprabile, bloccato).
 - **Accettazione** ogni comando passa da `MasterySystem` e mostra il `reason` in caso di errore.
 - **Test** smoke con la fixture.
+- **Nota (da M2-01/M2-02)** Errori di `can_buy_node`/`buy_node` nell'ordine `unknown_id` → `node_owned` →
+  `node_prereq_missing` → `pool_insufficient` (`05_INTERFACES.md` §5.7): lo stato del nodo si ricava da `owns_node` e
+  `can_buy_node(id).reason` (comprato / comprabile / bloccato da prerequisiti / pool insufficiente), senza copie nella UI.
+  Aggiornarsi su `mastery_node_purchased` e `mastery_pool_changed`. I tre alberi veri usano `pos` su 3 colonne × 4 righe
+  (`02_FORMULAS.md` §8.8), la fixture `test_gather` ha 3 nodi; lo schema ammette `pos` 0..5.
 
 ### M2-04 · Bank completa
 - **Ruolo** UI · **Stima** M · **Parallelizzabile** sì · **Dipendenze** M1-18
@@ -650,6 +655,10 @@ Regole per tutti i task:
   M4); attrezzi T1-T8 e gli attrezzi del novizio; shop dell'MVP senza `second_thought`.
 - **Accettazione** dati validi; XP e valori calcolati con le formule delle tabelle (il test le ricalcola).
 - **Test** casi nuovi: ogni ricetta rispetta §8.2, ogni pezzo §8.4.
+- **Nota (da M2-02)** Minerali di Cavatura T1-T8 (ingredienti della Forgiatura): `emberbronze_ore`, `ashlead_ore`,
+  `stormzinc_ore`, `duskcobalt_ore`, `glimmerite_ore`, `palecinnabar_ore`, `emberheart_ore`, `riftite_ore`; pesci crudi
+  di Lenza T1-T8 (Focolare): `brookfin`, `ashgill`, `redscale`, `dusk_eel`, `shard_gar`, `mist_barbel`, `ember_sturgeon`,
+  `riftmaw`. `sort_order` di `materials.json` già usati: legni 10-80, minerali 110-180, pesci 210-280.
 
 ### M3-05 · Pagina skill: variante artigianato
 - **Ruolo** UI · **Stima** M · **Parallelizzabile** sì · **Dipendenze** M3-01, M1-15
@@ -789,6 +798,8 @@ Regole per tutti i task:
 - **Leggere** `02_FORMULAS.md` §8.7-8.8; `04_DATA_SCHEMA.md` §5-7
 - **Descrizione** 9 ricette e 9 infusioni della tabella §8.7; nodi della maestria delle 4 skill di artigianato.
 - **Accettazione / Test** dati validi, numeri uguali alla tabella.
+- **Nota (da M2-02)** `test_data_validity.gd` ha già `FORESTRY_NODES`, `_nodes_by_skill`, `_assert_node_like` e il
+  controllo del totale 55-65% su ogni file di `data/mastery/`; i nodi della raccolta ricopiano §8.8 (`OPEN_QUESTIONS.md` Q26).
 
 ### M5-03 · Pagina dell'Altare
 - **Ruolo** UI · **Stima** M · **Parallelizzabile** sì · **Dipendenze** M5-01, M3-05

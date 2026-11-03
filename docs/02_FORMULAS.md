@@ -366,6 +366,10 @@ Prese sbloccate ai livelli `rift.sockets`: 1, 20, 40, 60, 80.
 | `forestry_n5_patience` | 10 | n3 | `mastery_xp_pct +5` |
 | `forestry_n6_master` | 20 | n4, n5 | `skill_interval_pct −5`, `double_item_chance +5` |
 Totale 60% del tetto. Le altre skill con maestria seguono lo stesso schema (6 nodi, totale 55-65%).
+Cavatura (`quarrying_n1_steady_pick` … `quarrying_n6_master`) e Lenza (`angling_n1_quick_cast` … `angling_n6_master`)
+hanno oggi gli stessi costi, prerequisiti, stat e valori di Selvicoltura con scope della propria skill (M2-02,
+`OPEN_QUESTIONS.md` Q26). Disposizione (`pos` = `[col, row]`) comune ai tre alberi: n1 `[1,0]`, n2 `[0,1]`, n3 `[2,1]`,
+n4 `[0,2]`, n5 `[2,2]`, n6 `[1,3]`.
 
 ## 9. Valori di `balance.json` (specifica iniziale completa)
 

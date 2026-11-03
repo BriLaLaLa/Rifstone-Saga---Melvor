@@ -213,7 +213,7 @@ Classe: `ActionDef`.
 ```json
 {"skill": "forestry", "nodes": [
   {"id": "forestry_n1_quick_axe", "name": "Colpo sicuro", "description": "Azioni di Selvicoltura più rapide.",
-   "cost_pct": 5, "requires": [], "pos": [0, 0],
+   "cost_pct": 5, "requires": [], "pos": [1, 0],
    "modifiers": [{"stat": "skill_interval_pct", "value": -3, "scope": "skill:forestry"}]}
 ]}
 ```
