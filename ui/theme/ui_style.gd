@@ -46,6 +46,13 @@ const WINDOW_PLACE_TOP: float = 10.0
 const WINDOW_DRAG_KEEP_VISIBLE := Vector2(80, 40)
 const WINDOW_HEADER_SEPARATION: int = 8
 const WINDOW_CLOSE_BUTTON_SIDE: int = 32
+## Main menu and slot screen: panel widths, height of their buttons and fields, size of the menu title.
+const MENU_PANEL_WIDTH: int = 520
+const SLOT_PANEL_WIDTH: int = 820
+const MENU_BUTTON_HEIGHT: int = 44
+const MENU_TITLE_FONT_SIZE: int = 36
+## ConfirmDialog: initial size (the text wraps inside it).
+const DIALOG_SIZE := Vector2i(460, 0)
 
 # --- palette ---
 const BG := Color(0.055, 0.047, 0.063, 0.86)

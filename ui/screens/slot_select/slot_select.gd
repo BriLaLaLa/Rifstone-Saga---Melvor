@@ -44,9 +44,13 @@ var _asking: bool = false
 @onready var _name_back_button: Button = %NameBackButton
 @onready var _message_label: Label = %MessageLabel
 @onready var _back_button: Button = %BackButton
+@onready var _panel: PanelContainer = %Panel
 
 
 func _ready() -> void:
+	_panel.custom_minimum_size.x = UiStyle.SLOT_PANEL_WIDTH
+	for control: Control in [_name_edit, _name_back_button, _start_button, _back_button]:
+		control.custom_minimum_size.y = UiStyle.MENU_BUTTON_HEIGHT
 	_start_button.pressed.connect(_on_start_button_pressed)
 	_name_edit.text_submitted.connect(_on_name_edit_text_submitted)
 	_name_back_button.pressed.connect(_on_name_back_button_pressed)
