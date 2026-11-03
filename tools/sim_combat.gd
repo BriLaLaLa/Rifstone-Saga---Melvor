@@ -17,6 +17,7 @@ extends SceneTree
 ## Nothing is written: no save slot is touched. Numbers come from the data; the arguments only choose the scenario.
 ## GameData and the sessions use the Log autoload, which does not exist while this `-s` script is compiled: they
 ## are reached through paths and dynamic calls, as in tools/validate_data.gd.
+## Output goes through print_rich/printerr, like the other tools (bare print is forbidden).
 
 const GAME_DATA_PATH: String = "res://core/data/game_data.gd"
 const SESSION_PATH: String = "res://core/session/game_session.gd"
@@ -59,7 +60,7 @@ func run(args: PackedStringArray) -> int:
 		return 1
 	var lines: PackedStringArray = report(data, opts)
 	for line: String in lines:
-		print(line)
+		print_rich(line)
 	return 0
 
 
