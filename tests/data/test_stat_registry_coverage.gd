@@ -18,14 +18,6 @@ const CLOSED_FORMULAS: Array[String] = [
 	"F-02", "F-03", "F-06", "F-07", "F-08", "F-10", "F-16", "F-82", "F-83",
 	"F-20", "F-21", "F-22", "F-25", "F-26", "F-27", "F-29", "F-30", "F-31", "F-33", "F-75", "10.6",
 ]
-# Known bug BUG-M5-07-1: these stats name functions that do not exist in test_combat_math.gd (the file has
-# test_f20_accuracy, test_f21_evasion, ... instead). Fix: change the "test" fields in data/config/stats.json (or add
-# the named functions to test_combat_math.gd). Until then their reference is reported as pending and each effect is
-# verified by test_combat_stat_effects_through_player_stats below.
-const BROKEN_REFS: Array[StringName] = [
-	&"accuracy_bonus", &"accuracy_pct", &"power_bonus", &"power_pct", &"evasion_bonus", &"evasion_pct",
-	&"damage_reduction", &"attack_interval_pct", &"max_hp_flat",
-]
 # The stats whose effect M1 delivers: they must be covered by the closed formulas above.
 const M1_STATS: Array[StringName] = [
 	&"skill_interval_pct", &"skill_xp_pct", &"mastery_xp_pct", &"double_item_chance", &"rift_shard_chance",
@@ -77,7 +69,7 @@ func test_stats_of_closed_milestones_have_their_test() -> void:
 	var checked: int = 0
 	for stat: StringName in _registry.ids():
 		var info: Dictionary = _registry.info(stat)
-		if not CLOSED_FORMULAS.has(str(info["formula"])) or BROKEN_REFS.has(stat):
+		if not CLOSED_FORMULAS.has(str(info["formula"])):
 			continue
 		var ref: String = str(info["test"])
 		assert_true(_reference_exists(ref), "%s (%s): test %s exists" % [stat, info["formula"], ref])
@@ -85,19 +77,9 @@ func test_stats_of_closed_milestones_have_their_test() -> void:
 	assert_gte(checked, M1_STATS.size(), "at least the M1 stats are checked")
 
 
-func test_broken_refs_of_combat_stats() -> void:
-	var missing: PackedStringArray = []
-	for stat: StringName in BROKEN_REFS:
-		if not _reference_exists(str(_registry.info(stat)["test"])):
-			missing.append(str(stat))
-	if missing.is_empty():
-		pass_test("BUG-M5-07-1 fixed: remove BROKEN_REFS")
-		return
-	pending("bug BUG-M5-07-1: stats.json names tests missing in test_combat_math.gd: %s" % ", ".join(missing))
-
-
 func test_combat_stat_effects_through_player_stats() -> void:
-	# The stats of BROKEN_REFS and their effect on the player (public API: modifiers -> CombatantStats).
+	# The "test" in stats.json of the 9 player stats of F-20..F-22 and F-25..F-27: each one reaches the player through
+	# the modifiers (public API: modifiers -> CombatantStats) with the value of CombatMath.
 	var data: GameData = TestFactory.real_data()
 	var session: GameSession = autofree(TestFactory.session(7, data))
 	var base: CombatantStats = CombatantStats.for_player(session)
