@@ -2,8 +2,9 @@ class_name GameSession
 extends Node
 ## One open save slot: composition of the systems, nothing else (no game rules live here).
 ##
-## Not added to the tree: Game creates it and frees it with `free()`. Systems are RefCounted and keep a reference
-## to the session; the session is not reference counted, so there are no cycles.
+## Game creates it, adds it as its child and frees it with `free()` in end_session (no _process: GameClock drives it).
+## Systems are RefCounted and keep a reference to the session; the session is not reference counted, so there are no
+## cycles.
 ##
 ## Adding a system: its typed field, then in `_create_systems` one creation line and one `_join` line; a system with
 ## `advance` also adds `_tick(_PHASE_<X>, x.advance)`. Save, load, new game and rebuild follow the join order.
