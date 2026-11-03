@@ -14,8 +14,8 @@ const DROP_FORBIDDEN_CATEGORIES: PackedStringArray = ["equipment", "tool"]  # pi
 const CLASS_FIELDS: PackedStringArray = ["id", "name", "description", "order", "weapon_kinds", "offhand_kinds",
 	"setups", "traits", "abilities"]
 const SETUP_FIELDS: PackedStringArray = ["id", "name", "weapon", "offhand", "alternate", "modifiers"]
-const WEAPON_KINDS: PackedStringArray = ["greatsword", "sword"]
-const OFFHAND_KINDS: PackedStringArray = ["shield", "sword"]
+const WEAPON_KINDS: PackedStringArray = DataValidatorItems.WEAPON_KINDS
+const OFFHAND_KINDS: PackedStringArray = DataValidatorItems.OFFHAND_SLOT_KINDS + DataValidatorItems.WEAPON_KINDS
 const UNARMED_SETUP: String = "unarmed"  # reserved setup id (F-72)
 const AFFIX_FIELDS: PackedStringArray = ["id", "name", "stat", "slots", "weight", "tiers"]
 const TIER_FIELDS: PackedStringArray = ["min_ilvl", "min", "max", "step"]

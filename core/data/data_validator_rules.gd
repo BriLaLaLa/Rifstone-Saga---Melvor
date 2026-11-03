@@ -12,7 +12,6 @@ const NO_LIMIT: float = INF  # "no limit"; also when a limit's balance key is mi
 const CHARACTER_KEY: String = "character"  # reserved key of the requirements: the character level
 const LEVELS_SKILLS: int = 0  # level_map modes
 const LEVELS_CHARACTER: int = 1
-const LEVELS_BOTH: int = 2
 const STYLES: PackedStringArray = ["blade", "marksmanship", "arcana"]
 const MASTERY_COST_MAX_PCT: float = 50.0
 const MASTERY_POS_MAX: int = 5
@@ -160,10 +159,9 @@ func id_list(d: Dictionary, key: String, known: Variant, kind: String, min_count
 		result.append(element)
 	return result
 
-
 ## `{skill_id: level}`: existing skills, integer levels 1..max skill level. The reserved key `character` is the
-## character level (1..max character level): allowed with `LEVELS_BOTH`, the only key with `LEVELS_CHARACTER`, an
-## unknown skill with `LEVELS_SKILLS`.
+## character level (1..max character level): with `LEVELS_CHARACTER` it is the only key, with `LEVELS_SKILLS` it is an
+## unknown skill.
 func level_map(d: Dictionary, key: String, prefix: String = "", mode: int = LEVELS_SKILLS) -> void:
 	var levels: Dictionary = object(d, key, prefix)
 	var at: String = _path(prefix, key)

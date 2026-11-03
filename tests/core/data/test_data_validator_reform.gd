@@ -152,9 +152,9 @@ func test_class_order_is_unique() -> void:
 func test_class_needs_weapon_kinds_of_the_right_kind() -> void:
 	var raw: Dictionary = V.fixture_raw()
 	_class(raw)["weapon_kinds"] = []
-	_class(raw)["offhand_kinds"] = ["shield", "greatsword"]
+	_class(raw)["offhand_kinds"] = ["shield", "bow"]
 	_expect(raw, [CLASS_FILE, "field 'weapon_kinds' needs at least 1 entries"])
-	_expect(raw, [CLASS_FILE, "field 'offhand_kinds': kind 'greatsword' must be one of"])
+	_expect(raw, [CLASS_FILE, "field 'offhand_kinds': kind 'bow' must be one of"])
 	_class(raw)["weapon_kinds"] = ["shield"]
 	_expect(raw, [CLASS_FILE, "field 'weapon_kinds': kind 'shield' must be one of"])
 
