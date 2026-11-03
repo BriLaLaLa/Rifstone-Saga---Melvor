@@ -1,6 +1,6 @@
 extends GutTest
 ## Validity of the real game data under res://data (04_DATA_SCHEMA.md, 00_VISION.md, 02_FORMULAS.md §8.1, F-11).
-## The checks that the validator leaves to this file live here: the 12 skill ids of 00_VISION.md, `mastery: true`
+## The checks that the validator leaves to this file live here: the 7 skill ids of 00_VISION.md, `mastery: true`
 ## on every action of the MVP, the gathering tiers of §8.1. The expected values below are the oracle.
 
 const CONTENT_ROOT: String = "res://data"
@@ -9,10 +9,11 @@ const CONFIG_ROOT: String = "res://data/config"
 const SKILLS: Array[Array] = [
 	["forestry", "Selvicoltura", "gathering"], ["quarrying", "Cavatura", "gathering"],
 	["angling", "Lenza", "gathering"], ["forging", "Forgiatura", "artisan"], ["hearthcraft", "Focolare", "artisan"],
-	["woodwright", "Intaglio", "artisan"], ["blade", "Lama", "combat"], ["marksmanship", "Mira", "combat"],
-	["arcana", "Arcano", "combat"], ["vitality", "Vitalità", "combat"], ["guard", "Guardia", "combat"],
-	["riftbinding", "Legatura del Rift", "artisan"],
+	["woodwright", "Intaglio", "artisan"], ["riftbinding", "Legatura del Rift", "artisan"],
 ]
+## Ids that the reform removed (D3, Q37): combat skills, bows and staves.
+const REMOVED_SKILLS: PackedStringArray = ["blade", "marksmanship", "arcana", "vitality", "guard"]
+const REMOVED_ITEM_SUFFIXES: PackedStringArray = ["_blade", "_bow", "_staff"]
 ## F-11 rules as [every_levels or at_level key, level, stat, value].
 const GATHERING_BONUSES: Array[Array] = [
 	["every_levels", 10, "double_item_chance", 1.0], ["at_level", 99, "double_item_chance", 5.0],
@@ -93,7 +94,7 @@ func test_real_data_is_valid() -> void:
 	assert_eq(data.errors, PackedStringArray())
 
 
-func test_twelve_skills_of_the_vision_in_order() -> void:
+func test_seven_skills_of_the_vision_in_order() -> void:
 	var skills: Array[Dictionary] = _entries("skills", "skills")
 	skills.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a["order"] < b["order"])
 	assert_eq(skills.size(), SKILLS.size())
@@ -110,26 +111,30 @@ func test_skill_colors_are_unique() -> void:
 		colors[e["color"]] = true
 
 
-func test_balance_combat_skills_are_combat_skills() -> void:
+func test_no_combat_skills_left() -> void:
 	var skills: Dictionary = _by_id("skills", "skills")
-	var balance: Dictionary = _raw["balance"].values()[0] as Dictionary
-	for key: String in ["combat.hp_skill", "combat.defence_skill"]:
-		var id: Variant = DataValidator.lookup(balance, key)
-		assert_true(skills.has(id), "%s = %s" % [key, id])
-		if skills.has(id):
-			assert_eq(skills[id]["category"], "combat", key)
+	for id: String in REMOVED_SKILLS:
+		assert_false(skills.has(id), "skill %s was removed by the reform" % id)
+	for e: Dictionary in skills.values():
+		assert_ne(e["id"], "character", "'character' is reserved for requirements")
+		assert_ne(e["category"], "combat", "category of %s" % e["id"])
 
 
-func test_mastery_only_outside_combat() -> void:
+func test_every_skill_has_mastery() -> void:
 	for e: Dictionary in _entries("skills", "skills"):
-		assert_eq(e["has_mastery"], e["category"] != "combat", "has_mastery of %s" % e["id"])
+		assert_true(e["has_mastery"], "has_mastery of %s" % e["id"])
+
+
+func test_no_removed_ids_in_items_and_actions() -> void:
+	for e: Dictionary in _entries("items", "items") + _entries("actions", "actions"):
+		for suffix: String in REMOVED_ITEM_SUFFIXES:
+			assert_false((e["id"] as String).ends_with(suffix), "%s ends with %s" % [e["id"], suffix])
+		for key: String in (e.get("equip", {}) as Dictionary).get("requirements", {}):
+			assert_false(REMOVED_SKILLS.has(key), "requirement %s of %s" % [key, e["id"]])
 
 
 func test_mastery_bonuses_follow_f11() -> void:
 	for e: Dictionary in _entries("skills", "skills"):
-		if e["category"] == "combat":
-			assert_false(e.has("mastery_bonuses"), "combat skill %s" % e["id"])
-			continue
 		var expected: Array[Array] = GATHERING_BONUSES if e["category"] == "gathering" else ARTISAN_BONUSES
 		var rules: Array = e.get("mastery_bonuses", [])
 		assert_eq(rules.size(), expected.size(), "rules of %s" % e["id"])
