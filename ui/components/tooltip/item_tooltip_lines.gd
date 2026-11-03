@@ -29,6 +29,8 @@ const CHARACTER_REQUIREMENT_TEXT: String = "Richiede il livello %d del personagg
 ## Fixed words of the class setup (docs/04_DATA_SCHEMA.md §14): the label and the modifier source "Assetto: <name>".
 const SETUP_LABEL: String = "Assetto"
 const SETUP_SOURCE_TEXT: String = "Assetto: %s"
+## Name of the combat section (sidebar row) and of the `combat` shop category: one definition for both.
+const COMBAT_TEXT: String = "Combattimento"
 const FORMAT_PCT: String = "pct"
 const FORMAT_FLAT: String = "flat"
 const FORMAT_FLAG: String = "flag"

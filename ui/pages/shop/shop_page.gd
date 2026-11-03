@@ -21,7 +21,7 @@ const REQ_CHARACTER_TEXT: String = "livello del personaggio %s"
 const REQ_SEPARATOR: String = ", "
 const CATEGORY_TEXTS: Dictionary[StringName, String] = {
 	&"bank": "Bank",
-	&"combat": "Combattimento",
+	&"combat": ItemTooltipLines.COMBAT_TEXT,
 	&"materials": "Materiali",
 	&"tools": "Attrezzi",
 }
