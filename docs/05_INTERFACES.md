@@ -787,6 +787,15 @@ Comportamento:
   nell'offhand" (`01_GDD.md` §9) spostano pezzi tra i non indossati: `armory_full` se non c'è posto per loro, al netto
   del pezzo che si indossa. Riuscito: `armory.set_worn` per ogni pezzo cambiato, una sola ricostruzione dei
   modificatori (batch), poi `equipment_changed(slot, uid)` per ogni slot svuotato e infine per lo slot occupato.
+- Casi fissati in M4-06: `uid` già indossato (in qualsiasi slot) → `not_equippable`; `slot` diverso da `equip.slot`
+  della base → `not_equippable`, tranne un'arma a una mano in `offhand` (un'arma a due mani in `offhand` →
+  `not_equippable`); una spada nell'`offhand` senza arma → `requirement_not_met` (combinazione senza assetto). Ordine:
+  `unknown_id`, `not_equippable`, `requirement_not_met` (livello, `kind`, assetto), `combat_active`, `armory_full`.
+  `armory_full` in `equip`: i pezzi che tornano tra i non indossati meno quello che si indossa (che lascia un posto);
+  in `unequip`: tutti i pezzi tolti. `unequip(&"weapon")` lascia lo scudo nell'offhand ma toglie anche la spada
+  nell'offhand. Indossare un pezzo dell'offhand con un'arma a due mani rimette l'arma tra i non indossati.
+- `armory_changed(uid, &"updated")` su un pezzo indossato **non** ricostruisce le sorgenti: oggi nessun comando cambia
+  un pezzo indossato (la raffinazione arriva con M7-01, che deve gestirlo).
 - Requisiti: `character.meets_requirements(equip.requirements)`; `kind` in `weapon_kinds`/`offhand_kinds` della classe;
   la coppia risultante (`weapon`, `offhand`) deve avere un assetto (`ClassDef.setup_for`) o essere senza arma con scudo.
 - `set_food`: come M3-03; emette `food_changed`.

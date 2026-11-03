@@ -98,6 +98,7 @@ func bind(session: GameSession) -> void:
 	_session.events.bank_changed.connect(_on_events_bank_changed)
 	_session.events.bank_capacity_changed.connect(_on_events_bank_capacity_changed)
 	_session.events.equipment_changed.connect(_on_events_equipment_changed)
+	_session.events.food_changed.connect(_on_events_food_changed)
 	_redraw()
 
 
@@ -109,6 +110,10 @@ func unbind() -> void:
 			events.bank_changed.disconnect(_on_events_bank_changed)
 		if events.bank_capacity_changed.is_connected(_on_events_bank_capacity_changed):
 			events.bank_capacity_changed.disconnect(_on_events_bank_capacity_changed)
+		if events.equipment_changed.is_connected(_on_events_equipment_changed):
+			events.equipment_changed.disconnect(_on_events_equipment_changed)
+		if events.food_changed.is_connected(_on_events_food_changed):
+			events.food_changed.disconnect(_on_events_food_changed)
 	_session = null
 	if _item_panel != null:
 		_item_panel.clear()
@@ -278,7 +283,8 @@ func _on_item_panel_sell_requested(item_id: StringName, qty: int) -> void:
 
 func _on_item_panel_equip_requested(item_id: StringName) -> void:
 	if _session != null:
-		_show_result(_session.equipment.equip(item_id))
+		# M4-08 removes the button: the bank no longer holds pieces (equip is by Armory uid).
+		_show_result(CommandResult.fail(Reasons.NOT_EQUIPPABLE))
 
 
 func _on_item_panel_food_requested(item_id: StringName) -> void:
@@ -308,5 +314,9 @@ func _on_events_bank_capacity_changed(_used: int, _capacity: int) -> void:
 	_redraw()
 
 
-func _on_events_equipment_changed(_slot_id: StringName, _item_id: StringName) -> void:
+func _on_events_equipment_changed(_slot_id: StringName, _uid: int) -> void:
+	_redraw()
+
+
+func _on_events_food_changed(_item_id: StringName) -> void:
 	_redraw()

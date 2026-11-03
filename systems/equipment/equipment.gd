@@ -1,42 +1,46 @@
 class_name Equipment
 extends RefCounted
-## Worn items, chosen food and stance (docs/01_GDD.md §9).
+## Worn pieces (by Armory `uid`), chosen food and the setup derived from the weapon and offhand (docs/01_GDD.md §9).
 ##
-## An item is always in one place: the bank or one slot. Equipping takes 1 from the bank and the displaced pieces go
-## back; if the bank has no room the command fails with `bank_full` and nothing changes. A two-handed weapon needs a
-## free offhand and an offhand displaces a two-handed weapon. The weapon cannot change while combat is active.
-## Worn modifiers are the `equipment:<slot>` sources. Food is a reference to a bank item (eaten straight from the
-## bank). Signals: `equipment_changed(slot, item)` after the change (food and stance use the ids `&"food"` and
-## `&"stance"`); `new_game`/`from_save` emit nothing.
-## Dependencies: data, events, modifiers, bank, skills, combat (only `is_active`, null-safe).
+## A worn piece stays in the Armory, flagged as worn (`Armory.set_worn`). Equipping into an occupied slot, a two-handed
+## weapon, an offhand with a two-handed weapon and taking the weapon off with a sword in the offhand send pieces back
+## to the not-worn ones; if the Armory has no room for them the command fails with `armory_full` and nothing changes.
+## The setup (F-72) is derived, never chosen: its modifiers are the source `setup:<id>`; the pieces' are
+## `equipment:<slot>` (Armory.instance_modifiers). Weapon and offhand do not change during an encounter.
+## Signals: `equipment_changed(slot, uid)` (0 = empty) and `food_changed(item_id)` after the change;
+## `new_game`/`from_save` emit nothing.
+## Dependencies: data, events, modifiers, bank (food only), character, armory, combat (only `in_encounter`, null-safe).
 
 const SAVE_KEY: StringName = &"equipment"
 const LOG_CATEGORY: String = "equipment"
 const SLOTS: Array[StringName] = [&"head", &"body", &"legs", &"feet", &"hands", &"neck", &"ring",
 	&"weapon", &"offhand", &"tool_forestry", &"tool_quarrying", &"tool_angling"]
-const STANCES: Array[StringName] = [&"offensive", &"balanced", &"defensive"]
 const WEAPON: StringName = &"weapon"
 const OFFHAND: StringName = &"offhand"
-const FOOD_ID: StringName = &"food"
-const STANCE_ID: StringName = &"stance"
+const UNARMED: StringName = &"unarmed"
+const SHIELD_KIND: StringName = &"shield"
 const SOURCE_PREFIX: String = "equipment:"
+const SETUP_PREFIX: String = "setup:"
 const UNARMED_STYLE_KEY: String = "combat.unarmed.style"
 const UNARMED_INTERVAL_KEY: String = "combat.unarmed.attack_interval_ms"
+const DUAL_MULT_KEY: String = "combat.dual_wield.interval_mult"
 const SAVE_SLOTS_KEY: String = "slots"
 const SAVE_FOOD_KEY: String = "food"
-const SAVE_STANCE_KEY: String = "stance"
 
 var _session: GameSession
 var _data: GameData
 var _events: GameEvents
 var _modifiers: ModifierService
 var _bank: Bank
+var _armory: Armory
 var _unarmed_style: StringName = &""
 var _unarmed_interval_ms: int = 0
-# State: slot -> item id (only occupied slots), food item id (&"" = none), stance.
-var _worn: Dictionary[StringName, StringName] = {}
+var _dual_mult: float = 1.0
+# State: slot -> uid of the worn instance (only occupied slots), food item id (&"" = none).
+var _worn: Dictionary[StringName, int] = {}
 var _food: StringName = &""
-var _stance: StringName = STANCES[0]
+# Id of the setup whose source `setup:<id>` is currently set (&"" = none).
+var _applied_setup: StringName = &""
 
 
 func _init(session: GameSession) -> void:
@@ -46,57 +50,84 @@ func _init(session: GameSession) -> void:
 	_events = session.events
 	_modifiers = session.modifiers
 	_bank = session.bank
+	_armory = session.armory
 	_unarmed_style = StringName(str(_data.balance_value(UNARMED_STYLE_KEY)))
 	_unarmed_interval_ms = int(_data.balance_value(UNARMED_INTERVAL_KEY))
+	_dual_mult = float(_data.balance_value(DUAL_MULT_KEY))
 
 
+## 0 if the slot is empty.
+func get_uid(slot: StringName) -> int:
+	return _worn.get(slot, 0)
+
+
+## Base item id of the worn instance; &"" if the slot is empty.
 func get_item(slot: StringName) -> StringName:
-	return _worn.get(slot, &"")
+	var inst: ItemInstance = _armory.get_instance(get_uid(slot))
+	return inst.base_id if inst != null else &""
 
 
-func equip(item_id: StringName) -> CommandResult:
-	if not _data.has_item(item_id):
+## &"" if the piece is not worn.
+func slot_of(uid: int) -> StringName:
+	for slot: StringName in _worn:
+		if _worn[slot] == uid:
+			return slot
+	return &""
+
+
+## `slot` &"" = `equip.slot` of the base; a one-handed weapon can go to `offhand` if the class allows it.
+func equip(uid: int, slot: StringName = &"") -> CommandResult:
+	var inst: ItemInstance = _armory.get_instance(uid)
+	if inst == null or not _data.has_item(inst.base_id):
 		return CommandResult.fail(Reasons.UNKNOWN_ID)
-	var def: ItemDef = _data.item(item_id)
+	var def: ItemDef = _data.item(inst.base_id)
 	if not def.is_equippable():
 		return CommandResult.fail(Reasons.NOT_EQUIPPABLE)
-	for skill_id: StringName in def.equip.requirements:
-		if _session.skills.get_level(skill_id) < def.equip.requirements[skill_id]:
-			return CommandResult.fail(Reasons.REQUIREMENT_NOT_MET)
-	if not _bank.has(item_id, 1):
-		return CommandResult.fail(Reasons.NOT_ENOUGH_ITEMS)
-	var slot: StringName = def.equip.slot
-	var displaced: Dictionary[StringName, StringName] = _displaced_by(def)
-	if (slot == WEAPON or displaced.has(WEAPON)) and _combat_active():
+	var target: StringName = slot if slot != &"" else def.equip.slot
+	if slot_of(uid) != &"" or not _fits_slot(def, target):
+		return CommandResult.fail(Reasons.NOT_EQUIPPABLE)
+	if not _session.character.meets_requirements(def.equip.requirements) or not _class_allows(def, target):
+		return CommandResult.fail(Reasons.REQUIREMENT_NOT_MET)
+	var after: Dictionary[StringName, int] = _worn.duplicate()
+	var leaving: Array[StringName] = []
+	if after.has(target):
+		leaving.append(target)
+	if target == WEAPON and _is_two_handed(def) and after.has(OFFHAND):
+		leaving.append(OFFHAND)
+	if target == OFFHAND and _is_two_handed(_def_of(get_uid(WEAPON))):
+		leaving.append(WEAPON)
+	var old_uids: Dictionary[StringName, int] = {}
+	for old_slot: StringName in leaving:
+		old_uids[old_slot] = _worn[old_slot]
+		after.erase(old_slot)
+	after[target] = uid
+	if not _setup_is_valid(after):
+		return CommandResult.fail(Reasons.REQUIREMENT_NOT_MET)
+	if _touches_hands(target, leaving) and _in_encounter():
 		return CommandResult.fail(Reasons.COMBAT_ACTIVE)
-	if not _has_room_after_taking(item_id, displaced):
-		return CommandResult.fail(Reasons.BANK_FULL)
-	_modifiers.begin_batch()
-	_bank.remove(item_id, 1)
-	for old_slot: StringName in displaced:
-		_bank.add(displaced[old_slot], 1)
-		_clear_slot(old_slot)
-	_worn[slot] = item_id
-	_modifiers.set_source(StringName(SOURCE_PREFIX + String(slot)), def.equip.modifiers)
-	_modifiers.end_batch()
-	for old_slot: StringName in displaced:
-		if old_slot != slot:
-			_events.equipment_changed.emit(old_slot, &"")
-	_events.equipment_changed.emit(slot, item_id)
+	if leaving.size() > 1 and not _armory.can_add(leaving.size() - 1):
+		return CommandResult.fail(Reasons.ARMORY_FULL)
+	_commit(after, old_uids, uid)
 	return CommandResult.success()
 
 
+## Taking the weapon off with a sword in the offhand takes that one off too.
 func unequip(slot: StringName) -> CommandResult:
-	var item_id: StringName = get_item(slot)
-	if item_id == &"":
+	if get_uid(slot) == 0:
 		return CommandResult.fail(Reasons.SLOT_EMPTY)
-	if slot == WEAPON and _combat_active():
+	var after: Dictionary[StringName, int] = _worn.duplicate()
+	var leaving: Array[StringName] = [slot]
+	if slot == WEAPON and after.has(OFFHAND) and not _is_shield(_def_of(after[OFFHAND])):
+		leaving.append(OFFHAND)
+	if _touches_hands(slot, leaving) and _in_encounter():
 		return CommandResult.fail(Reasons.COMBAT_ACTIVE)
-	if not _bank.can_add(item_id):
-		return CommandResult.fail(Reasons.BANK_FULL)
-	_bank.add(item_id, 1)
-	_clear_slot(slot)
-	_events.equipment_changed.emit(slot, &"")
+	if not _armory.can_add(leaving.size()):
+		return CommandResult.fail(Reasons.ARMORY_FULL)
+	var old_uids: Dictionary[StringName, int] = {}
+	for old_slot: StringName in leaving:
+		old_uids[old_slot] = _worn[old_slot]
+		after.erase(old_slot)
+	_commit(after, old_uids, 0)
 	return CommandResult.success()
 
 
@@ -114,26 +145,30 @@ func set_food(item_id: StringName) -> CommandResult:
 		if not _bank.has(item_id, 1):
 			return CommandResult.fail(Reasons.NOT_ENOUGH_ITEMS)
 	_food = item_id
-	_events.equipment_changed.emit(FOOD_ID, item_id)
+	_events.food_changed.emit(item_id)
 	return CommandResult.success()
 
 
-func get_stance() -> StringName:
-	return _stance
+## F-72: id of the derived setup, UNARMED without a weapon.
+func setup() -> StringName:
+	var def: SetupDef = setup_def()
+	return def.id if def != null else UNARMED
 
 
-func set_stance(stance: StringName) -> CommandResult:
-	if not STANCES.has(stance):
-		return CommandResult.fail(Reasons.UNKNOWN_ID)
-	_stance = stance
-	_events.equipment_changed.emit(STANCE_ID, stance)
-	return CommandResult.success()
+## Null with UNARMED.
+func setup_def() -> SetupDef:
+	return _setup_of(_worn)
 
 
-## The worn weapon; null = bare hands.
+## The base of the worn weapon; null = bare hands.
 func weapon() -> ItemDef:
-	var item_id: StringName = get_item(WEAPON)
-	return _data.item(item_id) if item_id != &"" else null
+	return _def_of(get_uid(WEAPON))
+
+
+## The base of the sword in the offhand; null if shield or empty.
+func offhand_weapon() -> ItemDef:
+	var worn: ItemDef = _def_of(get_uid(OFFHAND))
+	return worn if worn != null and worn.equip.weapon != null else null
 
 
 func style() -> StringName:
@@ -143,56 +178,68 @@ func style() -> StringName:
 	return _unarmed_style
 
 
+## The weapon's interval; F-73 with an `alternate` setup; `combat.unarmed` without a weapon.
 func base_attack_interval_ms() -> int:
 	var worn: ItemDef = weapon()
-	if worn != null and worn.equip.weapon != null:
-		return worn.equip.weapon.attack_interval_ms
-	return _unarmed_interval_ms
+	if worn == null or worn.equip.weapon == null:
+		return _unarmed_interval_ms
+	var second: ItemDef = offhand_weapon()
+	var current: SetupDef = setup_def()
+	if second != null and current != null and current.alternate:
+		var sum_ms: int = worn.equip.weapon.attack_interval_ms + second.equip.weapon.attack_interval_ms
+		return roundi(sum_ms / 2.0 * _dual_mult)
+	return worn.equip.weapon.attack_interval_ms
 
 
-## Sources `equipment:<slot>` of the worn pieces (the session has cleared every source first).
+## Sources `equipment:<slot>` of the worn pieces and `setup:<id>` (the session has cleared every source first).
 func rebuild_modifiers() -> void:
-	for slot: StringName in _worn:
-		_modifiers.set_source(StringName(SOURCE_PREFIX + String(slot)), _data.item(_worn[slot]).equip.modifiers)
+	_applied_setup = &""
+	_apply_sources()
 
 
-## docs/01_GDD.md §1.1: nothing worn, no food, stance offensive.
+## docs/01_GDD.md §1.1: nothing worn, no food.
 func new_game() -> void:
-	_worn.clear()
-	_food = &""
-	_stance = STANCES[0]
+	_reset()
 
 
 func to_save() -> Dictionary:
 	var slots: Dictionary = {}
 	for slot: StringName in SLOTS:
 		if _worn.has(slot):
-			slots[String(slot)] = String(_worn[slot])
-	return {SAVE_SLOTS_KEY: slots, SAVE_FOOD_KEY: String(_food), SAVE_STANCE_KEY: String(_stance)}
+			slots[String(slot)] = _worn[slot]
+	return {SAVE_SLOTS_KEY: slots, SAVE_FOOD_KEY: String(_food)}
 
 
-## Slots with an unknown item, a non-equippable one or one for another slot are reported and left empty.
+## Invalid entries (unknown slot or uid, uid worn twice, base that does not fit, combination without a setup) are
+## reported and leave the slot empty; the piece stays in the Armory, not worn.
 func from_save(d: Dictionary) -> void:
-	new_game()
+	_reset()
 	var slots: Variant = d.get(SAVE_SLOTS_KEY, {})
 	if slots is Dictionary:
+		for slot: StringName in SLOTS:
+			if (slots as Dictionary).has(String(slot)):
+				_load_slot(slot, (slots as Dictionary)[String(slot)])
 		for key: Variant in (slots as Dictionary):
-			_load_slot(StringName(str(key)), (slots as Dictionary)[key])
+			if not SLOTS.has(StringName(str(key))):
+				Log.warn(LOG_CATEGORY, "unknown slot '%s' in save: ignored" % str(key))
 	else:
 		Log.warn(LOG_CATEGORY, "invalid slots in save: loaded as empty")
-	if _worn_weapon_is_two_handed() and get_item(OFFHAND) != &"":
-		Log.warn(LOG_CATEGORY, "two-handed weapon with offhand '%s' in save: offhand dropped" % get_item(OFFHAND))
-		_worn.erase(OFFHAND)
+	_drop_invalid_hands()
+	for slot: StringName in _worn:
+		_armory.set_worn(_worn[slot], true, true)
 	var food: Variant = d.get(SAVE_FOOD_KEY, "")
 	if food is String and (food == "" or _is_food(StringName(food))):
 		_food = StringName(food)
 	else:
 		Log.warn(LOG_CATEGORY, "invalid food %s in save: loaded as none" % str(food))
-	var stance: Variant = d.get(SAVE_STANCE_KEY, String(STANCES[0]))
-	if stance is String and STANCES.has(StringName(stance)):
-		_stance = StringName(stance)
-	else:
-		Log.warn(LOG_CATEGORY, "invalid stance %s in save: loaded as %s" % [str(stance), STANCES[0]])
+
+
+func _reset() -> void:
+	for slot: StringName in _worn:
+		_armory.set_worn(_worn[slot], false, true)
+	_worn.clear()
+	_food = &""
+	_applied_setup = &""
 
 
 func _is_food(item_id: StringName) -> bool:
@@ -200,54 +247,128 @@ func _is_food(item_id: StringName) -> bool:
 
 
 func _load_slot(slot: StringName, value: Variant) -> void:
-	var item_id: StringName = StringName(str(value))
-	if not (SLOTS.has(slot) and value is String and _data.has_item(item_id)):
-		Log.warn(LOG_CATEGORY, "invalid slot entry %s=%s in save: ignored" % [slot, str(value)])
+	var uid: int = 0
+	if value is int or (value is float and is_equal_approx(float(value), roundf(float(value)))):
+		uid = int(value)
+	var inst: ItemInstance = _armory.get_instance(uid)
+	if inst == null:
+		Log.warn(LOG_CATEGORY, "slot '%s': uid %s is not in the Armory: left empty" % [slot, str(value)])
 		return
-	var def: ItemDef = _data.item(item_id)
-	if not def.is_equippable() or def.equip.slot != slot:
-		Log.warn(LOG_CATEGORY, "item '%s' does not fit slot '%s': ignored" % [item_id, slot])
+	if slot_of(uid) != &"":
+		Log.warn(LOG_CATEGORY, "uid %d is already worn in '%s': slot '%s' left empty" % [uid, slot_of(uid), slot])
 		return
-	_worn[slot] = item_id
+	var def: ItemDef = _data.item(inst.base_id) if _data.has_item(inst.base_id) else null
+	if def == null or not def.is_equippable() or not _fits_slot(def, slot):
+		Log.warn(LOG_CATEGORY, "uid %d does not fit slot '%s': left empty" % [uid, slot])
+		return
+	_worn[slot] = uid
 
 
-# slot -> item that leaves its slot when `def` is worn: the piece of its own slot, the offhand for a two-handed
-# weapon, the two-handed weapon for an offhand.
-func _displaced_by(def: ItemDef) -> Dictionary[StringName, StringName]:
-	var result: Dictionary[StringName, StringName] = {}
-	var slot: StringName = def.equip.slot
-	if get_item(slot) != &"":
-		result[slot] = get_item(slot)
-	if slot == WEAPON and def.equip.weapon != null and def.equip.weapon.two_handed and get_item(OFFHAND) != &"":
-		result[OFFHAND] = get_item(OFFHAND)
-	if slot == OFFHAND and _worn_weapon_is_two_handed():
-		result[WEAPON] = get_item(WEAPON)
-	return result
+# After loading: a weapon the class does not allow is dropped; a two-handed weapon loses the offhand (M3-11); an
+# offhand without a setup with the weapon is dropped.
+func _drop_invalid_hands() -> void:
+	var worn_weapon: ItemDef = weapon()
+	if worn_weapon != null and not _class_allows(worn_weapon, WEAPON):
+		Log.warn(LOG_CATEGORY, "weapon '%s' is not allowed by the class: left empty" % worn_weapon.id)
+		_worn.erase(WEAPON)
+	if _is_two_handed(weapon()) and _worn.has(OFFHAND):
+		Log.warn(LOG_CATEGORY, "two-handed weapon with an offhand in save: offhand left empty")
+		_worn.erase(OFFHAND)
+	if _worn.has(OFFHAND) and not (_class_allows(_def_of(_worn[OFFHAND]), OFFHAND) and _setup_is_valid(_worn)):
+		Log.warn(LOG_CATEGORY, "offhand '%s' has no setup with the weapon: left empty" % get_item(OFFHAND))
+		_worn.erase(OFFHAND)
 
 
-func _worn_weapon_is_two_handed() -> bool:
-	var worn: ItemDef = weapon()
-	return worn != null and worn.equip.weapon != null and worn.equip.weapon.two_handed
+func _def_of(uid: int) -> ItemDef:
+	var inst: ItemInstance = _armory.get_instance(uid)
+	return _data.item(inst.base_id) if inst != null and _data.has_item(inst.base_id) else null
 
 
-# Whether the displaced pieces fit once `taken` has left the bank (one unit; its stack frees if it was the last).
-func _has_room_after_taking(taken: StringName, displaced: Dictionary[StringName, StringName]) -> bool:
-	var free: int = _bank.capacity() - _bank.used()
-	if _bank.get_count(taken) == 1:
-		free += 1
-	var needed: int = 0
-	for old_slot: StringName in displaced:
-		var old_id: StringName = displaced[old_slot]
-		if _bank.get_count(old_id) - (1 if old_id == taken else 0) <= 0:
-			needed += 1
-	return needed <= free
+func _is_two_handed(def: ItemDef) -> bool:
+	return def != null and def.equip != null and def.equip.weapon != null and def.equip.weapon.two_handed
 
 
-func _clear_slot(slot: StringName) -> void:
-	_worn.erase(slot)
-	_modifiers.clear_source(StringName(SOURCE_PREFIX + String(slot)))
+func _is_shield(def: ItemDef) -> bool:
+	return def != null and def.equip != null and def.equip.kind == SHIELD_KIND
 
 
-func _combat_active() -> bool:
+# The slot of the base, or the offhand for a one-handed weapon.
+func _fits_slot(def: ItemDef, slot: StringName) -> bool:
+	if not SLOTS.has(slot):
+		return false
+	if slot == def.equip.slot:
+		return true
+	return slot == OFFHAND and def.equip.slot == WEAPON and def.equip.weapon != null \
+			and not def.equip.weapon.two_handed
+
+
+# Weapon and offhand kinds must be allowed by the class (F-72); other slots have no kind.
+func _class_allows(def: ItemDef, slot: StringName) -> bool:
+	var cls: ClassDef = _session.character.class_def()
+	if cls == null:
+		return false
+	if slot == WEAPON:
+		return cls.weapon_kinds.has(def.equip.kind)
+	if slot == OFFHAND:
+		return cls.offhand_kinds.has(def.equip.kind)
+	return true
+
+
+# F-72 for a slot map; null without a weapon or without a matching setup.
+func _setup_of(slots: Dictionary[StringName, int]) -> SetupDef:
+	var cls: ClassDef = _session.character.class_def()
+	var main: ItemDef = _def_of(slots.get(WEAPON, 0))
+	if cls == null or main == null:
+		return null
+	var second: ItemDef = _def_of(slots.get(OFFHAND, 0))
+	return cls.setup_for(main.equip.kind, second.equip.kind if second != null else &"")
+
+
+# A weapon needs a setup; without a weapon the offhand can only be empty or a shield.
+func _setup_is_valid(slots: Dictionary[StringName, int]) -> bool:
+	if _def_of(slots.get(WEAPON, 0)) == null:
+		return not slots.has(OFFHAND) or _is_shield(_def_of(slots[OFFHAND]))
+	return _setup_of(slots) != null
+
+
+func _touches_hands(target: StringName, leaving: Array[StringName]) -> bool:
+	return target == WEAPON or target == OFFHAND or leaving.has(WEAPON) or leaving.has(OFFHAND)
+
+
+func _in_encounter() -> bool:
 	var combat: Variant = _session.get(&"combat")
-	return combat != null and bool((combat as Object).call(&"is_active"))
+	return combat != null and bool((combat as Object).call(&"in_encounter"))
+
+
+# Applies a validated change: flags, slots, one rebuild, then the signals (emptied slots first).
+func _commit(after: Dictionary[StringName, int], old_uids: Dictionary[StringName, int], new_uid: int) -> void:
+	_modifiers.begin_batch()
+	for old_slot: StringName in old_uids:
+		_armory.set_worn(old_uids[old_slot], false)
+	if new_uid != 0:
+		_armory.set_worn(new_uid, true)
+	_worn = after
+	_apply_sources()
+	_modifiers.end_batch()
+	for old_slot: StringName in old_uids:
+		if get_uid(old_slot) == 0:
+			_events.equipment_changed.emit(old_slot, 0)
+	if new_uid != 0:
+		_events.equipment_changed.emit(slot_of(new_uid), new_uid)
+
+
+# Sets or clears every `equipment:<slot>` source and moves `setup:<id>` to the current setup.
+func _apply_sources() -> void:
+	for slot: StringName in SLOTS:
+		var source: StringName = StringName(SOURCE_PREFIX + String(slot))
+		if _worn.has(slot):
+			_modifiers.set_source(source, _armory.instance_modifiers(_worn[slot]))
+		else:
+			_modifiers.clear_source(source)
+	if _applied_setup != &"":
+		_modifiers.clear_source(StringName(SETUP_PREFIX + String(_applied_setup)))
+		_applied_setup = &""
+	var current: SetupDef = setup_def()
+	if current != null:
+		_applied_setup = current.id
+		_modifiers.set_source(StringName(SETUP_PREFIX + String(current.id)), current.modifiers)

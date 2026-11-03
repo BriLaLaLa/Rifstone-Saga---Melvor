@@ -999,6 +999,9 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 - **Nota (da M4-05)** I 3 test di `test_crafting_chain.gd` sono `pending("M4-07: crafted tools become Armory pieces
   (uid)")`: togliere il pending e renderli verdi (l'equipaggiamento per `uid` arriva con M4-06). `armory.create`
   restituisce 0 se piena (con `armory_rejected`); `armory.can_add(n)` per il controllo prima del ciclo.
+- **Nota (da M4-06)** In `test_crafting_chain.gd::_run_chain` la riga `equip(0)  # M4-07` (dentro i test pending) è un
+  segnaposto per compilare: va sostituita con l'`uid` del pezzo forgiato (`armory.instances()`), e i controlli "one unit
+  left the bank" con `armory.is_worn(uid)`. `equipment.get_item(slot)` restituisce ancora la base dell'istanza indossata.
 
 ### M4-08 · Pagina dell'Armeria ed equipaggiamento
 - **Ruolo** UI · **Stima** L · **Parallelizzabile** no · **Dipendenze** M4-07, M4-09
@@ -1024,6 +1027,13 @@ Regole comuni a M4 (oltre a quelle in testa al file):
   `test_summary_shows_the_tool_scoped_to_a_skill`). Durante M4-05 un test di posizionamento di `test_tooltip.gd` è
   fallito in modo intermittente (non riprodotto nella suite dopo il merge): verificarlo e renderlo deterministico.
   La vendita di un pezzo passa da `shop.sell_instance(uid)`.
+- **Nota (da M4-06)** La stance non esiste più: in `equipment_page.gd` restano da togliere `STANCE_TITLE_TEXT`,
+  `STANCE_TEXTS`, `_stance_buttons`, `%StanceBox` (+ `.tscn`) e il doc comment; pending
+  `test_equipment_page_smoke.gd::test_stance_buttons_follow_and_set_the_model` da togliere (al suo posto l'assetto
+  derivato, `equipment.setup()`). `bank_page.gd::_on_item_panel_equip_requested` oggi risponde sempre `not_equippable`
+  (segnaposto): va tolto con il pulsante "Equipaggia". Segnali: `equipment_changed(slot_id, uid: int)` (0 = vuoto) e
+  `food_changed(item_id)` per il cibo (non più `equipment_changed`). Equipaggiare nell'offhand: `equip(uid, &"offhand")`;
+  i motivi di rifiuto e l'ordine sono in `05_INTERFACES.md` §5.9.
 
 ### M4-09 · Pagina del personaggio, sidebar e shop
 - **Ruolo** UI · **Stima** M · **Parallelizzabile** sì (con M4-06, M4-07) · **Dipendenze** M4-05
@@ -1062,6 +1072,9 @@ Regole comuni a M4 (oltre a quelle in testa al file):
   (es. `test_buy_log`, effetto `item` su `test_log`) e un caso con bank piena (oro non speso); ownership estesa a
   `tests/fixtures/data/shop/shop.json`, `tests/systems/shop/test_shop.gd` e ai conteggi delle voci dello shop nei test
   che si rompono (solo quelle righe).
+- **Nota (da M4-06)** Due file di test superano le 400 righe (il controllo automatico non copre `tests/`):
+  `tests/integration/test_item_conservation.gd` (412) e `tests/systems/equipment/test_equipment.gd` (409). Dividerli
+  (es. `test_item_conservation_equipment.gd`; i casi di save sono già in `test_equipment_save.gd`); ownership estesa.
 
 ### M4-11 · Integrazione di M4
 - **Ruolo** REV · **Stima** S · **Dipendenze** M4-01…M4-10 · **Ownership** merge, tag `m4-done` · **Parallelizzabile** no ·
@@ -1099,6 +1112,9 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 - M7-01 · Raffinazione F-86 (CORE; M6-07; `systems/armory/**` con `upgrade.gd`, `stats.json`/`balance.json` delle chiavi di M7 con il validatore).
   Nota (da M4-04): `ItemRoller.instance_modifiers` legge `upgrade.mod_pct_per_level` solo se `upgrade > 0` (chiave assente
   fino a M7); ownership estesa a `tests/systems/items/test_item_roller.gd` per il caso `+N` (moltiplicatore di F-86).
+  Nota (da M4-06): `Equipment` non ascolta `armory_changed(uid, &"updated")`: raffinare un pezzo indossato deve
+  aggiornare la sua sorgente `equipment:<slot>` (connessione in `Equipment` o chiamata esplicita; ownership estesa a
+  `systems/equipment/equipment.gd` e al suo test, con un caso "raffino il pezzo indossato → modificatori aggiornati").
 - M7-02 · Smantellamento F-88 e filtro automatico (CORE; M7-01; `systems/armory/**` con `salvage.gd`, save del filtro).
 - M7-03 · Drop di equipaggiamento con rarità F-84 nell'Armeria (COMBAT; M7-02; `combat_engine.gd`, `item_roller.gd`).
   Nota (da M4-04): `ItemRoller.drop_chances` è uno stub che registra un errore e restituisce `Vector2.ZERO`; va

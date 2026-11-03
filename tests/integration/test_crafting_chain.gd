@@ -108,7 +108,7 @@ func _run_chain(kind: String) -> void:
 	assert_eq(_session.bank.get_count(ingot), 0, "ingots consumed")
 	assert_gt(_session.skills.get_xp(&"forging"), 0, "forging XP earned")
 	# 2. equip: 1 unit from the bank to the slot
-	var result: CommandResult = _session.equipment.equip(tool_def.id)
+	var result: CommandResult = _session.equipment.equip(0)  # M4-07: the uid of the crafted piece
 	assert_true(result.ok, "equip: %s" % result.reason)
 	assert_eq(_session.equipment.get_item(slot), tool_def.id)
 	assert_eq(_session.bank.get_count(tool_def.id), forge.outputs[0].qty - 1, "one unit left the bank")
