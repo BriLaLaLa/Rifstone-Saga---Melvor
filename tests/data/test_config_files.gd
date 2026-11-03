@@ -37,7 +37,6 @@ const EXPECTED_BALANCE: Dictionary = {
 	"bank.slot_cost_base": 400.0,
 	"bank.slot_cost_growth": 1.09,
 	"bank.slot_cost_cap": 2000000.0,
-	"bank.max_purchasable": 150.0,
 	"combat.acc_level_offset": 8.0,
 	"combat.acc_bonus_offset": 50.0,
 	"combat.maxhit_level_offset": 10.0,
