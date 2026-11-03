@@ -856,8 +856,30 @@ func unbind() -> void                           # virtuale: scollega tutto
 
 class_name PageHost extends Control             # ui/screens/main/page_host.gd
 signal page_changed(page_id: StringName)
-func setup(session: GameSession) -> void
+const ROUTE_SEPARATOR: String = ":"
+const ROUTE_SKILL := &"skill"
+const ROUTES: Dictionary[StringName, String]    # rotta -> scena della pagina (estende Page); assente = "In arrivo"
+func setup(session: GameSession) -> void        # null: unbind e liberazione della pagina corrente
 func show_page(page_id: StringName) -> void     # &"skill:<id>", &"bank", &"shop", &"equipment", &"combat", &"rift", &"settings"
+func has_page(page_id: StringName) -> bool      # rotta in ROUTES; per skill:<id> skill di raccolta/artigianato con azioni
+func current_page_id() -> StringName            # &"" se nessuna pagina
+static func route_of(page_id: StringName) -> StringName      # &"skill:forestry" -> &"skill"
+static func argument_of(page_id: StringName) -> StringName   # &"skill:forestry" -> &"forestry"; &"" se assente
+
+class_name MainScreen extends Control           # ui/screens/main/main_screen.gd (+ .tscn): TopBar, Sidebar, PageHost, toast
+var session: GameSession = null                 # iniettabile prima di _ready; null = Game.session
+var menu_action: Callable = Callable()          # () -> void; non valido = Game.end_session(true) e poi main_scene
+
+class_name Sidebar extends PanelContainer       # ui/screens/main/sidebar.gd (+ .tscn)
+signal page_requested(page_id: StringName)
+func bind(session: GameSession, is_available: Callable) -> void   # is_available: (page_id: StringName) -> bool
+func unbind() -> void
+func set_current(page_id: StringName) -> void
+
+class_name TopBar extends PanelContainer        # ui/screens/main/top_bar.gd (+ .tscn): oro, caselle, nome · slot, Menu
+signal menu_requested
+func bind(session: GameSession) -> void
+func unbind() -> void
 
 class_name ItemSlotView extends PanelContainer  # ui/components/item_slot/item_slot.gd
 signal pressed(item_id: StringName)
@@ -914,7 +936,7 @@ func dismiss() -> void                             # idempotente
 class_name CustomTooltip extends PanelContainer    # ui/components/tooltip/custom_tooltip.gd (+ .tscn), interno a Tooltips
 func setup_item(item: ItemDef, count: int, data: GameData) -> void
 func setup_text(title: String, body: String) -> void   # body può contenere BBCode
-func show_at(cursor_pos: Vector2) -> void          # globale; spostato del mouse_offset e tenuto nel viewport
+func show_at(cursor_pos: Vector2) -> void          # globale; spostato di UiStyle.TOOLTIP_MOUSE_OFFSET, nel viewport
 func hide_tooltip() -> void                        # nasconde e svuota i testi
 func is_shown() -> bool
 func title_text() -> String                        # testi senza BBCode (test, accessibilità)
@@ -927,9 +949,11 @@ static func body(item: ItemDef, data: GameData) -> PackedStringArray   # requisi
 static func modifier_lines(mods: Array[Modifier], data: GameData) -> PackedStringArray
 static func format_stat(format: String, value: float) -> String    # pct "+5%", flat "+8", flag "Sì"/"No"
 static func category_name(category: StringName) -> String
+static func escape(text: String) -> String                         # BBCode dei testi dei dati
+
+class_name NumberFormat extends RefCounted         # ui/theme/number_format.gd, solo statiche; unica definizione dei formati
 static func format_int(value: int) -> String                       # "1.250"
 static func format_number(value: float) -> String                  # "1.250,5" (al massimo due decimali)
-static func escape(text: String) -> String                         # BBCode dei testi dei dati
 
 class_name GameWindow extends PanelContainer       # ui/components/game_window/game_window.gd; figlio "VBox" con la pagina
 signal opened
@@ -958,6 +982,16 @@ conferma prima di sovrascrivere uno slot `ok` e prima di `delete_slot`; danneggi
 eliminare; ogni comando fallito mostra `SlotTexts.reason_text`. Il menu cambia scena solo dopo `game_started`; se il cambio
 fallisce: `Log.error`, `end_session(true)` e messaggio. I test usano una sottoclasse di `game.gd` mai aggiunta all'albero.
 Le pagine non tengono stato di gioco: solo riferimenti alla sessione e ai nodi. Ogni ridisegno legge dai getter.
+Pagine e schermata principale (M1-14): ogni pagina si collega a `session.events` (non all'autoload `EventBus`) in `bind`
+e scollega tutto in `unbind`. `PageHost.show_page` istanzia la scena della rotta, imposta `page_id`, la aggiunge e chiama
+`bind`; la pagina precedente riceve `unbind` ed è liberata; una pagina non disponibile (`has_page` falso) o la mancanza
+di sessione danno `Log.warn` e lasciano la pagina corrente; la stessa pagina non si ricrea. `MainScreen` legge la
+sessione in `_ready` (non aspetta `session_started`), crea il `ToastManager` con `events = session.events`, apre la
+prima pagina di skill disponibile (altrimenti `bank`) e su `session_ended` scollega TopBar, Sidebar, PageHost e toast;
+lo stesso quando la schermata esce dall'albero. Le voci della Sidebar senza pagina sono disabilitate con "In arrivo"
+(`is_available` = `PageHost.has_page`); il livello delle skill si ridisegna su `level_up`, la TopBar su `gold_changed` e
+`bank_capacity_changed`. Numeri via `NumberFormat`; costanti di presentazione di tooltip e GameWindow in
+`UiStyle.TOOLTIP_*`/`UiStyle.WINDOW_*`.
 
 ## 8. Helper dei test (`res://tests/helpers/`)
 

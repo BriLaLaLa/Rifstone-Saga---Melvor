@@ -380,6 +380,10 @@ Regole per tutti i task:
   `Game.end_session(true)` e poi `get_tree().change_scene_to_file("res://ui/screens/main_menu/main_menu.tscn")`; il menu
   rilegge gli slot in `_ready`. (3) Il menu, se `change_scene_to_file` verso `main_screen.tscn` fallisce, chiude la
   sessione: la schermata deve quindi caricarsi senza errori anche con la sessione appena creata.
+- **Nota (review M1-14)** Fatto. Contratti in `05_INTERFACES.md` §7 (`PageHost` esteso, `MainScreen`, `Sidebar`,
+  `TopBar`, `NumberFormat`; `format_int`/`format_number` tolte da `ItemTooltipLines`). Integrazione con M1-13 nel commit di
+  merge: `SlotTexts` usa `NumberFormat.format_int`. Il ritorno al menu usa `application/run/main_scene`
+  (= `main_menu.tscn`). `placeholder_page.gd/.tscn` è temporanea (rotte `skill` e `bank`) e si elimina con M1-18.
 
 ### M1-15 · Pagina skill (raccolta) e componenti base
 - **Ruolo** UI · **Stima** M · **Parallelizzabile** sì · **Dipendenze** M1-14, M1-16
@@ -400,6 +404,14 @@ Regole per tutti i task:
   (impostate in `_ready` dagli script, i `.tscn` tengono solo la struttura); la dimensione 36 del titolo del menu
   (`theme_override_font_sizes` in `main_menu.tscn`) diventa una costante o una variante del tema. Se `ui_style.gd`
   supererebbe 400 righe, fermarsi e chiedere al Reviewer come dividerlo. Test esistenti verdi, nessun cambio di firme.
+- **Nota (da M1-14)** (1) Ownership estesa alla sola riga `ROUTE_SKILL` di `PageHost.ROUTES`
+  (`res://ui/screens/main/page_host.gd`): `&"skill": "res://ui/pages/skill/skill_page.tscn"`. `SkillPage` estende `Page`,
+  legge la skill da `PageHost.argument_of(page_id)` in `bind`, si collega a `session.events` e scollega tutto in `unbind`.
+  (2) `tests/ui/test_main_screen_smoke.gd` (ownership estesa al solo `test_changing_page_disconnects_the_old_page`): oggi
+  conta le connessioni del segnaposto (`level_up` sulla skill, `bank_capacity_changed` sulla bank); va aggiornato con i
+  segnali collegati dalla `SkillPage` vera (il test deve continuare a provare che cambiare pagina torna alla base).
+  (3) `ui_style.gd` è a 368 righe dopo M1-14: le costanti `MENU_*`/`SLOT_*`/`DIALOG_*` ci stanno, ma ricontare prima
+  del merge (limite 400).
 
 ### M1-16 · Tooltip e GameWindow portati
 - **Ruolo** PORT · **Stima** M · **Parallelizzabile** sì · **Dipendenze** M1-04, M0-04
@@ -433,6 +445,11 @@ Regole per tutti i task:
 - **Descrizione** Griglia di `ItemSlotView` dalle `stacks()` nell'ordine della bank, contatore caselle, tooltip al passaggio.
 - **Accettazione** si aggiorna su `bank_changed` rileggendo; nessuna copia delle quantità.
 - **Test** smoke con oggetti dati dalla `TestFactory`.
+- **Nota (da M1-14)** Ownership estesa a `res://ui/screens/main/page_host.gd` (solo la riga `&"bank"` di `ROUTES` →
+  `"res://ui/pages/bank/bank_page.tscn"` ed eventualmente `PLACEHOLDER_SCENE`), a `res://ui/screens/main/placeholder_page.gd/.tscn`
+  (da eliminare, con i `.uid`, quando nessuna rotta la usa più, cioè dopo M1-15) e a `tests/ui/test_main_screen_smoke.gd`
+  (conteggi di `test_changing_page_disconnects_the_old_page`). `BankPage` estende `Page`, si collega a `session.events`
+  in `bind` e scollega tutto in `unbind`.
 
 ### M1-19 · Test di integrazione di M1
 - **Ruolo** QA · **Stima** M · **Parallelizzabile** no · **Dipendenze** M1-10, M1-11, M1-12
@@ -680,6 +697,11 @@ Regole per tutti i task:
   (da `player_stats`/`monster_stats` e `CombatMath.hit_chance`), cibo e Mangia, stance, borsa con Raccogli tutto, numeri del
   danno sui `combat_hit`.
 - **Accettazione / Test** smoke con la fixture; nessuno stato del duello nella UI.
+- **Nota (da M1-14)** La rotta `&"combat"` si aggiunge a `PageHost.ROUTES` (`res://ui/screens/main/page_host.gd`,
+  ownership estesa alla sola riga della rotta). Le 5 skill di combattimento oggi sono nella Sidebar disabilitate con
+  "In arrivo" (`PageHost.has_page` le esclude: `SKILL_PAGE_CATEGORIES` = raccolta, artigianato): decidere se la loro voce
+  apre la pagina del combattimento (es. `has_page` vero e `show_page` che porta a `combat`) o resta solo informativa
+  (livello), aggiornando `05_INTERFACES.md` §7 e `test_main_screen_smoke.gd`.
 
 ### M4-06 · Test di M4
 - **Ruolo** QA · **Stima** M · **Parallelizzabile** no · **Dipendenze** M4-01…M4-05
