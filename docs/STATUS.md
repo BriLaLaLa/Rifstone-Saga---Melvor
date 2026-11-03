@@ -34,9 +34,9 @@ Se la sessione si interrompe, si riparte da qui.
 | M1-19 | M1 | Test di integrazione di M1 | QA | DONE | task/M1-19 | merge dc3500e; ownership estesa: tools/run_checks.ps1 (validate_data.gd su fixture e dati veri); 621 test, 1 pending (stat M3/M4, errore in M6-07) |
 | M1-20 | M1 | Integrazione di M1 | REV | DONE | main | tag m1-done su c0529c8; 676 test, 675 passati, 1 pending; prova del Giocabile 38/38 |
 | M2-00 | M2 | Limite del nome in balance.json | CORE | DONE | task/M2-00 | merge 27b65a3, docs bba9872; 680 test, 679 passati, 1 pending; richiesta utente dopo M1 (DECISIONS_LOG); i worktree condividono user:// (test in parallelo instabili): nota sotto M2-05 |
-| M2-01 | M2 | Nodi della maestria | CORE | REVIEW | task/M2-01 | 36d0a45; 696 test, 694 passati, 2 pending (test F-15 su forestry attende M2-02); ownership estesa a test_mastery_system.gd (rimosso il test dei segnaposto) |
-| M2-02 | M2 | Contenuto: Cavatura, Lenza, nodi della raccolta | DATA | REVIEW | task/M2-02 | 589b6f9, 6e0e5da; 680 test, 679 passati, 1 pending; ownership estesa a test_main_screen_smoke.gd (riga 159); nodi di Cavatura e Lenza con gli stessi valori di Selvicoltura (§8.8 dice "stesso schema") |
-| M2-03 | M2 | Pannello della maestria | UI | TODO | | |
+| M2-01 | M2 | Nodi della maestria | CORE | DONE | task/M2-01 | merge 09ab93f, docs 92f4885; 700 test, 698 passati, 2 pending; ownership estesa a test_mastery_system.gd (rimosso il test dei segnaposto) |
+| M2-02 | M2 | Contenuto: Cavatura, Lenza, nodi della raccolta | DATA | DONE | task/M2-02 | merge d72ffe9, docs 2451b40; 704 test, 703 passati, 1 pending; ownership estesa a test_main_screen_smoke.gd; nodi di Cavatura e Lenza = valori di Selvicoltura, Q26 in OPEN_QUESTIONS (default: così, rivedere con Q15) |
+| M2-03 | M2 | Pannello della maestria | UI | IN_PROGRESS | task/M2-03 | |
 | M2-04 | M2 | Bank completa | UI | IN_PROGRESS | task/M2-04 | |
 | M2-05 | M2 | Test di M2 | QA | TODO | | |
 | M2-06 | M2 | Integrazione di M2 | REV | TODO | | |
