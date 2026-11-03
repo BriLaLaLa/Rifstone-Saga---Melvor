@@ -18,7 +18,7 @@ const SECTIONS_TITLE: String = "Partita"
 ## Game sections, in order: page id, text, UI icon (UiStyle.icon).
 const SECTIONS: Array[Dictionary] = [
 	{"page": &"character", "text": "Personaggio", "icon": "user"},
-	{"page": &"combat", "text": "Combattimento", "icon": "sword"},
+	{"page": &"combat", "text": ItemTooltipLines.COMBAT_TEXT, "icon": "sword"},
 	{"page": &"armory", "text": "Armeria", "icon": "star"},
 	{"page": &"equipment", "text": "Equipaggiamento", "icon": "shirt"},
 	{"page": &"bank", "text": "Bank", "icon": "box"},

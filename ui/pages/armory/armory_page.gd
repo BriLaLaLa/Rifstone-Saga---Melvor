@@ -12,7 +12,6 @@ extends Page
 ## (requirements); everything is disconnected in `unbind`.
 
 const TITLE_TEXT: String = "Armeria"
-const CAPACITY_TEXT: String = "Pezzi: %s / %s"
 const FULL_TEXT: String = "Armeria piena"
 const ALL_SLOTS_TEXT: String = "Tutti gli slot"
 const ALL_RARITIES_TEXT: String = "Tutte le rarità"
@@ -148,7 +147,11 @@ func _redraw() -> void:
 		return
 	var used: int = _session.armory.used()
 	var capacity: int = _session.armory.capacity()
-	_capacity_label.text = CAPACITY_TEXT % [NumberFormat.format_int(used), NumberFormat.format_int(capacity)]
+	var worn: int = 0
+	for inst: ItemInstance in _session.armory.instances():
+		if _session.armory.is_worn(inst.uid):
+			worn += 1
+	_capacity_label.text = ArmoryTexts.capacity_text(used, capacity, worn)
 	_full_label.visible = used >= capacity
 	_rebuild_grid()
 	_refresh_panel()
@@ -203,7 +206,9 @@ func _on_cell_hover_started(uid: int) -> void:
 	var body: PackedStringArray = ArmoryTexts.affix_lines(inst, _session.data)
 	body.append_array(ItemTooltipLines.modifier_lines(_session.armory.instance_modifiers(uid), _session.data))
 	_hovering = true
-	Tooltips.show_text(ArmoryTexts.piece_name(inst, base), "\n".join(body), get_global_mouse_position())
+	body.insert(0, ItemTooltipLines.colored_title(ArmoryTexts.piece_name(inst, base),
+			UiStyle.rarity_color(inst.rarity)))
+	Tooltips.show_text("", "\n".join(body), get_global_mouse_position())
 
 
 func _hide_tooltip() -> void:

@@ -26,6 +26,11 @@ const STYLE_NAMES: Dictionary[StringName, String] = {
 }
 ## Requirement on the character level (reserved key `character` of the requirements).
 const CHARACTER_REQUIREMENT_TEXT: String = "Richiede il livello %d del personaggio"
+## Fixed words of the class setup (docs/04_DATA_SCHEMA.md §14): the label and the modifier source "Assetto: <name>".
+const SETUP_LABEL: String = "Assetto"
+const SETUP_SOURCE_TEXT: String = "Assetto: %s"
+## Name of the combat section (sidebar row) and of the `combat` shop category: one definition for both.
+const COMBAT_TEXT: String = "Combattimento"
 const FORMAT_PCT: String = "pct"
 const FORMAT_FLAT: String = "flat"
 const FORMAT_FLAG: String = "flag"
@@ -66,21 +71,36 @@ static func body(item: ItemDef, data: GameData) -> PackedStringArray:
 	return lines
 
 
-## One line per modifier whose stat is registered: "<name> <value>[ (<scope>)]".
+## One line per (stat, scope) whose stat is registered: "<name> <value>[ (<scope>)]". Modifiers of the same stat and
+## scope are summed into one line (first-appearance order).
 static func modifier_lines(mods: Array[Modifier], data: GameData) -> PackedStringArray:
 	var lines: PackedStringArray = PackedStringArray()
+	var sums: Dictionary[String, Modifier] = {}
+	var order: Array[String] = []
 	for mod: Modifier in mods:
 		if not data.stats.has(mod.stat):
 			Log.warn(LOG_CATEGORY, "tooltip: stat '%s' is not registered, no line shown" % mod.stat)
 			continue
-		var info: Dictionary = data.stats.info(mod.stat)
+		var key: String = "%s|%s|%s" % [mod.stat, mod.scope_kind, mod.scope_id]
+		if not sums.has(key):
+			sums[key] = Modifier.make(mod.stat, 0.0, mod.scope_kind, mod.scope_id)
+			order.append(key)
+		sums[key].value += mod.value
+	for key: String in order:
+		var sum: Modifier = sums[key]
+		var info: Dictionary = data.stats.info(sum.stat)
 		var line: String = "%s %s" % [escape(info["name"] as String), _value(format_stat(info["format"] as String,
-				mod.value))]
-		var scope: String = _scope_name(mod, data)
+				sum.value))]
+		var scope: String = _scope_name(sum, data)
 		if not scope.is_empty():
 			line += " " + _muted("(%s)" % scope)
 		lines.append(line)
 	return lines
+
+
+## A bold name in `color` (a piece shows its name in the color of its rarity).
+static func colored_title(text: String, color: Color) -> String:
+	return "[color=#%s][b]%s[/b][/color]" % [color.to_html(false), escape(text)]
 
 
 ## A stat value in its registry format: pct "+5%" / "-3%", flat "+8", flag "Sì" / "No".
