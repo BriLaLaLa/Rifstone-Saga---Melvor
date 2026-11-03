@@ -4,9 +4,9 @@ Aggiornato dall'Orchestratore (unico che modifica questo file). Stati: TODO / IN
 Se la sessione si interrompe, si riparte da qui.
 
 ## Ripartenza (aggiornata il 2026-11-03)
-- **Stato**: M2 completata, tag `m2-done` su `c4e12c0`; `main` e i tag `m0-done`, `m1-done`, `m2-done` pushati su `origin`.
+- **Stato**: M3 avviata (OK utente 2026-11-03). M2 completata, tag `m2-done` su `c4e12c0`; `main` e i tag `m0-done`, `m1-done`, `m2-done` pushati su `origin`.
   Suite su main: 740 test, 739 passati, 1 pending (stat di M3/M4, diventa errore in M6-07).
-- **Prossimo passo**: attendere l'OK esplicito dell'utente per **M3**; poi M3-01… secondo `07_TASKS.md`, con le regole dei
+- **Prossimo passo**: M3 in corso, task in parallelo a coppie (M3-01+M3-04, poi M3-02, M3-03, M3-05..M3-09); vedere la tabella.
   consumi di `CLAUDE.md` (massimo 2 agenti, test mirati, suite completa solo dopo il merge, review sul diff, sezioni nei brief).
 - **Decisioni aperte per l'utente**: Q26 (nodi di Cavatura e Lenza con i valori di Selvicoltura; default: così, rivedere con Q15).
 - **Follow-up già registrati** (note in `07_TASKS.md`): divisione di `ui_style.gd` (390/400) in M3-05 o nel primo task M3
@@ -52,10 +52,10 @@ Se la sessione si interrompe, si riparte da qui.
 | M2-04 | M2 | Bank completa | UI | DONE | task/M2-04 | merge 6815fd2, docs 35b03c7; 717 test, 716 passati, 1 pending; rilascio fuori dalle caselle = in fondo; caselle vuote non disegnate (facoltativo) |
 | M2-05 | M2 | Test di M2 | QA | DONE | task/M2-05 | merge cd8693b, docs e77cf4d; 740 test, 739 passati, 1 pending; cartelle dei test uniche per checkout (PreRun.test_dir); ownership estesa a test_gathering_resolver.gd e test_bank.gd |
 | M2-06 | M2 | Integrazione di M2 | REV | DONE | main | tag m2-done su c4e12c0; 740 test, 739 passati, 1 pending; prova del Giocabile 50/50; follow-up M3: sfondo del pannello della maestria trasparente, toast dei livelli accumulati sopra le finestre |
-| M3-01 | M3 | Ricette dell'artigianato | CORE | TODO | | ownership estesa (da M1-09): mastery_bonuses di test_craft nelle fixture + caso F-11 artigianato in test_mastery_system.gd |
+| M3-01 | M3 | Ricette dell'artigianato | CORE | IN_PROGRESS | task/M3-01 | ownership estesa (da M1-09): mastery_bonuses di test_craft nelle fixture + caso F-11 artigianato in test_mastery_system.gd |
 | M3-02 | M3 | Shop (porting) | PORT | TODO | | |
 | M3-03 | M3 | Equipaggiamento e attrezzi | CORE | TODO | | |
-| M3-04 | M3 | Contenuto: Forgiatura, Focolare, Intaglio, shop | DATA | TODO | | |
+| M3-04 | M3 | Contenuto: Forgiatura, Focolare, Intaglio, shop | DATA | IN_PROGRESS | task/M3-04 | |
 | M3-05 | M3 | Pagina skill: variante artigianato | UI | TODO | | |
 | M3-06 | M3 | Shop e vendita | UI | TODO | | |
 | M3-07 | M3 | Pagina equipaggiamento | UI | TODO | | |
