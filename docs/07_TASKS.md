@@ -947,6 +947,10 @@ Regole comuni a M4 (oltre a quelle in testa al file):
   restituisce `null` con un warning; **non** controlla `uid > 0` né l'unicità né i castoni: in `Armory.from_save` sono
   compito dell'Armeria (un'istanza `null` va gestita, nessuna perdita silenziosa). `get_instance`/`instances` usano
   `duplicate_instance()`.
+- **Nota (da M4-03)** `SkillsSystem.meets_requirements` registra ancora un errore sulla chiave `character`: lo shop
+  (`req_character`, requisiti misti) passa da `session.character.meets_requirements` (§5.16). `TestFactory.set_character_level`
+  esiste (solo verso l'alto, da chiamare prima di aggiungere modificatori `skill_xp_pct`). `GameSession` registra
+  `character` subito dopo `skills`: l'Armeria va registrata dopo (dipende da bank e wallet).
 
 ### M4-06 · Equipaggiamento con `uid` e assetti
 - **Ruolo** CORE · **Stima** M · **Parallelizzabile** no · **Dipendenze** M4-05
@@ -965,6 +969,9 @@ Regole comuni a M4 (oltre a quelle in testa al file):
   (2 test, `test_equipping_moves_one_unit…`, `test_equip_with_full_bank…`; ownership estesa a quel file) e renderli
   verdi con requisiti `character`, `uid` e assetti; in `test_item_conservation.gd` la costante `BOW` ora è uno spadone
   (rinominarla).
+- **Nota (da M4-03)** I requisiti dei pezzi (`character` e, per gli attrezzi, la skill dello slot) si controllano con
+  `session.character.meets_requirements`, non con `SkillsSystem.meets_requirements` (che registra un errore sulla chiave
+  `character`); nei test `TestFactory.set_character_level`.
 
 ### M4-07 · Artigianato verso l'Armeria
 - **Ruolo** CORE · **Stima** S · **Parallelizzabile** sì (con M4-09) · **Dipendenze** M4-05

@@ -5,13 +5,16 @@ Se la sessione si interrompe, si riparte da qui.
 
 ## Ripartenza (aggiornata il 2026-11-03)
 - **Stato**: M4 in corso. **M4-01 + M4-02 DONE**, merge congiunto `16e6306` su `main` (correzioni del Reviewer sul
-  branch in `df9bc0d`). **M4-04 DONE**, merge `ef00713`. Suite (run_checks dopo M4-04): 939 test, 917 passati,
-  22 pending, 0 falliti; validate_data verde su fixture e dati veri. M4-03 in corso. M3 completata, tag `m3-done` su `ca18ee6`; `main` e i tag `m0-done`…`m3-done` pushati su `origin`
-  (il push di M4 si fa a fine milestone). Visione v2 approvata (D1-D6), R-00 fatto.
-- **Prossimo passo**: chiudere **M4-03** (Personaggio e salvataggio v2), poi M4-05 (note "da M4-04"), M4-06,
-  M4-07 ∥ M4-09, M4-08, M4-10, M4-11, con le regole dei consumi di `CLAUDE.md` (massimo 2 agenti, test mirati, suite
-  completa solo dopo il merge, review sul diff, sezioni nei brief). I worktree `RSI-worktrees/M4-01` e `M4-02` si
-  possono rimuovere.
+  branch in `df9bc0d`). **M4-04 DONE**, merge `ef00713`. **M4-03 DONE**, merge `f6ed43c` (main riunito nel branch in
+  `ef4bb5d`). Suite (run_checks dopo M4-03): 959 test, 937 passati, 22 pending, 0 falliti; validate_data verde su
+  fixture e dati veri. M3 completata, tag `m3-done` su `ca18ee6`; `main` e i tag `m0-done`…`m3-done` pushati su
+  `origin` (il push di M4 si fa a fine milestone). Visione v2 approvata (D1-D6), R-00 fatto.
+- **Prossimo passo**: **M4-05** (Armeria, bank e shop; note "da M4-02", "da M4-03", "da M4-04" in `07_TASKS.md`), poi
+  M4-06, M4-07 ∥ M4-09, M4-08, M4-10, M4-11, con le regole dei consumi di `CLAUDE.md` (massimo 2 agenti, test mirati,
+  suite completa solo dopo il merge, review sul diff, sezioni nei brief). I worktree `RSI-worktrees/M4-01`, `M4-02`,
+  `M4-03` e `M4-04` si possono rimuovere.
+- **Follow-up di M4-03**: M4-05 e M4-06 controllano i requisiti misti con `session.character.meets_requirements`
+  (`SkillsSystem.meets_requirements` registra un errore sulla chiave `character`).
 - **Pending aperti** (21 nuovi + 1 vecchio; ognuno lo chiude il task indicato, note in `07_TASKS.md`):
   M4-06 `test_equipment.gd` (15) e `test_item_conservation.gd` (2); M4-08 `test_bank_item_panel_smoke.gd` (1) e
   `test_tooltip.gd::test_show_item_weapon_lines` (1); M4-09 `test_main_screen_smoke.gd` (2); vecchio:
@@ -91,7 +94,7 @@ Se la sessione si interrompe, si riparte da qui.
 | R-00 | M4 | Riforma dei documenti (visione v2) | REV | DONE | main | solo docs; commit dell'Orchestratore; stop per l'OK dell'utente prima di M4-01 |
 | M4-01 | M4 | Schema e validatore della riforma | CORE | DONE | task/M4-01 | merge congiunto 16e6306 (con M4-02); 83f36fc, 4c1626c, df909ac, 3da8494, b6d4e51, e2a2ba3 |
 | M4-02 | M4 | Contenuto della riforma | DATA | DONE | task/M4-02 | merge 16e6306; 31cbcbf, 8855c5a, e3c1afa; correzioni del Reviewer df9bc0d; run_checks 925 test, 903 passati, 22 pending |
-| M4-03 | M4 | Personaggio e salvataggio v2 | CORE | TODO | | parallelo con M4-04 |
+| M4-03 | M4 | Personaggio e salvataggio v2 | CORE | DONE | task/M4-03 | merge f6ed43c; 765664e, merge di main ef4bb5d; 20 test nuovi; ownership estesa: 2 righe di `test_skills_system.gd` (snapshot e `total_level`); run_checks 959 test, 937 passati, 22 pending, 0 falliti; worktree non rimosso |
 | M4-04 | M4 | ItemRoller e istanze | CORE | DONE | task/M4-04 | merge ef00713; 78d3e1a; 14 test propri; run_checks 939 test, 917 passati, 22 pending, 0 falliti; worktree non rimosso |
 | M4-05 | M4 | Armeria, bank e shop | CORE | TODO | | |
 | M4-06 | M4 | Equipaggiamento con uid e assetti | CORE | TODO | | |
