@@ -63,7 +63,8 @@ l'elenco delle chiavi obbligatorie, `DataValidator.REQUIRED_BALANCE_KEYS`).
   "start": {"gold": 50, "items": []},
   "xp_curve": {"base": 70, "growth": 1.1, "linear": 8, "max_level": 99, "xp_cap": 50000000},
   "mastery_curve": {"base": 20, "growth": 1.1, "linear": 4, "max_level": 99},
-  "mastery": {"base_factor": 1.0, "per_level": 0.1, "ratio_weight": 3.0, "pool_share_pct": 20, "pool_cap_per_item": 300000},
+  "mastery": {"base_factor": 1.0, "per_level": 0.1, "ratio_weight": 3.0, "pool_share_pct": 20, "pool_cap_per_item": 300000,
+              "pool_warning_pct": 95},
   "action": {"min_interval_ms": 250},
   "gathering": {"rift_shard_base_chance_pct": 0.5},
   "bank": {"base_slots": 24, "slot_cost_base": 400, "slot_cost_growth": 1.09, "slot_cost_cap": 2000000, "max_purchasable": 150},
@@ -87,7 +88,8 @@ l'elenco delle chiavi obbligatorie, `DataValidator.REQUIRED_BALANCE_KEYS`).
 }
 ```
 `start.items` è una lista di `{"item": id, "qty": n}`. `player_name.min_length` e `max_length` (lunghezza del nome dopo
-`strip_edges`) sono interi ≥ 1 con `min_length` ≤ `max_length`. In M7 si aggiunge `fractures`, in M8 `parallel` (vedi §11, §12).
+`strip_edges`) sono interi ≥ 1 con `min_length` ≤ `max_length`. `mastery.pool_warning_pct` è un numero > 0 e ≤ 100
+(percentuale del tetto del pool da cui la UI avvisa che il pool è quasi pieno). In M7 si aggiunge `fractures`, in M8 `parallel` (vedi §11, §12).
 
 ## 4. `data/skills/skills.json`
 

@@ -919,6 +919,41 @@ func show_item(session: GameSession, item_id: StringName) -> bool   # rilegge tu
 func clear() -> void                             # nasconde e dimentica l'oggetto
 func item_id() -> StringName                     # &"" se chiuso
 
+class_name MasteryPanel extends GameWindow       # ui/pages/mastery/mastery_panel.gd (+ .tscn), figlia di SkillPage
+const POOL_WARNING_KEY: String = "mastery.pool_warning_pct"   # soglia dell'avviso letta da session.data.balance_value
+func bind(session: GameSession, skill_id: StringName) -> void # skill senza maestria: Log.warn e NO_MASTERY_TEXT
+func unbind() -> void                            # anche su closed e in _exit_tree
+
+class_name MasteryActionRow extends PanelContainer   # ui/pages/mastery/mastery_action_row.gd (+ .tscn), interna al pannello
+signal select_requested(action_id: StringName)   # l'azione diventa il bersaglio della spesa del pool
+func setup(action: ActionDef) -> void            # una volta, dopo l'ingresso nell'albero
+func redraw(session: GameSession, selected: bool) -> void   # livello e barra di maestria (mastery_table)
+func action_id() -> StringName                   # &"" prima di setup
+
+class_name MasteryNodeTree extends Control       # ui/pages/mastery/mastery_node_tree.gd, interno al pannello
+signal buy_requested(node_id: StringName)        # inoltrato dalle carte; il pannello manda mastery.buy_node
+func setup(nodes: Array[MasteryNodeDef], data: GameData) -> void   # una carta per nodo, posta per pos [col, riga]
+func redraw(session: GameSession) -> void        # carte e collegamenti (oro se il prerequisito è comprato)
+func clear() -> void                             # libera le carte e dimentica la sessione
+
+class_name MasteryNodeView extends PanelContainer   # ui/pages/mastery/mastery_node_view.gd (+ .tscn), carta di un nodo
+signal buy_requested(node_id: StringName)
+func setup(node: MasteryNodeDef, data: GameData) -> void   # nome, modificatori (ItemTooltipLines.modifier_lines)
+func redraw(session: GameSession) -> void        # costo (mastery.node_cost), stato, pulsante Acquista
+func node_id() -> StringName                     # &"" prima di setup
+func grid_pos() -> Vector2i                      # pos dei dati
+func required_ids() -> Array[StringName]         # requires dei dati
+static func state_of(session: GameSession, id: StringName) -> StringName   # MasteryTexts.STATE_*: owns_node, poi
+                                                 # can_buy_node(id): ok -> buyable, pool_insufficient -> unaffordable,
+                                                 # altri motivi -> locked
+
+class_name MasteryTexts extends RefCounted       # ui/pages/mastery/mastery_texts.gd, solo statiche e costanti
+const STATE_OWNED / STATE_BUYABLE / STATE_LOCKED / STATE_UNAFFORDABLE   # &"owned", &"buyable", &"locked", &"unaffordable"
+const REASON_TEXTS: Dictionary[StringName, String]   # motivi di spend_pool_on_action/buy_node; altri: REASON_TEXT_DEFAULT
+const WINDOW_TITLE: String                       # "Maestria: %s"
+static func reason_text(reason: StringName) -> String
+static func state_text(state: StringName) -> String   # stato sconosciuto: testo di STATE_LOCKED
+
 class_name ItemSlotView extends PanelContainer  # ui/components/item_slot/item_slot.gd (+ .tscn)
 signal pressed(item_id: StringName)
 func set_item(item: ItemDef, count: int, locked: bool = false) -> void   # count 0 = quantità non mostrata; altrimenti
@@ -1066,6 +1101,20 @@ griglia; la griglia cambia solo attraverso gli eventi della bank. Stato di prese
 oggetto del pannello, casella sotto il mouse (il suo tooltip si rilegge dopo ogni ridisegno e si chiude se la casella
 sparisce). Costanti di presentazione: `UiStyle.BANK_*` (margine, separazioni, `BANK_CELL_SIZE`, pannello, ricerca).
 Vendita, equipaggia e cibo nel pannello: M3-06/M3-07, con segnali nuovi del pannello e comandi mandati dalla pagina. I secondi mostrati dalla UI passano tutti da `NumberFormat.format_seconds`.
+Pannello della maestria (M2-03): `SkillPage` mostra `%MasteryButton` ("Maestria", nell'intestazione) solo per le skill
+con `has_mastery`; il pulsante crea il `MasteryPanel` alla prima pressione (figlio della pagina, liberato con essa), lo
+collega con `bind(session, skill_id)` e lo apre, o lo chiude se è aperto; l'`unbind` della pagina chiude il pannello.
+Il pannello è collegato a `session.events` solo mentre è aperto, a tre segnali: `mastery_pool_changed` (pool e albero),
+`mastery_node_purchased` (albero), `mastery_xp_gained` (riga dell'azione); `closed`, `unbind` e `_exit_tree` li
+scollegano. Barra del pool `get_pool`/`get_pool_cap`; l'avviso (testo e barra in `UiStyle.BAD`) compare con
+`pool × 100 >= cap × mastery.pool_warning_pct` (`balance.json`, letta da `session.data`). Righe: una per
+`mastery_actions_for_skill`, la prima è il bersaglio iniziale della spesa. Spesa: cursore da 1 al pool (al pool
+all'apertura), "Spendi" = `mastery.spend_pool_on_action(bersaglio, importo)`. Albero: una carta per
+`mastery_nodes(skill)` in una griglia per `pos` (`UiStyle.MASTERY_NODE_SIZE`, `MASTERY_NODE_GAP`), collegamenti dai
+prerequisiti; lo stato è sempre `MasteryNodeView.state_of` (nessuna copia dei nodi comprati); "Acquista" visibile per
+comprabile e pool insufficiente (disabilitato), = `mastery.buy_node`. Ogni comando rifiutato mostra
+`MasteryTexts.reason_text` e non cambia nulla; il modello cambia solo con i comandi e la vista solo con gli eventi.
+Stato di presentazione ammesso: azione bersaglio e valore del cursore. Costanti di presentazione: `UiStyle.MASTERY_*`.
 
 ## 8. Helper dei test (`res://tests/helpers/`)
 

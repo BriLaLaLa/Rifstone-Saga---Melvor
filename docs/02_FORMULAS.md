@@ -385,6 +385,7 @@ n4 `[0,2]`, n5 `[2,2]`, n6 `[1,3]`.
 | `xp_curve.{base, growth, linear, max_level, xp_cap}` | 70, 1.1, 8, 99, 50000000 | F-01 |
 | `mastery_curve.{base, growth, linear, max_level}` | 20, 1.1, 4, 99 | F-09 |
 | `mastery.{base_factor, per_level, ratio_weight, pool_share_pct, pool_cap_per_item}` | 1.0, 0.1, 3.0, 20, 300000 | F-10..F-13 |
+| `mastery.pool_warning_pct` | 95 | MasteryPanel: avviso del pool quasi pieno (`01_GDD.md` §6.2); > 0 e ≤ 100 |
 | `action.min_interval_ms` | 250 | F-03 |
 | `gathering.rift_shard_base_chance_pct` | 0.5 | F-07 |
 | `bank.{base_slots, slot_cost_base, slot_cost_growth, slot_cost_cap, max_purchasable}` | 24, 400, 1.09, 2000000, 150 | F-16, F-17 |

@@ -542,7 +542,10 @@ Regole per tutti i task:
 ### M2-03 · Pannello della maestria
 - **Ruolo** UI · **Stima** M · **Parallelizzabile** sì · **Dipendenze** M2-01, M1-15
 - **Ownership** `res://ui/pages/mastery/**`, `res://ui/pages/skill/skill_page.gd` (solo il pulsante che apre il pannello),
-  `res://tests/ui/test_mastery_panel_smoke.gd`
+  `res://tests/ui/test_mastery_panel_smoke.gd`; estesa (`DECISIONS_LOG.md`, M2-03) a `res://data/config/balance.json`,
+  `res://core/data/data_validator.gd` (solo `mastery.pool_warning_pct`), `res://tests/data/test_config_files.gd`,
+  `res://tests/core/data/test_data_validator.gd`, `res://ui/theme/ui_style.gd` (solo `MASTERY_*`),
+  `res://ui/pages/skill/skill_page.tscn` (solo `MasteryButton`)
 - **Leggere** `01_GDD.md` §6; `05_INTERFACES.md` §5.7, §7
 - **Descrizione** Finestra (`GameWindow`) con: barra del pool (avviso al 95%), elenco delle azioni con livello e barra di
   maestria, spesa del pool (importo con cursore), albero dei nodi disposto per `pos` con stato (comprato, comprabile, bloccato).
@@ -589,6 +592,13 @@ Regole per tutti i task:
   derivato da `ProjectSettings.globalize_path("res://")`, deciso in `tests/helpers/gut_pre_run.gd` e usato dai test)
   oppure, in alternativa, vietare in `CLAUDE.md` le suite in parallelo. Ownership estesa a `gut_pre_run.gd` e ai test
   elencati; nessun codice di produzione.
+- **Nota (da M2-03)** Il pannello della maestria (`05_INTERFACES.md` §7, "Pannello della maestria") è coperto dallo
+  smoke `tests/ui/test_mastery_panel_smoke.gd`; il flusso di M2-05 resta nel modello (`session.mastery`, nessuna UI).
+  Lo smoke porta il pool a un valore preciso con `mastery.to_save()`/`from_save()` (nessun segnale): va bene per
+  preparare lo stato, ma la parte "raccolta lunga → pool" deve passare dal runner con il seme fisso. Lo stato di un nodo
+  nella UI è `MasteryNodeView.state_of` (`owns_node`, poi `can_buy_node(id).reason`); nel flusso si verifica
+  direttamente su `owns_node`/`can_buy_node`. `balance.json` ha ora 59 chiavi obbligatorie (`mastery.pool_warning_pct`
+  = 95, solo presentazione: nessuna formula F-xx la usa).
 
 ### M2-06 · Integrazione di M2
 - **Ruolo** REV · **Stima** S · **Parallelizzabile** no · **Dipendenze** M2-01…M2-05
@@ -672,6 +682,12 @@ Regole per tutti i task:
   con `unknown_id` (testo "Questa azione non è ancora disponibile."): `test_artisan_skill_refuses_start_until_recipes`
   va sostituito dai casi della carta ricetta. I motivi `missing_inputs` e `bank_full` hanno già un testo in
   `SkillPage.REFUSED_TEXTS`.
+- **Nota (da M2-03)** `res://ui/theme/ui_style.gd` è a 390 righe su 400: prima di aggiungere costanti `UiStyle.*`
+  (qui o in M3-06/M3-07, chi arriva prima) spostare `build_theme()` con i suoi `_add_*` e `_button_styles` (circa 185
+  righe) in `res://ui/theme/ui_theme_builder.gd` (`class_name UiThemeBuilder`, solo statiche), lasciando
+  `UiStyle.build_theme()` come delega di una riga (nessun chiamante cambia). Ownership estesa a `ui_style.gd` e al file
+  nuovo per questo solo spostamento; i test del tema esistenti restano verdi. La `SkillPage` ha ora anche
+  `%MasteryButton` e `_mastery_panel` (M2-03): la scelta tra carta azione e carta ricetta non li tocca.
 
 ### M3-06 · Shop e vendita
 - **Ruolo** UI · **Stima** M · **Parallelizzabile** sì · **Dipendenze** M3-02, M2-04
@@ -687,6 +703,8 @@ Regole per tutti i task:
   `tests/ui/test_bank_item_panel_smoke.gd` (ownership estesa). Un oggetto bloccato non si vende (`01_GDD.md` §7).
   Oggi il pulsante Blocca deduce il valore da inviare dal proprio testo: se la sezione cambia il pannello, leggere
   `bank.is_locked` dall'ultimo `show_item`.
+- **Nota (da M2-03)** `ui_style.gd` è a 390 righe: costanti `UiStyle.*` nuove solo dopo lo spostamento di `build_theme`
+  descritto nella nota di M3-05 (lo fa il primo dei tre task UI di M3 che ne ha bisogno).
 
 ### M3-07 · Pagina equipaggiamento
 - **Ruolo** UI · **Stima** M · **Parallelizzabile** sì · **Dipendenze** M3-03, M2-04
@@ -699,6 +717,8 @@ Regole per tutti i task:
   scelta del cibo) mandati da `BankPage`; ownership estesa a `bank_item_panel.tscn`, `bank_page.gd` (solo collegamento e
   testi dei motivi) e `tests/ui/test_bank_item_panel_smoke.gd` (condivisi con M3-06, il secondo fa rebase).
   `bank_item_panel.gd` 95 righe, `bank_page.gd` 280: ricontare il limite di 400.
+- **Nota (da M2-03)** `ui_style.gd` è a 390 righe: costanti `UiStyle.*` nuove solo dopo lo spostamento di `build_theme`
+  descritto nella nota di M3-05 (lo fa il primo dei tre task UI di M3 che ne ha bisogno).
 - **Accettazione / Test** smoke; nessuna stat mostrata che non sia nel registro.
 
 ### M3-08 · Test di M3
