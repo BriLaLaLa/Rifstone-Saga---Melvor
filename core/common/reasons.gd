@@ -39,3 +39,6 @@ const VERSION_UNSUPPORTED := &"version_unsupported"
 const SLOT_ACTIVE := &"slot_active"
 const INVALID_NAME := &"invalid_name"
 const NOT_RUNNING := &"not_running"
+const ARMORY_FULL := &"armory_full"  # M4: the Armory has no free slot (docs/01_GDD.md §21)
+const NOT_STACKABLE := &"not_stackable"  # M4: equipment and tools are rejected by the bank
+const ITEM_EQUIPPED := &"item_equipped"  # M4: a worn piece cannot be sold or salvaged
