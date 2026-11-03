@@ -375,6 +375,7 @@ Totale 60% del tetto. Le altre skill con maestria seguono lo stesso schema (6 no
 | `max_catchup_ms` | 5000 | GameClock |
 | `autosave_interval_ms` | 10000 | Game |
 | `slots.count` | 4 | SaveStore, menu |
+| `player_name.{min_length, max_length}` | 1, 24 | Game.new_game, SlotTexts (`01_GDD.md` §1) |
 | `start.gold` | 50 | GameSession.new_game |
 | `start.items` | `[]` | GameSession.new_game |
 | `xp_curve.{base, growth, linear, max_level, xp_cap}` | 70, 1.1, 8, 99, 50000000 | F-01 |

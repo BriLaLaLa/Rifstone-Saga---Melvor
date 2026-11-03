@@ -59,6 +59,7 @@ l'elenco delle chiavi obbligatorie, `DataValidator.REQUIRED_BALANCE_KEYS`).
 {
   "tick_ms": 100, "max_catchup_ms": 5000, "autosave_interval_ms": 10000,
   "slots": {"count": 4},
+  "player_name": {"min_length": 1, "max_length": 24},
   "start": {"gold": 50, "items": []},
   "xp_curve": {"base": 70, "growth": 1.1, "linear": 8, "max_level": 99, "xp_cap": 50000000},
   "mastery_curve": {"base": 20, "growth": 1.1, "linear": 4, "max_level": 99},
@@ -85,7 +86,8 @@ l'elenco delle chiavi obbligatorie, `DataValidator.REQUIRED_BALANCE_KEYS`).
   "offline": {"cap_ms": 43200000, "min_ms": 60000, "chunk_ms": 60000}
 }
 ```
-`start.items` è una lista di `{"item": id, "qty": n}`. In M7 si aggiunge `fractures`, in M8 `parallel` (vedi §11, §12).
+`start.items` è una lista di `{"item": id, "qty": n}`. `player_name.min_length` e `max_length` (lunghezza del nome dopo
+`strip_edges`) sono interi ≥ 1 con `min_length` ≤ `max_length`. In M7 si aggiunge `fractures`, in M8 `parallel` (vedi §11, §12).
 
 ## 4. `data/skills/skills.json`
 

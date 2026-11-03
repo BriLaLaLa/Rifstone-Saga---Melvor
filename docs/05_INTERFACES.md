@@ -150,13 +150,15 @@ static func decode(text: String) -> Dictionary       # {} se non valido o non di
 
 ### `Game` (`core/autoload/game.gd`)
 ```gdscript
+const NAME_MIN_LENGTH_KEY: String = "player_name.min_length"   # chiavi di balance.json del limite del nome,
+const NAME_MAX_LENGTH_KEY: String = "player_name.max_length"   # lette anche da SlotTexts
 var session: GameSession = null
 var active_slot: int = -1
 var state: StringName = &"menu"          # &"menu", &"loading", &"offline", &"playing"
 var last_offline_summary: OfflineSummary = null
 func list_slots() -> Array[SlotInfo]
 func new_game(slot: int, player_name: String) -> CommandResult
-    # nome 1-24 caratteri dopo strip (invalid_name); crea sessione, new_game(), salva, avvia autosave, state playing
+    # nome dopo strip lungo player_name.min_length..max_length (invalid_name); crea sessione, new_game(), salva, avvia autosave, state playing
 func continue_game(slot: int) -> CommandResult
     # legge, from_save, rebuild_modifiers, poi offline (asincrono: state offline fino alla fine), poi salva e playing
 func save_now() -> CommandResult          # slot_not_selected se session == null
@@ -168,11 +170,13 @@ func delete_slot(slot: int) -> CommandResult  # slot_active se è lo slot della 
 
 Comportamenti di `Game` (M1-11):
 - `_ready`: mette in pausa `GameClock`; con dati validi chiama `GameClock.configure(tick_ms, max_catchup_ms)`,
-  `SaveService.configure(slots.count)` e legge `autosave_interval_ms` (tutto da `balance.json`). Dati non validi →
+  `SaveService.configure(slots.count)` e legge `autosave_interval_ms`, `player_name.min_length` e
+  `player_name.max_length` (tutto da `balance.json`). Dati non validi →
   `Log.error` e nessuna configurazione: ogni slot è fuori intervallo (`io_error`). Non esiste un motivo `data_invalid`:
   la UI controlla `DataRegistry.data.is_valid()` prima di offrire Nuova partita/Continua.
 - Clock in pausa in `menu`; si avvia all'ingresso in `playing` e torna in pausa in `end_session` (anche in `_exit_tree`).
-- Errori di avvio, nell'ordine: `new_game` → `invalid_name` (nome dopo `strip_edges` fuori da 1-24), poi entrambi →
+- Errori di avvio, nell'ordine: `new_game` → `invalid_name` (lunghezza del nome dopo `strip_edges` fuori da
+  `player_name.min_length`..`max_length`, oggi 1-24), poi entrambi →
   `slot_active` se una sessione è aperta (il chiamante chiude prima con `end_session`), `io_error` se lo slot è fuori da
   1..`slots.count`. `continue_game` → `SaveService.last_error` (`io_error` per slot vuoto, `corrupted`,
   `version_unsupported`) oppure l'errore di `from_save`. In ogni errore: nessuna sessione, `state = menu`, nulla scritto.
@@ -933,7 +937,7 @@ func setup(info: SlotInfo, mode: StringName) -> void   # dopo l'ingresso nell'al
 
 class_name SlotTexts extends RefCounted            # ui/screens/slot_select/slot_texts.gd, solo statiche e costanti
 const STATE_EMPTY / STATE_OK / STATE_CORRUPTED / STATE_UNSUPPORTED  # i valori di SlotInfo.state
-static func reason_text(reason: StringName) -> String   # invalid_name con Game.PLAYER_NAME_MIN/MAX_LENGTH
+static func reason_text(reason: StringName) -> String   # invalid_name con i limiti di balance.json (Game.NAME_*_KEY)
 static func state_text(state: StringName) -> String
 static func slot_title(info: SlotInfo) -> String        # "Slot 2" o "Slot 2  ·  Aria"
 static func slot_details(info: SlotInfo) -> String      # data, tempo di gioco, livello totale; o il testo dello stato

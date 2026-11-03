@@ -500,6 +500,21 @@ Regole per tutti i task:
 
 ## M2 · Maestria a nodi e raccolta completa
 
+### M2-00 · Limite del nome del giocatore in balance.json
+- **Ruolo** CORE · **Stima** S · **Parallelizzabile** sì · **Dipendenze** M1-20
+- **Ownership** `res://data/config/balance.json`, `res://core/autoload/game.gd`, `res://core/data/data_validator.gd`,
+  `res://ui/screens/slot_select/slot_texts.gd`, `slot_select.gd` (solo commento), `res://tests/data/test_config_files.gd`,
+  `res://tests/core/autoload/test_game.gd`, `test_game_no_save_before_slot.gd`,
+  `res://tests/core/data/test_data_validator.gd`, `res://tests/ui/test_slot_select_smoke.gd`
+- **Leggere** `01_GDD.md` §1; `DECISIONS_LOG.md` (riga M2-00); `05_INTERFACES.md` §2 (`Game`) e `SlotTexts`
+- **Descrizione** Le costanti `Game.PLAYER_NAME_MIN/MAX_LENGTH` diventano `player_name.min_length` (1) e
+  `player_name.max_length` (24) di `balance.json`; `Game` le legge in `_ready` (chiavi `Game.NAME_MIN_LENGTH_KEY` /
+  `NAME_MAX_LENGTH_KEY`), `SlotTexts` le legge con le stesse chiavi per il messaggio di `invalid_name`. Valori invariati.
+- **Accettazione** chiavi in `REQUIRED_BALANCE_KEYS`; il validatore rifiuta valori mancanti, non interi, < 1 o
+  min > max; nessun numero del limite nel codice.
+- **Test** `test_config_files.gd`, `test_game.gd` (nomi ai limiti e fuori), `test_game_no_save_before_slot.gd`,
+  `test_data_validator.gd` (chiavi mancanti, interi ≥ 1, min ≤ max), `test_slot_select_smoke.gd` (messaggio con i limiti dei dati).
+
 ### M2-01 · Nodi della maestria
 - **Ruolo** CORE · **Stima** M · **Parallelizzabile** sì (con M2-02) · **Dipendenze** M1-20
 - **Ownership** `res://systems/mastery/mastery_system.gd`, `res://tests/systems/mastery/test_mastery_nodes.gd`
@@ -562,6 +577,13 @@ Regole per tutti i task:
 - **Nota (da M1-19)** `tests/data/test_stat_registry_coverage.gd` tiene in `CLOSED_FORMULAS` le formule delle milestone
   chiuse che hanno stat. F-11…F-15 non hanno stat proprie in `stats.json`: nessuna modifica a quel file in M2 (se M2
   aggiunge una stat, la formula va in `CLOSED_FORMULAS` con il test dell'effetto e il file entra nell'Ownership).
+- **Nota (da M2-00)** Tutti i worktree condividono la stessa cartella `user://` (stesso `config/name`, nessuna
+  `use_custom_user_dir`): `user://test_saves` e le cartelle temporanee dei test (`test_game_data`, `test_json_loader`,
+  `test_action_runner`, `test_item_conservation`) si sovrascrivono se due suite girano in parallelo (24 fallimenti
+  transitori in M2-00, verdi alla ripetizione). Rendere le cartelle dei test uniche per checkout (es. un sottopercorso
+  derivato da `ProjectSettings.globalize_path("res://")`, deciso in `tests/helpers/gut_pre_run.gd` e usato dai test)
+  oppure, in alternativa, vietare in `CLAUDE.md` le suite in parallelo. Ownership estesa a `gut_pre_run.gd` e ai test
+  elencati; nessun codice di produzione.
 
 ### M2-06 · Integrazione di M2
 - **Ruolo** REV · **Stima** S · **Parallelizzabile** no · **Dipendenze** M2-01…M2-05

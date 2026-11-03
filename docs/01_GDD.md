@@ -20,7 +20,7 @@ artigianato · 6 Maestria · 7 Bank · 8 Oro e shop · 9 Equipaggiamento e attre
 - All'avvio si apre il **menu principale**: Nuova partita, Continua, Impostazioni, Esci. Fino alla scelta di uno slot
   non esiste una sessione e **nessun file viene scritto** (l'unico file scrivibile prima è `user://settings.cfg`).
 - Nuova partita: si sceglie uno slot (se è occupato serve una conferma di sovrascrittura), si dà un nome (1-24
-  caratteri, spazi ai bordi tolti); si crea la sessione con lo stato iniziale (sezione 1.1) e si salva subito.
+  caratteri, spazi ai bordi tolti; i limiti sono definiti in `balance.json`, `player_name`); si crea la sessione con lo stato iniziale (sezione 1.1) e si salva subito.
 - Continua: si sceglie uno slot esistente; il file viene letto, migrato alla versione corrente, caricato; poi parte la
   progressione offline (sezione 12).
 - Durante la sessione: salvataggio automatico ogni `autosave_interval_ms` (10 s), alla chiusura della finestra,
