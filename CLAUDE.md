@@ -63,7 +63,7 @@ powershell -File tools/run_checks.ps1
 ```bash
 "C:/Users/Davide/Desktop/GODOT/Godot_v4.5-stable_win64_console.exe" --headless --path . -s tools/validate_data.gd
 ```
-(`validate_data.gd` nasce in M1-04).
+(senza argomenti valida `res://data`; per le fixture: `... -s tools/validate_data.gd -- res://tests/fixtures/data`; `run_checks.ps1` li esegue entrambi).
 
 Alternativa manuale ai test, due passi:
 ```bash
@@ -77,4 +77,4 @@ Il **primo import di una checkout nuova può andare in crash sui font** (segfaul
 l'import è innocuo.
 
 ## Stato
-M0 (Setup) completata, tag `m0-done`. Prossima milestone: **M1**. Avanzamento dei task in `docs/STATUS.md`.
+M0 (Setup) completata, tag `m0-done`. M1 (Prima skill completa, Selvicoltura) completata, tag `m1-done`. Prossima milestone: **M2**. Avanzamento dei task in `docs/STATUS.md`.
