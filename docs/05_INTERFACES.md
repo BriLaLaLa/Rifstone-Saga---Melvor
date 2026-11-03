@@ -767,9 +767,19 @@ func price(entry_id: StringName) -> int               # F-17 per formula, altrim
 func can_buy(entry_id: StringName) -> CommandResult   # unknown_id, max_purchases, requirement_not_met, not_enough_gold, bank_full
 func buy(entry_id: StringName) -> CommandResult
 func sell_value(item_id: StringName, qty: int) -> int # F-18
-func sell(item_id: StringName, qty: int) -> CommandResult   # item_locked, not_sellable, not_enough_items, invalid_amount
+func sell(item_id: StringName, qty: int) -> CommandResult   # invalid_amount, unknown_id, item_locked, not_sellable, not_enough_items
 func rebuild_modifiers() -> void                      # sorgenti shop:<id> (F-19)
 ```
+Comportamento (M3-02):
+- `can_buy`/`buy`: controlli nell'ordine della firma; `max_purchases` 0 = illimitato; `bank_full` solo per effetti
+  `item` (`Bank.can_add`). Un errore non cambia nulla (oro non speso). Riuscito: oro speso, effetto applicato (oggetto
+  nella bank, oppure sorgente `shop:<id>` con valori × acquisti, F-19), poi `shop_purchased`.
+- `price` di una voce sconosciuta → 0. `sell_value` di un oggetto sconosciuto o con `qty <= 0` → 0.
+- `sell`: controlli nell'ordine della firma; riuscito: oggetti tolti, oro aggiunto, poi `item_sold`.
+- Save (§6): `{"purchases": {entry_id: n}}`, solo le voci comprate almeno una volta. `from_save` tollerante, con
+  `Log.warn`: `purchases` non oggetto → nessun acquisto; voce sconosciuta o conteggio non intero o ≤ 0 → scartato;
+  conteggio oltre `max_purchases` (se > 0) → limitato a `max_purchases`. Nessun segnale; i modificatori si ricostruiscono
+  con `rebuild_modifiers`.
 
 ### 5.12 RiftAltar (`systems/rift/rift_altar.gd`) — dipendenze: data, events, modifiers, bank, skills
 ```gdscript
