@@ -6,8 +6,9 @@ extends GutTest
 
 const FIXTURE_ROOT: String = "res://tests/fixtures/data"
 const CONFIG_ROOT: String = "res://data/config"
-const TMP_ROOT: String = "user://test_game_data"
+const PreRun := preload("res://tests/helpers/gut_pre_run.gd")
 
+var _tmp_root: String = PreRun.test_dir("test_game_data")
 var _data: GameData = null
 
 
@@ -16,7 +17,7 @@ func before_all() -> void:
 
 
 func after_all() -> void:
-	_remove_dir(TMP_ROOT)
+	_remove_dir(_tmp_root)
 
 
 func _ids(defs: Array) -> Array[StringName]:
@@ -223,9 +224,9 @@ func test_doc_in_a_level_map_is_skipped_by_the_defs() -> void:
 # --- helpers -----------------------------------------------------------------------------------------------------
 
 func _copy_fixtures() -> String:
-	_remove_dir(TMP_ROOT)
-	_copy_dir(FIXTURE_ROOT, TMP_ROOT)
-	return TMP_ROOT
+	_remove_dir(_tmp_root)
+	_copy_dir(FIXTURE_ROOT, _tmp_root)
+	return _tmp_root
 
 
 func _rewrite(path: String, from: String, to: String) -> void:

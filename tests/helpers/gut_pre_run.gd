@@ -1,19 +1,44 @@
 extends GutHookScript
-## GUT pre-run hook: isolates test saves from the player's real saves.
+## GUT pre-run hook: isolates test saves from the player's real saves, and each checkout's test folders from the
+## others.
 ##
-## If the SaveService autoload exists, its base_dir is redirected to TEST_SAVE_DIR and that folder is emptied,
-## so no test can ever read or overwrite a real slot. If the autoload does not exist yet, the hook does nothing.
+## Every worktree shares the same user:// folder (same config/name), so two suites running at the same time in two
+## checkouts would overwrite each other's files. Every folder a test writes under user:// is therefore below
+## checkout_root() = user://test_runs/<hash of the checkout's absolute res:// path>, through test_dir() and save_dir().
+## Tests reach these functions with `const PreRun := preload("res://tests/helpers/gut_pre_run.gd")`.
+##
+## If the SaveService autoload exists, its base_dir is redirected to save_dir() and that folder is emptied, so no test
+## can ever read or overwrite a real slot. If the autoload does not exist yet, the hook does nothing.
 
 const SAVE_SERVICE_NAME: StringName = &"SaveService"
-const TEST_SAVE_DIR: String = "user://test_saves"
+const TEST_RUNS_DIR: String = "user://test_runs"
+const SAVE_DIR_NAME: String = "test_saves"
+# Hex characters of the md5 kept in the folder name: enough to tell checkouts apart, short enough to read.
+const CHECKOUT_ID_LENGTH: int = 12
+
+
+## The folder of this checkout under user://, the same for every run of the same checkout.
+static func checkout_root() -> String:
+	var checkout_path: String = ProjectSettings.globalize_path("res://")
+	return TEST_RUNS_DIR.path_join(checkout_path.md5_text().substr(0, CHECKOUT_ID_LENGTH))
+
+
+## A scratch folder of this checkout for one test file (`name` = a plain folder name, e.g. "test_json_loader").
+static func test_dir(name: String) -> String:
+	return checkout_root().path_join(name)
+
+
+## The folder SaveService writes to during the tests.
+static func save_dir() -> String:
+	return test_dir(SAVE_DIR_NAME)
 
 
 func run() -> void:
 	var save_service: SaveStore = _find_save_service()
 	if save_service == null:
 		return
-	save_service.base_dir = TEST_SAVE_DIR
-	_reset_dir(TEST_SAVE_DIR)
+	save_service.base_dir = save_dir()
+	_reset_dir(save_dir())
 
 
 # Hook scripts are RefCounted, not nodes: the autoload is looked up from the running SceneTree.

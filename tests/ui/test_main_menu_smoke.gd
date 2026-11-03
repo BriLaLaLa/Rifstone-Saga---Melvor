@@ -2,12 +2,12 @@ extends GutTest
 ## Smoke test of the main menu (M1-13): buttons, data check, slot screen in both modes, no file written by opening
 ## and closing the menu, scene change only after an ok command.
 ##
-## The "no file" tests use the real Game autoload: SaveService points at user://test_saves (gut_pre_run.gd) and
+## The "no file" tests use the real Game autoload: SaveService points at PreRun.save_dir() (gut_pre_run.gd) and
 ## only list_slots and an invalid new_game (rejected before any write) are called. The others use a fake coordinator
 ## that is never added to the tree.
 
 const SCENE_PATH := "res://ui/screens/main_menu/main_menu.tscn"
-const TEST_DIR: String = "user://test_saves"
+const PreRun := preload("res://tests/helpers/gut_pre_run.gd")
 const MAIN_SCREEN_PATH := "res://ui/screens/main/main_screen.tscn"
 const BUTTONS: Dictionary[String, String] = {
 	"NewGameButton": "Nuova partita",
@@ -37,6 +37,7 @@ class FakeGame:
 		calls.append("end_session:%s" % save)
 
 
+var _test_dir: String = PreRun.save_dir()
 var _menu: Control
 var _fake: FakeGame = null
 var _scene_requests: Array[String] = []
@@ -189,9 +190,9 @@ func _dialog(parent: Node) -> ConfirmDialog:
 
 
 func _files() -> PackedStringArray:
-	if not DirAccess.dir_exists_absolute(TEST_DIR):
+	if not DirAccess.dir_exists_absolute(_test_dir):
 		return PackedStringArray()
-	var files: PackedStringArray = DirAccess.get_files_at(TEST_DIR)
-	for sub_dir: String in DirAccess.get_directories_at(TEST_DIR):
+	var files: PackedStringArray = DirAccess.get_files_at(_test_dir)
+	for sub_dir: String in DirAccess.get_directories_at(_test_dir):
 		files.append(sub_dir + "/")
 	return files

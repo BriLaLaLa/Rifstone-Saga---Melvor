@@ -2,28 +2,29 @@ extends GutTest
 ## Lesson "no save before a slot": until new_game no file appears in the saves folder, whatever the menu does.
 ##
 ## Uses a private instance of game.gd (never the Game autoload with real slots). SaveService points at
-## user://test_saves (gut_pre_run.gd); the folder is emptied before each test.
+## PreRun.save_dir() (gut_pre_run.gd); the folder is emptied before each test.
 
 const GameScript := preload("res://core/autoload/game.gd")
-const TEST_DIR: String = "user://test_saves"
+const PreRun := preload("res://tests/helpers/gut_pre_run.gd")
 const FRAME_S: float = 0.5
 
+var _test_dir: String = PreRun.save_dir()
 var _game: GameScript
 
 
 func before_each() -> void:
-	_clear_dir(TEST_DIR)
+	_clear_dir(_test_dir)
 	_game = GameScript.new()
 	add_child_autofree(_game)
 
 
 func after_each() -> void:
 	_game.end_session(false)
-	_clear_dir(TEST_DIR)
+	_clear_dir(_test_dir)
 
 
 func test_saves_point_at_test_folder() -> void:
-	assert_eq(SaveService.base_dir, TEST_DIR)
+	assert_eq(SaveService.base_dir, _test_dir)
 
 
 func test_menu_commands_write_nothing() -> void:
@@ -39,7 +40,7 @@ func test_menu_commands_write_nothing() -> void:
 	_game.end_session(true)
 	_game.notification(NOTIFICATION_WM_CLOSE_REQUEST)
 	assert_null(_game.session)
-	assert_eq(_files_in(TEST_DIR), [] as Array[String])
+	assert_eq(_files_in(_test_dir), [] as Array[String])
 
 
 func test_clock_running_in_menu_writes_nothing() -> void:
@@ -49,7 +50,7 @@ func test_clock_running_in_menu_writes_nothing() -> void:
 	for i: int in frames:
 		GameClock._process(FRAME_S)
 	GameClock.set_paused(true)
-	assert_eq(_files_in(TEST_DIR), [] as Array[String])
+	assert_eq(_files_in(_test_dir), [] as Array[String])
 
 
 func test_invalid_name_writes_nothing() -> void:
@@ -58,14 +59,14 @@ func test_invalid_name_writes_nothing() -> void:
 		var result: CommandResult = _game.new_game(1, player_name)
 		assert_eq(result.reason, Reasons.INVALID_NAME, "'%s'" % player_name)
 	assert_null(_game.session)
-	assert_eq(_files_in(TEST_DIR), [] as Array[String])
+	assert_eq(_files_in(_test_dir), [] as Array[String])
 
 
 func test_new_game_is_the_first_write() -> void:
-	assert_eq(_files_in(TEST_DIR), [] as Array[String])
+	assert_eq(_files_in(_test_dir), [] as Array[String])
 	var result: CommandResult = _game.new_game(1, "Davide")
 	assert_true(result.ok)
-	assert_eq(_files_in(TEST_DIR), ["slot_1.json"] as Array[String])
+	assert_eq(_files_in(_test_dir), ["slot_1.json"] as Array[String])
 
 
 func _slot_count() -> int:

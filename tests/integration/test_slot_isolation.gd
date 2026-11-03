@@ -2,12 +2,12 @@ extends GutTest
 ## Integration (Lesson "everything per slot"): slots A (1) and B (2) never influence each other.
 ##
 ## Uses a private instance of game.gd on the real data and the EventBus, never the Game autoload, like
-## tests/core/autoload/test_game.gd. SaveService.base_dir is user://test_saves (gut_pre_run.gd), emptied before and
+## tests/core/autoload/test_game.gd. SaveService.base_dir is PreRun.save_dir() (gut_pre_run.gd), emptied before and
 ## after each test; GameClock.time_source is fixed and restored. Game time comes from `session.advance` or from
 ## GameClock._process with exact binary fractions of a second. Every test ends with end_session(false), clock paused.
 
 const GameScript := preload("res://core/autoload/game.gd")
-const TEST_DIR: String = "user://test_saves"
+const PreRun := preload("res://tests/helpers/gut_pre_run.gd")
 const NOW_MS: int = 1793600000000
 const SLOT_A: int = 1
 const SLOT_B: int = 2
@@ -24,12 +24,13 @@ const B_EXTRA_GOLD: int = 7
 const FRAME_S: float = 0.5
 const FRAME_MS: int = 500
 
+var _test_dir: String = PreRun.save_dir()
 var _game: GameScript
 var _saved_time_source: Callable
 
 
 func before_each() -> void:
-	_clear_dir(TEST_DIR)
+	_clear_dir(_test_dir)
 	_saved_time_source = GameClock.time_source
 	GameClock.time_source = func() -> int: return NOW_MS
 	_game = GameScript.new()
@@ -40,11 +41,11 @@ func after_each() -> void:
 	_game.end_session(false)
 	GameClock.set_paused(true)
 	GameClock.time_source = _saved_time_source
-	_clear_dir(TEST_DIR)
+	_clear_dir(_test_dir)
 
 
 func test_slots_live_in_the_test_folder() -> void:
-	assert_true(SaveService.slot_path(SLOT_A).begins_with(TEST_DIR), "never a real slot")
+	assert_true(SaveService.slot_path(SLOT_A).begins_with(_test_dir), "never a real slot")
 
 
 func test_new_game_in_b_after_a_starts_from_scratch() -> void:
