@@ -679,6 +679,14 @@ Regole per tutti i task:
 - **Leggere** `01_GDD.md` §8; `05_INTERFACES.md` §5.11
 - **Descrizione** Voci per categoria con prezzo, acquisti, requisiti mancanti; vendita con cursore, "tutti tranne 1", "tutti".
 - **Accettazione / Test** smoke; il pulsante Compra è disabilitato quando `can_buy` fallisce e mostra il motivo.
+- **Nota (da M2-04)** Il `BankItemPanel` non manda comandi: emette segnali (oggi `lock_requested`, `close_requested`) e
+  `BankPage` chiama il modello e mostra il motivo con `REFUSED_TEXTS`. La sezione vendita aggiunge un segnale (da
+  dichiarare in `05_INTERFACES.md` §7) e nodi in `bank_item_panel.tscn`; collegamento in `bank_page.gd` (`_ready` e un
+  handler) e testi dei motivi nuovi in `REFUSED_TEXTS`: ownership estesa a `bank_item_panel.tscn` e `bank_page.gd`
+  (solo questi punti). `tests/ui/test_bank_page_smoke.gd` ha 396 righe: i casi del pannello vanno in un file nuovo
+  `tests/ui/test_bank_item_panel_smoke.gd` (ownership estesa). Un oggetto bloccato non si vende (`01_GDD.md` §7).
+  Oggi il pulsante Blocca deduce il valore da inviare dal proprio testo: se la sezione cambia il pannello, leggere
+  `bank.is_locked` dall'ultimo `show_item`.
 
 ### M3-07 · Pagina equipaggiamento
 - **Ruolo** UI · **Stima** M · **Parallelizzabile** sì · **Dipendenze** M3-03, M2-04
@@ -687,6 +695,10 @@ Regole per tutti i task:
 - **Leggere** `01_GDD.md` §9; `05_INTERFACES.md` §5.2 (`breakdown`), §5.9
 - **Descrizione** Slot (anche attrezzi), cibo, stance, riepilogo delle stat con il dettaglio delle sorgenti (`breakdown`).
   Ownership condivisa di `bank_item_panel.gd` con M3-06: sezioni diverse; il secondo a chiudere fa rebase.
+- **Nota (da M2-04)** Come per M3-06: pulsanti del pannello → segnali nuovi (in `05_INTERFACES.md` §7), comandi (`equip`,
+  scelta del cibo) mandati da `BankPage`; ownership estesa a `bank_item_panel.tscn`, `bank_page.gd` (solo collegamento e
+  testi dei motivi) e `tests/ui/test_bank_item_panel_smoke.gd` (condivisi con M3-06, il secondo fa rebase).
+  `bank_item_panel.gd` 95 righe, `bank_page.gd` 280: ricontare il limite di 400.
 - **Accettazione / Test** smoke; nessuna stat mostrata che non sia nel registro.
 
 ### M3-08 · Test di M3

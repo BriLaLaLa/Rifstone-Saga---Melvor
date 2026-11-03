@@ -907,11 +907,22 @@ func set_progress(progress: float) -> void        # 0..1 letto da actions.get_pr
 func action_id() -> StringName                    # &"" prima di setup
 static func seconds_text(ms: int) -> String       # = NumberFormat.format_seconds(ms): 3000 -> "3,0 s", 2700 -> "2,7 s"
 
-class_name BankPage extends Page                 # ui/pages/bank/bank_page.gd (+ .tscn), rotta bank; nessuna API oltre Page
+class_name BankPage extends Page                 # ui/pages/bank/bank_page.gd (+ .tscn), rotta bank
+const REFUSED_TEXTS: Dictionary[StringName, String]   # motivo di un comando della bank -> testo; altri: REFUSED_TEXT_DEFAULT
+const REFUSED_TEXT_DEFAULT: String
+const NO_MATCH_TEXT: String                      # griglia vuota per la ricerca (con la bank non vuota)
+
+class_name BankItemPanel extends PanelContainer  # ui/pages/bank/bank_item_panel.gd (+ .tscn), interno a BankPage
+signal lock_requested(item_id: StringName, locked: bool)   # la pagina manda bank.set_locked
+signal close_requested
+func show_item(session: GameSession, item_id: StringName) -> bool   # rilegge tutto; false (e clear) se assente o sconosciuto
+func clear() -> void                             # nasconde e dimentica l'oggetto
+func item_id() -> StringName                     # &"" se chiuso
 
 class_name ItemSlotView extends PanelContainer  # ui/components/item_slot/item_slot.gd (+ .tscn)
 signal pressed(item_id: StringName)
-func set_item(item: ItemDef, count: int, locked: bool = false) -> void   # count 0 = quantità non mostrata
+func set_item(item: ItemDef, count: int, locked: bool = false) -> void   # count 0 = quantità non mostrata; altrimenti
+                                                # NumberFormat.format_compact, etichetta tagliata (il tooltip ha il numero intero)
 func clear() -> void
 func item_id() -> StringName                    # &"" se vuota
 static func icon_of(path: String) -> Texture2D  # icona dei dati; file assente: Log.warn e UiStyle.MISSING_ICON
@@ -987,6 +998,9 @@ class_name NumberFormat extends RefCounted         # ui/theme/number_format.gd, 
 static func format_int(value: int) -> String                       # "1.250"
 static func format_number(value: float) -> String                  # "1.250,5" (al massimo due decimali)
 static func format_seconds(ms: int) -> String                      # "3,0 s", "2,7 s", "0,25 s": da uno a due decimali
+static func format_compact(value: int) -> String                   # < COMPACT_FROM (10000) come format_int; poi tre cifre
+                                                # significative troncate e suffisso K, M, Mld, Bln, Bld, Trl:
+                                                # 12345 -> "12,3K", 999999 -> "999K", 1200000 -> "1,2M"; per celle strette
 
 class_name GameWindow extends PanelContainer       # ui/components/game_window/game_window.gd; figlio "VBox" con la pagina
 signal opened
@@ -1041,7 +1055,17 @@ riusate per indice, quelle in più liberate; nessuna casella vuota disegnata), i
 da `bank.used()`/`bank.capacity()`, la riga di bank piena (`used >= capacity`) e "La bank è vuota.". Si collega a
 `bank_changed` e `bank_capacity_changed` di `session.events` e a ognuno rilegge tutto (nessuna copia delle quantità oltre
 quella di presentazione di `ItemSlotView`); scollega in `unbind` e in `_exit_tree`. Solo vista: blocco, ordine,
-spostamento e vendita arrivano con M2-04/M3-06. I secondi mostrati dalla UI passano tutti da `NumberFormat.format_seconds`.
+spostamento e vendita arrivano con M2-04/M3-06.
+Bank completa (M2-04): ricerca per nome (sottostringa senza distinzione di maiuscole, ordine della bank conservato;
+nessun risultato: `NO_MATCH_TEXT`), "Ordina" = `bank.sort_stacks()`, click su una casella (`ItemSlotView.pressed`) apre
+il `BankItemPanel` accanto alla griglia, che si rilegge a ogni ridisegno e si chiude quando l'oggetto lascia la bank.
+Trascinamento con `set_drag_forwarding` (dati `{"kind": &"bank_stack", "item": id}`): rilascio su una casella →
+`move_stack` all'indice di quella casella nella bank (anche con la ricerca attiva); rilascio sulla griglia fuori dalle
+caselle (spaziature comprese) → ultimo indice. Un comando rifiutato non cambia nulla e mostra `REFUSED_TEXTS` sopra la
+griglia; la griglia cambia solo attraverso gli eventi della bank. Stato di presentazione ammesso: testo della ricerca,
+oggetto del pannello, casella sotto il mouse (il suo tooltip si rilegge dopo ogni ridisegno e si chiude se la casella
+sparisce). Costanti di presentazione: `UiStyle.BANK_*` (margine, separazioni, `BANK_CELL_SIZE`, pannello, ricerca).
+Vendita, equipaggia e cibo nel pannello: M3-06/M3-07, con segnali nuovi del pannello e comandi mandati dalla pagina. I secondi mostrati dalla UI passano tutti da `NumberFormat.format_seconds`.
 
 ## 8. Helper dei test (`res://tests/helpers/`)
 
