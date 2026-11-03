@@ -1,3 +1,5 @@
+> STORICO: sostituito dai documenti canonici da R-00 (bb86e45). Non leggerlo nei task.
+
 # Visione v2: combattimento al centro (Melvor + Metin2 + Path of Exile)
 
 Stato: **APPROVATA dall'utente** (decisioni D1-D6). Sostituisce la direzione di `00_VISION.md` da M4 in poi.

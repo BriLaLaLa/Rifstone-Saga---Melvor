@@ -67,6 +67,7 @@ I documenti sono già scritti con questi default (R-00).
 | Q38 | Dimensione dei gruppi | 1-6, più grandi nelle aree alte | §8.5, `combat.max_pack_size` |
 | Q39 | Doppia spada: moltiplicatore dell'intervallo e penalità di precisione | `combat.dual_wield.interval_mult` 0,75, precisione −10% (modificatore dell'assetto), da rivedere con `tools/sim_combat.gd` | F-73, `04_DATA_SCHEMA.md` §14 |
 | Q40 | Parata con lo scudo: cosa blocca? | Tutto il danno di un colpo; `block_chance` dello scudo 5-15% per grado, massimo 50% | F-75 |
+| Q41 | XP dei mostri | Da tarare con `tools/sim_combat.gd` a fine M5; default 4 × PV (provvisorio, probabilmente troppo alto) | F-28, `02_FORMULAS.md` §8.5, M5-06 |
 
 ## Chiuse
 

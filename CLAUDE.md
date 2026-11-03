@@ -25,7 +25,7 @@ va nel brief di ogni task di porting.
 - [03_ARCHITECTURE.md](docs/03_ARCHITECTURE.md): cartelle, autoload, classi, tick, save, offline, modificatori, Lezioni, porting
 - [04_DATA_SCHEMA.md](docs/04_DATA_SCHEMA.md): schema di ogni JSON in `data/`
 - [05_INTERFACES.md](docs/05_INTERFACES.md): **contratto** tra moduli (firme, segnali, formato del save). Lo cambia solo il Reviewer
-- [06_ROADMAP.md](docs/06_ROADMAP.md): milestone M0-M8
+- [06_ROADMAP.md](docs/06_ROADMAP.md): milestone M0-M12 (MVP M0-M9)
 - [07_TASKS.md](docs/07_TASKS.md): backlog con ownership, accettazione, test
 - [08_TEAM.md](docs/08_TEAM.md): ruoli, regole, Definition of Done, formato del report
 - [09_CONVENTIONS.md](docs/09_CONVENTIONS.md): stile, nomi, test, commit

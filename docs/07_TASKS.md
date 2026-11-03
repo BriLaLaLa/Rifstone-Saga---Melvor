@@ -1014,7 +1014,7 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 | M5-03 | Motore a eventi, incontri e gruppi | COMBAT (L) | M5-02 | `systems/combat/combat_engine.gd` (oltre 400 righe: `encounter.gd` nella stessa cartella), `tests/systems/combat/test_combat_engine.gd`, `core/session/game_session.gd`, `session_snapshot.gd` (`kills`, `deaths`, `food_eaten`), `event_bus.gd` e `test_event_bus.gd` (segnali di combattimento di §3), note ereditate N1-N2 |
 | M5-04 | Contenuto: 4 aree, 12 mostri, gruppi | DATA | M4-11 | `data/combat/areas.json`, `monsters.json`, `data/items/materials.json` (drop), `assets/icons/monsters/**`, `tests/data/test_combat_data.gd` (nuovo) |
 | M5-05 | Pagina del combattimento | UI (L) | M5-03 | `ui/pages/combat/**`, `ui/screens/main/page_host.gd` (rotta `combat`), `sidebar.gd` (voce Combattimento), `ui/pages/character/**` (valori F-70), `tests/ui/test_combat_page_smoke.gd` |
-| M5-06 | Strumento di bilanciamento `tools/sim_combat.gd` | COMBAT (S) | M5-03, M5-04 | `tools/sim_combat.gd`, `tests/tools/test_sim_combat.gd`; criteri di `02_FORMULAS.md` §8.5 misurati nel report |
+| M5-06 | Strumento di bilanciamento `tools/sim_combat.gd` | COMBAT (S) | M5-03, M5-04 | `tools/sim_combat.gd`, `tests/tools/test_sim_combat.gd`; criteri di `02_FORMULAS.md` §8.5 misurati nel report; tarare l'XP dei mostri (Q41, default 4 × PV) |
 | M5-07 | Test di M5 (F-34, equivalenza, flusso con morte e parata) | QA | M5-01…M5-06 | `tests/integration/test_reference_encounter.gd`, `test_combat_flow.gd`, `tests/data/test_stat_registry_coverage.gd` (`CLOSED_FORMULAS` di combattimento e `"10.6"`) |
 | M5-08 | Integrazione di M5 | REV | M5-01…M5-07 | merge, tag `m5-done` |
 

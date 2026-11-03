@@ -16,7 +16,8 @@ Se la sessione si interrompe, si riparte da qui.
   mirati, suite completa solo dopo il merge, review sul diff, sezioni nei brief).
 - **Da aggiornare fuori da `docs/`** (non nell'ownership di R-00): `.claude/agents/reviewer.md` cita M6-08 per il rilascio
   (ora M9-08); eventuali altri file agente che citano le vecchie M4-M8.
-- **Decisioni aperte per l'utente**: Q26 (nodi di Cavatura e Lenza); Q27-Q40 (valgono i default).
+- **Decisioni aperte per l'utente**: Q26 (nodi di Cavatura e Lenza); Q27-Q40 (valgono i default); Q41 (XP dei mostri, da tarare in M5-06).
+  Confermati come provvisori: affissi (`02_FORMULAS.md` §8.9), F-83, F-86; approvate le scelte di R-00 in DECISIONS_LOG.
 - **Decisioni prese in M3** (DECISIONS_LOG): `test_crafting_data.gd` nuovo file dei dati; impugnature `*_grip` restano;
   `bank.max_purchasable` tolta (unica definizione = `max_purchases` di `bank_slot`, M3-10); `from_save` con due mani e
   offhand scarta l'offhand (05 §5.9, M3-11).

@@ -32,7 +32,7 @@ Leggi `CLAUDE.md`, `docs/08_TEAM.md` §4-6, `docs/09_CONVENTIONS.md` §9 (checkl
 ## Task REV
 - **M0-01**: chiedi all'utente conferma prima di eliminare `rifstone-saga---melvor/`; poi crea `project.godot`, cartelle e git.
 - **Fine milestone**: checklist del "Giocabile" di `docs/06_ROADMAP.md`, tag `m<N>`, report di milestone.
-- **M6-08**: preset di esportazione, eseguibile di prova, checklist delle Lezioni spuntata.
+- **M9-08**: preset di esportazione, eseguibile di prova, checklist delle Lezioni spuntata.
 
 ## Cosa NON fai
 - Non scrivi codice di produzione (solo correzioni minime di merge, dichiarate nel messaggio).

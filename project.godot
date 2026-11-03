@@ -12,9 +12,9 @@ config_version=5
 
 config/name="RiftStone Saga: Idle"
 config/version="0.1.0"
+run/main_scene="res://ui/screens/main_menu/main_menu.tscn"
 config/features=PackedStringArray("4.5", "GL Compatibility")
 config/icon="res://icon.svg"
-run/main_scene="res://ui/screens/main_menu/main_menu.tscn"
 
 [autoload]
 
@@ -29,7 +29,6 @@ Tooltips="*res://ui/components/tooltip/tooltip_manager.gd"
 [debug]
 
 gdscript/warnings/untyped_declaration=2
-gdscript/warnings/inferred_declaration=0
 gdscript/warnings/unsafe_property_access=1
 gdscript/warnings/unsafe_method_access=1
 gdscript/warnings/unsafe_cast=1
