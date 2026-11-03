@@ -286,14 +286,10 @@ func test_save_with_two_handed_weapon_and_offhand_keeps_the_invariants() -> void
 	slots["offhand"] = String(SHIELD)
 	var loaded: GameSession = TestFactory.session(SEED, _session.data)
 	assert_true(loaded.from_save(saved).ok, "the edited save loads")
-	var both: bool = loaded.equipment.get_item(&"weapon") == BOW and loaded.equipment.get_item(&"offhand") == SHIELD
+	assert_eq(loaded.equipment.get_item(&"weapon"), BOW, "the two-handed weapon is kept")
+	assert_eq(loaded.equipment.get_item(&"offhand"), &"", "the offhand is dropped")
+	assert_eq(loaded.bank.get_count(SHIELD), _session.bank.get_count(SHIELD), "the bank is untouched")
 	loaded.free()
-	if both:
-		pending("bug: from_save loads a two-handed weapon and an offhand together (05 5.9 only checks slot and "
-				+ "item type; GDD 9: a two-handed weapon needs a free offhand). Proposal: drop the offhand when the "
-				+ "weapon is two-handed, with Log.warn.")
-		return
-	assert_true(true)
 
 
 func _assert_once(ids: Array[StringName]) -> void:

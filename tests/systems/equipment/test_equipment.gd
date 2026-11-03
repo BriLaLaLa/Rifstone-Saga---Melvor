@@ -352,6 +352,15 @@ func test_from_save_skips_invalid_entries() -> void:
 	assert_eq(_session.equipment.get_stance(), &"offensive")
 
 
+func test_from_save_two_handed_weapon_with_shield_drops_the_offhand() -> void:
+	watch_signals(_session.events)
+	_session.equipment.from_save({"slots": {"offhand": "test_shield", "weapon": "test_greatsword"}})
+	assert_eq(_session.equipment.get_item(&"weapon"), GREAT)
+	assert_eq(_session.equipment.get_item(&"offhand"), &"")
+	assert_signal_not_emitted(_session.events, "equipment_changed")
+
+
+
 func test_new_game_resets() -> void:
 	TestFactory.give(_session, HELM, 1)
 	_session.equipment.equip(HELM)

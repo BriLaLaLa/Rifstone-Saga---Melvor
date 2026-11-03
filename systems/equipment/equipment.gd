@@ -180,6 +180,9 @@ func from_save(d: Dictionary) -> void:
 			_load_slot(StringName(str(key)), (slots as Dictionary)[key])
 	else:
 		Log.warn(LOG_CATEGORY, "invalid slots in save: loaded as empty")
+	if _worn_weapon_is_two_handed() and get_item(OFFHAND) != &"":
+		Log.warn(LOG_CATEGORY, "two-handed weapon with offhand '%s' in save: offhand dropped" % get_item(OFFHAND))
+		_worn.erase(OFFHAND)
 	var food: Variant = d.get(SAVE_FOOD_KEY, "")
 	if food is String and (food == "" or _is_food(StringName(food))):
 		_food = StringName(food)
