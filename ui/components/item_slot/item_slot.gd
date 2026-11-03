@@ -1,6 +1,7 @@
 class_name ItemSlotView
 extends PanelContainer
-## One item cell (docs/05_INTERFACES.md §7): icon, quantity at the bottom right, lock marker, tooltip on hover.
+## One item cell (docs/05_INTERFACES.md §7): icon, quantity at the bottom right (NumberFormat.format_compact, clipped
+## so that long numbers never widen the cell; the tooltip shows the full value), lock marker, tooltip on hover.
 ##
 ## The owner (bank grid, action card, shop...) calls `set_item` with what it has just read from the session or the
 ## data; the cell draws it and keeps only the item definition and the quantity it was given, for its tooltip. It never
@@ -32,7 +33,7 @@ func set_item(item: ItemDef, count: int, locked: bool = false) -> void:
 	_item = item
 	_shown_count = count
 	_icon().texture = icon_of(item.icon)
-	_count_label().text = NumberFormat.format_int(count) if count > 0 else ""
+	_count_label().text = NumberFormat.format_compact(count) if count > 0 else ""
 	_lock_marker().visible = locked
 	_lock_marker().tooltip_text = LOCKED_TEXT if locked else ""
 
