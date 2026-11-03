@@ -213,10 +213,12 @@ func test_real_data_forestry_page() -> void:
 
 
 func test_seconds_text() -> void:
+	# Single definition: the card uses NumberFormat.format_seconds.
+	for ms: int in [3000, 2700, 250, 12500]:
+		assert_eq(ActionCard.seconds_text(ms), NumberFormat.format_seconds(ms))
 	assert_eq(ActionCard.seconds_text(3000), "3,0 s")
-	assert_eq(ActionCard.seconds_text(2700), "2,7 s")
-	assert_eq(ActionCard.seconds_text(250), "0,25 s")
-	assert_eq(ActionCard.seconds_text(12500), "12,5 s")
+	var card_constants: Dictionary = (load("res://ui/pages/skill/action_card.gd") as Script).get_script_constant_map()
+	assert_false(card_constants.has("DECIMAL_SEPARATOR"), "the separator lives only in NumberFormat")
 
 
 func test_action_progress_bar_is_continuous_and_clamped() -> void:

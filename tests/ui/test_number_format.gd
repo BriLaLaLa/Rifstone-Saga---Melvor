@@ -24,3 +24,12 @@ func test_single_definition() -> void:
 	assert_false(lines.has_method(&"format_int"), "format_int lives only in NumberFormat")
 	assert_false(lines.has_method(&"format_number"), "format_number lives only in NumberFormat")
 	assert_eq(ItemTooltipLines.format_stat("flat", 1500.0), "+1.500", "tooltips use NumberFormat")
+
+
+func test_format_seconds_has_at_least_one_decimal() -> void:
+	assert_eq(NumberFormat.format_seconds(3000), "3,0 s")
+	assert_eq(NumberFormat.format_seconds(2700), "2,7 s")
+	assert_eq(NumberFormat.format_seconds(250), "0,25 s")
+	assert_eq(NumberFormat.format_seconds(12500), "12,5 s")
+	assert_eq(NumberFormat.format_seconds(0), "0,0 s")
+	assert_eq(NumberFormat.format_seconds(3_600_000), "3.600,0 s")
