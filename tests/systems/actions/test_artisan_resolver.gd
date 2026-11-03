@@ -14,6 +14,8 @@ const PLANK_ITEM: StringName = &"test_plank"
 const PRESERVATION: StringName = &"preservation_chance"
 const DOUBLE: StringName = &"double_item_chance"
 const CYCLES: int = 10000
+const BLADE: StringName = &"test_blade"
+const RARITY: StringName = &"item_rarity_pct"
 
 var _tmp_config: String = PreRun.test_dir("test_artisan_resolver").path_join("config")
 var _small_data: GameData = null
@@ -173,6 +175,117 @@ func test_freed_slot_takes_the_product() -> void:
 	assert_true(outcome.ok)
 	assert_eq(session.bank.get_count(LOG_ITEM), 0)
 	assert_eq(session.bank.get_count(PLANK_ITEM), 1)
+
+
+## Equipment/tool products become Armory instances; the recipe level is their ilvl; nothing goes to the bank.
+func test_piece_product_becomes_an_instance() -> void:
+	TestFactory.give(_session, LOG_ITEM, 1)
+	var outcome: ActionOutcome = ArtisanResolver.resolve(_session, _piece_action())
+	assert_true(outcome.ok)
+	assert_eq(outcome.outputs, {BLADE: 1})
+	assert_eq(_session.bank.get_count(BLADE), 0)
+	var all: Array[ItemInstance] = _session.armory.instances()
+	assert_eq(all.size(), 1)
+	assert_eq(all[0].base_id, BLADE)
+	assert_eq(all[0].ilvl, 7)
+
+
+## F-06: a doubled piece product gives two separate instances.
+func test_double_product_gives_two_instances() -> void:
+	_set_mods([Modifier.make(DOUBLE, 100.0)])
+	TestFactory.give(_session, LOG_ITEM, 1)
+	assert_true(ArtisanResolver.resolve(_session, _piece_action()).ok)
+	assert_eq(_session.armory.instances().size(), 2)
+	assert_ne(_session.armory.instances()[0].uid, _session.armory.instances()[1].uid)
+
+
+## No Armory room: cycle not counted, nothing consumed, no xp, `armory_full`.
+func test_armory_full_consumes_nothing() -> void:
+	_fill_armory(_session)
+	TestFactory.give(_session, LOG_ITEM, 1)
+	var logs: int = _session.bank.get_count(LOG_ITEM)
+	var held: int = _session.armory.instances().size()
+	var outcome: ActionOutcome = ArtisanResolver.resolve(_session, _piece_action())
+	assert_false(outcome.ok)
+	assert_eq(outcome.reason, Reasons.ARMORY_FULL)
+	assert_eq(_session.bank.get_count(LOG_ITEM), logs)
+	assert_eq(_session.armory.instances().size(), held)
+	assert_eq(_session.skills.get_xp(SKILL), 0)
+
+
+## A doubled product needs room for both instances.
+func test_double_needs_room_for_both() -> void:
+	_set_mods([Modifier.make(DOUBLE, 100.0)])
+	_fill_armory(_session)
+	var uid: int = _session.armory.instances()[0].uid
+	assert_true(_session.armory.remove(uid).ok)
+	TestFactory.give(_session, LOG_ITEM, 1)
+	var outcome: ActionOutcome = ArtisanResolver.resolve(_session, _piece_action())
+	assert_eq(outcome.reason, Reasons.ARMORY_FULL)
+	assert_eq(_session.bank.get_count(LOG_ITEM), 1)
+
+
+## F-83: item_rarity_pct multiplies the chances, so more pieces come out rare (fixed seed, 200 cycles each).
+func test_item_rarity_pct_gives_more_rare_pieces() -> void:
+	var plain: int = _count_rare(0.0)
+	_session.free()
+	_session = autofree(TestFactory.session())
+	var boosted: int = _count_rare(1000.0)
+	assert_gt(boosted, plain)
+
+
+func _count_rare(rarity_pct: float) -> int:
+	_set_mods([Modifier.make(RARITY, rarity_pct)])
+	var rare: int = 0
+	for i: int in 200:
+		TestFactory.give(_session, LOG_ITEM, 1)
+		assert_true(ArtisanResolver.resolve(_session, _piece_action()).ok)
+		var inst: ItemInstance = _session.armory.instances()[0]
+		rare += 1 if inst.rarity == &"rare" else 0
+		assert_true(_session.armory.remove(inst.uid).ok)
+	return rare
+
+
+
+## 05_INTERFACES 5.8: rolls in the order preservation, double, then rarity and affixes of each instance.
+func test_roll_order_with_a_fixed_seed() -> void:
+	var replica: RngService = RngService.new(1234)
+	var chances: Vector2 = ItemRoller.craft_chances(0, 0.0, _session.data)
+	for i: int in 30:
+		replica.roll_pct(0.0)
+		replica.roll_pct(0.0)
+		var rarity: StringName = ItemRoller.roll_rarity(chances, replica)
+		var expected: ItemInstance = ItemRoller.create(_session.data.item(BLADE), rarity, 7, _session.data, replica)
+		TestFactory.give(_session, LOG_ITEM, 1)
+		assert_true(ArtisanResolver.resolve(_session, _piece_action()).ok)
+		var got: ItemInstance = _session.armory.instances()[i]
+		assert_eq(got.rarity, expected.rarity)
+		assert_eq(got.affixes.size(), expected.affixes.size())
+
+
+func _piece_action(qty: int = 1) -> ActionDef:
+	var action := ActionDef.new()
+	action.id = &"craft_blade"
+	action.skill_id = SKILL
+	action.level = 7
+	action.interval_ms = 2000
+	action.xp = 8
+	action.mastery = true
+	action.inputs = [_qty(LOG_ITEM, 1)]
+	action.outputs = [_qty(BLADE, qty)]
+	return action
+
+
+func _qty(item_id: StringName, qty: int) -> ItemQty:
+	var entry := ItemQty.new()
+	entry.item_id = item_id
+	entry.qty = qty
+	return entry
+
+
+func _fill_armory(session: GameSession) -> void:
+	while session.armory.can_add(1):
+		TestFactory.give_piece(session, BLADE)
 
 
 func _action() -> ActionDef:
