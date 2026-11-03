@@ -33,3 +33,31 @@ func test_format_seconds_has_at_least_one_decimal() -> void:
 	assert_eq(NumberFormat.format_seconds(12500), "12,5 s")
 	assert_eq(NumberFormat.format_seconds(0), "0,0 s")
 	assert_eq(NumberFormat.format_seconds(3_600_000), "3.600,0 s")
+
+
+func test_format_compact_keeps_small_values_full() -> void:
+	assert_eq(NumberFormat.format_compact(0), "0")
+	assert_eq(NumberFormat.format_compact(1250), "1.250")
+	assert_eq(NumberFormat.format_compact(9999), "9.999", "last value below COMPACT_FROM")
+
+
+func test_format_compact_three_significant_digits() -> void:
+	assert_eq(NumberFormat.format_compact(10000), "10K")
+	assert_eq(NumberFormat.format_compact(12345), "12,3K")
+	assert_eq(NumberFormat.format_compact(123456), "123K")
+	assert_eq(NumberFormat.format_compact(999999), "999K", "truncated, never rounded up to 1000K")
+	assert_eq(NumberFormat.format_compact(1000000), "1M")
+	assert_eq(NumberFormat.format_compact(1050000), "1,05M")
+	assert_eq(NumberFormat.format_compact(1234567), "1,23M")
+	assert_eq(NumberFormat.format_compact(1200000), "1,2M", "no trailing zeros")
+	assert_eq(NumberFormat.format_compact(2500000000), "2,5Mld")
+	assert_eq(NumberFormat.format_compact(-12345), "-12,3K")
+
+
+func test_format_compact_largest_int() -> void:
+	assert_eq(NumberFormat.format_compact(9223372036854775807), "9,22Trl", "int64 max has a suffix")
+
+
+func test_format_compact_is_short() -> void:
+	for value: int in [9999, 10000, 99999, 100000, 999999, 9999999, 99999999, 999999999]:
+		assert_true(NumberFormat.format_compact(value).length() <= 5, "%d fits a cell" % value)
