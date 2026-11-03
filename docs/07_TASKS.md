@@ -412,6 +412,11 @@ Regole per tutti i task:
   segnali collegati dalla `SkillPage` vera (il test deve continuare a provare che cambiare pagina torna alla base).
   (3) `ui_style.gd` è a 368 righe dopo M1-14: le costanti `MENU_*`/`SLOT_*`/`DIALOG_*` ci stanno, ma ricontare prima
   del merge (limite 400).
+- **Nota (review M1-15)** Fatto. Contratti in `05_INTERFACES.md` §7 (`SkillPage`, `ActionCard`, estensioni di
+  `ItemSlotView` e `XpBar`, costanti `UiStyle.MENU_*`/`SLOT_*`/`DIALOG_*`). Accettati: la quantità tenuta da
+  `ItemSlotView` solo per il proprio tooltip (copia di presentazione, documentata in §7); l'indicatore "bloccato" come
+  quadratino d'oro (`LockMarker`) finché non c'è un'icona a lucchetto. Restano nei `.tscn` le altezze 40 dei pulsanti di
+  `slot_row.tscn` e le larghezze fisse non elencate nel follow-up (accettato). Follow-up `format_seconds` su M1-18.
 
 ### M1-16 · Tooltip e GameWindow portati
 - **Ruolo** PORT · **Stima** M · **Parallelizzabile** sì · **Dipendenze** M1-04, M0-04
@@ -450,6 +455,15 @@ Regole per tutti i task:
   (da eliminare, con i `.uid`, quando nessuna rotta la usa più, cioè dopo M1-15) e a `tests/ui/test_main_screen_smoke.gd`
   (conteggi di `test_changing_page_disconnects_the_old_page`). `BankPage` estende `Page`, si collega a `session.events`
   in `bind` e scollega tutto in `unbind`.
+- **Nota (da M1-15)** (1) Con la rotta `bank` su `bank_page.tscn` nessuna rotta usa più il segnaposto: eliminare
+  `placeholder_page.gd/.tscn` (con i `.uid`) e `PLACEHOLDER_SCENE`; in `test_changing_page_disconnects_the_old_page` la
+  SkillPage collega 6 segnali (già contati), il conteggio di `bank_capacity_changed` va adattato ai segnali della
+  `BankPage`. (2) Le caselle sono `ItemSlotView` (`set_item`/`clear`/`item_id`, tooltip già incluso): su `bank_changed`
+  rileggere `stacks()` e richiamare `set_item` (la quantità del tooltip è quella dell'ultimo `set_item`). (3) Follow-up
+  (ownership estesa a `res://ui/theme/number_format.gd`, `res://tests/ui/test_number_format.gd` e alla sola
+  `ActionCard.seconds_text` con la costante `DECIMAL_SEPARATOR` in `res://ui/pages/skill/action_card.gd`):
+  `NumberFormat.format_seconds(ms: int) -> String` ("3,0 s", "2,7 s", sempre almeno un decimale) diventa l'unica
+  definizione; `ActionCard.seconds_text` la chiama (o sparisce, aggiornando `05_INTERFACES.md` §7 e `test_seconds_text`).
 
 ### M1-19 · Test di integrazione di M1
 - **Ruolo** QA · **Stima** M · **Parallelizzabile** no · **Dipendenze** M1-10, M1-11, M1-12
@@ -611,6 +625,10 @@ Regole per tutti i task:
 - **Descrizione** Carta ricetta con ingredienti (posseduti/richiesti, evidenziati se mancano) e prodotti; probabilità di
   conservazione e di doppio prodotto lette da `modifiers.total`.
 - **Accettazione / Test** smoke con la fixture `test_craft`.
+- **Nota (da M1-15)** Oggi la `SkillPage` crea una `ActionCard` anche per le ricette e il runner rifiuta lo `start`
+  con `unknown_id` (testo "Questa azione non è ancora disponibile."): `test_artisan_skill_refuses_start_until_recipes`
+  va sostituito dai casi della carta ricetta. I motivi `missing_inputs` e `bank_full` hanno già un testo in
+  `SkillPage.REFUSED_TEXTS`.
 
 ### M3-06 · Shop e vendita
 - **Ruolo** UI · **Stima** M · **Parallelizzabile** sì · **Dipendenze** M3-02, M2-04
