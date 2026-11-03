@@ -903,7 +903,7 @@ signal page_changed(page_id: StringName)
 const ROUTE_SEPARATOR: String = ":"
 const ROUTE_SKILL := &"skill"
 const ROUTES: Dictionary[StringName, String]    # rotta -> scena della pagina (estende Page); assente = "In arrivo"
-                                                # oggi: skill -> skill_page.tscn, bank -> bank_page.tscn (nessun segnaposto)
+                                                # oggi: skill -> skill_page.tscn, bank -> bank_page.tscn, shop -> shop_page.tscn (M3-06) (nessun segnaposto)
 func setup(session: GameSession) -> void        # null: unbind e liberazione della pagina corrente
 func show_page(page_id: StringName) -> void     # &"skill:<id>", &"bank", &"shop", &"equipment", &"combat", &"rift", &"settings"
 func has_page(page_id: StringName) -> bool      # rotta in ROUTES; per skill:<id> skill di raccolta/artigianato con azioni
@@ -950,11 +950,24 @@ const REFUSED_TEXT_DEFAULT: String
 const NO_MATCH_TEXT: String                      # griglia vuota per la ricerca (con la bank non vuota)
 
 class_name BankItemPanel extends PanelContainer  # ui/pages/bank/bank_item_panel.gd (+ .tscn), interno a BankPage
-signal lock_requested(item_id: StringName, locked: bool)   # la pagina manda bank.set_locked
+signal lock_requested(item_id: StringName, locked: bool)   # la pagina manda bank.set_locked; locked letto da bank.is_locked
+signal sell_requested(item_id: StringName, qty: int)       # M3-06: la pagina manda shop.sell e mostra il motivo (REFUSED_TEXTS)
 signal close_requested
 func show_item(session: GameSession, item_id: StringName) -> bool   # rilegge tutto; false (e clear) se assente o sconosciuto
 func clear() -> void                             # nasconde e dimentica l'oggetto
 func item_id() -> StringName                     # &"" se chiuso
+# Tiene l'id mostrato e il riferimento alla sessione dell'ultimo show_item (solo per leggere: is_locked, get_count,
+# shop.sell_value a ogni uso; nessuna copia dello stato). Sezione vendita: cursore 1..quantità, anteprima
+# shop.sell_value, "Vendi" / "Tutti tranne 1" / "Tutti" (quantità lette dalla bank alla pressione); disabilitata con
+# una nota se l'oggetto è bloccato o ha valore 0.
+
+class_name ShopPage extends Page                 # ui/pages/shop/shop_page.gd (+ .tscn), rotta shop (M3-06)
+const REFUSED_TEXTS: Dictionary[StringName, String]   # motivo di can_buy/buy -> testo; altri: REFUSED_TEXT_DEFAULT
+const REFUSED_TEXT_DEFAULT: String
+# Righe di data.shop_entries() per categoria, costruite in bind. Prezzo da shop.price, "Acquisti x / max" solo se
+# max_purchases > 0, requisiti mancanti (req_entries, req_skills, req_total_level confrontati con shop e skills).
+# Compra abilitato solo se shop.can_buy riesce, altrimenti motivo accanto al pulsante e nel tooltip; errore di buy in
+# %MessageLabel. Ridisegno su shop_purchased, item_sold, gold_changed, bank_changed, level_up (scollegati in unbind).
 
 class_name MasteryPanel extends GameWindow       # ui/pages/mastery/mastery_panel.gd (+ .tscn), figlia di SkillPage
 const POOL_WARNING_KEY: String = "mastery.pool_warning_pct"   # soglia dell'avviso letta da session.data.balance_value
