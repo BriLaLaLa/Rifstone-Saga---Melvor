@@ -800,6 +800,9 @@ Regole per tutti i task:
 - **Accettazione** nessuna occorrenza di `max_purchasable` in `data/`, `core/`, `systems/`, `tests/`; `validate_data` OK su
   dati veri e fixture; test di `res://tests/data` e `res://tests/core` verdi.
 - **Test** `test_config_files.gd` (senza la chiave tolta).
+- **Nota (Reviewer, revisione di M3-10)** Ownership estesa a `res://tests/core/data/test_data_validator.gd` (solo il
+  conteggio di `REQUIRED_BALANCE_KEYS` in `test_required_balance_keys_are_all_in_the_real_file`, 59 → 58).
+  `balance.json` ha ora 58 chiavi obbligatorie.
 
 ### M3-09 · Integrazione di M3
 - **Ruolo** REV · **Stima** S · **Dipendenze** M3-01…M3-08, M3-10 · **Ownership** merge, tag `m3-done` · **Parallelizzabile** no ·
