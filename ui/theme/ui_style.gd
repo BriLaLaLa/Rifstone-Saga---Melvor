@@ -53,6 +53,14 @@ const MENU_BUTTON_HEIGHT: int = 44
 const MENU_TITLE_FONT_SIZE: int = 36
 ## ConfirmDialog: initial size (the text wraps inside it).
 const DIALOG_SIZE := Vector2i(460, 0)
+## Bank page: outer margin, space between its sections, grid spacing, cell size, item panel, search field.
+const BANK_MARGIN: int = 16
+const BANK_SECTION_SEPARATION: int = 12
+const BANK_GRID_SEPARATION: int = 8
+const BANK_CELL_SIZE := Vector2(48, 48)
+const BANK_PANEL_WIDTH: int = 320
+const BANK_PANEL_ICON_SIZE := Vector2(64, 64)
+const BANK_SEARCH_WIDTH: int = 260
 
 # --- palette ---
 const BG := Color(0.055, 0.047, 0.063, 0.86)
