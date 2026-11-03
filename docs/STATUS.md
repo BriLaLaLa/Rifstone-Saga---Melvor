@@ -37,7 +37,7 @@ Se la sessione si interrompe, si riparte da qui.
 | M2-01 | M2 | Nodi della maestria | CORE | DONE | task/M2-01 | merge 09ab93f, docs 92f4885; 700 test, 698 passati, 2 pending; ownership estesa a test_mastery_system.gd (rimosso il test dei segnaposto) |
 | M2-02 | M2 | Contenuto: Cavatura, Lenza, nodi della raccolta | DATA | DONE | task/M2-02 | merge d72ffe9, docs 2451b40; 704 test, 703 passati, 1 pending; ownership estesa a test_main_screen_smoke.gd; nodi di Cavatura e Lenza = valori di Selvicoltura, Q26 in OPEN_QUESTIONS (default: così, rivedere con Q15) |
 | M2-03 | M2 | Pannello della maestria | UI | IN_PROGRESS | task/M2-03 | |
-| M2-04 | M2 | Bank completa | UI | REVIEW | task/M2-04 | c17cd73; 693 test, 692 passati, 1 pending; rilascio fuori dalle caselle = in fondo (posizione del mouse non testabile in headless) |
+| M2-04 | M2 | Bank completa | UI | DONE | task/M2-04 | merge 6815fd2, docs 35b03c7; 717 test, 716 passati, 1 pending; rilascio fuori dalle caselle = in fondo; caselle vuote non disegnate (facoltativo) |
 | M2-05 | M2 | Test di M2 | QA | TODO | | |
 | M2-06 | M2 | Integrazione di M2 | REV | TODO | | |
 | M3-01 | M3 | Ricette dell'artigianato | CORE | TODO | | ownership estesa (da M1-09): mastery_bonuses di test_craft nelle fixture + caso F-11 artigianato in test_mastery_system.gd |
