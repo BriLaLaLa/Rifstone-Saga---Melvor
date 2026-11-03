@@ -68,6 +68,7 @@ I documenti sono già scritti con questi default (R-00).
 | Q39 | Doppia spada: moltiplicatore dell'intervallo e penalità di precisione | `combat.dual_wield.interval_mult` 0,75, precisione −10% (modificatore dell'assetto), da rivedere con `tools/sim_combat.gd` | F-73, `04_DATA_SCHEMA.md` §14 |
 | Q40 | Parata con lo scudo: cosa blocca? | Tutto il danno di un colpo; `block_chance` dello scudo 5-15% per grado, massimo 50% | F-75 |
 | Q41 | XP dei mostri | Da tarare con `tools/sim_combat.gd` a fine M5; default 4 × PV (provvisorio, probabilmente troppo alto) | F-28, `02_FORMULAS.md` §8.5, M5-06 |
+| Q42 | Tooltip dei pezzi senza le skill di combattimento: da dove vengono il nome dello stile e il testo del requisito del personaggio? | Testi della UI in costanti di `ItemTooltipLines` (stili `blade`/`marksmanship`/`arcana` → Lama/Mira/Arcano; requisito «Richiede il livello N del personaggio»), come gli altri testi di presentazione | M4-08, `05_INTERFACES.md` §7 |
 
 ## Chiuse
 

@@ -909,6 +909,10 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 - **Accettazione** esempi di F-71; un save v1 → `version_unsupported` (slot "versione non supportata"); salvataggio e
   caricamento identici; `meets_requirements` con chiavi miste; nessun segnale in `new_game`/`from_save`.
 - **Test** `test_character_system.gd`, casi nuovi di `test_game_session.gd`, `test_save_migrator.gd`.
+- **Nota (da M4-02)** Con il personaggio in `total_level` cambia `test_skills_system.gd::test_session_saves_and_loads_the_skills_module`
+  (`FIXTURE_SKILL_COUNT + 2`): aggiornare quella riga (ownership estesa). `SkillsSystem.meets_requirements` oggi registra
+  un errore sulla chiave `character` (lo si vede nei test di equipaggiamento e shop): i requisiti misti passano da
+  `CharacterSystem.meets_requirements` (§5.16).
 
 ### M4-04 · ItemRoller e istanze
 - **Ruolo** CORE · **Stima** M · **Parallelizzabile** sì (con M4-03) · **Dipendenze** M4-02
@@ -936,6 +940,8 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 - **Accettazione** esempi di F-82; un pezzo non è mai nella bank; `uid` mai riusati anche dopo salvataggio e
   caricamento; Armeria piena → `armory_full` senza cambi (oro non speso); pezzo indossato o bloccato non si vende.
 - **Test** i file in Ownership (inclusi `test_capacity_uses_armory_slots`, `test_armory_slot_price`).
+- **Nota (da M4-02)** `test_shop.gd::test_requirements_and_max_purchases`: `test_upgrade_2` delle fixture chiede
+  `character: 20`, oggi ignorato dallo shop; il caso va completato con `set_character_level`.
 
 ### M4-06 · Equipaggiamento con `uid` e assetti
 - **Ruolo** CORE · **Stima** M · **Parallelizzabile** no · **Dipendenze** M4-05
@@ -950,6 +956,10 @@ Regole comuni a M4 (oltre a quelle in testa al file):
   nell'offhand toglie anche quella; `armory_full` senza cambi; `from_save` dei casi di §5.9; il controllo del
   combattimento resta `null`-safe (`session.combat` non esiste fino a M5).
 - **Test** `test_equipment.gd` (incluso `test_setup_derivation`).
+- **Nota (da M4-02)** Togliere i `pending("M4-06 …")` di `test_equipment.gd` (15 test) e di `test_item_conservation.gd`
+  (2 test, `test_equipping_moves_one_unit…`, `test_equip_with_full_bank…`; ownership estesa a quel file) e renderli
+  verdi con requisiti `character`, `uid` e assetti; in `test_item_conservation.gd` la costante `BOW` ora è uno spadone
+  (rinominarla).
 
 ### M4-07 · Artigianato verso l'Armeria
 - **Ruolo** CORE · **Stima** S · **Parallelizzabile** sì (con M4-09) · **Dipendenze** M4-05
@@ -959,6 +969,9 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 - **Accettazione** doppio prodotto → 2 istanze; Armeria senza posto → ciclo non contato, nulla consumato, stop
   `armory_full`; maestria alta → più rari (seme fisso); ordine dei tiri di §5.8.
 - **Test** casi nuovi di `test_artisan_resolver.gd`.
+- **Nota (da M4-02)** L'ownership si estende a `res://tests/integration/test_crafting_chain.gd`: con gli attrezzi come
+  istanze i controlli "the tool is in the bank" e `equip(tool_def.id)` passano all'Armeria e all'`uid` (l'impugnatura
+  si ottiene già con l'Intaglio, `_obtain`).
 
 ### M4-08 · Pagina dell'Armeria ed equipaggiamento
 - **Ruolo** UI · **Stima** L · **Parallelizzabile** no · **Dipendenze** M4-07, M4-09
@@ -975,6 +988,9 @@ Regole comuni a M4 (oltre a quelle in testa al file):
   `UiThemeBuilder` (solo lo spostamento, tema rigenerato e committato una volta).
 - **Nota (da M3-09)** In `test_equipment_page_smoke.gd`, `test_tool_slot_label_takes_the_skill_name_from_the_data`:
   togliere il ciclo sui nomi di skill scritti come stringhe e l'helper `_skill_name`.
+- **Nota (da M4-02)** Pending da chiudere: `test_bank_item_panel_smoke.gd::test_page_equips_and_chooses_food_through_the_model`
+  (la bank non equipaggia più) e `test_tooltip.gd::test_show_item_weapon_lines` (requisito `character` e nome dello stile,
+  Q42). L'ownership si estende a `res://ui/components/tooltip/item_tooltip_lines.gd` e `res://tests/ui/test_tooltip.gd`.
 
 ### M4-09 · Pagina del personaggio, sidebar e shop
 - **Ruolo** UI · **Stima** M · **Parallelizzabile** sì (con M4-06, M4-07) · **Dipendenze** M4-05
@@ -988,6 +1004,8 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 - **Accettazione / Test** smoke; la sidebar non ha voci "In arrivo" per skill che non esistono; nessuno stato nella UI.
 - **Nota (da M3-09)** Sfondo del pannello della maestria trasparente: deve avere lo stile di pannello delle altre
   finestre (`GameWindow`/tema).
+- **Nota (da M4-02)** `test_main_screen_smoke.gd`: `test_sidebar_rows_from_data` e `test_real_data_sidebar_and_first_page`
+  sono `pending("M4-09")` (la sidebar cerca le skill di combattimento): togliere il pending e renderli verdi.
 
 ### M4-10 · Test di M4
 - **Ruolo** QA · **Stima** M · **Parallelizzabile** no · **Dipendenze** M4-01…M4-09
@@ -998,6 +1016,8 @@ Regole comuni a M4 (oltre a quelle in testa al file):
   equipaggiamento nei tre assetti → salvataggio e caricamento identici (slot, `uid`, affissi); Armeria piena durante
   l'artigianato; save v1 rifiutato; due slot indipendenti anche per Armeria e personaggio.
 - **Accettazione / Test** i file verdi; `armory_slots` e `item_rarity_pct` con il loro test reale.
+- **Nota (da M4-02)** `tests/data/test_config_files.gd:128` (`LATER_MILESTONE_BALANCE_KEYS`) supera i 120 caratteri:
+  andare a capo (ownership estesa a quella riga).
 
 ### M4-11 · Integrazione di M4
 - **Ruolo** REV · **Stima** S · **Dipendenze** M4-01…M4-10 · **Ownership** merge, tag `m4-done` · **Parallelizzabile** no ·

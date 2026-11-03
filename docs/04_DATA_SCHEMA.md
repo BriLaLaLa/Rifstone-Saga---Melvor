@@ -153,12 +153,12 @@ ognuno `{"items": [...]}`. Campi comuni:
 `equip`:
 | Campo | Tipo | Vincoli |
 |---|---|---|
-| `slot` | String | `head`, `body`, `legs`, `feet`, `hands`, `neck`, `ring`, `weapon`, `offhand`, `tool_forestry`, `tool_quarrying`, `tool_angling` (i `tool_*` solo per `category: tool`) |
+| `slot` | String | `head`, `body`, `legs`, `feet`, `hands`, `neck`, `ring`, `weapon`, `offhand`, `tool_forestry`, `tool_quarrying`, `tool_angling` (i `tool_*` solo per `category: tool`, e un `tool` solo negli slot `tool_*`) |
 | `requirements` | object | `{skill_id | "character": livello}`, può essere vuoto. `equipment`: solo la chiave `character`; `tool`: solo la skill dello slot (`tool_<skill>`) |
 | `modifiers` | array | modificatori (§1): i valori **base** del pezzo (la raffinazione li moltiplica, F-86; gli affissi si aggiungono, §15) |
-| `grade` | int | 1..8, grado del pezzo (affissi, raffinazione, smantellamento) |
+| `grade` | int | obbligatorio, 1..8: grado del pezzo (affissi, raffinazione, smantellamento) |
 | `kind` | String | obbligatorio per `slot: weapon` e `slot: offhand`, vietato per gli altri: `greatsword`, `sword`, `shield` (`greatsword`/`sword` solo con `weapon`, `shield` solo con `slot: offhand`). Una `sword` ha `slot: weapon` ma si può indossare anche nell'`offhand` se la classe lo ammette |
-| `weapon` | object | solo con `slot: weapon`: `style` (`blade`/`marksmanship`/`arcana`), `attack_interval_ms` (≥ 800), `two_handed` (bool; `true` se e solo se `kind: greatsword`) |
+| `weapon` | object | obbligatorio con `slot: weapon`, vietato per gli altri: `style` (`blade`/`marksmanship`/`arcana`), `attack_interval_ms` (≥ 800), `two_handed` (bool; `true` se e solo se `kind: greatsword`) |
 
 `food`: `{"heal": int ≥ 1}`. `infusion`: `{"modifiers": [...], "unique": bool}` (default `false`); `modifiers` ha almeno
 1 modificatore (un'infusione senza effetto sarebbe decorativa).
@@ -292,7 +292,7 @@ Classe: `MasteryNodeDef`.
 | `damage_reduction` | float | 0..80 |
 | `gold` | `[min, max]` | 0 ≤ min ≤ max |
 | `rift_shard_chance` | float | 0..100 |
-| `drops` | array | `{item, chance_pct 0..100, qty [min ≥ 1, max ≥ min]}`, max 4 voci; voci `equipment` solo da M7 (istanze, F-84) |
+| `drops` | array | `{item, chance_pct 0..100, qty [min ≥ 1, max ≥ min]}`, max 4 voci; voci `equipment` e `tool` vietate fino a M7 (da M7 i pezzi cadono come istanze, F-84) |
 
 Classi: `AreaDef`, `PackDef`, `MonsterDef`, `DropEntry`. Icone dei mostri in `res://assets/icons/monsters/`.
 Fino a M5-04 i due file esistono vuoti (`{"_doc": …, "areas": []}`, `{"_doc": …, "monsters": []}`, creati da M1-12); lo schema con `packs` e `xp` è di M4-01.
@@ -355,8 +355,9 @@ Classe: `FractureDef`.
 Stessa struttura di `res://data/`, contenuto minimo e **stabile** (i test non dipendono dal contenuto vero):
 2 skill di raccolta (`test_gather`, `test_gather_b`), 1 di artigianato (`test_craft`), `riftbinding` (nessuna skill di
 combattimento da M4-01); 4 azioni, gli oggetti di prova (incluso `rift_shard`; pezzi con `kind` `sword`, `greatsword`,
-`shield` e un attrezzo), 1 area con 2 mostri in 2 gruppi, 4 voci dello shop, 3 nodi di maestria, 1 classe di prova
-(`test_class`, i 4 assetti di `rift_blade`) e `affixes/affixes.json` con almeno 4 affissi (uno per attrezzi).
+`shield` e un attrezzo), 1 area con 2 mostri in 2 gruppi, 4 voci dello shop, 3 nodi di maestria, 2 classi
+(`test_class` con i 4 assetti di `rift_blade`, e una copia di `rift_blade`, richiesta da `character.start_class` del
+`balance.json` vero) e `affixes/affixes.json` con almeno 4 affissi (uno per attrezzi).
 La cartella delle fixture **non** contiene `config/`: `TestFactory` carica il contenuto dalle fixture e `balance.json`/
 `stats.json` da `res://data/config/` con `GameData.load_from_dirs(content_root, config_root)`. Così parametri e stat
 restano definiti in un solo posto.

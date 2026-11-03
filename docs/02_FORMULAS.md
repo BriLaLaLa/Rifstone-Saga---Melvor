@@ -480,6 +480,7 @@ dell'Armeria con rarità F-83 e affissi F-85 (`ilvl` = livello della ricetta).
 | Attrezzo | — | `skill_interval_pct −(3 + 2n)` con scope `skill:<skill>` | — | skill dell'attrezzo ≥ livello Tn |
 Esempio: set completo T8 con scudo → `damage_reduction` 8 + 4 + 4 + 8 = 24, `block_chance` 15. Ogni pezzo ha `grado` n
 (`equip.grade`). Identità degli assetti (D6): spadone lento e forte, spada e scudo difensivo, due spade rapide (F-73).
+Modificatori degli assetti (`data/classes/rift_blade.json`): solo `dual_swords` con `accuracy_pct −10` (Q39, provvisorio); gli altri nessuno.
 
 ### 8.5 Mostri
 | Area | Id | L (att = pot = dif) | PV | Stile | Interv. ms | acc / pot / eva | DR | Oro | Frammento % | XP |
@@ -638,7 +639,8 @@ di presentazione: stanno in `res://ui/theme/ui_style.gd` (unica definizione), no
 
 Ogni stat: effetto, limiti del **totale**, formula, test che ne verifica l'effetto. Nessuna stat senza riga qui.
 Nel campo `formula` di `stats.json` va l'id `F-xx` oppure, se la regola è in una sezione del GDD, il solo numero di
-sezione (`auto_loot`: `"10.6"` = `01_GDD §10.6`; `04_DATA_SCHEMA.md` §2).
+sezione (`auto_loot`: `"10.6"` = `01_GDD §10.6`; `04_DATA_SCHEMA.md` §2). Con più formule nella tabella (es.
+`skill_xp_pct`, `item_rarity_pct`) il campo ha la prima, quella del test indicato.
 
 | Stat | Min | Max | Effetto | Formula | Test dell'effetto |
 |---|---|---|---|---|---|

@@ -322,7 +322,7 @@ static func list_json_files(dir: String, errors: PackedStringArray) -> PackedStr
     # nessun push_error: ogni problema (file o cartella mancante, JSON rotto, top level non oggetto) va in errors con il percorso
 
 class_name DataValidator extends RefCounted
-const REQUIRED_BALANCE_KEYS: PackedStringArray       # tutte le chiavi di 02_FORMULAS.md §9 dell'MVP
+const REQUIRED_BALANCE_KEYS: PackedStringArray       # le chiavi di 02_FORMULAS.md §9 già in uso (non quelle segnate M6 e oltre)
 static func validate(raw: Dictionary, errors: PackedStringArray) -> void
     # raw = {"balance", "stats", "skills", "items", "actions", "mastery", "areas", "monsters", "shop",
     #        "classes" (cartella, M4-01), "affixes" (file unico, M4-01)}
@@ -342,12 +342,16 @@ static func file_skill(v: DataValidatorRules, content: Dictionary, path: String,
   `float` (JSON) e copie di oggetti e array.
 - `DataRegistry.reload()` sostituisce `data` anche se non valido (la UI mostra `data.errors`), logga ogni errore con
   `Log.warn` e una riga `Log.error`.
-- `DataValidatorRules` (`data_validator_rules.gd`: strumenti per campi, tipi, intervalli, riferimenti, modificatori;
-  regole di maestria, aree, mostri) e `DataValidatorItems` (`data_validator_items.gd`: regole di oggetti, azioni, shop)
-  sono classi **interne** di `DataValidator`, non API per gli altri moduli. I limiti di formato dello schema
-  (regex degli id, `cost_pct` ≤ 50, `pos` 0..5, max 4 drop, `name` delle stat ≤ 40) sono costanti di queste classi;
-  i limiti che dipendono dal bilanciamento si leggono dai dati (`xp_curve.max_level`, `mastery_curve.max_level`,
-  `action.min_interval_ms`, `combat.min_attack_interval_ms`, `max` della stat `damage_reduction`).
+- `DataValidatorRules` (`data_validator_rules.gd`: strumenti per campi, tipi, intervalli, riferimenti, modificatori,
+  mappe dei livelli con la chiave riservata `character`; regole di maestria), `DataValidatorItems`
+  (`data_validator_items.gd`: regole di oggetti, azioni, shop) e `DataValidatorClasses` (`data_validator_classes.gd`,
+  M4-01: regole di aree, gruppi, mostri, classi, assetti, affissi e delle chiavi di M4 di `balance.json`) sono classi
+  **interne** di `DataValidator`, non API per gli altri moduli. I limiti di formato dello schema (regex degli id,
+  `cost_pct` ≤ 50, `pos` 0..5, max 4 drop, `name` delle stat ≤ 40, `grade` 1..8, `min_ilvl` ≤ 99, numero di affissi
+  per rarità ≤ 6, `combat.max_pack_size` ≤ 6) sono costanti di queste classi; i limiti che dipendono dal bilanciamento
+  si leggono dai dati (`xp_curve.max_level`, `mastery_curve.max_level`, `character_curve.max_level`,
+  `action.min_interval_ms`, `combat.min_attack_interval_ms`, `combat.max_pack_size`, `max` della stat
+  `damage_reduction`).
 - `tools/validate_data.gd [-- <content_root> [<config_root>]]`: stampa gli errori ed esce con 1 se non validi; carica
   `GameData` per percorso (in uno script `-s` l'autoload `Log` non è risolto in compilazione).
 

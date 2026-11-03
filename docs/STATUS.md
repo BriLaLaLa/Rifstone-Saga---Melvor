@@ -4,27 +4,34 @@ Aggiornato dall'Orchestratore (unico che modifica questo file). Stati: TODO / IN
 Se la sessione si interrompe, si riparte da qui.
 
 ## Ripartenza (aggiornata il 2026-11-03)
-- **Stato**: M3 completata, tag `m3-done` su `ca18ee6`; `main` e i tag `m0-done`…`m3-done` pushati su `origin`.
-  Suite su main: 837 test, 836 passati, 1 pending (stat del combattimento, diventa errore in M9-07). Prova del Giocabile 10/10.
-  **Visione v2 approvata** (D1-D6, `VISIONE_V2.md`; Q27-Q40 con i default): **R-00 fatto** (solo documenti, nessun codice):
-  `00_VISION`, `01_GDD` (§1-3, §5, §7-12, §14-26), `02_FORMULAS` (§5 rivista, §5a F-70…F-81, §5b F-82…F-89, §8.2,
-  §8.4-8.6, §8.9, §9, §11), `03_ARCHITECTURE`, `04_DATA_SCHEMA` (§3-5, §8-9, §13-17), `05_INTERFACES` (§1, §3, §4,
-  §5.2-5.3, §5.5, §5.8-5.11, §5.15-5.18, §6, §7, §8), `06_ROADMAP` (M4-M12), `07_TASKS` (R-00, M4 completo, M5-M9),
-  `OPEN_QUESTIONS`, `DECISIONS_LOG` (D1-D6, scelte di R-00).
-- **Prossimo passo**: attendere l'OK esplicito dell'utente per **M4-01** (stop di R-00); poi M4-01 + M4-02 (si mergiano
-  insieme), M4-03 ∥ M4-04, … secondo `07_TASKS.md`, con le regole dei consumi di `CLAUDE.md` (massimo 2 agenti, test
-  mirati, suite completa solo dopo il merge, review sul diff, sezioni nei brief).
+- **Stato**: M4 in corso. **M4-01 + M4-02 DONE**, merge congiunto `16e6306` su `main` (correzioni del Reviewer sul
+  branch in `df9bc0d`). Suite (run_checks): 925 test, 903 passati, 22 pending, 0 falliti; validate_data verde su fixture
+  e dati veri. M3 completata, tag `m3-done` su `ca18ee6`; `main` e i tag `m0-done`…`m3-done` pushati su `origin`
+  (il push di M4 si fa a fine milestone). Visione v2 approvata (D1-D6), R-00 fatto.
+- **Prossimo passo**: **M4-03 ∥ M4-04** (Personaggio e salvataggio v2; ItemRoller e istanze), poi M4-05, M4-06,
+  M4-07 ∥ M4-09, M4-08, M4-10, M4-11, con le regole dei consumi di `CLAUDE.md` (massimo 2 agenti, test mirati, suite
+  completa solo dopo il merge, review sul diff, sezioni nei brief). I worktree `RSI-worktrees/M4-01` e `M4-02` si
+  possono rimuovere.
+- **Pending aperti** (21 nuovi + 1 vecchio; ognuno lo chiude il task indicato, note in `07_TASKS.md`):
+  M4-06 `test_equipment.gd` (15) e `test_item_conservation.gd` (2); M4-08 `test_bank_item_panel_smoke.gd` (1) e
+  `test_tooltip.gd::test_show_item_weapon_lines` (1); M4-09 `test_main_screen_smoke.gd` (2); vecchio:
+  `test_stat_registry_coverage.gd` (stat del combattimento, errore da M6-07).
+- **Follow-up di M4-02** (note "da M4-02" in `07_TASKS.md`): M4-03 `total_level` in `test_skills_system.gd` e requisiti
+  misti con `character`; M4-05 requisito `character` in `test_shop.gd`; M4-06 pending e costante `BOW`; M4-07
+  `test_crafting_chain.gd` con gli attrezzi nell'Armeria; M4-08 pending, ownership di `item_tooltip_lines.gd` (Q42);
+  M4-09 pending della sidebar; M4-10 riga lunga in `test_config_files.gd`.
 - **Da aggiornare fuori da `docs/`** (non nell'ownership di R-00): `.claude/agents/reviewer.md` cita M6-08 per il rilascio
   (ora M9-08); eventuali altri file agente che citano le vecchie M4-M8.
-- **Decisioni aperte per l'utente**: Q26 (nodi di Cavatura e Lenza); Q27-Q40 (valgono i default); Q41 (XP dei mostri, da tarare in M5-06).
-  Confermati come provvisori: affissi (`02_FORMULAS.md` §8.9), F-83, F-86; approvate le scelte di R-00 in DECISIONS_LOG.
-- **Decisioni prese in M3** (DECISIONS_LOG): `test_crafting_data.gd` nuovo file dei dati; impugnature `*_grip` restano;
-  `bank.max_purchasable` tolta (unica definizione = `max_purchases` di `bank_slot`, M3-10); `from_save` con due mani e
-  offhand scarta l'offhand (05 §5.9, M3-11).
+- **Decisioni aperte per l'utente**: Q26 (nodi di Cavatura e Lenza); Q27-Q40 (valgono i default); Q41 (XP dei mostri, da
+  tarare in M5-06); **Q42 nuova** (testi del tooltip dei pezzi senza skill di combattimento, default in OPEN_QUESTIONS).
+  Confermati come provvisori: affissi (`02_FORMULAS.md` §8.9), F-83, F-86.
+- **Decisioni prese in M4-01/M4-02** (DECISIONS_LOG): `dual_swords` `accuracy_pct −10` (Q39); `formula` di una stat con
+  più formule = la prima; `block_chance` nei dati da M4, effetto in M5; ponte `m4_config_bridge.gd` eliminato; test fuori
+  ownership adeguati dal Reviewer e pending dei task successivi.
 - **Follow-up già registrati** (note in `07_TASKS.md`): su M4-08 spostamento di `build_theme` da `ui_style.gd` (390/400)
-  e pulizia del test `tool_forestry`; su M4-09 sfondo trasparente del pannello della maestria; su M4-02 debito di stile
-  di `test_crafting_data.gd`; su M5-03 `_combat_active()` tipizzato in `equipment.gd` (N2); su M9-06 toast dei livelli
-  sopra le finestre (N9).
+  e pulizia del test `tool_forestry`; su M4-09 sfondo trasparente del pannello della maestria; su M5-03
+  `_combat_active()` tipizzato in `equipment.gd` (N2); su M9-06 toast dei livelli sopra le finestre (N9). Il debito di
+  stile di `test_crafting_data.gd` è chiuso (M4-02).
 - **Prova manuale consigliata** (non verificabile in headless): aspetto delle pagine Shop ed Equipaggiamento, vendita e
   trascinamento con clic reali.
 - **Pulizia a mano**: cartella `C:/Users/Davide/Desktop/AI/RSI-worktrees/M3-03` (worktree già staccato da git, file
@@ -79,8 +86,8 @@ Se la sessione si interrompe, si riparte da qui.
 | M3-11 | M3 | from_save: arma a due mani e offhand insieme | CORE | DONE | task/M3-11 | merge 0159747; 3538bb7; bug trovato da M3-08; regola in 05 §5.9 (245cbd3): offhand scartato con Log.warn |
 | M3-09 | M3 | Integrazione di M3 | REV | DONE | main | docs 5eb8222, ca18ee6; tag m3-done su ca18ee6; 837 test, 836 passati, 1 pending; prova del Giocabile 10/10 |
 | R-00 | M4 | Riforma dei documenti (visione v2) | REV | DONE | main | solo docs; commit dell'Orchestratore; stop per l'OK dell'utente prima di M4-01 |
-| M4-01 | M4 | Schema e validatore della riforma | CORE | TODO | | merge insieme a M4-02 |
-| M4-02 | M4 | Contenuto della riforma | DATA | TODO | | branch da task/M4-01 |
+| M4-01 | M4 | Schema e validatore della riforma | CORE | DONE | task/M4-01 | merge congiunto 16e6306 (con M4-02); 83f36fc, 4c1626c, df909ac, 3da8494, b6d4e51, e2a2ba3 |
+| M4-02 | M4 | Contenuto della riforma | DATA | DONE | task/M4-02 | merge 16e6306; 31cbcbf, 8855c5a, e3c1afa; correzioni del Reviewer df9bc0d; run_checks 925 test, 903 passati, 22 pending |
 | M4-03 | M4 | Personaggio e salvataggio v2 | CORE | TODO | | parallelo con M4-04 |
 | M4-04 | M4 | ItemRoller e istanze | CORE | TODO | | parallelo con M4-03 |
 | M4-05 | M4 | Armeria, bank e shop | CORE | TODO | | |
