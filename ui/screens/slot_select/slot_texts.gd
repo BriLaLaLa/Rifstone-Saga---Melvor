@@ -3,7 +3,7 @@ extends RefCounted
 ## Italian texts of the slot screens: command errors, slot states, save date and play time (display only).
 ##
 ## The name length in the invalid_name message comes from the Game coordinator's constants, so the rule has a
-## single definition. Numbers use ItemTooltipLines.format_int (moves to NumberFormat with M1-14).
+## single definition. Numbers use NumberFormat.format_int.
 
 const GameScript := preload("res://core/autoload/game.gd")
 const STATE_EMPTY := &"empty"
@@ -57,7 +57,7 @@ static func slot_details(info: SlotInfo) -> String:
 	if info.state != STATE_OK:
 		return state_text(info.state)
 	return "Salvata il %s  ·  Tempo di gioco %s  ·  Livello totale %s" % [
-		saved_at(info.saved_at_unix_ms), play_time(info.play_time_ms), ItemTooltipLines.format_int(info.total_level)]
+		saved_at(info.saved_at_unix_ms), play_time(info.play_time_ms), NumberFormat.format_int(info.total_level)]
 
 
 ## "1 h 05 min" or "12 min" (whole minutes, rounded down).
@@ -67,7 +67,7 @@ static func play_time(ms: int) -> String:
 	var hours: int = minutes / MINUTES_PER_HOUR
 	if hours == 0:
 		return "%d min" % minutes
-	return "%s h %02d min" % [ItemTooltipLines.format_int(hours), minutes % MINUTES_PER_HOUR]
+	return "%s h %02d min" % [NumberFormat.format_int(hours), minutes % MINUTES_PER_HOUR]
 
 
 ## Local date and time of a save: "03/11/2026 14:05".

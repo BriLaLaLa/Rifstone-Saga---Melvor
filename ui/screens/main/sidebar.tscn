@@ -1,0 +1,52 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/screens/main/sidebar.gd" id="1_sidebar"]
+
+[node name="Sidebar" type="PanelContainer"]
+custom_minimum_size = Vector2(260, 0)
+size_flags_vertical = 3
+theme_type_variation = &"HudPanel"
+script = ExtResource("1_sidebar")
+
+[node name="Scroll" type="ScrollContainer" parent="."]
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="Entries" type="VBoxContainer" parent="Scroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="SectionTemplate" type="Label" parent="Scroll/Entries"]
+visible = false
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+vertical_alignment = 2
+
+[node name="RowTemplate" type="Button" parent="Scroll/Entries"]
+visible = false
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"ListButton"
+theme_override_constants/icon_max_width = 22
+toggle_mode = true
+alignment = 0
+clip_text = true
+
+[node name="Side" type="Label" parent="Scroll/Entries/RowTemplate"]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -96.0
+offset_right = -8.0
+grow_horizontal = 0
+grow_vertical = 2
+mouse_filter = 2
+theme_type_variation = &"MutedLabel"
+horizontal_alignment = 2
+vertical_alignment = 1
