@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Equipaggiamento e inventario</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&amp;family=Alegreya+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#121014}
+a{color:#D4B062}a:hover{color:#F0D58A}
+</style>
+</helmet>
+<div style="width: 1600px; height: 900px; box-sizing: border-box; background: #121014; color: #E8E2D6; font-family: 'Alegreya Sans', sans-serif; display: flex; flex-direction: column;">
+
+  <div style="height: 52px; box-sizing: border-box; padding: 0 20px; display: flex; align-items: center; gap: 28px; border-bottom: 1px solid #5E4C26; background: #17141A;">
+    <span style="font-family: 'Cinzel', serif; font-weight: 700; color: #D4B062; font-size: 18px;">RiftStone Saga: Idle</span>
+    <span style="font-size: 15px;">Oro 12.480</span>
+    <span style="font-size: 15px;">Bank 18 / 24</span>
+    <span style="flex-grow: 1;"></span>
+    <span style="font-size: 15px; color: #B8B0A2;">Davide · Slot 1</span>
+  </div>
+
+  <div style="flex-grow: 1; display: flex; min-height: 0;">
+    <nav style="width: 200px; box-sizing: border-box; padding: 16px 12px; border-right: 1px solid #5E4C26; display: flex; flex-direction: column; gap: 4px; background: #151217;">
+      <span style="font-family: 'Cinzel', serif; color: #D4B062; font-size: 13px; letter-spacing: 1px; margin: 4px 8px 6px;">PARTITA</span>
+      <a href="#" style="text-decoration: none; color: #E8E2D6; padding: 8px 10px; font-size: 15px;">Personaggio</a>
+      <a href="Main.dc.html" style="text-decoration: none; color: #E8E2D6; padding: 8px 10px; font-size: 15px;">Combattimento</a>
+      <a href="#" style="text-decoration: none; color: #F0D58A; padding: 8px 10px; font-size: 15px; background: #2A2219; border: 1px solid #5E4C26;">Equipaggiamento</a>
+      <a href="#" style="text-decoration: none; color: #E8E2D6; padding: 8px 10px; font-size: 15px;">Bank</a>
+      <a href="#" style="text-decoration: none; color: #E8E2D6; padding: 8px 10px; font-size: 15px;">Shop</a>
+      <span style="font-size: 12px; color: #8A8273; margin: 10px 8px;">L'Armeria è unita qui.</span>
+    </nav>
+
+    <main style="flex-grow: 1; min-width: 0; box-sizing: border-box; padding: 16px 20px; display: flex; gap: 16px;">
+
+      <!-- INVENTORY -->
+      <section aria-label="Inventario" style="width: 470px; flex-shrink: 0; box-sizing: border-box; padding: 14px; border: 1px solid #5E4C26; background: #18151B; display: flex; flex-direction: column; gap: 12px; position: relative;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between;">
+          <span style="font-family: 'Cinzel', serif; font-weight: 700; font-size: 20px; color: #D4B062;">Inventario</span>
+          <span style="font-size: 14px; color: #B8B0A2;">Pezzi 23 / 40 (+11 indossati)</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <label style="font-size: 14px; display: flex; flex-direction: column; gap: 4px; flex: 1 1 0;">Slot
+            <select style="background: #121014; color: #E8E2D6; border: 1px solid #5E4C26; font-family: inherit; font-size: 14px; padding: 6px;"><option>Tutti</option></select>
+          </label>
+          <label style="font-size: 14px; display: flex; flex-direction: column; gap: 4px; flex: 1 1 0;">Rarità
+            <select style="background: #121014; color: #E8E2D6; border: 1px solid #5E4C26; font-family: inherit; font-size: 14px; padding: 6px;"><option>Tutte</option></select>
+          </label>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px;">
+          <sc-for list="{{cells}}" as="c" hint-placeholder-count="35">
+            <div style="aspect-ratio: 1; border: 2px solid {{c.color}}; background: #15120F; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #B8B0A2; text-align: center; outline: {{c.outline}};">{{c.label}}</div>
+          </sc-for>
+        </div>
+        <span style="font-size: 13px; color: #8A8273;">Trascina un pezzo sullo slot · tasto destro: equipaggia (una spada va nella seconda mano se è libera)</span>
+
+        <!-- compare tooltip -->
+        <div style="position: absolute; left: 300px; top: 150px; width: 330px; box-sizing: border-box; padding: 12px 14px; background: #0E0C10; border: 1px solid #E6C14F; display: flex; flex-direction: column; gap: 4px; font-size: 13px; z-index: 2;">
+          <span style="font-size: 16px; font-weight: 700; color: #E6C14F;">Spada di cobalto del vespro</span>
+          <span style="color: #B8B0A2;">Raro · Livello oggetto 40 · Spada a una mano</span>
+          <span>Precisione +32 · Potenza +24</span>
+          <span>Pesante +6 potenza (grado 2)</span>
+          <span>Brutale +2% potenza (grado 1)</span>
+          <span>Fulmineo −1% intervallo (grado 1)</span>
+          <div style="height: 1px; background: #3A3326; margin: 6px 0;"></div>
+          <span style="color: #B8B0A2;">Rispetto a quello in mano (Spadone di vetro +5):</span>
+          <span style="color: #F2B1A8;">−56 Precisione · −64 Potenza</span>
+          <span style="color: #8FD18B;">−1,6 s intervallo d’attacco</span>
+          <span style="color: #B8B0A2;">Assetto: Spadone → Spada (Spada e scudo o Due spade con un secondo pezzo)</span>
+        </div>
+      </section>
+
+      <!-- PAPER DOLL -->
+      <section aria-label="Equipaggiamento" style="flex-grow: 1; min-width: 0; box-sizing: border-box; padding: 14px; border: 2px solid #8C7339; background: #1C1813; display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between;">
+          <span style="font-family: 'Cinzel', serif; font-weight: 700; font-size: 20px; color: #D4B062;">Lama del Rift</span>
+          <span style="font-size: 14px; color: #B8B0A2;">Livello 52 · Assetto: Spadone</span>
+        </div>
+        <div style="position: relative; flex-grow: 1;">
+          <!-- silhouette -->
+          <svg style="position: absolute; left: 50%; top: 20px; margin-left: -90px;" width="180" height="440" viewBox="0 0 60 150" fill="none" stroke="#5E4C26" stroke-width="1.2" aria-hidden="true"><circle cx="30" cy="14" r="10"/><path d="M14 30h32l6 46h-8l-4-30v40l4 54h-10l-4-44-4 44H16l4-54V46l-4 30H8z"/></svg>
+          <sc-for list="{{slots}}" as="s" hint-placeholder-count="12">
+            <div style="position: absolute; left: {{s.x}}; top: {{s.y}}; width: {{s.w}}; height: {{s.h}}; box-sizing: border-box; border: 2px solid {{s.color}}; background: #15120F; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; outline: {{s.outline}}; outline-offset: 3px;">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="{{s.iconColor}}" stroke-width="1.4" aria-hidden="true"><path d="{{s.icon}}"/></svg>
+              <span style="font-size: 11px; color: #B8B0A2;">{{s.label}}</span>
+            </div>
+          </sc-for>
+        </div>
+        <span style="font-size: 13px; color: #8A8273;">Slot vuoti con l'icona dello slot · slot compatibili illuminati durante il trascinamento (qui: Seconda mano)</span>
+      </section>
+
+      <!-- STATS + PANEL -->
+      <section aria-label="Statistiche" style="width: 330px; flex-shrink: 0; box-sizing: border-box; padding: 14px; border: 1px solid #5E4C26; background: #18151B; display: flex; flex-direction: column; gap: 8px; font-size: 14px;">
+        <span style="font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 1px; color: #D4B062;">STATISTICHE</span>
+        <sc-for list="{{stats}}" as="st" hint-placeholder-count="8">
+          <div style="display: flex; justify-content: space-between;"><span>{{st.k}}</span><span style="font-weight: 700;">{{st.v}}</span></div>
+        </sc-for>
+        <div style="height: 1px; background: #3A3326; margin: 6px 0;"></div>
+        <span style="font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 1px; color: #D4B062;">PEZZO SELEZIONATO</span>
+        <span style="color: #E6C14F; font-weight: 700;">Spadone di vetro del Rift +5</span>
+        <span style="color: #B8B0A2;">Indossato · In mano</span>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;">
+          <button style="min-height: 44px; background: #2A2219; color: #F0D58A; border: 1px solid #8C7339; font-family: inherit; font-size: 14px;">Rimuovi</button>
+          <button style="min-height: 44px; background: #2A2219; color: #F0D58A; border: 1px solid #8C7339; font-family: inherit; font-size: 14px;">Blocca</button>
+          <button style="min-height: 44px; background: #1F1B16; color: #8A8273; border: 1px solid #3A3326; font-family: inherit; font-size: 14px;">Raffina (M7)</button>
+          <button style="min-height: 44px; background: #1F1B16; color: #8A8273; border: 1px solid #3A3326; font-family: inherit; font-size: 14px;">Vendi</button>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const R = { c: '#D9D4C7', m: '#6D9EEB', r: '#E6C14F', e: '#4A4030' };
+    const I = {
+      helm: 'M5 14a7 7 0 0 1 14 0v4H5z M9 18v-4',
+      neck: 'M6 4c0 6 3 9 6 9s6-3 6-9 M12 13v3 M10 18a2 2 0 1 0 4 0 2 2 0 1 0-4 0',
+      ring: 'M8 15a4 4 0 1 0 8 0 4 4 0 1 0-8 0 M10 8l2-3 2 3',
+      body: 'M7 4l5 2 5-2 3 4-3 2v10H7V10L4 8z',
+      hands: 'M7 20v-8l-2-3 2-1 2 3V5h2v6h1V4h2v7h1V6h2v10l-3 4z',
+      weapon: 'M19 3l-9 9 M14 4l6 6 M10 12l-5 5 2 2 5-5 M4 20l2-2',
+      offhand: 'M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z',
+      legs: 'M8 4h8l1 16h-4l-1-10-1 10H7z',
+      feet: 'M8 4v10l-3 3v3h12v-3l-4-2V4z',
+      axe: 'M6 20L16 6 M14 4c3 0 5 2 5 5l-4-1z',
+      pick: 'M12 9v12 M4 8c4-4 12-4 16 0',
+      rod: 'M4 20L18 4 M18 4v10'
+    };
+    const slot = (label, x, y, w, h, icon, color, filled, glow) => ({
+      label, x, y, w, h, icon, color: filled ? color : R.e,
+      iconColor: filled ? color : '#6B5F48', outline: glow ? '2px solid #8FD18B' : 'none'
+    });
+    const cells = [];
+    const pattern = [R.r, R.m, R.c, R.c, R.m, R.c, R.r, R.c, R.m, R.c, R.c, R.c, R.m, R.c, R.r, R.c, R.c, R.m, R.c, R.c, R.c, R.m, R.c];
+    for (let i = 0; i < 35; i++) {
+      const color = i < pattern.length ? pattern[i] : '#2A2419';
+      cells.push({ color, label: i < pattern.length ? '' : '', outline: i === 1 ? '2px solid #F0D58A' : 'none' });
+    }
+    return {
+      cells,
+      slots: [
+        slot('Testa', 'calc(50% - 40px)', '0px', '80px', '80px', I.helm, R.m, true, false),
+        slot('Collo', 'calc(50% + 70px)', '20px', '64px', '64px', I.neck, R.c, false, false),
+        slot('Anello', 'calc(50% + 70px)', '100px', '64px', '64px', I.ring, R.c, false, false),
+        slot('Corpo', 'calc(50% - 50px)', '110px', '100px', '120px', I.body, R.r, true, false),
+        slot('Mani', 'calc(50% - 160px)', '110px', '72px', '72px', I.hands, R.c, true, false),
+        slot('In mano', 'calc(50% - 180px)', '200px', '92px', '170px', I.weapon, R.r, true, false),
+        slot('Seconda mano', 'calc(50% + 88px)', '200px', '92px', '170px', I.offhand, R.c, false, true),
+        slot('Gambe', 'calc(50% - 45px)', '250px', '90px', '110px', I.legs, R.c, true, false),
+        slot('Piedi', 'calc(50% - 40px)', '380px', '80px', '72px', I.feet, R.m, true, false),
+        slot('Ascia', 'calc(50% - 150px)', '480px', '72px', '72px', I.axe, R.c, true, false),
+        slot('Piccone', 'calc(50% - 36px)', '480px', '72px', '72px', I.pick, R.m, true, false),
+        slot('Canna', 'calc(50% + 78px)', '480px', '72px', '72px', I.rod, R.c, true, false)
+      ],
+      stats: [
+        { k: 'Punti vita', v: '840' }, { k: 'Precisione', v: '1.932' }, { k: 'Danno massimo', v: '118' },
+        { k: 'Evasione', v: '1.410' }, { k: 'Riduzione del danno', v: '18%' }, { k: 'Parata', v: '—' },
+        { k: 'Intervallo d’attacco', v: '3,2 s' }, { k: 'Rarità trovata', v: '+0%' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

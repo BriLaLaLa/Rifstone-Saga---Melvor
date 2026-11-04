@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Combattimento a gruppi</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&amp;family=Alegreya+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#121014}
+a{color:#D4B062}a:hover{color:#F0D58A}
+</style>
+</helmet>
+<div style="width: 1600px; height: 900px; box-sizing: border-box; background: #121014; color: #E8E2D6; font-family: 'Alegreya Sans', sans-serif; display: flex; flex-direction: column;">
+
+  <!-- top bar -->
+  <div style="height: 52px; box-sizing: border-box; padding: 0 20px; display: flex; align-items: center; gap: 28px; border-bottom: 1px solid #5E4C26; background: #17141A;">
+    <span style="font-family: 'Cinzel', serif; font-weight: 700; color: #D4B062; font-size: 18px;">RiftStone Saga: Idle</span>
+    <span style="font-size: 15px;">Oro 12.480</span>
+    <span style="font-size: 15px;">Bank 18 / 24</span>
+    <span style="flex-grow: 1;"></span>
+    <span style="font-size: 15px; color: #B8B0A2;">Davide · Slot 1</span>
+  </div>
+
+  <div style="flex-grow: 1; display: flex; min-height: 0;">
+    <!-- sidebar -->
+    <nav style="width: 200px; box-sizing: border-box; padding: 16px 12px; border-right: 1px solid #5E4C26; display: flex; flex-direction: column; gap: 4px; background: #151217;">
+      <span style="font-family: 'Cinzel', serif; color: #D4B062; font-size: 13px; letter-spacing: 1px; margin: 4px 8px 6px;">PARTITA</span>
+      <a href="#" style="text-decoration: none; color: #E8E2D6; padding: 8px 10px; font-size: 15px;">Personaggio</a>
+      <a href="#" style="text-decoration: none; color: #F0D58A; padding: 8px 10px; font-size: 15px; background: #2A2219; border: 1px solid #5E4C26;">Combattimento</a>
+      <a href="Equip.dc.html" style="text-decoration: none; color: #E8E2D6; padding: 8px 10px; font-size: 15px;">Equipaggiamento</a>
+      <a href="#" style="text-decoration: none; color: #E8E2D6; padding: 8px 10px; font-size: 15px;">Bank</a>
+      <a href="#" style="text-decoration: none; color: #E8E2D6; padding: 8px 10px; font-size: 15px;">Shop</a>
+      <span style="font-family: 'Cinzel', serif; color: #D4B062; font-size: 13px; letter-spacing: 1px; margin: 14px 8px 6px;">MESTIERI</span>
+      <a href="#" style="text-decoration: none; color: #E8E2D6; padding: 8px 10px; font-size: 15px;">Raccolta e artigianato</a>
+    </nav>
+
+    <main style="flex-grow: 1; min-width: 0; box-sizing: border-box; padding: 16px 20px; display: flex; flex-direction: column; gap: 14px;">
+
+      <!-- header -->
+      <div style="display: flex; align-items: center; gap: 16px; padding: 10px 16px; border: 1px solid #5E4C26; background: #18151B;">
+        <span style="font-family: 'Cinzel', serif; font-weight: 700; font-size: 22px; color: #D4B062;">Miniere Crepate</span>
+        <span style="font-size: 15px; color: #B8B0A2;">Gruppo n. 37 · 5 nemici</span>
+        <span style="flex-grow: 1;"></span>
+        <label style="font-size: 15px; display: flex; align-items: center; gap: 8px;">Area
+          <select style="background: #121014; color: #E8E2D6; border: 1px solid #5E4C26; font-family: inherit; font-size: 15px; padding: 6px 8px;">
+            <option>Miniere Crepate</option>
+          </select>
+        </label>
+        <span style="font-size: 15px;">Cibo: Anguilla grigliata ×284</span>
+        <button style="min-height: 44px; padding: 0 18px; background: #2A2219; color: #F0D58A; border: 1px solid #8C7339; font-family: inherit; font-size: 15px;">Mangia</button>
+        <button style="min-height: 44px; padding: 0 18px; background: #2A1517; color: #F2B1A8; border: 1px solid #9C3B3B; font-family: inherit; font-size: 15px;">Ferma</button>
+      </div>
+
+      <!-- arena -->
+      <div style="flex-grow: 1; min-height: 0; display: flex; gap: 0;">
+
+        <!-- PLAYER -->
+        <section aria-label="Personaggio" style="width: 430px; flex-shrink: 0; box-sizing: border-box; padding: 16px; border: 2px solid #8C7339; background: #1C1813; display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; gap: 14px; align-items: flex-start;">
+            <div style="width: 128px; height: 128px; flex-shrink: 0; border: 2px solid #D4B062; background: #241E15; display: flex; align-items: center; justify-content: center; position: relative;">
+              <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#D4B062" stroke-width="1.3" aria-hidden="true"><circle cx="12" cy="6" r="3"/><path d="M6 21v-5a6 6 0 0 1 12 0v5"/><path d="M19 3l-5 7"/><path d="M18 2l2 2"/></svg>
+              <span style="position: absolute; top: -14px; right: -26px; font-family: 'Cinzel', serif; font-weight: 700; font-size: 22px; color: #F2B1A8;">−38</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+              <span style="font-family: 'Cinzel', serif; font-weight: 700; font-size: 20px; color: #D4B062;">Lama del Rift</span>
+              <span style="font-size: 15px;">Livello 52 · Spadone</span>
+              <span style="font-size: 14px; color: #B8B0A2;">Lama: forte contro Arcano, debole contro Mira</span>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <div style="display: flex; justify-content: space-between; font-size: 14px;"><span>Punti vita</span><span>612 / 840</span></div>
+            <div style="height: 14px; background: #2B1414; border: 1px solid #5A2A2A;"><div style="width: 73%; height: 100%; background: #B23A3A;"></div></div>
+            <div style="display: flex; justify-content: space-between; font-size: 14px; color: #B8B0A2;"><span>Attacco</span><span>3,2 s</span></div>
+            <div style="height: 8px; background: #161A24; border: 1px solid #2E3A55;"><div style="width: 58%; height: 100%; background: #5B8BD9;"></div></div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <span style="font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 1px; color: #D4B062;">ABILITÀ</span>
+            <div style="display: flex; gap: 8px;">
+              <sc-for list="{{abilities}}" as="ab" hint-placeholder-count="3">
+                <div style="width: 120px; box-sizing: border-box; padding: 8px; border: 1px solid #5E4C26; background: #241E15; display: flex; flex-direction: column; gap: 6px;">
+                  <span style="font-size: 14px;">{{ab.name}}</span>
+                  <div style="height: 6px; background: #2A2419;"><div style="height: 100%; background: #D4B062; width: {{ab.cd}};"></div></div>
+                  <span style="font-size: 12px; color: #B8B0A2;">{{ab.state}}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <span style="font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 1px; color: #D4B062;">TRATTI</span>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+              <span style="font-size: 13px; padding: 4px 8px; border: 1px solid #5E4C26;">Fendente a catena</span>
+              <span style="font-size: 13px; padding: 4px 8px; border: 1px solid #5E4C26;">Sete del Rift</span>
+              <span style="font-size: 13px; padding: 4px 8px; border: 1px solid #5E4C26;">Bevitore di vita</span>
+              <span style="font-size: 13px; padding: 4px 8px; border: 1px dashed #4A4030; color: #8A8273;">slot al liv. 50</span>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 6px; position: relative;">
+            <span style="font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 1px; color: #D4B062;">EQUIPAGGIAMENTO</span>
+            <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px;">
+              <sc-for list="{{gear}}" as="g" hint-placeholder-count="9">
+                <div style="height: 52px; border: 2px solid {{g.color}}; background: #15120F; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #B8B0A2; text-align: center;">{{g.label}}</div>
+              </sc-for>
+            </div>
+            <!-- example hover tooltip -->
+            <div style="position: absolute; left: 150px; top: -150px; width: 260px; box-sizing: border-box; padding: 10px 12px; background: #0E0C10; border: 1px solid #E6C14F; display: flex; flex-direction: column; gap: 3px; font-size: 13px;">
+              <span style="font-size: 15px; font-weight: 700; color: #E6C14F;">Spadone di vetro del Rift</span>
+              <span style="color: #B8B0A2;">Raro · Livello oggetto 50 · +5</span>
+              <span>Precisione +88 · Potenza +94</span>
+              <span>Pesante +9% potenza (grado 3)</span>
+              <span>Fulmineo −4% intervallo (grado 2)</span>
+              <span>Del cinghiale +40 PV (grado 2)</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- divider -->
+        <div aria-hidden="true" style="width: 56px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;">
+          <div style="width: 1px; flex-grow: 1; background: linear-gradient(#121014, #8C7339, #121014);"></div>
+          <span style="font-family: 'Cinzel', serif; font-weight: 700; color: #D4B062; font-size: 18px;">VS</span>
+          <div style="width: 1px; flex-grow: 1; background: linear-gradient(#121014, #9C3B3B, #121014);"></div>
+        </div>
+
+        <!-- ENEMIES -->
+        <section aria-label="Nemici" style="flex-grow: 1; min-width: 0; box-sizing: border-box; padding: 16px; border: 2px solid #7A2E2E; background: #1A1213; display: flex; flex-direction: column; gap: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <span style="font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 1px; color: #E07A6E;">BERSAGLIO</span>
+            <span style="font-size: 14px; color: #B8B0A2;">Regola: il primo della fila</span>
+          </div>
+
+          <!-- target -->
+          <div style="display: flex; gap: 18px; padding: 14px; border: 2px solid #E07A6E; background: #231617;">
+            <div style="width: 150px; height: 150px; flex-shrink: 0; border: 2px solid #9C3B3B; background: #2A1A1B; display: flex; align-items: center; justify-content: center; position: relative;">
+              <svg width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="#C9A0E8" stroke-width="1.3" aria-hidden="true"><path d="M5 20l2-9 5-6 5 6 2 9z"/><circle cx="10" cy="12" r="1"/><circle cx="14" cy="12" r="1"/><path d="M9 16h6"/></svg>
+              <span style="position: absolute; top: -18px; right: -40px; font-family: 'Cinzel', serif; font-weight: 700; font-size: 34px; color: #F0D58A;">−182!</span>
+              <span style="position: absolute; bottom: 10px; left: -30px; font-family: 'Cinzel', serif; font-weight: 700; font-size: 20px; color: #E8E2D6;">−61</span>
+            </div>
+            <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-family: 'Cinzel', serif; font-weight: 700; font-size: 22px; color: #F2B1A8;">Strega delle vene</span>
+                <span style="font-size: 13px; padding: 3px 8px; border: 1px solid #6D9EEB; color: #A9C6F5;">Arcano · sei in vantaggio</span>
+              </div>
+              <span style="font-size: 15px; color: #B8B0A2;">Livello 55 · attacca ogni 2,8 s · riduzione del danno 10</span>
+              <div style="display: flex; justify-content: space-between; font-size: 14px;"><span>Punti vita</span><span>211 / 520</span></div>
+              <div style="height: 16px; background: #2B1414; border: 1px solid #5A2A2A;"><div style="width: 41%; height: 100%; background: #B23A3A;"></div></div>
+              <div style="height: 8px; background: #161A24; border: 1px solid #2E3A55;"><div style="width: 30%; height: 100%; background: #5B8BD9;"></div></div>
+            </div>
+          </div>
+
+          <!-- other enemies -->
+          <span style="font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 1px; color: #E07A6E;">IN FILA (4)</span>
+          <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px;">
+            <sc-for list="{{enemies}}" as="e" hint-placeholder-count="4">
+              <div style="box-sizing: border-box; padding: 10px; border: 1px solid #5A2A2A; background: #1F1516; display: flex; flex-direction: column; gap: 6px; opacity: {{e.opacity}};">
+                <div style="height: 64px; border: 1px solid #5A2A2A; background: #2A1A1B; display: flex; align-items: center; justify-content: center;">
+                  <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="{{e.tint}}" stroke-width="1.4" aria-hidden="true"><path d="M5 20l2-9 5-6 5 6 2 9z"/><circle cx="10" cy="12" r="1"/><circle cx="14" cy="12" r="1"/></svg>
+                </div>
+                <span style="font-size: 14px; color: #F2B1A8;">{{e.name}}</span>
+                <span style="font-size: 12px; color: #B8B0A2;">{{e.style}}</span>
+                <div style="height: 10px; background: #2B1414;"><div style="height: 100%; background: #B23A3A; width: {{e.hp}};"></div></div>
+                <div style="height: 5px; background: #161A24;"><div style="height: 100%; background: #5B8BD9; width: {{e.atk}};"></div></div>
+              </div>
+            </sc-for>
+          </div>
+          <span style="font-size: 13px; color: #8A8273;">Icone segnaposto: poi piccoli sprite con 4 stati (fermo, attacco, colpito, morte).</span>
+        </section>
+      </div>
+
+      <!-- bottom row -->
+      <div style="display: flex; gap: 14px; height: 132px; flex-shrink: 0;">
+        <div style="flex: 3 1 0; min-width: 0; box-sizing: border-box; padding: 12px 14px; border: 1px solid #5E4C26; background: #18151B; display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 1px; color: #D4B062;">BOTTINO</span>
+            <span style="font-size: 14px; color: #B8B0A2;">Borsa 7 / 12</span>
+            <span style="flex-grow: 1;"></span>
+            <button style="min-height: 44px; padding: 0 16px; background: #2A2219; color: #F0D58A; border: 1px solid #8C7339; font-family: inherit; font-size: 15px;">Raccogli tutto</button>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <sc-for list="{{loot}}" as="l" hint-placeholder-count="7">
+              <div style="width: 52px; height: 52px; border: 2px solid {{l.color}}; background: #15120F; display: flex; align-items: flex-end; justify-content: flex-end; box-sizing: border-box; padding: 2px 4px; font-size: 12px;">{{l.qty}}</div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="flex: 2 1 0; min-width: 0; box-sizing: border-box; padding: 12px 14px; border: 1px solid #5E4C26; background: #18151B; display: flex; flex-direction: column; gap: 8px;">
+          <span style="font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 1px; color: #D4B062;">RENDIMENTO (ULTIMA ORA)</span>
+          <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px;">
+            <div style="display: flex; flex-direction: column;"><span style="font-size: 22px; font-weight: 700;">142</span><span style="font-size: 13px; color: #B8B0A2;">uccisioni/ora</span></div>
+            <div style="display: flex; flex-direction: column;"><span style="font-size: 22px; font-weight: 700;">52.300</span><span style="font-size: 13px; color: #B8B0A2;">XP/ora</span></div>
+            <div style="display: flex; flex-direction: column;"><span style="font-size: 22px; font-weight: 700;">3.140</span><span style="font-size: 13px; color: #B8B0A2;">oro/ora</span></div>
+            <div style="display: flex; flex-direction: column;"><span style="font-size: 22px; font-weight: 700;">84</span><span style="font-size: 13px; color: #B8B0A2;">danno/s</span></div>
+          </div>
+          <a href="#" style="font-size: 14px;">▸ Registro: 412 colpi · 37 abilità · 19 parate · 6 cibi</a>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const R = { c: '#D9D4C7', m: '#6D9EEB', r: '#E6C14F', e: '#3A3326' };
+    return {
+      abilities: [
+        { name: 'Mulinello', cd: '100%', state: 'pronta' },
+        { name: 'Colpo spaccaossa', cd: '45%', state: 'ricarica 3,1 s' },
+        { name: 'Slot al liv. 30', cd: '0%', state: '—' }
+      ],
+      gear: [
+        { label: 'Elmo', color: R.m }, { label: 'Corpo', color: R.r }, { label: 'Gambe', color: R.c },
+        { label: 'Piedi', color: R.m }, { label: 'Mani', color: R.c }, { label: 'Collo', color: R.e },
+        { label: 'Anello', color: R.e }, { label: 'Spadone', color: R.r }, { label: '2ª mano', color: R.e },
+        { label: 'Ascia', color: R.c }, { label: 'Piccone', color: R.m }, { label: 'Canna', color: R.c }
+      ],
+      enemies: [
+        { name: 'Golem crepato', style: 'Lama · alla pari', hp: '100%', atk: '70%', tint: '#C9B89A', opacity: '1' },
+        { name: 'Strisciatore', style: 'Mira · svantaggio', hp: '100%', atk: '20%', tint: '#9FD18B', opacity: '1' },
+        { name: 'Strisciatore', style: 'Mira · svantaggio', hp: '64%', atk: '85%', tint: '#9FD18B', opacity: '1' },
+        { name: 'Golem crepato', style: 'sconfitto', hp: '0%', atk: '0%', tint: '#6B6358', opacity: '0.45' }
+      ],
+      loot: [
+        { qty: '3', color: R.c }, { qty: '1', color: R.m }, { qty: '12', color: R.c }, { qty: '1', color: R.r },
+        { qty: '4', color: R.c }, { qty: '2', color: R.c }, { qty: '1', color: R.m }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
