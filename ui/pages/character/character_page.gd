@@ -135,17 +135,11 @@ func _on_equipment_changed(_slot_id: StringName, _uid: int) -> void:
 	_refresh()
 
 
-## Base combat values of F-70 (accuracy, evasion, damage, HP) from CombatantStats.for_player, one line each.
+## Base combat values of F-70 (accuracy, evasion, damage, HP), one line each (`CombatTexts.final_stat_lines`).
 func _refresh_stats() -> void:
 	if _session == null:
 		return
-	var stats: CombatantStats = CombatantStats.for_player(_session)
-	var lines: Array[String] = [
-		CombatTexts.stat_line(_session.data, &"accuracy", stats.accuracy),
-		CombatTexts.stat_line(_session.data, &"evasion", stats.evasion),
-		CombatTexts.STAT_DAMAGE_TEXT % [NumberFormat.format_int(stats.min_hit), NumberFormat.format_int(stats.max_hit)],
-		CombatTexts.stat_line(_session.data, &"max_hp", stats.max_hp),
-	]
+	var lines: Array[String] = CombatTexts.final_stat_lines(_session)
 	while _stats_list.get_child_count() < lines.size():
 		var line := Label.new()
 		line.name = "Stat%d" % _stats_list.get_child_count()

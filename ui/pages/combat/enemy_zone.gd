@@ -36,6 +36,7 @@ func _ready() -> void:
 	_target_card.name = "TargetCard"
 	_target_holder.add_child(_target_card)
 	_target_card.visible = false
+	_queue.resized.connect(_fit_cards)
 
 
 ## Redraws from `state` (`combat.get_state()`); `session` gives the data and the player's style.
@@ -62,6 +63,7 @@ func refresh(session: GameSession, state: Dictionary) -> void:
 	_queue_title.text = CombatTexts.QUEUE_TITLE % maxi(queued, 0)
 	_count.text = CombatTexts.ENEMY_COUNT_TEXT % [alive, enemies.size()] if not enemies.is_empty() else ""
 	_empty.visible = target < 0
+	_fit_cards()
 	_empty.text = CombatTexts.STATE_TEXTS.get(state["state"], CombatTexts.STATE_TEXT_DEFAULT) \
 			if enemies.is_empty() else CombatTexts.NO_TARGET_TEXT
 
@@ -113,6 +115,27 @@ static func _info_text(def: MonsterDef) -> String:
 		return ""
 	return CombatTexts.ENEMY_INFO_TEXT % [CombatTexts.seconds_text(def.attack_interval_ms),
 			NumberFormat.format_int(roundi(def.damage_reduction))]
+
+
+## Width of a small card so that the cards of the row fill `avail`: as many columns as fit at the minimum width (at most
+## one per card), the remaining space shared equally.
+static func card_width(avail: float, count: int, min_width: float, separation: float) -> float:
+	if avail <= 0.0 or count <= 0:
+		return min_width
+	var columns: int = clampi(floori((avail + separation) / (min_width + separation)), 1, count)
+	return maxf(min_width, floorf((avail - separation * (columns - 1)) / columns))
+
+
+## Widens the visible small cards to fill the row (they are 104 px wide at the least).
+func _fit_cards() -> void:
+	var visible_count: int = 0
+	for card: EnemyCard in _cards:
+		if card.visible:
+			visible_count += 1
+	var width: float = card_width(_queue.size.x, visible_count, UiStyle.COMBAT_QUEUE_CARD_WIDTH,
+			float(_queue.get_theme_constant("h_separation")))
+	for card: EnemyCard in _cards:
+		card.set_card_width(width)
 
 
 ## Floating number on the enemy at `index` (and on the big card if it shows that enemy); flash if it was really hit.

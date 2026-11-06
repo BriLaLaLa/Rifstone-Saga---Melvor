@@ -108,7 +108,7 @@ func bind(session: GameSession) -> void:
 	for sig: Signal in _signals(events):
 		sig.connect(_redraw_from_event)
 	_build_filters()
-	_doll.build(func(slot: StringName) -> String: return EquipmentStatsText.slot_text(slot, _session.data))
+	_doll.build(func(slot: StringName) -> String: return EquipmentStatsText.doll_text(slot, _session.data))
 	for view: EquipmentSlotView in _doll.slot_views():
 		view.pressed.connect(_on_slot_pressed)
 		view.right_clicked.connect(_on_slot_right_clicked)

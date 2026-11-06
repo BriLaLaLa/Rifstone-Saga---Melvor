@@ -21,6 +21,8 @@ const EMPTY_ICON_TINT := Color(0.55, 0.5, 0.4, 0.8)
 const BORDER_WIDTH: int = 2
 const GLOW_BORDER_WIDTH: int = 4
 const LABEL_FONT_SIZE: int = 11
+const LABEL_MIN_FONT_SIZE: int = 7
+const LABEL_PADDING: float = 8.0
 const RADIUS: float = 3.0
 
 var _slot: StringName = &""
@@ -51,7 +53,9 @@ func _init() -> void:
 	_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_label.add_theme_font_size_override("font_size", LABEL_FONT_SIZE)
 	_label.clip_text = true
+	_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	box.add_child(_label)
+	resized.connect(_fit_label)
 	mouse_entered.connect(func() -> void: hover_started.emit(_slot))
 	mouse_exited.connect(func() -> void: hover_ended.emit())
 
@@ -60,6 +64,7 @@ func _init() -> void:
 func setup(slot: StringName, label_text: String) -> void:
 	_slot = slot
 	_label.text = label_text
+	_fit_label()
 	name = "Slot_%s" % slot
 	show_empty()
 
@@ -139,3 +144,21 @@ func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 
 func _drop_data(_at_position: Vector2, data: Variant) -> void:
 	piece_dropped.emit(_slot, PieceDrag.uid_of(data))
+
+
+## Shrinks the label font until the whole text fits the width of the slot (never cut), down to a readable minimum.
+func _fit_label() -> void:
+	if _label == null:
+		return
+	var font: Font = _label.get_theme_font("font")
+	var available: float = size.x - LABEL_PADDING
+	var font_size: int = LABEL_FONT_SIZE
+	while font_size > LABEL_MIN_FONT_SIZE and font.get_string_size(_label.text, HORIZONTAL_ALIGNMENT_LEFT, -1,
+			font_size).x > available:
+		font_size -= 1
+	_label.add_theme_font_size_override("font_size", font_size)
+
+
+## Font size of the label now, for tests.
+func label_font_size() -> int:
+	return _label.get_theme_font_size("font_size")
