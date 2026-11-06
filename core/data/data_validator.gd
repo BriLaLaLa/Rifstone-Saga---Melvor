@@ -34,11 +34,11 @@ const REQUIRED_BALANCE_KEYS: PackedStringArray = [
 	"rarity.craft.magic_base_pct", "rarity.craft.magic_per_mastery_level", "rarity.craft.rare_base_pct",
 	"rarity.craft.rare_per_mastery_level", "rarity.affix_count.magic", "rarity.affix_count.rare",
 	"rift.sockets", "offline.cap_ms", "offline.min_ms",
-	"offline.chunk_ms",
+	"offline.chunk_ms", "traits.slot_levels", "abilities.slot_levels",
 ]
 ## Balance keys holding an array, a combat style or a class id; every other required key holds a number.
 const BALANCE_LIST_KEYS: PackedStringArray = [
-	"start.items", "combat.auto_eat_tiers", "rift.sockets", "rarity.affix_count.magic", "rarity.affix_count.rare",
+	"start.items", "combat.auto_eat_tiers", "rift.sockets", "traits.slot_levels", "abilities.slot_levels", "rarity.affix_count.magic", "rarity.affix_count.rare",
 ]
 const BALANCE_STYLE_KEYS: PackedStringArray = [
 	"combat.triangle.beats.blade", "combat.triangle.beats.arcana", "combat.triangle.beats.marksmanship",

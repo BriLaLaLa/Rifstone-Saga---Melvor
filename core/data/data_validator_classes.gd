@@ -107,9 +107,7 @@ static func validate_classes(v: DataValidatorRules, files: Dictionary[String, Di
 		var weapon_kinds: Array = _kinds(v, c, "weapon_kinds", WEAPON_KINDS, 1)
 		var offhand_kinds: Array = _kinds(v, c, "offhand_kinds", _offhand_kinds(), 0)
 		_setups(v, c, weapon_kinds, offhand_kinds)
-		for key: String in ["traits", "abilities"]:
-			if not v.object_list(c, key).is_empty():
-				v.fail("field '%s' must be empty (traits and abilities are validated from M6)" % key)
+		DataValidatorTraits.validate_class_lists(v, c)
 
 
 # The kinds under `key`: strings of `allowed`, at least `min_count`.
@@ -210,6 +208,7 @@ static func validate_balance(v: DataValidatorRules, balance: Dictionary) -> void
 	var combat: Variant = DataValidator.lookup(balance, "combat")
 	if combat is Dictionary and DataValidatorRules.is_number((combat as Dictionary).get("max_pack_size")):
 		v.integer(combat as Dictionary, "max_pack_size", 1, DataValidator.PACK_SIZE_MAX, "combat")
+	DataValidatorTraits.validate_balance(v, balance)
 	var counts: Variant = DataValidator.lookup(balance, "rarity.affix_count")
 	for rarity: String in ["magic", "rare"]:
 		if counts is Dictionary and (counts as Dictionary).get(rarity) is Array:

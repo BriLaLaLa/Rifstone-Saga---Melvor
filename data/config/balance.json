@@ -103,6 +103,12 @@
   "character": {
     "start_class": "rift_blade"
   },
+  "traits": {
+    "slot_levels": [1, 10, 25, 50]
+  },
+  "abilities": {
+    "slot_levels": [1, 1, 30]
+  },
   "armory": {
     "base_slots": 40,
     "slot_cost_base": 1000,
