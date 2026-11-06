@@ -8,7 +8,8 @@ const LOG_CATEGORY: String = "combat"
 
 
 ## `snapshot`: state, area, player_hp, player_timer_ms, hand, between_ms, enemies (Array), effects (Dictionary), loot
-## (Array), kills (Dictionary[StringName, int]), deaths, food_eaten.
+## (Array), abilities and buffs (Dictionaries: timers and running buffs), kills (Dictionary[StringName, int]),
+## deaths, food_eaten.
 static func write(snapshot: Dictionary) -> Dictionary:
 	var kills_out: Dictionary = {}
 	var kills: Dictionary = snapshot["kills"]
@@ -22,7 +23,8 @@ static func write(snapshot: Dictionary) -> Dictionary:
 		"hand": 0 if idle else snapshot["hand"],
 		"between_ms": 0 if idle else snapshot["between_ms"],
 		"enemies": [] if idle else snapshot["enemies"],
-		"effects": {} if idle else snapshot["effects"],
+		"effects": {} if idle else snapshot["effects"], "abilities": {} if idle else snapshot["abilities"],
+		"buffs": {} if idle else snapshot["buffs"],
 		"loot": snapshot["loot"], "kills": kills_out, "deaths": snapshot["deaths"],
 		"food_eaten": snapshot["food_eaten"],
 	}
@@ -33,7 +35,8 @@ static func write(snapshot: Dictionary) -> Dictionary:
 static func read(d: Dictionary, data: GameData) -> Dictionary:
 	var result: Dictionary = {
 		"state": CombatEngine.STATE_IDLE, "area": &"", "encounter": null, "player_hp": 0, "player_timer_ms": 0,
-		"hand": 0, "between_ms": 0, "effects": {}, "kills": _read_kills(d, data), "deaths": maxi(0, _int(d, "deaths")),
+		"hand": 0, "between_ms": 0, "effects": {}, "abilities": {}, "buffs": {},
+		"kills": _read_kills(d, data), "deaths": maxi(0, _int(d, "deaths")),
 		"food_eaten": maxi(0, _int(d, "food_eaten")),
 	}
 	var saved_state := StringName(str(d.get("state", "idle")))
@@ -60,6 +63,8 @@ static func read(d: Dictionary, data: GameData) -> Dictionary:
 	if not live and saved_state == CombatEngine.STATE_ENCOUNTER:
 		result["between_ms"] = int(data.balance_value("combat.respawn_ms"))
 	result["effects"] = d.get("effects", {})
+	result["abilities"] = d.get("abilities", {})
+	result["buffs"] = d.get("buffs", {})
 	return result
 
 

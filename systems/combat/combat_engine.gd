@@ -2,9 +2,9 @@ class_name CombatEngine
 extends RefCounted
 ## Event-driven group combat (docs/01_GDD.md §10, docs/05_INTERFACES.md §5.10). `advance` jumps from timer to timer,
 ## so `advance(1000)` and ten `advance(100)` give the same result. All randomness comes from `session.rng`, in the
-## order fixed by 05 §5.10. Player stats are recomputed (cached only until a modifier, equipment or level change);
-## enemy stats come from the monster data. Everything but those derived numbers is saved.
-## Trait effects (M6) hook in through `EffectSet`; the save format lives in `CombatSave`.
+## order fixed by 05 §5.10. Player stats are recomputed (cached until a modifier, equipment or level change).
+## Trait effects hook in through `EffectSet`, active abilities through `AbilityRunner`; the save format is in
+## `CombatSave`, the UI copy in `CombatView`.
 ## Dependencies: data, events, modifiers, rng, bank, wallet, character, equipment, loadout, actions (only `stop`).
 
 const SAVE_KEY: StringName = &"combat"
@@ -27,6 +27,7 @@ var _player_timer_ms: int = 0
 var _hand: int = 0
 var _between_ms: int = 0
 var _fx: EffectSet
+var _abilities: AbilityRunner
 var _kills: Dictionary[StringName, int] = {}
 var _deaths: int = 0
 var _food_eaten: int = 0
@@ -38,13 +39,12 @@ func _init(session: GameSession) -> void:
 	_session = session
 	loot = LootBag.new(session)
 	_fx = EffectSet.new(session)
+	_abilities = AbilityRunner.new(session)
 	session.events.modifiers_changed.connect(_on_stats_source_changed)
 	session.events.equipment_changed.connect(_on_loadout_changed.unbind(2))
 	session.events.character_level_up.connect(_on_stats_source_changed.unbind(1))
 	session.events.traits_changed.connect(_on_loadout_changed)
 
-
-# --- commands ---------------------------------------------------------------------------------------------------
 
 ## unknown_id, requirement_not_met (character level). Stops the main-lane action (REPLACED). Starting the area
 ## already fought changes nothing; another area replaces the current fight.
@@ -78,6 +78,7 @@ func stop(reason: StringName = Reasons.STOPPED_BY_USER) -> void:
 	_encounter = Encounter.new()
 	_between_ms = 0
 	_fx.reset()
+	_abilities.reset()
 	_stop_log.append(reason)
 	_set_hp(player_stats().max_hp)
 	_session.events.combat_stopped.emit(reason)
@@ -95,8 +96,6 @@ func eat() -> CommandResult:
 	_set_hp(new_hp)
 	return CommandResult.success()
 
-
-# --- queries ----------------------------------------------------------------------------------------------------
 
 func is_active() -> bool:
 	return _state != STATE_IDLE
@@ -153,20 +152,10 @@ func enemy_stats(index: int) -> CombatantStats:
 
 ## Copy for the UI (docs/05_INTERFACES.md §5.10). `player_hp` is the maximum while idle.
 func get_state() -> Dictionary:
-	var max_hp: int = player_stats().max_hp
-	var enemies: Array[Dictionary] = []
-	for enemy: Encounter.Enemy in _encounter.enemies:
-		enemies.append({"monster": enemy.def.id, "hp": enemy.hp, "max_hp": enemy.stats.max_hp,
-			"timer_ms": enemy.timer_ms, "interval_ms": enemy.stats.attack_interval_ms})
-	return {
-		"state": _state, "area": _area_id, "player_hp": max_hp if _state == STATE_IDLE else _player_hp,
-		"player_max_hp": max_hp, "player_timer_ms": _player_timer_ms,
-		"player_interval_ms": player_stats(_hand).attack_interval_ms, "hand": _hand, "between_ms": _between_ms,
-		"enemies": enemies, "target": _encounter.target(_fx.target_rule()), "abilities": [], "buffs": {},
-	}
+	return CombatView.build(self, _encounter, _abilities, {"state": _state, "area": _area_id, "hand": _hand,
+		"player_hp": _player_hp, "player_timer_ms": _player_timer_ms, "between_ms": _between_ms,
+		"rule": _fx.target_rule()})
 
-
-# --- the engine -------------------------------------------------------------------------------------------------
 
 ## Jumps to the next timer that expires, resolves that instant (F-76), repeats; the rest stays in the timers.
 func advance(delta_ms: int) -> void:
@@ -184,7 +173,7 @@ func advance(delta_ms: int) -> void:
 func _next_timer() -> int:
 	if _state == STATE_BETWEEN:
 		return _between_ms
-	var next: int = _player_timer_ms
+	var next: int = mini(_player_timer_ms, _abilities.next_ms(_player_hp, player_stats().max_hp))
 	for enemy: Encounter.Enemy in _encounter.enemies:
 		if enemy.alive():
 			next = mini(next, enemy.timer_ms)
@@ -194,6 +183,7 @@ func _next_timer() -> int:
 func _consume(ms: int) -> void:
 	if ms <= 0:
 		return
+	_abilities.tick(ms)
 	if _state == STATE_BETWEEN:
 		_between_ms -= ms
 		return
@@ -211,6 +201,7 @@ func _resolve_instant() -> void:
 		return
 	if _player_timer_ms <= 0:
 		_player_attack()
+	_use_abilities()
 	for i: int in _encounter.enemies.size():
 		if _state != STATE_ENCOUNTER:
 			return
@@ -244,8 +235,26 @@ func _player_attack() -> void:
 	for index: int in targets:
 		attacks.append(Encounter.roll_attack(player_stats(_hand), _encounter.enemies[index].stats, 0.0, _session.rng,
 			_session.data, ctx.damage_mult))
-	_hand = 1 if _hand == 0 and _is_dual_wielding() else 0
+	var setup: SetupDef = _session.equipment.setup_def()
+	var dual: bool = setup != null and setup.alternate and _session.equipment.offhand_weapon() != null
+	_hand = 1 if _hand == 0 and dual else 0
 	_player_timer_ms = player_stats(_hand).attack_interval_ms
+	_apply_hits(targets, attacks)
+
+
+# F-76/F-79: after the base attack, the abilities that are due, in slot order (each hits, heals or starts a buff).
+func _use_abilities() -> void:
+	while _state == STATE_ENCOUNTER:
+		var use: AbilityRunner.Use = _abilities.take_due(_encounter, _player_hp, player_stats(), _fx.target_rule())
+		if use == null:
+			return
+		_session.events.ability_used.emit(use.id, use.targets)
+		_apply_hits(use.targets, use.attacks)
+		_set_hp(mini(player_stats().max_hp, _player_hp + use.heal))
+
+
+# The outcomes of the player's rolls, in target order: hit event, hp, leech, kill.
+func _apply_hits(targets: Array[int], attacks: Array[Dictionary]) -> void:
 	for k: int in targets.size():
 		if _state != STATE_ENCOUNTER:
 			return
@@ -253,7 +262,9 @@ func _player_attack() -> void:
 		_session.events.combat_hit.emit(PLAYER, targets[k], attacks[k]["hit"], damage, false)
 		if damage > 0:
 			_hurt_enemy(targets[k], damage)
-			_heal_from_hit(damage)
+			var ctx: EffectContext = _ctx()  # leech (F-81) and the like
+			_fx.hit(ctx, damage)
+			_set_hp(mini(ctx.player_max_hp, _player_hp + ctx.heal))
 
 
 func _enemy_attack(index: int, enemy: Encounter.Enemy) -> void:
@@ -265,8 +276,12 @@ func _enemy_attack(index: int, enemy: Encounter.Enemy) -> void:
 	if damage <= 0:
 		return
 	_set_hp(maxi(0, _player_hp - damage))
-	if _player_hp <= 0:
-		_die()
+	if _player_hp <= 0:  # death: only the loot bag is lost
+		loot.lose_all()
+		_deaths += 1
+		_set_hp(me.max_hp)
+		_session.events.player_died.emit()
+		stop(Reasons.PLAYER_DIED)
 		return
 	var ctx: EffectContext = _ctx()
 	_fx.damaged(ctx, damage)
@@ -287,12 +302,6 @@ func _hurt_enemy(index: int, damage: int) -> void:
 		_kill(index, enemy)
 
 
-func _heal_from_hit(damage: int) -> void:
-	var ctx: EffectContext = _ctx()
-	_fx.hit(ctx, damage)
-	_set_hp(mini(ctx.player_max_hp, _player_hp + ctx.heal))
-
-
 # Kill (05 §5.10): xp (F-28), then gold (F-31), drops in data order (F-32), shard (F-07); last enemy ends the encounter.
 func _kill(index: int, enemy: Encounter.Enemy) -> void:
 	var def: MonsterDef = enemy.def
@@ -309,16 +318,6 @@ func _kill(index: int, enemy: Encounter.Enemy) -> void:
 		_session.events.encounter_cleared.emit()
 
 
-func _die() -> void:
-	loot.lose_all()
-	_deaths += 1
-	_set_hp(player_stats().max_hp)
-	_session.events.player_died.emit()
-	stop(Reasons.PLAYER_DIED)
-
-
-# --- helpers ----------------------------------------------------------------------------------------------------
-
 ## What the effect hooks see of the fight right now.
 func _ctx() -> EffectContext:
 	var ctx := EffectContext.new()
@@ -333,11 +332,6 @@ func _set_hp(hp: int) -> void:
 		return
 	_player_hp = hp
 	_session.events.player_hp_changed.emit(hp, player_stats().max_hp)
-
-
-func _is_dual_wielding() -> bool:
-	var setup: SetupDef = _session.equipment.setup_def()
-	return setup != null and setup.alternate and _session.equipment.offhand_weapon() != null
 
 
 func _food_count() -> int:
@@ -358,20 +352,25 @@ func _on_stats_source_changed() -> void:
 		_set_hp(player_stats().max_hp)
 
 
-# --- save -------------------------------------------------------------------------------------------------------
-
 func new_game() -> void:
 	_apply(CombatSave.read({}, _session.data))
 	_stop_log = []
 	_stats = [null, null]
 	_fx.reset()
+	_abilities.reset()
 	loot.from_save([])
+
+
+## Buffs of the running abilities (`ability:<id>`): the session rebuilds every modifier source after a load.
+func rebuild_modifiers() -> void:
+	_abilities.rebuild_modifiers()
 
 
 func to_save() -> Dictionary:
 	return CombatSave.write({
 		"state": _state, "area": _area_id, "player_hp": _player_hp, "player_timer_ms": _player_timer_ms,
 		"hand": _hand, "between_ms": _between_ms, "enemies": _encounter.to_save(), "effects": _fx.to_save(),
+		"abilities": _abilities.timers_save(), "buffs": _abilities.buffs_save(),
 		"loot": loot.to_save(), "kills": _kills, "deaths": _deaths, "food_eaten": _food_eaten,
 	})
 
@@ -384,6 +383,7 @@ func from_save(d: Dictionary) -> void:
 	var parsed: Dictionary = CombatSave.read(d, _session.data)
 	_apply(parsed)
 	_fx.from_save(parsed["effects"])
+	_abilities.from_save(parsed["abilities"], parsed["buffs"])
 
 
 func _apply(parsed: Dictionary) -> void:
