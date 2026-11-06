@@ -15,11 +15,13 @@ const TEST_FUNC_PREFIX: String = "test_"
 # M5: combat F-20..F-22, F-25..F-27, F-29..F-31, F-33, F-75 and 10.6 (auto_loot, GDD loot bag).
 # M6: F-78..F-81 (loadout slots, ability cooldown and effect, trait effects): no registry stat uses them, the class data
 # is checked below.
+# M7: F-86 (refinement: upgrade_success_pct, tests/systems/armory/test_upgrade.gd).
 # A milestone that closes adds its formulas here.
 const CLOSED_FORMULAS: Array[String] = [
 	"F-02", "F-03", "F-06", "F-07", "F-08", "F-10", "F-16", "F-82", "F-83",
 	"F-20", "F-21", "F-22", "F-25", "F-26", "F-27", "F-29", "F-30", "F-31", "F-33", "F-75", "10.6",
 	"F-78", "F-79", "F-80", "F-81",
+	"F-86",
 ]
 # The stats whose effect M1 delivers: they must be covered by the closed formulas above.
 const M1_STATS: Array[StringName] = [

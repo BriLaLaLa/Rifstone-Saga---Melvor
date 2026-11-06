@@ -38,6 +38,8 @@ signal food_changed(item_id: StringName)
 signal armory_changed(uid: int, change: StringName)
 signal armory_capacity_changed(used: int, capacity: int)
 signal armory_rejected(base_id: StringName, qty: int)
+signal item_upgraded(uid: int, success: bool, new_level: int)  # M7
+signal item_salvaged(uid: int, base_id: StringName, auto: bool)  # M7: auto = by the Armory filter
 signal modifiers_changed()
 
 # Combat

@@ -54,6 +54,7 @@ func _init(session: GameSession) -> void:
 	_unarmed_style = StringName(str(_data.balance_value(UNARMED_STYLE_KEY)))
 	_unarmed_interval_ms = int(_data.balance_value(UNARMED_INTERVAL_KEY))
 	_dual_mult = float(_data.balance_value(DUAL_MULT_KEY))
+	_events.armory_changed.connect(_on_armory_changed)
 
 
 ## 0 if the slot is empty.
@@ -371,3 +372,10 @@ func _apply_sources() -> void:
 	if current != null:
 		_applied_setup = current.id
 		_modifiers.set_source(StringName(SETUP_PREFIX + String(current.id)), current.modifiers)
+
+
+# M7-01: a worn piece that changed in the Armory (refinement) refreshes its source `equipment:<slot>`.
+func _on_armory_changed(uid: int, change: StringName) -> void:
+	var slot: StringName = slot_of(uid)
+	if change == Armory.CHANGE_UPDATED and slot != &"":
+		_modifiers.set_source(StringName(SOURCE_PREFIX + String(slot)), _armory.instance_modifiers(uid))

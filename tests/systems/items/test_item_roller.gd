@@ -128,3 +128,20 @@ func test_tool_affix_scope() -> void:
 	var affix_mod: Modifier = mods[mods.size() - 1]
 	assert_eq(affix_mod.scope_kind, Modifier.SCOPE_SKILL)
 	assert_eq(affix_mod.scope_id, &"forestry")
+
+
+func test_instance_modifiers_upgrade_multiplier() -> void:
+	# F-86: base modifiers x (1 + upgrade.mod_pct_per_level x N / 100) (10): +3 -> x1.3; affixes do not change.
+	var inst := ItemInstance.new()
+	inst.base_id = &"test_blade"
+	inst.upgrade = 3
+	inst.affixes.append(AffixRoll.make(&"test_keen", 2, 9.0))
+	var mods: Array[Modifier] = ItemRoller.instance_modifiers(inst, _data)
+	assert_eq(mods.size(), 3)
+	assert_almost_eq(mods[0].value, 8.0 * 1.3, 0.0001, "accuracy_bonus x1.3")
+	assert_almost_eq(mods[1].value, 6.0 * 1.3, 0.0001, "power_bonus x1.3")
+	assert_eq(mods[2].value, 9.0, "the affix keeps its value")
+	inst.upgrade = 0
+	assert_eq(ItemRoller.instance_modifiers(inst, _data)[0].value, 8.0, "+0 leaves the base")
+	inst.upgrade = 9
+	assert_almost_eq(ItemRoller.instance_modifiers(inst, _data)[1].value, 6.0 * 1.9, 0.0001, "+9 -> x1.9")

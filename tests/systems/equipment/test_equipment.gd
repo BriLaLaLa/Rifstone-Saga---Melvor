@@ -265,3 +265,20 @@ func test_works_without_combat_system() -> void:
 	var blade: int = _piece(BLADE)
 	assert_false(_session.combat.in_encounter(), "idle combat does not lock the hands")
 	assert_true(_session.equipment.equip(blade).ok)
+
+
+func test_refining_a_worn_piece_updates_its_modifiers() -> void:
+	# M7-01: armory_changed(uid, updated) refreshes the source equipment:<slot> (F-86: base x (1 + 10 N / 100)).
+	var session: GameSession = autofree(TestFactory.session(5, TestFactory.real_data()))
+	var uid: int = TestFactory.give_piece(session, &"emberbronze_sword")
+	assert_true(session.equipment.equip(uid).ok)
+	var before: float = session.modifiers.total(&"power_bonus")
+	var unequipped_uid: int = TestFactory.give_piece(session, &"emberbronze_sword")
+	TestFactory.give(session, &"emberbronze_ingot", 1)
+	session.wallet.add_gold(50)
+	# A +300% bonus makes the attempt certain (seed-independent).
+	session.modifiers.set_source(&"test:upg", [Modifier.make(&"upgrade_success_pct", 300.0)])
+	assert_true(session.armory.upgrade(uid).ok)
+	assert_eq(session.armory.get_instance(uid).upgrade, 1)
+	assert_almost_eq(session.modifiers.total(&"power_bonus"), before + 6.0 * 0.1, 0.0001, "power_bonus x1.1")
+	assert_eq(session.armory.get_instance(unequipped_uid).upgrade, 0, "the other piece is untouched")

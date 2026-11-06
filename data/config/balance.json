@@ -133,6 +133,28 @@
       ]
     }
   },
+  "upgrade": {
+    "levels": [
+      {"success_pct": 95, "gold_per_grade": 50, "ingots": 1, "shards": 0},
+      {"success_pct": 90, "gold_per_grade": 100, "ingots": 1, "shards": 0},
+      {"success_pct": 85, "gold_per_grade": 200, "ingots": 2, "shards": 0},
+      {"success_pct": 75, "gold_per_grade": 400, "ingots": 2, "shards": 0},
+      {"success_pct": 65, "gold_per_grade": 800, "ingots": 3, "shards": 0},
+      {"success_pct": 55, "gold_per_grade": 1600, "ingots": 3, "shards": 5},
+      {"success_pct": 45, "gold_per_grade": 3200, "ingots": 4, "shards": 10},
+      {"success_pct": 35, "gold_per_grade": 6400, "ingots": 4, "shards": 15},
+      {"success_pct": 25, "gold_per_grade": 12800, "ingots": 5, "shards": 20}
+    ],
+    "downgrade_from": 4,
+    "mod_pct_per_level": 10,
+    "seal_item": "warding_seal",
+    "ingot_items": ["emberbronze_ingot", "ashlead_ingot", "stormzinc_ingot", "duskcobalt_ingot", "glimmerite_ingot",
+      "palecinnabar_ingot", "emberheart_ingot", "riftite_ingot"]
+  },
+  "salvage": {
+    "ingot_ratio": 0.4,
+    "shards_by_rarity": {"common": 0, "magic": 1, "rare": 3}
+  },
   "rift": {
     "sockets": [
       {

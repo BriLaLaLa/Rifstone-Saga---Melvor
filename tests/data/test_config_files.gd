@@ -101,7 +101,7 @@ const EXPECTED_BALANCE: Dictionary = {
 	"offline.chunk_ms": 60000.0,
 }
 
-## The 24 stats of M1-M4 of 02_FORMULAS.md §11: id -> [min, max, formula].
+## The stats of M1-M6 and upgrade_success_pct (M7) of 02_FORMULAS.md §11: id -> [min, max, formula].
 const EXPECTED_STATS: Dictionary = {
 	"skill_interval_pct": [-80.0, 100.0, "F-03"],
 	"skill_xp_pct": [0.0, 1000.0, "F-02"],
@@ -127,13 +127,14 @@ const EXPECTED_STATS: Dictionary = {
 	"armory_slots": [0.0, 10000.0, "F-82"],
 	"item_rarity_pct": [0.0, 1000.0, "F-83"],
 	"block_chance": [0.0, 50.0, "F-75"],
+	"upgrade_success_pct": [0.0, 300.0, "F-86"],
 }
 
 const STAT_FIELDS: Array[String] = ["id", "name", "format", "min", "max", "description", "formula", "test"]
 const STAT_FORMATS: Array[String] = ["pct", "flat", "flag"]
-const LATER_MILESTONE_STATS: Array[String] = ["upgrade_success_pct", "fracture_duration_pct", "parallel_lanes"]
+const LATER_MILESTONE_STATS: Array[String] = ["fracture_duration_pct", "parallel_lanes"]
 const LATER_MILESTONE_BALANCE_KEYS: Array[String] = [
-	"upgrade", "rift_stone", "salvage", "sockets", "fractures", "parallel",
+	"rift_stone", "sockets", "fractures", "parallel",
 ]
 
 
@@ -167,6 +168,14 @@ func _flatten(value: Variant, prefix: String, out: Dictionary) -> void:
 		out[prefix] = value
 
 
+# The leaves of balance.json except the M7 sections `upgrade` and `salvage` (tests/data/test_loot_balance.gd).
+func _flatten_without_loot(out: Dictionary) -> void:
+	_flatten(_load_dict(BALANCE_PATH), "", out)
+	for key: String in out.keys():
+		if key.begins_with("upgrade.") or key.begins_with("salvage."):
+			out.erase(key)
+
+
 func _join(prefix: String, key: String) -> String:
 	return key if prefix.is_empty() else prefix + "." + key
 
@@ -187,7 +196,7 @@ func test_balance_parses_as_dictionary() -> void:
 
 func test_balance_has_every_mvp_key_with_expected_value() -> void:
 	var flat: Dictionary = {}
-	_flatten(_load_dict(BALANCE_PATH), "", flat)
+	_flatten_without_loot(flat)
 	for path: String in EXPECTED_BALANCE:
 		assert_true(flat.has(path), "balance key %s present" % path)
 		if not flat.has(path):
@@ -203,7 +212,7 @@ func test_balance_has_every_mvp_key_with_expected_value() -> void:
 
 func test_balance_has_no_unexpected_keys() -> void:
 	var flat: Dictionary = {}
-	_flatten(_load_dict(BALANCE_PATH), "", flat)
+	_flatten_without_loot(flat)
 	for path: String in flat:
 		assert_true(EXPECTED_BALANCE.has(path), "balance key %s is part of the MVP specification" % path)
 	assert_eq(flat.size(), EXPECTED_BALANCE.size(), "balance.json leaf count")
@@ -217,7 +226,7 @@ func test_balance_has_no_later_milestone_sections() -> void:
 
 func test_stats_has_exactly_24_stats() -> void:
 	var stats: Array = _stats()
-	assert_eq(stats.size(), 24, "stats.json lists the 24 stats of M1-M4")
+	assert_eq(stats.size(), 25, "stats.json lists the 24 stats of M1-M6 and upgrade_success_pct (M7)")
 	var ids: Array[String] = []
 	for entry: Variant in stats:
 		if entry is Dictionary:

@@ -239,6 +239,16 @@
       "description": "Probabilità di parare un colpo con lo scudo.",
       "formula": "F-75",
       "test": "tests/systems/combat/test_combat_engine.gd::test_block_chance"
+    },
+    {
+      "id": "upgrade_success_pct",
+      "name": "Riuscita della raffinazione",
+      "format": "pct",
+      "min": 0,
+      "max": 300,
+      "description": "Aumenta la probabilità di riuscita della raffinazione.",
+      "formula": "F-86",
+      "test": "tests/systems/armory/test_upgrade.gd::test_upgrade_success_pct"
     }
   ]
 }

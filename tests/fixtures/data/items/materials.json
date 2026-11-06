@@ -8,6 +8,14 @@
      "description": "Secondo materiale di raccolta per i test."},
     {"id": "test_plank", "name": "Asse di prova", "category": "material",
      "icon": "res://assets/icons/items/test_plank.png", "value": 8, "sort_order": 30,
-     "description": "Prodotto di artigianato per i test."}
+     "description": "Prodotto di artigianato per i test."},
+    {"id": "emberbronze_ingot", "name": "Lingotto di prova 1", "category": "material", "icon": "res://assets/icons/items/emberbronze_ingot.svg", "value": 1, "sort_order": 110, "description": "Lingotto del grado 1 (upgrade.ingot_items di balance.json) per i test."},
+    {"id": "ashlead_ingot", "name": "Lingotto di prova 2", "category": "material", "icon": "res://assets/icons/items/ashlead_ingot.svg", "value": 2, "sort_order": 120, "description": "Lingotto del grado 2 per i test."},
+    {"id": "stormzinc_ingot", "name": "Lingotto di prova 3", "category": "material", "icon": "res://assets/icons/items/stormzinc_ingot.svg", "value": 3, "sort_order": 130, "description": "Lingotto del grado 3 per i test."},
+    {"id": "duskcobalt_ingot", "name": "Lingotto di prova 4", "category": "material", "icon": "res://assets/icons/items/duskcobalt_ingot.svg", "value": 4, "sort_order": 140, "description": "Lingotto del grado 4 per i test."},
+    {"id": "glimmerite_ingot", "name": "Lingotto di prova 5", "category": "material", "icon": "res://assets/icons/items/glimmerite_ingot.svg", "value": 5, "sort_order": 150, "description": "Lingotto del grado 5 per i test."},
+    {"id": "palecinnabar_ingot", "name": "Lingotto di prova 6", "category": "material", "icon": "res://assets/icons/items/palecinnabar_ingot.svg", "value": 6, "sort_order": 160, "description": "Lingotto del grado 6 per i test."},
+    {"id": "emberheart_ingot", "name": "Lingotto di prova 7", "category": "material", "icon": "res://assets/icons/items/emberheart_ingot.svg", "value": 7, "sort_order": 170, "description": "Lingotto del grado 7 per i test."},
+    {"id": "riftite_ingot", "name": "Lingotto di prova 8", "category": "material", "icon": "res://assets/icons/items/riftite_ingot.svg", "value": 8, "sort_order": 180, "description": "Lingotto del grado 8 per i test."}
   ]
 }
