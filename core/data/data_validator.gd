@@ -35,16 +35,21 @@ const REQUIRED_BALANCE_KEYS: PackedStringArray = [
 	"rarity.craft.rare_per_mastery_level", "rarity.affix_count.magic", "rarity.affix_count.rare",
 	"rift.sockets", "offline.cap_ms", "offline.min_ms",
 	"offline.chunk_ms", "traits.slot_levels", "abilities.slot_levels",
+	"upgrade.levels", "upgrade.downgrade_from", "upgrade.mod_pct_per_level", "upgrade.seal_item", "upgrade.ingot_items",
+	"salvage.ingot_ratio", "salvage.shards_by_rarity",
 ]
 ## Balance keys holding an array, a combat style or a class id; every other required key holds a number.
 const BALANCE_LIST_KEYS: PackedStringArray = [
 	"start.items", "combat.auto_eat_tiers", "rift.sockets", "traits.slot_levels", "abilities.slot_levels", "rarity.affix_count.magic", "rarity.affix_count.rare",
+	"upgrade.levels", "upgrade.ingot_items",
 ]
 const BALANCE_STYLE_KEYS: PackedStringArray = [
 	"combat.triangle.beats.blade", "combat.triangle.beats.arcana", "combat.triangle.beats.marksmanship",
 	"combat.unarmed.style",
 ]
 const BALANCE_CLASS_KEYS: PackedStringArray = ["character.start_class"]
+const BALANCE_TEXT_KEYS: PackedStringArray = ["upgrade.seal_item"]  # M7: an item id (checked by DataValidatorLoot)
+const BALANCE_OBJECT_KEYS: PackedStringArray = ["salvage.shards_by_rarity"]
 const AFFIX_COUNT_KEYS: PackedStringArray = ["rarity.affix_count.magic", "rarity.affix_count.rare"]
 const AFFIX_COUNT_MAX: int = 6
 const PACK_SIZE_MAX: int = 6  # format limit of combat.max_pack_size
@@ -183,6 +188,7 @@ static func _validate_balance(v: DataValidatorRules, files: Dictionary[String, D
 		if v.max_pack_size < 1.0:
 			v.max_pack_size = DataValidatorRules.NO_LIMIT
 		DataValidatorClasses.validate_balance(v, balance)
+		DataValidatorLoot.validate_balance(v, balance)
 
 
 static func _balance_value(v: DataValidatorRules, key: String, value: Variant) -> void:
@@ -192,6 +198,12 @@ static func _balance_value(v: DataValidatorRules, key: String, value: Variant) -
 	elif key in BALANCE_STYLE_KEYS:
 		if not value is String or not DataValidatorRules.STYLES.has(value as String):
 			v.fail("key '%s' must be one of %s, got %s" % [key, DataValidatorRules.STYLES, JSON.stringify(value)])
+	elif key in BALANCE_TEXT_KEYS:
+		if not value is String or (value as String).is_empty():
+			v.fail("key '%s' must be a non-empty id, got %s" % [key, JSON.stringify(value)])
+	elif key in BALANCE_OBJECT_KEYS:
+		if not value is Dictionary:
+			v.fail("key '%s' must be an object, got %s" % [key, JSON.stringify(value)])
 	elif key in BALANCE_CLASS_KEYS:
 		if not value is String:
 			v.fail("key '%s' must be a class id, got %s" % [key, JSON.stringify(value)])
@@ -264,6 +276,7 @@ static func _validate_balance_refs(v: DataValidatorRules, files: Dictionary[Stri
 		if start is Dictionary and (start as Dictionary).get("items") is Array:
 			v.item_qty_list(start as Dictionary, "items", 0, "start")
 			_start_items_are_stackable(v, (start as Dictionary)["items"] as Array)
+		DataValidatorLoot.validate_refs(v, files[path])
 		var character: Variant = lookup(files[path], "character")
 		for key: String in BALANCE_CLASS_KEYS:
 			if character is Dictionary and (character as Dictionary).get(key.get_slice(".", 1)) is String:

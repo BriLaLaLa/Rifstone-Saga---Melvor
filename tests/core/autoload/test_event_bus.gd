@@ -32,6 +32,8 @@ const EXPECTED: Dictionary = {
 	"armory_changed": [["uid", I, ""], ["change", SN, ""]],
 	"armory_capacity_changed": [["used", I, ""], ["capacity", I, ""]],
 	"armory_rejected": [["base_id", SN, ""], ["qty", I, ""]],
+	"item_upgraded": [["uid", I, ""], ["success", B, ""], ["new_level", I, ""]],
+	"item_salvaged": [["uid", I, ""], ["base_id", SN, ""], ["auto", B, ""]],
 	"modifiers_changed": [],
 	"combat_started": [["area_id", SN, ""]],
 	"combat_stopped": [["reason", SN, ""]],

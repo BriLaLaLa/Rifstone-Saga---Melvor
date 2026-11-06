@@ -18,6 +18,8 @@ var _data: GameData
 var _events: GameEvents
 var _modifiers: ModifierService
 var _rng: RngService
+var _bank: Bank
+var _wallet: Wallet
 var _base_slots: int = 0
 # uid -> instance, in insertion order (Dictionary keeps it).
 var _items: Dictionary[int, ItemInstance] = {}
@@ -33,6 +35,8 @@ func _init(session: GameSession) -> void:
 	_events = session.events
 	_modifiers = session.modifiers
 	_rng = session.rng
+	_bank = session.bank
+	_wallet = session.wallet
 	_base_slots = int(_data.balance_value(BASE_SLOTS_KEY))
 	_known_capacity = capacity()
 	_events.modifiers_changed.connect(_on_modifiers_changed)
@@ -142,6 +146,47 @@ func instance_modifiers(uid: int) -> Array[Modifier]:
 		var none: Array[Modifier] = []
 		return none
 	return ItemRoller.instance_modifiers(_items[uid], _data)
+
+
+## F-86: one refinement attempt of `uid`. Fails without any change: unknown_id, upgrade_max, not_enough_gold,
+## not_enough_items (ingots, shards and, when `use_seal` and the step can lose a level, the Seal). Success: +1.
+## Failure: the materials are lost and, from `upgrade.downgrade_from`, the piece drops one level, unless `use_seal`
+## (the Seal is then consumed; it is neither required nor consumed below that level). Never destroys the piece.
+func upgrade(uid: int, use_seal: bool = false) -> CommandResult:
+	if not _items.has(uid):
+		return CommandResult.fail(Reasons.UNKNOWN_ID)
+	var inst: ItemInstance = _items[uid]
+	if inst.upgrade >= Upgrade.max_level(_data):
+		return CommandResult.fail(Reasons.UPGRADE_MAX)
+	var cost: Dictionary = Upgrade.cost(inst.upgrade, _data.item(inst.base_id).equip.grade, _data)
+	var seal_needed: bool = use_seal and Upgrade.failed_level(inst.upgrade, _data) < inst.upgrade
+	if _wallet.get_gold() < int(cost["gold"]):
+		return CommandResult.fail(Reasons.NOT_ENOUGH_GOLD)
+	var ingot: StringName = cost["ingot"]
+	if not _bank.has(ingot, int(cost["ingots"])) or not _bank.has(Upgrade.SHARD_ITEM, int(cost["shards"])) \
+			or (seal_needed and not _bank.has(Upgrade.seal_item(_data), 1)):
+		return CommandResult.fail(Reasons.NOT_ENOUGH_ITEMS)
+	if int(cost["gold"]) > 0:
+		_wallet.spend(int(cost["gold"]))
+	_spend_items(ingot, int(cost["ingots"]))
+	_spend_items(Upgrade.SHARD_ITEM, int(cost["shards"]))
+	var chance: float = Upgrade.chance_pct(inst.upgrade, _modifiers.total(Upgrade.STAT), _data)
+	var success: bool = _rng.roll_pct(chance)
+	if success:
+		inst.upgrade += 1
+	else:
+		if seal_needed:
+			_spend_items(Upgrade.seal_item(_data), 1)
+		else:
+			inst.upgrade = Upgrade.failed_level(inst.upgrade, _data)
+	_events.armory_changed.emit(uid, CHANGE_UPDATED)
+	_events.item_upgraded.emit(uid, success, inst.upgrade)
+	return CommandResult.success()
+
+
+func _spend_items(item_id: StringName, qty: int) -> void:
+	if qty > 0:
+		_bank.remove(item_id, qty)
 
 
 func new_game() -> void:

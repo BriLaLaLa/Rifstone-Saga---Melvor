@@ -74,7 +74,7 @@ func test_xp_tables_come_from_the_curves() -> void:
 
 func test_stats_registry_is_built() -> void:
 	assert_true(_data.stats.has(&"skill_interval_pct"))
-	assert_eq(_data.stats.ids().size(), 24)
+	assert_eq(_data.stats.ids().size(), 25)
 
 
 func test_item_lookup() -> void:
@@ -82,7 +82,7 @@ func test_item_lookup() -> void:
 	assert_eq(item.food_heal, 20)
 	assert_true(_data.has_item(&"rift_shard"))
 	assert_false(_data.has_item(&"ghost_item"))
-	assert_eq(_data.items().size(), 12)
+	assert_eq(_data.items().size(), 20)
 
 
 func test_unknown_ids_are_null_with_error() -> void:
@@ -107,7 +107,7 @@ func test_has_area_and_has_monster_do_not_log_errors() -> void:
 func test_lists_are_copies() -> void:
 	_data.items().clear()
 	_data.skills().clear()
-	assert_eq(_data.items().size(), 12)
+	assert_eq(_data.items().size(), 20)
 	assert_eq(_data.skills().size(), 4)
 
 
