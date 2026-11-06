@@ -1609,3 +1609,8 @@ static func save_dir() -> String               # test_dir("test_saves"): base_di
 ```
 I test lo raggiungono con `const PreRun := preload("res://tests/helpers/gut_pre_run.gd")` (nessun `class_name`).
 Ogni test libera la sessione con `autofree()` (GUT) o `session.free()`.
+
+### Strumento `tools/sim_combat.gd` (non è un'API di gioco)
+Opzioni aggiunte in M7-07, oltre a quelle di M5-06: `loot=0|1` (con 1 stampa anche le tabelle di M7: pezzi/ora per rarità,
+Pietre del Rift, scontro con la Pietra e costo atteso della raffinazione) e `loadout=none|auto` (con `auto` riempie gli slot
+aperti di tratti e abilità con i primi sbloccati consentiti dall'assetto; default `none`). `scope=easiest` include le Pietre.

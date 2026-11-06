@@ -3,14 +3,29 @@
 Aggiornato dall'Orchestratore (unico che modifica questo file). Stati: TODO / IN_PROGRESS / REVIEW / DONE / BLOCKED.
 Se la sessione si interrompe, si riparte da qui.
 
-## Ripartenza (aggiornata il 2026-11-06, fine M6)
-- **Stato**: **M6 completata**, tag `m6-done` sul commit docs di M6-07 (`main`). Merge di M6: M6-00a `03160e3`, M6-01
-  `9d85382`, M6-00b `44ddcdb`, M6-00c `be942ee`, M6-02 `8c4690d`, M6-03 `d84476a`, M6-04 `58edace`, M6-05 `86bc4e1`,
-  M6-06 (task/M6-06, c2220a1). Suite e Prova del Giocabile: vedi riga M6-07. M5 era chiusa col tag `m5-done`.
-- **Sessione M7 iniziata (OK dell'utente dato)**. Q44 decisa: valgono i valori attuali di `rift_blade.json`, da ritarare con `tools/sim_combat.gd` a fine M7 (nota su M7-07).
-- **Prove manuali consigliate (M7-00)**: impilamento dei testi volanti con piu colpi ravvicinati (danno, Mancato, Parato); piu carte nemici in fila che riempiono la zona senza tagli; etichette degli attrezzi con le skill reali nella bambola; tratti e abilita come carte con un solo avviso durante l'incontro; statistiche finali nell'Equipaggiamento; layout a 1600x900 e 1280x720.
+## Ripartenza (aggiornata il 2026-11-06, fine M7)
+- **Stato**: **M7 completata**, tag `m7-done` sul commit docs finale (`main`). Merge di M7: M7-01/02 `ae5abb1`, M7-03/04
+  `09ddd00`, M7-05 `bf21966`, M7-06 `2782b9d`, M7-07 (task/M7-07, 9643a99). Suite e Prova del Giocabile: vedi riga M7-08.
+  M6 era chiusa col tag `m6-done`.
+- **Prossimo passo**: **M8 Legatura del Rift**, dopo l'OK dell'utente: primi task **M8-01** (CORE, Altare del Rift, nota
+  N3) e **M8-02** (DATA, Legatura, infusioni, nodi dell'artigianato, nota N4), indipendenti tra loro (max 2 agenti insieme).
+  Poi M8-03/M8-04 (castoni, pietre, valute).
+- **Decisioni ritarate in M7-07**: Q44 e Q45 (whirl `power_mult` 1,0; rift_maul 2,0; shield_bash 1,8 con ricarica 6500 ms;
+  drop dei mostri e delle Pietre; `pulse_damage` Miniere 10, Soglia 15). `balance.json` e formule invariati.
+- **Decisioni aperte per l'utente** (default in `OPEN_QUESTIONS.md`): Q26, Q27-Q40, Q41, Q42, Q43, **Q46** (frequenza delle
+  Pietre: una ogni circa 0,8 h in Pianure ma 2,4-2,6 h in Miniere e Soglia con `chance_pct` 0,5; opzioni `chance_pct` circa
+  1,0 o valore per area). Provvisori confermati: affissi (`02_FORMULAS.md` §8.9), F-83, F-86, F-87, F-88.
+- **Follow-up di bilanciamento (non bloccanti)**: pezzi rari/ora sotto il criterio di `06_ROADMAP.md` in Bosco (0,08/h
+  su 12 h; a 4 h con `scope=easiest` 0,25/h); pezzi/ora sopra 12 in Pianure (17,7).
+- **Testo da inserire nella sezione Stato di CLAUDE.md (serve l'OK dell'utente, autorizzazione data solo per M5/M6)**:
+  "M7 (Bottino) completata, tag `m7-done`. Prossima milestone: **M8 Altare del Rift**, dopo l'OK dell'utente per M8-01;
+  l'MVP è M0-M9." (sostituisce "M6 ... Prossima milestone: M6 Abilità e tratti" nella frase corrispondente, aggiungendo
+  M6 completata, tag `m6-done`, se non già presente).
+- **Prove manuali consigliate (M7)**: pagina Armeria: Raffina (costi e probabilità mostrati, esito, Sigillo), Smantella con
+  conferma, filtro automatico per slot, "Nome +N" e "+N" nelle celle; pagina del combattimento: carta della Pietra (PV,
+  impulso, comparsa, sconfitta, bottino); testi volanti impilati; layout a 1600x900 e 1280x720.
 - **Pulizia a mano**: rimuovere `C:\Users\Davide\Desktop\AI\wt-M7-03-04` (Permission denied, probabile Godot headless orfano; poi `git worktree prune`).
-- **Prossimo passo**: M7-01..M7-06 DONE (M7-06 merge `2782b9d`). Ora **M7-07** (QA; include ritaratura Q44+Q45 con sim_combat), poi **M7-08** (REV, fine milestone). Ogni task che aggiunge una stat chiude la sua formula in `CLOSED_FORMULAS` di `tests/data/test_stat_registry_coverage.gd`.
+- **Prove manuali consigliate (M7-00)**: impilamento dei testi volanti con piu colpi ravvicinati (danno, Mancato, Parato); piu carte nemici in fila che riempiono la zona senza tagli; etichette degli attrezzi con le skill reali nella bambola; tratti e abilita come carte con un solo avviso durante l'incontro; statistiche finali nell'Equipaggiamento; layout a 1600x900 e 1280x720.
 - **Prove manuali consigliate (M6-05)**: pagina Personaggio, pannello Tratti e Abilità: scegliere o svuotare uno slot, voci bloccate per livello o già in uso, slot chiusi, selettori disabilitati durante un incontro; in combattimento lampo della carta o del tratto, righe nel registro, stato "attiva N s" dei buff; layout a 1600x900 e 1280x720. Regole dei consumi di `CLAUDE.md`.
 - **Prove manuali consigliate (M6-00c)**: avviare un combattimento e verificare colonne giocatore/nemici, bersaglio e fila, numeri di danno (colpo forte), bottino e rendimento "ultima ora", registro, equipaggiamento con tooltip, sezioni Abilità/Tratti vuote; layout a 1600x900 e 1280x720.
 - **Decisioni aperte per l'utente** (`OPEN_QUESTIONS.md`, finché non risponde valgono i default): Q26 (nodi di Cavatura
@@ -134,8 +149,8 @@ Se la sessione si interrompe, si riparte da qui.
 | M7-04 | M7 | Pietre del Rift | COMBAT | DONE | task/M7-03-04 | merge 09ddd00 (2b15a76); `RiftStone`, `RiftStoneDef`, `DataValidatorStones`, `combat.stone` nel save, segnale `rift_stone_appeared`; `rift_stones.json` ancora vuoto (M7-05) |
 | M7-05 | M7 | Contenuto: gioielli, drop, Pietre, Sigillo | DATA | DONE | task/M7-05 | merge bf21966 (3d34b8a); 8 anelli + 8 amuleti, `warding_seal`, 4 Pietre, drop nei mostri; `validate_refs` controlla `seal_item`; valori provvisori in Q45 (ritaratura in M7-07) |
 | M7-06 | M7 | Armeria completa e Pietra nella UI | UI | DONE | task/M7-06 | merge 2782b9d (cf67057); riquadro Raffina (RefineBox/RefineTexts, costi e probabilità da Upgrade), Smantella con conferma (SalvageBox), filtro per slot (FilterPanel), carta Pietra (EnemyView, GameData.rift_stone); equipment_page.gd a 400 righe: nessun margine, spostare codice prima di aggiungerne; item_upgraded senza livello precedente (UI: "è ora a +N"), `previous_level` in 05 non necessario per MVP; prove manuali: riquadro Raffina con/senza Sigillo, Smantella con conferma, filtro per slot, carta Pietra viola con barra impulso, layout 1600x900 e 1280x720 del filtro; run_checks 1419/1419 |
-| M7-07 | M7 | Test di M7 | QA | TODO | | |
-| M7-08 | M7 | Integrazione di M7 | REV | TODO | | tag m7-done |
+| M7-07 | M7 | Test di M7 | QA | DONE | task/M7-07 | merge (9643a99); test d'integrazione loot, Pietra, save; sim_combat: scope=easiest con Pietre, opzioni loot=1 e loadout=auto; ritaratura Q44/Q45 solo in dati (rift_blade, monsters, rift_stones) |
+| M7-08 | M7 | Integrazione di M7 | REV | DONE | main | tag m7-done sul commit docs finale; run_checks 1441 test, 1441 passati, 0 pending, 0 falliti; validate_data, righe per file e riferimenti vietati ok (1135 file); Prova del Giocabile 5/5 (test d'integrazione M7 + sim_combat loot=1 loadout=auto, misure in `06_ROADMAP.md`); Q44/Q45 ritarate, Q46 aperta; push di main e m7-done |
 | M8-01 | M8 | Altare del Rift | CORE | TODO | | nota N3 |
 | M8-02 | M8 | Contenuto: Legatura e nodi dell'artigianato | DATA | TODO | | nota N4 |
 | M8-03 | M8 | Castoni, pietre e valute del Rift | CORE | TODO | | |

@@ -308,7 +308,8 @@ animazione di posizione.
 ### 10.12 Strumento di bilanciamento
 `tools/sim_combat.gd`: simula N ore di combattimento in headless (classe, livello, equipaggiamento, tratti, abilità,
 area) e stampa uccisioni/ora, morti, oro/ora, XP/ora, cibo consumato. Si usa a ogni cambio dei dati di combattimento
-(criteri in `02_FORMULAS.md` §8.5).
+(criteri in `02_FORMULAS.md` §8.5). Opzioni `loot=1` (tabelle di bottino, Pietre e costo della raffinazione) e
+`loadout=auto` (tratti e abilità sbloccati negli slot aperti): vedi `05_INTERFACES.md` §8.
 
 ## 11. Legatura del Rift e Altare del Rift (M8)
 

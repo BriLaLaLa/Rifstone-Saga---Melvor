@@ -1,7 +1,7 @@
 extends GutTest
 ## F-86 refinement: pure rules (Upgrade) and Armory.upgrade (costs, success, downgrade, Seal, signals). Real data.
-## The Seal item does not exist in the content yet (M7-05): the commands use a copy of the config whose
-## `upgrade.seal_item` is an existing item (SEAL).
+## The commands use a copy of the config whose
+## `upgrade.seal_item` is a generic existing item (SEAL), so the tests do not depend on the real `warding_seal`.
 
 const SWORD_T1: StringName = &"emberbronze_sword"
 const SWORD_T4: StringName = &"duskcobalt_sword"
