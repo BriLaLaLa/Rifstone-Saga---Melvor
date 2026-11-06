@@ -13,7 +13,7 @@ const TOOL_SLOT_TEXT: String = "Attrezzo: %s"
 const TOOL_SLOT_DEFAULT_TEXT: String = "Attrezzo"
 const SLOT_TEXTS: Dictionary[StringName, String] = {
 	&"head": "Testa", &"body": "Corpo", &"legs": "Gambe", &"feet": "Piedi", &"hands": "Mani", &"neck": "Collo",
-	&"ring": "Anello", &"weapon": "Arma", &"offhand": "Mano secondaria",
+	&"ring": "Anello", &"weapon": "In mano", &"offhand": "Seconda mano",
 }
 const SOURCE_EQUIPMENT_PREFIX: String = "equipment:"
 const SOURCE_SETUP_PREFIX: String = "setup:"
@@ -38,7 +38,22 @@ static func slot_text(slot: StringName, data: GameData) -> String:
 	return text
 
 
-## BBCode of the whole summary.
+## BBCode of the final values: one line "name  total" for every stat with at least one source in the global context.
+static func totals(session: GameSession) -> String:
+	var lines: PackedStringArray = PackedStringArray()
+	for stat: StringName in session.data.stats.ids():
+		if session.modifiers.breakdown(stat).is_empty():
+			continue
+		var info: Dictionary = session.data.stats.info(stat)
+		var total: String = ItemTooltipLines.format_stat(info["format"] as String, session.modifiers.total(stat))
+		lines.append("%s  %s" % [ItemTooltipLines.escape(info["name"] as String),
+				COLOR_TAG % [UiStyle.GOLD_LIGHT.to_html(false), total]])
+	if lines.is_empty():
+		return COLOR_TAG % [UiStyle.TEXT_2.to_html(false), STATS_EMPTY_TEXT]
+	return "\n".join(lines)
+
+
+## BBCode of the whole summary, with the sources of every stat.
 static func summary(session: GameSession) -> String:
 	var lines: PackedStringArray = PackedStringArray()
 	var global_sources: Dictionary[StringName, Array] = {}

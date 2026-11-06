@@ -1,6 +1,9 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://ui/pages/equipment/equipment_page.gd" id="1_page"]
+[ext_resource type="Script" path="res://ui/pages/equipment/inventory_scroll.gd" id="2_scroll"]
+[ext_resource type="Script" path="res://ui/pages/equipment/equipment_doll.gd" id="3_doll"]
+[ext_resource type="PackedScene" path="res://ui/pages/equipment/piece_panel.tscn" id="4_panel"]
 
 [node name="EquipmentPage" type="Control"]
 layout_mode = 3
@@ -20,74 +23,160 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Content" type="VBoxContainer" parent="Margin"]
+[node name="Main" type="HBoxContainer" parent="Margin"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="Header" type="PanelContainer" parent="Margin/Content"]
+[node name="InventoryPanel" type="PanelContainer" parent="Margin/Main"]
+unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 3.0
 theme_type_variation = &"HudPanel"
 
-[node name="TitleLabel" type="Label" parent="Margin/Content/Header"]
+[node name="InventoryBox" type="VBoxContainer" parent="Margin/Main/InventoryPanel"]
+layout_mode = 2
+
+[node name="InventoryHeader" type="HBoxContainer" parent="Margin/Main/InventoryPanel/InventoryBox"]
+layout_mode = 2
+
+[node name="InventoryTitle" type="Label" parent="Margin/Main/InventoryPanel/InventoryBox/InventoryHeader"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 theme_type_variation = &"TitleLabel"
 
-[node name="MessageLabel" type="Label" parent="Margin/Content"]
+[node name="CapacityLabel" type="Label" parent="Margin/Main/InventoryPanel/InventoryBox/InventoryHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+
+[node name="Filters" type="HBoxContainer" parent="Margin/Main/InventoryPanel/InventoryBox"]
+layout_mode = 2
+
+[node name="SlotFilter" type="OptionButton" parent="Margin/Main/InventoryPanel/InventoryBox/Filters"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+
+[node name="RarityFilter" type="OptionButton" parent="Margin/Main/InventoryPanel/InventoryBox/Filters"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+
+[node name="FullLabel" type="Label" parent="Margin/Main/InventoryPanel/InventoryBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="EmptyLabel" type="Label" parent="Margin/Main/InventoryPanel/InventoryBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+autowrap_mode = 3
+
+[node name="Scroll" type="ScrollContainer" parent="Margin/Main/InventoryPanel/InventoryBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+script = ExtResource("2_scroll")
+
+[node name="Grid" type="HFlowContainer" parent="Margin/Main/InventoryPanel/InventoryBox/Scroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HintLabel" type="Label" parent="Margin/Main/InventoryPanel/InventoryBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+autowrap_mode = 3
+
+[node name="DollPanel" type="PanelContainer" parent="Margin/Main"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 3.5
+theme_type_variation = &"HudPanel"
+
+[node name="DollBox" type="VBoxContainer" parent="Margin/Main/DollPanel"]
+layout_mode = 2
+
+[node name="DollHeader" type="HBoxContainer" parent="Margin/Main/DollPanel/DollBox"]
+layout_mode = 2
+
+[node name="ClassLabel" type="Label" parent="Margin/Main/DollPanel/DollBox/DollHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"TitleLabel"
+
+[node name="SetupLabel" type="Label" parent="Margin/Main/DollPanel/DollBox/DollHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+
+[node name="Doll" type="Control" parent="Margin/Main/DollPanel/DollBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+script = ExtResource("3_doll")
+
+[node name="MessageLabel" type="Label" parent="Margin/Main/DollPanel/DollBox"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 autowrap_mode = 3
 
-[node name="Main" type="HBoxContainer" parent="Margin/Content"]
+[node name="RightScroll" type="ScrollContainer" parent="Margin/Main"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_vertical = 3
-
-[node name="LeftScroll" type="ScrollContainer" parent="Margin/Content/Main"]
-layout_mode = 2
 size_flags_horizontal = 3
+size_flags_stretch_ratio = 3.0
 horizontal_scroll_mode = 0
 
-[node name="Left" type="VBoxContainer" parent="Margin/Content/Main/LeftScroll"]
-unique_name_in_owner = true
+[node name="RightBox" type="VBoxContainer" parent="Margin/Main/RightScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="SlotsBox" type="VBoxContainer" parent="Margin/Content/Main/LeftScroll/Left"]
-unique_name_in_owner = true
+[node name="StatsPanel" type="PanelContainer" parent="Margin/Main/RightScroll/RightBox"]
 layout_mode = 2
-
-[node name="SetupBox" type="VBoxContainer" parent="Margin/Content/Main/LeftScroll/Left"]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="FoodBox" type="VBoxContainer" parent="Margin/Content/Main/LeftScroll/Left"]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="StatsPanel" type="PanelContainer" parent="Margin/Content/Main"]
-layout_mode = 2
-size_flags_horizontal = 3
 theme_type_variation = &"HudPanel"
 
-[node name="StatsScroll" type="ScrollContainer" parent="Margin/Content/Main/StatsPanel"]
+[node name="StatsBox" type="VBoxContainer" parent="Margin/Main/RightScroll/RightBox/StatsPanel"]
 layout_mode = 2
-horizontal_scroll_mode = 0
 
-[node name="StatsBox" type="VBoxContainer" parent="Margin/Content/Main/StatsPanel/StatsScroll"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="StatsTitle" type="Label" parent="Margin/Content/Main/StatsPanel/StatsScroll/StatsBox"]
+[node name="StatsTitle" type="Label" parent="Margin/Main/RightScroll/RightBox/StatsPanel/StatsBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"HeaderLabel"
 
-[node name="StatsText" type="RichTextLabel" parent="Margin/Content/Main/StatsPanel/StatsScroll/StatsBox"]
+[node name="StatsText" type="RichTextLabel" parent="Margin/Main/RightScroll/RightBox/StatsPanel/StatsBox"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
 bbcode_enabled = true
 fit_content = true
 scroll_active = false
+
+[node name="FoodRow" type="HBoxContainer" parent="Margin/Main/RightScroll/RightBox/StatsPanel/StatsBox"]
+layout_mode = 2
+
+[node name="FoodLabel" type="Label" parent="Margin/Main/RightScroll/RightBox/StatsPanel/StatsBox/FoodRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"MutedLabel"
+autowrap_mode = 3
+
+[node name="ClearFoodButton" type="Button" parent="Margin/Main/RightScroll/RightBox/StatsPanel/StatsBox/FoodRow"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+
+[node name="PiecePanel" parent="Margin/Main/RightScroll/RightBox" instance=ExtResource("4_panel")]
+unique_name_in_owner = true
+layout_mode = 2

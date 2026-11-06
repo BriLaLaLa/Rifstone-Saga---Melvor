@@ -1,284 +1,375 @@
 class_name EquipmentPage
 extends Page
-## Equipment page (docs/01_GDD.md §9), route `equipment`: the 12 slots (tools included) with the worn piece (name in
-## the rarity color, "+N" of the upgrade) and "Rimuovi", the weapon setup derived from the pair of weapons, the
-## chosen food (heal, quantity in the bank, "Togli") and the summary of the stats with the sources of each one
-## (`modifiers.breakdown`).
+## Equipment page (docs/UI_GDR.md §3, route `equipment`), the Armory and the equipment in one place: the inventory
+## (pieces of `armory.instances()` not worn, filters by slot and rarity, capacity), the paper doll with the 12 slots
+## and the stats with the selected piece on the right.
 ##
-## Every redraw reads the session: `equipment.get_uid` / `setup_def` / `get_food`, `armory.get_instance`,
-## `bank.get_count`, the stat names, formats and totals from `data.stats` and `modifiers`. Actions are equipment
-## commands (`unequip`, `set_food`); a refused command shows its reason. The summary lists the stats that have at
-## least one source in the global context. Equipping happens from the Armory page. The page keeps only references
-## to its own nodes.
+## Every redraw reads the session: pieces and capacity from the armory, the worn uids from `equipment`, the final
+## values from `modifiers`. The page keeps the session reference, its nodes and presentation state only (the two
+## filters, the uid of the selected piece, whether a tooltip is up). Player actions are commands (`equipment.equip` /
+## `unequip` / `set_food`, `armory.set_locked`, `shop.sell_instance`); a refused command shows its reason in Italian
+## and changes nothing. Interactions: drag a piece from the inventory onto a slot (only the compatible slots light up,
+## `EquipTargets`), drag a worn piece back to the inventory (Rimuovi), right click (equip / second hand / Rimuovi),
+## left click (select).
 
-const TITLE_TEXT: String = "Equipaggiamento"
-const SLOTS_TITLE_TEXT: String = "Slot"
-const FOOD_TITLE_TEXT: String = "Cibo"
-const SETUP_TITLE_TEXT: String = "Assetto"
-const UNARMED_TEXT: String = "Mani nude"
+const INVENTORY_TITLE_TEXT: String = "Inventario"
 const STATS_TITLE_TEXT: String = "Statistiche"
-const EMPTY_SLOT_TEXT: String = "Vuoto"
+const FULL_TEXT: String = "Armeria piena"
+const ALL_SLOTS_TEXT: String = "Tutti gli slot"
+const ALL_RARITIES_TEXT: String = "Tutte le rarità"
+const EMPTY_TEXT: String = "L'Armeria è vuota: forgia o compra dei pezzi."
+const NO_MATCH_TEXT: String = "Nessun pezzo corrisponde ai filtri."
+const HINT_TEXT: String = "Trascina un pezzo sullo slot. Tasto destro: equipaggia (una spada va nella seconda mano se è libera), " \
+		+ "oppure Rimuovi su uno slot pieno. Clic: seleziona."
+const LEVEL_TEXT: String = "Livello %s  ·  Assetto: %s"
+const UNARMED_TEXT: String = "Mani nude"
 const NO_FOOD_TEXT: String = "Nessun cibo scelto"
-const FOOD_HEAL_TEXT: String = "Cura %s punti vita"
-const FOOD_COUNT_TEXT: String = "In bank: %s"
-const FOOD_EXHAUSTED_TEXT: String = "Esaurito"
-const REMOVE_TEXT: String = "Rimuovi"
+const FOOD_TEXT: String = "Cibo: %s (in bank: %s)"
 const CLEAR_FOOD_TEXT: String = "Togli"
 const REFUSED_TEXTS: Dictionary[StringName, String] = {
-	Reasons.UNKNOWN_ID: "Voce non valida.",
-	Reasons.SLOT_EMPTY: "Lo slot è già vuoto.",
+	Reasons.UNKNOWN_ID: "Il pezzo non è più nell'Armeria.",
+	Reasons.NOT_EQUIPPABLE: "Questo pezzo non si può mettere in quello slot.",
+	Reasons.REQUIREMENT_NOT_MET: "Requisiti non soddisfatti.",
 	Reasons.COMBAT_ACTIVE: "Non puoi cambiare arma durante il combattimento.",
-	Reasons.ARMORY_FULL: "L'Armeria è piena: non c'è posto per il pezzo.",
+	Reasons.ARMORY_FULL: "L'Armeria è piena: non c'è posto per i pezzi che tornano indietro.",
+	Reasons.SLOT_EMPTY: "Lo slot è già vuoto.",
+	Reasons.ITEM_LOCKED: "Il pezzo è bloccato: sbloccalo per venderlo.",
+	Reasons.ITEM_EQUIPPED: "Il pezzo è indossato: rimuovilo prima di venderlo.",
+	Reasons.NOT_SELLABLE: "Questo pezzo non si vende.",
 	Reasons.NOT_FOOD: "Questo oggetto non è un cibo.",
 	Reasons.NOT_ENOUGH_ITEMS: "Non ci sono abbastanza oggetti.",
 }
 const REFUSED_TEXT_DEFAULT: String = "Operazione non riuscita."
-const MARGIN: int = 16
+const CELL_NAME: String = "Cell%d"
+const CELL_SCENE: PackedScene = preload("res://ui/pages/equipment/inventory_cell.tscn")
+const FILTER_ALL: StringName = &""
 const SECTION_SEPARATION: int = 12
-const ROW_SEPARATION: int = 12
-const SLOT_NAME_WIDTH: int = 190
-const CELL_SIZE := Vector2(48, 48)
-const BUTTON_WIDTH: int = 110
-const ROW_NAME: String = "Row_%s"
 
 var _session: GameSession = null
-## Slot id -> {"cell": ItemSlotView, "name": Label, "button": Button} (presentation references).
-var _slot_rows: Dictionary[StringName, Dictionary] = {}
-var _setup_label: Label = null
-var _food_cell: ItemSlotView = null
-var _food_name: Label = null
-var _food_info: Label = null
-var _food_button: Button = null
+## Presentation state: filters ("" = all), the piece shown in the panel and whether a tooltip is up.
+var _slot_filter: StringName = FILTER_ALL
+var _rarity_filter: StringName = FILTER_ALL
+var _selected_uid: int = 0
+var _hovering: bool = false
 
 @onready var _margin: MarginContainer = %Margin
-@onready var _content: VBoxContainer = %Content
 @onready var _main: HBoxContainer = %Main
-@onready var _left: VBoxContainer = %Left
-@onready var _title_label: Label = %TitleLabel
+@onready var _inventory_title: Label = %InventoryTitle
+@onready var _capacity_label: Label = %CapacityLabel
+@onready var _slot_option: OptionButton = %SlotFilter
+@onready var _rarity_option: OptionButton = %RarityFilter
+@onready var _full_label: Label = %FullLabel
+@onready var _empty_label: Label = %EmptyLabel
+@onready var _scroll: InventoryScroll = %Scroll
+@onready var _grid: HFlowContainer = %Grid
+@onready var _hint_label: Label = %HintLabel
+@onready var _class_label: Label = %ClassLabel
+@onready var _setup_label: Label = %SetupLabel
+@onready var _doll: EquipmentDoll = %Doll
 @onready var _message_label: Label = %MessageLabel
-@onready var _slots_box: VBoxContainer = %SlotsBox
-@onready var _food_box: VBoxContainer = %FoodBox
-@onready var _setup_box: VBoxContainer = %SetupBox
 @onready var _stats_title: Label = %StatsTitle
 @onready var _stats_text: RichTextLabel = %StatsText
+@onready var _food_label: Label = %FoodLabel
+@onready var _clear_food_button: Button = %ClearFoodButton
+@onready var _panel: PiecePanel = %PiecePanel
 
 
 func _ready() -> void:
 	for side: String in ["margin_left", "margin_top", "margin_right", "margin_bottom"]:
-		_margin.add_theme_constant_override(side, MARGIN)
-	for box: Container in [_content, _main, _left, _slots_box, _setup_box, _food_box]:
-		box.add_theme_constant_override("separation", SECTION_SEPARATION)
-	_title_label.text = TITLE_TEXT
+		_margin.add_theme_constant_override(side, UiStyle.ARMORY_MARGIN)
+	_main.add_theme_constant_override("separation", SECTION_SEPARATION)
+	_grid.add_theme_constant_override("h_separation", UiStyle.ARMORY_GRID_SEPARATION)
+	_grid.add_theme_constant_override("v_separation", UiStyle.ARMORY_GRID_SEPARATION)
+	_inventory_title.text = INVENTORY_TITLE_TEXT
 	_stats_title.text = STATS_TITLE_TEXT
+	_hint_label.text = HINT_TEXT
+	_full_label.text = FULL_TEXT
+	_full_label.add_theme_color_override("font_color", UiStyle.BAD)
 	_message_label.add_theme_color_override("font_color", UiStyle.BAD)
+	_clear_food_button.text = CLEAR_FOOD_TEXT
+	_clear_food_button.pressed.connect(_on_clear_food_pressed)
+	_slot_option.item_selected.connect(_on_slot_filter_selected)
+	_rarity_option.item_selected.connect(_on_rarity_filter_selected)
+	_scroll.unequip_dropped.connect(_on_unequip_requested)
+	_stats_text.mouse_entered.connect(_on_stats_hover)
+	_stats_text.mouse_exited.connect(_hide_tooltip)
+	_panel.equip_requested.connect(_on_panel_equip_requested)
+	_panel.unequip_requested.connect(_on_unequip_requested)
+	_panel.lock_requested.connect(_on_panel_lock_requested)
+	_panel.sell_requested.connect(_on_panel_sell_requested)
+	_panel.close_requested.connect(_on_panel_close_requested)
 
 
 ## Draws the equipment of `session` and follows its changes.
 func bind(session: GameSession) -> void:
 	unbind()
 	_session = session
-	_session.events.equipment_changed.connect(_on_equipment_changed)
-	_session.events.food_changed.connect(_on_food_changed)
-	_session.events.modifiers_changed.connect(_on_modifiers_changed)
-	_session.events.bank_changed.connect(_on_bank_changed)
-	_session.events.armory_changed.connect(_on_armory_changed)
-	_build()
-	_refresh()
+	var events: GameEvents = _session.events
+	for sig: Signal in _signals(events):
+		sig.connect(_redraw_from_event)
+	_build_filters()
+	_doll.build(func(slot: StringName) -> String: return EquipmentStatsText.slot_text(slot, _session.data))
+	for view: EquipmentSlotView in _doll.slot_views():
+		view.pressed.connect(_on_slot_pressed)
+		view.right_clicked.connect(_on_slot_right_clicked)
+		view.piece_dropped.connect(_on_slot_dropped)
+		view.hover_started.connect(_on_slot_hover_started)
+		view.hover_ended.connect(_hide_tooltip)
+	_redraw()
 
 
 ## Disconnects every event connected in `bind`.
 func unbind() -> void:
 	if _session != null and is_instance_valid(_session):
-		var events: GameEvents = _session.events
-		if events.equipment_changed.is_connected(_on_equipment_changed):
-			events.equipment_changed.disconnect(_on_equipment_changed)
-		if events.food_changed.is_connected(_on_food_changed):
-			events.food_changed.disconnect(_on_food_changed)
-		if events.modifiers_changed.is_connected(_on_modifiers_changed):
-			events.modifiers_changed.disconnect(_on_modifiers_changed)
-		if events.armory_changed.is_connected(_on_armory_changed):
-			events.armory_changed.disconnect(_on_armory_changed)
-		if events.bank_changed.is_connected(_on_bank_changed):
-			events.bank_changed.disconnect(_on_bank_changed)
+		for sig: Signal in _signals(_session.events):
+			if sig.is_connected(_redraw_from_event):
+				sig.disconnect(_redraw_from_event)
+	_hide_tooltip()
 	_session = null
+	_selected_uid = 0
 
 
 func _exit_tree() -> void:
 	unbind()
 
 
-# --- Build (once per bind) --------------------------------------------------------------------------------------
-
-func _build() -> void:
-	for box: Container in [_slots_box, _setup_box, _food_box]:
-		for child: Node in box.get_children():
-			box.remove_child(child)
-			child.queue_free()
-	_slot_rows.clear()
-	_section_title(_slots_box, SLOTS_TITLE_TEXT)
-	for slot: StringName in Equipment.SLOTS:
-		_slot_rows[slot] = _new_slot_row(slot)
-	_section_title(_setup_box, SETUP_TITLE_TEXT)
-	_setup_label = Label.new()
-	_setup_label.name = "SetupLabel"
-	_setup_box.add_child(_setup_label)
-	_section_title(_food_box, FOOD_TITLE_TEXT)
-	_build_food_row()
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_DRAG_BEGIN:
+		show_drag_targets(get_viewport().gui_get_drag_data())
+	elif what == NOTIFICATION_DRAG_END:
+		clear_drag_targets()
 
 
-func _section_title(parent: Container, text: String) -> void:
-	var label: Label = Label.new()
-	label.theme_type_variation = &"HeaderLabel"
-	label.text = text
-	parent.add_child(label)
-
-
-func _new_row(parent: Container, row_name: String) -> HBoxContainer:
-	var row: HBoxContainer = HBoxContainer.new()
-	row.name = row_name
-	row.add_theme_constant_override("separation", ROW_SEPARATION)
-	parent.add_child(row)
-	return row
-
-
-func _new_cell(row: HBoxContainer) -> ItemSlotView:
-	var cell: ItemSlotView = preload("res://ui/components/item_slot/item_slot.tscn").instantiate() as ItemSlotView
-	cell.name = "Cell"
-	cell.custom_minimum_size = CELL_SIZE
-	row.add_child(cell)
-	return cell
-
-
-func _new_button(row: HBoxContainer, text: String) -> Button:
-	var button: Button = Button.new()
-	button.text = text
-	button.focus_mode = Control.FOCUS_NONE
-	button.custom_minimum_size.x = BUTTON_WIDTH
-	row.add_child(button)
-	return button
-
-
-func _new_slot_row(slot: StringName) -> Dictionary:
-	var row: HBoxContainer = _new_row(_slots_box, ROW_NAME % slot)
-	var slot_label: Label = Label.new()
-	slot_label.name = "SlotLabel"
-	slot_label.text = EquipmentStatsText.slot_text(slot, _session.data)
-	slot_label.theme_type_variation = &"MutedLabel"
-	slot_label.custom_minimum_size.x = SLOT_NAME_WIDTH
-	row.add_child(slot_label)
-	var cell: ItemSlotView = _new_cell(row)
-	var item_label: Label = Label.new()
-	item_label.name = "ItemLabel"
-	item_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(item_label)
-	var button: Button = _new_button(row, REMOVE_TEXT)
-	button.name = "RemoveButton"
-	button.pressed.connect(_on_remove_pressed.bind(slot))
-	return {"cell": cell, "name": item_label, "button": button}
-
-
-func _build_food_row() -> void:
-	var row: HBoxContainer = _new_row(_food_box, ROW_NAME % "food")
-	_food_cell = _new_cell(row)
-	var info: VBoxContainer = VBoxContainer.new()
-	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(info)
-	_food_name = Label.new()
-	_food_name.name = "FoodName"
-	info.add_child(_food_name)
-	_food_info = Label.new()
-	_food_info.name = "FoodInfo"
-	_food_info.theme_type_variation = &"MutedLabel"
-	info.add_child(_food_info)
-	_food_button = _new_button(row, CLEAR_FOOD_TEXT)
-	_food_button.name = "ClearFoodButton"
-	_food_button.pressed.connect(_on_clear_food_pressed)
-
-
-# --- Refresh (reads the session) --------------------------------------------------------------------------------
-
-func _refresh() -> void:
+## Lights the slots that accept the dragged piece `data` (a `PieceDrag` payload from the inventory); none otherwise.
+func show_drag_targets(data: Variant) -> void:
 	if _session == null:
 		return
-	for slot: StringName in _slot_rows:
-		_refresh_slot(slot)
-	var setup: SetupDef = _session.equipment.setup_def()
-	_setup_label.text = setup.name if setup != null else UNARMED_TEXT
-	_refresh_food()
-	_stats_text.text = EquipmentStatsText.summary(_session)
+	_hide_tooltip()
+	var targets: Array[StringName] = []
+	if PieceDrag.is_piece(data) and PieceDrag.from_of(data) == &"":
+		targets = EquipTargets.compatible_slots(_session, PieceDrag.uid_of(data))
+	for view: EquipmentSlotView in _doll.slot_views():
+		view.set_glow(targets.has(view.slot()))
 
 
-func _refresh_slot(slot: StringName) -> void:
-	var row: Dictionary = _slot_rows[slot]
-	var inst: ItemInstance = _session.armory.get_instance(_session.equipment.get_uid(slot))
-	var item: ItemDef = _item_of(inst.base_id) if inst != null else null
-	var cell: ItemSlotView = row["cell"]
-	var name_label: Label = row["name"]
-	if item == null:
-		cell.clear()
-		name_label.text = EMPTY_SLOT_TEXT
-		name_label.remove_theme_color_override("font_color")
-	else:
-		cell.set_item(item, 0)
-		name_label.text = ArmoryTexts.piece_name(inst, item)
-		name_label.add_theme_color_override("font_color", UiStyle.rarity_color(inst.rarity))
-	(row["button"] as Button).disabled = item == null
+func clear_drag_targets() -> void:
+	for view: EquipmentSlotView in _doll.slot_views():
+		view.set_glow(false)
 
 
-func _refresh_food() -> void:
-	var item: ItemDef = _item_of(_session.equipment.get_food())
-	_food_button.disabled = item == null
-	if item == null:
-		_food_cell.clear()
-		_food_name.text = NO_FOOD_TEXT
-		_food_info.text = ""
+## The events that make the page read the session again.
+func _signals(events: GameEvents) -> Array[Signal]:
+	return [events.armory_changed, events.armory_capacity_changed, events.equipment_changed,
+			events.character_level_up, events.modifiers_changed, events.food_changed, events.bank_changed]
+
+
+# --- Filters ----------------------------------------------------------------------------------------------------
+
+func _build_filters() -> void:
+	_slot_filter = FILTER_ALL
+	_rarity_filter = FILTER_ALL
+	_slot_option.clear()
+	_slot_option.add_item(ALL_SLOTS_TEXT)
+	_slot_option.set_item_metadata(0, FILTER_ALL)
+	for slot: StringName in Equipment.SLOTS:
+		_slot_option.add_item(EquipmentStatsText.slot_text(slot, _session.data))
+		_slot_option.set_item_metadata(_slot_option.item_count - 1, slot)
+	_rarity_option.clear()
+	_rarity_option.add_item(ALL_RARITIES_TEXT)
+	_rarity_option.set_item_metadata(0, FILTER_ALL)
+	for rarity: StringName in ItemInstance.RARITIES:
+		_rarity_option.add_item(ArmoryTexts.rarity_name(rarity))
+		_rarity_option.set_item_metadata(_rarity_option.item_count - 1, rarity)
+	_slot_option.select(0)
+	_rarity_option.select(0)
+
+
+func _on_slot_filter_selected(index: int) -> void:
+	_slot_filter = _slot_option.get_item_metadata(index)
+	_redraw()
+
+
+func _on_rarity_filter_selected(index: int) -> void:
+	_rarity_filter = _rarity_option.get_item_metadata(index)
+	_redraw()
+
+
+# --- Redraw (reads the session) ---------------------------------------------------------------------------------
+
+func _redraw_from_event(_a: Variant = null, _b: Variant = null, _c: Variant = null) -> void:
+	_redraw()
+
+
+func _redraw() -> void:
+	if _session == null:
 		return
-	var count: int = _session.bank.get_count(item.id)
-	_food_cell.set_item(item, count)
-	_food_name.text = item.name
-	var stock: String = FOOD_COUNT_TEXT % NumberFormat.format_int(count) if count > 0 else FOOD_EXHAUSTED_TEXT
-	_food_info.text = "%s. %s" % [FOOD_HEAL_TEXT % NumberFormat.format_int(item.food_heal), stock]
+	var used: int = _session.armory.used()
+	var capacity: int = _session.armory.capacity()
+	var worn: int = 0
+	for slot: StringName in Equipment.SLOTS:
+		worn += 1 if _session.equipment.get_uid(slot) != 0 else 0
+	_capacity_label.text = ArmoryTexts.capacity_text(used, capacity, worn)
+	_full_label.visible = used >= capacity
+	_rebuild_grid()
+	_redraw_doll()
+	_redraw_side()
+	if _selected_uid != 0 and not _panel.show_piece(_session, _selected_uid):
+		_selected_uid = 0
 
 
-# --- Actions ----------------------------------------------------------------------------------------------------
+func _rebuild_grid() -> void:
+	_hide_tooltip()
+	for child: Node in _grid.get_children():
+		_grid.remove_child(child)
+		child.queue_free()
+	var all_pieces: Array[ItemInstance] = _session.armory.instances()
+	var shown: int = 0
+	for inst: ItemInstance in all_pieces:
+		var base: ItemDef = _session.data.item(inst.base_id)
+		if _session.armory.is_worn(inst.uid) or base == null or base.equip == null or not _passes_filters(inst, base):
+			continue
+		var cell: InventoryCell = CELL_SCENE.instantiate() as InventoryCell
+		cell.name = CELL_NAME % inst.uid
+		_grid.add_child(cell)
+		cell.set_piece(inst, base, inst.uid == _selected_uid)
+		cell.pressed.connect(_on_cell_pressed)
+		cell.right_clicked.connect(_on_cell_right_clicked)
+		cell.unequip_dropped.connect(_on_unequip_requested)
+		cell.hover_started.connect(_on_cell_hover_started)
+		cell.hover_ended.connect(_hide_tooltip)
+		shown += 1
+	_empty_label.visible = shown == 0
+	_empty_label.text = EMPTY_TEXT if all_pieces.is_empty() else NO_MATCH_TEXT
 
-func _show_result(result: CommandResult) -> void:
+
+func _passes_filters(inst: ItemInstance, base: ItemDef) -> bool:
+	if _slot_filter != FILTER_ALL and base.equip.slot != _slot_filter:
+		return false
+	return _rarity_filter == FILTER_ALL or inst.rarity == _rarity_filter
+
+
+func _redraw_doll() -> void:
+	var class_def: ClassDef = _session.character.class_def()
+	_class_label.text = class_def.name if class_def != null else ""
+	var setup: SetupDef = _session.equipment.setup_def()
+	_setup_label.text = LEVEL_TEXT % [NumberFormat.format_int(_session.character.get_level()),
+			setup.name if setup != null else UNARMED_TEXT]
+	for view: EquipmentSlotView in _doll.slot_views():
+		var inst: ItemInstance = _session.armory.get_instance(_session.equipment.get_uid(view.slot()))
+		var base: ItemDef = _session.data.item(inst.base_id) if inst != null else null
+		if base == null:
+			view.show_empty()
+		else:
+			view.show_piece(inst, base)
+
+
+func _redraw_side() -> void:
+	_stats_text.text = EquipmentStatsText.totals(_session)
+	var food_id: StringName = _session.equipment.get_food()
+	var food: ItemDef = _session.data.item(food_id) if food_id != &"" else null
+	_clear_food_button.disabled = food == null
+	_food_label.text = NO_FOOD_TEXT if food == null else FOOD_TEXT % [food.name,
+			NumberFormat.format_int(_session.bank.get_count(food_id))]
+
+
+# --- Selection, tooltips ----------------------------------------------------------------------------------------
+
+func _on_cell_pressed(uid: int) -> void:
+	_select(uid)
+
+
+func _on_slot_pressed(slot: StringName) -> void:
+	_select(_session.equipment.get_uid(slot) if _session != null else 0)
+
+
+func _select(uid: int) -> void:
+	if uid != 0:
+		_selected_uid = uid
+		_redraw()
+
+
+func _on_cell_hover_started(uid: int) -> void:
+	_show_piece_tooltip(uid)
+
+
+func _on_slot_hover_started(slot: StringName) -> void:
+	if _session != null:
+		_show_piece_tooltip(_session.equipment.get_uid(slot))
+
+
+func _show_piece_tooltip(uid: int) -> void:
+	var body: String = ArmoryTexts.tooltip_text(_session, uid) if _session != null and uid != 0 else ""
+	if body.is_empty():
+		return
+	_hovering = true
+	Tooltips.show_text("", body, get_global_mouse_position())
+
+
+func _on_stats_hover() -> void:
+	if _session != null:
+		_hovering = true
+		Tooltips.show_text("", EquipmentStatsText.summary(_session), get_global_mouse_position())
+
+
+func _hide_tooltip() -> void:
+	if _hovering:
+		_hovering = false
+		Tooltips.hide_tooltip()
+
+
+# --- Commands ---------------------------------------------------------------------------------------------------
+
+## Sends the command built by `command` and shows its reason if it is refused (nothing changes then).
+func _send(command: Callable) -> void:
+	if _session == null:
+		return
+	var result: CommandResult = command.call() as CommandResult
 	_message_label.visible = not result.ok
 	if not result.ok:
 		_message_label.text = REFUSED_TEXTS.get(result.reason, REFUSED_TEXT_DEFAULT)
-	_refresh()
+	_redraw()
 
 
-func _on_remove_pressed(slot: StringName) -> void:
+func _equip(uid: int, slot: StringName) -> void:
+	_send(func() -> CommandResult: return _session.equipment.equip(uid, slot))
+
+
+func _on_cell_right_clicked(uid: int) -> void:
 	if _session != null:
-		_show_result(_session.equipment.unequip(slot))
+		_equip(uid, EquipTargets.right_click_slot(_session, uid))
+
+
+func _on_slot_dropped(slot: StringName, uid: int) -> void:
+	clear_drag_targets()
+	_equip(uid, slot)
+
+
+func _on_unequip_requested(slot: StringName) -> void:
+	_send(func() -> CommandResult: return _session.equipment.unequip(slot))
+
+
+func _on_panel_equip_requested(uid: int, slot: StringName) -> void:
+	_equip(uid, slot)
+
+
+func _on_panel_lock_requested(uid: int, locked: bool) -> void:
+	_send(func() -> CommandResult: return _session.armory.set_locked(uid, locked))
+
+
+func _on_panel_sell_requested(uid: int) -> void:
+	_send(func() -> CommandResult: return _session.shop.sell_instance(uid))
+
+
+func _on_panel_close_requested() -> void:
+	_selected_uid = 0
+	_panel.clear()
+	_redraw()
+
+
+func _on_slot_right_clicked(slot: StringName) -> void:
+	if _session != null and _session.equipment.get_uid(slot) != 0:
+		_on_unequip_requested(slot)
 
 
 func _on_clear_food_pressed() -> void:
-	if _session != null:
-		_show_result(_session.equipment.set_food(&""))
-
-
-func _on_equipment_changed(_slot_id: StringName, _uid: int) -> void:
-	_refresh()
-
-
-func _on_food_changed(_item_id: StringName) -> void:
-	_refresh()
-
-
-func _on_modifiers_changed() -> void:
-	_refresh()
-
-
-func _on_armory_changed(_uid: int, _change: StringName) -> void:
-	_refresh()
-
-
-func _on_bank_changed(_item_id: StringName, _new_count: int, _delta: int) -> void:
-	_refresh()
-
-
-## The definition of `item_id`; null for the empty id (the data logs an error for unknown ids).
-func _item_of(item_id: StringName) -> ItemDef:
-	return _session.data.item(item_id) if item_id != &"" else null
+	_send(func() -> CommandResult: return _session.equipment.set_food(&""))

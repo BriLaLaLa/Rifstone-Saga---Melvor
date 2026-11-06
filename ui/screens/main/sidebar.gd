@@ -1,7 +1,8 @@
 class_name Sidebar
 extends PanelContainer
 ## Left navigation of the main screen (docs/03_ARCHITECTURE.md §11): game sections (Personaggio, Combattimento,
-## Armeria, Equipaggiamento, Bank, Shop) and every gathering/artisan skill of the data by category, with icon, name and level.
+## Equipaggiamento (with the Armory), Bank, Shop) and every gathering/artisan skill of the data by category, with icon,
+## name and level.
 ##
 ## The rows are copies of the hidden `RowTemplate` and `SectionTemplate` of the scene (the layout lives there),
 ## built from the data in `bind`; a skill level is read from `session.skills` and redrawn on `level_up`.
@@ -19,7 +20,6 @@ const SECTIONS_TITLE: String = "Partita"
 const SECTIONS: Array[Dictionary] = [
 	{"page": &"character", "text": "Personaggio", "icon": "user"},
 	{"page": &"combat", "text": ItemTooltipLines.COMBAT_TEXT, "icon": "sword"},
-	{"page": &"armory", "text": "Armeria", "icon": "star"},
 	{"page": &"equipment", "text": "Equipaggiamento", "icon": "shirt"},
 	{"page": &"bank", "text": "Bank", "icon": "box"},
 	{"page": &"shop", "text": "Shop", "icon": "building-store"},

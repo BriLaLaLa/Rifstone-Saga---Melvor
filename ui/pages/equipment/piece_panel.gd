@@ -1,12 +1,12 @@
-class_name ArmoryItemPanel
+class_name PiecePanel
 extends PanelContainer
-## Piece panel of the Armory page (docs/01_GDD.md §21-22): icon, name with the rarity color, rarity / item level,
-## worn state, requirements (red if the character does not meet them), weapon, affixes with their grade, modifiers
-## of the piece, comparison with the piece worn in the same slot, and the buttons "Equipaggia" (a one-handed
-## sword: "In mano" / "Seconda mano"), "Rimuovi", "Blocca" and "Vendi".
+## Selected-piece panel of the Equipment page (docs/UI_GDR.md §3): icon, name with the rarity color, rarity / item
+## level / slot, worn state, the lines of `ArmoryTexts.detail_lines` (requirements, weapon, affixes, modifiers,
+## comparison with the worn piece) and the buttons "Equipaggia" (a one-handed weapon: "In mano" / "Seconda mano"),
+## "Rimuovi", "Blocca", "Raffina (M7)" (disabled until M7) and "Vendi".
 ##
-## Internal to ArmoryPage. It keeps only the uid it shows and the session of the last `show_piece` (to read, never a
-## copy of the state); every call re-reads the armory, the equipment and the character. It never changes game
+## Internal to EquipmentPage. It keeps only the uid it shows and the session of the last `show_piece` (to read,
+## never a copy of the state); every call re-reads the armory, the equipment and the character. It never changes game
 ## state: the buttons emit signals and the page sends the commands.
 
 signal equip_requested(uid: int, slot: StringName)
@@ -21,6 +21,7 @@ const OFFHAND_TEXT: String = "Seconda mano"
 const UNEQUIP_TEXT: String = "Rimuovi"
 const LOCK_TEXT: String = "Blocca"
 const UNLOCK_TEXT: String = "Sblocca"
+const REFINE_TEXT: String = "Raffina (M7)"
 const SELL_TEXT: String = "Vendi (%s oro)"
 const SELL_LOCKED_TEXT: String = "Sblocca il pezzo per venderlo."
 const SELL_WORN_TEXT: String = "Rimuovi il pezzo per venderlo."
@@ -28,18 +29,11 @@ const SELL_NOT_SELLABLE_TEXT: String = "Questo pezzo non si vende."
 const WORN_STATE_TEXT: String = "Indossato: %s"
 const LOCKED_STATE_TEXT: String = "Bloccato: non si vende."
 const IN_ARMORY_TEXT: String = "Nell'Armeria."
-const SUBTITLE_TEXT: String = "%s  ·  %s"
-const REQUIREMENTS_TITLE: String = "Requisiti"
-const WEAPON_TITLE: String = "Arma"
-const AFFIXES_TITLE: String = "Affissi"
-const MODIFIERS_TITLE: String = "Modificatori"
-const COMPARISON_TITLE: String = "Rispetto a %s"
-const NO_DIFFERENCE_TEXT: String = "Nessuna differenza."
 const CLOSE_ICON: String = "x"
 const CLOSE_TOOLTIP: String = "Chiudi"
-const COLOR_TAG: String = "[color=#%s]%s[/color]"
 const OFFHAND_SLOT: StringName = &"offhand"
 const WEAPON_SLOT: StringName = &"weapon"
+const ICON_SIZE := Vector2(64, 64)
 
 var _uid: int = 0
 ## Session of the last `show_piece` (read at every use, never a copy of its state).
@@ -55,13 +49,13 @@ var _session: GameSession = null
 @onready var _offhand_button: Button = %OffhandButton
 @onready var _unequip_button: Button = %UnequipButton
 @onready var _lock_button: Button = %LockButton
+@onready var _refine_button: Button = %RefineButton
 @onready var _sell_note: Label = %SellNote
 @onready var _sell_button: Button = %SellButton
 
 
 func _ready() -> void:
-	custom_minimum_size.x = UiStyle.ARMORY_PANEL_WIDTH
-	_icon.custom_minimum_size = UiStyle.ARMORY_PANEL_ICON_SIZE
+	_icon.custom_minimum_size = ICON_SIZE
 	_name_label.theme_type_variation = &"HeaderLabel"
 	var close: Button = UiStyle.icon_button(CLOSE_ICON, CLOSE_TOOLTIP, UiStyle.WINDOW_CLOSE_BUTTON_SIDE)
 	close.name = "CloseButton"
@@ -74,7 +68,11 @@ func _ready() -> void:
 	_unequip_button.text = UNEQUIP_TEXT
 	_unequip_button.pressed.connect(_on_unequip_pressed)
 	_lock_button.pressed.connect(_on_lock_pressed)
+	_refine_button.text = REFINE_TEXT
 	_sell_button.pressed.connect(_on_sell_pressed)
+	for button: Button in [_equip_button, _offhand_button, _unequip_button, _lock_button, _refine_button,
+			_sell_button]:
+		button.custom_minimum_size.y = UiStyle.MENU_BUTTON_HEIGHT
 	clear()
 
 
@@ -91,10 +89,9 @@ func show_piece(session: GameSession, uid: int) -> bool:
 	_icon.texture = ItemSlotView.icon_of(base.icon)
 	_name_label.text = ArmoryTexts.piece_name(inst, base)
 	_name_label.add_theme_color_override("font_color", UiStyle.rarity_color(inst.rarity))
-	_subtitle_label.text = SUBTITLE_TEXT % [ArmoryTexts.rarity_name(inst.rarity),
-			ArmoryTexts.LEVEL_TEXT % inst.ilvl]
+	_subtitle_label.text = ArmoryTexts.subtitle(inst, base, session.data)
 	_refresh_state(inst, worn_slot)
-	_lines_label.text = "\n".join(_detail_lines(inst, base))
+	_lines_label.text = "\n".join(ArmoryTexts.detail_lines(session, uid))
 	_refresh_actions(inst, base, worn_slot)
 	visible = true
 	return true
@@ -130,60 +127,6 @@ func _refresh_state(inst: ItemInstance, worn_slot: StringName) -> void:
 		_state_label.text = IN_ARMORY_TEXT
 		_state_label.add_theme_color_override("font_color", UiStyle.TEXT_2)
 
-
-# --- Details ----------------------------------------------------------------------------------------------------
-
-func _detail_lines(inst: ItemInstance, base: ItemDef) -> PackedStringArray:
-	var data: GameData = _session.data
-	var lines: PackedStringArray = PackedStringArray()
-	_append_requirements(lines, base.equip, data)
-	if base.equip.weapon != null:
-		_append_section(lines, WEAPON_TITLE, PackedStringArray([ItemTooltipLines.weapon_line(base.equip.weapon)]))
-	_append_section(lines, AFFIXES_TITLE, ArmoryTexts.affix_lines(inst, data))
-	var mods: Array[Modifier] = _session.armory.instance_modifiers(_uid)
-	_append_section(lines, MODIFIERS_TITLE, ItemTooltipLines.modifier_lines(mods, data))
-	_append_comparison(lines, base, mods)
-	return lines
-
-
-func _append_requirements(lines: PackedStringArray, equip: EquipInfo, data: GameData) -> void:
-	var keys: Array[StringName] = []
-	for key: StringName in equip.requirements:
-		keys.append(key)
-	keys.sort_custom(func(a: StringName, b: StringName) -> bool: return String(a) < String(b))
-	var req_lines: PackedStringArray = PackedStringArray()
-	for key: StringName in keys:
-		var needed: int = equip.requirements[key]
-		var text: String = ItemTooltipLines.requirement_text(key, needed, data)
-		var met: bool = _session.character.meets_requirements({key: needed})
-		req_lines.append(text if met else COLOR_TAG % [UiStyle.BAD.to_html(false), text])
-	_append_section(lines, REQUIREMENTS_TITLE, req_lines)
-
-
-## Difference with the piece worn in the same slot (nothing if this one is worn or the slot is empty).
-func _append_comparison(lines: PackedStringArray, base: ItemDef, mods: Array[Modifier]) -> void:
-	var worn_uid: int = _session.equipment.get_uid(base.equip.slot)
-	if worn_uid == 0 or worn_uid == _uid:
-		return
-	var worn: ItemInstance = _session.armory.get_instance(worn_uid)
-	var worn_base: ItemDef = _session.data.item(worn.base_id) if worn != null else null
-	if worn_base == null:
-		return
-	var diff: PackedStringArray = ArmoryTexts.comparison_lines(mods, _session.armory.instance_modifiers(worn_uid),
-			_session.data)
-	if diff.is_empty():
-		diff.append(NO_DIFFERENCE_TEXT)
-	_append_section(lines, COMPARISON_TITLE % ItemTooltipLines.escape(ArmoryTexts.piece_name(worn, worn_base)), diff)
-
-
-func _append_section(lines: PackedStringArray, title: String, body: PackedStringArray) -> void:
-	if body.is_empty():
-		return
-	lines.append(COLOR_TAG % [UiStyle.GOLD.to_html(false), title])
-	lines.append_array(body)
-
-
-# --- Actions ----------------------------------------------------------------------------------------------------
 
 func _refresh_actions(inst: ItemInstance, base: ItemDef, worn_slot: StringName) -> void:
 	var worn: bool = worn_slot != &""
