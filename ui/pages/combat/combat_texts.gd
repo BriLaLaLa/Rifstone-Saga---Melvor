@@ -3,7 +3,6 @@ extends RefCounted
 ## Italian texts of the combat page and of the combat values on the character page (docs/01_GDD.md §10.11, F-70),
 ## display only. Presentation constants: `UiStyle.COMBAT_*`. Area and monster names come from the data.
 
-const AREAS_TITLE: String = "Aree"
 const LOOT_TITLE: String = "Bottino"
 const STATS_TITLE: String = "Valori di combattimento"
 const STATE_TEXTS: Dictionary[StringName, String] = {
@@ -14,7 +13,6 @@ const STATE_TEXTS: Dictionary[StringName, String] = {
 }
 const STATE_TEXT_DEFAULT: String = "In attesa"
 const NO_AREA_TEXT: String = "Scegli un'area per combattere."
-const CURRENT_AREA_TEXT: String = "In corso"
 const STOP_TEXT: String = "Ferma"
 const EAT_TEXT: String = "Mangia"
 const COLLECT_TEXT: String = "Raccogli tutto"
@@ -44,6 +42,56 @@ const STAT_NAME_SOURCES: Dictionary[StringName, StringName] = {
 	&"accuracy": &"accuracy_bonus", &"evasion": &"evasion_bonus", &"max_hp": &"max_hp_flat",
 }
 const STAT_DAMAGE_TEXT: String = "Danno: %s - %s"
+## Combat page, GDR layout (docs/UI_GDR.md §2).
+const AREA_LABEL_TEXT: String = "Area"
+const AREA_REQUIREMENT_TEXT: String = "%s (%s)"
+const HEADER_ENEMIES_TEXT: String = "%s · %s"
+const ENEMY_COUNT_TEXT: String = "%d / %d in campo"
+const GROUP_SIZE_TEXT: String = "%d nemici"
+const GROUP_SIZE_ONE_TEXT: String = "1 nemico"
+const LOOT_MORE_TEXT: String = "+%d"
+const TARGET_TITLE: String = "Bersaglio"
+const QUEUE_TITLE: String = "In fila (%d)"
+const NO_TARGET_TEXT: String = "Nessun nemico in campo."
+const DEFEATED_TEXT: String = "sconfitto"
+const TAG_TEXT: String = "%s · %s"
+const RELATION_TEXTS: Dictionary[StringName, String] = {
+	&"advantage": "sei in vantaggio", &"neutral": "alla pari", &"disadvantage": "svantaggio",
+}
+const ENEMY_INFO_TEXT: String = "Attacca ogni %s s · riduzione del danno %s"
+const LEVEL_TEXT: String = "Livello %d · %s"
+const TRIANGLE_HINT_TEXT: String = "%s: forte contro %s, debole contro %s"
+const HP_TITLE: String = "Punti vita"
+const ATTACK_TITLE: String = "Attacco"
+const HP_NUMBERS_TEXT: String = "%s / %s"
+const SECONDS_TEXT: String = "%s s"
+const ABILITIES_TITLE: String = "Abilità"
+const TRAITS_TITLE: String = "Tratti"
+const GEAR_TITLE: String = "Equipaggiamento"
+const SLOT_LOCKED_TEXT: String = "Slot al liv. %d"
+const SLOT_EMPTY_TEXT: String = "Slot vuoto"
+const ABILITY_READY_TEXT: String = "pronta"
+const ABILITY_COOLDOWN_TEXT: String = "ricarica %s s"
+const ABILITY_OFF_TEXT: String = "disattivata"
+const NOT_FOR_SETUP_TEXT: String = "non con questo assetto"
+const VS_TEXT: String = "VS"
+const YIELD_TITLE: String = "Rendimento"
+const YIELD_WINDOW_HOUR_TEXT: String = "ultima ora"
+const YIELD_WINDOW_MINUTES_TEXT: String = "ultimi %d min"
+const YIELD_WINDOW_SHORT_TEXT: String = "da pochi istanti"
+const YIELD_LABELS: Dictionary[StringName, String] = {
+	&"kills": "uccisioni/ora", &"xp": "XP/ora", &"gold": "oro/ora", &"damage": "danno/s",
+}
+const LOG_SUMMARY_TEXT: String = "Registro: %s colpi · %s parate · %s cibi"
+const LOG_HIDE_TEXT: String = "Chiudi il registro"
+const LOG_EMPTY_TEXT: String = "Nessun evento ancora."
+const LOG_PLAYER_HIT_TEXT: String = "Colpisci %s per %s."
+const LOG_PLAYER_MISS_TEXT: String = "Manchi %s."
+const LOG_ENEMY_HIT_TEXT: String = "%s ti colpisce per %s."
+const LOG_ENEMY_MISS_TEXT: String = "%s ti manca."
+const LOG_BLOCK_TEXT: String = "Pari il colpo di %s."
+const LOG_KILL_TEXT: String = "%s sconfitto."
+const LOG_EAT_TEXT: String = "Mangi %s (+%s PV)."
 
 
 ## Interval in milliseconds as seconds with one decimal and a comma ("2,0").
@@ -55,3 +103,22 @@ static func seconds_text(ms: int) -> String:
 static func stat_line(data: GameData, key: StringName, value: int) -> String:
 	var info: Dictionary = data.stats.info(STAT_NAME_SOURCES[key])
 	return STAT_LINE_TEXT % [str(info.get("name", key)), NumberFormat.format_int(value)]
+
+
+## Smallest damage drawn as a "strong" hit: the given share (`UiStyle.COMBAT_STRONG_HIT_FRACTION`) of the player's
+## maximum hit, rounded up. Presentation only.
+static func strong_hit_threshold(max_hit: int) -> int:
+	return ceili(max_hit * UiStyle.COMBAT_STRONG_HIT_FRACTION)
+
+
+## "ultima ora" / "ultimi N min" / "da pochi istanti" for the length of the yield window.
+static func yield_window_text(window_ms: int) -> String:
+	if window_ms >= CombatYield.WINDOW_MS:
+		return YIELD_WINDOW_HOUR_TEXT
+	if window_ms >= CombatYield.MS_PER_MINUTE:
+		return YIELD_WINDOW_MINUTES_TEXT % (window_ms / CombatYield.MS_PER_MINUTE)
+	return YIELD_WINDOW_SHORT_TEXT
+
+
+static func group_size_text(count: int) -> String:
+	return GROUP_SIZE_ONE_TEXT if count == 1 else GROUP_SIZE_TEXT % count

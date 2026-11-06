@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://ui/pages/combat/combat_page.gd" id="1_page"]
-[ext_resource type="PackedScene" path="res://ui/pages/combat/combatant_card.tscn" id="2_card"]
+[ext_resource type="PackedScene" path="res://ui/pages/combat/player_column.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://ui/pages/combat/enemy_zone.tscn" id="3_zone"]
 
 [node name="CombatPage" type="Control"]
 layout_mode = 3
@@ -21,126 +22,179 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Root" type="HBoxContainer" parent="Margin"]
+[node name="Main" type="VBoxContainer" parent="Margin"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="AreaPanel" type="PanelContainer" parent="Margin/Root"]
-unique_name_in_owner = true
+[node name="Header" type="PanelContainer" parent="Margin/Main"]
 layout_mode = 2
 theme_type_variation = &"HudPanel"
 
-[node name="AreaBox" type="VBoxContainer" parent="Margin/Root/AreaPanel"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="AreasTitle" type="Label" parent="Margin/Root/AreaPanel/AreaBox"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_variation = &"HeaderLabel"
-
-[node name="AreaScroll" type="ScrollContainer" parent="Margin/Root/AreaPanel/AreaBox"]
-layout_mode = 2
-size_flags_vertical = 3
-horizontal_scroll_mode = 0
-
-[node name="AreaList" type="VBoxContainer" parent="Margin/Root/AreaPanel/AreaBox/AreaScroll"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 6
-
-[node name="MainColumn" type="VBoxContainer" parent="Margin/Root"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="Header" type="PanelContainer" parent="Margin/Root/MainColumn"]
-layout_mode = 2
-theme_type_variation = &"HudPanel"
-
-[node name="HeaderRow" type="HBoxContainer" parent="Margin/Root/MainColumn/Header"]
+[node name="HeaderRow" type="HBoxContainer" parent="Margin/Main/Header"]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="AreaLabel" type="Label" parent="Margin/Root/MainColumn/Header/HeaderRow"]
+[node name="AreaLabel" type="Label" parent="Margin/Main/Header/HeaderRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"TitleLabel"
+
+[node name="StateLabel" type="Label" parent="Margin/Main/Header/HeaderRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_type_variation = &"TitleLabel"
-
-[node name="StateLabel" type="Label" parent="Margin/Root/MainColumn/Header/HeaderRow"]
-unique_name_in_owner = true
-layout_mode = 2
 theme_type_variation = &"MutedLabel"
+clip_text = true
 
-[node name="FoodLabel" type="Label" parent="Margin/Root/MainColumn/Header/HeaderRow"]
+[node name="AreaChoiceLabel" type="Label" parent="Margin/Main/Header/HeaderRow"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="EatButton" type="Button" parent="Margin/Root/MainColumn/Header/HeaderRow"]
+[node name="AreaOption" type="OptionButton" parent="Margin/Main/Header/HeaderRow"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="StopButton" type="Button" parent="Margin/Root/MainColumn/Header/HeaderRow"]
+[node name="FoodLabel" type="Label" parent="Margin/Main/Header/HeaderRow"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="MessageLabel" type="Label" parent="Margin/Root/MainColumn"]
+[node name="EatButton" type="Button" parent="Margin/Main/Header/HeaderRow"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="StopButton" type="Button" parent="Margin/Main/Header/HeaderRow"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="MessageLabel" type="Label" parent="Margin/Main"]
 unique_name_in_owner = true
 layout_mode = 2
 autowrap_mode = 3
 
-[node name="Field" type="HBoxContainer" parent="Margin/Root/MainColumn"]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/separation = 16
-
-[node name="PlayerCard" parent="Margin/Root/MainColumn/Field" instance=ExtResource("2_card")]
+[node name="Arena" type="HBoxContainer" parent="Margin/Main"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_vertical = 0
+size_flags_vertical = 3
+theme_override_constants/separation = 0
 
-[node name="EnemyFlow" type="HFlowContainer" parent="Margin/Root/MainColumn/Field"]
+[node name="PlayerColumn" parent="Margin/Main/Arena" instance=ExtResource("2_player")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="VsBox" type="VBoxContainer" parent="Margin/Main/Arena"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(44, 0)
+alignment = 1
+
+[node name="VsTop" type="ColorRect" parent="Margin/Main/Arena/VsBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 3
+custom_minimum_size = Vector2(2, 0)
+
+[node name="VsLabel" type="Label" parent="Margin/Main/Arena/VsBox"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 1
+theme_type_variation = &"TitleLabel"
+
+[node name="VsBottom" type="ColorRect" parent="Margin/Main/Arena/VsBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 3
+custom_minimum_size = Vector2(2, 0)
+
+[node name="EnemyZone" parent="Margin/Main/Arena" instance=ExtResource("3_zone")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/h_separation = 12
-theme_override_constants/v_separation = 12
 
-[node name="LootPanel" type="PanelContainer" parent="Margin/Root/MainColumn"]
+[node name="Bottom" type="HBoxContainer" parent="Margin/Main"]
+unique_name_in_owner = true
 layout_mode = 2
+
+[node name="LootPanel" type="PanelContainer" parent="Margin/Main/Bottom"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 3.0
 theme_type_variation = &"HudPanel"
 
-[node name="LootBox" type="VBoxContainer" parent="Margin/Root/MainColumn/LootPanel"]
+[node name="LootBox" type="VBoxContainer" parent="Margin/Main/Bottom/LootPanel"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="LootHeader" type="HBoxContainer" parent="Margin/Root/MainColumn/LootPanel/LootBox"]
+[node name="LootHeader" type="HBoxContainer" parent="Margin/Main/Bottom/LootPanel/LootBox"]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="LootTitle" type="Label" parent="Margin/Root/MainColumn/LootPanel/LootBox/LootHeader"]
+[node name="LootTitle" type="Label" parent="Margin/Main/Bottom/LootPanel/LootBox/LootHeader"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"HeaderLabel"
 
-[node name="LootCount" type="Label" parent="Margin/Root/MainColumn/LootPanel/LootBox/LootHeader"]
+[node name="LootCount" type="Label" parent="Margin/Main/Bottom/LootPanel/LootBox/LootHeader"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"MutedLabel"
 
-[node name="CollectButton" type="Button" parent="Margin/Root/MainColumn/LootPanel/LootBox/LootHeader"]
+[node name="CollectButton" type="Button" parent="Margin/Main/Bottom/LootPanel/LootBox/LootHeader"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="LootScroll" type="ScrollContainer" parent="Margin/Root/MainColumn/LootPanel/LootBox"]
+[node name="LootList" type="HBoxContainer" parent="Margin/Main/Bottom/LootPanel/LootBox"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="YieldPanel" type="PanelContainer" parent="Margin/Main/Bottom"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+theme_type_variation = &"HudPanel"
+
+[node name="YieldBox" type="VBoxContainer" parent="Margin/Main/Bottom/YieldPanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="YieldHeader" type="HBoxContainer" parent="Margin/Main/Bottom/YieldPanel/YieldBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="YieldTitle" type="Label" parent="Margin/Main/Bottom/YieldPanel/YieldBox/YieldHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+
+[node name="YieldWindow" type="Label" parent="Margin/Main/Bottom/YieldPanel/YieldBox/YieldHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+
+[node name="YieldGrid" type="GridContainer" parent="Margin/Main/Bottom/YieldPanel/YieldBox"]
+unique_name_in_owner = true
+layout_mode = 2
+columns = 4
+
+[node name="LogScroll" type="ScrollContainer" parent="Margin/Main/Bottom/YieldPanel/YieldBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="LootList" type="VBoxContainer" parent="Margin/Root/MainColumn/LootPanel/LootBox/LootScroll"]
+[node name="LogLabel" type="Label" parent="Margin/Main/Bottom/YieldPanel/YieldBox/LogScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"MutedLabel"
+autowrap_mode = 3
+
+[node name="LogButton" type="Button" parent="Margin/Main/Bottom/YieldPanel/YieldBox"]
+unique_name_in_owner = true
+layout_mode = 2
+flat = true
+alignment = 0

@@ -1,0 +1,144 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/pages/combat/player_column.gd" id="1_col"]
+
+[node name="PlayerColumn" type="PanelContainer"]
+script = ExtResource("1_col")
+
+[node name="Scroll" type="ScrollContainer" parent="."]
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="Box" type="VBoxContainer" parent="Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="Top" type="HBoxContainer" parent="Scroll/Box"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Portrait" type="Control" parent="Scroll/Box/Top"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="Frame" type="Panel" parent="Scroll/Box/Top/Portrait"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="Icon" type="TextureRect" parent="Scroll/Box/Top/Portrait"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Floaters" type="Control" parent="Scroll/Box/Top/Portrait"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="Info" type="VBoxContainer" parent="Scroll/Box/Top"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="NameLabel" type="Label" parent="Scroll/Box/Top/Info"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"TitleLabel"
+autowrap_mode = 3
+
+[node name="LevelLabel" type="Label" parent="Scroll/Box/Top/Info"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="HintLabel" type="Label" parent="Scroll/Box/Top/Info"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+autowrap_mode = 3
+
+[node name="HpRow" type="HBoxContainer" parent="Scroll/Box"]
+layout_mode = 2
+
+[node name="HpTitle" type="Label" parent="Scroll/Box/HpRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HpLabel" type="Label" parent="Scroll/Box/HpRow"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="HpBar" type="ProgressBar" parent="Scroll/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+step = 1.0
+
+[node name="AtkRow" type="HBoxContainer" parent="Scroll/Box"]
+layout_mode = 2
+
+[node name="AtkTitle" type="Label" parent="Scroll/Box/AtkRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"MutedLabel"
+
+[node name="AtkLabel" type="Label" parent="Scroll/Box/AtkRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+
+[node name="TimerBar" type="ProgressBar" parent="Scroll/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+max_value = 1.0
+
+[node name="AbilitiesTitle" type="Label" parent="Scroll/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+
+[node name="AbilityFlow" type="HFlowContainer" parent="Scroll/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+
+[node name="TraitsTitle" type="Label" parent="Scroll/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+
+[node name="TraitFlow" type="HFlowContainer" parent="Scroll/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 6
+
+[node name="GearTitle" type="Label" parent="Scroll/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+
+[node name="GearGrid" type="GridContainer" parent="Scroll/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 6

@@ -1,14 +1,17 @@
 extends GutTest
-## CombatPage (M5-05) with a TestFactory session (fixture data): areas from the data, cards from combat.get_state(),
-## hit numbers, eat and loot commands, everything disconnected by unbind. Character page values of F-70.
+## CombatPage (M5-05, GDR layout of M6-00c) with a TestFactory session (fixture data): area choice from the data, player
+## column, target and queue from combat.get_state(), hit numbers and their clearing, loadout sections, equipment grid,
+## eat and loot commands, everything disconnected by unbind. Character page values of F-70.
 
 const SCENE: PackedScene = preload("res://ui/pages/combat/combat_page.tscn")
 const CHARACTER_SCENE: PackedScene = preload("res://ui/pages/character/character_page.tscn")
 const AREA_ID: StringName = &"test_area"
 const FOOD_ID: StringName = &"test_ration"
+const HELM: StringName = &"test_helm"
 const OBSERVED: Array[StringName] = [&"combat_started", &"combat_stopped", &"encounter_started", &"encounter_cleared",
 		&"player_hp_changed", &"monster_hp_changed", &"monster_killed", &"food_eaten", &"food_changed", &"bank_changed",
-		&"loot_bag_changed", &"equipment_changed", &"combat_hit", &"player_died", &"character_level_up"]
+		&"loot_bag_changed", &"equipment_changed", &"combat_hit", &"player_died", &"character_level_up", &"traits_changed",
+		&"character_xp_gained", &"gold_changed"]
 
 var _session: GameSession
 var _page: CombatPage
@@ -31,26 +34,32 @@ func after_each() -> void:
 
 
 func test_idle_page_lists_areas_and_has_no_enemy_cards() -> void:
-	var button: Button = _page.find_child("Area_%s" % AREA_ID, true, false) as Button
-	assert_not_null(button)
-	assert_true(button.text.begins_with(_session.data.area(AREA_ID).name))
+	var option: OptionButton = _page.get_node("%AreaOption") as OptionButton
+	assert_eq(option.item_count, _session.data.areas().size())
+	assert_true(option.get_item_text(0).begins_with(_session.data.area(AREA_ID).name))
 	assert_eq(_label("%AreaLabel").text, CombatTexts.NO_AREA_TEXT)
-	assert_eq(_page.find_child("Enemy_0", true, false), null)
+	assert_eq(_zone().queue_card(0), null)
+	assert_false(_zone().target_card().visible)
 	assert_true((_page.get_node("%StopButton") as Button).disabled)
-	assert_eq((_page.get_node("%PlayerCard") as CombatantCard).shown_hp(), _session.combat.get_state()["player_max_hp"])
+	assert_eq(_player().shown_hp(), _session.combat.get_state()["player_max_hp"])
 
 
-func test_area_button_starts_combat_and_cards_follow_the_state() -> void:
-	(_page.find_child("Area_%s" % AREA_ID, true, false) as Button).pressed.emit()
+func test_area_choice_starts_combat_and_cards_follow_the_state() -> void:
+	(_page.get_node("%AreaOption") as OptionButton).item_selected.emit(0)
 	assert_true(_session.combat.is_active())
 	assert_eq(_label("%AreaLabel").text, _session.data.area(AREA_ID).name)
+	_page._process(0.0)
 	var enemies: Array = _session.combat.get_state()["enemies"]
 	assert_gt(enemies.size(), 0)
 	for i: int in enemies.size():
-		var card: CombatantCard = _page.find_child("Enemy_%d" % i, true, false) as CombatantCard
+		var card: EnemyCard = _zone().queue_card(i)
 		assert_not_null(card, "card %d" % i)
 		assert_eq(card.shown_hp(), enemies[i]["hp"])
-	assert_true((_page.find_child("Enemy_0", true, false) as CombatantCard).is_highlighted(), "target highlighted")
+	assert_eq(_zone().shown_index(), 0, "the first enemy is the target")
+	assert_true(_zone().target_card().visible)
+	assert_false(_zone().queue_card(0).visible, "the target is not repeated in the queue")
+	assert_eq(_zone().target_card().shown_hp(), enemies[0]["hp"])
+	assert_ne(_zone().target_card().shown_tag(), "", "style and triangle relation")
 	assert_false((_page.get_node("%StopButton") as Button).disabled)
 
 
@@ -61,15 +70,21 @@ func test_stop_button_stops_combat() -> void:
 	assert_eq(_label("%AreaLabel").text, CombatTexts.NO_AREA_TEXT)
 
 
-func test_combat_hit_shows_a_number_on_the_target() -> void:
+func test_combat_hit_shows_numbers_and_stop_clears_them() -> void:
 	_session.combat.start(AREA_ID)
+	_page._process(0.0)
 	_session.events.combat_hit.emit(-1, 0, true, 7, false)
-	var card: CombatantCard = _page.find_child("Enemy_0", true, false) as CombatantCard
+	var card: EnemyCard = _zone().queue_card(0)
 	assert_eq(card.hit_text(), CombatTexts.HIT_TEXT % "7")
+	assert_eq(_zone().target_card().hit_text(), CombatTexts.HIT_TEXT % "7", "also on the big card of the target")
 	_session.events.combat_hit.emit(-1, 0, false, 0, false)
 	assert_eq(card.hit_text(), CombatTexts.MISS_TEXT)
 	_session.events.combat_hit.emit(0, -1, true, 0, true)
-	assert_eq((_page.get_node("%PlayerCard") as CombatantCard).hit_text(), CombatTexts.BLOCKED_TEXT)
+	assert_eq(_player().hit_text(), CombatTexts.BLOCKED_TEXT)
+	assert_gt(card.floater_count(), 0)
+	_session.combat.stop()
+	assert_eq(card.floater_count(), 0, "no number stays after the end of the combat")
+	assert_eq(_zone().target_card().floater_count(), 0)
 
 
 func test_advancing_redraws_the_cards() -> void:
@@ -77,9 +92,21 @@ func test_advancing_redraws_the_cards() -> void:
 	_session.advance(1000)
 	_page._process(0.0)
 	var enemies: Array = _session.combat.get_state()["enemies"]
-	var card: CombatantCard = _page.find_child("Enemy_0", true, false) as CombatantCard
-	assert_eq(card.shown_hp(), enemies[0]["hp"])
-	assert_gt((_page.get_node("%PlayerCard") as CombatantCard).shown_timer(), 0.0)
+	assert_eq(_zone().target_card().shown_hp(), enemies[_zone().shown_index()]["hp"])
+	assert_gt(_player().shown_timer(), 0.0)
+
+
+func test_loadout_sections_and_gear_grid_follow_the_model() -> void:
+	var player: PlayerColumn = _player()
+	assert_eq(player.ability_card_count(), (_session.data.balance_value(Loadout.ABILITY_LEVELS_KEY) as Array).size())
+	assert_eq(player.trait_chip_count(), (_session.data.balance_value(Loadout.TRAIT_LEVELS_KEY) as Array).size())
+	for slot: StringName in Equipment.SLOTS:
+		assert_not_null(player.gear_cell(slot), "cell %s" % slot)
+		assert_eq(player.gear_cell(slot).uid(), 0)
+	var helm: int = TestFactory.give_piece(_session, HELM, &"magic")
+	assert_true(_session.equipment.equip(helm).ok)
+	assert_eq(player.gear_cell(&"head").uid(), helm, "the grid redraws on equipment_changed")
+	assert_true(player.hint_text().contains(ItemTooltipLines.STYLE_NAMES[_session.equipment.style()]))
 
 
 func test_eat_without_food_shows_the_reason() -> void:
@@ -104,6 +131,18 @@ func test_loot_bag_is_listed_and_collected() -> void:
 	(_page.get_node("%CollectButton") as Button).pressed.emit()
 	assert_eq(_session.combat.loot.used(), 0)
 	assert_true((_page.get_node("%CollectButton") as Button).disabled)
+
+
+func test_log_summary_opens_and_lists_events() -> void:
+	var button: Button = _page.get_node("%LogButton") as Button
+	assert_true(button.text.begins_with("Registro"))
+	_session.combat.start(AREA_ID)
+	_session.events.combat_hit.emit(-1, 0, true, 5, false)
+	button.pressed.emit()
+	assert_true((_page.get_node("%LogScroll") as Control).visible)
+	assert_true(_label("%LogLabel").text.contains("5"))
+	button.pressed.emit()
+	assert_false((_page.get_node("%LogScroll") as Control).visible)
 
 
 func test_unbind_disconnects_everything() -> void:
@@ -131,15 +170,6 @@ func test_character_page_shows_the_base_values_of_f70() -> void:
 	page.free()
 
 
-func _label(path: String) -> Label:
-	return _page.get_node(path) as Label
-
-
-# The name of the stat in data/config/stats.json: the character page reuses it, it does not redefine it.
-func _data_stat_name(stat: StringName) -> String:
-	return str(_session.data.stats.info(stat)["name"])
-
-
 func test_defeat_message_is_cleared_by_a_new_start() -> void:
 	_session.combat.start(AREA_ID)
 	_session.events.player_died.emit()
@@ -148,3 +178,20 @@ func test_defeat_message_is_cleared_by_a_new_start() -> void:
 	_session.combat.stop(Reasons.PLAYER_DIED)
 	assert_true(_session.combat.start(AREA_ID).ok, "restarted outside the page")
 	assert_false(_label("%MessageLabel").visible, "the defeat message goes away on the new start")
+
+
+func _label(path: String) -> Label:
+	return _page.get_node(path) as Label
+
+
+func _zone() -> EnemyZone:
+	return _page.get_node("%EnemyZone") as EnemyZone
+
+
+func _player() -> PlayerColumn:
+	return _page.get_node("%PlayerColumn") as PlayerColumn
+
+
+# The name of the stat in data/config/stats.json: the character page reuses it, it does not redefine it.
+func _data_stat_name(stat: StringName) -> String:
+	return str(_session.data.stats.info(stat)["name"])
