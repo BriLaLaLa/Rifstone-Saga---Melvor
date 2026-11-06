@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://ui/pages/character/character_page.gd" id="1_page"]
 [ext_resource type="PackedScene" path="res://ui/components/progress/xp_bar.tscn" id="2_xp"]
+[ext_resource type="PackedScene" path="res://ui/pages/character/loadout_panel.tscn" id="3_loadout"]
 
 [node name="CharacterPage" type="Control"]
 layout_mode = 3
@@ -21,82 +22,86 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Content" type="VBoxContainer" parent="Margin"]
+[node name="Scroll" type="ScrollContainer" parent="Margin"]
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="Content" type="VBoxContainer" parent="Margin/Scroll"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
 
-[node name="Header" type="PanelContainer" parent="Margin/Content"]
+[node name="Header" type="PanelContainer" parent="Margin/Scroll/Content"]
 layout_mode = 2
 theme_type_variation = &"HudPanel"
 
-[node name="Info" type="VBoxContainer" parent="Margin/Content/Header"]
+[node name="Info" type="VBoxContainer" parent="Margin/Scroll/Content/Header"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Row" type="HBoxContainer" parent="Margin/Content/Header/Info"]
+[node name="Row" type="HBoxContainer" parent="Margin/Scroll/Content/Header/Info"]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="ClassLabel" type="Label" parent="Margin/Content/Header/Info/Row"]
+[node name="ClassLabel" type="Label" parent="Margin/Scroll/Content/Header/Info/Row"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"TitleLabel"
 
-[node name="LevelLabel" type="Label" parent="Margin/Content/Header/Info/Row"]
+[node name="LevelLabel" type="Label" parent="Margin/Scroll/Content/Header/Info/Row"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 4
 theme_type_variation = &"HeaderLabel"
 
-[node name="DescriptionLabel" type="Label" parent="Margin/Content/Header/Info"]
+[node name="DescriptionLabel" type="Label" parent="Margin/Scroll/Content/Header/Info"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
 autowrap_mode = 3
 
-[node name="XpBar" parent="Margin/Content/Header/Info" instance=ExtResource("2_xp")]
+[node name="XpBar" parent="Margin/Scroll/Content/Header/Info" instance=ExtResource("2_xp")]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="SetupPanel" type="PanelContainer" parent="Margin/Content"]
+[node name="SetupPanel" type="PanelContainer" parent="Margin/Scroll/Content"]
 layout_mode = 2
 theme_type_variation = &"HudPanel"
 
-[node name="SetupBox" type="VBoxContainer" parent="Margin/Content/SetupPanel"]
+[node name="SetupBox" type="VBoxContainer" parent="Margin/Scroll/Content/SetupPanel"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="SetupTitle" type="Label" parent="Margin/Content/SetupPanel/SetupBox"]
+[node name="SetupTitle" type="Label" parent="Margin/Scroll/Content/SetupPanel/SetupBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"HeaderLabel"
 
-[node name="SetupList" type="VBoxContainer" parent="Margin/Content/SetupPanel/SetupBox"]
+[node name="SetupList" type="VBoxContainer" parent="Margin/Scroll/Content/SetupPanel/SetupBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="StatsPanel" type="PanelContainer" parent="Margin/Content"]
+[node name="StatsPanel" type="PanelContainer" parent="Margin/Scroll/Content"]
 layout_mode = 2
 theme_type_variation = &"HudPanel"
 
-[node name="StatsBox" type="VBoxContainer" parent="Margin/Content/StatsPanel"]
+[node name="StatsBox" type="VBoxContainer" parent="Margin/Scroll/Content/StatsPanel"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="StatsTitle" type="Label" parent="Margin/Content/StatsPanel/StatsBox"]
+[node name="StatsTitle" type="Label" parent="Margin/Scroll/Content/StatsPanel/StatsBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"HeaderLabel"
 
-[node name="StatsList" type="VBoxContainer" parent="Margin/Content/StatsPanel/StatsBox"]
+[node name="StatsList" type="VBoxContainer" parent="Margin/Scroll/Content/StatsPanel/StatsBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="NoteLabel" type="Label" parent="Margin/Content"]
+[node name="LoadoutPanel" parent="Margin/Scroll/Content" instance=ExtResource("3_loadout")]
 unique_name_in_owner = true
 layout_mode = 2
-theme_type_variation = &"MutedLabel"
-autowrap_mode = 3

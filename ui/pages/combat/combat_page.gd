@@ -10,8 +10,6 @@ extends Page
 ## refused command shows its reason. It keeps no game state: the session reference, its nodes and the connections.
 ## The yield and the log (`CombatYield`) are derived readings of the events, never saved.
 
-const ITEM_SLOT_SCENE: PackedScene = preload("res://ui/components/item_slot/item_slot.tscn")
-
 var _session: GameSession = null
 ## Signal, callable pairs connected in `bind` (disconnected in `unbind`).
 var _connections: Array[Array] = []
@@ -99,6 +97,8 @@ func bind(session: GameSession) -> void:
 	_connect(events.player_died, _on_player_died)
 	_connect(events.character_level_up, _on_character_level_up)
 	_connect(events.traits_changed, static_resync)
+	_connect(events.ability_used, _on_ability_used)
+	_connect(events.trait_triggered, _on_trait_triggered)
 	_connect(events.character_xp_gained, _on_xp_gained)
 	_connect(events.gold_changed, _on_gold_changed)
 	_message_label.visible = false
@@ -182,7 +182,7 @@ func _redraw_all() -> void:
 	_stop_button.disabled = not running
 	_eat_button.disabled = not running
 	_redraw_food()
-	_redraw_loot()
+	LootStrip.redraw(_session, _loot_list, _loot_count, _collect_button)
 	_refresh_log()
 	_sync_area_choice()
 
@@ -204,40 +204,6 @@ func _redraw_food() -> void:
 
 
 # --- Bottom row -----------------------------------------------------------------------------------------------
-
-## The last icons of the bag with the color of the rarity, "Borsa N / M" and "Raccogli tutto".
-func _redraw_loot() -> void:
-	var bag: LootBag = _session.combat.loot
-	_loot_count.text = CombatTexts.LOOT_COUNT_TEXT % [NumberFormat.format_int(bag.used()),
-			NumberFormat.format_int(bag.capacity())]
-	for child: Node in _loot_list.get_children():
-		_loot_list.remove_child(child)
-		child.queue_free()
-	var items: Array[Dictionary] = bag.items()
-	_collect_button.disabled = items.is_empty()
-	if items.is_empty():
-		var empty := Label.new()
-		empty.text = CombatTexts.LOOT_EMPTY_TEXT
-		empty.theme_type_variation = &"MutedLabel"
-		_loot_list.add_child(empty)
-		return
-	var first: int = maxi(0, items.size() - UiStyle.COMBAT_LOOT_MAX_ICONS)
-	for i: int in range(first, items.size()):
-		var def: ItemDef = _session.data.item(items[i]["item"])
-		if def == null:
-			continue
-		var cell: ItemSlotView = ITEM_SLOT_SCENE.instantiate() as ItemSlotView
-		cell.custom_minimum_size = Vector2(UiStyle.COMBAT_LOOT_ICON_SIDE, UiStyle.COMBAT_LOOT_ICON_SIDE)
-		cell.add_theme_stylebox_override("panel", UiStyle.flat(UiStyle.BG_FIELD, UiStyle.rarity_color(&"common"),
-				UiStyle.COMBAT_FRAME_WIDTH, 2.0))
-		_loot_list.add_child(cell)
-		cell.set_item(def, int(items[i]["qty"]))
-	if first > 0:
-		var more := Label.new()
-		more.text = CombatTexts.LOOT_MORE_TEXT % first
-		more.theme_type_variation = &"MutedLabel"
-		_loot_list.add_child(more)
-
 
 func _build_yield_grid() -> void:
 	for kind: StringName in CombatTexts.YIELD_LABELS:
@@ -268,7 +234,8 @@ func _redraw_yield() -> void:
 func _refresh_log() -> void:
 	var meals: int = _session.combat.food_eaten()
 	_log_button.text = CombatTexts.LOG_HIDE_TEXT if _log_open else CombatTexts.LOG_SUMMARY_TEXT % [
-			NumberFormat.format_int(_yield.hits), NumberFormat.format_int(_yield.blocks), NumberFormat.format_int(meals)]
+			NumberFormat.format_int(_yield.hits), NumberFormat.format_int(_yield.abilities),
+			NumberFormat.format_int(_yield.blocks), NumberFormat.format_int(meals)]
 	_log_scroll.visible = _log_open
 	_yield_grid.visible = not _log_open
 	if _log_open:
@@ -398,3 +365,17 @@ func _enemy_name(state: Dictionary, index: int) -> String:
 		return ""
 	var def: MonsterDef = _session.data.monster(enemies[index]["monster"])
 	return def.name if def != null else String(enemies[index]["monster"])
+
+
+# Feedback of the loadout: a line in the log and a flash on the card or chip (05 §3 `ability_used`, `trait_triggered`).
+func _on_ability_used(ability_id: StringName, _targets: Array) -> void:
+	_yield.abilities += 1
+	_yield.add_log(CombatTexts.LOG_ABILITY_TEXT % _player.entry_name(ability_id))
+	_player.flash_entry(ability_id)
+	_refresh_log()
+
+
+func _on_trait_triggered(trait_id: StringName) -> void:
+	_yield.add_log(CombatTexts.LOG_TRAIT_TEXT % _player.entry_name(trait_id))
+	_player.flash_entry(trait_id)
+	_refresh_log()

@@ -12,6 +12,9 @@ var _session: GameSession = null
 var _gear: Dictionary[StringName, GearCell] = {}
 ## One entry per open or locked ability slot: {"id": StringName, "bar": ProgressBar, "state": Label}.
 var _ability_cards: Array[Dictionary] = []
+## Ability cards and trait chips by id, to flash them (`flash_entry`); rebuilt with the sections.
+var _entries: Dictionary[StringName, Control] = {}
+var _entry_flash: Dictionary[StringName, Tween] = {}
 var _hovering: bool = false
 var _flash: Tween = null
 var _last_hit_text: String = ""
@@ -93,10 +96,10 @@ func tick(state: Dictionary) -> void:
 	for entry: Dictionary in state.get("abilities", []):
 		running[entry["id"]] = entry
 	for card: Dictionary in _ability_cards:
-		_tick_ability(card, running.get(card["id"], {}))
+		_tick_ability(card, running.get(card["id"], {}), state.get("buffs", {}))
 
 
-func _tick_ability(card: Dictionary, entry: Dictionary) -> void:
+func _tick_ability(card: Dictionary, entry: Dictionary, buffs: Dictionary) -> void:
 	var bar: ProgressBar = card["bar"]
 	var label: Label = card["state"]
 	if card["id"] == &"" or entry.is_empty():
@@ -104,7 +107,9 @@ func _tick_ability(card: Dictionary, entry: Dictionary) -> void:
 	var cooldown: int = entry["cooldown_ms"]
 	var left: int = entry["timer_ms"]
 	bar.value = clampf(1.0 - float(left) / float(cooldown), 0.0, 1.0) if cooldown > 0 else 1.0
-	if not entry["enabled"]:
+	if buffs.has(card["id"]):
+		label.text = CombatTexts.BUFF_ACTIVE_TEXT % CombatTexts.seconds_text(int(buffs[card["id"]]))
+	elif not entry["enabled"]:
 		label.text = CombatTexts.ABILITY_OFF_TEXT
 	elif left <= 0:
 		label.text = CombatTexts.ABILITY_READY_TEXT
@@ -137,6 +142,7 @@ func clear_effects() -> void:
 
 func _refresh_abilities(session: GameSession) -> void:
 	_clear(_ability_flow)
+	_entries.clear()
 	_ability_cards.clear()
 	var levels: Array = _levels(session, Loadout.ABILITY_LEVELS_KEY)
 	var open: int = session.loadout.ability_slots()
@@ -147,6 +153,7 @@ func _refresh_abilities(session: GameSession) -> void:
 			else ([] as Array[AbilityDef])
 	for i: int in levels.size():
 		var id: StringName = session.loadout.get_ability(i) if i < open else &""
+		var description: String = ""
 		var title: String = CombatTexts.SLOT_LOCKED_TEXT % int(levels[i])
 		var state_text: String = ""
 		if i < open:
@@ -154,12 +161,13 @@ func _refresh_abilities(session: GameSession) -> void:
 			for def: AbilityDef in defs:
 				if def.id == id:
 					title = def.name
+					description = def.description
 			if id != &"" and not active.has(id):
 				state_text = CombatTexts.NOT_FOR_SETUP_TEXT
-		_ability_cards.append(_build_ability_card(id, title, state_text, i < open and id != &""))
+		_ability_cards.append(_build_ability_card(id, title, state_text, i < open and id != &"", description))
 
 
-func _build_ability_card(id: StringName, title: String, state_text: String, filled: bool) -> Dictionary:
+func _build_ability_card(id: StringName, title: String, state_text: String, filled: bool, description: String) -> Dictionary:
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = UiStyle.COMBAT_ABILITY_CARD_SIZE
 	panel.add_theme_stylebox_override("panel", UiStyle.flat(UiStyle.BG_FIELD,
@@ -184,6 +192,9 @@ func _build_ability_card(id: StringName, title: String, state_text: String, fill
 	state_label.text = state_text if state_text != "" else (CombatTexts.ABILITY_READY_TEXT if filled else "")
 	state_label.theme_type_variation = &"MutedLabel"
 	box.add_child(state_label)
+	panel.tooltip_text = description
+	if id != &"":
+		_entries[id] = panel
 	_ability_flow.add_child(panel)
 	return {"id": id, "bar": bar, "state": state_label}
 
@@ -198,6 +209,8 @@ func _refresh_traits(session: GameSession) -> void:
 	var defs: Array[TraitDef] = session.character.class_def().traits if session.character.class_def() != null \
 			else ([] as Array[TraitDef])
 	for i: int in levels.size():
+		var chip_tip: String = ""
+		var trait_id: StringName = &""
 		var label := Label.new()
 		var border: Color = UiStyle.COMBAT_EMPTY_BORDER
 		label.theme_type_variation = &"MutedLabel"
@@ -208,11 +221,15 @@ func _refresh_traits(session: GameSession) -> void:
 			for def: TraitDef in defs:
 				if def.id == id:
 					label.text = def.name
-					label.tooltip_text = def.description
+					chip_tip = def.description
+					trait_id = id
 					label.theme_type_variation = &"" if active.has(id) else &"MutedLabel"
 					border = UiStyle.GOLD_DIM
 		var chip := PanelContainer.new()
 		chip.add_theme_stylebox_override("panel", UiStyle.flat(UiStyle.BG_FIELD, border, 1, 5.0))
+		chip.tooltip_text = chip_tip
+		if trait_id != &"":
+			_entries[trait_id] = chip
 		chip.add_child(label)
 		_trait_flow.add_child(chip)
 
@@ -306,3 +323,41 @@ func hint_text() -> String:
 
 func level_text() -> String:
 	return _level.text
+
+
+# --- Feedback of the loadout (ability_used, trait_triggered) ---
+
+## Name of an ability or trait of the class, for the log.
+func entry_name(id: StringName) -> String:
+	var class_def: ClassDef = _session.character.class_def() if _session != null else null
+	if class_def != null:
+		for def: AbilityDef in class_def.abilities:
+			if def.id == id:
+				return def.name
+		for def: TraitDef in class_def.traits:
+			if def.id == id:
+				return def.name
+	return String(id)
+
+
+## Quick light on the card or chip of `id` that fades out; nothing if it is not shown.
+func flash_entry(id: StringName) -> void:
+	var node: Control = _entries.get(id)
+	if node == null or not is_instance_valid(node):
+		return
+	var old: Tween = _entry_flash.get(id)
+	if old != null and old.is_valid():
+		old.kill()
+	node.modulate = UiStyle.GOLD_LIGHT
+	var tween: Tween = create_tween()
+	tween.tween_property(node, "modulate", Color.WHITE, CombatTexts.FEEDBACK_FLASH_SEC)
+	_entry_flash[id] = tween
+
+
+func is_flashing(id: StringName) -> bool:
+	var node: Control = _entries.get(id)
+	return node != null and node.modulate != Color.WHITE
+
+
+func ability_state_text(index: int) -> String:
+	return (_ability_cards[index]["state"] as Label).text

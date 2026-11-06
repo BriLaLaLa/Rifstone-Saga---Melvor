@@ -8,7 +8,6 @@ extends Page
 ## `Equipment.setup()` (05 §5.9). It keeps no game state, only references to its own nodes.
 
 const LEVEL_TEXT: String = "Livello %s"
-const NOTE_TEXT: String = "I tratti e le abilità arrivano con le prossime tappe."
 const NO_CLASS_TEXT: String = "Classe non disponibile"
 const MARGIN: int = 16
 const SECTION_SEPARATION: int = 12
@@ -26,7 +25,7 @@ var _session: GameSession = null
 @onready var _setup_list: VBoxContainer = %SetupList
 @onready var _stats_title: Label = %StatsTitle
 @onready var _stats_list: VBoxContainer = %StatsList
-@onready var _note_label: Label = %NoteLabel
+@onready var _loadout: LoadoutPanel = %LoadoutPanel
 
 
 func _ready() -> void:
@@ -35,7 +34,6 @@ func _ready() -> void:
 	_content.add_theme_constant_override("separation", SECTION_SEPARATION)
 	_setup_title.text = ItemTooltipLines.SETUP_LABEL
 	_stats_title.text = CombatTexts.STATS_TITLE
-	_note_label.text = NOTE_TEXT
 
 
 ## Draws the character of `session` and follows its changes.
@@ -47,6 +45,9 @@ func bind(session: GameSession) -> void:
 	events.character_level_up.connect(_on_character_level_up)
 	events.equipment_changed.connect(_on_equipment_changed)
 	events.modifiers_changed.connect(_refresh_stats)
+	for sig: Signal in _loadout_signals(events):
+		sig.connect(_refresh_loadout)
+	_loadout.bind(_session)
 	_build_setup_list()
 	_refresh()
 
@@ -61,8 +62,13 @@ func unbind() -> void:
 			events.character_level_up.disconnect(_on_character_level_up)
 		if events.modifiers_changed.is_connected(_refresh_stats):
 			events.modifiers_changed.disconnect(_refresh_stats)
+		for sig: Signal in _loadout_signals(events):
+			if sig.is_connected(_refresh_loadout):
+				sig.disconnect(_refresh_loadout)
 		if events.equipment_changed.is_connected(_on_equipment_changed):
 			events.equipment_changed.disconnect(_on_equipment_changed)
+	if is_instance_valid(_loadout):
+		_loadout.unbind()
 	_session = null
 
 
@@ -97,6 +103,7 @@ func _refresh() -> void:
 	if table != null:
 		_xp_bar.set_xp(table, _session.character.get_xp())
 	_refresh_stats()
+	_loadout.refresh()
 	var current: StringName = _current_setup_id()
 	for row: Node in _setup_list.get_children():
 		var is_current: bool = current != &"" and row.name == SETUP_ROW_NAME % current
@@ -145,3 +152,15 @@ func _refresh_stats() -> void:
 		_stats_list.add_child(line)
 	for i: int in lines.size():
 		(_stats_list.get_child(i) as Label).text = lines[i]
+
+
+## Signals after which the loadout panel is redrawn: the choice itself, level, setup and the combat state (a choice
+## cannot change during an encounter).
+func _loadout_signals(events: GameEvents) -> Array[Signal]:
+	return [events.traits_changed, events.combat_started, events.combat_stopped, events.encounter_started,
+			events.encounter_cleared]
+
+
+func _refresh_loadout(_arg1: Variant = null, _arg2: Variant = null) -> void:
+	if _session != null:
+		_loadout.refresh()
