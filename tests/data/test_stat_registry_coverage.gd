@@ -13,10 +13,13 @@ const TEST_FUNC_PREFIX: String = "test_"
 # Formulas whose milestone is closed (M1): F-02 skill xp, F-03 interval, F-06 double, F-07 shard, F-10 mastery,
 # F-16 bank capacity; M3: F-08 preservation; M4: F-82 Armory capacity, F-83 item rarity;
 # M5: combat F-20..F-22, F-25..F-27, F-29..F-31, F-33, F-75 and 10.6 (auto_loot, GDD loot bag).
+# M6: F-78..F-81 (loadout slots, ability cooldown and effect, trait effects): no registry stat uses them, the class data
+# is checked below.
 # A milestone that closes adds its formulas here.
 const CLOSED_FORMULAS: Array[String] = [
 	"F-02", "F-03", "F-06", "F-07", "F-08", "F-10", "F-16", "F-82", "F-83",
 	"F-20", "F-21", "F-22", "F-25", "F-26", "F-27", "F-29", "F-30", "F-31", "F-33", "F-75", "10.6",
+	"F-78", "F-79", "F-80", "F-81",
 ]
 # The stats whose effect M1 delivers: they must be covered by the closed formulas above.
 const M1_STATS: Array[StringName] = [
@@ -101,6 +104,46 @@ func test_combat_stat_effects_through_player_stats() -> void:
 		assert_eq(stats.get(c[2]), c[3], "%s -> %s" % [c[0], c[2]])
 	session.modifiers.set_source(&"test:stat", [])
 	assert_eq(CombatantStats.for_player(session).accuracy, base.accuracy, "removing the source restores the base")
+
+
+func test_class_data_only_uses_registered_stats() -> void:
+	# M6: every stat named by a setup, trait or ability modifier, or by a stat_trade, is in the registry (no hidden stat).
+	var data: GameData = TestFactory.real_data()
+	var def: ClassDef = data.character_class(&"rift_blade")
+	var names: Dictionary[StringName, String] = {}
+	for setup: SetupDef in def.setups:
+		for m: Modifier in setup.modifiers:
+			names[m.stat] = "setup %s" % setup.id
+	for t: TraitDef in def.traits:
+		for m: Modifier in t.modifiers:
+			names[m.stat] = "trait %s" % t.id
+		for e: TraitEffectDef in t.effects:
+			if e.type != &"stat_trade":
+				continue
+			for z: Variant in e.params.get("zero", []):
+				names[StringName(str(z))] = "trait %s (zero)" % t.id
+			for k: Variant in e.params.get("mult", {}):
+				names[StringName(str(k))] = "trait %s (mult)" % t.id
+	assert_gt(names.size(), 0)
+	for stat: StringName in names:
+		assert_true(_registry.has(stat), "%s (%s) is registered in stats.json" % [stat, names[stat]])
+	for a: AbilityDef in def.abilities:
+		for m: Modifier in a.modifiers:
+			assert_true(_registry.has(m.stat), "ability %s: stat %s registered" % [a.id, m.stat])
+
+
+func test_every_trait_effect_type_used_by_the_class_has_its_test_file() -> void:
+	var def: ClassDef = TestFactory.real_data().character_class(&"rift_blade")
+	var seen: Dictionary[StringName, bool] = {}
+	for t: TraitDef in def.traits:
+		for e: TraitEffectDef in t.effects:
+			seen[e.type] = true
+	assert_eq(seen.size(), 8, "the class uses all 8 effect types of F-81")
+	for type: StringName in seen:
+		var path: String = "res://tests/systems/combat/effects/test_%s.gd" % type
+		assert_true(FileAccess.file_exists(path), "%s: %s exists" % [type, path])
+	for a: AbilityDef in def.abilities:
+		assert_true(FileAccess.file_exists("res://tests/systems/combat/test_abilities.gd"), "ability tests exist")
 
 
 func test_stats_of_open_milestones() -> void:
