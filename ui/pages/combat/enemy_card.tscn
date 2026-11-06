@@ -1,0 +1,80 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/pages/combat/enemy_card.gd" id="1_card"]
+
+[node name="EnemyCard" type="PanelContainer"]
+script = ExtResource("1_card")
+
+[node name="Box" type="BoxContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Portrait" type="Control" parent="Box"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+
+[node name="Frame" type="Panel" parent="Box/Portrait"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="Icon" type="TextureRect" parent="Box/Portrait"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Floaters" type="Control" parent="Box/Portrait"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="Details" type="VBoxContainer" parent="Box"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="NameLabel" type="Label" parent="Box/Details"]
+unique_name_in_owner = true
+layout_mode = 2
+clip_text = true
+
+[node name="TagLabel" type="Label" parent="Box/Details"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+clip_text = true
+
+[node name="InfoLabel" type="Label" parent="Box/Details"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+autowrap_mode = 3
+
+[node name="HpBar" type="ProgressBar" parent="Box/Details"]
+unique_name_in_owner = true
+layout_mode = 2
+step = 1.0
+
+[node name="HpLabel" type="Label" parent="Box/Details"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="TimerBar" type="ProgressBar" parent="Box/Details"]
+unique_name_in_owner = true
+layout_mode = 2
+max_value = 1.0

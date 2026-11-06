@@ -80,18 +80,48 @@ const MASTERY_LINK_WIDTH: float = 2.0
 const MASTERY_ACTION_ICON_SIDE: int = 36
 const MASTERY_LOCKED_ALPHA: float = 0.6
 
-## Combat page (M5-05): margins, area list width, combatant card size, target highlight border, hit number fade.
+## Combat page (docs/UI_GDR.md §2): player column, portraits, queue cards, gear grid, bottom row.
 const COMBAT_MARGIN: int = 16
 const COMBAT_SECTION_SEPARATION: int = 12
-const COMBAT_AREA_LIST_WIDTH: int = 300
-const COMBAT_CARD_SIZE := Vector2(260, 150)
-const COMBAT_TARGET_BORDER: int = 2
-const COMBAT_BAR_HEIGHT: int = 18
+const COMBAT_PLAYER_WIDTH: int = 380
+const COMBAT_PORTRAIT_SIDE: int = 96
+const COMBAT_TARGET_PORTRAIT_SIDE: int = 120
+const COMBAT_QUEUE_CARD_WIDTH: int = 104
+const COMBAT_QUEUE_ICON_SIDE: int = 48
+const COMBAT_GEAR_COLUMNS: int = 6
+const COMBAT_GEAR_CELL: int = 40
+const COMBAT_ABILITY_CARD_SIZE := Vector2(110, 56)
+const COMBAT_FRAME_WIDTH: int = 2
+const COMBAT_BOTTOM_HEIGHT: int = 132
+const COMBAT_LOOT_ICON_SIDE: int = 44
+const COMBAT_LOOT_MAX_ICONS: int = 10
+const COMBAT_LOG_LINES: int = 8
+const COMBAT_LOG_BUFFER: int = 60
+const COMBAT_BAR_HEIGHT: int = 16
+const COMBAT_YIELD_FONT_SIZE: int = 22
+const COMBAT_TARGET_BAR_HEIGHT: int = 20
 const COMBAT_TIMER_BAR_HEIGHT: int = 8
-const COMBAT_HIT_FONT_SIZE: int = 24
+const COMBAT_HIT_FONT_SIZE: int = 22
+const COMBAT_HIT_BIG_FONT_SIZE: int = 32
+const COMBAT_HIT_RISE: float = 36.0
 const COMBAT_HIT_FADE_SEC: float = 0.9
-const COMBAT_LOOT_MIN_HEIGHT: int = 140
+## A hit is "strong" from this fraction of the attacker's maximum hit (presentation only).
+const COMBAT_STRONG_HIT_FRACTION: float = 0.8
+## Minimal animations (tween): lunge of the attacker, flash of the one hit, fade at death.
+const COMBAT_LUNGE_PX: float = 14.0
+const COMBAT_LUNGE_SEC: float = 0.12
+const COMBAT_FLASH_SEC: float = 0.2
+const COMBAT_DEATH_FADE_SEC: float = 0.5
+const COMBAT_DEAD_ALPHA: float = 0.45
 const COMBAT_TIMER_COLOR := Color("6f9bff")
+const COMBAT_PLAYER_BORDER := Color("8c7339")
+const COMBAT_PLAYER_BG := Color("1c1813")
+const COMBAT_ENEMY_BORDER := Color("7a2e2e")
+const COMBAT_ENEMY_BG := Color("1a1213")
+const COMBAT_TARGET_BORDER_COLOR := Color("e07a6e")
+const COMBAT_ENEMY_TEXT := Color("f2b1a8")
+const COMBAT_FLASH_COLOR := Color(1.0, 0.45, 0.4)
+const COMBAT_EMPTY_BORDER := Color("4a4030")
 
 # --- palette ---
 const BG := Color(0.055, 0.047, 0.063, 0.86)
