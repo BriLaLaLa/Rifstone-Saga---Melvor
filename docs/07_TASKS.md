@@ -1189,6 +1189,8 @@ Regole comuni a M4 (oltre a quelle in testa al file):
     destro (equipaggia / seconda mano per `sword` / Rimuovi), clic = seleziona, motivo di ogni errore di `equip`,
     tooltip di confronto (U6) con le funzioni delle statistiche esistenti. Accettazione: UI_GDR §3 e §7. Test: smoke
     (trascinamento e tasto destro su tutti i 12 slot e i 4 assetti, errori senza cambio di stato).
+  - Nota M6-00b (DONE, merge 44ddcdb): follow-up in STATUS (neck/ring senza pezzi, riga cibo "Togli" provvisoria fino a
+    M6-00c, etichette "In mano"/"Seconda mano", eventuale `can_equip` su `Equipment` da valutare a M7).
   - **M6-00c** Colonne, bersaglio e fila, equipaggiamento con tooltip, numeri di danno, bottino, rendimento, registro,
     sezioni Abilità e Tratti (vuote fino a M6-05), animazioni minime (scatto, lampo, dissolvenza) con durate in
     `UiStyle`. Accettazione: UI_GDR §2, §4 e §7. Test: smoke.

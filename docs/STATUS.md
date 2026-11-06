@@ -11,7 +11,7 @@ Se la sessione si interrompe, si riparte da qui.
   assenti (905 file). Prova del Giocabile di M5: 6/6 (criteri di `06_ROADMAP.md` M5, verificati con i test, con una
   prova headless del Reviewer sui tre assetti × quattro aree e con l'avvio headless del menu). `main` e i tag
   `m0-done`…`m5-done` pushati su `origin` a fine M5 (vedi riga M5-08).
-- **Prossimo passo**: **M6-00b** poi **M6-00c** (UI, L, in sequenza, un agente alla volta, prima di M6-05). M6-00a DONE (03160e3), M6-01 DONE (9d85382). Poi in
+- **Prossimo passo**: **M6-00c** (UI, L, prima di M6-05; riusa il tooltip del pezzo e `UiStyle`). M6-00a DONE (03160e3), M6-01 DONE (9d85382), M6-00b DONE (merge 44ddcdb: pagina Equipaggiamento unita, Armeria rimossa da sidebar e PageHost). Poi in
   parallelo (massimo 2 agenti) **M6-02** (COMBAT, L: prima sposta il save/load del motore in un file a parte, note
   "da M5-03" e "da M5-07") e **M6-04** (DATA), entrambi dopo M6-01; poi M6-03 (dopo M6-02), M6-05 (dopo M6-03 e
   M6-04), M6-06 (QA), M6-07 (REV). Regole dei consumi di `CLAUDE.md`: test mirati, suite completa solo dopo il merge,
@@ -26,6 +26,8 @@ Se la sessione si interrompe, si riparte da qui.
   M5-04 sul contenuto; M5-07: in `idle` `area` è `""` (`area_id()`, `get_state()`, save), le 9 stat di F-20…F-22 e
   F-25…F-27 hanno come test `test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats` (effetto
   stat → modificatori → `CombatantStats`, anche nella tabella del registro di 02).
+- **Prove manuali consigliate (M6-00b)**: trascinare un pezzo sui 12 slot e verificare che si illuminino solo i compatibili (spada a una mano anche sulla seconda mano); tasto destro (equipaggia, seconda mano, Rimuovi); errore con combattimento in corso (motivo mostrato, nessun cambio); tooltip di confronto; layout a 1600x900 e 1280x720; riga cibo.
+- **Follow-up M6-00b**: `neck`/`ring` senza pezzi nei dati (slot vuoti); riga cibo "Togli" provvisoria fino a M6-00c; etichette slot "In mano"/"Seconda mano" da rivedere; `EquipTargets` rilegge le regole di `Equipment` solo per illuminare (l'autorita resta `equip`): `can_equip` su `Equipment` non serve ora, rivalutare a M7.
 - **Follow-up registrati** (note in `07_TASKS.md`): M6-01 `GameData.has_area`/`has_monster`; **M6-02** save/load del
   motore in un file a parte **prima** degli agganci (`combat_engine.gd` a **399** righe) e normalizzazione del save in
   `idle` (`player_hp`, `player_timer_ms`, `hand`, `between_ms` a 0: oggi save → load → save di un motore fermo dopo
