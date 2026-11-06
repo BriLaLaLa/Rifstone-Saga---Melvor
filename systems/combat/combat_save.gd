@@ -9,7 +9,7 @@ const LOG_CATEGORY: String = "combat"
 
 ## `snapshot`: state, area, player_hp, player_timer_ms, hand, between_ms, enemies (Array), effects (Dictionary), loot
 ## (Array), abilities and buffs (Dictionaries: timers and running buffs), kills (Dictionary[StringName, int]),
-## deaths, food_eaten.
+## deaths, food_eaten, stone (the F-87 counter and pending flag, saved also when idle).
 static func write(snapshot: Dictionary) -> Dictionary:
 	var kills_out: Dictionary = {}
 	var kills: Dictionary = snapshot["kills"]
@@ -26,7 +26,7 @@ static func write(snapshot: Dictionary) -> Dictionary:
 		"effects": {} if idle else snapshot["effects"], "abilities": {} if idle else snapshot["abilities"],
 		"buffs": {} if idle else snapshot["buffs"],
 		"loot": snapshot["loot"], "kills": kills_out, "deaths": snapshot["deaths"],
-		"food_eaten": snapshot["food_eaten"],
+		"food_eaten": snapshot["food_eaten"], "stone": snapshot["stone"],
 	}
 
 
@@ -40,14 +40,14 @@ static func read(d: Dictionary, data: GameData) -> Dictionary:
 		"food_eaten": maxi(0, _int(d, "food_eaten")),
 	}
 	var saved_state := StringName(str(d.get("state", "idle")))
-	if saved_state != CombatEngine.STATE_ENCOUNTER and saved_state != CombatEngine.STATE_BETWEEN:
+	if not [CombatEngine.STATE_ENCOUNTER, CombatEngine.STATE_RIFTSTONE, CombatEngine.STATE_BETWEEN].has(saved_state):
 		return result
 	var area_id := StringName(str(d.get("area", "")))
 	if not data.has_area(area_id):
 		Log.warn(LOG_CATEGORY, "saved fight in unknown area '%s': idle" % area_id)
 		return result
 	var encounter := Encounter.new()
-	if saved_state == CombatEngine.STATE_ENCOUNTER:
+	if saved_state != CombatEngine.STATE_BETWEEN:
 		encounter = Encounter.from_save(d["enemies"] if d.get("enemies") is Array else [], data)
 		if encounter == null:
 			Log.warn(LOG_CATEGORY, "saved fight with an unknown monster or a malformed enemy: idle")
@@ -55,12 +55,13 @@ static func read(d: Dictionary, data: GameData) -> Dictionary:
 	result["area"] = area_id
 	result["encounter"] = encounter
 	var live: bool = encounter.alive_count() > 0
-	result["state"] = CombatEngine.STATE_ENCOUNTER if live else CombatEngine.STATE_BETWEEN
+	result["state"] = CombatEngine.STATE_BETWEEN if not live else (
+			CombatEngine.STATE_RIFTSTONE if encounter.has_stone() else CombatEngine.STATE_ENCOUNTER)
 	result["hand"] = clampi(_int(d, "hand"), 0, 1)
 	result["player_hp"] = maxi(1, _int(d, "player_hp"))  # clamped to the maximum when the modifiers are rebuilt
 	result["player_timer_ms"] = maxi(0, _int(d, "player_timer_ms"))
 	result["between_ms"] = maxi(0, _int(d, "between_ms"))
-	if not live and saved_state == CombatEngine.STATE_ENCOUNTER:
+	if not live and saved_state != CombatEngine.STATE_BETWEEN:
 		result["between_ms"] = int(data.balance_value("combat.respawn_ms"))
 	result["effects"] = d.get("effects", {})
 	result["abilities"] = d.get("abilities", {})

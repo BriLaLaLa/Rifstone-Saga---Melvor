@@ -91,6 +91,12 @@ const EXPECTED_BALANCE: Dictionary = {
 	"rarity.affix_count.magic.1": 2.0,
 	"rarity.affix_count.rare.0": 3.0,
 	"rarity.affix_count.rare.1": 4.0,
+	"rarity.drop.magic_pct": 20.0,
+	"rarity.drop.rare_pct": 3.0,
+	"rarity.rift_stone.magic_pct": 40.0,
+	"rarity.rift_stone.rare_pct": 12.0,
+	"rift_stone.chance_pct": 0.5,
+	"rift_stone.pity_kills": 300.0,
 	"rift.sockets.0.level": 1.0,
 	"rift.sockets.1.level": 20.0,
 	"rift.sockets.2.level": 40.0,
@@ -134,7 +140,7 @@ const STAT_FIELDS: Array[String] = ["id", "name", "format", "min", "max", "descr
 const STAT_FORMATS: Array[String] = ["pct", "flat", "flag"]
 const LATER_MILESTONE_STATS: Array[String] = ["fracture_duration_pct", "parallel_lanes"]
 const LATER_MILESTONE_BALANCE_KEYS: Array[String] = [
-	"rift_stone", "sockets", "fractures", "parallel",
+	"sockets", "fractures", "parallel",
 ]
 
 

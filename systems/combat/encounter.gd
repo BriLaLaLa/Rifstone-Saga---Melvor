@@ -14,15 +14,20 @@ class Enemy extends RefCounted:
 	var stats: CombatantStats
 	var hp: int = 0
 	var timer_ms: int = 0
+	var pulse_damage: int = 0  # > 0: a Rift Stone (F-87); its "attack" is the pulse, `timer_ms` the time to the next one
 
-	func _init(monster: MonsterDef, data: GameData) -> void:
+	func _init(monster: MonsterDef, data: GameData, pulse: int = 0) -> void:
 		def = monster
+		pulse_damage = pulse
 		stats = CombatantStats.for_monster(monster, data)
 		hp = stats.max_hp
 		timer_ms = stats.attack_interval_ms
 
 	func alive() -> bool:
 		return hp > 0
+
+	func is_stone() -> bool:
+		return pulse_damage > 0
 
 var enemies: Array[Enemy] = []
 
@@ -51,10 +56,14 @@ static func from_save(entries: Array, data: GameData) -> Encounter:
 			return null
 		var d: Dictionary = entry
 		var monster_id := StringName(str(d.get("monster", "")))
-		if not data.has_monster(monster_id) or not (d.get("hp") is int or d.get("hp") is float):
+		var known: bool = data.has_monster(monster_id) or data.has_rift_stone(monster_id)
+		if not known or not (d.get("hp") is int or d.get("hp") is float):
 			return null
-		var monster: MonsterDef = data.monster(monster_id)
-		var enemy := Enemy.new(monster, data)
+		var enemy: Enemy = null
+		if data.has_rift_stone(monster_id):
+			enemy = RiftStone.enemy(data.rift_stone(monster_id), data)
+		else:
+			enemy = Enemy.new(data.monster(monster_id), data)
 		enemy.hp = clampi(int(d["hp"]), 0, enemy.stats.max_hp)
 		enemy.timer_ms = clampi(int(d.get("timer_ms", enemy.timer_ms)), 0, enemy.stats.attack_interval_ms)
 		result.enemies.append(enemy)
@@ -84,6 +93,14 @@ func alive_indices() -> Array[int]:
 	return result
 
 
+## True if one of the enemies is a Rift Stone (F-87).
+func has_stone() -> bool:
+	for enemy: Enemy in enemies:
+		if enemy.is_stone():
+			return true
+	return false
+
+
 func alive_count() -> int:
 	var count: int = 0
 	for enemy: Enemy in enemies:
@@ -107,6 +124,25 @@ func target(rule: StringName) -> int:
 		if rule == RULE_FIRST:
 			break
 	return best
+
+
+## The attack of `enemy` against `defender`: a monster rolls F-23, F-75, F-22, F-24, F-25 (`roll_attack`); a Rift Stone
+## pulses (`roll_pulse`).
+static func roll_enemy_attack(enemy: Enemy, defender: CombatantStats, rng: RngService, data: GameData) -> Dictionary:
+	if enemy.is_stone():
+		return roll_pulse(enemy.pulse_damage, defender, defender.block_chance, rng)
+	return roll_attack(enemy.stats, defender, defender.block_chance, rng, data)
+
+
+## F-87: the pulse of a Rift Stone never misses, is reduced by F-25 (neutral relation: the plain reduction) and can be
+## blocked (F-75, the only roll). Same result shape as `roll_attack`.
+static func roll_pulse(damage: int, defender: CombatantStats, block_chance: float, rng: RngService) -> Dictionary:
+	var result: Dictionary = {"hit": true, "blocked": false, "damage": 0}
+	if block_chance > 0.0 and rng.roll_pct(block_chance):
+		result["blocked"] = true
+		return result
+	result["damage"] = CombatMath.damage_after_dr(damage, defender.damage_reduction)
+	return result
 
 
 ## docs/05_INTERFACES.md §5.10, "Ordine dei tiri di un attacco": hit (F-23), block only if `block_chance` > 0

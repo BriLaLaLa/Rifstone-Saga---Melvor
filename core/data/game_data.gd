@@ -15,6 +15,7 @@ const STATS_FILE: String = "stats.json"
 const CONTENT_FILES: Dictionary[String, String] = {
 	"skills": "skills/skills.json", "areas": "combat/areas.json", "monsters": "combat/monsters.json",
 	"shop": "shop/shop.json", "affixes": "affixes/affixes.json",
+	"rift_stones": "combat/rift_stones.json",
 }
 const CONTENT_DIRS: Dictionary[String, String] = {
 	"items": "items", "actions": "actions", "mastery": "mastery", "classes": "classes",
@@ -37,6 +38,8 @@ var _node_list: Array[MasteryNodeDef] = []
 var _areas: Dictionary[StringName, AreaDef] = {}
 var _area_list: Array[AreaDef] = []
 var _monsters: Dictionary[StringName, MonsterDef] = {}
+var _stones: Dictionary[StringName, RiftStoneDef] = {}
+var _stone_by_area: Dictionary[StringName, RiftStoneDef] = {}
 var _shop: Dictionary[StringName, ShopEntryDef] = {}
 var _shop_list: Array[ShopEntryDef] = []
 var _character_table: XpTable = null
@@ -213,6 +216,19 @@ func has_monster(id: StringName) -> bool:
 	return _monsters.has(id)
 
 
+func has_rift_stone(id: StringName) -> bool:
+	return _stones.has(id)
+
+
+func rift_stone(id: StringName) -> RiftStoneDef:
+	return _find(_stones, id, "rift stone") as RiftStoneDef
+
+
+## The Rift Stone of an area (F-87), null (no error) when the area has none: no stone ever appears there.
+func rift_stone_for_area(area_id: StringName) -> RiftStoneDef:
+	return _stone_by_area.get(area_id) as RiftStoneDef
+
+
 func shop_entry(id: StringName) -> ShopEntryDef:
 	return _find(_shop, id, "shop entry") as ShopEntryDef
 
@@ -273,6 +289,11 @@ func _build(raw: Dictionary) -> void:
 	for path: String in raw["monsters"]:
 		for d: Dictionary in _list(raw["monsters"][path], "monsters"):
 			_add(MonsterDef.from_dict(d), _monsters, [], path, "monster", d)
+	for path: String in raw["rift_stones"]:
+		for d: Dictionary in _list(raw["rift_stones"][path], "rift_stones"):
+			_add(RiftStoneDef.from_dict(d), _stones, [], path, "rift stone", d)
+			if _stones.has(StringName(d["id"] as String)):
+				_stone_by_area[StringName(d["area"] as String)] = _stones[StringName(d["id"] as String)]
 	for path: String in raw["shop"]:
 		for d: Dictionary in _list(raw["shop"][path], "entries"):
 			_add(ShopEntryDef.from_dict(d), _shop, _shop_list, path, "shop entry", d)
@@ -315,7 +336,8 @@ static func _action_before(a: ActionDef, b: ActionDef) -> bool:
 
 # With a Def that could not be built the data is not valid: nothing stays half-loaded.
 func _clear() -> void:
-	for table: Dictionary in [_items, _skills, _actions, _nodes, _areas, _monsters, _shop, _classes, _affixes]:
+	for table: Dictionary in [_items, _skills, _actions, _nodes, _areas, _monsters, _stones, _stone_by_area, _shop, _classes,
+			_affixes]:
 		table.clear()
 	for list: Array in [_item_list, _skill_list, _action_list, _node_list, _area_list, _shop_list, _class_list,
 			_affix_list]:

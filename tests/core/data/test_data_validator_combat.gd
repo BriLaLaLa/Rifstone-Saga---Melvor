@@ -202,10 +202,10 @@ func test_monster_xp_is_required() -> void:
 	_expect(raw, [MONSTERS, "monster 'test_monster_a'", "missing field 'xp'"])
 
 
-func test_monster_cannot_drop_equipment_before_m7() -> void:
+func test_monster_may_drop_equipment_from_m7() -> void:
 	var raw: Dictionary = V.fixture_raw()
 	((_monster(raw, 0)["drops"] as Array)[0] as Dictionary)["item"] = "test_helm"
-	_expect(raw, [MONSTERS, "monster 'test_monster_a'", "field 'drops[0].item'", "pieces drop as instances"])
+	assert_eq(V.validate(raw), PackedStringArray(), "a piece drops as an instance (F-84)")
 
 
 func test_monster_has_at_most_4_drops() -> void:

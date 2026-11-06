@@ -5,6 +5,8 @@ extends RefCounted
 ## the tier and the value.
 
 const LOG_CATEGORY: String = "items"
+const SOURCE_MONSTER: StringName = &"monster"
+const SOURCE_RIFT_STONE: StringName = &"rift_stone"
 const TOOL_SLOT_PREFIX: String = "tool_"
 const EPSILON: float = 0.000001
 
@@ -25,10 +27,17 @@ static func craft_chances(mastery_level: int, rarity_pct: float, data: GameData)
 	return Vector2(magic, rare)
 
 
-## F-84 (M7).
-static func drop_chances(_source: StringName, _rarity_pct: float, _data: GameData) -> Vector2:
-	Log.error(LOG_CATEGORY, "drop_chances is not available before M7")
-	return Vector2.ZERO
+## F-84: x = magic %, y = rare %. `source` is `&"monster"` (rarity.drop) or `&"rift_stone"` (rarity.rift_stone); an
+## unknown source logs an error and gives zero. Same `k` and same clamping as F-83.
+static func drop_chances(source: StringName, rarity_pct: float, data: GameData) -> Vector2:
+	if source != SOURCE_MONSTER and source != SOURCE_RIFT_STONE:
+		Log.error(LOG_CATEGORY, "unknown drop source '%s'" % source)
+		return Vector2.ZERO
+	var section: String = "drop" if source == SOURCE_MONSTER else "rift_stone"
+	var k: float = 1.0 + rarity_pct / 100.0
+	var rare: float = minf(float(data.balance_value("rarity.%s.rare_pct" % section)) * k, 100.0)
+	var magic: float = minf(float(data.balance_value("rarity.%s.magic_pct" % section)) * k, 100.0 - rare)
+	return Vector2(magic, rare)
 
 
 static func roll_rarity(chances: Vector2, rng: RngService) -> StringName:

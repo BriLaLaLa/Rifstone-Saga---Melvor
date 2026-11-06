@@ -18,6 +18,15 @@ static func validate_balance(v: DataValidatorRules, balance: Dictionary) -> void
 	var salvage: Variant = DataValidator.lookup(balance, "salvage")
 	if salvage is Dictionary:
 		_salvage(v, salvage as Dictionary)
+	var stone: Variant = DataValidator.lookup(balance, "rift_stone")
+	if stone is Dictionary:
+		_rift_stone(v, stone as Dictionary)
+	for source: String in ["drop", "rift_stone"]:  # F-84 rarity chances (percent)
+		var rarity: Variant = DataValidator.lookup(balance, "rarity.%s" % source)
+		if rarity is Dictionary:
+			for key: String in ["magic_pct", "rare_pct"]:
+				if DataValidatorRules.is_number((rarity as Dictionary).get(key)):
+					v.number(rarity as Dictionary, key, 0.0, 100.0, "rarity.%s" % source)
 
 
 ## Item references (the items are collected before this runs). `upgrade.seal_item` is an id only: the item itself
@@ -47,6 +56,13 @@ static func _upgrade(v: DataValidatorRules, upgrade: Dictionary) -> void:
 		v.integer(upgrade, "downgrade_from", 1.0, float(maxi(levels.size(), 1)), "upgrade")
 	if DataValidatorRules.is_number(upgrade.get("mod_pct_per_level")):
 		v.number(upgrade, "mod_pct_per_level", 0.0, DataValidatorRules.NO_LIMIT, "upgrade", true)
+
+
+static func _rift_stone(v: DataValidatorRules, stone: Dictionary) -> void:  # F-87
+	if DataValidatorRules.is_number(stone.get("chance_pct")):
+		v.number(stone, "chance_pct", 0.0, 100.0, "rift_stone")
+	if DataValidatorRules.is_number(stone.get("pity_kills")):
+		v.integer(stone, "pity_kills", 1.0, DataValidatorRules.NO_LIMIT, "rift_stone")
 
 
 static func _salvage(v: DataValidatorRules, salvage: Dictionary) -> void:
