@@ -153,6 +153,7 @@
     "ingot_items": ["emberbronze_ingot", "ashlead_ingot", "stormzinc_ingot", "duskcobalt_ingot", "glimmerite_ingot",
       "palecinnabar_ingot", "emberheart_ingot", "riftite_ingot"]
   },
+  "rift_stone": {"chance_pct": 0.5, "pity_kills": 300},
   "salvage": {
     "ingot_ratio": 0.4,
     "shards_by_rarity": {"common": 0, "magic": 1, "rare": 3}

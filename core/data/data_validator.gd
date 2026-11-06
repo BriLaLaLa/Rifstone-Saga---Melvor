@@ -37,7 +37,7 @@ const REQUIRED_BALANCE_KEYS: PackedStringArray = [
 	"rift.sockets", "offline.cap_ms", "offline.min_ms",
 	"offline.chunk_ms", "traits.slot_levels", "abilities.slot_levels",
 	"upgrade.levels", "upgrade.downgrade_from", "upgrade.mod_pct_per_level", "upgrade.seal_item", "upgrade.ingot_items",
-	"salvage.ingot_ratio", "salvage.shards_by_rarity",
+	"salvage.ingot_ratio", "salvage.shards_by_rarity", "rift_stone.chance_pct", "rift_stone.pity_kills",
 ]
 ## Balance keys holding an array, a combat style or a class id; every other required key holds a number.
 const BALANCE_LIST_KEYS: PackedStringArray = [
@@ -56,7 +56,8 @@ const AFFIX_COUNT_MAX: int = 6
 const PACK_SIZE_MAX: int = 6  # format limit of combat.max_pack_size
 const START_ITEM_FORBIDDEN_CATEGORIES: PackedStringArray = ["equipment", "tool"]  # they live in the Armory only
 ## Sections made of one file (the others are folders, possibly empty).
-const SINGLE_FILE_SECTIONS: PackedStringArray = ["balance", "stats", "skills", "areas", "monsters", "shop", "affixes"]
+const SINGLE_FILE_SECTIONS: PackedStringArray = ["balance", "stats", "skills", "areas", "monsters", "shop", "affixes",
+	"rift_stones"]
 const SKILL_CATEGORIES: PackedStringArray = ["gathering", "artisan"]
 const STAT_FIELDS: PackedStringArray = ["id", "name", "format", "min", "max", "description", "formula", "test"]
 const STAT_FORMULA_PATTERN: String = "^(F-[0-9]{2}|[0-9]+(\\.[0-9]+)*)$"
@@ -91,6 +92,7 @@ static func validate(raw: Dictionary, errors: PackedStringArray) -> void:
 	DataValidatorClasses.validate_monsters(v, _files(raw, "monsters"))
 	DataValidatorClasses.validate_classes(v, _files(raw, "classes"))
 	DataValidatorClasses.validate_affixes(v, _files(raw, "affixes"))
+	DataValidatorStones.validate(v, _files(raw, "rift_stones"), _files(raw, "areas"))
 	DataValidatorItems.validate_shop(v, _files(raw, "shop"))
 	errors.append_array(v.errors)
 

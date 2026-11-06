@@ -47,6 +47,7 @@ signal combat_started(area_id: StringName)
 signal combat_stopped(reason: StringName)
 signal encounter_started(monster_ids: Array[StringName])
 signal encounter_cleared()
+signal rift_stone_appeared(stone_id: StringName)  # M7
 signal combat_hit(attacker: int, target: int, hit: bool, damage: int, blocked: bool)
 signal player_hp_changed(hp: int, max_hp: int)
 signal monster_hp_changed(index: int, hp: int, max_hp: int)

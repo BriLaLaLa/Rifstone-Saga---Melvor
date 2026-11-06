@@ -39,6 +39,7 @@ const EXPECTED: Dictionary = {
 	"combat_stopped": [["reason", SN, ""]],
 	"encounter_started": [["monster_ids", TYPE_ARRAY, ""]],
 	"encounter_cleared": [],
+	"rift_stone_appeared": [["stone_id", SN, ""]],
 	"combat_hit": [["attacker", I, ""], ["target", I, ""], ["hit", B, ""], ["damage", I, ""], ["blocked", B, ""]],
 	"player_hp_changed": [["hp", I, ""], ["max_hp", I, ""]],
 	"monster_hp_changed": [["index", I, ""], ["hp", I, ""], ["max_hp", I, ""]],

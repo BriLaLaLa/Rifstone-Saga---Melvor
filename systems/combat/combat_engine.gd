@@ -1,24 +1,19 @@
 class_name CombatEngine
 extends RefCounted
-## Event-driven group combat (docs/01_GDD.md §10, docs/05_INTERFACES.md §5.10). `advance` jumps from timer to timer,
-## so `advance(1000)` and ten `advance(100)` give the same result. All randomness comes from `session.rng`, in the
-## order fixed by 05 §5.10. Player stats are recomputed (cached until a modifier, equipment or level change).
-## Trait effects hook in through `EffectSet`, active abilities through `AbilityRunner`; the save format is in
-## `CombatSave`, the UI copy in `CombatView`.
-## Dependencies: data, events, modifiers, rng, bank, wallet, character, equipment, loadout, actions (only `stop`).
+## Event-driven group combat (docs/01_GDD.md §10, docs/05_INTERFACES.md §5.10): `advance` jumps from timer to timer
+## (`advance(1000)` = ten `advance(100)`), randomness from `session.rng`. Helpers: EffectSet, AbilityRunner, RiftStone.
 
 const SAVE_KEY: StringName = &"combat"
-const LOG_CATEGORY: String = "combat"
 const STATE_IDLE: StringName = &"idle"
 const STATE_ENCOUNTER: StringName = &"encounter"
 const STATE_BETWEEN: StringName = &"between"
 const STATE_RIFTSTONE: StringName = &"riftstone"  # M7
 const PLAYER: int = -1
-const SHARD_ITEM: StringName = KillRewards.SHARD_ITEM
 
 var loot: LootBag
 
 var _session: GameSession
+var _stone: RiftStone
 var _state: StringName = STATE_IDLE
 var _area_id: StringName = &""
 var _encounter: Encounter = Encounter.new()
@@ -38,6 +33,7 @@ var _stats: Array[CombatantStats] = [null, null]
 func _init(session: GameSession) -> void:
 	_session = session
 	loot = LootBag.new(session)
+	_stone = RiftStone.new(session)
 	_fx = EffectSet.new(session)
 	_abilities = AbilityRunner.new(session)
 	session.events.modifiers_changed.connect(_on_stats_source_changed)
@@ -203,7 +199,7 @@ func _resolve_instant() -> void:
 		_player_attack()
 	_use_abilities()
 	for i: int in _encounter.enemies.size():
-		if _state != STATE_ENCOUNTER:
+		if not in_encounter():
 			return
 		var enemy: Encounter.Enemy = _encounter.enemies[i]
 		if enemy.alive() and enemy.timer_ms <= 0:
@@ -211,8 +207,8 @@ func _resolve_instant() -> void:
 
 
 func _begin_encounter() -> void:
-	_encounter = Encounter.spawn(_session.data.area(_area_id), _session.data, _session.rng)
-	_state = STATE_ENCOUNTER
+	_encounter = _stone.next_encounter(_area_id)  # the Rift Stone if one is pending (F-87)
+	_state = STATE_RIFTSTONE if _encounter.has_stone() else STATE_ENCOUNTER
 	_player_timer_ms = player_stats(_hand).attack_interval_ms
 	var ctx: EffectContext = _ctx()
 	_fx.encounter_start(ctx)
@@ -244,7 +240,7 @@ func _player_attack() -> void:
 
 # F-76/F-79: after the base attack, the abilities that are due, in slot order (each hits, heals or starts a buff).
 func _use_abilities() -> void:
-	while _state == STATE_ENCOUNTER:
+	while in_encounter():
 		var use: AbilityRunner.Use = _abilities.take_due(_encounter, _player_hp, player_stats(), _fx.target_rule())
 		if use == null:
 			return
@@ -256,7 +252,7 @@ func _use_abilities() -> void:
 # The outcomes of the player's rolls, in target order: hit event, hp, leech, kill.
 func _apply_hits(targets: Array[int], attacks: Array[Dictionary]) -> void:
 	for k: int in targets.size():
-		if _state != STATE_ENCOUNTER:
+		if not in_encounter():
 			return
 		var damage: int = attacks[k]["damage"]
 		_session.events.combat_hit.emit(PLAYER, targets[k], attacks[k]["hit"], damage, false)
@@ -270,7 +266,7 @@ func _apply_hits(targets: Array[int], attacks: Array[Dictionary]) -> void:
 func _enemy_attack(index: int, enemy: Encounter.Enemy) -> void:
 	enemy.timer_ms = enemy.stats.attack_interval_ms
 	var me: CombatantStats = player_stats()
-	var attack: Dictionary = Encounter.roll_attack(enemy.stats, me, me.block_chance, _session.rng, _session.data)
+	var attack: Dictionary = Encounter.roll_enemy_attack(enemy, me, _session.rng, _session.data)
 	var damage: int = attack["damage"]
 	_session.events.combat_hit.emit(index, PLAYER, attack["hit"], damage, attack["blocked"])
 	if damage <= 0:
@@ -304,10 +300,13 @@ func _hurt_enemy(index: int, damage: int) -> void:
 
 # Kill (05 §5.10): xp (F-28), then gold (F-31), drops in data order (F-32), shard (F-07); last enemy ends the encounter.
 func _kill(index: int, enemy: Encounter.Enemy) -> void:
-	var def: MonsterDef = enemy.def
-	KillRewards.grant(_session, loot, def)
-	_kills[def.id] = _kills.get(def.id, 0) + 1
-	_session.events.monster_killed.emit(index, def.id)
+	if enemy.is_stone():
+		_stone.reward(loot, _area_id)
+	else:
+		KillRewards.grant(_session, loot, enemy.def)
+		_kills[enemy.def.id] = _kills.get(enemy.def.id, 0) + 1
+		_stone.on_kill(_area_id)
+	_session.events.monster_killed.emit(index, enemy.def.id)
 	var ctx: EffectContext = _ctx()
 	_fx.kill(ctx)
 	_player_timer_ms = ctx.player_timer_ms
@@ -339,7 +338,6 @@ func _food_count() -> int:
 	return _session.bank.get_count(food) if food != &"" else 0
 
 
-# A trait or the setup changed: the effects and the stats they modify are stale.
 func _on_loadout_changed() -> void:
 	_fx.invalidate()
 	_on_stats_source_changed()
@@ -359,6 +357,7 @@ func new_game() -> void:
 	_fx.reset()
 	_abilities.reset()
 	loot.from_save([])
+	_stone.reset()
 
 
 ## Buffs of the running abilities (`ability:<id>`): the session rebuilds every modifier source after a load.
@@ -371,7 +370,7 @@ func to_save() -> Dictionary:
 		"state": _state, "area": _area_id, "player_hp": _player_hp, "player_timer_ms": _player_timer_ms,
 		"hand": _hand, "between_ms": _between_ms, "enemies": _encounter.to_save(), "effects": _fx.to_save(),
 		"abilities": _abilities.timers_save(), "buffs": _abilities.buffs_save(),
-		"loot": loot.to_save(), "kills": _kills, "deaths": _deaths, "food_eaten": _food_eaten,
+		"loot": loot.to_save(), "stone": _stone.to_save(), "kills": _kills, "deaths": _deaths, "food_eaten": _food_eaten,
 	})
 
 
@@ -382,6 +381,7 @@ func from_save(d: Dictionary) -> void:
 		loot.from_save(d["loot"])
 	var parsed: Dictionary = CombatSave.read(d, _session.data)
 	_apply(parsed)
+	_stone.from_save(d.get("stone"))
 	_fx.from_save(parsed["effects"])
 	_abilities.from_save(parsed["abilities"], parsed["buffs"])
 

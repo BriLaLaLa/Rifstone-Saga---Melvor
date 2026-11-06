@@ -168,7 +168,7 @@ func test_mastery_nodes() -> void:
 
 
 func test_areas_and_monsters() -> void:
-	assert_eq(_ids(_data.areas()), [&"test_area"] as Array[StringName])
+	assert_eq(_ids(_data.areas()), [&"test_area", &"test_stone_area"] as Array[StringName])
 	var area: AreaDef = _data.area(&"test_area")
 	assert_eq(area.monster_ids, [&"test_monster_a", &"test_monster_b"] as Array[StringName])
 	assert_eq(area.packs.size(), 2)

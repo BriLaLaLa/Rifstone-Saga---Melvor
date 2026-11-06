@@ -58,7 +58,7 @@ static func validate_monsters(v: DataValidatorRules, files: Dictionary[String, D
 		for index: int in list.size():
 			var e: Dictionary = list[index]
 			v.entry("monster", index, e, seen, MONSTER_FIELDS)
-			_existing_icon(v, e, MONSTER_ICON_DIR)
+			existing_icon(v, e, MONSTER_ICON_DIR)
 			_sprite(v, e)
 			v.integer(e, "hp", 1)
 			v.integer(e, "xp", 0)
@@ -71,10 +71,10 @@ static func validate_monsters(v: DataValidatorRules, files: Dictionary[String, D
 			v.number(e, "damage_reduction", 0.0, max_dr)
 			v.int_pair(e, "gold", 0, DataValidatorRules.NO_LIMIT, true)
 			v.number(e, "rift_shard_chance", 0.0, 100.0)
-			_drops(v, e)
+			drops(v, e)
 
 
-static func _drops(v: DataValidatorRules, monster: Dictionary) -> void:
+static func drops(v: DataValidatorRules, monster: Dictionary) -> void:
 	var drops: Array[Dictionary] = v.object_list(monster, "drops")
 	if drops.size() > MAX_DROPS:
 		v.fail("field 'drops' has %d entries, at most %d" % [drops.size(), MAX_DROPS])
@@ -98,7 +98,7 @@ static func validate_classes(v: DataValidatorRules, files: Dictionary[String, Di
 		v.entry("class", 0, c, seen, CLASS_FIELDS, orders)
 		if c.get("id") is String and c["id"] != path.get_file().get_basename():
 			v.fail("id '%s' must be equal to the file name" % c["id"])
-		_existing_icon(v, c, CLASS_ICON_DIR)
+		existing_icon(v, c, CLASS_ICON_DIR)
 		var weapon_kinds: Array = _kinds(v, c, "weapon_kinds", WEAPON_KINDS, 1)
 		var offhand_kinds: Array = _kinds(v, c, "offhand_kinds", _offhand_kinds(), 0)
 		_setups(v, c, weapon_kinds, offhand_kinds)
@@ -218,7 +218,7 @@ static func _offhand_kinds() -> PackedStringArray:
 
 
 # A required icon path under `dir` whose file must exist (monsters and classes have no placeholder fallback).
-static func _existing_icon(v: DataValidatorRules, e: Dictionary, dir: String) -> void:
+static func existing_icon(v: DataValidatorRules, e: Dictionary, dir: String) -> void:
 	DataValidator.icon(v, e, dir)
 	if e.get("icon") is String and (e["icon"] as String).begins_with(dir) and not FileAccess.file_exists(e["icon"] as String):
 		v.fail("field 'icon': file '%s' does not exist" % e["icon"])
