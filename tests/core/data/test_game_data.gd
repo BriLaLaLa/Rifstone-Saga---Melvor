@@ -96,6 +96,14 @@ func test_unknown_ids_are_null_with_error() -> void:
 	assert_push_error(7)
 
 
+func test_has_area_and_has_monster_do_not_log_errors() -> void:
+	assert_true(_data.has_area(&"test_area"))
+	assert_false(_data.has_area(&"ghost_area"))
+	assert_true(_data.has_monster(&"test_monster_a"))
+	assert_false(_data.has_monster(&"ghost_monster"))
+	assert_false(_data.has_area(&""))  # an unexpected push_error would fail the test
+
+
 func test_lists_are_copies() -> void:
 	_data.items().clear()
 	_data.skills().clear()

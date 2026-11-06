@@ -22,6 +22,7 @@ const EXPECTED: Dictionary = {
 	"mastery_node_purchased": [["skill_id", SN, ""], ["node_id", SN, ""]],
 	"character_xp_gained": [["amount", I, ""]],
 	"character_level_up": [["new_level", I, ""]],
+	"traits_changed": [],
 	"bank_changed": [["item_id", SN, ""], ["new_count", I, ""], ["delta", I, ""]],
 	"bank_capacity_changed": [["used", I, ""], ["capacity", I, ""]],
 	"bank_rejected": [["item_id", SN, ""], ["qty", I, ""]],

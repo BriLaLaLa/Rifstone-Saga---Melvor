@@ -204,6 +204,15 @@ func monster(id: StringName) -> MonsterDef:
 	return _find(_monsters, id, "monster") as MonsterDef
 
 
+## Existence checks without `push_error` (docs/05_INTERFACES.md §4).
+func has_area(id: StringName) -> bool:
+	return _areas.has(id)
+
+
+func has_monster(id: StringName) -> bool:
+	return _monsters.has(id)
+
+
 func shop_entry(id: StringName) -> ShopEntryDef:
 	return _find(_shop, id, "shop entry") as ShopEntryDef
 

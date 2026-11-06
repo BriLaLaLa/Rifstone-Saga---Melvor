@@ -1,7 +1,7 @@
 class_name ClassDef
 extends RefCounted
 ## A character class of data/classes/<id>.json (docs/04_DATA_SCHEMA.md §14).
-## `traits` and `abilities` (TraitDef, AbilityDef) are added by M6: in M4 the file lists are empty and not read.
+## `traits` and `abilities` (TraitDef, AbilityDef, M6) are the class's lists, in file order.
 ## `from_dict` returns null (after logging, see DefReader) if a field is missing or mistyped.
 
 var id: StringName = &""
@@ -12,6 +12,8 @@ var order: int = 0
 var weapon_kinds: Array[StringName] = []
 var offhand_kinds: Array[StringName] = []
 var setups: Array[SetupDef] = []
+var traits: Array[TraitDef] = []
+var abilities: Array[AbilityDef] = []
 
 
 static func from_dict(d: Dictionary) -> ClassDef:
@@ -30,6 +32,16 @@ static func from_dict(d: Dictionary) -> ClassDef:
 		r.absorb(setup != null)
 		if setup != null:
 			def.setups.append(setup)
+	for entry: Dictionary in r.dict_list("traits"):
+		var trait_def: TraitDef = TraitDef.from_dict(entry)
+		r.absorb(trait_def != null)
+		if trait_def != null:
+			def.traits.append(trait_def)
+	for entry: Dictionary in r.dict_list("abilities"):
+		var ability: AbilityDef = AbilityDef.from_dict(entry)
+		r.absorb(ability != null)
+		if ability != null:
+			def.abilities.append(ability)
 	return def if r.ok else null
 
 

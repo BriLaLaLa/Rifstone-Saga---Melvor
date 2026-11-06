@@ -72,6 +72,13 @@ const EXPECTED_BALANCE: Dictionary = {
 	"character_curve.max_level": 99.0,
 	"character_curve.xp_cap": 50000000.0,
 	"character.start_class": "rift_blade",
+	"traits.slot_levels.0": 1.0,
+	"traits.slot_levels.1": 10.0,
+	"traits.slot_levels.2": 25.0,
+	"traits.slot_levels.3": 50.0,
+	"abilities.slot_levels.0": 1.0,
+	"abilities.slot_levels.1": 1.0,
+	"abilities.slot_levels.2": 30.0,
 	"armory.base_slots": 40.0,
 	"armory.slot_cost_base": 1000.0,
 	"armory.slot_cost_growth": 1.12,
@@ -126,7 +133,7 @@ const STAT_FIELDS: Array[String] = ["id", "name", "format", "min", "max", "descr
 const STAT_FORMATS: Array[String] = ["pct", "flat", "flag"]
 const LATER_MILESTONE_STATS: Array[String] = ["upgrade_success_pct", "fracture_duration_pct", "parallel_lanes"]
 const LATER_MILESTONE_BALANCE_KEYS: Array[String] = [
-	"traits", "abilities", "upgrade", "rift_stone", "salvage", "sockets", "fractures", "parallel",
+	"upgrade", "rift_stone", "salvage", "sockets", "fractures", "parallel",
 ]
 
 
@@ -205,7 +212,7 @@ func test_balance_has_no_unexpected_keys() -> void:
 func test_balance_has_no_later_milestone_sections() -> void:
 	var root: Dictionary = _load_dict(BALANCE_PATH)
 	for key: String in LATER_MILESTONE_BALANCE_KEYS:
-		assert_false(root.has(key), "balance.json has no '%s' section (M6+)" % key)
+		assert_false(root.has(key), "balance.json has no '%s' section (M7+)" % key)
 
 
 func test_stats_has_exactly_24_stats() -> void:

@@ -220,11 +220,11 @@ func test_setup_unknown_field_is_an_error() -> void:
 	_expect(raw, [CLASS_FILE, "unknown field 'setups[0].twohand'"])
 
 
-func test_traits_and_abilities_are_empty_in_m4() -> void:
+func test_traits_and_abilities_lists_are_required() -> void:
 	var raw: Dictionary = V.fixture_raw()
-	_class(raw)["traits"] = [{"id": "x"}]
+	_class(raw).erase("traits")
 	_class(raw).erase("abilities")
-	_expect(raw, [CLASS_FILE, "field 'traits' must be empty"])
+	_expect(raw, [CLASS_FILE, "missing field 'traits'"])
 	_expect(raw, [CLASS_FILE, "missing field 'abilities'"])
 
 

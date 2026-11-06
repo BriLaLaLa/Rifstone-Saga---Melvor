@@ -21,6 +21,7 @@ const NOT_EQUIPPABLE := &"not_equippable"
 const NOT_FOOD := &"not_food"
 const SLOT_EMPTY := &"slot_empty"
 const COMBAT_ACTIVE := &"combat_active"
+const SLOT_LOCKED := &"slot_locked"  # M6: trait/ability slot not open yet (docs/05_INTERFACES.md §2)
 const LANE_UNAVAILABLE := &"lane_unavailable"
 const SKILL_IN_OTHER_LANE := &"skill_in_other_lane"
 const SOCKET_LOCKED := &"socket_locked"
