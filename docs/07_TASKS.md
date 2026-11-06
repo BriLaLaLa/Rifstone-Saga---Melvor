@@ -1243,6 +1243,9 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 - M7-05 · Contenuto: anelli, amuleti, drop, Pietre, Sigillo (DATA; M7-01; `data/items/**`, `data/combat/**`).
   Nota (da M7-01): creare l'oggetto `warding_seal` (`balance.json` `upgrade.seal_item`) in `data/items/materials.json`;
   ownership estesa a `core/data/data_validator_loot.gd` (e al suo test): `validate_refs` controlla che esista.
+  Nota (da M7-04): creare le Pietre vere in `data/combat/rift_stones.json` (una per area, `summon_pack` esplicito, `null`
+  se nessun gruppo; `pulse_ms` ≥ `combat.min_attack_interval_ms`, `pulse_damage` ≥ 1); il validatore (`DataValidatorStones`)
+  lo controlla; icone in `assets/icons/monsters/`; drop di pezzi ammessi (rarità F-84, `ilvl` F-85).
 - M7-06 · Armeria completa: raffina, smantella, filtro; Pietra nella pagina del combattimento (UI; M7-04; `ui/pages/armory/**`, `ui/pages/combat/**`).
   Nota (da M4-08): aggiungere a `tests/ui/test_armory_page_smoke.gd` e `test_equipment_page_smoke.gd` il caso di un pezzo
   con `upgrade > 0` ("Nome +N" nel pannello, "+N" nella cella e nella riga dello slot); ownership estesa a quei test.

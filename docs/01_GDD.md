@@ -500,6 +500,11 @@ il prossimo incontro sia la Pietra del Rift dell'area: molti PV, nessun attacco,
 facoltativamente un gruppo evocato. Bottino: frammenti del Rift in quantità, materiali di raffinazione, pietre da
 incastonare (M8), gioielli (rarità F-84).
 
+- La Pietra in attesa si consuma al primo nuovo incontro (resta nel salvataggio finché non appare). Nell'incontro la
+  Pietra viene per prima, poi l'eventuale gruppo evocato; l'incontro finisce solo con la morte di **tutti** i nemici.
+- Le uccisioni durante l'attesa non contano per F-87; quelle della Pietra non contano mai.
+- I pezzi dei drop hanno la rarità di F-84 (fonte `rift_stone` per la Pietra) e l'`ilvl` di F-85.
+
 ## 25. Smantellamento e filtro (M7)
 
 - Smantellare un pezzo (non bloccato, non indossato) lo distrugge e restituisce lingotti e frammenti (F-88).

@@ -895,7 +895,9 @@ Comportamento (M5-03):
   4. senza tiri: `triangle` → `triangle_damage` (F-24) → `effective_dr` con la relazione dell'attaccante →
      `damage_after_dr` (F-25); poi i PV e, se il difensore è il giocatore vivo, `AutoEat.after_hit` (F-30).
   Uccisione, nell'ordine: oro (F-31), drop nell'ordine dei dati (F-32, un tiro di probabilità e poi uno di quantità per
-  voce), frammento (F-07).
+  voce; per un pezzo (M7), dopo il tiro della quantità e per ciascuna istanza: un tiro di rarità (F-84), poi i tiri degli
+  affissi (F-85)), frammento (F-07). Poi, per un mostro ordinario, F-87 (`since += 1`, il tiro `chance_pct` solo se
+  `since` < `pity_kills`). Uccisione di una Pietra: XP, frammenti `randi_range(shards)`, drop con fonte `rift_stone`.
 - Uccisione: XP al personaggio (F-28), oro (F-31), drop (F-32) e frammento (F-07) nella borsa, `monster_killed`;
   ultimo nemico → `encounter_cleared`, stato `between` per `combat.respawn_ms`, poi nuovo gruppo (F-77) e
   `encounter_started`. Morte: `lose_all`, PV al massimo, `player_died`, stop `player_died`.
@@ -907,8 +909,12 @@ Comportamento (M5-03):
   `TraitEffect`, un file per tipo di F-81) nei punti `on_encounter_start`, `on_before_attack`, `on_hit`, `on_kill`,
   `on_damaged`, `on_low_hp`, `choose_target`, `modify_stats`; abilità in `systems/combat/ability_runner.gd` (F-79, F-80).
 - Save (§6): stato, area, nemici, PV, timer, mano, attesa, contatori, borsa, stato degli effetti (`effects`: solo i
-  contatori non vuoti per tratto, es. quello di `every_nth_attack_all`) e, da M6-03, di abilità e buff. `attack_count` e
-  `kills_since_stone` non sono chiavi del save.
+  contatori non vuoti per tratto, es. quello di `every_nth_attack_all`) e, da M6-03, di abilità e buff. `attack_count` non è
+  una chiave del save. Da M7-04 `combat.stone = {since: int, pending: bool}` (additiva, salvata anche da `idle`,
+  `format_version` invariata; tollerante: assente o malformata → 0 / false). Stato `riftstone`: i nemici stanno in
+  `enemies` con `monster` = id della Pietra (`from_save` risolve anche `GameData.rift_stone`); `monster_killed(index,
+  stone_id)`, la UI risolve nome e icona con `GameData.rift_stone`. Impulso: nessun tiro di colpo, la parata (F-75) è
+  l'unico tiro.
   `from_save` tollerante: area o mostro sconosciuto → `idle` con `Log.warn` (borsa e contatori tenuti).
 - Comportamenti fissati da M5-03 (contratto, coperti da `test_combat_engine.gd`):
   - `start` sulla stessa area già attiva: successo, nulla cambia; su un'altra area: `stop(replaced)` e nuovo avvio.

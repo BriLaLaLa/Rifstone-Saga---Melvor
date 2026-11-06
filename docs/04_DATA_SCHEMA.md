@@ -294,7 +294,7 @@ Classe: `MasteryNodeDef`.
 | `damage_reduction` | float | 0..80 |
 | `gold` | `[min, max]` | 0 ≤ min ≤ max |
 | `rift_shard_chance` | float | 0..100 |
-| `drops` | array | `{item, chance_pct 0..100, qty [min ≥ 1, max ≥ min]}`, max 4 voci; voci `equipment` e `tool` vietate fino a M7 (da M7 i pezzi cadono come istanze, F-84) |
+| `drops` | array | `{item, chance_pct 0..100, qty [min ≥ 1, max ≥ min]}`, max 4 voci; voci `equipment` e `tool` ammesse da M7: cadono come istanze con rarità F-84 e affissi F-85 (`ilvl` = massimo dei tre livelli del mostro), `qty` = numero di istanze |
 
 Classi: `AreaDef`, `PackDef`, `MonsterDef`, `DropEntry`. Icone dei mostri in `res://assets/icons/monsters/`.
 Fino a M5-04 i due file esistono vuoti (`{"_doc": …, "areas": []}`, `{"_doc": …, "monsters": []}`, creati da M1-12); lo schema con `packs` e `xp` è di M4-01.
@@ -450,7 +450,10 @@ Classi: `AffixDef`, `AffixTier`. Nell'MVP ogni slot d'equipaggiamento ha almeno 
 - `data/items/equipment.json`: anelli (`neck`/`ring` con `grade`, requisito `character`) solo da drop (Q30).
 - `data/combat/rift_stones.json`: `{"rift_stones": [{"id", "name", "description", "icon", "area", "hp", "xp",
   "pulse_damage", "pulse_ms", "summon_pack" (indice di `packs` dell'area o `null`), "shards": [min, max], "drops": [...]}]}`,
-  una per area (F-87).
+  una per area (F-87; il validatore rifiuta due Pietre sulla stessa area). `summon_pack` obbligatorio (`null` = nessun gruppo).
+  `hp` ≥ 1, `xp` ≥ 0, `pulse_damage` ≥ 1, `pulse_ms` ≥ `combat.min_attack_interval_ms`, `icon` in
+  `res://assets/icons/monsters/` (file esistente), `drops` come i mostri (max 4; i pezzi con rarità `rarity.rift_stone`).
+  Classe `RiftStoneDef`; `GameData.rift_stone(id)`, `has_rift_stone(id)`, `rift_stone_for_area(area_id)`.
 - `data/items/materials.json`: Sigillo di salvaguardia (`upgrade.seal_item`).
 - `balance.json`: `rarity.drop`, `rarity.rift_stone`, `upgrade`, `rift_stone`, `salvage`; `stats.json`: `upgrade_success_pct`.
 

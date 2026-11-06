@@ -373,7 +373,8 @@ Numero: `randi_range(a, b)` con `rarity.affix_count.magic = [1, 2]`, `rarity.aff
 Per ogni affisso, in ordine: candidati = affissi di `data/affixes/affixes.json` ammessi dallo slot del pezzo, non già
 presenti sul pezzo, con almeno un grado `min_ilvl ≤ ilvl`; `pick_weighted(weight)`; grado = uniforme tra i gradi
 sbloccati; valore = `min + randi_range(0, floor((max − min) / step)) × step` (`step` di default 1). Senza candidati si
-smette (il pezzo ha meno affissi). `ilvl` = livello della ricetta (artigianato) o del mostro (drop, M7).
+smette (il pezzo ha meno affissi). `ilvl` = livello della ricetta (artigianato); per i drop (M7) il massimo tra `attack_level`, `power_level` e
+`defence_level` del mostro; per una Pietra del Rift il massimo di questo valore sui mostri dell'area.
 Esempi: gradi con `min_ilvl` 1, 20, 45 e ilvl 25 → 2 gradi sbloccati; grado `{min 3, max 6}` → 3..6; `{min 0.5, max 1.5,
 step 0.25}` → 0,5, 0,75 … 1,5; slot con 2 soli affissi ammessi e raro da 4 → 2 affissi.
 Test: `test_item_roller.gd::test_affix_rolls`.
@@ -398,7 +399,9 @@ spada T4, +5 → +6: 6.400 oro, 3 lingotti T4, 5 frammenti. Test: `tests/systems
 Dopo ogni uccisione (non di una Pietra): `since += 1`; appare una Pietra se `since ≥ rift_stone.pity_kills` (300)
 oppure `roll_pct(rift_stone.chance_pct)` (0.5); quando appare `since = 0` e il prossimo incontro (dopo `BETWEEN`) è la
 Pietra dell'area. La Pietra non attacca: ogni `pulse_ms` infligge `pulse_damage` al giocatore (senza tiro, ridotto da
-F-25, parabile con F-75). Esempi: `since` 299 → uccisione → Pietra garantita; chance 100 → sempre. Test:
+F-25, parabile con F-75). Una Pietra in attesa (`pending`) ferma conteggio e tiri: le uccisioni durante l'attesa non contano. Stile della Pietra:
+`combat.unarmed.style` (neutro; nessun campo di tipo di danno nell'MVP). Esempi: `since` 299 → uccisione → Pietra
+garantita; chance 100 → sempre. Test:
 `tests/systems/combat/test_rift_stone.gd`.
 
 ### F-88 Smantellamento (M7)
