@@ -10,6 +10,9 @@ const ABILITY_FIELDS: PackedStringArray = ["id", "name", "description", "unlock_
 const EFFECT_FIELDS: PackedStringArray = ["type", "params"]
 const TARGET_RULES: PackedStringArray = ["first", "lowest_hp", "highest_hp"]  # F-76
 const ABILITY_KINDS: PackedStringArray = ["strike", "cleave", "heal", "buff"]
+# Stats `stat_trade` can scale: the ones that feed a combat number (F-81 map, CombatantStats.scale_stat).
+const STAT_TRADE_STATS: PackedStringArray = ["accuracy_bonus", "accuracy_pct", "evasion_bonus", "evasion_pct",
+	"power_bonus", "power_pct", "max_hp_flat", "damage_reduction", "block_chance"]
 const SLOT_LEVEL_KEYS: PackedStringArray = ["traits.slot_levels", "abilities.slot_levels"]
 # Format limits (not design values) of the parameters.
 const NTH_MAX: int = 20
@@ -134,11 +137,15 @@ static func _stat_trade(v: DataValidatorRules, params: Dictionary, at: String) -
 	for stat: Variant in zero:
 		if not v.stats.has(StringName(str(stat))):
 			v.fail("field '%s.zero': stat '%s' is not in stats.json" % [at, stat])
+		elif not STAT_TRADE_STATS.has(str(stat)):
+			v.fail("field '%s.zero': stat '%s' has no combat effect (F-81)" % [at, stat])
 	var mult: Dictionary = v.object(params, "mult", at)
 	for stat: Variant in mult:
 		var key: String = "%s.mult.%s" % [at, stat]
 		if not v.stats.has(StringName(str(stat))):
 			v.fail("field '%s': stat '%s' is not in stats.json" % [key, stat])
+		elif not STAT_TRADE_STATS.has(str(stat)):
+			v.fail("field '%s': stat '%s' has no combat effect (F-81)" % [key, stat])
 		elif zero.has(str(stat)):
 			v.fail("field '%s': stat '%s' is also in zero" % [key, stat])
 		if not DataValidatorRules.is_number(mult[stat]) or float(mult[stat]) <= 0.0:
