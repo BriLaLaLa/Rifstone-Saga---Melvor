@@ -4,7 +4,8 @@ extends RefCounted
 ## so `advance(1000)` and ten `advance(100)` give the same result. All randomness comes from `session.rng`, in the
 ## order fixed by 05 §5.10. Player stats are recomputed (cached only until a modifier, equipment or level change);
 ## enemy stats come from the monster data. Everything but those derived numbers is saved.
-## Dependencies: data, events, modifiers, rng, bank, wallet, character, equipment, actions (only `stop`).
+## Trait effects (M6) hook in through `EffectSet`; the save format lives in `CombatSave`.
+## Dependencies: data, events, modifiers, rng, bank, wallet, character, equipment, loadout, actions (only `stop`).
 
 const SAVE_KEY: StringName = &"combat"
 const LOG_CATEGORY: String = "combat"
@@ -13,8 +14,7 @@ const STATE_ENCOUNTER: StringName = &"encounter"
 const STATE_BETWEEN: StringName = &"between"
 const STATE_RIFTSTONE: StringName = &"riftstone"  # M7
 const PLAYER: int = -1
-const SHARD_ITEM: StringName = &"rift_shard"
-const EPSILON: float = 1e-9
+const SHARD_ITEM: StringName = KillRewards.SHARD_ITEM
 
 var loot: LootBag
 
@@ -26,7 +26,7 @@ var _player_hp: int = 0
 var _player_timer_ms: int = 0
 var _hand: int = 0
 var _between_ms: int = 0
-var _target_rule: StringName = Encounter.RULE_FIRST
+var _fx: EffectSet
 var _kills: Dictionary[StringName, int] = {}
 var _deaths: int = 0
 var _food_eaten: int = 0
@@ -37,9 +37,11 @@ var _stats: Array[CombatantStats] = [null, null]
 func _init(session: GameSession) -> void:
 	_session = session
 	loot = LootBag.new(session)
+	_fx = EffectSet.new(session)
 	session.events.modifiers_changed.connect(_on_stats_source_changed)
-	session.events.equipment_changed.connect(_on_equipment_changed)
-	session.events.character_level_up.connect(_on_level_up)
+	session.events.equipment_changed.connect(_on_loadout_changed.unbind(2))
+	session.events.character_level_up.connect(_on_stats_source_changed.unbind(1))
+	session.events.traits_changed.connect(_on_loadout_changed)
 
 
 # --- commands ---------------------------------------------------------------------------------------------------
@@ -47,9 +49,9 @@ func _init(session: GameSession) -> void:
 ## unknown_id, requirement_not_met (character level). Stops the main-lane action (REPLACED). Starting the area
 ## already fought changes nothing; another area replaces the current fight.
 func start(area_id: StringName) -> CommandResult:
-	var area: AreaDef = Encounter.find_area(_session.data, area_id)
-	if area == null:
+	if not _session.data.has_area(area_id):
 		return CommandResult.fail(Reasons.UNKNOWN_ID)
+	var area: AreaDef = _session.data.area(area_id)
 	for key: StringName in area.requirements:
 		if key == &"character" and _session.character.get_level() < area.requirements[key]:
 			return CommandResult.fail(Reasons.REQUIREMENT_NOT_MET)
@@ -59,6 +61,7 @@ func start(area_id: StringName) -> CommandResult:
 	_session.actions.stop(ActionRunner.MAIN, Reasons.REPLACED)
 	_area_id = area_id
 	_hand = 0
+	_fx.reset()
 	_player_hp = player_stats().max_hp
 	_session.events.combat_started.emit(area_id)
 	_session.events.player_hp_changed.emit(_player_hp, _player_hp)
@@ -74,6 +77,7 @@ func stop(reason: StringName = Reasons.STOPPED_BY_USER) -> void:
 	_area_id = &""
 	_encounter = Encounter.new()
 	_between_ms = 0
+	_fx.reset()
 	_stop_log.append(reason)
 	_set_hp(player_stats().max_hp)
 	_session.events.combat_stopped.emit(reason)
@@ -134,7 +138,9 @@ func stop_reasons_log() -> Array[StringName]:
 func player_stats(hand: int = 0) -> CombatantStats:
 	var index: int = clampi(hand, 0, 1)
 	if _stats[index] == null:
-		_stats[index] = CombatantStats.for_player(_session, index)
+		var stats: CombatantStats = CombatantStats.for_player(_session, index)
+		_fx.modify_stats(stats)
+		_stats[index] = stats
 	return _stats[index]
 
 
@@ -156,7 +162,7 @@ func get_state() -> Dictionary:
 		"state": _state, "area": _area_id, "player_hp": max_hp if _state == STATE_IDLE else _player_hp,
 		"player_max_hp": max_hp, "player_timer_ms": _player_timer_ms,
 		"player_interval_ms": player_stats(_hand).attack_interval_ms, "hand": _hand, "between_ms": _between_ms,
-		"enemies": enemies, "target": _encounter.target(_target_rule), "abilities": [], "buffs": {},
+		"enemies": enemies, "target": _encounter.target(_fx.target_rule()), "abilities": [], "buffs": {},
 	}
 
 
@@ -217,25 +223,37 @@ func _begin_encounter() -> void:
 	_encounter = Encounter.spawn(_session.data.area(_area_id), _session.data, _session.rng)
 	_state = STATE_ENCOUNTER
 	_player_timer_ms = player_stats(_hand).attack_interval_ms
+	var ctx: EffectContext = _ctx()
+	_fx.encounter_start(ctx)
+	_player_timer_ms = ctx.player_timer_ms
 	_session.events.encounter_started.emit(_encounter.monster_ids())
 
 
+# Base attack: the effects may widen it to every living enemy (F-81) or change its damage. All the rolls come first
+# (position order), then the hand and the timer, then the outcomes (hit event, hp, leech, kill).
 func _player_attack() -> void:
-	var index: int = _encounter.target(_target_rule)
-	if index < 0:
+	var first: int = _encounter.target(_fx.target_rule())
+	if first < 0:
 		return
-	var enemy: Encounter.Enemy = _encounter.enemies[index]
-	var attack: Dictionary = Encounter.roll_attack(player_stats(_hand), enemy.stats, 0.0, _session.rng, _session.data)
+	var ctx: EffectContext = _ctx()
+	_fx.before_attack(ctx)
+	var targets: Array[int] = [first]
+	if ctx.attack_all:
+		targets = _encounter.alive_indices()
+	var attacks: Array[Dictionary] = []
+	for index: int in targets:
+		attacks.append(Encounter.roll_attack(player_stats(_hand), _encounter.enemies[index].stats, 0.0, _session.rng,
+			_session.data, ctx.damage_mult))
 	_hand = 1 if _hand == 0 and _is_dual_wielding() else 0
 	_player_timer_ms = player_stats(_hand).attack_interval_ms
-	var damage: int = attack["damage"]
-	_session.events.combat_hit.emit(PLAYER, index, attack["hit"], damage, false)
-	if damage <= 0:
-		return
-	enemy.hp = maxi(0, enemy.hp - damage)
-	_session.events.monster_hp_changed.emit(index, enemy.hp, enemy.stats.max_hp)
-	if enemy.hp == 0:
-		_kill(index, enemy)
+	for k: int in targets.size():
+		if _state != STATE_ENCOUNTER:
+			return
+		var damage: int = attacks[k]["damage"]
+		_session.events.combat_hit.emit(PLAYER, targets[k], attacks[k]["hit"], damage, false)
+		if damage > 0:
+			_hurt_enemy(targets[k], damage)
+			_heal_from_hit(damage)
 
 
 func _enemy_attack(index: int, enemy: Encounter.Enemy) -> void:
@@ -250,26 +268,40 @@ func _enemy_attack(index: int, enemy: Encounter.Enemy) -> void:
 	if _player_hp <= 0:
 		_die()
 		return
+	var ctx: EffectContext = _ctx()
+	_fx.damaged(ctx, damage)
+	if ctx.reflect_damage > 0:
+		_hurt_enemy(index, ctx.reflect_damage)
+	if _fx.blocks_auto_eat(_ctx()):
+		return
 	var before: int = _food_count()
 	_set_hp(AutoEat.after_hit(_session, _player_hp, me.max_hp))
 	_food_eaten += before - _food_count()
 
 
+func _hurt_enemy(index: int, damage: int) -> void:
+	var enemy: Encounter.Enemy = _encounter.enemies[index]
+	enemy.hp = maxi(0, enemy.hp - damage)
+	_session.events.monster_hp_changed.emit(index, enemy.hp, enemy.stats.max_hp)
+	if enemy.hp == 0:
+		_kill(index, enemy)
+
+
+func _heal_from_hit(damage: int) -> void:
+	var ctx: EffectContext = _ctx()
+	_fx.hit(ctx, damage)
+	_set_hp(mini(ctx.player_max_hp, _player_hp + ctx.heal))
+
+
 # Kill (05 §5.10): xp (F-28), then gold (F-31), drops in data order (F-32), shard (F-07); last enemy ends the encounter.
 func _kill(index: int, enemy: Encounter.Enemy) -> void:
 	var def: MonsterDef = enemy.def
-	_session.character.add_xp(def.xp)
-	var gold_pct: float = _session.modifiers.total(&"gold_drop_pct")
-	var rolled: int = _session.rng.randi_range(def.gold_min, def.gold_max)
-	_session.wallet.add_gold(int(floor(float(rolled) * (1.0 + gold_pct / 100.0) + EPSILON)))
-	for drop: DropEntry in def.drops:
-		if _session.rng.roll_pct(drop.chance_pct):
-			loot.add(drop.item_id, _session.rng.randi_range(drop.qty_min, drop.qty_max))
-	var shard_pct: float = def.rift_shard_chance + _session.modifiers.total(&"rift_shard_chance")
-	if _session.rng.roll_pct(shard_pct):
-		loot.add(SHARD_ITEM, 1)
+	KillRewards.grant(_session, loot, def)
 	_kills[def.id] = _kills.get(def.id, 0) + 1
 	_session.events.monster_killed.emit(index, def.id)
+	var ctx: EffectContext = _ctx()
+	_fx.kill(ctx)
+	_player_timer_ms = ctx.player_timer_ms
 	if _encounter.alive_count() == 0:
 		_encounter = Encounter.new()
 		_state = STATE_BETWEEN
@@ -286,6 +318,15 @@ func _die() -> void:
 
 
 # --- helpers ----------------------------------------------------------------------------------------------------
+
+## What the effect hooks see of the fight right now.
+func _ctx() -> EffectContext:
+	var ctx := EffectContext.new()
+	ctx.player_hp = _player_hp
+	ctx.player_max_hp = player_stats().max_hp
+	ctx.player_timer_ms = _player_timer_ms
+	return ctx
+
 
 func _set_hp(hp: int) -> void:
 	if hp == _player_hp:
@@ -304,11 +345,9 @@ func _food_count() -> int:
 	return _session.bank.get_count(food) if food != &"" else 0
 
 
-func _on_equipment_changed(_slot_id: StringName, _uid: int) -> void:
-	_on_stats_source_changed()
-
-
-func _on_level_up(_level: int) -> void:
+# A trait or the setup changed: the effects and the stats they modify are stale.
+func _on_loadout_changed() -> void:
+	_fx.invalidate()
 	_on_stats_source_changed()
 
 
@@ -322,31 +361,19 @@ func _on_stats_source_changed() -> void:
 # --- save -------------------------------------------------------------------------------------------------------
 
 func new_game() -> void:
-	_state = STATE_IDLE
-	_area_id = &""
-	_encounter = Encounter.new()
-	_player_hp = 0
-	_player_timer_ms = 0
-	_hand = 0
-	_between_ms = 0
-	_kills = {}
-	_deaths = 0
-	_food_eaten = 0
+	_apply(CombatSave.read({}, _session.data))
 	_stop_log = []
 	_stats = [null, null]
+	_fx.reset()
 	loot.from_save([])
 
 
 func to_save() -> Dictionary:
-	var kills_out: Dictionary = {}
-	for id: StringName in _kills:
-		kills_out[String(id)] = _kills[id]
-	return {
-		"state": String(_state), "area": String(_area_id), "player_hp": _player_hp,
-		"player_timer_ms": _player_timer_ms, "hand": _hand, "between_ms": _between_ms,
-		"enemies": _encounter.to_save(), "loot": loot.to_save(), "kills": kills_out, "deaths": _deaths,
-		"food_eaten": _food_eaten,
-	}
+	return CombatSave.write({
+		"state": _state, "area": _area_id, "player_hp": _player_hp, "player_timer_ms": _player_timer_ms,
+		"hand": _hand, "between_ms": _between_ms, "enemies": _encounter.to_save(), "effects": _fx.to_save(),
+		"loot": loot.to_save(), "kills": _kills, "deaths": _deaths, "food_eaten": _food_eaten,
+	})
 
 
 ## Tolerant: an unknown area or monster, or a malformed fight, leaves the engine idle (bag and counters are kept).
@@ -354,46 +381,19 @@ func from_save(d: Dictionary) -> void:
 	new_game()
 	if d.get("loot") is Array:
 		loot.from_save(d["loot"])
-	_load_counters(d)
-	var saved_state := StringName(str(d.get("state", "idle")))
-	if saved_state != STATE_ENCOUNTER and saved_state != STATE_BETWEEN:
-		return
-	var area_id_saved := StringName(str(d.get("area", "")))
-	if Encounter.find_area(_session.data, area_id_saved) == null:
-		Log.warn(LOG_CATEGORY, "saved fight in unknown area '%s': idle" % area_id_saved)
-		return
-	var encounter := Encounter.new()
-	if saved_state == STATE_ENCOUNTER:
-		encounter = Encounter.from_save(d["enemies"] if d.get("enemies") is Array else [], _session.data)
-		if encounter == null:
-			Log.warn(LOG_CATEGORY, "saved fight with an unknown monster or a malformed enemy: idle")
-			return
-	_area_id = area_id_saved
-	_encounter = encounter
-	_state = STATE_ENCOUNTER if encounter.alive_count() > 0 else STATE_BETWEEN
-	_hand = clampi(_int(d, "hand"), 0, 1)
-	_player_hp = maxi(1, _int(d, "player_hp"))  # clamped to the maximum when the modifiers are rebuilt
-	_player_timer_ms = maxi(0, _int(d, "player_timer_ms"))
-	_between_ms = maxi(0, _int(d, "between_ms"))
-	if _state == STATE_BETWEEN and saved_state == STATE_ENCOUNTER:
-		_between_ms = int(_session.data.balance_value("combat.respawn_ms"))
+	var parsed: Dictionary = CombatSave.read(d, _session.data)
+	_apply(parsed)
+	_fx.from_save(parsed["effects"])
 
 
-func _load_counters(d: Dictionary) -> void:
-	_deaths = maxi(0, _int(d, "deaths"))
-	_food_eaten = maxi(0, _int(d, "food_eaten"))
-	var saved_kills: Variant = d.get("kills")
-	if not (saved_kills is Dictionary):
-		return
-	for key: Variant in (saved_kills as Dictionary):
-		var id := StringName(str(key))
-		var count: Variant = (saved_kills as Dictionary)[key]
-		if not Encounter.is_known_monster(_session.data, id) or not (count is int or count is float) or int(count) <= 0:
-			Log.warn(LOG_CATEGORY, "saved kill count of '%s' discarded" % id)
-			continue
-		_kills[id] = int(count)
-
-
-func _int(d: Dictionary, key: String) -> int:
-	var v: Variant = d.get(key)
-	return int(v) if v is int or v is float else 0
+func _apply(parsed: Dictionary) -> void:
+	_state = parsed["state"]
+	_area_id = parsed["area"]
+	_encounter = parsed["encounter"] if parsed["encounter"] != null else Encounter.new()
+	_player_hp = parsed["player_hp"]
+	_player_timer_ms = parsed["player_timer_ms"]
+	_hand = parsed["hand"]
+	_between_ms = parsed["between_ms"]
+	_kills = parsed["kills"]
+	_deaths = parsed["deaths"]
+	_food_eaten = parsed["food_eaten"]

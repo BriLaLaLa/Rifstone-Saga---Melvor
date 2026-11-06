@@ -531,3 +531,42 @@ func _ids(list: Array) -> Array[StringName]:
 	for id: Variant in list:
 		result.append(StringName(str(id)))
 	return result
+
+
+# --- idle save normalization (M6-02, 05 §5.10) ------------------------------------------------------------------
+
+func _assert_idle_roundtrip(session: GameSession, label: String) -> void:
+	var saved: Dictionary = session.combat.to_save()
+	assert_eq(saved["state"], "idle", label)
+	assert_eq(saved["area"], "", "%s: area empty" % label)
+	for key: String in ["player_hp", "player_timer_ms", "hand", "between_ms"]:
+		assert_eq(saved[key], 0, "%s: %s written as 0" % [label, key])
+	assert_eq(saved["enemies"], [])
+	var copy: GameSession = autofree(TestFactory.session(5))
+	copy.combat.from_save(JSON.parse_string(JSON.stringify(saved)) as Dictionary)
+	assert_eq(copy.combat.to_save(), saved, "%s: save -> load -> save identical" % label)
+	assert_eq(copy.combat.area_id(), &"")
+
+
+func test_idle_save_is_normalized_after_stop() -> void:
+	_session.combat.start(AREA)
+	_session.combat.loot.add(&"test_twig", 2)
+	_session.combat.advance(1000)
+	_session.combat.stop()
+	_assert_idle_roundtrip(_session, "after stop")
+	assert_eq(_session.combat.to_save()["loot"].size(), 1, "the bag is kept")
+
+
+func test_idle_save_is_normalized_after_death() -> void:
+	_session.combat.start(AREA)
+	_hurt(_session, 1)
+	var guard: int = 0
+	while _session.combat.deaths() == 0 and guard < 2000:
+		_session.combat.advance(1000)
+		guard += 1
+	assert_eq(_session.combat.deaths(), 1)
+	_assert_idle_roundtrip(_session, "after death")
+
+
+func test_new_game_save_is_normalized() -> void:
+	_assert_idle_roundtrip(_session, "new game")
