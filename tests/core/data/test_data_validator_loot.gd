@@ -57,6 +57,12 @@ func test_upgrade_ingot_items() -> void:
 	_expect(raw2, "needs exactly 8 items")
 
 
+func test_upgrade_seal_item_must_exist() -> void:
+	var raw: Dictionary = V.fixture_raw()
+	_upgrade(raw)["seal_item"] = "no_such_seal"
+	_expect(raw, "unknown item 'no_such_seal'")
+
+
 func test_upgrade_scalar_keys() -> void:
 	var raw: Dictionary = V.fixture_raw()
 	_upgrade(raw)["mod_pct_per_level"] = 0

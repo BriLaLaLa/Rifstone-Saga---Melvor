@@ -30,8 +30,9 @@ func before_all() -> void:
 	_areas = _read("res://data/combat/areas.json")["areas"]
 	for m: Dictionary in _read("res://data/combat/monsters.json")["monsters"]:
 		_monsters[m["id"]] = m
-	for m: Dictionary in _read("res://data/items/materials.json")["items"]:
-		_items[m["id"]] = m
+	for path: String in ["materials", "equipment"]:
+		for m: Dictionary in _read("res://data/items/%s.json" % path)["items"]:
+			_items[m["id"]] = m
 
 
 func _read(path: String) -> Dictionary:
@@ -119,7 +120,7 @@ func test_every_monster_is_in_some_pack() -> void:
 	assert_eq(seen.size(), 12)
 
 
-func test_drops_use_existing_materials() -> void:
+func test_drops_use_existing_items() -> void:
 	for m: Dictionary in _monsters.values():
 		var drops: Array = m["drops"]
 		assert_between(drops.size(), 1, 4, "%s drop count" % m["id"])

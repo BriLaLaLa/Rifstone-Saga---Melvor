@@ -29,11 +29,15 @@ static func validate_balance(v: DataValidatorRules, balance: Dictionary) -> void
 					v.number(rarity as Dictionary, key, 0.0, 100.0, "rarity.%s" % source)
 
 
-## Item references (the items are collected before this runs). `upgrade.seal_item` is an id only: the item itself
-## comes with the content of M7 (docs/07_TASKS.md M7-05), which adds its reference check.
+## Item references (the items are collected before this runs): `upgrade.ingot_items` and `upgrade.seal_item`.
 static func validate_refs(v: DataValidatorRules, balance: Dictionary) -> void:
 	var upgrade: Variant = DataValidator.lookup(balance, "upgrade")
-	if not upgrade is Dictionary or not (upgrade as Dictionary).get("ingot_items") is Array:
+	if not upgrade is Dictionary:
+		return
+	var seal: Variant = (upgrade as Dictionary).get("seal_item")
+	if seal is String and not (seal as String).is_empty():
+		v.ref(upgrade as Dictionary, "seal_item", v.items, "item", "upgrade")
+	if not (upgrade as Dictionary).get("ingot_items") is Array:
 		return
 	var ids: Array = v.id_list(upgrade as Dictionary, "ingot_items", v.items, "item", GRADE_COUNT, "upgrade")
 	if ids.size() != GRADE_COUNT:
