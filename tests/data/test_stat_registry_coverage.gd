@@ -16,13 +16,14 @@ const TEST_FUNC_PREFIX: String = "test_"
 # M6: F-78..F-81 (loadout slots, ability cooldown and effect, trait effects): no registry stat uses them, the class data
 # is checked below.
 # M7: F-86 (refinement: upgrade_success_pct, tests/systems/armory/test_upgrade.gd), F-84 (drop rarity, item_rarity_pct:
-# tests/systems/items/test_item_roller.gd::test_drop_rarity), F-87 (Rift Stones, tests/systems/combat/test_rift_stone.gd).
+# tests/systems/items/test_item_roller.gd::test_drop_rarity), F-87 (Rift Stones, tests/systems/combat/test_rift_stone.gd),
+# F-85 (affixes, test_item_roller.gd::test_affix_rolls), F-88 (salvage, tests/systems/armory/test_salvage.gd): M7 closed (M7-07).
 # A milestone that closes adds its formulas here.
 const CLOSED_FORMULAS: Array[String] = [
 	"F-02", "F-03", "F-06", "F-07", "F-08", "F-10", "F-16", "F-82", "F-83",
 	"F-20", "F-21", "F-22", "F-25", "F-26", "F-27", "F-29", "F-30", "F-31", "F-33", "F-75", "10.6",
 	"F-78", "F-79", "F-80", "F-81",
-	"F-86", "F-84", "F-87",
+	"F-86", "F-84", "F-87", "F-85", "F-88",
 ]
 # The stats whose effect M1 delivers: they must be covered by the closed formulas above.
 const M1_STATS: Array[StringName] = [
