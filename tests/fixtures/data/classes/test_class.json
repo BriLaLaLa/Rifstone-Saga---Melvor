@@ -1,6 +1,7 @@
 {
   "_doc": "Test fixture (04_DATA_SCHEMA.md §13): the four setups of rift_blade, without traits or abilities.",
   "id": "test_class", "name": "Classe di prova", "order": 1,
+  "icon": "res://assets/icons/classes/rift_blade.svg",
   "description": "Classe per i test.",
   "weapon_kinds": ["greatsword", "sword"], "offhand_kinds": ["shield", "sword"],
   "setups": [

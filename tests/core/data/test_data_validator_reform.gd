@@ -376,3 +376,15 @@ func test_reform_keys_removed_are_unknown() -> void:
 	var raw: Dictionary = V.fixture_raw()
 	(_balance(raw)["combat"] as Dictionary)["hp_per_vitality"] = 10
 	_expect(raw, ["balance.json", "unknown key 'combat.hp_per_vitality'"])
+
+
+func test_class_icon_is_required_and_must_exist() -> void:
+	var raw: Dictionary = V.fixture_raw()
+	_class(raw).erase("icon")
+	_expect(raw, [CLASS_FILE, "class 'test_class'", "missing field 'icon'"])
+	raw = V.fixture_raw()
+	_class(raw)["icon"] = "res://assets/icons/classes/missing.svg"
+	_expect(raw, [CLASS_FILE, "class 'test_class'", "does not exist"])
+	raw = V.fixture_raw()
+	_class(raw)["icon"] = "res://assets/icons/items/boar.svg"
+	_expect(raw, [CLASS_FILE, "class 'test_class'", "must be a path under res://assets/icons/classes/"])

@@ -2,7 +2,7 @@ extends GutTest
 ## ClassDef and SetupDef: the example of docs/04_DATA_SCHEMA.md §14 and the setup derivation of F-72.
 
 const RIFT_BLADE: String = """
-	{"id": "rift_blade", "name": "Lama del Rift", "order": 1,
+	{"id": "rift_blade", "name": "Lama del Rift", "order": 1, "icon": "res://assets/icons/classes/rift_blade.svg",
 	 "description": "Combatte solo con le spade, in tre assetti.",
 	 "weapon_kinds": ["greatsword", "sword"], "offhand_kinds": ["shield", "sword"],
 	 "setups": [

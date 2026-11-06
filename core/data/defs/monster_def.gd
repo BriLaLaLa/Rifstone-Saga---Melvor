@@ -1,13 +1,14 @@
 class_name MonsterDef
 extends RefCounted
 ## A monster of data/combat/monsters.json (docs/04_DATA_SCHEMA.md §8). `gold` `[min, max]` becomes
-## `gold_min`/`gold_max`; every field is required.
+## `gold_min`/`gold_max`; every field is required except `sprite`.
 ## `from_dict` returns null (after logging, see DefReader) if a field is missing or mistyped.
 
 var id: StringName = &""
 var name: String = ""
 var description: String = ""
 var icon: String = ""
+var sprite: Dictionary = {}  # reserved (M6-00a): {idle, attack, hit, death}, optional, no use yet
 var hp: int = 0
 var xp: int = 0
 var style: StringName = &""
@@ -33,6 +34,7 @@ static func from_dict(d: Dictionary) -> MonsterDef:
 	def.name = r.text("name")
 	def.description = r.text("description")
 	def.icon = r.text("icon")
+	def.sprite = d["sprite"] as Dictionary if d.get("sprite") is Dictionary else {}
 	def.hp = r.integer("hp")
 	def.xp = r.integer("xp")
 	def.style = r.id("style")

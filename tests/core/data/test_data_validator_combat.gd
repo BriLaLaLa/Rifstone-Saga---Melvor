@@ -272,3 +272,29 @@ func test_shop_item_effect_needs_a_known_item() -> void:
 	var raw: Dictionary = V.fixture_raw()
 	(_shop(raw, 3)["effect"] as Dictionary)["item"] = {"item": "golden_hatchet", "qty": 1}
 	_expect(raw, [SHOP, "shop entry 'test_buy_hatchet'", "field 'effect.item.item': unknown item 'golden_hatchet'"])
+
+
+# --- icon and reserved sprite (M6-00a) ---------------------------------------------------------------------------
+
+func test_monster_icon_is_required_and_must_exist() -> void:
+	var raw: Dictionary = V.fixture_raw()
+	_monster(raw, 0).erase("icon")
+	_monster(raw, 1)["icon"] = "res://assets/icons/monsters/missing_monster.svg"
+	_expect(raw, [MONSTERS, "monster 'test_monster_a'", "missing field 'icon'"])
+	_expect(raw, [MONSTERS, "monster 'test_monster_b'", "does not exist"])
+
+
+func test_valid_monster_sprite_has_no_errors() -> void:
+	var raw: Dictionary = V.fixture_raw()
+	var path: String = "res://assets/icons/monsters/plains_boar.svg"
+	_monster(raw, 0)["sprite"] = {"idle": path, "attack": path, "hit": path, "death": path}
+	assert_eq(V.validate(raw), PackedStringArray([]))
+
+
+func test_monster_sprite_needs_four_existing_states() -> void:
+	var raw: Dictionary = V.fixture_raw()
+	var path: String = "res://assets/icons/monsters/plains_boar.svg"
+	_monster(raw, 0)["sprite"] = {"idle": path, "attack": "res://assets/nope.png", "hit": path, "extra": path}
+	_expect(raw, [MONSTERS, "monster 'test_monster_a'", "field 'sprite.death' is required"])
+	_expect(raw, [MONSTERS, "monster 'test_monster_a'", "sprite.attack", "existing file"])
+	_expect(raw, [MONSTERS, "monster 'test_monster_a'", "unknown field 'sprite.extra'"])

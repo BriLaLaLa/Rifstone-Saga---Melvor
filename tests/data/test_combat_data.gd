@@ -150,3 +150,10 @@ func _monster_area(id: String) -> String:
 		if row[0] == id:
 			return row[1]
 	return ""
+
+
+func test_slot_and_class_icons_exist() -> void:
+	for slot: String in DataValidatorItems.EQUIP_SLOTS:
+		assert_true(FileAccess.file_exists("res://assets/icons/slots/%s.svg" % slot), "slot icon %s" % slot)
+	var cls: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/classes/rift_blade.json"))
+	assert_true(FileAccess.file_exists(cls["icon"]), "class icon %s" % cls["icon"])
