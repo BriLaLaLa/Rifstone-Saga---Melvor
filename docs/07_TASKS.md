@@ -1166,14 +1166,34 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 
 | ID | Titolo | Ruolo | Dipendenze | Ownership |
 |---|---|---|---|---|
+| M6-00a | Icone dei mostri, degli slot e della classe | DATA | M5-08 | `data/combat/monsters.json` (campo `icon`), `assets/icons/monsters/**`, `assets/icons/slots/**`, `assets/icons/classes/**`, `core/data/defs/monster_def.gd` e validatore (`icon` obbligatorio, `sprite` riservato), fixture e i loro test |
+| M6-00b | Pagina Equipaggiamento unita | UI (L) | M6-00a, M6-01 | `ui/pages/equipment/**`, `ui/pages/armory/**` (spostati o rimossi), `ui/screens/main/sidebar.gd`, `page_host.gd`, tooltip del pezzo (`ItemTooltipLines`/`ArmoryTexts`), smoke |
+| M6-00c | Pagina del combattimento GDR | UI (L) | M6-00a, M6-00b, M6-01 | `ui/pages/combat/**`, `CombatTexts`, durate delle animazioni in `UiStyle`, smoke |
 | M6-01 | Def, validatore e `Loadout` | CORE | M5-08 | `core/data/defs/trait_def.gd`, `trait_effect_def.gd`, `ability_def.gd`, `class_def.gd`, validatore (regole di tratti e abilità, chiavi `traits`/`abilities`), `data/config/balance.json` (solo quelle chiavi), `systems/character/loadout.gd`, `core/session/game_session.gd`, `event_bus.gd` (`traits_changed`), fixture della classe, i loro test |
 | M6-02 | Agganci del motore e 8 tipi di effetto | COMBAT (L) | M6-01 | `systems/combat/effects/**`, `combat_engine.gd` (agganci), `combatant_stats.gd` (`modify_stats`), `event_bus.gd` (`trait_triggered`), `tests/systems/combat/effects/**` |
 | M6-03 | Abilità attive | COMBAT | M6-02 | `systems/combat/ability_runner.gd`, `combat_engine.gd` (chiamate, sorgenti `ability:<id>`), `event_bus.gd` (`ability_used`), `tests/systems/combat/test_abilities.gd` |
 | M6-04 | Contenuto: 12 tratti e 6 abilità | DATA | M6-01 | `data/classes/rift_blade.json`, `tests/data/test_class_data.gd` (nuovo) |
-| M6-05 | Scelta di tratti e abilità nella UI | UI | M6-03, M6-04 | `ui/pages/character/**`, `ui/pages/combat/**` (abilità e tratti attivi), i loro smoke |
+| M6-05 | Scelta di tratti e abilità nella UI | UI | M6-03, M6-04, M6-00c | `ui/pages/character/**`, `ui/pages/combat/**` (abilità e tratti attivi), i loro smoke |
 | M6-06 | Test di M6 | QA | M6-01…M6-05 | `tests/integration/test_build_flow.gd`, `tests/data/test_stat_registry_coverage.gd` |
 | M6-07 | Integrazione di M6 | REV | M6-01…M6-06 | merge, tag `m6-done` |
 
+- **M6-00a/b/c (UI GDR, da `docs/UI_GDR.md`)** Ordine: M6-00a prima di M6-01 (solo dati, nessuna dipendenza dal Loadout);
+  M6-00b e M6-00c dopo M6-01 e prima di M6-05 (M6-00c dopo M6-00b: tooltip condiviso). Gli agenti UI leggono
+  `docs/UI_GDR.md` (§2-§4 e §7) e `docs/mockups/*.dc.html` (`equipment` per M6-00b, `combat` per M6-00c), **non**
+  `VISIONE_V2.md`; più `05_INTERFACES.md` §5.9 (Equipment) e le sezioni UI di `03_ARCHITECTURE.md`.
+  - **M6-00a** 12 icone SVG segnaposto originali dei mostri (una per mostro), 12 degli slot vuoti, 1 della classe (campo
+    `icon` nel file della classe); `sprite` facoltativo riservato (4 stati) solo nello schema e nel validatore, nessun
+    uso. Accettazione: `icon` mancante o inesistente = errore del validatore, come per gli oggetti. Test: monsters.json,
+    validatore con fixture valide e non valide, esistenza dei file.
+  - **M6-00b** Sagoma con i 12 slot, inventario, trascinamento con evidenziazione dei soli slot compatibili, tasto
+    destro (equipaggia / seconda mano per `sword` / Rimuovi), clic = seleziona, motivo di ogni errore di `equip`,
+    tooltip di confronto (U6) con le funzioni delle statistiche esistenti. Accettazione: UI_GDR §3 e §7. Test: smoke
+    (trascinamento e tasto destro su tutti i 12 slot e i 4 assetti, errori senza cambio di stato).
+  - **M6-00c** Colonne, bersaglio e fila, equipaggiamento con tooltip, numeri di danno, bottino, rendimento, registro,
+    sezioni Abilità e Tratti (vuote fino a M6-05), animazioni minime (scatto, lampo, dissolvenza) con durate in
+    `UiStyle`. Accettazione: UI_GDR §2, §4 e §7. Test: smoke.
+  - Comune: layout verificato a 1600x900 e 1280x720 (screenshot di prova), nessuno stato nuovo nel salvataggio, nessuna
+    stat nuova, nessun testo scritto a mano fuori da `ItemTooltipLines`, `ArmoryTexts`, `CombatTexts`.
 - **Nota (da M5-03) per M6-01** Aggiungere `GameData.has_area(id)` e `has_monster(id)` senza `push_error` (05 §4),
   con un test in `tests/core/data/test_game_data.gd` (ownership di M6-01 estesa a `core/data/game_data.gd`, solo
   quelle due funzioni, e a quel test).

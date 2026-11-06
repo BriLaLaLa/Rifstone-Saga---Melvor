@@ -283,6 +283,8 @@ Classe: `MasteryNodeDef`.
 ```
 | Campo | Tipo | Vincoli |
 |---|---|---|
+| `icon` | String | obbligatorio, `res://assets/icons/monsters/…`, `.svg` o `.png`; il file deve esistere (validato come le icone degli oggetti; M6-00a) |
+| `sprite` | object | facoltativo, **riservato** (nessun uso): `{idle, attack, hit, death}` con percorsi `res://assets/…`; solo schema e validatore |
 | `hp` | int | ≥ 1 |
 | `xp` | int | ≥ 0, XP del personaggio per uccisione (F-28) |
 | `style` | String | `blade`, `marksmanship`, `arcana` |

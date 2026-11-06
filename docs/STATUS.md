@@ -11,7 +11,7 @@ Se la sessione si interrompe, si riparte da qui.
   assenti (905 file). Prova del Giocabile di M5: 6/6 (criteri di `06_ROADMAP.md` M5, verificati con i test, con una
   prova headless del Reviewer sui tre assetti × quattro aree e con l'avvio headless del menu). `main` e i tag
   `m0-done`…`m5-done` pushati su `origin` a fine M5 (vedi riga M5-08).
-- **Prossimo passo**: **M6-01** (CORE: def, validatore e `Loadout`; note "da M5-03" per M6-01 in `07_TASKS.md`). Poi in
+- **Prossimo passo**: **M6-00a** (DATA: icone di mostri, slot e classe; `UI_GDR.md`), poi **M6-01** (CORE: def, validatore e `Loadout`; note "da M5-03" per M6-01 in `07_TASKS.md`). Dopo M6-01 **M6-00b** e **M6-00c** (UI, L, in sequenza, prima di M6-05). Poi in
   parallelo (massimo 2 agenti) **M6-02** (COMBAT, L: prima sposta il save/load del motore in un file a parte, note
   "da M5-03" e "da M5-07") e **M6-04** (DATA), entrambi dopo M6-01; poi M6-03 (dopo M6-02), M6-05 (dopo M6-03 e
   M6-04), M6-06 (QA), M6-07 (REV). Regole dei consumi di `CLAUDE.md`: test mirati, suite completa solo dopo il merge,
