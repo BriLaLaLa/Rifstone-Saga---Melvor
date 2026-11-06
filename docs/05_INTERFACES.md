@@ -1052,6 +1052,8 @@ func active_traits() -> Array[TraitDef]        # in ordine di slot, ammessi dall
 func active_abilities() -> Array[AbilityDef]   # in ordine di slot, ammesse dall'assetto attuale
 func rebuild_modifiers() -> void               # sorgenti trait:<id> dei tratti attivi
 ```
+- `ClassDef` non ha helper per id: `Loadout` scorre `traits`/`abilities`. Esistono `TraitDef.allows_setup(setup_id)` e
+  `AbilityDef.allows_setup(setup_id)` (`setups` vuoto = tutti gli assetti).
 - Riuscito: `traits_changed`; su `equipment_changed` dell'arma/offhand ricostruisce i modificatori (l'assetto può
   cambiare). `combat_active` se `session.combat != null and session.combat.in_encounter()`.
 - Save (§6): `{"traits": [id | ""], "abilities": [id | ""]}`. `from_save` tollerante: id sconosciuti, non della classe,

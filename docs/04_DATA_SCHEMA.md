@@ -409,6 +409,17 @@ Abilità (M6):
 ```
 `kind`: `strike` (`power_mult` > 0), `cleave` (`power_mult` > 0, `targets` int ≥ 0, 0 = tutti), `heal`
 (`heal_pct` 1..100), `buff` (`modifiers` almeno 1, `duration_ms` ≥ 1000); `cooldown_ms` ≥ `combat.min_attack_interval_ms`.
+Per `buff`, `modifiers` e `duration_ms` stanno **dentro `params`**:
+```json
+{"id": "rift_surge", "name": "Impeto del Rift", "description": "Aumenta il danno per qualche secondo.",
+ "unlock_level": 1, "setups": [], "kind": "buff", "cooldown_ms": 30000,
+ "params": {"modifiers": [{"stat": "damage_pct", "value": 25}], "duration_ms": 8000}}
+```
+Intervalli di formato controllati dal validatore (limiti di formato, non valori di design; i valori veri sono nei dati):
+`n` int 2..20; `pct` e `hp_pct` in (0, 100]; `mult` e `power_mult` in (0, 10]; `heal_pct` 1..100; `duration_ms` ≥ 1000;
+`stat_trade`: almeno una stat in `zero` o `mult`, nessuna in entrambe, fattori > 0, stat presenti in `stats.json`.
+Chiavi di `params` diverse da quelle del tipo/`kind` sono errore. `balance.json`: `traits.slot_levels` e
+`abilities.slot_levels` (F-78), 1..8 interi in 1..livello massimo, non decrescenti.
 I nomi provvisori dei tratti di `VISIONE_V2.md` §3.3 si possono usare o sostituire (originali). Classi: `ClassDef`,
 `SetupDef`, `TraitDef`, `TraitEffectDef`, `AbilityDef`.
 

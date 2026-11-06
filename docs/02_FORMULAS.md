@@ -337,6 +337,7 @@ buff 6000 ms usato a t=8000 → attivo fino a 14000. Test: `test_abilities.gd`.
 | `leech_pct` | `pct` | `on_hit` | cura `floor(danno inflitto × pct/100)` | 60 × 5% → 3 |
 | `opening_strike` | — | `on_encounter_start` | il timer dell'attacco base va a 0: il primo attacco parte subito | timer 2400 → 0 |
 Test: `tests/systems/combat/effects/test_<tipo>.gd` (uno per tipo).
+Intervalli di formato dei parametri (validatore, `04_DATA_SCHEMA.md` §14): `n` int 2..20; `pct`, `hp_pct` in (0, 100]; `mult` in (0, 10]; `stat_trade` con almeno una stat in `zero` o `mult`, nessuna in comune, fattori > 0.
 
 ## 5b. Armeria e bottino (F-82…F-89)
 
