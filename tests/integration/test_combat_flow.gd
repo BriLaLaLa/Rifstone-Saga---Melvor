@@ -96,7 +96,8 @@ func test_fight_gives_xp_gold_loot_and_a_parry_that_does_no_damage() -> void:
 	var total: int = 0
 	for n: int in s.combat.total_kills().values():
 		total += n
-	assert_eq(total, _killed, "the counters match the monster_killed signals")
+	# a defeated Rift Stone (M7-04) emits monster_killed but is not counted as a monster kill
+	assert_between(_killed - total, 0, 3, "the counters match the monster_killed signals (less the stones)")
 	assert_gt(s.character.get_xp(), xp_before, "F-28 xp")
 	assert_gt(s.wallet.get_gold(), gold_before, "F-31 gold")
 	assert_gt(s.combat.loot.items().size(), 0, "F-32 drops land in the loot bag")
@@ -153,7 +154,8 @@ func test_worn_pieces_exist_once_in_the_armory_through_a_fight() -> void:
 	var offhand: int = s.equipment.get_uid(&"offhand")
 	s.combat.start(AREA)
 	_run(s, 600000)
-	assert_eq(s.armory.instances().size(), count, "no piece created or destroyed")
+	# piece drops (M7-03/M7-05) may add pieces; none may disappear
+	assert_gte(s.armory.instances().size(), count, "no piece destroyed")
 	assert_eq(s.equipment.get_uid(&"weapon"), weapon)
 	assert_eq(s.equipment.get_uid(&"offhand"), offhand)
 	assert_true(s.armory.is_worn(weapon) and s.armory.is_worn(offhand))
