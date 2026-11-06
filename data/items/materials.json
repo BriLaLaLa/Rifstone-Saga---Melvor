@@ -128,6 +128,7 @@
     {"id":"wraith_veil","name":"Velo di spettro","category":"material","icon":"res://assets/icons/items/wraith_veil.svg","value":60,"sort_order":910,"description":"Tessuto d'ombra che si dissolve se lo si fissa troppo."},
     {"id":"knight_plate","name":"Placca del cavaliere","category":"material","icon":"res://assets/icons/items/knight_plate.svg","value":78,"sort_order":920,"description":"Frammento d'armatura inciso con il sigillo della soglia."},
     {"id":"colossus_shard","name":"Scheggia di colosso","category":"material","icon":"res://assets/icons/items/colossus_shard.svg","value":110,"sort_order":930,"description":"Cristallo viola grande come un pugno, caldo di Rift."},
-    {"id":"threshold_ash","name":"Cenere della Soglia","category":"material","icon":"res://assets/icons/items/threshold_ash.svg","value":55,"sort_order":940,"description":"Cenere fine che non si posa mai sul terreno."}
+    {"id":"threshold_ash","name":"Cenere della Soglia","category":"material","icon":"res://assets/icons/items/threshold_ash.svg","value":55,"sort_order":940,"description":"Cenere fine che non si posa mai sul terreno."},
+    {"id":"warding_seal","name":"Sigillo di salvaguardia","category":"material","icon":"res://assets/icons/items/warding_seal.svg","value":0,"sort_order":950,"description":"Disco di cera rossa con un sigillo del Rift: protegge un pezzo da un tentativo di raffinazione fallito."}
   ]
 }
