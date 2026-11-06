@@ -145,3 +145,23 @@ func test_instance_modifiers_upgrade_multiplier() -> void:
 	assert_eq(ItemRoller.instance_modifiers(inst, _data)[0].value, 8.0, "+0 leaves the base")
 	inst.upgrade = 9
 	assert_almost_eq(ItemRoller.instance_modifiers(inst, _data)[1].value, 6.0 * 1.9, 0.0001, "+9 -> x1.9")
+
+
+func test_drop_rarity() -> void:
+	var a: Vector2 = ItemRoller.drop_chances(&"monster", 0.0, _data)
+	assert_almost_eq(a.x, 20.0, 0.001)
+	assert_almost_eq(a.y, 3.0, 0.001)
+	var b: Vector2 = ItemRoller.drop_chances(&"monster", 50.0, _data)  # F-84 example
+	assert_almost_eq(b.x, 30.0, 0.001)
+	assert_almost_eq(b.y, 4.5, 0.001)
+	var c: Vector2 = ItemRoller.drop_chances(&"rift_stone", 0.0, _data)
+	assert_almost_eq(c.x, 40.0, 0.001)
+	assert_almost_eq(c.y, 12.0, 0.001)
+	var d: Vector2 = ItemRoller.drop_chances(&"rift_stone", 1000.0, _data)  # clamped like F-83
+	assert_almost_eq(d.y, 100.0, 0.001)
+	assert_almost_eq(d.x, 0.0, 0.001)
+	var e: Vector2 = ItemRoller.drop_chances(&"rift_stone", 300.0, _data)
+	assert_almost_eq(e.x + e.y, 100.0, 0.001)
+	assert_eq(ItemRoller.roll_rarity(b, _FixedRng.new(0.04)), &"rare", "same roll as F-83")
+	assert_eq(ItemRoller.roll_rarity(b, _FixedRng.new(0.20)), &"magic")
+	assert_eq(ItemRoller.roll_rarity(b, _FixedRng.new(0.50)), &"common")

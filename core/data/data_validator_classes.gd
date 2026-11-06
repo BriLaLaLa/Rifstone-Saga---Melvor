@@ -13,7 +13,6 @@ const SPRITE_STATES: PackedStringArray = ["idle", "attack", "hit", "death"]  # r
 const SPRITE_DIR: String = "res://assets/"
 const MAX_DROPS: int = 4
 const DAMAGE_REDUCTION_STAT: StringName = &"damage_reduction"  # bounds monster damage_reduction (stats.json)
-const DROP_FORBIDDEN_CATEGORIES: PackedStringArray = ["equipment", "tool"]  # pieces drop as instances from M7
 const CLASS_FIELDS: PackedStringArray = ["id", "name", "description", "icon", "order", "weapon_kinds", "offhand_kinds",
 	"setups", "traits", "abilities"]
 const SETUP_FIELDS: PackedStringArray = ["id", "name", "weapon", "offhand", "alternate", "modifiers"]
@@ -83,11 +82,7 @@ static func _drops(v: DataValidatorRules, monster: Dictionary) -> void:
 		var drop: Dictionary = drops[drop_index]
 		var prefix: String = "drops[%d]" % drop_index
 		v.keys(drop, ["item", "chance_pct", "qty"], prefix)
-		if v.ref(drop, "item", v.items, "item", prefix):
-			var category: String = str(v.items[StringName(drop["item"] as String)].get("category"))
-			if DROP_FORBIDDEN_CATEGORIES.has(category):
-				v.fail("field '%s.item': '%s' is %s, pieces drop as instances from M7 on" % [prefix, drop["item"],
-						category])
+		v.ref(drop, "item", v.items, "item", prefix)  # from M7 an equipment or tool entry drops instances (F-84)
 		v.number(drop, "chance_pct", 0.0, 100.0, prefix)
 		v.int_pair(drop, "qty", 1, DataValidatorRules.NO_LIMIT, true, prefix)
 

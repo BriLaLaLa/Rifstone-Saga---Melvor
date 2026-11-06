@@ -33,6 +33,7 @@ const REQUIRED_BALANCE_KEYS: PackedStringArray = [
 	"armory.base_slots", "armory.slot_cost_base", "armory.slot_cost_growth", "armory.slot_cost_cap",
 	"rarity.craft.magic_base_pct", "rarity.craft.magic_per_mastery_level", "rarity.craft.rare_base_pct",
 	"rarity.craft.rare_per_mastery_level", "rarity.affix_count.magic", "rarity.affix_count.rare",
+	"rarity.drop.magic_pct", "rarity.drop.rare_pct", "rarity.rift_stone.magic_pct", "rarity.rift_stone.rare_pct",
 	"rift.sockets", "offline.cap_ms", "offline.min_ms",
 	"offline.chunk_ms", "traits.slot_levels", "abilities.slot_levels",
 	"upgrade.levels", "upgrade.downgrade_from", "upgrade.mod_pct_per_level", "upgrade.seal_item", "upgrade.ingot_items",
