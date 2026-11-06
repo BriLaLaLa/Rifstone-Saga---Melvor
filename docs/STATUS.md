@@ -7,10 +7,11 @@ Se la sessione si interrompe, si riparte da qui.
 - **Stato**: **M6 completata**, tag `m6-done` sul commit docs di M6-07 (`main`). Merge di M6: M6-00a `03160e3`, M6-01
   `9d85382`, M6-00b `44ddcdb`, M6-00c `be942ee`, M6-02 `8c4690d`, M6-03 `d84476a`, M6-04 `58edace`, M6-05 `86bc4e1`,
   M6-06 (task/M6-06, c2220a1). Suite e Prova del Giocabile: vedi riga M6-07. M5 era chiusa col tag `m5-done`.
-- **Prossimo passo**: **M7 Bottino**, dopo l'OK dell'utente. Primi task: **M7-01** Raffinazione F-86 (CORE), poi M7-02 smantellamento e filtro, M7-03 drop con rarita (COMBAT), M7-04 Pietre del Rift. Il controllo di copertura delle stat e ora **errore** per le formule dell'MVP (da M6-07): ogni task di M7/M8 che aggiunge una stat deve chiudere la sua formula in `CLOSED_FORMULAS` di `tests/data/test_stat_registry_coverage.gd` (ownership estesa a quel file per i task che aggiungono stat) e dare al campo `test` un riferimento esistente; restano pending solo F-50/F-51 (post-MVP).
+- **Sessione M7 iniziata (OK dell'utente dato)**. Q44 decisa: valgono i valori attuali di `rift_blade.json`, da ritarare con `tools/sim_combat.gd` a fine M7 (nota su M7-07).
+- **Prossimo passo**: **M7-00** (UI, correzioni dalla prova visiva di M6, in `07_TASKS.md`), poi **M7 Bottino**. Primi task: **M7-01** Raffinazione F-86 (CORE), poi M7-02 smantellamento e filtro, M7-03 drop con rarita (COMBAT), M7-04 Pietre del Rift. Il controllo di copertura delle stat e ora **errore** per le formule dell'MVP (da M6-07): ogni task di M7/M8 che aggiunge una stat deve chiudere la sua formula in `CLOSED_FORMULAS` di `tests/data/test_stat_registry_coverage.gd` (ownership estesa a quel file per i task che aggiungono stat) e dare al campo `test` un riferimento esistente; restano pending solo F-50/F-51 (post-MVP).
 - **Prove manuali consigliate (M6-05)**: pagina Personaggio, pannello Tratti e Abilità: scegliere o svuotare uno slot, voci bloccate per livello o già in uso, slot chiusi, selettori disabilitati durante un incontro; in combattimento lampo della carta o del tratto, righe nel registro, stato "attiva N s" dei buff; layout a 1600x900 e 1280x720. Regole dei consumi di `CLAUDE.md`.
 - **Prove manuali consigliate (M6-00c)**: avviare un combattimento e verificare colonne giocatore/nemici, bersaglio e fila, numeri di danno (colpo forte), bottino e rendimento "ultima ora", registro, equipaggiamento con tooltip, sezioni Abilità/Tratti vuote; layout a 1600x900 e 1280x720.
-- **Decisioni aperte per l'utente** (`OPEN_QUESTIONS.md`, finché non risponde valgono i default): Q44 (valori provvisori di 12 tratti e 6 abilità, M6-04); Q26 (nodi di Cavatura
+- **Decisioni aperte per l'utente** (`OPEN_QUESTIONS.md`, finché non risponde valgono i default): Q26 (nodi di Cavatura
   e Lenza); Q27-Q40 (default); Q41 (XP dei mostri 4 × PV, confermato da M5-06; tempi stimati fino al 99: Pianure circa
   10-12 min, Bosco 25-45 min, Miniere 2,5-3,5 h, Soglia 36-52 h; decide l'utente); Q42 (testi del tooltip dei pezzi
   senza skill di combattimento, default applicato in M4-08); Q43 (livello del criterio di §8.5: default livello medio
@@ -44,8 +45,8 @@ Se la sessione si interrompe, si riparte da qui.
 - **Pulizia a mano**: cartella `C:/Users/Davide/Desktop/AI/RSI-worktrees/M3-03` (worktree già staccato da git, file
   bloccati da un processo Godot); cartella vuota `rifstone-saga---melvor/` nella root; cartella di prova rimasta da M4
   `%APPDATA%/Godot/app_userdata/RiftStone Saga- Idle/m4_config_tmp/`. I worktree di M5 sono rimossi.
-- **Fuori da `docs/`**: `CLAUDE.md` § Stato da portare a "M6 completata, tag `m6-done`; prossima milestone M7 Bottino" (da M5 non aggiornato, serve l'OK diretto dell'utente) [vecchio testo: M6 Abilità
-  e tratti" (non modificato dal Reviewer in M5-08: per cambiare `CLAUDE.md` serve l'OK diretto dell'utente).
+- **Fuori da `docs/`**: FATTO (2026-11-06, OK diretto dell'utente): `CLAUDE.md` § Stato aggiornato a "M5 e M6 completate,
+  prossima milestone M7 Bottino".
 
 | ID | Milestone | Titolo | Ruolo | Stato | Branch | Note |
 |---|---|---|---|---|---|---|

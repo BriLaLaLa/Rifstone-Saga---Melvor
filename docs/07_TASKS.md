@@ -1219,6 +1219,16 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 
 ## M7 · Bottino
 
+- M7-00 · Correzioni dalla prova visiva di M6 (UI; M6-07; prima di M7-01; `ui/pages/combat/**`, `ui/pages/character/**`
+  (LoadoutPanel e pagina), `ui/pages/equipment/**` (solo le statistiche), testi relativi: `CombatTexts`,
+  `EquipmentStatsText`/`LoadoutTexts`, etichette degli attrezzi, i test smoke di `tests/ui` relativi). Accettazione:
+  1. Combattimento: i testi volanti (danno, Mancato, Parato) si impilano invece di sovrapporsi.
+  2. Combattimento: le carte dei nemici in fila si allargano a riempire la zona; nomi e stile non tagliati.
+  3. Personaggio: tratti e abilità come carte (nome, descrizione, livello di sblocco) al posto dei menu a tendina; un
+     solo avviso "durante un incontro non si cambia" per la sezione, non uno per slot.
+  4. Testi: singolare/plurale nel registro ("1 colpo"); etichette degli attrezzi non tagliate; statistiche
+     dell'Equipaggiamento con i valori finali come nella pagina Personaggio.
+  Test: smoke aggiornati; layout verificato a 1600x900 e 1280x720.
 - M7-01 · Raffinazione F-86 (CORE; M6-07; `systems/armory/**` con `upgrade.gd`, `stats.json`/`balance.json` delle chiavi di M7 con il validatore).
   Nota (da M4-04): `ItemRoller.instance_modifiers` legge `upgrade.mod_pct_per_level` solo se `upgrade > 0` (chiave assente
   fino a M7); ownership estesa a `tests/systems/items/test_item_roller.gd` per il caso `+N` (moltiplicatore di F-86).
@@ -1234,7 +1244,10 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 - M7-06 · Armeria completa: raffina, smantella, filtro; Pietra nella pagina del combattimento (UI; M7-04; `ui/pages/armory/**`, `ui/pages/combat/**`).
   Nota (da M4-08): aggiungere a `tests/ui/test_armory_page_smoke.gd` e `test_equipment_page_smoke.gd` il caso di un pezzo
   con `upgrade > 0` ("Nome +N" nel pannello, "+N" nella cella e nella riga dello slot); ownership estesa a quei test.
-- M7-07 · Test di M7 (QA; M7-01…M7-06). M7-08 · Integrazione di M7 (REV; tag `m7-done`).
+- M7-07 · Test di M7 (QA; M7-01…M7-06).
+  Nota (da Q44, decisa): ritarare i valori di tratti e abilità di `data/classes/rift_blade.json` con `tools/sim_combat.gd`
+  (ownership estesa a quel file di dati e al suo test `tests/data/test_class_data.gd`).
+  M7-08 · Integrazione di M7 (REV; tag `m7-done`).
 
 ## M8 · Legatura del Rift
 
