@@ -82,7 +82,11 @@ const YIELD_WINDOW_SHORT_TEXT: String = "da pochi istanti"
 const YIELD_LABELS: Dictionary[StringName, String] = {
 	&"kills": "uccisioni/ora", &"xp": "XP/ora", &"gold": "oro/ora", &"damage": "danno/s",
 }
-const LOG_SUMMARY_TEXT: String = "Registro: %s colpi · %s parate · %s cibi"
+const LOG_SUMMARY_TEXT: String = "Registro: %s colpi · %s abilità · %s parate · %s cibi"
+const LOG_ABILITY_TEXT: String = "Usi %s."
+const LOG_TRAIT_TEXT: String = "Il tratto %s scatta."
+const BUFF_ACTIVE_TEXT: String = "attiva %s s"
+const FEEDBACK_FLASH_SEC: float = 0.35
 const LOG_HIDE_TEXT: String = "Chiudi il registro"
 const LOG_EMPTY_TEXT: String = "Nessun evento ancora."
 const LOG_PLAYER_HIT_TEXT: String = "Colpisci %s per %s."

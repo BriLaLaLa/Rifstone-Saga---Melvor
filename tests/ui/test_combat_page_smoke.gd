@@ -11,7 +11,7 @@ const HELM: StringName = &"test_helm"
 const OBSERVED: Array[StringName] = [&"combat_started", &"combat_stopped", &"encounter_started", &"encounter_cleared",
 		&"player_hp_changed", &"monster_hp_changed", &"monster_killed", &"food_eaten", &"food_changed", &"bank_changed",
 		&"loot_bag_changed", &"equipment_changed", &"combat_hit", &"player_died", &"character_level_up", &"traits_changed",
-		&"character_xp_gained", &"gold_changed"]
+		&"character_xp_gained", &"gold_changed", &"ability_used", &"trait_triggered"]
 
 var _session: GameSession
 var _page: CombatPage
@@ -195,3 +195,30 @@ func _player() -> PlayerColumn:
 # The name of the stat in data/config/stats.json: the character page reuses it, it does not redefine it.
 func _data_stat_name(stat: StringName) -> String:
 	return str(_session.data.stats.info(stat)["name"])
+
+
+func test_ability_used_and_trait_triggered_give_feedback() -> void:
+	_session.character.add_xp(_session.data.character_xp_table().xp_for_level(10))
+	_session.loadout.set_ability(0, &"test_strike")
+	_session.loadout.set_trait(0, &"test_cleave")
+	_session.combat.start(AREA_ID)
+	var player: PlayerColumn = _player()
+	_session.events.ability_used.emit(&"test_strike", [0])
+	assert_true(player.is_flashing(&"test_strike"))
+	assert_eq(player.entry_name(&"test_strike"), "Colpo di prova")
+	_session.events.trait_triggered.emit(&"test_cleave")
+	assert_true(player.is_flashing(&"test_cleave"))
+	_page._on_log_pressed()
+	var log_text: String = (_page.get_node("%LogLabel") as Label).text
+	assert_string_contains(log_text, CombatTexts.LOG_ABILITY_TEXT % "Colpo di prova")
+	assert_string_contains(log_text, CombatTexts.LOG_TRAIT_TEXT % "Fendente di prova")
+
+
+func test_running_buff_shows_remaining_time() -> void:
+	_session.equipment.equip(TestFactory.give_piece(_session, &"test_blade"))
+	_session.loadout.set_ability(0, &"test_strike")
+	var player: PlayerColumn = _player()
+	player.tick({"player_hp": 1, "player_max_hp": 1, "player_interval_ms": 1000, "player_timer_ms": 0,
+			"abilities": [{"id": &"test_strike", "timer_ms": 5000, "cooldown_ms": 8000, "enabled": true}],
+			"buffs": {&"test_strike": 3000}})
+	assert_eq(player.ability_state_text(0), CombatTexts.BUFF_ACTIVE_TEXT % "3,0")

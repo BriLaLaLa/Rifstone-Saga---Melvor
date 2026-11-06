@@ -19,6 +19,7 @@ const MS_PER_SECOND: int = 1000
 
 var hits: int = 0
 var blocks: int = 0
+var abilities: int = 0
 
 var _start_ms: int = 0
 ## kind -> Array of Vector2i(time_ms, amount), oldest first.
