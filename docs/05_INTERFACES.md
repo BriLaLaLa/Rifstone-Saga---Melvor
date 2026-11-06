@@ -248,7 +248,7 @@ func hide_tooltip() -> void
 | `monster_hp_changed` | `index: int, hp: int, max_hp: int` | CombatEngine | M5 |
 | `monster_killed` | `index: int, monster_id: StringName` | CombatEngine | M5 |
 | `ability_used` | `ability_id: StringName, targets: Array[int]` | CombatEngine | M6 |
-| `trait_triggered` | `trait_id: StringName` | CombatEngine | M6: un effetto del tratto è scattato (feedback) |
+| `trait_triggered` | `trait_id: StringName` | CombatEngine (via `EffectSet`) | M6: un effetto del tratto è scattato (feedback); emesso a fine aggancio |
 | `rift_stone_appeared` | `stone_id: StringName` | CombatEngine | M7 |
 | `player_died` | — | CombatEngine | |
 | `food_eaten` | `item_id: StringName, healed: int` | AutoEat | |
@@ -900,7 +900,9 @@ Comportamento (M5-03):
 - Agganci dei tratti (M6, `01_GDD.md` §20.3): il motore chiama gli effetti di `systems/combat/effects/` (classe base
   `TraitEffect`, un file per tipo di F-81) nei punti `on_encounter_start`, `on_before_attack`, `on_hit`, `on_kill`,
   `on_damaged`, `on_low_hp`, `choose_target`, `modify_stats`; abilità in `systems/combat/ability_runner.gd` (F-79, F-80).
-- Save (§6): stato, area, nemici, PV, timer, mano, attesa, contatori, borsa, stato degli effetti e delle abilità.
+- Save (§6): stato, area, nemici, PV, timer, mano, attesa, contatori, borsa, stato degli effetti (`effects`: solo i
+  contatori non vuoti per tratto, es. quello di `every_nth_attack_all`) e, da M6-03, di abilità e buff. `attack_count` e
+  `kills_since_stone` non sono chiavi del save.
   `from_save` tollerante: area o mostro sconosciuto → `idle` con `Log.warn` (borsa e contatori tenuti).
 - Comportamenti fissati da M5-03 (contratto, coperti da `test_combat_engine.gd`):
   - `start` sulla stessa area già attiva: successo, nulla cambia; su un'altra area: `stop(replaced)` e nuovo avvio.
@@ -929,8 +931,14 @@ Comportamento (M5-03):
   `SHARD_ITEM = &"rift_shard"` (id fisso, come `GatheringResolver.SHARD_ITEM` e la regola del validatore degli
   oggetti); `class_name Encounter` (`systems/combat/encounter.gd`): nemici di un incontro (`Enemy`: `def`, `stats`,
   `hp`, `timer_ms`), `spawn` (F-77), `target(rule)` (F-76, regole `first`/`lowest_hp`/`highest_hp`),
-  `roll_attack` (ordine dei tiri sopra), `to_save`/`from_save`, e `find_area`/`is_known_monster` (da sostituire con
-  `GameData.has_area`/`has_monster`, §4, nota "da M5-03" per M6-01/M6-02 in `07_TASKS.md`).
+  `roll_attack` (ordine dei tiri sopra), `to_save`/`from_save`, `alive_indices()` (M6-02); `find_area`/`is_known_monster`
+  sono rimossi (M6-02: `GameData.has_area`/`has_monster`, §4).
+- File di M6-02 (interni al modulo): `CombatSave` (`combat_save.gd`: `write(snapshot)`/`read(d, data)` statici del formato
+  di §6; un motore `idle` scrive `player_hp`, `player_timer_ms`, `hand`, `between_ms` a 0, `area` `""`, `enemies` `[]`,
+  `effects` `{}`, così save -> load -> save è identico); `KillRewards` (`kill_rewards.gd`, `grant(session, loot, def)`:
+  xp, oro, drop, frammento); `EffectSet` (`effects/effect_set.gd`: effetti dei tratti di `Loadout.active_traits()`,
+  dispatch degli agganci, emette `trait_triggered`) e `TraitEffect` con un file per tipo di F-81. Per M6-03: i colpi
+  delle abilità passano da `EffectSet.hit(ctx, damage)` (altrimenti `leech_pct` non cura).
 
 ### 5.11 Shop (`systems/shop/shop.gd`) — dipendenze: data, events, modifiers, bank, wallet, skills, character, armory
 ```gdscript
@@ -1138,7 +1146,7 @@ Versione 2 da M4-03 (D3). Un save v1 non si carica (`version_unsupported`, nessu
     "equipment": {"slots": {"weapon": 1, "tool_forestry": 3}, "food": "seared_brookfin"},
     "actions": {"lanes": {"main": {"skill": "forestry", "action": "cut_redbirch", "elapsed_ms": 1200}}},
     "combat": {"state": "between", "area": "redrock_plains", "player_hp": 52, "player_timer_ms": 800, "hand": 0,
-               "between_ms": 700, "enemies": [], "attack_count": 41, "kills_since_stone": 12,
+               "between_ms": 700, "enemies": [],
                "abilities": {"whirl": 3000}, "buffs": {}, "effects": {"chain_cleave": {"count": 2}},
                "loot": [{"item": "boar_tusk", "qty": 2}], "kills": {"plains_boar": 41}, "deaths": 1, "food_eaten": 12},
     "shop": {"purchases": {"bank_slot": 3, "auto_eat_1": 1}},

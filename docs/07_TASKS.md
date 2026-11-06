@@ -1172,7 +1172,7 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 | M6-01 | Def, validatore e `Loadout` | CORE | M5-08 | `core/data/defs/trait_def.gd`, `trait_effect_def.gd`, `ability_def.gd`, `class_def.gd`, validatore (regole di tratti e abilità, chiavi `traits`/`abilities`), `data/config/balance.json` (solo quelle chiavi), `systems/character/loadout.gd`, `core/session/game_session.gd`, `event_bus.gd` (`traits_changed`), fixture della classe, i loro test |
 | M6-02 | Agganci del motore e 8 tipi di effetto | COMBAT (L) | M6-01 | `systems/combat/effects/**`, `combat_engine.gd` (agganci), `combatant_stats.gd` (`modify_stats`), `event_bus.gd` (`trait_triggered`), `tests/systems/combat/effects/**` |
 | M6-03 | Abilità attive | COMBAT | M6-02 | `systems/combat/ability_runner.gd`, `combat_engine.gd` (chiamate, sorgenti `ability:<id>`), `event_bus.gd` (`ability_used`), `tests/systems/combat/test_abilities.gd` |
-| M6-04 | Contenuto: 12 tratti e 6 abilità | DATA | M6-01 | `data/classes/rift_blade.json`, `tests/data/test_class_data.gd` (nuovo) |
+| M6-04 | Contenuto: 12 tratti e 6 abilità | DATA | M6-01 | `data/classes/rift_blade.json`, `tests/data/test_class_data.gd` (nuovo), `core/data/data_validator_traits.gd` (solo `stat_trade`: stat ammesse = quelle mappate in F-81 di `02_FORMULAS.md`) e il suo test |
 | M6-05 | Scelta di tratti e abilità nella UI | UI | M6-03, M6-04, M6-00c | `ui/pages/character/**`, `ui/pages/combat/**` (abilità e tratti attivi), i loro smoke |
 | M6-06 | Test di M6 | QA | M6-01…M6-05 | `tests/integration/test_build_flow.gd`, `tests/data/test_stat_registry_coverage.gd` |
 | M6-07 | Integrazione di M6 | REV | M6-01…M6-06 | merge, tag `m6-done` |

@@ -337,6 +337,8 @@ buff 6000 ms usato a t=8000 → attivo fino a 14000. Test: `test_abilities.gd`.
 | `leech_pct` | `pct` | `on_hit` | cura `floor(danno inflitto × pct/100)` | 60 × 5% → 3 |
 | `opening_strike` | — | `on_encounter_start` | il timer dell'attacco base va a 0: il primo attacco parte subito | timer 2400 → 0 |
 Test: `tests/systems/combat/effects/test_<tipo>.gd` (uno per tipo).
+`stat_trade`, mappa stat -> numero di combattimento (M6-02, `CombatantStats.scale_stat`; × fattore con floor, poi i limiti di `stats.json` dove esistono): `accuracy_bonus`/`accuracy_pct` -> accuratezza; `evasion_bonus`/`evasion_pct` -> evasione; `power_bonus`/`power_pct` -> `max_hit` (`min_hit` segue, F-22); `max_hp_flat` -> PV massimi; `damage_reduction` e `block_chance` (limiti della stat). Ogni altra stat non alimenta nulla (sarebbe decorativa): il validatore la rifiuta (restringimento in M6-04); a runtime è ignorata con `Log.warn`.
+`leech_pct` e abilità: il colpo di un'abilità chiama `EffectSet.hit` come l'attacco base (M6-03).
 Intervalli di formato dei parametri (validatore, `04_DATA_SCHEMA.md` §14): `n` int 2..20; `pct`, `hp_pct` in (0, 100]; `mult` in (0, 10]; `stat_trade` con almeno una stat in `zero` o `mult`, nessuna in comune, fattori > 0.
 
 ## 5b. Armeria e bottino (F-82…F-89)

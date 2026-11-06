@@ -11,7 +11,7 @@ Se la sessione si interrompe, si riparte da qui.
   assenti (905 file). Prova del Giocabile di M5: 6/6 (criteri di `06_ROADMAP.md` M5, verificati con i test, con una
   prova headless del Reviewer sui tre assetti × quattro aree e con l'avvio headless del menu). `main` e i tag
   `m0-done`…`m5-done` pushati su `origin` a fine M5 (vedi riga M5-08).
-- **Prossimo passo**: M6-00a DONE (03160e3), M6-01 DONE (9d85382), M6-00b DONE (44ddcdb), **M6-00c DONE (merge be942ee**, pagina combattimento GDR). Ora **M6-02** (COMBAT, L: prima sposta il save/load del motore in un file a parte; note "da M5-03", "da M5-07", "da M6-00c") e **M6-04** (DATA, può andare in parallelo; massimo 2 agenti, uno solo se vicini ai limiti); poi M6-03 (dopo M6-02), M6-05 (dopo M6-03 e M6-04), M6-06 (QA), M6-07 (REV). Regole dei consumi di `CLAUDE.md`.
+- **Prossimo passo**: M6-00a DONE (03160e3), M6-01 DONE (9d85382), M6-00b DONE (44ddcdb), **M6-00c DONE (merge be942ee**, pagina combattimento GDR). **M6-02 DONE (merge 8c4690d)**. Ora **M6-03** (COMBAT, abilità; deve chiamare `EffectSet.hit`) e **M6-04** (DATA, incluso il restringimento del validatore di `stat_trade`), un agente alla volta; poi M6-05 (dopo M6-03 e M6-04), M6-06 (QA), M6-07 (REV). Regole dei consumi di `CLAUDE.md`.
 - **Prove manuali consigliate (M6-00c)**: avviare un combattimento e verificare colonne giocatore/nemici, bersaglio e fila, numeri di danno (colpo forte), bottino e rendimento "ultima ora", registro, equipaggiamento con tooltip, sezioni Abilità/Tratti vuote; layout a 1600x900 e 1280x720.
 - **Decisioni aperte per l'utente** (`OPEN_QUESTIONS.md`, finché non risponde valgono i default): Q26 (nodi di Cavatura
   e Lenza); Q27-Q40 (default); Q41 (XP dei mostri 4 × PV, confermato da M5-06; tempi stimati fino al 99: Pianure circa
@@ -121,7 +121,7 @@ Se la sessione si interrompe, si riparte da qui.
 | M5-08 | M5 | Integrazione di M5 | REV | DONE | main | tag m5-done sul commit docs di M5-08; run_checks 1168 test, 1168 passati, 0 pending, 0 falliti; prova del Giocabile 6/6 (test + prova headless dei tre assetti × quattro aree + avvio headless del menu); Lezioni checklist ok; worktree M5-07 rimosso; main e m5-done pushati |
 | M6-00a | M6 | Icone di mostri, slot e classe | DATA | DONE | task/M6-00a | merge 03160e3 (37c1920); 12 icone slot, 1 classe, `icon` della classe e `sprite` riservato nel validatore; `class_def.gd` esteso (solo `icon`) |
 | M6-01 | M6 | Def, validatore e Loadout | CORE | DONE | task/M6-01 | merge 9d85382; commit 2480863; TraitDef/TraitEffectDef/AbilityDef, DataValidatorTraits, Loadout, GameData.has_area/has_monster, traits_changed; intervalli F-81 in 04 §14 |
-| M6-02 | M6 | Agganci del motore e 8 tipi di effetto | COMBAT | TODO | | |
+| M6-02 | M6 | Agganci del motore e 8 tipi di effetto | COMBAT | DONE | task/M6-02 | merge 8c4690d; 06f1b4b; CombatSave, KillRewards, EffectSet + 8 effetti, save idle normalizzato; decisioni in DECISIONS_LOG |
 | M6-03 | M6 | Abilità attive | COMBAT | TODO | | |
 | M6-04 | M6 | Contenuto: 12 tratti e 6 abilità | DATA | TODO | | |
 | M6-05 | M6 | Scelta di tratti e abilità nella UI | UI | TODO | | |
