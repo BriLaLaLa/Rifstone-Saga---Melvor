@@ -45,6 +45,7 @@ const EXPECTED: Dictionary = {
 	"food_eaten": [["item_id", SN, ""], ["healed", I, ""]],
 	"loot_bag_changed": [["used", I, ""], ["capacity", I, ""]],
 	"loot_lost": [["item_id", SN, ""], ["qty", I, ""]],
+	"trait_triggered": [["trait_id", SN, ""]],
 	"shop_purchased": [["entry_id", SN, ""], ["count", I, ""]],
 	"item_sold": [["item_id", SN, ""], ["qty", I, ""], ["gold", I, ""]],
 	"infusion_socketed": [["socket_index", I, ""], ["item_id", SN, ""]],

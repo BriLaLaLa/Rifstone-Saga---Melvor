@@ -24,24 +24,8 @@ class Enemy extends RefCounted:
 	func alive() -> bool:
 		return hp > 0
 
-
 var enemies: Array[Enemy] = []
 
-
-## The area with that id, null if unknown; quiet (GameData.area logs an error), so saves can be checked.
-static func find_area(data: GameData, area_id: StringName) -> AreaDef:
-	for area: AreaDef in data.areas():
-		if area.id == area_id:
-			return area
-	return null
-
-
-## True if the monster appears in a pack of some area (the only monsters the engine fights).
-static func is_known_monster(data: GameData, monster_id: StringName) -> bool:
-	for area: AreaDef in data.areas():
-		if area.monster_ids.has(monster_id):
-			return true
-	return false
 
 
 ## F-77: a pack drawn by weight from the area; full hp and timers equal to their own interval.
@@ -67,7 +51,7 @@ static func from_save(entries: Array, data: GameData) -> Encounter:
 			return null
 		var d: Dictionary = entry
 		var monster_id := StringName(str(d.get("monster", "")))
-		if not is_known_monster(data, monster_id) or not (d.get("hp") is int or d.get("hp") is float):
+		if not data.has_monster(monster_id) or not (d.get("hp") is int or d.get("hp") is float):
 			return null
 		var monster: MonsterDef = data.monster(monster_id)
 		var enemy := Enemy.new(monster, data)
@@ -89,6 +73,15 @@ func monster_ids() -> Array[StringName]:
 	for enemy: Enemy in enemies:
 		ids.append(enemy.def.id)
 	return ids
+
+
+## Positions of the living enemies, in order.
+func alive_indices() -> Array[int]:
+	var result: Array[int] = []
+	for i: int in enemies.size():
+		if enemies[i].alive():
+			result.append(i)
+	return result
 
 
 func alive_count() -> int:
@@ -119,8 +112,9 @@ func target(rule: StringName) -> int:
 ## docs/05_INTERFACES.md §5.10, "Ordine dei tiri di un attacco": hit (F-23), block only if `block_chance` > 0
 ## (F-75), damage in [min_hit, max_hit] (F-22), then triangle and reduction without rolls (F-24, F-25).
 ## Returns {"hit", "blocked", "damage"}; a miss or a block does 0 damage and consumes no later roll.
+## `damage_mult` (F-81 `low_hp_damage_mult`) multiplies the damage after the triangle, floored, before the reduction.
 static func roll_attack(attacker: CombatantStats, defender: CombatantStats, block_chance: float,
-		rng: RngService, data: GameData) -> Dictionary:
+		rng: RngService, data: GameData, damage_mult: float = 1.0) -> Dictionary:
 	var result: Dictionary = {"hit": false, "blocked": false, "damage": 0}
 	if rng.randf() >= CombatMath.hit_chance(attacker.accuracy, defender.evasion, data):
 		return result
@@ -131,5 +125,8 @@ static func roll_attack(attacker: CombatantStats, defender: CombatantStats, bloc
 	var raw: int = rng.randi_range(attacker.min_hit, attacker.max_hit)
 	var relation: StringName = CombatMath.triangle(attacker.style, defender.style, data)
 	var dr: float = CombatMath.effective_dr(defender.damage_reduction, relation, data)
-	result["damage"] = CombatMath.damage_after_dr(CombatMath.triangle_damage(raw, relation, data), dr)
+	var damage: int = CombatMath.triangle_damage(raw, relation, data)
+	if damage_mult != 1.0:
+		damage = int(floor(float(damage) * damage_mult + CombatMath.EPSILON))
+	result["damage"] = CombatMath.damage_after_dr(damage, dr)
 	return result

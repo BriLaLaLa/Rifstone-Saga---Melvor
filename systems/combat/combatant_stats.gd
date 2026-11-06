@@ -66,6 +66,33 @@ static func for_monster(monster: MonsterDef, data: GameData) -> CombatantStats:
 	return result
 
 
+## `modify_stats` of `stat_trade` (F-81): multiplies the derived number a stat of stats.json feeds by `factor` (0 =
+## zeroed), floored, then limits it where stats.json has limits. Mapping: accuracy_bonus/accuracy_pct -> accuracy;
+## evasion_bonus/evasion_pct -> evasion; power_bonus/power_pct -> max_hit (min_hit follows, F-22); damage_reduction;
+## block_chance; max_hp_flat -> max_hp. Any other stat feeds nothing here: logged and ignored.
+func scale_stat(stat: StringName, factor: float, data: GameData) -> void:
+	match stat:
+		&"accuracy_bonus", &"accuracy_pct":
+			accuracy = _scaled(accuracy, factor)
+		&"evasion_bonus", &"evasion_pct":
+			evasion = _scaled(evasion, factor)
+		&"power_bonus", &"power_pct":
+			max_hit = maxi(1, _scaled(max_hit, factor))
+			min_hit = CombatMath.min_hit(max_hit, data)
+		&"max_hp_flat":
+			max_hp = maxi(1, _scaled(max_hp, factor))
+		&"damage_reduction":
+			damage_reduction = data.stats.clamp_total(stat, damage_reduction * factor)
+		&"block_chance":
+			block_chance = data.stats.clamp_total(stat, block_chance * factor)
+		_:
+			Log.warn("combat", "stat_trade: '%s' does not feed any combat number" % stat)
+
+
+static func _scaled(value: int, factor: float) -> int:
+	return int(floor(float(value) * factor + CombatMath.EPSILON))
+
+
 static func _wears_shield(session: GameSession) -> bool:
 	if session.equipment.get_uid(&"offhand") <= 0:
 		return false

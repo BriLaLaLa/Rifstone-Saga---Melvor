@@ -53,6 +53,7 @@ signal player_died()
 signal food_eaten(item_id: StringName, healed: int)
 signal loot_bag_changed(used: int, capacity: int)
 signal loot_lost(item_id: StringName, qty: int)
+signal trait_triggered(trait_id: StringName)
 
 # Shop and Rift Altar
 signal shop_purchased(entry_id: StringName, count: int)
