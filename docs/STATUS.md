@@ -11,7 +11,7 @@ Se la sessione si interrompe, si riparte da qui.
   assenti (905 file). Prova del Giocabile di M5: 6/6 (criteri di `06_ROADMAP.md` M5, verificati con i test, con una
   prova headless del Reviewer sui tre assetti × quattro aree e con l'avvio headless del menu). `main` e i tag
   `m0-done`…`m5-done` pushati su `origin` a fine M5 (vedi riga M5-08).
-- **Prossimo passo**: **M6-00a** (DATA: icone di mostri, slot e classe; `UI_GDR.md`), poi **M6-01** (CORE: def, validatore e `Loadout`; note "da M5-03" per M6-01 in `07_TASKS.md`). Dopo M6-01 **M6-00b** e **M6-00c** (UI, L, in sequenza, prima di M6-05). Poi in
+- **Prossimo passo**: **M6-01** ora (CORE: def, validatore e `Loadout`; note "da M5-03" per M6-01 in `07_TASKS.md`). M6-00a DONE (merge 03160e3). Dopo M6-01 **M6-00b** e **M6-00c** (UI, L, in sequenza, prima di M6-05). Poi in
   parallelo (massimo 2 agenti) **M6-02** (COMBAT, L: prima sposta il save/load del motore in un file a parte, note
   "da M5-03" e "da M5-07") e **M6-04** (DATA), entrambi dopo M6-01; poi M6-03 (dopo M6-02), M6-05 (dopo M6-03 e
   M6-04), M6-06 (QA), M6-07 (REV). Regole dei consumi di `CLAUDE.md`: test mirati, suite completa solo dopo il merge,
@@ -120,6 +120,7 @@ Se la sessione si interrompe, si riparte da qui.
 | M5-06 | M5 | Strumento di bilanciamento sim_combat | COMBAT | DONE | task/M5-06 | merge ece8639; 3fc0471, e6d8530 (correzione del Reviewer: sessione liberata in `measure`, niente orfani), 766e66e (correzione del Reviewer dopo il merge: `print_rich` al posto di `print`, regola di `check_forbidden_refs`); `tools/sim_combat.gd` sul `CombatEngine` vero, nessun save, scenario dai dati; criterio di §8.5 soddisfatto al livello medio dei mostri (0 morti, 213/115/80/62 uccisioni/ora), sotto 60 in Miniere e Soglia al livello d'ingresso (Q43); XP 4 × PV invariata (Q41); run_checks 1142 test, 1141 passati, 1 pending, 0 falliti (prima esecuzione rossa solo su `check_forbidden_refs`, corretta e ricontrollata) |
 | M5-07 | M5 | Test di M5 | QA | DONE | task/M5-07 | merge 60326bc; d8b43a2, 49d05a2, 98e44b6, 25e9b77, 72ab086 (correzione del Reviewer BUG-M5-07-1: i 9 campi `test` delle stat di F-20…F-22/F-25…F-27 in `stats.json` puntano a `test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats`, `BROKEN_REFS` e pending tolti), 0564d90 (correzione del Reviewer: `stop` azzera l'area, contratto `idle` → `area` `""` in 05 §5.10; normalizzazione del save in `idle` a M6-02, nota "da M5-07"); F-34 18,58 s per uccisione (seme 34), `test_combat_flow.gd` 10 test, `CLOSED_FORMULAS` di M5 e `"10.6"`; run_checks 1168 test, 1168 passati, 0 pending, 0 falliti |
 | M5-08 | M5 | Integrazione di M5 | REV | DONE | main | tag m5-done sul commit docs di M5-08; run_checks 1168 test, 1168 passati, 0 pending, 0 falliti; prova del Giocabile 6/6 (test + prova headless dei tre assetti × quattro aree + avvio headless del menu); Lezioni checklist ok; worktree M5-07 rimosso; main e m5-done pushati |
+| M6-00a | M6 | Icone di mostri, slot e classe | DATA | DONE | task/M6-00a | merge 03160e3 (37c1920); 12 icone slot, 1 classe, `icon` della classe e `sprite` riservato nel validatore; `class_def.gd` esteso (solo `icon`) |
 | M6-01 | M6 | Def, validatore e Loadout | CORE | TODO | | |
 | M6-02 | M6 | Agganci del motore e 8 tipi di effetto | COMBAT | TODO | | |
 | M6-03 | M6 | Abilità attive | COMBAT | TODO | | |

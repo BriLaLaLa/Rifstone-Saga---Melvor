@@ -369,6 +369,7 @@ restano definiti in un solo posto.
 Un file per classe (D2). Nell'MVP solo `rift_blade.json`.
 ```json
 {"id": "rift_blade", "name": "Lama del Rift", "order": 1,
+ "icon": "res://assets/icons/classes/rift_blade.svg",
  "description": "Combatte solo con le spade, in tre assetti.",
  "weapon_kinds": ["greatsword", "sword"], "offhand_kinds": ["shield", "sword"],
  "setups": [
@@ -383,6 +384,7 @@ Un file per classe (D2). Nell'MVP solo `rift_blade.json`.
 | Campo | Tipo | Vincoli |
 |---|---|---|
 | `id`, `name`, `description` | String | `id` uguale al nome del file |
+| `icon` | String | obbligatorio; `res://assets/icons/classes/…`, il file deve esistere (M6-00a) |
 | `order` | int | unico |
 | `weapon_kinds`, `offhand_kinds` | array di String | valori di `equip.kind` (§5); `weapon_kinds` non vuoto |
 | `setups` | array | almeno 1; `id` unico nella classe e diverso da `unarmed` (riservato, F-72); `weapon` in `weapon_kinds`; `offhand` `""` o in `offhand_kinds`; coppia (`weapon`, `offhand`) unica; `alternate` bool (default `false`, ammesso solo se `offhand` è un tipo d'arma); `modifiers` (§1, scope `global`) |
