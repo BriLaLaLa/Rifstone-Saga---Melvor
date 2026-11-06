@@ -1251,6 +1251,7 @@ Regole comuni a M4 (oltre a quelle in testa al file):
   con `upgrade > 0` ("Nome +N" nel pannello, "+N" nella cella e nella riga dello slot); ownership estesa a quei test.
 - M7-07 · Test di M7 (QA; M7-01…M7-06).
   Nota (da Q44, decisa): ritarare i valori di tratti e abilità di `data/classes/rift_blade.json` con `tools/sim_combat.gd`
+  Nota (da Q45): la ritaratura include anche i valori provvisori di M7-05 (vendita di anelli/amuleti/Sigillo, Pietre, chance e assegnazione dei drop); ownership estesa a `data/combat/**` e `data/items/**`.
   (ownership estesa a quel file di dati e al suo test `tests/data/test_class_data.gd`).
   M7-08 · Integrazione di M7 (REV; tag `m7-done`).
 
