@@ -1241,6 +1241,8 @@ Regole comuni a M4 (oltre a quelle in testa al file):
   implementato con `test_item_roller.gd::test_drop_rarity` (ownership estesa al test).
 - M7-04 · Pietre del Rift F-87 (COMBAT; M7-03; `systems/combat/rift_stone.gd`, `combat_engine.gd`, `RiftStoneDef`).
 - M7-05 · Contenuto: anelli, amuleti, drop, Pietre, Sigillo (DATA; M7-01; `data/items/**`, `data/combat/**`).
+  Nota (da M7-01): creare l'oggetto `warding_seal` (`balance.json` `upgrade.seal_item`) in `data/items/materials.json`;
+  ownership estesa a `core/data/data_validator_loot.gd` (e al suo test): `validate_refs` controlla che esista.
 - M7-06 · Armeria completa: raffina, smantella, filtro; Pietra nella pagina del combattimento (UI; M7-04; `ui/pages/armory/**`, `ui/pages/combat/**`).
   Nota (da M4-08): aggiungere a `tests/ui/test_armory_page_smoke.gd` e `test_equipment_page_smoke.gd` il caso di un pezzo
   con `upgrade > 0` ("Nome +N" nel pannello, "+N" nella cella e nella riga dello slot); ownership estesa a quei test.
@@ -1261,6 +1263,7 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 ## M9 · Offline e polish (fine dell'MVP)
 
 - M9-01 · Simulazione offline con motore a eventi e filtro (CORE; M8-07; `core/offline/**`, note ereditate N5-N6).
+  Nota (da M7-02): l'offline conta anche i `bank_rejected` dei drop smantellati in automatico da `Armory.add_drop` con la banca piena.
 - M9-02 · Schermate dell'offline, riepilogo con personaggio e Armeria (UI; M9-01; `ui/screens/offline/**`).
 - M9-03 · Impostazioni, porting (PORT; M4-11; `core/settings/**`, `ui/settings/**`, nota ereditata N7).
 - M9-04 · Sistema dei suggerimenti (CORE; M8-07; `systems/hints/**`, nota ereditata N8).

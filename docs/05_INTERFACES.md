@@ -236,7 +236,8 @@ func hide_tooltip() -> void
 | `armory_changed` | `uid: int, change: StringName` | Armory | M4: `change` = `&"added"`, `&"removed"`, `&"updated"` (blocco, raffinazione, indossato) |
 | `armory_capacity_changed` | `used: int, capacity: int` | Armory | M4 |
 | `armory_rejected` | `base_id: StringName, qty: int` | Armory | M4: istanze non create per Armeria piena |
-| `item_upgraded` | `uid: int, success: bool, new_level: int` | Armory | M7 |
+| `item_upgraded` | `uid: int, success: bool, new_level: int` | Armory | M7: dopo `armory_changed(uid, updated)` |
+| `item_salvaged` | `uid: int, base_id: StringName, auto: bool` | Armory | M7: `auto` = smantellato dal filtro o dall'Armeria piena (`add_drop`); l'uid non è mai nell'Armeria |
 | `item_salvaged` | `uid: int, base_id: StringName, auto: bool` | Armory | M7: `auto` = dal filtro |
 | `modifiers_changed` | — | ModifierService | una volta per modifica o per batch |
 | `combat_started` | `area_id: StringName` | CombatEngine | M5 (prima anche `monster_id`) |
@@ -1097,12 +1098,25 @@ func set_worn(uid: int, worn: bool, quiet: bool = false) -> void   # solo Equipm
 func set_locked(uid: int, locked: bool) -> CommandResult   # unknown_id
 func remove(uid: int) -> CommandResult         # unknown_id, item_locked, item_equipped
 func instance_modifiers(uid: int) -> Array[Modifier]       # ItemRoller.instance_modifiers
-# M7: upgrade(uid, use_seal) -> CommandResult (F-86), salvage(uid) -> CommandResult (F-88), filter / set_filter
+func upgrade(uid: int, use_seal: bool = false) -> CommandResult   # M7, F-86
+    # rifiuti, in ordine: unknown_id, upgrade_max (Reasons.UPGRADE_MAX), not_enough_gold, not_enough_items
+    # (lingotti, frammenti, Sigillo se use_seal e il passo può far scendere); atomico: rifiuto = nessun cambiamento
+func salvage(uid: int) -> CommandResult        # M7, F-88: unknown_id, item_locked, item_equipped, bank_full (nulla cambia)
+func add_drop(inst: ItemInstance) -> int       # M7: ingresso dei drop; uid se in Armeria, 0 se smantellato (filtro o piena)
+func set_filter(slot: StringName, min_rarity: StringName, min_grade: int) -> CommandResult   # unknown_id, invalid_amount
+func filter_rule(slot: StringName) -> Dictionary          # {"min_rarity", "min_grade"}; "common"/1 = tieni tutto
+func filter_rules() -> Dictionary                         # slot -> regola, solo quelle diverse da "tieni tutto"
+func is_filtered(inst: ItemInstance) -> bool              # il pezzo sarebbe smantellato dal filtro
 ```
+- M7: il Sigillo (`upgrade.seal_item`) si consuma solo a fallimento con `use_seal` quando il passo parte da
+  `N ≥ upgrade.downgrade_from`; altrimenti non serve e non si consuma. `upgrade` emette `armory_changed(uid, updated)` e
+  `item_upgraded`; `salvage` emette `armory_changed(uid, removed)`, la capacità e `item_salvaged(auto=false)`.
+- Il filtro non ha segnale: la UI (M7-06) rilegge `filter_rules()` a ogni apertura/aggiornamento della pagina.
 - `add`/`create` emettono `armory_changed(uid, &"added")` e `armory_capacity_changed`; `remove`, `set_locked`,
   `set_worn` emettono `armory_changed` (`removed`/`updated`); `set_worn` cambia `used()`.
 - `uid` crescenti da 1 (`next_uid` salvato), mai riusati.
-- Save (§6): `{"next_uid": int, "items": [ItemInstance.to_dict()]}` (`to_dict`: `uid`, `base`, `rarity`, `ilvl`,
+- Save (§6): `{"next_uid": int, "items": [ItemInstance.to_dict()], "filter": {slot: {"min_rarity": str, "min_grade": int}}}`
+  (`filter` additivo, `format_version` invariata; assente = tieni tutto; regole non valide → `Log.warn` e scartate) (`to_dict`: `uid`, `base`, `rarity`, `ilvl`,
   `affixes` `[{"affix", "tier", "value"}]`, `upgrade`, `sockets`, `locked`). `from_save` tollerante: voce non valida, base
   sconosciuta o non `equipment`/`tool`, `uid` duplicato → `Log.warn` e scartata; `next_uid` minore o uguale al massimo
   `uid` → massimo + 1. Non controlla la capienza. Il flag indossato non si salva (lo rimette
