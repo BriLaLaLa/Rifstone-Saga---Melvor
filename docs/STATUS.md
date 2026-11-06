@@ -3,18 +3,14 @@
 Aggiornato dall'Orchestratore (unico che modifica questo file). Stati: TODO / IN_PROGRESS / REVIEW / DONE / BLOCKED.
 Se la sessione si interrompe, si riparte da qui.
 
-## Ripartenza (aggiornata il 2026-11-04, fine M5)
-- **Stato**: **M5 completata**, tag `m5-done` sul commit docs di M5-08 (`main`). Merge di M5: M5-04 `8f40e08`, M5-00
-  `09364ba`, M5-01 `447224b`, M5-02 `6c11beb`, M5-03 `a3b01b1`, M5-06 `ece8639` (correzione `766e66e`), M5-05
-  `2ff18ec`, M5-07 `60326bc` (docs `a840bcb`). Suite (run_checks su main dopo M5-07): **1168 test, 1168 passati,
-  0 pending, 0 falliti**; validate_data verde su fixture e dati veri; file ≤ 400 righe (141 file); riferimenti vietati
-  assenti (905 file). Prova del Giocabile di M5: 6/6 (criteri di `06_ROADMAP.md` M5, verificati con i test, con una
-  prova headless del Reviewer sui tre assetti × quattro aree e con l'avvio headless del menu). `main` e i tag
-  `m0-done`…`m5-done` pushati su `origin` a fine M5 (vedi riga M5-08).
-- **Prossimo passo**: M6-00a DONE (03160e3), M6-01 DONE (9d85382), M6-00b DONE (44ddcdb), **M6-00c DONE (merge be942ee**, pagina combattimento GDR). **M6-02 DONE (merge 8c4690d)**. **M6-03 DONE (merge d84476a)**. **M6-04 DONE (merge 58edace**, valori provvisori in Q44). **M6-05 DONE (merge 86bc4e1)**. Ora **M6-06** (QA), poi **M6-07** (REV).
+## Ripartenza (aggiornata il 2026-11-06, fine M6)
+- **Stato**: **M6 completata**, tag `m6-done` sul commit docs di M6-07 (`main`). Merge di M6: M6-00a `03160e3`, M6-01
+  `9d85382`, M6-00b `44ddcdb`, M6-00c `be942ee`, M6-02 `8c4690d`, M6-03 `d84476a`, M6-04 `58edace`, M6-05 `86bc4e1`,
+  M6-06 (task/M6-06, c2220a1). Suite e Prova del Giocabile: vedi riga M6-07. M5 era chiusa col tag `m5-done`.
+- **Prossimo passo**: **M7 Bottino**, dopo l'OK dell'utente. Primi task: **M7-01** Raffinazione F-86 (CORE), poi M7-02 smantellamento e filtro, M7-03 drop con rarita (COMBAT), M7-04 Pietre del Rift. Il controllo di copertura delle stat e ora **errore** per le formule dell'MVP (da M6-07): ogni task di M7/M8 che aggiunge una stat deve chiudere la sua formula in `CLOSED_FORMULAS` di `tests/data/test_stat_registry_coverage.gd` (ownership estesa a quel file per i task che aggiungono stat) e dare al campo `test` un riferimento esistente; restano pending solo F-50/F-51 (post-MVP).
 - **Prove manuali consigliate (M6-05)**: pagina Personaggio, pannello Tratti e Abilità: scegliere o svuotare uno slot, voci bloccate per livello o già in uso, slot chiusi, selettori disabilitati durante un incontro; in combattimento lampo della carta o del tratto, righe nel registro, stato "attiva N s" dei buff; layout a 1600x900 e 1280x720. Regole dei consumi di `CLAUDE.md`.
 - **Prove manuali consigliate (M6-00c)**: avviare un combattimento e verificare colonne giocatore/nemici, bersaglio e fila, numeri di danno (colpo forte), bottino e rendimento "ultima ora", registro, equipaggiamento con tooltip, sezioni Abilità/Tratti vuote; layout a 1600x900 e 1280x720.
-- **Decisioni aperte per l'utente** (`OPEN_QUESTIONS.md`, finché non risponde valgono i default): Q26 (nodi di Cavatura
+- **Decisioni aperte per l'utente** (`OPEN_QUESTIONS.md`, finché non risponde valgono i default): Q44 (valori provvisori di 12 tratti e 6 abilità, M6-04); Q26 (nodi di Cavatura
   e Lenza); Q27-Q40 (default); Q41 (XP dei mostri 4 × PV, confermato da M5-06; tempi stimati fino al 99: Pianure circa
   10-12 min, Bosco 25-45 min, Miniere 2,5-3,5 h, Soglia 36-52 h; decide l'utente); Q42 (testi del tooltip dei pezzi
   senza skill di combattimento, default applicato in M4-08); Q43 (livello del criterio di §8.5: default livello medio
@@ -48,7 +44,7 @@ Se la sessione si interrompe, si riparte da qui.
 - **Pulizia a mano**: cartella `C:/Users/Davide/Desktop/AI/RSI-worktrees/M3-03` (worktree già staccato da git, file
   bloccati da un processo Godot); cartella vuota `rifstone-saga---melvor/` nella root; cartella di prova rimasta da M4
   `%APPDATA%/Godot/app_userdata/RiftStone Saga- Idle/m4_config_tmp/`. I worktree di M5 sono rimossi.
-- **Fuori da `docs/`**: `CLAUDE.md` § Stato da portare a "M5 completata, tag `m5-done`; prossima milestone M6 Abilità
+- **Fuori da `docs/`**: `CLAUDE.md` § Stato da portare a "M6 completata, tag `m6-done`; prossima milestone M7 Bottino" (da M5 non aggiornato, serve l'OK diretto dell'utente) [vecchio testo: M6 Abilità
   e tratti" (non modificato dal Reviewer in M5-08: per cambiare `CLAUDE.md` serve l'OK diretto dell'utente).
 
 | ID | Milestone | Titolo | Ruolo | Stato | Branch | Note |
@@ -126,8 +122,8 @@ Se la sessione si interrompe, si riparte da qui.
 | M6-03 | M6 | Abilità attive | COMBAT | DONE | task/M6-03 | merge d84476a; commit 9f9b960; AbilityRunner, CombatView, `ability_used`, save `abilities`/`buffs` in idle {}; precisazioni in F-79/F-80 |
 | M6-04 | M6 | Contenuto: 12 tratti e 6 abilità | DATA | DONE | 58edace | valori provvisori in Q44 |
 | M6-05 | M6 | Scelta di tratti e abilità nella UI | UI | DONE | task/M6-05 | merge 86bc4e1; commit 8a80908; LoadoutPanel nella pagina Personaggio (solo comandi di Loadout), lampo e registro su ability_used/trait_triggered; follow-up: FEEDBACK_FLASH_SEC in CombatTexts (valutare UiStyle); "Gruppo n." e regola del bersaglio non in get_state(), accettato |
-| M6-06 | M6 | Test di M6 | QA | TODO | | |
-| M6-07 | M6 | Integrazione di M6 | REV | TODO | | tag m6-done |
+| M6-06 | M6 | Test di M6 | QA | DONE | task/M6-06 | merge di c2220a1; `test_build_flow.gd` (13 test), copertura stat: dati della classe con stat registrate, 8 tipi di effetto con il loro file di test |
+| M6-07 | M6 | Integrazione di M6 | REV | DONE | main | tag m6-done sul commit docs di M6-07; copertura stat: pending diventa errore per le formule MVP (solo F-50/F-51 post-MVP restano pending); Prova del Giocabile 2/2 (test); run_checks 1317 test, 1317 passati, 0 pending, 0 falliti; validate_data verde; file <= 400 righe; riferimenti vietati assenti (1033 file); push di main e m6-done a fine milestone |
 | M7-01 | M7 | Raffinazione | CORE | TODO | | |
 | M7-02 | M7 | Smantellamento e filtro automatico | CORE | TODO | | |
 | M7-03 | M7 | Drop di equipaggiamento con rarità | COMBAT | TODO | | |
