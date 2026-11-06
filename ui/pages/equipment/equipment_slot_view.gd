@@ -31,6 +31,8 @@ var _glow: bool = false
 var _rarity_color: Color = EMPTY_BORDER
 var _icon: TextureRect = null
 var _label: Label = null
+## Label of the slot without the "+N" of a worn piece.
+var _slot_text: String = ""
 
 
 func _init() -> void:
@@ -63,6 +65,7 @@ func _init() -> void:
 ## Sets the slot id and its label (the page reads the label from `EquipmentStatsText.slot_text`).
 func setup(slot: StringName, label_text: String) -> void:
 	_slot = slot
+	_slot_text = label_text
 	_label.text = label_text
 	_fit_label()
 	name = "Slot_%s" % slot
@@ -75,6 +78,8 @@ func show_piece(inst: ItemInstance, base: ItemDef) -> void:
 	_rarity_color = UiStyle.rarity_color(inst.rarity)
 	_icon.texture = ItemSlotView.icon_of(base.icon)
 	_icon.modulate = Color.WHITE
+	_label.text = _slot_text if inst.upgrade <= 0 else "%s %s" % [_slot_text, ArmoryTexts.UPGRADE_TEXT % inst.upgrade]
+	_fit_label()
 	_restyle()
 
 
@@ -85,6 +90,8 @@ func show_empty() -> void:
 	var path: String = SLOT_ICON_DIR % _slot
 	_icon.texture = load(path) as Texture2D if ResourceLoader.exists(path) else null
 	_icon.modulate = EMPTY_ICON_TINT
+	_label.text = _slot_text
+	_fit_label()
 	_restyle()
 
 

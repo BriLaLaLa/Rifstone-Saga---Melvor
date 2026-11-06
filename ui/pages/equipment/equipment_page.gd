@@ -21,25 +21,8 @@ const EMPTY_TEXT: String = "L'Armeria è vuota: forgia o compra dei pezzi."
 const NO_MATCH_TEXT: String = "Nessun pezzo corrisponde ai filtri."
 const HINT_TEXT: String = "Trascina un pezzo sullo slot. Tasto destro: equipaggia (una spada va nella seconda mano se è libera), " \
 		+ "oppure Rimuovi su uno slot pieno. Clic: seleziona."
-const LEVEL_TEXT: String = "Livello %s  ·  Assetto: %s"
-const UNARMED_TEXT: String = "Mani nude"
-const NO_FOOD_TEXT: String = "Nessun cibo scelto"
-const FOOD_TEXT: String = "Cibo: %s (in bank: %s)"
 const CLEAR_FOOD_TEXT: String = "Togli"
-const REFUSED_TEXTS: Dictionary[StringName, String] = {
-	Reasons.UNKNOWN_ID: "Il pezzo non è più nell'Armeria.",
-	Reasons.NOT_EQUIPPABLE: "Questo pezzo non si può mettere in quello slot.",
-	Reasons.REQUIREMENT_NOT_MET: "Requisiti non soddisfatti.",
-	Reasons.COMBAT_ACTIVE: "Non puoi cambiare arma durante il combattimento.",
-	Reasons.ARMORY_FULL: "L'Armeria è piena: non c'è posto per i pezzi che tornano indietro.",
-	Reasons.SLOT_EMPTY: "Lo slot è già vuoto.",
-	Reasons.ITEM_LOCKED: "Il pezzo è bloccato: sbloccalo per venderlo.",
-	Reasons.ITEM_EQUIPPED: "Il pezzo è indossato: rimuovilo prima di venderlo.",
-	Reasons.NOT_SELLABLE: "Questo pezzo non si vende.",
-	Reasons.NOT_FOOD: "Questo oggetto non è un cibo.",
-	Reasons.NOT_ENOUGH_ITEMS: "Non ci sono abbastanza oggetti.",
-}
-const REFUSED_TEXT_DEFAULT: String = "Operazione non riuscita."
+const FILTER_TEXT: String = "Filtro"
 const CELL_NAME: String = "Cell%d"
 const CELL_SCENE: PackedScene = preload("res://ui/pages/equipment/inventory_cell.tscn")
 const FILTER_ALL: StringName = &""
@@ -51,6 +34,8 @@ var _slot_filter: StringName = FILTER_ALL
 var _rarity_filter: StringName = FILTER_ALL
 var _selected_uid: int = 0
 var _hovering: bool = false
+## Whether the automatic filter is shown in place of the inventory grid.
+var _filter_open: bool = false
 
 @onready var _margin: MarginContainer = %Margin
 @onready var _main: HBoxContainer = %Main
@@ -72,6 +57,8 @@ var _hovering: bool = false
 @onready var _food_label: Label = %FoodLabel
 @onready var _clear_food_button: Button = %ClearFoodButton
 @onready var _panel: PiecePanel = %PiecePanel
+@onready var _filter_toggle: Button = %FilterToggle
+@onready var _filter_panel: FilterPanel = %FilterPanel
 
 
 func _ready() -> void:
@@ -98,6 +85,11 @@ func _ready() -> void:
 	_panel.lock_requested.connect(_on_panel_lock_requested)
 	_panel.sell_requested.connect(_on_panel_sell_requested)
 	_panel.close_requested.connect(_on_panel_close_requested)
+	_panel.refine_requested.connect(_on_panel_refine_requested)
+	_panel.salvage_requested.connect(_on_panel_salvage_requested)
+	_filter_toggle.text = FILTER_TEXT
+	_filter_toggle.toggled.connect(_on_filter_toggled)
+	_filter_panel.rule_changed.connect(_on_filter_rule_changed)
 
 
 ## Draws the equipment of `session` and follows its changes.
@@ -107,6 +99,8 @@ func bind(session: GameSession) -> void:
 	var events: GameEvents = _session.events
 	for sig: Signal in _signals(events):
 		sig.connect(_redraw_from_event)
+	_session.events.item_upgraded.connect(_on_item_upgraded)
+	_session.events.item_salvaged.connect(_on_item_salvaged)
 	_build_filters()
 	_doll.build(func(slot: StringName) -> String: return EquipmentStatsText.doll_text(slot, _session.data))
 	for view: EquipmentSlotView in _doll.slot_views():
@@ -124,6 +118,11 @@ func unbind() -> void:
 		for sig: Signal in _signals(_session.events):
 			if sig.is_connected(_redraw_from_event):
 				sig.disconnect(_redraw_from_event)
+		var events: GameEvents = _session.events
+		if events.item_upgraded.is_connected(_on_item_upgraded):
+			events.item_upgraded.disconnect(_on_item_upgraded)
+		if events.item_salvaged.is_connected(_on_item_salvaged):
+			events.item_salvaged.disconnect(_on_item_salvaged)
 	_hide_tooltip()
 	_session = null
 	_selected_uid = 0
@@ -160,7 +159,8 @@ func clear_drag_targets() -> void:
 ## The events that make the page read the session again.
 func _signals(events: GameEvents) -> Array[Signal]:
 	return [events.armory_changed, events.armory_capacity_changed, events.equipment_changed,
-			events.character_level_up, events.modifiers_changed, events.food_changed, events.bank_changed]
+			events.character_level_up, events.modifiers_changed, events.food_changed, events.bank_changed,
+			events.item_upgraded, events.item_salvaged]
 
 
 # --- Filters ----------------------------------------------------------------------------------------------------
@@ -211,10 +211,11 @@ func _redraw() -> void:
 	_capacity_label.text = ArmoryTexts.capacity_text(used, capacity, worn)
 	_full_label.visible = used >= capacity
 	_rebuild_grid()
-	_redraw_doll()
-	_redraw_side()
+	EquipmentSide.redraw_doll(_session, _doll, _class_label, _setup_label)
+	EquipmentSide.redraw_side(_session, _stats_text, _food_label, _clear_food_button)
 	if _selected_uid != 0 and not _panel.show_piece(_session, _selected_uid):
 		_selected_uid = 0
+	_apply_filter_view()
 
 
 func _rebuild_grid() -> void:
@@ -246,30 +247,6 @@ func _passes_filters(inst: ItemInstance, base: ItemDef) -> bool:
 	if _slot_filter != FILTER_ALL and base.equip.slot != _slot_filter:
 		return false
 	return _rarity_filter == FILTER_ALL or inst.rarity == _rarity_filter
-
-
-func _redraw_doll() -> void:
-	var class_def: ClassDef = _session.character.class_def()
-	_class_label.text = class_def.name if class_def != null else ""
-	var setup: SetupDef = _session.equipment.setup_def()
-	_setup_label.text = LEVEL_TEXT % [NumberFormat.format_int(_session.character.get_level()),
-			setup.name if setup != null else UNARMED_TEXT]
-	for view: EquipmentSlotView in _doll.slot_views():
-		var inst: ItemInstance = _session.armory.get_instance(_session.equipment.get_uid(view.slot()))
-		var base: ItemDef = _session.data.item(inst.base_id) if inst != null else null
-		if base == null:
-			view.show_empty()
-		else:
-			view.show_piece(inst, base)
-
-
-func _redraw_side() -> void:
-	_stats_text.text = EquipmentStatsText.totals(_session)
-	var food_id: StringName = _session.equipment.get_food()
-	var food: ItemDef = _session.data.item(food_id) if food_id != &"" else null
-	_clear_food_button.disabled = food == null
-	_food_label.text = NO_FOOD_TEXT if food == null else FOOD_TEXT % [food.name,
-			NumberFormat.format_int(_session.bank.get_count(food_id))]
 
 
 # --- Selection, tooltips ----------------------------------------------------------------------------------------
@@ -323,10 +300,12 @@ func _hide_tooltip() -> void:
 func _send(command: Callable) -> void:
 	if _session == null:
 		return
+	_message_label.visible = false
 	var result: CommandResult = command.call() as CommandResult
-	_message_label.visible = not result.ok
 	if not result.ok:
-		_message_label.text = REFUSED_TEXTS.get(result.reason, REFUSED_TEXT_DEFAULT)
+		_message_label.visible = true
+		_message_label.add_theme_color_override("font_color", UiStyle.BAD)
+		_message_label.text = EquipmentMessages.refused(result.reason)
 	_redraw()
 
 
@@ -373,3 +352,49 @@ func _on_slot_right_clicked(slot: StringName) -> void:
 
 func _on_clear_food_pressed() -> void:
 	_send(func() -> CommandResult: return _session.equipment.set_food(&""))
+
+
+# --- Refine, salvage, automatic filter --------------------------------------------------------------------------
+
+func _on_panel_refine_requested(uid: int, use_seal: bool) -> void:
+	_send(func() -> CommandResult: return _session.armory.upgrade(uid, use_seal))
+
+
+func _on_panel_salvage_requested(uid: int) -> void:
+	_send(func() -> CommandResult: return _session.armory.salvage(uid))
+
+
+## The filter rules are rewritten from the armory at every opening (no signal, 05 §5.17).
+func _on_filter_toggled(open: bool) -> void:
+	_filter_open = open
+	_redraw()
+
+
+func _on_filter_rule_changed(slot: StringName, min_rarity: StringName, min_grade: int) -> void:
+	_send(func() -> CommandResult: return _session.armory.set_filter(slot, min_rarity, min_grade))
+
+
+## Shows the filter panel in place of the grid while it is open, rereading the rules.
+func _apply_filter_view() -> void:
+	_filter_toggle.text = INVENTORY_TITLE_TEXT if _filter_open else FILTER_TEXT
+	_filter_toggle.set_pressed_no_signal(_filter_open)
+	_filter_panel.visible = _filter_open
+	_scroll.visible = not _filter_open
+	_hint_label.visible = _scroll.visible
+	if _filter_open:
+		_empty_label.visible = false
+		_filter_panel.refresh(_session)
+
+
+func _on_item_upgraded(uid: int, success: bool, new_level: int) -> void:
+	_notify(EquipmentMessages.upgraded_text(_session, uid, success, new_level), success)
+
+
+func _on_item_salvaged(_uid: int, base_id: StringName, auto: bool) -> void:
+	_notify(EquipmentMessages.salvaged_text(_session, base_id, auto), true)
+
+
+func _notify(text: String, good: bool) -> void:
+	_message_label.text = text
+	_message_label.add_theme_color_override("font_color", UiStyle.GOOD if good else UiStyle.GOLD_LIGHT)
+	_message_label.visible = true

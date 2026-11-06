@@ -294,8 +294,8 @@ func test_panel_buttons_equip_in_hand_and_second_hand() -> void:
 	_click(_cell(second), MOUSE_BUTTON_LEFT)
 	_button("OffhandButton").pressed.emit()
 	assert_eq(_session.equipment.get_uid(&"offhand"), second)
-	assert_true(_button("RefineButton").disabled, "Raffina arrives with M7")
-	assert_eq(_button("RefineButton").text, "Raffina (M7)")
+	assert_false(_button("RefineButton").disabled)
+	assert_eq(_button("RefineButton").text, "Raffina")
 
 
 func test_lock_and_sell_through_the_panel() -> void:
