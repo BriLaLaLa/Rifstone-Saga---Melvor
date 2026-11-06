@@ -1,19 +1,21 @@
 class_name LoadoutPanel
 extends PanelContainer
-## Choice of traits and abilities (docs/01_GDD.md §19, 05_INTERFACES.md §5.16b), part of the character page: one row
-## per slot of the balance table with an OptionButton listing the entries of the class.
+## Choice of traits and abilities (docs/01_GDD.md §19, 05_INTERFACES.md §5.16b), part of the character page: every entry
+## of the class is a card (name, description, unlock level, slot taken). A click on a free card is the command
+## `loadout.set_trait` / `set_ability` on the first empty open slot; a click on a chosen card empties its slot.
 ##
 ## Reads `session.loadout` and the class at every redraw (`refresh`, called by the page on `traits_changed`, level up,
-## equipment and combat signals). A choice is the command `loadout.set_trait` / `set_ability`; a refused one shows its
-## reason and the rows are redrawn from the model. It keeps only its nodes.
+## equipment and combat signals). A refused command shows its reason and the cards are redrawn from the model. During an
+## encounter nothing can be changed: one warning per section, the cards do not react. It keeps only its nodes.
 
 const KIND_TRAIT: StringName = &"trait"
 const KIND_ABILITY: StringName = &"ability"
-const CAPTION_WIDTH: int = 80
+const COLUMNS: int = 2
+const GRID_SEPARATION: int = 8
 
 var _session: GameSession = null
-## Per slot, in order: {"kind", "slot", "option": OptionButton, "note": Label}.
-var _rows: Array[Dictionary] = []
+## Per kind: {"note": Label, "summary": Label, "grid": GridContainer, "cards": Array[LoadoutCard]}.
+var _sections: Dictionary[StringName, Dictionary] = {}
 
 @onready var _title: Label = %PanelTitle
 @onready var _trait_title: Label = %TraitTitle
@@ -31,102 +33,84 @@ func _ready() -> void:
 	_message.visible = false
 
 
-## Builds the rows (one per slot) and draws them.
+## Builds the cards (one per entry of the class) and draws them.
 func bind(session: GameSession) -> void:
 	_session = session
-	_rows.clear()
-	_build_rows(_trait_rows, KIND_TRAIT, Loadout.TRAIT_LEVELS_KEY)
-	_build_rows(_ability_rows, KIND_ABILITY, Loadout.ABILITY_LEVELS_KEY)
+	_sections.clear()
+	var class_def: ClassDef = _session.character.class_def()
+	_build_section(_trait_rows, KIND_TRAIT, class_def)
+	_build_section(_ability_rows, KIND_ABILITY, class_def)
 	_message.visible = false
 	refresh()
 
 
 func unbind() -> void:
 	_session = null
-	_rows.clear()
+	_sections.clear()
 
 
 ## Rereads the loadout, the level, the setup and the combat state.
 func refresh() -> void:
 	if _session == null:
 		return
+	var locked: bool = _session.combat != null and _session.combat.in_encounter()
 	var class_def: ClassDef = _session.character.class_def()
-	var combat_locked: bool = _session.combat != null and _session.combat.in_encounter()
-	for row: Dictionary in _rows:
-		_refresh_row(row, class_def, combat_locked)
+	for kind: StringName in _sections:
+		_refresh_section(kind, class_def, locked)
 
 
-func _build_rows(container: VBoxContainer, kind: StringName, key: String) -> void:
+func _build_section(container: VBoxContainer, kind: StringName, class_def: ClassDef) -> void:
 	for child: Node in container.get_children():
 		container.remove_child(child)
 		child.queue_free()
-	var levels: Variant = _session.data.balance_value(key)
-	var count: int = (levels as Array).size() if levels is Array else 0
-	for slot: int in count:
-		var box := VBoxContainer.new()
-		var line := HBoxContainer.new()
-		line.add_theme_constant_override("separation", 12)
-		var caption := Label.new()
-		caption.text = LoadoutTexts.SLOT_TEXT % (slot + 1)
-		caption.custom_minimum_size.x = CAPTION_WIDTH
-		line.add_child(caption)
-		var option := OptionButton.new()
-		option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		option.item_selected.connect(_on_item_selected.bind(kind, slot))
-		line.add_child(option)
-		box.add_child(line)
-		var note := Label.new()
-		note.theme_type_variation = &"MutedLabel"
-		note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		box.add_child(note)
-		container.add_child(box)
-		_rows.append({"kind": kind, "slot": slot, "option": option, "note": note})
+	var note := Label.new()
+	note.text = LoadoutTexts.COMBAT_ACTIVE_TEXT
+	note.add_theme_color_override("font_color", UiStyle.BAD)
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	container.add_child(note)
+	var summary := Label.new()
+	summary.theme_type_variation = &"MutedLabel"
+	container.add_child(summary)
+	var grid := GridContainer.new()
+	grid.columns = COLUMNS
+	grid.add_theme_constant_override("h_separation", GRID_SEPARATION)
+	grid.add_theme_constant_override("v_separation", GRID_SEPARATION)
+	container.add_child(grid)
+	var cards: Array[LoadoutCard] = []
+	for entry: Variant in _entries(class_def, kind == KIND_TRAIT):
+		var card := LoadoutCard.new()
+		card.chosen.connect(_on_card_chosen.bind(kind))
+		grid.add_child(card)
+		cards.append(card)
+	_sections[kind] = {"note": note, "summary": summary, "grid": grid, "cards": cards}
 
 
-func _refresh_row(row: Dictionary, class_def: ClassDef, combat_locked: bool) -> void:
-	var is_trait: bool = row["kind"] == KIND_TRAIT
-	var slot: int = row["slot"]
-	var option: OptionButton = row["option"]
-	var note: Label = row["note"]
-	var open: int = _session.loadout.trait_slots() if is_trait else _session.loadout.ability_slots()
-	var current: StringName = _session.loadout.get_trait(slot) if is_trait else _session.loadout.get_ability(slot)
-	option.clear()
-	option.add_item(LoadoutTexts.EMPTY_TEXT)
-	option.set_item_metadata(0, &"")
-	var selected: int = 0
-	var elsewhere: Array[StringName] = _chosen_ids(is_trait, slot)
+func _refresh_section(kind: StringName, class_def: ClassDef, locked: bool) -> void:
+	var is_trait: bool = kind == KIND_TRAIT
+	var section: Dictionary = _sections[kind]
+	var entries: Array = _entries(class_def, is_trait)
+	var cards: Array = section["cards"]
 	var level: int = _session.character.get_level()
 	var setup_id: StringName = _session.equipment.setup()
-	var note_text: String = ""
-	for entry: Variant in _entries(class_def, is_trait):
-		var id: StringName = entry.id
-		var text: String = entry.name
-		var enabled: bool = true
-		if level < entry.unlock_level:
-			text = LoadoutTexts.OPTION_LEVEL_TEXT % [text, entry.unlock_level]
-			enabled = false
-		elif elsewhere.has(id):
-			text = LoadoutTexts.OPTION_IN_USE_TEXT % text
-			enabled = false
-		option.add_item(text)
-		var index: int = option.item_count - 1
-		option.set_item_metadata(index, id)
-		option.set_item_disabled(index, not enabled)
-		option.set_item_tooltip(index, entry.description)
-		if id == current and slot < open:
-			selected = index
-			note_text = entry.description
-			if not entry.allows_setup(setup_id):
-				note_text += "\n" + LoadoutTexts.NOT_FOR_SETUP_TEXT
-	option.select(selected)
-	option.disabled = slot >= open or combat_locked
-	if slot >= open:
-		option.text = LoadoutTexts.SLOT_LOCKED_TEXT % _unlock_level(slot, is_trait)
-		note_text = ""
-	elif combat_locked:
-		note_text = LoadoutTexts.COMBAT_ACTIVE_TEXT
-	note.text = note_text
-	note.visible = note_text != ""
+	var open: int = _open_slots(is_trait)
+	var total: int = _slot_levels(is_trait).size()
+	(section["note"] as Label).visible = locked
+	(section["summary"] as Label).text = _summary_text(open, total, is_trait)
+	for i: int in mini(entries.size(), cards.size()):
+		var entry: Variant = entries[i]
+		var slot: int = _slot_of(entry.id, is_trait, open)
+		var unlock_text: String = LoadoutTexts.UNLOCK_TEXT % entry.unlock_level if level < entry.unlock_level \
+				else LoadoutTexts.UNLOCKED_TEXT % entry.unlock_level
+		var warning: String = LoadoutTexts.NOT_FOR_SETUP_TEXT if slot >= 0 and not entry.allows_setup(setup_id) else ""
+		(cards[i] as LoadoutCard).show_entry(entry.id, entry.name, entry.description, unlock_text,
+				LoadoutTexts.SLOT_CHOSEN_TEXT % (slot + 1) if slot >= 0 else "", warning,
+				level < entry.unlock_level and slot < 0, not locked)
+
+
+func _summary_text(open: int, total: int, is_trait: bool) -> String:
+	if open < total:
+		return LoadoutTexts.SLOTS_NEXT_TEXT % [open, total, _slot_levels(is_trait)[open]]
+	return LoadoutTexts.SLOTS_OPEN_TEXT % [open, total]
 
 
 func _entries(class_def: ClassDef, is_trait: bool) -> Array:
@@ -135,61 +119,81 @@ func _entries(class_def: ClassDef, is_trait: bool) -> Array:
 	return class_def.traits if is_trait else class_def.abilities
 
 
-## Ids chosen in the other slots (they cannot be chosen twice).
-func _chosen_ids(is_trait: bool, except_slot: int) -> Array[StringName]:
-	var result: Array[StringName] = []
-	for row: Dictionary in _rows:
-		if (row["kind"] == KIND_TRAIT) != is_trait or row["slot"] == except_slot:
-			continue
-		var slot: int = row["slot"]
-		var id: StringName = _session.loadout.get_trait(slot) if is_trait else _session.loadout.get_ability(slot)
-		if id != &"":
-			result.append(id)
-	return result
+func _chosen_id(is_trait: bool, slot: int) -> StringName:
+	return _session.loadout.get_trait(slot) if is_trait else _session.loadout.get_ability(slot)
 
 
-func _unlock_level(slot: int, is_trait: bool) -> int:
+func _open_slots(is_trait: bool) -> int:
+	return _session.loadout.trait_slots() if is_trait else _session.loadout.ability_slots()
+
+
+## Slot (0-based) that holds `id` among the open ones; -1 if it is not chosen.
+func _slot_of(id: StringName, is_trait: bool, open: int) -> int:
+	for slot: int in open:
+		if _chosen_id(is_trait, slot) == id:
+			return slot
+	return -1
+
+
+## Unlock levels of the slots, from the balance table.
+func _slot_levels(is_trait: bool) -> Array:
 	var raw: Variant = _session.data.balance_value(Loadout.TRAIT_LEVELS_KEY if is_trait else Loadout.ABILITY_LEVELS_KEY)
-	return int((raw as Array)[slot]) if raw is Array and slot < (raw as Array).size() else 0
+	return raw as Array if raw is Array else []
 
 
-func _on_item_selected(index: int, kind: StringName, slot: int) -> void:
+func _on_card_chosen(id: StringName, kind: StringName) -> void:
 	if _session == null:
 		return
-	var option: OptionButton = _row(kind, slot)["option"]
-	var id: StringName = option.get_item_metadata(index)
-	var result: CommandResult = _session.loadout.set_trait(slot, id) if kind == KIND_TRAIT \
-			else _session.loadout.set_ability(slot, id)
-	_message.visible = not result.ok
-	if not result.ok:
-		_message.text = LoadoutTexts.REASON_TEXTS.get(result.reason, LoadoutTexts.REASON_DEFAULT_TEXT)
+	var is_trait: bool = kind == KIND_TRAIT
+	var open: int = _open_slots(is_trait)
+	var held: int = _slot_of(id, is_trait, open)
+	var slot: int = held if held >= 0 else _first_empty_slot(is_trait, open)
+	if slot < 0:
+		_show_message(LoadoutTexts.NO_FREE_SLOT_TEXT)
+		return
+	var target: StringName = &"" if held >= 0 else id
+	var result: CommandResult = _session.loadout.set_trait(slot, target) if is_trait \
+			else _session.loadout.set_ability(slot, target)
+	_show_message("" if result.ok else LoadoutTexts.REASON_TEXTS.get(result.reason, LoadoutTexts.REASON_DEFAULT_TEXT))
 	refresh()
 
 
-func _row(kind: StringName, slot: int) -> Dictionary:
-	for row: Dictionary in _rows:
-		if row["kind"] == kind and row["slot"] == slot:
-			return row
-	return {}
+## First empty open slot; slot 0 if none is open (the command then refuses with its reason); -1 if all are taken.
+func _first_empty_slot(is_trait: bool, open: int) -> int:
+	if open == 0:
+		return 0
+	for slot: int in open:
+		if _chosen_id(is_trait, slot) == &"":
+			return slot
+	return -1
+
+
+func _show_message(text: String) -> void:
+	_message.visible = text != ""
+	_message.text = text
 
 
 # --- For tests ---
 
-func option(kind: StringName, slot: int) -> OptionButton:
-	return _row(kind, slot).get("option")
+func card(kind: StringName, id: StringName) -> LoadoutCard:
+	for c: Variant in _sections.get(kind, {}).get("cards", []):
+		if (c as LoadoutCard).entry_id() == id:
+			return c
+	return null
 
 
-func note_text(kind: StringName, slot: int) -> String:
-	return (_row(kind, slot)["note"] as Label).text
+func card_count(kind: StringName) -> int:
+	return (_sections[kind]["cards"] as Array).size() if _sections.has(kind) else 0
+
+
+## True while the section shows its single "no changes during an encounter" warning.
+func combat_note_visible(kind: StringName) -> bool:
+	return (_sections[kind]["note"] as Label).visible
+
+
+func summary_text(kind: StringName) -> String:
+	return (_sections[kind]["summary"] as Label).text
 
 
 func message_text() -> String:
 	return _message.text if _message.visible else ""
-
-
-func row_count(kind: StringName) -> int:
-	var n: int = 0
-	for row: Dictionary in _rows:
-		if row["kind"] == kind:
-			n += 1
-	return n

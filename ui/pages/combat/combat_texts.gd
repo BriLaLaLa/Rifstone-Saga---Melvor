@@ -78,11 +78,20 @@ const VS_TEXT: String = "VS"
 const YIELD_TITLE: String = "Rendimento"
 const YIELD_WINDOW_HOUR_TEXT: String = "ultima ora"
 const YIELD_WINDOW_MINUTES_TEXT: String = "ultimi %d min"
+const YIELD_WINDOW_ONE_MINUTE_TEXT: String = "ultimo minuto"
 const YIELD_WINDOW_SHORT_TEXT: String = "da pochi istanti"
 const YIELD_LABELS: Dictionary[StringName, String] = {
 	&"kills": "uccisioni/ora", &"xp": "XP/ora", &"gold": "oro/ora", &"damage": "danno/s",
 }
-const LOG_SUMMARY_TEXT: String = "Registro: %s colpi · %s abilità · %s parate · %s cibi"
+const LOG_SUMMARY_TEXT: String = "Registro: %s · %s · %s · %s"
+const LOG_HITS_ONE_TEXT: String = "1 colpo"
+const LOG_HITS_TEXT: String = "%s colpi"
+const LOG_ABILITIES_ONE_TEXT: String = "1 abilità"
+const LOG_ABILITIES_TEXT: String = "%s abilità"
+const LOG_BLOCKS_ONE_TEXT: String = "1 parata"
+const LOG_BLOCKS_TEXT: String = "%s parate"
+const LOG_MEALS_ONE_TEXT: String = "1 cibo"
+const LOG_MEALS_TEXT: String = "%s cibi"
 const LOG_ABILITY_TEXT: String = "Usi %s."
 const LOG_TRAIT_TEXT: String = "Il tratto %s scatta."
 const BUFF_ACTIVE_TEXT: String = "attiva %s s"
@@ -120,9 +129,34 @@ static func yield_window_text(window_ms: int) -> String:
 	if window_ms >= CombatYield.WINDOW_MS:
 		return YIELD_WINDOW_HOUR_TEXT
 	if window_ms >= CombatYield.MS_PER_MINUTE:
-		return YIELD_WINDOW_MINUTES_TEXT % (window_ms / CombatYield.MS_PER_MINUTE)
+		var minutes: int = window_ms / CombatYield.MS_PER_MINUTE
+		return YIELD_WINDOW_ONE_MINUTE_TEXT if minutes == 1 else YIELD_WINDOW_MINUTES_TEXT % minutes
 	return YIELD_WINDOW_SHORT_TEXT
 
 
 static func group_size_text(count: int) -> String:
 	return GROUP_SIZE_ONE_TEXT if count == 1 else GROUP_SIZE_TEXT % count
+
+
+## "1 colpo" / "N colpi" (singular for exactly one).
+static func counted(count: int, one_text: String, many_text: String) -> String:
+	return one_text if count == 1 else many_text % NumberFormat.format_int(count)
+
+
+## Closed summary of the log, with singular and plural: "Registro: 1 colpo · 2 abilità · 0 parate · 1 cibo".
+static func log_summary(hits: int, abilities: int, blocks: int, meals: int) -> String:
+	return LOG_SUMMARY_TEXT % [counted(hits, LOG_HITS_ONE_TEXT, LOG_HITS_TEXT),
+			counted(abilities, LOG_ABILITIES_ONE_TEXT, LOG_ABILITIES_TEXT),
+			counted(blocks, LOG_BLOCKS_ONE_TEXT, LOG_BLOCKS_TEXT), counted(meals, LOG_MEALS_ONE_TEXT, LOG_MEALS_TEXT)]
+
+
+## The base combat values of F-70 (accuracy, evasion, damage, HP) of the player as one line each. The character page and
+## the equipment page both show these lines.
+static func final_stat_lines(session: GameSession) -> Array[String]:
+	var stats: CombatantStats = CombatantStats.for_player(session)
+	return [
+		stat_line(session.data, &"accuracy", stats.accuracy),
+		stat_line(session.data, &"evasion", stats.evasion),
+		STAT_DAMAGE_TEXT % [NumberFormat.format_int(stats.min_hit), NumberFormat.format_int(stats.max_hit)],
+		stat_line(session.data, &"max_hp", stats.max_hp),
+	]

@@ -233,9 +233,8 @@ func _redraw_yield() -> void:
 ## The summary line (closed) or the last lines of the log (open).
 func _refresh_log() -> void:
 	var meals: int = _session.combat.food_eaten()
-	_log_button.text = CombatTexts.LOG_HIDE_TEXT if _log_open else CombatTexts.LOG_SUMMARY_TEXT % [
-			NumberFormat.format_int(_yield.hits), NumberFormat.format_int(_yield.abilities),
-			NumberFormat.format_int(_yield.blocks), NumberFormat.format_int(meals)]
+	_log_button.text = CombatTexts.LOG_HIDE_TEXT if _log_open else CombatTexts.log_summary(
+			_yield.hits, _yield.abilities, _yield.blocks, meals)
 	_log_scroll.visible = _log_open
 	_yield_grid.visible = not _log_open
 	if _log_open:

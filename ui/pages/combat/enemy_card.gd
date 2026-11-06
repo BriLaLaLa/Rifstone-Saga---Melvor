@@ -39,6 +39,9 @@ func _ready() -> void:
 			UiStyle.COMBAT_FRAME_WIDTH if large else 1, 8.0))
 	if not large:
 		custom_minimum_size.x = UiStyle.COMBAT_QUEUE_CARD_WIDTH
+	for label: Label in [_name, _tag]:
+		label.clip_text = false
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_name.add_theme_color_override("font_color", UiStyle.COMBAT_ENEMY_TEXT)
 	if large:
 		_name.theme_type_variation = &"TitleLabel"
@@ -51,6 +54,11 @@ func _ready() -> void:
 	UiStyle.style_bar(_hp_bar, UiStyle.HP)
 	UiStyle.style_bar(_timer_bar, UiStyle.COMBAT_TIMER_COLOR)
 	_icon.pivot_offset = _portrait.custom_minimum_size / 2.0
+
+
+## Width of a small card (the zone widens the cards to fill its row).
+func set_card_width(width: float) -> void:
+	custom_minimum_size.x = width
 
 
 ## Static values, set when the group is built or the relation changes.

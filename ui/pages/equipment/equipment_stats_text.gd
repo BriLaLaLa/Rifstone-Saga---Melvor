@@ -38,18 +38,36 @@ static func slot_text(slot: StringName, data: GameData) -> String:
 	return text
 
 
-## BBCode of the final values: one line "name  total" for every stat with at least one source in the global context.
+## Short label under a slot of the doll: a tool slot shows only the skill name (the icon says it is a tool), so the
+## text fits the small slot; the other slots use `slot_text`.
+static func doll_text(slot: StringName, data: GameData) -> String:
+	var text: String = String(slot)
+	if text.begins_with(TOOL_SLOT_PREFIX):
+		var skill: SkillDef = _skill_named(StringName(text.trim_prefix(TOOL_SLOT_PREFIX)), data)
+		return skill.name if skill != null else TOOL_SLOT_DEFAULT_TEXT
+	return slot_text(slot, data)
+
+
+## BBCode of the final values: the combat values of the character (the same lines as the character page,
+## `CombatTexts.final_stat_lines`), then one line "name  total" for every stat with at least one source in the global
+## context.
 static func totals(session: GameSession) -> String:
 	var lines: PackedStringArray = PackedStringArray()
+	for text: String in CombatTexts.final_stat_lines(session):
+		lines.append(ItemTooltipLines.escape(text))
+	var bonuses: PackedStringArray = PackedStringArray()
 	for stat: StringName in session.data.stats.ids():
 		if session.modifiers.breakdown(stat).is_empty():
 			continue
 		var info: Dictionary = session.data.stats.info(stat)
 		var total: String = ItemTooltipLines.format_stat(info["format"] as String, session.modifiers.total(stat))
-		lines.append("%s  %s" % [ItemTooltipLines.escape(info["name"] as String),
+		bonuses.append("%s  %s" % [ItemTooltipLines.escape(info["name"] as String),
 				COLOR_TAG % [UiStyle.GOLD_LIGHT.to_html(false), total]])
-	if lines.is_empty():
-		return COLOR_TAG % [UiStyle.TEXT_2.to_html(false), STATS_EMPTY_TEXT]
+	lines.append("")
+	if bonuses.is_empty():
+		lines.append(COLOR_TAG % [UiStyle.TEXT_2.to_html(false), STATS_EMPTY_TEXT])
+	else:
+		lines.append_array(bonuses)
 	return "\n".join(lines)
 
 
