@@ -1,8 +1,8 @@
 [gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://ui/pages/armory/armory_cell.gd" id="1_cell"]
+[ext_resource type="Script" path="res://ui/pages/equipment/inventory_cell.gd" id="1_cell"]
 
-[node name="ArmoryCell" type="PanelContainer"]
+[node name="InventoryCell" type="PanelContainer"]
 theme_type_variation = &"SlotPanel"
 script = ExtResource("1_cell")
 
@@ -25,13 +25,5 @@ unique_name_in_owner = true
 visible = false
 layout_mode = 2
 size_flags_horizontal = 0
-size_flags_vertical = 0
-mouse_filter = 2
-
-[node name="WornMarker" type="ColorRect" parent="."]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-size_flags_horizontal = 8
 size_flags_vertical = 0
 mouse_filter = 2

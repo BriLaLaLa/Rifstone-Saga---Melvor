@@ -147,6 +147,11 @@ static func weapon_line(weapon: WeaponInfo) -> String:
 	return line
 
 
+## Display name of the scope of `mod` (a skill or an action); empty for global modifiers.
+static func scope_name(mod: Modifier, data: GameData) -> String:
+	return _scope_name(mod, data)
+
+
 ## Display name of a modifier scope; empty for global modifiers.
 static func _scope_name(mod: Modifier, data: GameData) -> String:
 	match mod.scope_kind:
