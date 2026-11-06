@@ -149,7 +149,7 @@ func _create_systems() -> void:
 	_join(ActionRunner.SAVE_KEY, actions.new_game, actions.to_save, actions.from_save)
 	_tick(_PHASE_ACTIONS, actions.advance)
 	combat = CombatEngine.new(self)
-	_join(CombatEngine.SAVE_KEY, combat.new_game, combat.to_save, combat.from_save)
+	_join(CombatEngine.SAVE_KEY, combat.new_game, combat.to_save, combat.from_save, combat.rebuild_modifiers)
 	_tick(_PHASE_COMBAT, combat.advance)
 	shop = Shop.new(self)
 	_join(Shop.SAVE_KEY, shop.new_game, shop.to_save, shop.from_save, shop.rebuild_modifiers)

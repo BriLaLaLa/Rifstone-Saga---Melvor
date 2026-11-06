@@ -54,6 +54,7 @@ signal food_eaten(item_id: StringName, healed: int)
 signal loot_bag_changed(used: int, capacity: int)
 signal loot_lost(item_id: StringName, qty: int)
 signal trait_triggered(trait_id: StringName)
+signal ability_used(ability_id: StringName, targets: Array[int])
 
 # Shop and Rift Altar
 signal shop_purchased(entry_id: StringName, count: int)
