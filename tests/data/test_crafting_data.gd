@@ -306,8 +306,8 @@ func test_rift_blade_class_has_the_four_setups() -> void:
 		pairs.append([s["id"], s["weapon"], s["offhand"]])
 	assert_eq(pairs, [["greatsword", "greatsword", ""], ["sword_shield", "sword", "shield"],
 			["dual_swords", "sword", "sword"], ["sword", "sword", ""]])
-	assert_eq(c.get("traits"), [])
-	assert_eq(c.get("abilities"), [])
+	assert_eq((c.get("traits") as Array).size(), 12)  # M6-04
+	assert_eq((c.get("abilities") as Array).size(), 6)
 
 
 func test_affixes_follow_8_9() -> void:

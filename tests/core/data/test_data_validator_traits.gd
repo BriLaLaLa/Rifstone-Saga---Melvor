@@ -143,6 +143,17 @@ func test_stat_trade_valid() -> void:
 	assert_eq(V.validate(raw), PackedStringArray())
 
 
+func test_stat_trade_rejects_stats_without_combat_effect() -> void:
+	var raw: Dictionary = V.fixture_raw()
+	_effect(raw, 1)["type"] = "stat_trade"
+	_effect(raw, 1)["params"] = {"zero": ["skill_xp_pct"], "mult": {"gold_drop_pct": 2}}
+	_expect(raw, [CLASS_FILE, "params.zero", "skill_xp_pct", "no combat effect"])
+	_expect(raw, [CLASS_FILE, "params.mult.gold_drop_pct", "no combat effect"])
+	for stat: String in DataValidatorTraits.STAT_TRADE_STATS:
+		_effect(raw, 1)["params"] = {"zero": [stat], "mult": {}}
+		assert_eq(V.validate(raw), PackedStringArray(), stat)
+
+
 func test_ability_kind_and_params() -> void:
 	var raw: Dictionary = V.fixture_raw()
 	_ability(raw, 0)["kind"] = "fireball"
