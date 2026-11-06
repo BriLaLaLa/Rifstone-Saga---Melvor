@@ -12,7 +12,6 @@ const CARD_SCENE: PackedScene = preload("res://ui/pages/combat/enemy_card.tscn")
 const CARD_NAME: String = "Enemy_%d"
 
 var _ids: Array[StringName] = []
-var _defs: Array[MonsterDef] = []
 var _cards: Array[EnemyCard] = []
 var _target_card: EnemyCard = null
 var _shown_index: int = -2
@@ -57,7 +56,7 @@ func refresh(session: GameSession, state: Dictionary) -> void:
 		card.redraw(enemy["hp"], enemy["max_hp"], enemy["timer_ms"], enemy["interval_ms"])
 		if int(enemy["hp"]) > 0:
 			alive += 1
-			card.set_tag(_tag_text(session.data, _defs[i], player_style))
+			card.set_tag(EnemyView.tag_text(session.data, _ids[i], player_style))
 	_redraw_target(session, enemies, target, player_style)
 	var queued: int = _cards.size() - (1 if target >= 0 else 0)
 	_queue_title.text = CombatTexts.QUEUE_TITLE % maxi(queued, 0)
@@ -73,15 +72,16 @@ func _redraw_target(session: GameSession, enemies: Array, target: int, player_st
 	if target < 0:
 		_shown_index = -2
 		return
-	var def: MonsterDef = _defs[target]
+	var id: StringName = _ids[target]
 	if target != _shown_index:
 		_target_card.clear_effects()
-		_target_card.setup(def.name if def != null else String(_ids[target]), def.icon if def != null else "",
-				"", _info_text(def))
+		_target_card.setup(EnemyView.name_of(session.data, id), EnemyView.icon_of(session.data, id), "",
+				EnemyView.info_text(session.data, id))
+		_target_card.set_stone(EnemyView.is_stone(session.data, id))
 		_shown_index = target
 	var enemy: Dictionary = enemies[target]
 	_target_card.redraw(enemy["hp"], enemy["max_hp"], enemy["timer_ms"], enemy["interval_ms"])
-	_target_card.set_tag(_tag_text(session.data, def, player_style))
+	_target_card.set_tag(EnemyView.tag_text(session.data, id, player_style))
 
 
 func _rebuild(data: GameData, ids: Array[StringName]) -> void:
@@ -89,32 +89,15 @@ func _rebuild(data: GameData, ids: Array[StringName]) -> void:
 		_queue.remove_child(card)
 		card.queue_free()
 	_cards.clear()
-	_defs.clear()
 	_ids = ids.duplicate()
 	_shown_index = -2
 	for i: int in ids.size():
-		var def: MonsterDef = data.monster(ids[i])
-		_defs.append(def)
 		var card: EnemyCard = CARD_SCENE.instantiate() as EnemyCard
 		card.name = CARD_NAME % i
 		_queue.add_child(card)
-		card.setup(def.name if def != null else String(ids[i]), def.icon if def != null else "", "", "")
+		card.setup(EnemyView.name_of(data, ids[i]), EnemyView.icon_of(data, ids[i]), "", "")
+		card.set_stone(EnemyView.is_stone(data, ids[i]))
 		_cards.append(card)
-
-
-static func _tag_text(data: GameData, def: MonsterDef, player_style: StringName) -> String:
-	if def == null:
-		return ""
-	var relation: StringName = CombatMath.triangle(player_style, def.style, data)
-	return CombatTexts.TAG_TEXT % [ItemTooltipLines.STYLE_NAMES.get(def.style, String(def.style)),
-			CombatTexts.RELATION_TEXTS.get(relation, "")]
-
-
-static func _info_text(def: MonsterDef) -> String:
-	if def == null:
-		return ""
-	return CombatTexts.ENEMY_INFO_TEXT % [CombatTexts.seconds_text(def.attack_interval_ms),
-			NumberFormat.format_int(roundi(def.damage_reduction))]
 
 
 ## Width of a small card so that the cards of the row fill `avail`: as many columns as fit at the minimum width (at most

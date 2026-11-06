@@ -3,7 +3,7 @@ extends PanelContainer
 ## Selected-piece panel of the Equipment page (docs/UI_GDR.md §3): icon, name with the rarity color, rarity / item
 ## level / slot, worn state, the lines of `ArmoryTexts.detail_lines` (requirements, weapon, affixes, modifiers,
 ## comparison with the worn piece) and the buttons "Equipaggia" (a one-handed weapon: "In mano" / "Seconda mano"),
-## "Rimuovi", "Blocca", "Raffina (M7)" (disabled until M7) and "Vendi".
+## "Rimuovi", "Blocca", "Raffina" (opens the `RefineBox`), "Smantella" (opens the `SalvageBox`) and "Vendi".
 ##
 ## Internal to EquipmentPage. It keeps only the uid it shows and the session of the last `show_piece` (to read,
 ## never a copy of the state); every call re-reads the armory, the equipment and the character. It never changes game
@@ -13,6 +13,8 @@ signal equip_requested(uid: int, slot: StringName)
 signal unequip_requested(slot: StringName)
 signal lock_requested(uid: int, locked: bool)
 signal sell_requested(uid: int)
+signal refine_requested(uid: int, use_seal: bool)
+signal salvage_requested(uid: int)
 signal close_requested
 
 const EQUIP_TEXT: String = "Equipaggia"
@@ -21,7 +23,8 @@ const OFFHAND_TEXT: String = "Seconda mano"
 const UNEQUIP_TEXT: String = "Rimuovi"
 const LOCK_TEXT: String = "Blocca"
 const UNLOCK_TEXT: String = "Sblocca"
-const REFINE_TEXT: String = "Raffina (M7)"
+const REFINE_TEXT: String = "Raffina"
+const SALVAGE_TEXT: String = "Smantella"
 const SELL_TEXT: String = "Vendi (%s oro)"
 const SELL_LOCKED_TEXT: String = "Sblocca il pezzo per venderlo."
 const SELL_WORN_TEXT: String = "Rimuovi il pezzo per venderlo."
@@ -38,6 +41,8 @@ const ICON_SIZE := Vector2(64, 64)
 var _uid: int = 0
 ## Session of the last `show_piece` (read at every use, never a copy of its state).
 var _session: GameSession = null
+## Presentation: which box is open under the buttons (&"", &"refine" or &"salvage").
+var _open_box: StringName = &""
 
 @onready var _icon: TextureRect = %Icon
 @onready var _name_label: Label = %NameLabel
@@ -50,6 +55,9 @@ var _session: GameSession = null
 @onready var _unequip_button: Button = %UnequipButton
 @onready var _lock_button: Button = %LockButton
 @onready var _refine_button: Button = %RefineButton
+@onready var _salvage_button: Button = %SalvageButton
+@onready var _refine_box: RefineBox = %RefineBox
+@onready var _salvage_box: SalvageBox = %SalvageBox
 @onready var _sell_note: Label = %SellNote
 @onready var _sell_button: Button = %SellButton
 
@@ -69,9 +77,15 @@ func _ready() -> void:
 	_unequip_button.pressed.connect(_on_unequip_pressed)
 	_lock_button.pressed.connect(_on_lock_pressed)
 	_refine_button.text = REFINE_TEXT
+	_refine_button.pressed.connect(_toggle_box.bind(&"refine"))
+	_salvage_button.text = SALVAGE_TEXT
+	_salvage_button.pressed.connect(_toggle_box.bind(&"salvage"))
+	_refine_box.refine_requested.connect(_on_refine_confirmed)
+	_salvage_box.salvage_confirmed.connect(_on_salvage_confirmed)
+	_salvage_box.cancelled.connect(_toggle_box.bind(&""))
 	_sell_button.pressed.connect(_on_sell_pressed)
 	for button: Button in [_equip_button, _offhand_button, _unequip_button, _lock_button, _refine_button,
-			_sell_button]:
+			_salvage_button, _sell_button]:
 		button.custom_minimum_size.y = UiStyle.MENU_BUTTON_HEIGHT
 	clear()
 
@@ -83,6 +97,8 @@ func show_piece(session: GameSession, uid: int) -> bool:
 	if base == null or base.equip == null:
 		clear()
 		return false
+	if uid != _uid:
+		_open_box = &""
 	_uid = uid
 	_session = session
 	var worn_slot: StringName = session.equipment.slot_of(uid)
@@ -93,6 +109,7 @@ func show_piece(session: GameSession, uid: int) -> bool:
 	_refresh_state(inst, worn_slot)
 	_lines_label.text = "\n".join(ArmoryTexts.detail_lines(session, uid))
 	_refresh_actions(inst, base, worn_slot)
+	_apply_box()
 	visible = true
 	return true
 
@@ -100,6 +117,9 @@ func show_piece(session: GameSession, uid: int) -> bool:
 ## Hides the panel and forgets the piece.
 func clear() -> void:
 	_uid = 0
+	_open_box = &""
+	_refine_box.visible = false
+	_salvage_box.visible = false
 	_session = null
 	_icon.texture = null
 	_name_label.text = ""
@@ -149,6 +169,7 @@ func _refresh_actions(inst: ItemInstance, base: ItemDef, worn_slot: StringName) 
 	_sell_note.visible = not note.is_empty()
 	_sell_button.text = SELL_TEXT % NumberFormat.format_int(gold)
 	_sell_button.disabled = not note.is_empty()
+	_salvage_button.disabled = worn or inst.locked
 
 
 func _on_equip_pressed(slot: StringName) -> void:
@@ -171,3 +192,34 @@ func _on_lock_pressed() -> void:
 func _on_sell_pressed() -> void:
 	if _uid != 0 and _session != null:
 		sell_requested.emit(_uid)
+
+
+# --- Refine and salvage boxes (presentation only) ---------------------------------------------------------------
+
+func _toggle_box(which: StringName) -> void:
+	_open_box = &"" if which == _open_box else which
+	if _open_box == &"refine":
+		_refine_box.show_for(_session, _uid, true)
+	_apply_box()
+
+
+## Shows the box that is open (refreshed from the session) and hides the other.
+func _apply_box() -> void:
+	_refine_box.visible = _open_box == &"refine" and _uid != 0
+	_salvage_box.visible = _open_box == &"salvage" and _uid != 0
+	if _refine_box.visible:
+		_refine_box.show_for(_session, _uid)
+	if _salvage_box.visible:
+		_salvage_box.show_for(_session, _uid)
+
+
+func _on_refine_confirmed(use_seal: bool) -> void:
+	if _uid != 0 and _session != null:
+		refine_requested.emit(_uid, use_seal)
+
+
+func _on_salvage_confirmed() -> void:
+	if _uid != 0 and _session != null:
+		var uid: int = _uid
+		_open_box = &""
+		salvage_requested.emit(uid)

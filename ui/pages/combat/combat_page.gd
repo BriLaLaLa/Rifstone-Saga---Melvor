@@ -362,8 +362,7 @@ func _enemy_name(state: Dictionary, index: int) -> String:
 	var enemies: Array = state["enemies"]
 	if index < 0 or index >= enemies.size():
 		return ""
-	var def: MonsterDef = _session.data.monster(enemies[index]["monster"])
-	return def.name if def != null else String(enemies[index]["monster"])
+	return EnemyView.name_of(_session.data, enemies[index]["monster"])
 
 
 # Feedback of the loadout: a line in the log and a flash on the card or chip (05 §3 `ability_used`, `trait_triggered`).

@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://ui/pages/equipment/equipment_page.gd" id="1_page"]
 [ext_resource type="Script" path="res://ui/pages/equipment/inventory_scroll.gd" id="2_scroll"]
 [ext_resource type="Script" path="res://ui/pages/equipment/equipment_doll.gd" id="3_doll"]
 [ext_resource type="PackedScene" path="res://ui/pages/equipment/piece_panel.tscn" id="4_panel"]
+[ext_resource type="Script" path="res://ui/pages/equipment/filter_panel.gd" id="5_filter"]
 
 [node name="EquipmentPage" type="Control"]
 layout_mode = 3
@@ -65,6 +66,17 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
+
+[node name="FilterToggle" type="Button" parent="Margin/Main/InventoryPanel/InventoryBox/Filters"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+toggle_mode = true
+
+[node name="FilterPanel" type="PanelContainer" parent="Margin/Main/InventoryPanel/InventoryBox"]
+unique_name_in_owner = true
+layout_mode = 2
+script = ExtResource("5_filter")
 
 [node name="FullLabel" type="Label" parent="Margin/Main/InventoryPanel/InventoryBox"]
 unique_name_in_owner = true

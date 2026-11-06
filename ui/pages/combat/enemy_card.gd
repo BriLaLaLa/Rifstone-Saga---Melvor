@@ -14,6 +14,7 @@ var _lunge: Tween = null
 var _flash: Tween = null
 var _dead: bool = false
 var _last_hit_text: String = ""
+var _stone: bool = false
 
 @onready var _box: BoxContainer = %Box
 @onready var _portrait: Control = %Portrait
@@ -67,6 +68,25 @@ func setup(title: String, icon_path: String, tag_text: String, info_text: String
 	_tag.text = tag_text
 	_info.text = info_text
 	_icon.texture = ItemSlotView.icon_of(icon_path)
+
+
+## Distinct look of a Rift Stone: violet frame and name (its attack bar is the pulse).
+func set_stone(stone: bool) -> void:
+	_stone = stone
+	var border: Color = UiStyle.COMBAT_ENEMY_BORDER
+	if stone:
+		border = UiStyle.COMBAT_STONE_BORDER
+	elif large:
+		border = UiStyle.COMBAT_TARGET_BORDER_COLOR
+	add_theme_stylebox_override("panel", UiStyle.flat(UiStyle.COMBAT_STONE_BG if stone else UiStyle.COMBAT_ENEMY_BG,
+			border, UiStyle.COMBAT_FRAME_WIDTH if (large or stone) else 1, 8.0))
+	_name.add_theme_color_override("font_color", UiStyle.COMBAT_STONE_TEXT if stone else UiStyle.COMBAT_ENEMY_TEXT)
+	UiStyle.style_bar(_timer_bar, UiStyle.COMBAT_STONE_BORDER if stone else UiStyle.COMBAT_TIMER_COLOR)
+
+
+## True while the card shows a Rift Stone, for tests.
+func is_stone() -> bool:
+	return _stone
 
 
 ## Updates only the second line (the triangle relation changes with the equipment).
