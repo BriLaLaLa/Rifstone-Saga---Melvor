@@ -1,6 +1,7 @@
 {
   "_doc": "Test fixture: same setups as test_class, with the id of balance.json character.start_class so that fixtures and the real config validate together.",
   "id": "rift_blade", "name": "Lama del Rift di prova", "order": 2,
+  "icon": "res://assets/icons/classes/rift_blade.svg",
   "description": "Classe per i test.",
   "weapon_kinds": ["greatsword", "sword"], "offhand_kinds": ["shield", "sword"],
   "setups": [

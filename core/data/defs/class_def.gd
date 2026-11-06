@@ -7,6 +7,7 @@ extends RefCounted
 var id: StringName = &""
 var name: String = ""
 var description: String = ""
+var icon: String = ""
 var order: int = 0
 var weapon_kinds: Array[StringName] = []
 var offhand_kinds: Array[StringName] = []
@@ -20,6 +21,7 @@ static func from_dict(d: Dictionary) -> ClassDef:
 	r.set_context("class '%s'" % def.id)
 	def.name = r.text("name")
 	def.description = r.text("description")
+	def.icon = r.text("icon")
 	def.order = r.integer("order")
 	def.weapon_kinds = r.id_list("weapon_kinds")
 	def.offhand_kinds = r.id_list("offhand_kinds")

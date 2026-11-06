@@ -6,12 +6,15 @@ extends RefCounted
 const AREA_FIELDS: PackedStringArray = ["id", "name", "description", "order", "requirements", "packs"]
 const MONSTER_FIELDS: PackedStringArray = ["id", "name", "description", "icon", "hp", "xp", "style",
 	"attack_interval_ms", "attack_level", "power_level", "defence_level", "accuracy_bonus", "power_bonus",
-	"evasion_bonus", "damage_reduction", "gold", "rift_shard_chance", "drops"]
+	"evasion_bonus", "damage_reduction", "gold", "rift_shard_chance", "drops", "sprite"]
 const MONSTER_ICON_DIR: String = "res://assets/icons/monsters/"
+const CLASS_ICON_DIR: String = "res://assets/icons/classes/"
+const SPRITE_STATES: PackedStringArray = ["idle", "attack", "hit", "death"]  # reserved, no use yet (M6-00a)
+const SPRITE_DIR: String = "res://assets/"
 const MAX_DROPS: int = 4
 const DAMAGE_REDUCTION_STAT: StringName = &"damage_reduction"  # bounds monster damage_reduction (stats.json)
 const DROP_FORBIDDEN_CATEGORIES: PackedStringArray = ["equipment", "tool"]  # pieces drop as instances from M7
-const CLASS_FIELDS: PackedStringArray = ["id", "name", "description", "order", "weapon_kinds", "offhand_kinds",
+const CLASS_FIELDS: PackedStringArray = ["id", "name", "description", "icon", "order", "weapon_kinds", "offhand_kinds",
 	"setups", "traits", "abilities"]
 const SETUP_FIELDS: PackedStringArray = ["id", "name", "weapon", "offhand", "alternate", "modifiers"]
 const WEAPON_KINDS: PackedStringArray = DataValidatorItems.WEAPON_KINDS
@@ -56,7 +59,8 @@ static func validate_monsters(v: DataValidatorRules, files: Dictionary[String, D
 		for index: int in list.size():
 			var e: Dictionary = list[index]
 			v.entry("monster", index, e, seen, MONSTER_FIELDS)
-			DataValidator.icon(v, e, MONSTER_ICON_DIR)
+			_existing_icon(v, e, MONSTER_ICON_DIR)
+			_sprite(v, e)
 			v.integer(e, "hp", 1)
 			v.integer(e, "xp", 0)
 			v.one_of(e, "style", DataValidatorRules.STYLES)
@@ -99,6 +103,7 @@ static func validate_classes(v: DataValidatorRules, files: Dictionary[String, Di
 		v.entry("class", 0, c, seen, CLASS_FIELDS, orders)
 		if c.get("id") is String and c["id"] != path.get_file().get_basename():
 			v.fail("id '%s' must be equal to the file name" % c["id"])
+		_existing_icon(v, c, CLASS_ICON_DIR)
 		var weapon_kinds: Array = _kinds(v, c, "weapon_kinds", WEAPON_KINDS, 1)
 		var offhand_kinds: Array = _kinds(v, c, "offhand_kinds", _offhand_kinds(), 0)
 		_setups(v, c, weapon_kinds, offhand_kinds)
@@ -216,3 +221,25 @@ static func _offhand_kinds() -> PackedStringArray:
 	var kinds: PackedStringArray = DataValidatorItems.OFFHAND_SLOT_KINDS.duplicate()
 	kinds.append("sword")
 	return kinds
+
+
+# A required icon path under `dir` whose file must exist (monsters and classes have no placeholder fallback).
+static func _existing_icon(v: DataValidatorRules, e: Dictionary, dir: String) -> void:
+	DataValidator.icon(v, e, dir)
+	if e.get("icon") is String and (e["icon"] as String).begins_with(dir) and not FileAccess.file_exists(e["icon"] as String):
+		v.fail("field 'icon': file '%s' does not exist" % e["icon"])
+
+
+# The optional, reserved `sprite` of a monster: {idle, attack, hit, death}, each an existing file under res://assets/.
+static func _sprite(v: DataValidatorRules, e: Dictionary) -> void:
+	if not e.has("sprite"):
+		return
+	var sprite: Dictionary = v.object(e, "sprite")
+	v.keys(sprite, SPRITE_STATES, "sprite")
+	for state: String in SPRITE_STATES:
+		if not sprite.has(state):
+			v.fail("field 'sprite.%s' is required" % state)
+		elif v.text(sprite, state, "sprite"):
+			var path: String = sprite[state] as String
+			if not path.begins_with(SPRITE_DIR) or not FileAccess.file_exists(path):
+				v.fail("field 'sprite.%s': '%s' must be an existing file under %s" % [state, path, SPRITE_DIR])

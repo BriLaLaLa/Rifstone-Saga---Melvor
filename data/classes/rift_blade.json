@@ -1,6 +1,7 @@
 {
   "_doc": "Classe dell'MVP (01_GDD.md §19, 04_DATA_SCHEMA.md §14). Tratti e abilità vuoti fino a M6.",
   "id": "rift_blade", "name": "Lama del Rift", "order": 1,
+  "icon": "res://assets/icons/classes/rift_blade.svg",
   "description": "Combatte solo con le spade: spadone lento e forte, spada e scudo difensivi, due spade rapide.",
   "weapon_kinds": ["greatsword", "sword"], "offhand_kinds": ["shield", "sword"],
   "setups": [
