@@ -1199,6 +1199,12 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 - **Nota (da M5-03) per M6-01** Aggiungere `GameData.has_area(id)` e `has_monster(id)` senza `push_error` (05 §4),
   con un test in `tests/core/data/test_game_data.gd` (ownership di M6-01 estesa a `core/data/game_data.gd`, solo
   quelle due funzioni, e a quel test).
+- **Nota (da M6-00c) per M6-02** La carta abilità della pagina combattimento legge `get_state()["abilities"]` con chiavi
+  `id`, `timer_ms` (tempo **residuo** alla prossima attivazione, non trascorso), `cooldown_ms`, `enabled`. Per il registro
+  serve un evento di "abilità usata": se 05 §5.10 non lo prevede, M6-02 lo propone al Reviewer (non inventare firme).
+- **Follow-up (da M6-00c)** Rendimento "ultima ora" campionato in UI (`CombatYield`, solo UI, non salvato: accettato per
+  ora). Contatori nel modello (uccisioni, XP, bottino per finestra) da valutare in M9 (statistiche/offline); numero del
+  gruppo e regola del bersaglio non sono in `get_state()`: lasciati così, rivalutare a M6-05.
 - **Nota (da M5-03) per M6-02** `combat_engine.gd` è a 398 righe su 400: **prima** degli agganci spostare in un file a
   parte della stessa cartella (es. `systems/combat/combat_save.gd`) il codice di save/load del motore (`new_game`,
   `to_save`, `from_save`, `_load_counters`, `_int`, circa 80 righe), senza cambiare il formato di 05 §6 (ownership di

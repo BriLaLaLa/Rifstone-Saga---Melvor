@@ -11,11 +11,8 @@ Se la sessione si interrompe, si riparte da qui.
   assenti (905 file). Prova del Giocabile di M5: 6/6 (criteri di `06_ROADMAP.md` M5, verificati con i test, con una
   prova headless del Reviewer sui tre assetti × quattro aree e con l'avvio headless del menu). `main` e i tag
   `m0-done`…`m5-done` pushati su `origin` a fine M5 (vedi riga M5-08).
-- **Prossimo passo**: **M6-00c** (UI, L, prima di M6-05; riusa il tooltip del pezzo e `UiStyle`). M6-00a DONE (03160e3), M6-01 DONE (9d85382), M6-00b DONE (merge 44ddcdb: pagina Equipaggiamento unita, Armeria rimossa da sidebar e PageHost). Poi in
-  parallelo (massimo 2 agenti) **M6-02** (COMBAT, L: prima sposta il save/load del motore in un file a parte, note
-  "da M5-03" e "da M5-07") e **M6-04** (DATA), entrambi dopo M6-01; poi M6-03 (dopo M6-02), M6-05 (dopo M6-03 e
-  M6-04), M6-06 (QA), M6-07 (REV). Regole dei consumi di `CLAUDE.md`: test mirati, suite completa solo dopo il merge,
-  review sul diff, sezioni nei brief.
+- **Prossimo passo**: M6-00a DONE (03160e3), M6-01 DONE (9d85382), M6-00b DONE (44ddcdb), **M6-00c DONE (merge be942ee**, pagina combattimento GDR). Ora **M6-02** (COMBAT, L: prima sposta il save/load del motore in un file a parte; note "da M5-03", "da M5-07", "da M6-00c") e **M6-04** (DATA, può andare in parallelo; massimo 2 agenti, uno solo se vicini ai limiti); poi M6-03 (dopo M6-02), M6-05 (dopo M6-03 e M6-04), M6-06 (QA), M6-07 (REV). Regole dei consumi di `CLAUDE.md`.
+- **Prove manuali consigliate (M6-00c)**: avviare un combattimento e verificare colonne giocatore/nemici, bersaglio e fila, numeri di danno (colpo forte), bottino e rendimento "ultima ora", registro, equipaggiamento con tooltip, sezioni Abilità/Tratti vuote; layout a 1600x900 e 1280x720.
 - **Decisioni aperte per l'utente** (`OPEN_QUESTIONS.md`, finché non risponde valgono i default): Q26 (nodi di Cavatura
   e Lenza); Q27-Q40 (default); Q41 (XP dei mostri 4 × PV, confermato da M5-06; tempi stimati fino al 99: Pianure circa
   10-12 min, Bosco 25-45 min, Miniere 2,5-3,5 h, Soglia 36-52 h; decide l'utente); Q42 (testi del tooltip dei pezzi
