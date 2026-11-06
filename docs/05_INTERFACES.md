@@ -871,6 +871,7 @@ func get_state() -> Dictionary
     # copia per la UI: {"state", "area", "player_hp", "player_max_hp", "player_timer_ms", "player_interval_ms",
     #  "hand", "between_ms", "enemies": [{"monster", "hp", "max_hp", "timer_ms", "interval_ms"}], "target": int,
     #  "abilities": [{"id", "timer_ms", "cooldown_ms", "enabled"}] (M6), "buffs": {id: ms} (M6)}
+func rebuild_modifiers() -> void           # M6-03: rimette le sorgenti `ability:<id>` dei buff attivi dopo un load (la sessione le azzera prima)
 func eat() -> CommandResult                 # no_food, not_running
 func player_stats(hand: int = 0) -> CombatantStats
 func enemy_stats(index: int) -> CombatantStats    # null se la posizione è vuota o morta
@@ -897,6 +898,10 @@ Comportamento (M5-03):
 - Uccisione: XP al personaggio (F-28), oro (F-31), drop (F-32) e frammento (F-07) nella borsa, `monster_killed`;
   ultimo nemico → `encounter_cleared`, stato `between` per `combat.respawn_ms`, poi nuovo gruppo (F-77) e
   `encounter_started`. Morte: `lose_all`, PV al massimo, `player_died`, stop `player_died`.
+- M6-03, classi di supporto (interne al modulo): `CombatView.build(engine, encounter, abilities, snapshot) -> Dictionary`
+  (la copia di `get_state()`); `AbilityRunner` (`reset`, `tick(ms)`, `next_ms(hp, max_hp)`, `take_due(encounter, hp, stats, rule) -> Use`,
+  `view()`, `buffs()`, `timers_save()`, `buffs_save()`, `from_save(timers, buffs)`, `rebuild_modifiers()`), tenuto dal motore.
+  Segnale `ability_used(ability_id: StringName, targets: Array[int])`, emesso prima degli effetti dell'uso.
 - Agganci dei tratti (M6, `01_GDD.md` §20.3): il motore chiama gli effetti di `systems/combat/effects/` (classe base
   `TraitEffect`, un file per tipo di F-81) nei punti `on_encounter_start`, `on_before_attack`, `on_hit`, `on_kill`,
   `on_damaged`, `on_low_hp`, `choose_target`, `modify_stats`; abilità in `systems/combat/ability_runner.gd` (F-79, F-80).

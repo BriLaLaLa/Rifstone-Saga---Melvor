@@ -411,10 +411,11 @@ Abilità (M6):
 (`heal_pct` 1..100), `buff` (`modifiers` almeno 1, `duration_ms` ≥ 1000); `cooldown_ms` ≥ `combat.min_attack_interval_ms`.
 Per `buff`, `modifiers` e `duration_ms` stanno **dentro `params`**:
 ```json
-{"id": "rift_surge", "name": "Impeto del Rift", "description": "Aumenta il danno per qualche secondo.",
+{"id": "rift_surge", "name": "Impeto del Rift", "description": "Aumenta la potenza per qualche secondo.",
  "unlock_level": 1, "setups": [], "kind": "buff", "cooldown_ms": 30000,
- "params": {"modifiers": [{"stat": "damage_pct", "value": 25}], "duration_ms": 8000}}
+ "params": {"modifiers": [{"stat": "power_pct", "value": 25}], "duration_ms": 8000}}
 ```
+Nota per M6-04: i `modifiers` dei buff reali devono usare solo stat registrate in `data/config/stats.json` (es. `power_pct`, `evasion_pct`, `damage_reduction`), mai stat inventate.
 Intervalli di formato controllati dal validatore (limiti di formato, non valori di design; i valori veri sono nei dati):
 `n` int 2..20; `pct` e `hp_pct` in (0, 100]; `mult` e `power_mult` in (0, 10]; `heal_pct` 1..100; `duration_ms` ≥ 1000;
 `stat_trade`: almeno una stat in `zero` o `mult`, nessuna in entrambe, fattori > 0, stat presenti in `stats.json`.

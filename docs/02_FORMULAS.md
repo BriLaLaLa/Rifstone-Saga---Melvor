@@ -315,6 +315,7 @@ Ogni abilità equipaggiata e ammessa dall'assetto ha un timer che parte da `cool
 continua tra un incontro e l'altro; allo zero si usa appena c'è un bersaglio valido (per `heal`: PV < massimo; per
 `buff`: buff non attivo), poi riparte da `cooldown_ms`. Abilità non ammessa dall'assetto: timer fermo.
 Esempio: cooldown 8000, avvio a t=0, nemico sempre presente → usi a 8000, 16000, 24000. Test: `tests/systems/combat/test_abilities.gd`.
+Precisazioni (M6-03): le abilità si usano solo con un incontro in corso (in `BETWEEN` i timer scendono comunque e un'abilità pronta parte all'inizio dell'incontro successivo); un buff si riusa solo dopo che è finito; più abilità pronte nello stesso istante partono in ordine di slot, dopo l'attacco base.
 
 ### F-80 Effetto delle abilità (M6)
 - `strike` / `cleave`: per ogni bersaglio (uno; `targets` = N primi vivi; 0 = tutti) tiro F-23, poi
@@ -322,6 +323,7 @@ Esempio: cooldown 8000, avvio a t=0, nemico sempre presente → usi a 8000, 1600
 - `heal`: `hp = min(max_hp, hp + floor(max_hp × heal_pct/100))`.
 - `buff`: i `modifiers` dell'abilità valgono come sorgente `ability:<id>` per `duration_ms`, poi spariscono (anche a
   fine combattimento o alla morte).
+Precisazioni (M6-03): i colpi delle abilità usano le stat della mano 0 e non sono parabili (i nemici non parano); `every_nth_attack_all` e `low_hp_damage_mult` valgono solo per l'attacco base; `leech_pct` (`EffectSet.hit`) vale anche per i colpi delle abilità. Ordine dei tiri: prima tutti i bersagli in ordine (colpo, poi danno se colpisce).
 Esempi: tiro 30, `power_mult` 2,0, neutro, DR 10 → 60 → **54**; `heal_pct` 20 con 170 PV max e 100 PV → **134**;
 buff 6000 ms usato a t=8000 → attivo fino a 14000. Test: `test_abilities.gd`.
 
