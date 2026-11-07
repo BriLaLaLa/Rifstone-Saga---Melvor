@@ -1,0 +1,14 @@
+{
+  "_doc": "Infusioni della Legatura del Rift (02_FORMULAS.md §8.7). value 0 = non vendibili.",
+  "items": [
+    {"id":"inf_swift_hands","name":"Infusione delle mani rapide","category":"infusion","value":0,"sort_order":10,"icon":"res://assets/icons/items/inf_swift_hands.svg","description":"Tutte le azioni sono un poco più rapide.","infusion":{"modifiers":[{"stat":"skill_interval_pct","value":-3}],"unique":false}},
+    {"id":"inf_bountiful","name":"Infusione dell'abbondanza","category":"infusion","value":0,"sort_order":20,"icon":"res://assets/icons/items/inf_bountiful.svg","description":"Più probabilità di ottenere un oggetto in più.","infusion":{"modifiers":[{"stat":"double_item_chance","value":2}],"unique":false}},
+    {"id":"inf_scholar","name":"Infusione dello studioso","category":"infusion","value":0,"sort_order":30,"icon":"res://assets/icons/items/inf_scholar.svg","description":"Tutte le abilità danno più esperienza.","infusion":{"modifiers":[{"stat":"skill_xp_pct","value":3}],"unique":false}},
+    {"id":"inf_keen_edge","name":"Infusione del filo acuto","category":"infusion","value":0,"sort_order":40,"icon":"res://assets/icons/items/inf_keen_edge.svg","description":"Colpi più precisi in combattimento.","infusion":{"modifiers":[{"stat":"accuracy_pct","value":4}],"unique":false}},
+    {"id":"inf_stoneskin","name":"Infusione della pelle di pietra","category":"infusion","value":0,"sort_order":50,"icon":"res://assets/icons/items/inf_stoneskin.svg","description":"Riduce il danno subito.","infusion":{"modifiers":[{"stat":"damage_reduction","value":2}],"unique":false}},
+    {"id":"inf_deep_roots","name":"Infusione delle radici profonde","category":"infusion","value":0,"sort_order":60,"icon":"res://assets/icons/items/inf_deep_roots.svg","description":"Più maestria da ogni azione.","infusion":{"modifiers":[{"stat":"mastery_xp_pct","value":5}],"unique":false}},
+    {"id":"inf_hearthfire","name":"Infusione del fuoco di casa","category":"infusion","value":0,"sort_order":70,"icon":"res://assets/icons/items/inf_hearthfire.svg","description":"Il cibo cura di più.","infusion":{"modifiers":[{"stat":"food_healing_pct","value":10}],"unique":false}},
+    {"id":"inf_riftsense","name":"Infusione del senso del Rift","category":"infusion","value":0,"sort_order":80,"icon":"res://assets/icons/items/inf_riftsense.svg","description":"Più frammenti del Rift dalle azioni. Se ne può incastonare una sola.","infusion":{"modifiers":[{"stat":"rift_shard_chance","value":0.5}],"unique":true}},
+    {"id":"inf_bulwark","name":"Infusione del baluardo","category":"infusion","value":0,"sort_order":90,"icon":"res://assets/icons/items/inf_bulwark.svg","description":"Più punti vita massimi.","infusion":{"modifiers":[{"stat":"max_hp_flat","value":60}],"unique":false}}
+  ]
+}

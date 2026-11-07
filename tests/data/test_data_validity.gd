@@ -278,3 +278,101 @@ func test_mastery_node_costs_total_55_to_65_pct() -> void:
 		for node: Variant in by_skill[skill]:
 			total += float((node as Dictionary)["cost_pct"])
 		assert_between(total, NODE_TOTAL_MIN_PCT, NODE_TOTAL_MAX_PCT, "total cost_pct of %s" % skill)
+
+
+## 02_FORMULAS.md §8.7: [level, infusion id, shards, other item, other qty, stat, value, unique, xp, interval_ms].
+const INFUSIONS: Array[Array] = [
+	[1, "inf_swift_hands", 5, "redbirch_log", 10, "skill_interval_pct", -3.0, false, 40, 4000],
+	[15, "inf_bountiful", 8, "ashlead_ore", 10, "double_item_chance", 2.0, false, 70, 4000],
+	[25, "inf_scholar", 12, "seared_redscale", 10, "skill_xp_pct", 3.0, false, 110, 4500],
+	[35, "inf_keen_edge", 16, "duskcobalt_ingot", 5, "accuracy_pct", 4.0, false, 150, 4500],
+	[45, "inf_stoneskin", 20, "glimmerite_ingot", 5, "damage_reduction", 2.0, false, 200, 5000],
+	[55, "inf_deep_roots", 25, "shardcedar_log", 20, "mastery_xp_pct", 5.0, false, 260, 5000],
+	[65, "inf_hearthfire", 30, "seared_mist_barbel", 20, "food_healing_pct", 10.0, false, 330, 5500],
+	[75, "inf_riftsense", 40, "emberheart_ore", 10, "rift_shard_chance", 0.5, true, 420, 5500],
+	[85, "inf_bulwark", 50, "riftite_ingot", 5, "max_hp_flat", 60.0, false, 520, 6000],
+]
+const ARTISAN_NODE_SKILLS: PackedStringArray = ["forging", "hearthcraft", "woodwright", "riftbinding"]
+## Artisan trees: forestry shape with `preservation_chance` in place of `double_item_chance` / `rift_shard_chance`.
+const ARTISAN_NODES: Array[Array] = [
+	[5.0, [], [1, 0], [["skill_interval_pct", -3.0]]],
+	[7.5, [0], [0, 1], [["preservation_chance", 3.0]]],
+	[7.5, [0], [2, 1], [["skill_xp_pct", 4.0]]],
+	[10.0, [1], [0, 2], [["preservation_chance", 2.0]]],
+	[10.0, [2], [2, 2], [["mastery_xp_pct", 5.0]]],
+	[20.0, [3, 4], [1, 3], [["skill_interval_pct", -5.0], ["preservation_chance", 5.0]]],
+]
+
+
+func test_infusion_items_and_riftbinding_actions_follow_8_7() -> void:
+	var items: Dictionary = _by_id("items", "items")
+	var actions: Dictionary = _by_id("actions", "actions")
+	var infusion_count: int = 0
+	for id: Variant in items:
+		if items[id]["category"] == "infusion":
+			infusion_count += 1
+	assert_eq(infusion_count, INFUSIONS.size(), "number of infusion items")
+	for row: Array in INFUSIONS:
+		var id: String = row[1]
+		assert_true(items.has(id), "item %s" % id)
+		if items.has(id):
+			var inf: Dictionary = items[id]["infusion"] as Dictionary
+			assert_eq((inf["modifiers"] as Array).size(), 1, "%s modifiers" % id)
+			assert_eq(inf["modifiers"][0]["stat"], row[5], "%s stat" % id)
+			assert_almost_eq(float(inf["modifiers"][0]["value"]), float(row[6]), 0.0001, "%s value" % id)
+			assert_eq(inf.get("unique", false), row[7], "%s unique" % id)
+		var action: Dictionary = {}
+		for a: Dictionary in actions.values():
+			if (a["outputs"] as Array).size() == 1 and a["outputs"][0]["item"] == id:
+				action = a
+		assert_false(action.is_empty(), "action producing %s" % id)
+		if action.is_empty():
+			continue
+		assert_eq(int(action["level"]), row[0], "%s level" % id)
+		assert_eq(int(action["xp"]), row[8], "%s xp" % id)
+		assert_eq(int(action["interval_ms"]), row[9], "%s interval" % id)
+		assert_eq(int(action["outputs"][0]["qty"]), 1, "%s output qty" % id)
+		var inputs: Array = action["inputs"] as Array
+		assert_eq(inputs.size(), 2, "%s inputs" % id)
+		assert_eq([inputs[0]["item"], int(inputs[0]["qty"])], ["rift_shard", row[2]], "%s shards" % id)
+		assert_eq([inputs[1]["item"], int(inputs[1]["qty"])], [row[3], row[4]], "%s other ingredient" % id)
+		assert_true(items.has(row[3]), "ingredient %s exists" % row[3])
+
+
+func test_riftbinding_actions_all_produce_infusions() -> void:
+	var items: Dictionary = _by_id("items", "items")
+	for path: Variant in _raw["actions"]:
+		var content: Dictionary = _raw["actions"][path] as Dictionary
+		if content["skill"] == "riftbinding":
+			for e: Dictionary in content["actions"]:
+				assert_eq(items[e["outputs"][0]["item"]]["category"], "infusion", "output of %s" % e["id"])
+
+
+func test_artisan_mastery_nodes_follow_the_artisan_schema() -> void:
+	var by_skill: Dictionary = _nodes_by_skill()
+	var actions: Array[Dictionary] = _entries("actions", "actions")
+	for skill: String in ARTISAN_NODE_SKILLS:
+		var nodes: Array = by_skill.get(skill, [])
+		assert_eq(nodes.size(), ARTISAN_NODES.size(), "nodes of %s" % skill)
+		for index: int in mini(nodes.size(), ARTISAN_NODES.size()):
+			var node: Dictionary = nodes[index] as Dictionary
+			var want: Array = ARTISAN_NODES[index]
+			var at: String = node["id"] as String
+			assert_true(at.begins_with("%s_n%d_" % [skill, index + 1]), "%s id prefix" % at)
+			assert_almost_eq(float(node["cost_pct"]), float(want[0]), 0.0001, "%s cost" % at)
+			var expected_requires: Array = []
+			for r: int in want[1]:
+				expected_requires.append(nodes[r]["id"])
+			assert_eq(node["requires"], expected_requires, "%s requires" % at)
+			assert_eq([int(node["pos"][0]), int(node["pos"][1])], want[2], "%s pos" % at)
+			assert_eq((node["modifiers"] as Array).size(), (want[3] as Array).size(), "%s modifiers" % at)
+			for m_index: int in mini((node["modifiers"] as Array).size(), (want[3] as Array).size()):
+				var m: Dictionary = node["modifiers"][m_index] as Dictionary
+				assert_eq(m["stat"], want[3][m_index][0], "%s stat" % at)
+				assert_almost_eq(float(m["value"]), float(want[3][m_index][1]), 0.0001, "%s value" % at)
+				assert_eq(m.get("scope", "skill:%s" % skill), "skill:%s" % skill, "%s scope" % at)
+		var own: int = 0
+		for a: Dictionary in actions:
+			if (a["id"] as String).begins_with(["smelt_", "forge_", "cook_", "carve_", "bind_"][ARTISAN_NODE_SKILLS.find(skill)]):
+				own += 1
+		assert_gt(own, 0, "%s has actions with the expected id prefix" % skill)
