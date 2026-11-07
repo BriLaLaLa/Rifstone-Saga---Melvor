@@ -192,6 +192,17 @@ func clear_socket(uid: int, index: int) -> CommandResult:
 	return CommandResult.success()
 
 
+## GDD §26: spends a currency from the bank on the piece (CurrencyUse). unknown_id, not_equippable (not a currency),
+## item_locked, item_equipped, requirement_not_met (rarity does not fit), not_enough_items. Atomic.
+func use_currency(uid: int, currency_id: StringName) -> CommandResult:
+	if not _items.has(uid):
+		return CommandResult.fail(Reasons.UNKNOWN_ID)
+	var result: CommandResult = CurrencyUse.use(_items[uid], _worn.has(uid), currency_id, _bank, _data, _rng)
+	if result.ok:
+		_events.armory_changed.emit(uid, CHANGE_UPDATED)
+	return result
+
+
 ## F-86: one refinement attempt of `uid`. Fails without any change: unknown_id, upgrade_max, not_enough_gold,
 ## not_enough_items (ingots, shards and, when `use_seal` and the step can lose a level, the Seal). Success: +1.
 ## Failure: the materials are lost and, from `upgrade.downgrade_from`, the piece drops one level, unless `use_seal`
