@@ -16,6 +16,7 @@ var _session: GameSession
 var _data: GameData
 var _events: GameEvents
 var _seen: Dictionary[StringName, bool] = {}
+var _pending: Array[StringName] = []  # triggered and not closed yet; volatile, never saved
 
 
 func _init(session: GameSession) -> void:
@@ -34,6 +35,13 @@ func mark_seen(hint_id: StringName) -> void:
 	if _data.hint(hint_id) == null:
 		return
 	_seen[hint_id] = true
+	_pending.erase(hint_id)
+
+
+## Ids triggered and not closed yet (mark_seen removes them), in trigger order. Volatile: not saved. A late-bound
+## card reads it to show hints that fired before it existed.
+func pending() -> Array[StringName]:
+	return _pending.duplicate()
 
 
 ## Connects the trigger events once (a second call changes nothing).
@@ -50,6 +58,7 @@ func connect_triggers() -> void:
 
 func new_game() -> void:
 	_seen.clear()
+	_pending.clear()
 
 
 func to_save() -> Dictionary:
@@ -63,6 +72,7 @@ func to_save() -> Dictionary:
 ## Tolerant: a bad list means nothing seen; ids that are not hints are dropped with Log.warn.
 func from_save(d: Dictionary) -> void:
 	_seen.clear()
+	_pending.clear()
 	var saved: Variant = d.get(SEEN_KEY)
 	if not saved is Array:
 		Log.warn(LOG_CATEGORY, "'seen' is not a list: no hint seen")
@@ -83,6 +93,7 @@ func _fire(trigger: StringName) -> void:
 	for def: HintDef in _data.hints():
 		if def.trigger == trigger and not _seen.has(def.id):
 			_seen[def.id] = true
+			_pending.append(def.id)
 			_events.hint_triggered.emit(def.id)
 
 
