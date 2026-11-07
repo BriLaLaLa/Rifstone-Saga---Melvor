@@ -1,0 +1,8 @@
+{
+  "items": [
+    {"id": "test_currency", "name": "Valuta di prova", "category": "currency",
+     "icon": "res://assets/icons/items/test_currency.png", "value": 0, "sort_order": 10,
+     "description": "Da comune a magico, per i test.",
+     "currency": {"effect": "to_magic"}}
+  ]
+}

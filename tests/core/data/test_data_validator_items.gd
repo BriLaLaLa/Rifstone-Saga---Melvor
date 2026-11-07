@@ -238,3 +238,43 @@ func test_doc_in_a_level_map_is_allowed() -> void:
 	assert_eq(V.validate(raw), PackedStringArray())
 	(_equip(raw, "equipment.json")["requirements"] as Dictionary)["_doc"] = 5
 	_expect(raw, ["equipment.json", "item 'test_blade'", "field 'equip.requirements._doc': only 'character'"])
+
+
+func test_stone_and_currency_fixtures_are_valid() -> void:
+	assert_eq(V.validate(V.fixture_raw()), PackedStringArray())
+
+
+func test_stone_needs_modifiers_and_known_stats() -> void:
+	var raw: Dictionary = V.fixture_raw()
+	(_item(raw, "stones.json")["stone"] as Dictionary)["modifiers"] = []
+	_expect(raw, ["stones.json", "item 'test_stone'", "field 'stone.modifiers' needs at least 1 entries"])
+	_item(raw, "stones.json")["stone"] = {"modifiers": [{"stat": "nope", "value": 1}]}
+	_expect(raw, ["stones.json", "item 'test_stone'", "stat 'nope' is not in stats.json"])
+	_item(raw, "stones.json").erase("stone")
+	_expect(raw, ["stones.json", "item 'test_stone'", "missing field 'stone'"])
+
+
+func test_currency_effect_must_be_known() -> void:
+	var raw: Dictionary = V.fixture_raw()
+	(_item(raw, "currencies.json")["currency"] as Dictionary)["effect"] = "explode"
+	_expect(raw, ["currencies.json", "item 'test_currency'", "field 'currency.effect' must be one of"])
+	_item(raw, "currencies.json").erase("currency")
+	_expect(raw, ["currencies.json", "item 'test_currency'", "missing field 'currency'"])
+
+
+func test_stone_sub_object_is_forbidden_outside_its_category() -> void:
+	var raw: Dictionary = V.fixture_raw()
+	_item(raw, "materials.json")["stone"] = {"modifiers": [{"stat": "power_bonus", "value": 1}]}
+	_item(raw, "materials.json")["currency"] = {"effect": "reroll"}
+	_expect(raw, ["materials.json", "field 'stone' is not allowed for category 'material'"])
+	_expect(raw, ["materials.json", "field 'currency' is not allowed for category 'material'"])
+
+
+func test_sockets_section_of_balance_is_checked_when_present() -> void:
+	var raw: Dictionary = V.fixture_raw()
+	V.file_of(raw, "balance", "balance.json")["sockets"] = {"by_rarity": {"common": 0, "magic": -1, "rare": 2}, "bonus_at_upgrade": 7}
+	_expect(raw, ["sockets.by_rarity", "magic"])
+	V.file_of(raw, "balance", "balance.json")["sockets"] = {"by_rarity": {"common": 0, "magic": 1, "rare": 2}, "bonus_at_upgrade": 12}
+	_expect(raw, ["sockets", "bonus_at_upgrade"])
+	V.file_of(raw, "balance", "balance.json")["sockets"] = {"by_rarity": {"common": 0, "magic": 1, "rare": 2}, "bonus_at_upgrade": 7}
+	assert_eq(V.validate(raw), PackedStringArray())

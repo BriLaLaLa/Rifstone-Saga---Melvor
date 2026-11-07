@@ -152,6 +152,46 @@ func instance_modifiers(uid: int) -> Array[Modifier]:
 	return ItemRoller.instance_modifiers(_items[uid], _data)
 
 
+## F-89: number of sockets of the piece (0 for an unknown uid).
+func socket_count(uid: int) -> int:
+	if not _items.has(uid):
+		return 0
+	return Sockets.count(_items[uid].rarity, _items[uid].upgrade, _data)
+
+
+## Sets a stone from the bank into the first free socket. unknown_id, not_equippable (not a stone), socket_locked (the
+## piece has no socket), socket_occupied (all full), not_enough_items (the stone is not in the bank). Atomic.
+func socket_stone(uid: int, stone_id: StringName) -> CommandResult:
+	if not _items.has(uid):
+		return CommandResult.fail(Reasons.UNKNOWN_ID)
+	if not Sockets.is_stone(stone_id, _data):
+		return CommandResult.fail(Reasons.NOT_EQUIPPABLE)
+	var inst: ItemInstance = _items[uid]
+	var total: int = socket_count(uid)
+	if total == 0:
+		return CommandResult.fail(Reasons.SOCKET_LOCKED)
+	if inst.sockets.size() >= total:
+		return CommandResult.fail(Reasons.SOCKET_OCCUPIED)
+	var removed: CommandResult = _bank.remove(stone_id, 1)
+	if not removed.ok:
+		return removed
+	inst.sockets.append(stone_id)
+	_events.armory_changed.emit(uid, CHANGE_UPDATED)
+	return CommandResult.success()
+
+
+## Destroys the stone at `index` (0-based, in the order they were set). unknown_id, slot_empty (no stone there).
+func clear_socket(uid: int, index: int) -> CommandResult:
+	if not _items.has(uid):
+		return CommandResult.fail(Reasons.UNKNOWN_ID)
+	var inst: ItemInstance = _items[uid]
+	if index < 0 or index >= inst.sockets.size():
+		return CommandResult.fail(Reasons.SLOT_EMPTY)
+	inst.sockets.remove_at(index)
+	_events.armory_changed.emit(uid, CHANGE_UPDATED)
+	return CommandResult.success()
+
+
 ## F-86: one refinement attempt of `uid`. Fails without any change: unknown_id, upgrade_max, not_enough_gold,
 ## not_enough_items (ingots, shards and, when `use_seal` and the step can lose a level, the Seal). Success: +1.
 ## Failure: the materials are lost and, from `upgrade.downgrade_from`, the piece drops one level, unless `use_seal`
@@ -314,6 +354,13 @@ func _load_entry(entry: Variant) -> void:
 	if inst == null or inst.uid <= 0 or _items.has(inst.uid) or not _is_piece_base(inst.base_id):
 		Log.warn(LOG_CATEGORY, "piece dropped (invalid, bad uid or duplicate): %s" % str(entry))
 		return
+	var stones: Array[StringName] = []
+	for stone_id: StringName in inst.sockets:
+		if Sockets.is_stone(stone_id, _data):
+			stones.append(stone_id)
+		else:
+			Log.warn(LOG_CATEGORY, "piece %d: '%s' is not a stone, dropped from its sockets" % [inst.uid, stone_id])
+	inst.sockets = stones
 	_items[inst.uid] = inst
 
 

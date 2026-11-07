@@ -94,7 +94,7 @@ static func create(
 	return inst
 
 
-## Base modifiers x (1 + upgrade.mod_pct_per_level x N / 100), then one modifier per affix. Sockets: M8.
+## Base modifiers x (1 + upgrade.mod_pct_per_level x N / 100), then one modifier per affix, then those of the stones in the active sockets (F-89).
 static func instance_modifiers(inst: ItemInstance, data: GameData) -> Array[Modifier]:
 	var result: Array[Modifier] = []
 	if not data.has_item(inst.base_id):
@@ -117,6 +117,9 @@ static func instance_modifiers(inst: ItemInstance, data: GameData) -> Array[Modi
 		var def: AffixDef = data.affix(roll.affix_id)
 		if def != null:
 			result.append(Modifier.make(def.stat, roll.value, scope_kind, scope_id))
+	for stone_id: StringName in Sockets.active(inst, data):
+		if data.has_item(stone_id):
+			result.append_array(data.item(stone_id).stone_modifiers)
 	return result
 
 

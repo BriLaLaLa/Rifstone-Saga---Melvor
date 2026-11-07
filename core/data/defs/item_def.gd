@@ -3,7 +3,8 @@ extends RefCounted
 ## An item of data/items/*.json (docs/04_DATA_SCHEMA.md §5).
 ##
 ## Common fields are required. The optional sub-objects map to: `equip` -> `equip` (null when absent),
-## `food.heal` -> `food_heal` (0 when there is no `food`), `infusion.modifiers`/`infusion.unique` ->
+## `food.heal` -> `food_heal` (0 when there is no `food`), `stone.modifiers` -> `stone_modifiers` and `currency.effect` ->
+## `currency_effect` (M8; empty when absent), `infusion.modifiers`/`infusion.unique` ->
 ## `infusion_modifiers`/`infusion_unique` (empty/false when there is no `infusion`; `unique` defaults to false as in
 ## the schema). Whether the sub-objects match the category is DataValidator's job (M1-04).
 ## `from_dict` returns null (after logging, see DefReader) if a field is missing or mistyped.
@@ -19,6 +20,8 @@ var equip: EquipInfo = null
 var food_heal: int = 0
 var infusion_modifiers: Array[Modifier] = []
 var infusion_unique: bool = false
+var stone_modifiers: Array[Modifier] = []
+var currency_effect: StringName = &""
 
 
 static func from_dict(d: Dictionary) -> ItemDef:
@@ -45,6 +48,14 @@ static func from_dict(d: Dictionary) -> ItemDef:
 		if infusion.has("unique"):
 			def.infusion_unique = infusion.flag("unique")
 		r.absorb(infusion.ok)
+	if r.has("stone") and r.is_dict("stone"):
+		var stone := DefReader.new(r.dict("stone"), r.context() + " stone")
+		def.stone_modifiers = stone.modifiers("modifiers")
+		r.absorb(stone.ok)
+	if r.has("currency") and r.is_dict("currency"):
+		var currency := DefReader.new(r.dict("currency"), r.context() + " currency")
+		def.currency_effect = currency.id("effect")
+		r.absorb(currency.ok)
 	return def if r.ok else null
 
 
@@ -58,3 +69,11 @@ func is_food() -> bool:
 
 func is_infusion() -> bool:
 	return not infusion_modifiers.is_empty()
+
+
+func is_stone() -> bool:
+	return not stone_modifiers.is_empty()
+
+
+func is_currency() -> bool:
+	return currency_effect != &""
