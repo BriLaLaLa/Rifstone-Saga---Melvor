@@ -58,13 +58,13 @@ static func _append_item_line(lines: PackedStringArray, session: GameSession, it
 			NumberFormat.format_int(session.bank.get_count(item_id))])
 
 
-## Lines "Item xN" of what the salvage of `uid` pays (F-88, `Salvage.yields`); empty when it pays nothing.
+## Lines "Item xN" of what the salvage of `uid` pays (F-95, `Salvage.paid`); empty when it pays nothing.
 static func salvage_lines(session: GameSession, uid: int) -> PackedStringArray:
 	var lines: PackedStringArray = PackedStringArray()
 	var inst: ItemInstance = session.armory.get_instance(uid)
 	if inst == null:
 		return lines
-	var yields: Dictionary[StringName, int] = Salvage.yields(inst, Salvage.recipe_ingots(session.data), session.data)
+	var yields: Dictionary[StringName, int] = Salvage.paid(inst, session.data)
 	for item_id: StringName in yields:
 		var def: ItemDef = session.data.item(item_id) if session.data.has_item(item_id) else null
 		lines.append(SALVAGE_LINE % [def.name if def != null else String(item_id),

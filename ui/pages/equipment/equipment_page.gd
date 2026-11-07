@@ -294,7 +294,8 @@ func _on_panel_close_requested() -> void:
 
 
 func _on_slot_right_clicked(slot: StringName) -> void:
-	if _session != null and _session.equipment.get_uid(slot) != 0:
+	var is_tool: bool = slot.begins_with(EquipmentStatsText.TOOL_SLOT_PREFIX)
+	if _session != null and _session.equipment.get_uid(slot) != 0 and not is_tool:
 		_on_unequip_requested(slot)
 
 

@@ -1,0 +1,107 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://ui/pages/skill/blueprint_section.gd" id="1_section"]
+[ext_resource type="Script" path="res://ui/components/progress/action_progress_bar.gd" id="2_bar"]
+
+[node name="BlueprintSection" type="VBoxContainer"]
+theme_override_constants/separation = 8
+script = ExtResource("1_section")
+
+[node name="SectionTitle" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+
+[node name="EmptyLabel" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+autowrap_mode = 3
+
+[node name="List" type="HFlowContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+
+[node name="Detail" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_type_variation = &"HudPanel"
+
+[node name="Box" type="VBoxContainer" parent="Detail"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="DetailName" type="Label" parent="Detail/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+
+[node name="RequirementLabel" type="Label" parent="Detail/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Inputs" type="VBoxContainer" parent="Detail/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="InfoLabel" type="Label" parent="Detail/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="AffixRow" type="HBoxContainer" parent="Detail/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="AffixLabel" type="Label" parent="Detail/Box/AffixRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+
+[node name="AffixChoice" type="OptionButton" parent="Detail/Box/AffixRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+
+[node name="AffixNote" type="Label" parent="Detail/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+autowrap_mode = 3
+
+[node name="StatusLabel" type="Label" parent="Detail/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+
+[node name="ProgressBar" type="ProgressBar" parent="Detail/Box"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 2
+max_value = 1.0
+step = 0.0
+show_percentage = false
+script = ExtResource("2_bar")
+
+[node name="Buttons" type="HBoxContainer" parent="Detail/Box"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="StartButton" type="Button" parent="Detail/Box/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+focus_mode = 0
+
+[node name="StopButton" type="Button" parent="Detail/Box/Buttons"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+focus_mode = 0

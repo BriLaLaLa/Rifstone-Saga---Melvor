@@ -36,6 +36,7 @@ const LOCKED_STATE_TEXT: String = "Bloccato: non si vende."
 const IN_ARMORY_TEXT: String = "Nell'Armeria."
 const CLOSE_ICON: String = "x"
 const CLOSE_TOOLTIP: String = "Chiudi"
+const UNIQUE_TOOL_NOTE: String = "Attrezzo unico: si raffina dalla pagina del suo mestiere."
 const OFFHAND_SLOT: StringName = &"offhand"
 const WEAPON_SLOT: StringName = &"weapon"
 const ICON_SIZE := Vector2(64, 64)
@@ -166,6 +167,20 @@ func _refresh_actions(inst: ItemInstance, base: ItemDef, worn_slot: StringName) 
 	var worn: bool = worn_slot != &""
 	var weapon: WeaponInfo = base.equip.weapon
 	var one_handed_weapon: bool = base.equip.slot == WEAPON_SLOT and weapon != null and not weapon.two_handed
+	# M10: a unique tool stays in its slot: no Rimuovi, Blocca, Raffina, Smantella or Vendi.
+	var unique_tool: bool = worn_slot.begins_with(EquipmentStatsText.TOOL_SLOT_PREFIX)
+	_lock_button.visible = not unique_tool
+	_refine_button.visible = not unique_tool
+	_salvage_button.visible = not unique_tool
+	_sell_button.visible = not unique_tool
+	if unique_tool:
+		_open_box = &""
+		_sell_note.text = UNIQUE_TOOL_NOTE
+		_sell_note.visible = true
+		_equip_button.visible = false
+		_offhand_button.visible = false
+		_unequip_button.visible = false
+		return
 	_equip_button.visible = not worn
 	_equip_button.text = MAIN_HAND_TEXT if one_handed_weapon else EQUIP_TEXT
 	_offhand_button.visible = not worn and one_handed_weapon

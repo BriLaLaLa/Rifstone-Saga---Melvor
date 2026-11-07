@@ -10,11 +10,6 @@ const SHARDS_KEY: String = "salvage.shards_by_rarity"
 const EPSILON: float = 1e-9
 
 
-## Kept so that callers written for F-88 still compile; the recipes are not used any more (F-95 reads the blueprints).
-static func recipe_ingots(_data: GameData) -> Dictionary[StringName, int]:
-	return {}
-
-
 ## F-95: floor(qty x component_ratio) of one blueprint input.
 static func component_amount(qty: int, data: GameData) -> int:
 	return floori(qty * float(data.balance_value(RATIO_KEY)) + EPSILON)
@@ -47,11 +42,6 @@ static func paid(inst: ItemInstance, data: GameData) -> Dictionary[StringName, i
 	if amount > 0:
 		result[Upgrade.SHARD_ITEM] = amount
 	return result
-
-
-## Same as `paid`; `_legacy_recipes` is ignored (see `recipe_ingots`).
-static func yields(inst: ItemInstance, _legacy_recipes: Dictionary, data: GameData) -> Dictionary[StringName, int]:
-	return paid(inst, data)
 
 
 ## True when the bank has room for the stacks of `paid` that it does not hold yet.
