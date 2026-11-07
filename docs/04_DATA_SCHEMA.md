@@ -266,6 +266,7 @@ Classe: `MasteryNodeDef`.
 | `order` | int | unico |
 | `requirements` | object | `{"character": livello}`, può essere vuoto |
 | `packs` | array | almeno 1 gruppo (D5); ogni gruppo `{weight: int ≥ 1, monsters: array di id}` con 1..`combat.max_pack_size` mostri esistenti (ripetibili) |
+| `rift_stone_chance_pct` | float | facoltativo, 0..100: probabilità della Pietra del Rift dopo ogni uccisione in quest'area (F-87, Q46); assente = `rift_stone.chance_pct` di `balance.json`. La garanzia `rift_stone.pity_kills` resta globale |
 
 `AreaDef.monster_ids` (mostri distinti dei gruppi, in ordine di prima comparsa) lo calcola `from_dict`. Il campo
 `monsters` (M1-M3) non esiste più.

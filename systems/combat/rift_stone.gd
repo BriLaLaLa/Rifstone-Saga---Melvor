@@ -28,11 +28,16 @@ func on_kill(area_id: StringName) -> void:
 	if def == null or pending:
 		return
 	since += 1
-	if since >= int(_session.data.balance_value(PITY_KEY)) \
-			or _session.rng.roll_pct(float(_session.data.balance_value(CHANCE_KEY))):
+	if since >= int(_session.data.balance_value(PITY_KEY)) or _session.rng.roll_pct(chance_pct(area_id)):
 		since = 0
 		pending = true
 		_session.events.rift_stone_appeared.emit(def.id)
+
+
+## F-87 (Q46): the chance of the stone of `area_id`: the `rift_stone_chance_pct` of the area or else the global one.
+func chance_pct(area_id: StringName) -> float:
+	var own: float = _session.data.area(area_id).rift_stone_chance_pct
+	return own if own >= 0.0 else float(_session.data.balance_value(CHANCE_KEY))
 
 
 ## The next encounter of `area_id`: the pending stone (the stone first, then the summoned pack if any; consumed) or

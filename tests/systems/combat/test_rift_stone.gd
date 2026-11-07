@@ -276,3 +276,23 @@ func test_stone_of_an_unknown_id_loads_as_idle() -> void:
 	(save["enemies"] as Array)[0]["monster"] = "ghost_stone"
 	s.combat.from_save(save)
 	assert_false(s.combat.is_active())
+
+
+# Q46: the area's own `rift_stone_chance_pct` wins over the global chance; absent = the global one (tests above).
+func test_area_chance_overrides_the_global_one() -> void:
+	var data: GameData = _data(0.0, 300)
+	data.area(AREA).rift_stone_chance_pct = 100.0
+	var s: GameSession = _session(data)
+	_hero(s)
+	var seen: Array = _encounters(s, 4)
+	assert_eq(seen[0], [MONSTER_A])
+	assert_eq(seen[1], [STONE], "area chance 100 over global 0: the stone after every kill")
+
+
+func test_area_chance_zero_beats_a_global_100() -> void:
+	var data: GameData = _data(100.0, 300)
+	data.area(AREA).rift_stone_chance_pct = 0.0
+	var s: GameSession = _session(data)
+	_hero(s)
+	for ids: Array in _encounters(s, 5):
+		assert_eq(ids, [MONSTER_A], "an area chance of 0 is not 'absent': no stone")
