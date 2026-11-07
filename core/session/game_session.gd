@@ -136,7 +136,7 @@ func _create_systems() -> void:
 	bank = Bank.new(self)
 	_join(Bank.SAVE_KEY, bank.new_game, bank.to_save, bank.from_save)
 	skills = SkillsSystem.new(self)
-	_join(SkillsSystem.SAVE_KEY, skills.new_game, skills.to_save, skills.from_save)
+	_join(SkillsSystem.SAVE_KEY, skills.new_game, skills.to_save, skills.from_save, skills.rebuild_modifiers)
 	character = CharacterSystem.new(self)
 	_join(CharacterSystem.SAVE_KEY, character.new_game, character.to_save, character.from_save)
 	mastery = MasterySystem.new(self)

@@ -89,7 +89,9 @@ func test_drop_under_the_filter_is_salvaged_at_once() -> void:
 	var uid: int = _session.armory.add_drop(_inst(&"duskcobalt_sword", &"magic"))
 	assert_eq(uid, 0, "not stored")
 	assert_eq(_session.armory.used(), 0)
-	assert_eq(_session.bank.get_count(&"duskcobalt_ingot"), 1, "floor(3 x 0.4)")
+	var comps: Dictionary[StringName, int] = Salvage.components(&"duskcobalt_sword", _session.data)  # F-95: blueprint inputs x 0.4
+	for item_id: StringName in comps:
+		assert_eq(_session.bank.get_count(item_id), comps[item_id])
 	assert_eq(_session.bank.get_count(SHARD), 4, "magic 1 x grade 4")
 	assert_signal_emitted_with_parameters(_session.events, "item_salvaged", [1, &"duskcobalt_sword", true])
 	assert_signal_not_emitted(_session.events, "armory_changed")
@@ -105,7 +107,9 @@ func test_drop_with_a_full_armory_is_salvaged() -> void:
 	var uid: int = session.armory.add_drop(_inst(&"stormzinc_cuirass", &"rare"))
 	assert_eq(uid, 0)
 	assert_eq(session.armory.used(), SMALL_SLOTS, "still full")
-	assert_eq(session.bank.get_count(&"stormzinc_ingot"), 2)
+	var comps: Dictionary[StringName, int] = Salvage.components(&"stormzinc_cuirass", session.data)
+	for item_id: StringName in comps:
+		assert_eq(session.bank.get_count(item_id), comps[item_id])
 	assert_eq(session.bank.get_count(SHARD), 9, "rare 3 x grade 3")
 	assert_signal_emitted_with_parameters(session.events, "item_salvaged", [SMALL_SLOTS + 1, &"stormzinc_cuirass", true])
 	assert_signal_not_emitted(session.events, "armory_rejected")
