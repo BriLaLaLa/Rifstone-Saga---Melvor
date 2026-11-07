@@ -30,7 +30,7 @@ const REFUSED_TEXTS: Dictionary[StringName, String] = {
 	Reasons.LEVEL_TOO_LOW: "Livello troppo basso per questa azione.",
 	Reasons.UNKNOWN_ID: "Questa azione non è ancora disponibile.",
 	Reasons.MISSING_INPUTS: "Materiali insufficienti.",
-	Reasons.BANK_FULL: "La bank è piena.",
+	Reasons.BANK_FULL: "Il deposito è pieno.",
 	Reasons.LANE_UNAVAILABLE: "Corsia non disponibile.",
 	Reasons.SKILL_IN_OTHER_LANE: "Questa skill è già attiva in un'altra corsia.",
 	Reasons.COMBAT_ACTIVE: "Combattimento in corso.",

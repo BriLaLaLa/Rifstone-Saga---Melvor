@@ -4,13 +4,13 @@
     {
       "id": "first_action",
       "title": "Il primo passo",
-      "text": "Apri una skill di raccolta, scegli un'azione e premi Avvia. Il lavoro prosegue da solo, anche mentre sei via.",
+      "text": "Apri il Combattimento, scegli un'area e premi Avvia. Lo scontro prosegue da solo, anche mentre sei via. Le skill di supporto ti danno cibo e materiali.",
       "trigger": "session_started_new"
     },
     {
       "id": "bank_full",
-      "title": "Bank piena",
-      "text": "Un oggetto nuovo non trova posto e l'azione si è fermata, senza perdere nulla. Vendi qualcosa o compra una casella nello shop.",
+      "title": "Deposito pieno",
+      "text": "Un oggetto nuovo non trova posto e l'azione si è fermata, senza perdere nulla. Vendi qualcosa o compra spazio nel deposito allo shop.",
       "trigger": "bank_full"
     },
     {
@@ -28,7 +28,7 @@
     {
       "id": "first_defeat",
       "title": "Sconfitto, non finito",
-      "text": "Alla morte la borsa del bottino va persa, ma Armeria, equipaggiamento e bank restano intatti. Porta del cibo o scegli un'area più mite.",
+      "text": "Alla morte la borsa del bottino va persa, ma Armeria, equipaggiamento e deposito restano intatti. Porta del cibo o scegli un'area più mite.",
       "trigger": "player_died"
     },
     {

@@ -62,11 +62,11 @@
     },
     {
       "id": "bank_slots",
-      "name": "Caselle della bank",
+      "name": "Spazio nel deposito",
       "format": "flat",
       "min": 0,
       "max": 10000,
-      "description": "Aggiunge caselle extra alla bank.",
+      "description": "Aggiunge caselle extra al deposito.",
       "formula": "F-16",
       "test": "tests/systems/bank/test_bank.gd::test_capacity_uses_bank_slots"
     },
@@ -196,7 +196,7 @@
       "format": "flag",
       "min": 0,
       "max": 1,
-      "description": "Il bottino dei mostri va direttamente nella bank.",
+      "description": "Il bottino dei mostri va direttamente nel deposito.",
       "formula": "10.6",
       "test": "tests/systems/combat/test_loot_bag.gd::test_auto_loot_to_bank"
     },
@@ -212,11 +212,11 @@
     },
     {
       "id": "armory_slots",
-      "name": "Caselle dell'Armeria",
+      "name": "Spazio nell'armeria",
       "format": "flat",
       "min": 0,
       "max": 10000,
-      "description": "Aggiunge caselle extra all'Armeria.",
+      "description": "Aggiunge spazio extra all'armeria.",
       "formula": "F-82",
       "test": "tests/systems/armory/test_armory.gd::test_capacity_uses_armory_slots"
     },

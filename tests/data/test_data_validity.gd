@@ -7,9 +7,9 @@ const CONTENT_ROOT: String = "res://data"
 const CONFIG_ROOT: String = "res://data/config"
 ## 00_VISION.md, in sidebar order: [id, name, category].
 const SKILLS: Array[Array] = [
-	["forestry", "Selvicoltura", "gathering"], ["quarrying", "Cavatura", "gathering"],
-	["angling", "Lenza", "gathering"], ["forging", "Forgiatura", "artisan"], ["hearthcraft", "Focolare", "artisan"],
-	["woodwright", "Intaglio", "artisan"], ["riftbinding", "Legatura del Rift", "artisan"],
+	["forestry", "Boscaiolo", "gathering"], ["quarrying", "Minatore", "gathering"],
+	["angling", "Pescatore", "gathering"], ["forging", "Fabbro", "artisan"], ["hearthcraft", "Cuoco", "artisan"],
+	["woodwright", "Falegname", "artisan"], ["riftbinding", "Legatura del Rift", "artisan"],
 ]
 ## Ids that the reform removed (D3, Q37): combat skills, bows and staves.
 const REMOVED_SKILLS: PackedStringArray = ["blade", "marksmanship", "arcana", "vitality", "guard"]

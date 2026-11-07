@@ -26,7 +26,7 @@ const SILENT_STOP_REASONS: Array[StringName] = [Reasons.STOPPED_BY_USER, Reasons
 ## Italian text of each stop reason; other reasons use STOP_TEXT_DEFAULT.
 const STOP_TEXTS: Dictionary[StringName, String] = {
 	Reasons.MISSING_INPUTS: "materiali finiti",
-	Reasons.BANK_FULL: "bank piena",
+	Reasons.BANK_FULL: "deposito pieno",
 	Reasons.ARMORY_FULL: "armeria piena",
 	Reasons.LEVEL_TOO_LOW: "livello troppo basso",
 	Reasons.REQUIREMENT_NOT_MET: "requisito non soddisfatto",
