@@ -13,7 +13,7 @@ const BASE_SLOTS_KEY: String = "bank.base_slots"
 const START_ITEMS_KEY: String = "start.items"
 const CAPACITY_STAT: StringName = &"bank_slots"
 ## docs/05_INTERFACES.md §5.5: category order of `sort_stacks`.
-const SORT_CATEGORIES: Array[StringName] = [&"material", &"food", &"infusion", &"misc"]
+const SORT_CATEGORIES: Array[StringName] = [&"material", &"food", &"infusion", &"misc", &"stone", &"currency"]
 ## Categories held by the Armory as unique pieces: the bank rejects them (M4-05).
 const PIECE_CATEGORIES: Array[StringName] = [&"equipment", &"tool"]
 

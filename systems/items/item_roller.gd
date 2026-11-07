@@ -53,7 +53,15 @@ static func roll_rarity(chances: Vector2, rng: RngService) -> StringName:
 static func roll_affixes(
 	base: ItemDef, rarity: StringName, ilvl: int, data: GameData, rng: RngService
 ) -> Array[AffixRoll]:
-	var result: Array[AffixRoll] = []
+	return extend_affixes(base, rarity, ilvl, [], data, rng)
+
+
+## F-85 keeping `existing` (M8-09): draws the affix count of `rarity` as the total, then rolls only the missing ones
+## (none if `existing` already reaches it). Returns existing + new rolls; same draws as `roll_affixes` when empty.
+static func extend_affixes(
+	base: ItemDef, rarity: StringName, ilvl: int, existing: Array[AffixRoll], data: GameData, rng: RngService
+) -> Array[AffixRoll]:
+	var result: Array[AffixRoll] = existing.duplicate()
 	if base.equip == null or rarity == &"common":
 		return result
 	var range_raw: Variant = data.balance_value("rarity.affix_count.%s" % rarity)
@@ -62,7 +70,9 @@ static func roll_affixes(
 		return result
 	var count: int = rng.randi_range(int(range_raw[0]), int(range_raw[1]))
 	var used: Array[StringName] = []
-	for _i: int in count:
+	for roll: AffixRoll in existing:
+		used.append(roll.affix_id)
+	for _i: int in maxi(0, count - existing.size()):
 		var candidates: Array[AffixDef] = []
 		for def: AffixDef in data.affixes_for_slot(base.equip.slot):
 			if not used.has(def.id) and _unlocked_count(def, ilvl) > 0:
