@@ -5,13 +5,14 @@ extends RefCounted
 
 const ACTION_SKILL_CATEGORIES: PackedStringArray = ["gathering", "artisan"]
 const ITEM_FIELDS: PackedStringArray = ["id", "name", "description", "category", "icon", "value", "sort_order",
-	"equip", "food", "infusion"]
+	"equip", "food", "infusion", "stone", "currency"]
 const ITEM_ICON_DIR: String = "res://assets/icons/items/"
 ## Item file name (without `.json`) -> the category of its items.
 const ITEM_FILE_CATEGORIES: Dictionary[String, String] = {
 	"materials": "material", "equipment": "equipment", "tools": "tool", "food": "food", "infusions": "infusion",
-	"misc": "misc",
+	"misc": "misc", "stones": "stone", "currencies": "currency",
 }
+const CURRENCY_EFFECTS: PackedStringArray = ["to_magic", "to_rare", "reroll"]
 const EQUIP_CATEGORIES: PackedStringArray = ["equipment", "tool"]
 const EQUIP_SLOTS: PackedStringArray = [
 	"head", "body", "legs", "feet", "hands", "neck", "ring", "weapon", "offhand", "tool_forestry", "tool_quarrying",
@@ -74,6 +75,16 @@ static func _item(v: DataValidatorRules, e: Dictionary, file_category: String) -
 			v.fail("field 'infusion.modifiers' needs at least 1 entries (an infusion without effect is decorative)")
 		if infusion.has("unique"):
 			v.flag(infusion, "unique", "infusion")
+	if _sub_object(v, e, "stone", category == "stone"):
+		var stone: Dictionary = e["stone"] as Dictionary
+		v.keys(stone, ["modifiers"], "stone")
+		v.modifiers(stone, "modifiers", "stone")
+		if stone.get("modifiers") is Array and (stone["modifiers"] as Array).is_empty():
+			v.fail("field 'stone.modifiers' needs at least 1 entries (a stone without effect is decorative)")
+	if _sub_object(v, e, "currency", category == "currency"):
+		var currency: Dictionary = e["currency"] as Dictionary
+		v.keys(currency, ["effect"], "currency")
+		v.one_of(currency, "effect", CURRENCY_EFFECTS, "currency")
 
 
 # A sub-object required by the category (`wanted`) and forbidden otherwise; true if it is there and an object.

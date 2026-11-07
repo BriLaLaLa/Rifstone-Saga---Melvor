@@ -15,6 +15,9 @@ static func validate_balance(v: DataValidatorRules, balance: Dictionary) -> void
 	var upgrade: Variant = DataValidator.lookup(balance, "upgrade")
 	if upgrade is Dictionary:
 		_upgrade(v, upgrade as Dictionary)
+	var sockets: Variant = DataValidator.lookup(balance, "sockets")
+	if sockets is Dictionary:
+		_sockets(v, sockets as Dictionary)
 	var salvage: Variant = DataValidator.lookup(balance, "salvage")
 	if salvage is Dictionary:
 		_salvage(v, salvage as Dictionary)
@@ -42,6 +45,17 @@ static func validate_refs(v: DataValidatorRules, balance: Dictionary) -> void:
 	var ids: Array = v.id_list(upgrade as Dictionary, "ingot_items", v.items, "item", GRADE_COUNT, "upgrade")
 	if ids.size() != GRADE_COUNT:
 		v.fail("field 'upgrade.ingot_items' needs exactly %d items (one per grade), got %d" % [GRADE_COUNT, ids.size()])
+
+
+# F-89 (M8): sockets per rarity (>= 0) and the refinement level that gives one more (1..upgrade.levels).
+static func _sockets(v: DataValidatorRules, sockets: Dictionary) -> void:
+	v.keys(sockets, ["by_rarity", "bonus_at_upgrade"], "sockets")
+	if not v.object(sockets, "by_rarity", "sockets").is_empty():
+		var by_rarity: Dictionary = sockets["by_rarity"] as Dictionary
+		v.keys(by_rarity, RARITIES, "sockets.by_rarity")
+		for rarity: String in RARITIES:
+			v.integer(by_rarity, rarity, 0.0, DataValidatorRules.NO_LIMIT, "sockets.by_rarity")
+	v.integer(sockets, "bonus_at_upgrade", 1.0, float(UPGRADE_LEVELS_MAX), "sockets")
 
 
 static func _upgrade(v: DataValidatorRules, upgrade: Dictionary) -> void:

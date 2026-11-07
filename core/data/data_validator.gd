@@ -40,6 +40,9 @@ const REQUIRED_BALANCE_KEYS: PackedStringArray = [
 	"salvage.ingot_ratio", "salvage.shards_by_rarity", "rift_stone.chance_pct", "rift_stone.pity_kills",
 ]
 ## Balance keys holding an array, a combat style or a class id; every other required key holds a number.
+## Balance keys that may be absent for now (validated by DataValidatorLoot when present): `sockets` (F-89, M8). They move
+## to REQUIRED_BALANCE_KEYS when balance.json has them.
+const OPTIONAL_BALANCE_ROOTS: PackedStringArray = ["sockets"]
 const BALANCE_LIST_KEYS: PackedStringArray = [
 	"start.items", "combat.auto_eat_tiers", "rift.sockets", "traits.slot_levels", "abilities.slot_levels", "rarity.affix_count.magic", "rarity.affix_count.rare",
 	"upgrade.levels", "upgrade.ingot_items",
@@ -217,7 +220,7 @@ static func _balance_value(v: DataValidatorRules, key: String, value: Variant) -
 static func _unknown_balance_keys(v: DataValidatorRules, node: Dictionary, prefix: String) -> void:
 	for key: Variant in node:
 		var path: String = str(key) if prefix.is_empty() else "%s.%s" % [prefix, key]
-		if str(key) == DataValidatorRules.DOC_KEY or path in REQUIRED_BALANCE_KEYS:
+		if str(key) == DataValidatorRules.DOC_KEY or path in REQUIRED_BALANCE_KEYS or path.split(".")[0] in OPTIONAL_BALANCE_ROOTS:
 			continue
 		var is_prefix: bool = false
 		for required: String in REQUIRED_BALANCE_KEYS:
