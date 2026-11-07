@@ -51,6 +51,16 @@ const MENU_PANEL_WIDTH: int = 520
 const SLOT_PANEL_WIDTH: int = 820
 const MENU_BUTTON_HEIGHT: int = 44
 const MENU_TITLE_FONT_SIZE: int = 36
+
+## Settings panel: dim layer, spacing, width of the option widgets, button icon side.
+const SETTINGS_DIM := Color(0, 0, 0, 0.55)
+const SETTINGS_BLOCK_SEPARATION: int = 12
+const SETTINGS_COLUMN_SEPARATION: int = 28
+const SETTINGS_SECTION_SEPARATION: int = 8
+const SETTINGS_GRID_H_SEPARATION: int = 16
+const SETTINGS_BUTTON_ROW_SEPARATION: int = 10
+const SETTINGS_OPTION_WIDTH: int = 220
+const SETTINGS_BUTTON_ICON_SIDE: int = 18
 ## ConfirmDialog: initial size (the text wraps inside it).
 const DIALOG_SIZE := Vector2i(460, 0)
 ## Bank page: outer margin, space between its sections, grid spacing, cell size, item panel, search field.

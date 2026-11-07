@@ -74,8 +74,6 @@ text = "Continua"
 [node name="SettingsButton" type="Button" parent="MenuCenter/MenuPanel/Content/Buttons"]
 unique_name_in_owner = true
 layout_mode = 2
-disabled = true
-tooltip_text = "Disponibili in un prossimo aggiornamento"
 text = "Impostazioni"
 
 [node name="ExitButton" type="Button" parent="MenuCenter/MenuPanel/Content/Buttons"]
