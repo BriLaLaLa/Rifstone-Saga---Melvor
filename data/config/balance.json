@@ -97,7 +97,7 @@
     ],
     "respawn_ms": 1500,
     "loot_bag_base_slots": 12,
-    "kill_xp_mult": 0.15
+    "kill_xp_mult": 0.11
   },
   "character_curve": {
     "base": 70,

@@ -19,6 +19,7 @@ var _pieces_dismantled: int = 0
 var _pieces_rejected: int = 0
 var _bank_rejected: Dictionary[StringName, int] = {}
 var _chunk_start_ms: int = 0
+var _combat: CombatEngine
 
 
 ## F-40: clamp(now - saved_at, 0, cap_ms). A clock set back gives 0.
@@ -60,6 +61,7 @@ func run(session: GameSession, elapsed_ms: int, capped: bool, yield_frames: bool
 	_reset()
 	var before: SessionSnapshot = SessionSnapshot.take(session)
 	var play_time_ms: int = session.play_time_ms
+	_combat = session.combat
 	_connect(session.events)
 	session.events.offline_started.emit(total_ms, capped)
 	var done_ms: int = 0
@@ -124,12 +126,13 @@ func _on_action_stopped(_lane: StringName, _skill_id: StringName, reason: String
 
 
 func _on_combat_stopped(reason: StringName) -> void:
-	_log_stop(reason)
+	# B3: the stop happens inside the block; the engine says how far (0 when stopped outside `advance`).
+	_log_stop(reason, _combat.advance_offset_ms if _combat != null else 0)
 
 
-func _log_stop(reason: StringName) -> void:
+func _log_stop(reason: StringName, offset_ms: int = 0) -> void:
 	_summary_stops.append(reason)
-	_summary_stop_times.append(_chunk_start_ms)
+	_summary_stop_times.append(_chunk_start_ms + offset_ms)
 
 
 func _on_armory_changed(_uid: int, change: StringName) -> void:

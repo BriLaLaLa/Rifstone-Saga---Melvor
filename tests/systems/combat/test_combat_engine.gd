@@ -117,13 +117,13 @@ func test_kill_grants_character_xp() -> void:
 	var killed: Array[StringName] = _fight_until_kills(_session, 3)
 	var expected: int = 0
 	for id: StringName in killed:
-		expected += 80 if id == MONSTER_A else 200
+		expected += 8 if id == MONSTER_A else 22  # floor(80 x 0.11), floor(200 x 0.11)
 	assert_eq(_session.character.get_xp() - before, expected, "F-28: the xp of each monster killed")
 	assert_eq(_session.combat.kills(MONSTER_A) + _session.combat.kills(MONSTER_B), killed.size())
 
 
 func test_kill_xp_with_percent_bonus() -> void:
-	# F-28 examples: plains_boar 80 at +25% -> 100. The character xp passes through F-71.
+	# F-28 examples: plains_boar 80 x 0.11 = 8, at +25% -> 10. The character xp passes through F-71.
 	_boost(_session, [Modifier.make(&"power_bonus", 5000.0), Modifier.make(&"max_hp_flat", 100000.0),
 			Modifier.make(&"skill_xp_pct", 25.0)])
 	var before: int = _session.character.get_xp()
@@ -137,7 +137,7 @@ func test_kill_xp_with_percent_bonus() -> void:
 		while _session.combat.total_kills().is_empty() and guard < 1000:
 			_session.combat.advance(1000)
 			guard += 1
-		assert_eq(_session.character.get_xp() - before, 100)
+		assert_eq(_session.character.get_xp() - before, 10)
 	else:
 		pending("seed 1234 drew the two-monster pack first")
 

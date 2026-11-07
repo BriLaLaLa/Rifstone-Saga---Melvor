@@ -256,7 +256,7 @@ static func measure(data: Object, area: Object, scope: String, opts: Dictionary)
 	var counts: Dictionary = engine.total_kills()
 	for monster_id: Variant in counts:
 		kills += int(counts[monster_id])
-		kill_xp += int(counts[monster_id]) * int(data.call("monster", monster_id).xp)
+		kill_xp += int(counts[monster_id]) * floori(float(data.call("monster", monster_id).xp) * float(data.call("balance_value", "combat.kill_xp_mult")) + 1e-9)
 	var row: Dictionary = {
 		"grade": grade, "level": level, "tier": tier, "ms": elapsed, "deaths": engine.deaths(),
 		"kills": kills, "xp": kill_xp, "gold": session.wallet.get_gold() - gold_start,

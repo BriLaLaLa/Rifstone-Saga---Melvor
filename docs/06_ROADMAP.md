@@ -111,6 +111,18 @@ importante invece di centinaia, si potenziano gli attrezzi con la raffinazione.
 **Uscita**: accettazione di `RIFORMA_BOTTINO.md` §7 (riportata in `07_TASKS.md`): nessuna ricetta produce equipaggiamento in serie; progetto
 = un pezzo almeno magico; tre attrezzi +0…+9; nomi di `NOMI.md` e nessun "Bank" nella UI; `sim_combat`: livello 99 in 250-350 h e al massimo
 +12 livelli dopo il 50 in una notte offline; salvataggi precedenti "versione non supportata"; tutti i test verdi.
+**Misure di riferimento di M10** (M10-07; `tools/sim_progress.gd` e `tools/sim_combat.gd`, seme 1234, 4 h per punto, set e cibo del grado,
+non vincolanti come le formule). `combat.kill_xp_mult` = 0,11; XP delle Miniere Crepate a 0,8 × (4 × PV) (1024 / 1280 / 1664).
+- **Livello 99**: circa **299 h** nell'area giusta (la più alta consentita dal livello; 1,0 / 4,8 / 27,2 h per i livelli 16 / 38 / 65). XP/h
+  dopo il moltiplicatore: Pianure 1.526 (liv. 1) - 2.242 (liv. 4); Bosco 3.960 (16) - 6.752 (23); Miniere 7.530 (38) - 13.759 (56);
+  Soglia 16.148 (65) - 34.315 (99). Offline = lo stesso motore: stessi valori.
+- **Una notte offline (12 h)**: dal livello 50 **+11/+12 livelli** (livello 61-62; limite +12), dal 60 +7, dall'80 +2. La XP delle Pietre
+  (circa 1/h nelle Miniere) aggiunge circa il 4%, dentro il margine.
+- **Pezzi dai mostri** (attesi/h, area intera al livello medio): Pianure 2,9 (T1, un pezzo ogni 21 min); Bosco 2,7 (T2-T3, 22 min);
+  Miniere 2,8 (T4-T5, 21 min); Soglia 2,7 (T6-T8, 22 min; T7-T8 da soli ogni 33 min). Obiettivo 20-40 min per pezzo del grado dell'area
+  (con il solo grado intero del livello medio: 21 / 42 / 39 / 57 min). Probabilità dei pezzi della Soglia ritoccate (3 -> 2,5 / 4 -> 6 / 4 -> 5 %).
+- **Progetti dai mostri**: 0,8 / 0,7 / 0,8 / 0,7 per ora (obiettivo ~1/h con le Pietre: Q49).
+- Uccisioni/h: 208 / 110 / 83 / 62; morti 0; cibo 188 / 292 / 327 / 361 pezzi/h.
 
 
 

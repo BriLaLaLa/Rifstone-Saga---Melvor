@@ -77,9 +77,9 @@ func test_measure_is_deterministic_and_restores_the_area() -> void:
 	assert_eq(first["ms"], 180000)
 
 
-func test_measure_xp_is_the_monsters_xp_per_kill() -> void:
+func test_measure_xp_is_the_f28_xp_per_kill() -> void:
 	var row: Dictionary = Sim.measure(_data, _data.area(PLAINS), "easiest", _opts())
-	assert_eq(int(row["xp"]), int(row["kills"]) * _data.monster(&"plains_boar").xp, "easiest pack = one boar")
+	assert_eq(int(row["xp"]), int(row["kills"]) * 8, "easiest pack = one boar: floor(80 x 0.11) each (F-28)")
 
 
 func test_report_has_a_header_and_a_row_per_scope() -> void:
