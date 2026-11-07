@@ -94,12 +94,18 @@ func _process(_delta: float) -> void:
 	_expire_toasts(now)
 
 
-## Shows a toast now, or queues it while `UiStyle.TOAST_MAX_VISIBLE` toasts are on screen.
+## Shows a toast now, or queues it while `UiStyle.TOAST_MAX_VISIBLE` toasts are on screen (N9: at most
+## `UiStyle.TOAST_PENDING_MAX` wait, the oldest is dropped). Layering: the main screen draws toasts above the pages
+## and below every modal window (settings, hint card), so toasts never pile up on top of a window.
 ## `kind` is `&"info"`, `&"success"` or `&"warning"`.
 func push(text: String, kind: StringName) -> void:
 	if _active.size() < UiStyle.TOAST_MAX_VISIBLE:
 		_spawn(text, kind)
 		return
+	# N9: the waiting line is capped; the oldest waiting toast is dropped so a burst of level-ups cannot pile up.
+	if _pending_texts.size() >= UiStyle.TOAST_PENDING_MAX:
+		_pending_texts.remove_at(0)
+		_pending_kinds.remove_at(0)
 	_pending_texts.append(text)
 	_pending_kinds.append(kind)
 
