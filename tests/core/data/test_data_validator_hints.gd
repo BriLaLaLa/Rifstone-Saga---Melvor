@@ -40,7 +40,7 @@ func test_game_data_loads_hints_in_file_order() -> void:
 	assert_eq(ids[0], &"test_first_action")
 	var def: HintDef = data.hint(&"test_bank_full")
 	assert_eq([def.title, def.text, def.trigger], ["Banca piena", "Testo di prova.", &"bank_full"])
-	assert_eq(TestFactory.real_data().hints().size(), 0, "the content is M9-05")
+	assert_eq(TestFactory.real_data().hints().size(), 6, "one hint per trigger (M9-05)")
 
 
 func test_unknown_hint_is_null() -> void:

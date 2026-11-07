@@ -3,7 +3,21 @@
 Aggiornato dall'Orchestratore (unico che modifica questo file). Stati: TODO / IN_PROGRESS / REVIEW / DONE / BLOCKED.
 Se la sessione si interrompe, si riparte da qui.
 
-## Ripartenza (aggiornata il 2026-11-07, fine M8)
+## Ripartenza (aggiornata il 2026-11-07, fine M9 = MVP)
+- **Stato**: **M9 completata e MVP rilasciato**, tag locali `m9-mvp` e `m9-done` su `main` (il push lo fa l'Orchestratore).
+  Merge M9: M9-00 `2e151d5`, M9-01 `7b477d7`, M9-04 `3da7c63`, M9-05 `04393ee`, M9-03 `625ff17`, M9-02 `17f9a27`, M9-06 `873886f`,
+  fix suggerimenti `63d7899`, M9-07 `da61e20` (+ ritaratura `d9559bc`). run_checks: 1627 test verdi, dati e controlli di progetto OK.
+  M9-08: test allineati a `inf_scholar` +6 / `inf_deep_roots` +10 e a 6 suggerimenti; correzione del validatore delle icone per
+  l'esportazione (`ResourceLoader.exists`); `export_presets.cfg` (Windows Desktop); `docs/RELEASE_CHECKLIST_MVP.md`; `05_INTERFACES.md`
+  §5.13-5.15b e `04_DATA_SCHEMA.md` §10 aggiornati.
+- **Prossimo passo (post-MVP)**: sessione nuova da questo file. Prima di M10 (Fratture come mappe, `01_GDD.md` §17): le prove manuali
+  di `docs/RELEASE_CHECKLIST_MVP.md` §4 (l'utente), poi rivedere le firme di M10 in `05_INTERFACES.md` §5.15 e `07_TASKS.md`. Poi M10-M12.
+- **Decisioni aperte per l'utente** (default in `OPEN_QUESTIONS.md`): Q26, Q27-Q43 (Q44-Q46 ritarate/chiuse in M7-M9).
+- **Pulizia a mano (non fatta)**: cartelle `C:\Users\Davide\Desktop\AI\wt-*` (almeno `wt-M6-02`, `wt-M7-03-04`) e worktree
+  `.claude/worktrees/agent-*` (9); poi `git worktree prune`. Nessun branch o worktree cancellato da M9-08.
+- **Limiti noti**: eseguibile non firmato, senza icona di applicazione; follow-up di M8 (vedi sotto).
+
+## Ripartenza precedente (fine M8)
 - **Stato**: **M8 completata**, tag `m8-done` su `main`. Merge: M8-00 `99e35d4`, M8-01 `36fa88d`, Q46 `426e5fa`, M8-02 `46e6a4e`,
   M8-03 `6c549c0`, M8-09 `be5c0b5`, M8-04 `f6bf583`, M8-06 `ecea8a4`, M8-05 `ea3c1a3`. run_checks: 1531 test verdi.
 - **Prossimo passo**: **M9 Offline e polish** (ultima milestone dell'MVP), sessione nuova: M9-01 (CORE, offline, note N5-N6) e
@@ -169,11 +183,11 @@ Se la sessione si interrompe, si riparte da qui.
 | M8-00 | M8 | Correzioni UI dalla prova visiva di M7 | UI | DONE | task/M8-00 | merge 99e35d4; testi volanti max 3, Raffina/Smantella in cima, Slot:, equipment_page 346 righe |
 | Q46 | M8 | Pietra del Rift per area | COMBAT | DONE | task/Q46 | merge 426e5fa; Pianure 1,13/h (pity globale), Bosco/Miniere 1,00, Soglia 0,96 |
 | M8-09 | M8 | Uso delle valute (use_currency) | CORE | DONE | task/M8-09 | merge be5c0b5; CurrencyUse, extend_affixes |
-| M9-01 | M9 | Simulazione offline | CORE | TODO | | note N5-N6 |
-| M9-02 | M9 | Schermate dell'offline | UI | TODO | | |
-| M9-03 | M9 | Impostazioni (porting) | PORT | TODO | | nota N7 |
-| M9-04 | M9 | Sistema dei suggerimenti | CORE | TODO | | nota N8 |
-| M9-05 | M9 | Contenuto dei suggerimenti | DATA | TODO | | |
-| M9-06 | M9 | Feedback visivo e carta dei suggerimenti | UI | TODO | | nota N9 |
-| M9-07 | M9 | Regressione, prestazioni, foto della UI | QA | TODO | | nota N10 |
-| M9-08 | M9 | Rilascio dell'MVP | REV | TODO | | tag m9-mvp, m9-done |
+| M9-01 | M9 | Simulazione offline | CORE | DONE | merge 7b477d7 | note N5-N6 |
+| M9-02 | M9 | Schermate dell'offline | UI | DONE | merge 17f9a27 | |
+| M9-03 | M9 | Impostazioni (porting) | PORT | DONE | merge 625ff17 | nota N7 |
+| M9-04 | M9 | Sistema dei suggerimenti | CORE | DONE | merge 3da7c63 (fix pending 63d7899) | nota N8 |
+| M9-05 | M9 | Contenuto dei suggerimenti | DATA | DONE | merge 04393ee | |
+| M9-06 | M9 | Feedback visivo e carta dei suggerimenti | UI | DONE | merge 873886f | nota N9 |
+| M9-07 | M9 | Regressione, prestazioni, foto della UI | QA | DONE | merge da61e20, ritaratura d9559bc | nota N10 |
+| M9-08 | M9 | Rilascio dell'MVP | REV | DONE | tag m9-mvp, m9-done (locali); preset export, checklist | tag m9-mvp, m9-done |

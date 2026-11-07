@@ -538,10 +538,10 @@ Prese sbloccate ai livelli `rift.sockets`: 1, 20, 40, 60, 80.
 |---|---|---|---|---|---|---|
 | 1 | `inf_swift_hands` | 5 | 10 legno T1 | `skill_interval_pct −3` | 40 | 4000 |
 | 15 | `inf_bountiful` | 8 | 10 minerale T2 | `double_item_chance +2` | 70 | 4000 |
-| 25 | `inf_scholar` | 12 | 10 pesce cotto T3 | `skill_xp_pct +3` | 110 | 4500 |
+| 25 | `inf_scholar` | 12 | 10 pesce cotto T3 | `skill_xp_pct +6` | 110 | 4500 |
 | 35 | `inf_keen_edge` | 16 | 5 lingotto T4 | `accuracy_pct +4` | 150 | 4500 |
 | 45 | `inf_stoneskin` | 20 | 5 lingotto T5 | `damage_reduction +2` | 200 | 5000 |
-| 55 | `inf_deep_roots` | 25 | 20 legno T5 | `mastery_xp_pct +5` | 260 | 5000 |
+| 55 | `inf_deep_roots` | 25 | 20 legno T5 | `mastery_xp_pct +10` | 260 | 5000 |
 | 65 | `inf_hearthfire` | 30 | 20 pesce cotto T6 | `food_healing_pct +10` | 330 | 5500 |
 | 75 | `inf_riftsense` (unica) | 40 | 10 minerale T7 | `rift_shard_chance +0.5` | 420 | 5500 |
 | 85 | `inf_bulwark` | 50 | 5 lingotto T8 | `max_hp_flat +60` | 520 | 6000 |

@@ -165,7 +165,7 @@ var last_offline_summary: OfflineSummary = null
 func list_slots() -> Array[SlotInfo]
 func new_game(slot: int, player_name: String) -> CommandResult
     # nome dopo strip lungo player_name.min_length..max_length (invalid_name); crea sessione, new_game(), salva, avvia autosave, state playing
-func continue_game(slot: int) -> CommandResult
+func continue_game(slot: int) -> CommandResult   # coroutine (M9-03): chiamare con `await`; ritorna dopo l offline
     # legge, from_save, rebuild_modifiers, poi offline (asincrono: state offline fino alla fine), poi salva e playing
 func save_now() -> CommandResult          # slot_not_selected se session == null
 func end_session(save: bool = true) -> void   # ferma autosave, salva se richiesto, session.free(), state menu
@@ -310,7 +310,8 @@ func classes() -> Array[ClassDef]                     # M4-01; ordinate per orde
 func affix(id: StringName) -> AffixDef                # M4-01
 func affixes_for_slot(slot: StringName) -> Array[AffixDef]   # M4-01; ordine del file
 func rift_stone_for_area(area_id: StringName) -> RiftStoneDef   # M7
-func hints() -> Array[HintDef]                        # M9: lo aggiunge M9-04 (non esiste in M1-04)
+func hints() -> Array[HintDef]                        # M9-04, nell ordine del file
+func hint(id: StringName) -> HintDef                  # M9-04; null se sconosciuto
 func fractures() -> Array[FractureDef]                # M10: lo aggiunge il task delle Fratture (non esiste in M1-04)
 const LOG_CATEGORY: String = "data"
 const BALANCE_FILE: String = "balance.json"           # in config_root
@@ -995,6 +996,10 @@ func rebuild_modifiers() -> void               # sorgenti rift_socket:<i>
 ```gdscript
 class_name OfflineSimulator extends RefCounted
 static func compute_elapsed(saved_at_unix_ms: int, now_unix_ms: int, cap_ms: int) -> int    # F-40
+static func is_capped(saved_at_unix_ms: int, now_unix_ms: int, cap_ms: int) -> bool      # F-40: tempo via > cap_ms
+static func chunk_count(elapsed_ms: int, chunk_ms: int) -> int                           # F-41: ceil(elapsed / chunk_ms), 0 se <= 0
+static func advance_silently(session: GameSession, elapsed_ms: int) -> void
+    # sotto offline.min_ms: stessi blocchi senza segnali ne riepilogo; play_time_ms ripristinato
 func run(session: GameSession, elapsed_ms: int, capped: bool, yield_frames: bool = true) -> OfflineSummary
     # coroutine (await): blocchi da offline.chunk_ms (F-41); emette offline_started/progress/completed su session.events;
     # con yield_frames = false (test) non aspetta frame
@@ -1005,6 +1010,9 @@ var xp: Dictionary[StringName, int]; var levels: Dictionary[StringName, Vector2i
 var items: Dictionary[StringName, int]         # differenza (positiva = ottenuti, negativa = consumati)
 var gold_delta: int; var kills: Dictionary[StringName, int]; var deaths: int; var food_eaten: int
 var stop_reasons: Array[StringName]
+var stop_times_ms: Array[int]                  # tempo offline di ogni stop (parallelo a stop_reasons)
+var pieces_stored: int; var pieces_dismantled: int; var pieces_rejected: int   # Armeria: conservati / smantellati dal filtro / persi per Armeria piena
+var bank_rejected: Dictionary[StringName, int]  # rese che non entrano nella banca (anche rese di smantellamento automatico)
 static func from_snapshots(before: SessionSnapshot, after: SessionSnapshot, elapsed_ms: int, capped: bool, stop_reasons: Array[StringName]) -> OfflineSummary
 func is_empty() -> bool
 ```
@@ -1016,16 +1024,26 @@ static func get_value(key: String) -> Variant
 static func set_value(key: String, value: Variant) -> void
 static func save() -> void
 static func apply(window: Window) -> void
+static var file_path: String                   # default "user://settings.cfg" (i test lo reindirizzano)
+static func reset() -> void                    # valori predefiniti (non salva)
+static func ui_scale(window: Window) -> float  # ui_scale = 0.0 -> automatica dalla dimensione della finestra
+static func apply_volume() -> void             # bus Master
+static func apply_log_level() -> void          # Log.level
+static func apply_ui_scale(window: Window) -> void
 # chiavi: window_mode, window_size, ui_scale, vsync, fps_limit, volume, log_level
 ```
 
-### 5.15 M9-M11
+### 5.15 Hint (M9) e Fratture (M10)
 ```gdscript
 class_name HintsSystem extends RefCounted      # systems/hints/hints_system.gd (M9); dipendenze: data, events
 const SAVE_KEY := &"hints"
 func is_seen(hint_id: StringName) -> bool
 func mark_seen(hint_id: StringName) -> void
-func connect_triggers() -> void                # ascolta session.events ed emette hint_triggered una volta per slot
+func connect_triggers() -> void                # ascolta session.events; ogni trigger emette hint_triggered una sola volta per slot (se non visto)
+func new_game() -> void                        # svuota visti e in attesa
+func to_save() -> Dictionary                   # {"seen": [id, ...]} nell ordine del file hints.json
+func from_save(d: Dictionary) -> void          # tollerante: lista errata = nessuno visto; id sconosciuti scartati con Log.warn
+func pending() -> Array[StringName]            # attivati e non ancora chiusi; volatile, mai salvato
 
 class_name FractureSystem extends RefCounted   # systems/fractures/fracture_system.gd (M10); dipendenze: data, events, modifiers, rng, combat
 const SAVE_KEY := &"fractures"
@@ -1035,6 +1053,20 @@ func next_in_ms() -> int
 func bonus_monster_for_area(area_id: StringName) -> StringName
 func advance(delta_ms: int) -> void            # F-50
 func rebuild_modifiers() -> void               # sorgente fracture:<id>
+```
+
+### 5.15b UI di M9 (sola lettura/comandi; nessuno stato di gioco)
+```gdscript
+class_name OfflineOverlay extends Control      # ui/screens/offline/; static func attach(parent: Node, source: GameEvents = null) -> OfflineOverlay
+    # ascolta offline_started/progress/completed; mostra la barra solo se elapsed_ms >= offline.min_ms; a fine run apre il riepilogo
+class_name OfflineSummaryView extends Control  # signal closed; static func open(parent: Node, summary: OfflineSummary, data: GameData) -> OfflineSummaryView; func shown_lines() -> PackedStringArray
+class_name OfflineTexts extends RefCounted     # testi italiani del riepilogo; static func duration(ms: int) -> String; static func reason_text(reason: StringName) -> String
+class_name HintCard extends Control            # ui/feedback/; signal shown(hint_id), closed(hint_id); var is_blocked: Callable
+func bind(session: GameSession) -> void; func unbind() -> void; func current_hint() -> StringName; func queued() -> Array[StringName]
+func close_current() -> void                   # mark_seen sul modello + passa al successivo; refresh()
+class_name SettingsPanel extends Control       # ui/settings/; signal closed; var in_game: bool; var game: GameScript; var scene_changer: Callable; var apply_window: Callable
+    # legge/scrive solo GameSettings; in partita mostra "Salva ed esci" (end_session + scene_changer)
+class_name ToastManager extends Control        # al massimo UiStyle.TOAST_MAX_VISIBLE visibili; oltre UiStyle.TOAST_PENDING_MAX in attesa scarta il piu vecchio
 ```
 M11 non aggiunge classi: estende `ActionRunner` (corsia `SECONDARY`, `lanes_available()` con F-51). Le firme di M10
 si rivedono a inizio M10 (Fratture come mappe, `01_GDD.md` §17).

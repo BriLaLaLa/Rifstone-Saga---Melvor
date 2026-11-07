@@ -197,11 +197,11 @@ func test_scholar_and_deep_roots_raise_skill_and_mastery_xp() -> void:
 	TestFactory.give(_s, &"inf_deep_roots", 1)
 	assert_true(_s.rift.socket(0, &"inf_scholar").ok)
 	assert_true(_s.rift.socket(1, &"inf_deep_roots").ok)
-	assert_eq(_s.skills.add_xp(FORESTRY, 1000), 1030, "skill_xp_pct +3 (inf_scholar)")
+	assert_eq(_s.skills.add_xp(FORESTRY, 1000), 1060, "skill_xp_pct +6 (inf_scholar)")
 	var boosted: int = _s.mastery.add_for_action(action)
-	assert_gte(boosted, plain_mastery, "mastery_xp_pct +5 never lowers: %d vs %d" % [boosted, plain_mastery])
-	assert_eq(_s.modifiers.total(&"mastery_xp_pct", ModifierContext.for_skill(FORESTRY)), 5.0)
-	gut.p("measure: %s mastery gain per cycle %d -> %d with +5%% (floor hides small bonuses)" % [action.id, plain_mastery, boosted])
+	assert_gte(boosted, plain_mastery, "mastery_xp_pct +10 never lowers: %d vs %d" % [boosted, plain_mastery])
+	assert_eq(_s.modifiers.total(&"mastery_xp_pct", ModifierContext.for_skill(FORESTRY)), 10.0)
+	gut.p("measure: %s mastery gain per cycle %d -> %d with +10%% (floor hides small bonuses)" % [action.id, plain_mastery, boosted])
 
 
 func test_altar_save_load_save_identical_and_rebuilds_modifiers() -> void:
@@ -217,6 +217,6 @@ func test_altar_save_load_save_identical_and_rebuilds_modifiers() -> void:
 	assert_eq(copy.rift.get_socket(1), &"")
 	assert_eq(copy.rift.get_socket(2), &"inf_scholar")
 	assert_eq(copy.modifiers.total(&"max_hp_flat"), 60.0, "modifiers rebuilt after the load")
-	assert_eq(copy.modifiers.total(&"skill_xp_pct"), 3.0)
+	assert_eq(copy.modifiers.total(&"skill_xp_pct"), 6.0)
 	assert_eq(SaveCodec.encode(copy.to_save(NOW_MS)), text, "save -> load -> save identical")
 	copy.free()

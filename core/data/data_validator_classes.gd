@@ -223,7 +223,7 @@ static func _offhand_kinds() -> PackedStringArray:
 # A required icon path under `dir` whose file must exist (monsters and classes have no placeholder fallback).
 static func existing_icon(v: DataValidatorRules, e: Dictionary, dir: String) -> void:
 	DataValidator.icon(v, e, dir)
-	if e.get("icon") is String and (e["icon"] as String).begins_with(dir) and not FileAccess.file_exists(e["icon"] as String):
+	if e.get("icon") is String and (e["icon"] as String).begins_with(dir) and not ResourceLoader.exists(e["icon"] as String):
 		v.fail("field 'icon': file '%s' does not exist" % e["icon"])
 
 
@@ -238,5 +238,5 @@ static func _sprite(v: DataValidatorRules, e: Dictionary) -> void:
 			v.fail("field 'sprite.%s' is required" % state)
 		elif v.text(sprite, state, "sprite"):
 			var path: String = sprite[state] as String
-			if not path.begins_with(SPRITE_DIR) or not FileAccess.file_exists(path):
+			if not path.begins_with(SPRITE_DIR) or not ResourceLoader.exists(path):
 				v.fail("field 'sprite.%s': '%s' must be an existing file under %s" % [state, path, SPRITE_DIR])

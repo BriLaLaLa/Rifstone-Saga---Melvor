@@ -112,5 +112,5 @@ M0 (Setup) completata, tag `m0-done`. M1 (Prima skill completa, Selvicoltura) co
 completata, tag `m2-done`. M3 (Artigianato, shop, equipaggiamento) completata, tag `m3-done`. Visione v2 approvata e
 riportata nei documenti (R-00, fonte `docs/VISIONE_V2.md`). M4 (Riforma: personaggio e Armeria) completata, tag
 `m4-done`. M5 (Combattimento a gruppi) completata, tag `m5-done`. M6 (Abilità e tratti) completata, tag `m6-done`. M7 (Bottino) completata, tag `m7-done`. M8 (Legatura del Rift) completata, tag `m8-done`.
-Prossima milestone: **M9 Offline e polish** (ultima dell'MVP; sessione nuova da `docs/STATUS.md`).
+M9 (Offline e polish) completata, tag `m9-mvp` e `m9-done`: **l'MVP è rilasciato**. Prossime milestone post-MVP: **M10-M12** (sessione nuova da `docs/STATUS.md`). Checklist di rilascio in `docs/RELEASE_CHECKLIST_MVP.md`.
 Avanzamento dei task in `docs/STATUS.md`.

@@ -337,6 +337,9 @@ Classe: `ShopEntryDef`. Fino a M3-04 il file esiste vuoto (`{"_doc": …, "entri
 ```
 `trigger`: uno di `session_started_new`, `bank_full`, `first_shard`, `mastery_node_affordable`, `player_died`,
 `first_level_10`. Classe: `HintDef` (aggiunta in M9 in `core/data/defs/hint_def.gd`).
+File singolo e **obbligatorio** (`CONTENT_FILES["hints"]`): se manca `GameData` segnala l'errore (nessun fallback). Un solo
+suggerimento per trigger, in ordine di file; `GameData.hint(id)` ritorna `null` per un id sconosciuto. Il salvataggio
+dello slot tiene `{"hints": {"seen": [id, ...]}}`.
 
 ## 11. `data/fractures/fractures.json` (M10)
 
