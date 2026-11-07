@@ -3,6 +3,8 @@ extends RefCounted
 ## Italian texts of the combat page and of the combat values on the character page (docs/01_GDD.md §10.11, F-70),
 ## display only. Presentation constants: `UiStyle.COMBAT_*`. Area and monster names come from the data.
 
+## Most floating numbers (damage / miss / parry) alive over one card; the oldest are dropped.
+const MAX_HIT_NUMBERS: int = 3
 const LOOT_TITLE: String = "Bottino"
 const STATS_TITLE: String = "Valori di combattimento"
 const STATE_TEXTS: Dictionary[StringName, String] = {

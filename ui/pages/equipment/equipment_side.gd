@@ -33,3 +33,20 @@ static func redraw_side(session: GameSession, stats: RichTextLabel, food_label: 
 	clear_button.disabled = food == null
 	food_label.text = NO_FOOD_TEXT if food == null else FOOD_TEXT % [food.name,
 			NumberFormat.format_int(session.bank.get_count(food_id))]
+
+
+## Text of the capacity label: pieces in the armory, capacity and worn pieces.
+static func capacity_label_text(session: GameSession) -> String:
+	var worn: int = 0
+	for slot: StringName in Equipment.SLOTS:
+		worn += 1 if session.equipment.get_uid(slot) != 0 else 0
+	return ArmoryTexts.capacity_text(session.armory.used(), session.armory.capacity(), worn)
+
+
+## Lights the slots of `doll` that accept the dragged piece `data` (a `PieceDrag` payload from the inventory).
+static func light_targets(session: GameSession, doll: EquipmentDoll, data: Variant) -> void:
+	var targets: Array[StringName] = []
+	if PieceDrag.is_piece(data) and PieceDrag.from_of(data) == &"":
+		targets = EquipTargets.compatible_slots(session, PieceDrag.uid_of(data))
+	for view: EquipmentSlotView in doll.slot_views():
+		view.set_glow(targets.has(view.slot()))

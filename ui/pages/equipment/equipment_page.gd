@@ -15,17 +15,11 @@ extends Page
 const INVENTORY_TITLE_TEXT: String = "Inventario"
 const STATS_TITLE_TEXT: String = "Statistiche"
 const FULL_TEXT: String = "Armeria piena"
-const ALL_SLOTS_TEXT: String = "Tutti gli slot"
-const ALL_RARITIES_TEXT: String = "Tutte le rarità"
-const EMPTY_TEXT: String = "L'Armeria è vuota: forgia o compra dei pezzi."
-const NO_MATCH_TEXT: String = "Nessun pezzo corrisponde ai filtri."
 const HINT_TEXT: String = "Trascina un pezzo sullo slot. Tasto destro: equipaggia (una spada va nella seconda mano se è libera), " \
 		+ "oppure Rimuovi su uno slot pieno. Clic: seleziona."
 const CLEAR_FOOD_TEXT: String = "Togli"
 const FILTER_TEXT: String = "Filtro"
-const CELL_NAME: String = "Cell%d"
-const CELL_SCENE: PackedScene = preload("res://ui/pages/equipment/inventory_cell.tscn")
-const FILTER_ALL: StringName = &""
+const FILTER_ALL: StringName = EquipmentInventory.FILTER_ALL
 const SECTION_SEPARATION: int = 12
 
 var _session: GameSession = null
@@ -144,11 +138,7 @@ func show_drag_targets(data: Variant) -> void:
 	if _session == null:
 		return
 	_hide_tooltip()
-	var targets: Array[StringName] = []
-	if PieceDrag.is_piece(data) and PieceDrag.from_of(data) == &"":
-		targets = EquipTargets.compatible_slots(_session, PieceDrag.uid_of(data))
-	for view: EquipmentSlotView in _doll.slot_views():
-		view.set_glow(targets.has(view.slot()))
+	EquipmentSide.light_targets(_session, _doll, data)
 
 
 func clear_drag_targets() -> void:
@@ -168,20 +158,7 @@ func _signals(events: GameEvents) -> Array[Signal]:
 func _build_filters() -> void:
 	_slot_filter = FILTER_ALL
 	_rarity_filter = FILTER_ALL
-	_slot_option.clear()
-	_slot_option.add_item(ALL_SLOTS_TEXT)
-	_slot_option.set_item_metadata(0, FILTER_ALL)
-	for slot: StringName in Equipment.SLOTS:
-		_slot_option.add_item(EquipmentStatsText.slot_text(slot, _session.data))
-		_slot_option.set_item_metadata(_slot_option.item_count - 1, slot)
-	_rarity_option.clear()
-	_rarity_option.add_item(ALL_RARITIES_TEXT)
-	_rarity_option.set_item_metadata(0, FILTER_ALL)
-	for rarity: StringName in ItemInstance.RARITIES:
-		_rarity_option.add_item(ArmoryTexts.rarity_name(rarity))
-		_rarity_option.set_item_metadata(_rarity_option.item_count - 1, rarity)
-	_slot_option.select(0)
-	_rarity_option.select(0)
+	EquipmentInventory.build_filters(_session, _slot_option, _rarity_option)
 
 
 func _on_slot_filter_selected(index: int) -> void:
@@ -203,50 +180,19 @@ func _redraw_from_event(_a: Variant = null, _b: Variant = null, _c: Variant = nu
 func _redraw() -> void:
 	if _session == null:
 		return
-	var used: int = _session.armory.used()
-	var capacity: int = _session.armory.capacity()
-	var worn: int = 0
-	for slot: StringName in Equipment.SLOTS:
-		worn += 1 if _session.equipment.get_uid(slot) != 0 else 0
-	_capacity_label.text = ArmoryTexts.capacity_text(used, capacity, worn)
-	_full_label.visible = used >= capacity
-	_rebuild_grid()
+	_capacity_label.text = EquipmentSide.capacity_label_text(_session)
+	_full_label.visible = _session.armory.used() >= _session.armory.capacity()
+	_hide_tooltip()
+	EquipmentInventory.rebuild_grid(_session, _grid, _empty_label, _slot_filter, _rarity_filter, _selected_uid, {
+		"pressed": _on_cell_pressed, "right_clicked": _on_cell_right_clicked,
+		"unequip_dropped": _on_unequip_requested, "hover_started": _on_cell_hover_started,
+		"hover_ended": _hide_tooltip})
 	EquipmentSide.redraw_doll(_session, _doll, _class_label, _setup_label)
 	EquipmentSide.redraw_side(_session, _stats_text, _food_label, _clear_food_button)
 	if _selected_uid != 0 and not _panel.show_piece(_session, _selected_uid):
 		_selected_uid = 0
 	_apply_filter_view()
 
-
-func _rebuild_grid() -> void:
-	_hide_tooltip()
-	for child: Node in _grid.get_children():
-		_grid.remove_child(child)
-		child.queue_free()
-	var all_pieces: Array[ItemInstance] = _session.armory.instances()
-	var shown: int = 0
-	for inst: ItemInstance in all_pieces:
-		var base: ItemDef = _session.data.item(inst.base_id)
-		if _session.armory.is_worn(inst.uid) or base == null or base.equip == null or not _passes_filters(inst, base):
-			continue
-		var cell: InventoryCell = CELL_SCENE.instantiate() as InventoryCell
-		cell.name = CELL_NAME % inst.uid
-		_grid.add_child(cell)
-		cell.set_piece(inst, base, inst.uid == _selected_uid)
-		cell.pressed.connect(_on_cell_pressed)
-		cell.right_clicked.connect(_on_cell_right_clicked)
-		cell.unequip_dropped.connect(_on_unequip_requested)
-		cell.hover_started.connect(_on_cell_hover_started)
-		cell.hover_ended.connect(_hide_tooltip)
-		shown += 1
-	_empty_label.visible = shown == 0
-	_empty_label.text = EMPTY_TEXT if all_pieces.is_empty() else NO_MATCH_TEXT
-
-
-func _passes_filters(inst: ItemInstance, base: ItemDef) -> bool:
-	if _slot_filter != FILTER_ALL and base.equip.slot != _slot_filter:
-		return false
-	return _rarity_filter == FILTER_ALL or inst.rarity == _rarity_filter
 
 
 # --- Selection, tooltips ----------------------------------------------------------------------------------------
