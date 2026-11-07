@@ -28,14 +28,37 @@ static func real_data() -> GameData:
 
 
 ## New session on its own GameEvents (not the autoload), with new_game() done. data = null uses the fixtures.
-static func session(seed_value: int = 1234, data: GameData = null) -> GameSession:
+## M10: a new game gives the starting kit (food, pieces, unique tools, Field Rations I). On the legacy fixtures the kit is
+## emptied after new_game (see `clear_kit`) so that older tests see an empty game; `keep_kit` = true leaves it (the
+## kit tests); a session on other data (the M10 fixtures, the real data) always keeps it.
+## Legacy fixture data = the content of res://tests/fixtures/data, also when loaded with a modified copy of the config.
+static func session(seed_value: int = 1234, data: GameData = null, keep_kit: bool = false) -> GameSession:
 	var game_data: GameData = data if data != null else fixture_data()
 	var events: GameEvents = GameEvents.new()
 	var result: GameSession = GameSession.new(game_data, events, seed_value)
 	# Child of the session, so freeing the session frees its events too.
 	result.add_child(events)
 	result.new_game()
+	if is_legacy_fixture(game_data) and not keep_kit:
+		clear_kit(result)
 	return result
+
+
+## True for the content of res://tests/fixtures/data (it has the test items and the real `start.food`).
+static func is_legacy_fixture(data: GameData) -> bool:
+	return data.has_item(&"test_twig") and data.balance_value("start.food") == "seared_brookfin"
+
+
+## Empties the starting kit of a new game: no kit food in the bank, an empty Armory, nothing worn, no food chosen,
+## no purchase made. Gold and the other systems stay as new_game left them.
+static func clear_kit(session: GameSession) -> void:
+	var food: StringName = StringName(str(session.data.balance_value("start.food")))
+	if session.bank.get_count(food) > 0:
+		session.bank.remove(food, session.bank.get_count(food))
+	session.armory.from_save({"items": []})
+	session.equipment.from_save({})
+	session.shop.from_save({"purchases": {}})
+	session.rebuild_modifiers()
 
 
 ## Adds items through bank.add and asserts it succeeds.

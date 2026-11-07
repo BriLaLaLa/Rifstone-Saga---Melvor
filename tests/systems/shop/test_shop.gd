@@ -20,7 +20,7 @@ func before_all() -> void:
 	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_ROOT.path_join("balance.json")))
 	(balance["bank"] as Dictionary)["base_slots"] = 1
 	(balance["armory"] as Dictionary)["base_slots"] = 1
-	(balance["start"] as Dictionary)["items"] = []
+	(balance["start"] as Dictionary)["items"] = [{"item": "seared_brookfin", "qty": 1}]  # the kit food, removed by clear_kit
 	_write(_tmp_config.path_join("balance.json"), JSON.stringify(balance))
 	_write(_tmp_config.path_join("stats.json"), FileAccess.get_file_as_string(CONFIG_ROOT.path_join("stats.json")))
 	_small_data = GameData.load_from_dirs(FIXTURE_ROOT, _tmp_config)
@@ -99,10 +99,10 @@ func test_piece_effect_goes_to_armory_and_is_repeatable() -> void:
 	_gold(300)
 	assert_true(_shop.buy(&"test_buy_hatchet").ok)
 	assert_true(_shop.buy(&"test_buy_hatchet").ok)
-	assert_eq(_session.bank.get_count(&"test_hatchet"), 0, "a piece is never in the bank")
+	assert_eq(_session.bank.get_count(&"test_blade"), 0, "a piece is never in the bank")
 	var pieces: Array[ItemInstance] = _session.armory.instances()
 	assert_eq(pieces.size(), 2)
-	assert_eq(pieces[0].base_id, &"test_hatchet")
+	assert_eq(pieces[0].base_id, &"test_blade")
 	assert_eq(pieces[0].rarity, &"common")
 	assert_eq(pieces[0].affixes.size(), 0)
 	assert_ne(pieces[0].uid, pieces[1].uid)

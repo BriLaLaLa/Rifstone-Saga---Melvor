@@ -35,8 +35,14 @@ func _write(path: String, text: String) -> void:
 	file.close()
 
 
+# These sessions run on the real data: they start with the kit (M10); the Armory tests want an empty game.
+func _empty(session: GameSession) -> GameSession:
+	TestFactory.clear_kit(session)
+	return session
+
+
 func before_each() -> void:
-	_session = autofree(TestFactory.session(21, _data))
+	_session = _empty(autofree(TestFactory.session(21, _data)))
 
 
 func _inst(base: StringName, rarity: StringName, level: int = 0) -> ItemInstance:
@@ -100,7 +106,7 @@ func test_drop_under_the_filter_is_salvaged_at_once() -> void:
 
 
 func test_drop_with_a_full_armory_is_salvaged() -> void:
-	var session: GameSession = autofree(TestFactory.session(22, _small_data))
+	var session: GameSession = _empty(autofree(TestFactory.session(22, _small_data)))
 	for i: int in SMALL_SLOTS:
 		assert_gt(session.armory.add(_inst(&"emberbronze_sword", &"common")), 0)
 	watch_signals(session.events)
@@ -127,7 +133,7 @@ func test_filter_save_round_trip() -> void:
 	var saved: Dictionary = _session.armory.to_save()
 	assert_eq(saved["filter"], {"weapon": {"min_rarity": "magic", "min_grade": 2},
 			"tool_forestry": {"min_rarity": "rare", "min_grade": 1}})
-	var other: GameSession = autofree(TestFactory.session(23, _data))
+	var other: GameSession = _empty(autofree(TestFactory.session(23, _data)))
 	other.armory.from_save(saved)
 	assert_eq(other.armory.filter_rules(), _session.armory.filter_rules())
 	assert_eq(other.armory.to_save(), saved, "save -> load -> save")

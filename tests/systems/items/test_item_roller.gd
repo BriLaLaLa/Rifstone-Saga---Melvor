@@ -191,7 +191,7 @@ func test_instance_modifiers() -> void:
 
 
 func test_tool_affix_scope() -> void:
-	var tool: ItemDef = _data.item(&"test_hatchet")
+	var tool: ItemDef = _data.item(&"unique_hatchet")
 	var inst: ItemInstance = ItemRoller.create(tool, &"magic", 5, _data, RngService.new(2))
 	assert_eq(inst.affixes.size(), 1, "only one affix is allowed on the tool slot")
 	var mods: Array[Modifier] = ItemRoller.instance_modifiers(inst, _data)
