@@ -6,17 +6,14 @@ extends RefCounted
 ## 3. double roll (F-06): every product x2;
 ## 4. inputs out, products in; when the products do not find room the cycle does not count and nothing is consumed
 ##    (outcome `bank_full`); when the inputs are gone (e.g. sold mid-cycle) the cycle fails with `missing_inputs`;
-##    Products of category `equipment`/`tool` (qty after F-06) are not banked: each unit becomes an Armory instance
-##    (rarity F-83 from the mastery level of the action before this cycle, ilvl = recipe level); no room in the
-##    Armory (`armory.can_add`) = cycle not counted, nothing consumed, outcome `armory_full`;
 ## 5. skill xp (F-02) and mastery (F-10, F-12) through their systems. No rift shard (F-07).
-## Rolls go through `session.rng`, always in this order (preservation, double, then per instance rarity and affixes).
+## Since M10 no recipe makes equipment or tools (the data validator forbids it): pieces come from blueprints
+## (BlueprintCraft), drops and the starting kit. Rolls go through `session.rng`, in this order: preservation, double.
 
 const PRESERVATION_STAT: StringName = &"preservation_chance"
 const DOUBLE_STAT: StringName = &"double_item_chance"
 ## F-06: a successful double roll multiplies every product by this factor.
 const DOUBLE_FACTOR: int = 2
-const RARITY_STAT: StringName = &"item_rarity_pct"
 
 
 ## ok when every input of the action is in the bank in the needed quantity, otherwise `missing_inputs`.
@@ -40,45 +37,21 @@ static func resolve(session: GameSession, action: ActionDef) -> ActionOutcome:
 	if not preserved:
 		consumed = _sum(action.inputs, 1)
 	var produced: Dictionary[StringName, int] = _sum(action.outputs, factor)
-	var pieces: Dictionary[StringName, int] = {}
-	var banked: Dictionary[StringName, int] = {}
-	var piece_count: int = 0
-	for item_id: StringName in produced:
-		if _is_piece(session, item_id):
-			pieces[item_id] = produced[item_id]
-			piece_count += produced[item_id]
-		else:
-			banked[item_id] = produced[item_id]
-	if piece_count > 0 and not session.armory.can_add(piece_count):
-		outcome.reason = Reasons.ARMORY_FULL
-		return outcome
-	if not _fits(session, consumed, banked):
+	if not _fits(session, consumed, produced):
 		outcome.reason = Reasons.BANK_FULL
 		return outcome
 	for item_id: StringName in consumed:
 		var removed: CommandResult = session.bank.remove(item_id, consumed[item_id])
 		assert(removed.ok, "bank.remove failed after the inputs check")
-	for item_id: StringName in banked:
-		var added: CommandResult = session.bank.add(item_id, banked[item_id])
+	for item_id: StringName in produced:
+		var added: CommandResult = session.bank.add(item_id, produced[item_id])
 		assert(added.ok, "bank.add failed after the room check")
-	# F-83: the mastery level is the one before this cycle's mastery xp.
-	var chances: Vector2 = ItemRoller.craft_chances(
-			session.mastery.get_mastery_level(action.id), session.modifiers.total(RARITY_STAT, ctx), session.data)
-	for item_id: StringName in pieces:
-		for _i: int in pieces[item_id]:
-			var rarity: StringName = ItemRoller.roll_rarity(chances, session.rng)
-			var uid: int = session.armory.create(item_id, rarity, action.level)
-			assert(uid > 0, "armory.create failed after the room check")
 	outcome.consumed = consumed
 	outcome.outputs = produced
 	outcome.xp = session.skills.add_xp(action.skill_id, action.xp, ctx)
 	outcome.mastery_xp = session.mastery.add_for_action(action)
 	outcome.ok = true
 	return outcome
-
-
-static func _is_piece(session: GameSession, item_id: StringName) -> bool:
-	return session.data.has_item(item_id) and session.data.item(item_id).category in Bank.PIECE_CATEGORIES
 
 
 # Quantities per item (duplicate entries added up), each times `factor`.

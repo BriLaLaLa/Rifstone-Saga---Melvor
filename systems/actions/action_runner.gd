@@ -8,6 +8,7 @@ extends RefCounted
 ## first cycle's interval is computed at the first advance (the modifiers are rebuilt after `from_save`).
 ## A cycle that does not count (`bank_full`) stops the lane. Every stop emits `action_stopped` and is appended to
 ## the stop reasons log (drained by `stop_reasons_log`, for the offline summary; not saved).
+## A blueprint craft (M10) is a single-cycle lane started with `start_blueprint` (BlueprintCraft).
 ## Artisan actions (with `inputs`) start only when every input is in the bank (`missing_inputs`) and stop the lane
 ## with the outcome's reason when a cycle fails (ArtisanResolver).
 ## Signals go to the session EventBus after the state changed; `new_game`/`from_save` emit nothing.
@@ -24,6 +25,9 @@ const SAVE_SKILL_KEY: String = "skill"
 const SAVE_ACTION_KEY: String = "action"
 const SAVE_ELAPSED_KEY: String = "elapsed_ms"
 const LANE_INTERVAL_KEY: String = "interval_ms"
+const SAVE_BLUEPRINT_KEY: String = "blueprint"
+const SAVE_AFFIX_KEY: String = "chosen_affix"
+const SAVE_DURATION_KEY: String = "duration_ms"
 ## Lanes in resolution order (docs/01_GDD.md §18: main first).
 const LANE_ORDER: Array[StringName] = [MAIN, SECONDARY]
 
@@ -35,6 +39,10 @@ class _Lane:
 	var action: ActionDef
 	var elapsed_ms: int = 0
 	var interval_ms: int = 0
+	# M10 blueprint craft (05 §5.8b): blueprint item id (&"" for other actions), chosen affix, waiting for Armory room.
+	var blueprint: StringName = &""
+	var chosen_affix: StringName = &""
+	var waiting: bool = false
 
 	func _init(lane_action: ActionDef, elapsed: int, interval: int) -> void:
 		action = lane_action
@@ -77,6 +85,11 @@ func to_save() -> Dictionary:
 			SAVE_ACTION_KEY: String(lane.action.id),
 			SAVE_ELAPSED_KEY: lane.elapsed_ms,
 		}
+		if lane.blueprint != &"":
+			var entry: Dictionary = lanes[String(lane_id)]
+			entry[SAVE_BLUEPRINT_KEY] = String(lane.blueprint)
+			entry[SAVE_AFFIX_KEY] = String(lane.chosen_affix)
+			entry[SAVE_DURATION_KEY] = lane.interval_ms
 	return {SAVE_LANES_KEY: lanes}
 
 
@@ -117,12 +130,47 @@ func start(skill_id: StringName, action_id: StringName, lane: StringName = MAIN)
 	return CommandResult.success()
 
 
+## M10 (05 §5.8b): starts the blueprint craft in the main lane. Same refusals as `BlueprintCraft.can_start`. The blueprint
+## and its materials leave the bank now (a stop before the end gives them back); the running work is replaced.
+func start_blueprint(blueprint_id: StringName, chosen_affix: StringName = &"") -> CommandResult:
+	var check: CommandResult = BlueprintCraft.can_start(_session, blueprint_id, chosen_affix)
+	if not check.ok:
+		return check
+	var action: ActionDef = _find_action(BlueprintCraft.SKILL, BlueprintCraft.ACTION)
+	if action == null:
+		Log.error(LOG_CATEGORY, "action '%s' is missing from the data" % BlueprintCraft.ACTION)
+		return CommandResult.fail(Reasons.UNKNOWN_ID)
+	if _session.combat != null:
+		_session.combat.stop(Reasons.REPLACED)
+	stop(MAIN, Reasons.REPLACED)
+	var item: ItemDef = _data.item(blueprint_id)
+	BlueprintCraft.consume(_session, blueprint_id)
+	var pct: float = _modifiers.total(INTERVAL_STAT, ModifierContext.for_action(action.skill_id, action.id))
+	var lane := _Lane.new(action, 0, BlueprintCraft.duration_ms(item, pct, _data))
+	lane.blueprint = blueprint_id
+	lane.chosen_affix = chosen_affix
+	_lanes[MAIN] = lane
+	_events.action_started.emit(MAIN, action.skill_id, action.id)
+	return CommandResult.success()
+
+
+## {} or {"blueprint", "chosen_affix", "duration_ms", "elapsed_ms", "waiting"} of the blueprint craft in the main lane.
+func blueprint_state() -> Dictionary:
+	var current: _Lane = _lanes.get(MAIN)
+	if current == null or current.blueprint == &"":
+		return {}
+	return {SAVE_BLUEPRINT_KEY: current.blueprint, SAVE_AFFIX_KEY: current.chosen_affix,
+			SAVE_DURATION_KEY: current.interval_ms, SAVE_ELAPSED_KEY: current.elapsed_ms, "waiting": current.waiting}
+
+
 ## Stops the lane with `reason` (emits action_stopped, logs the reason). An idle lane: nothing happens.
 func stop(lane: StringName = MAIN, reason: StringName = Reasons.STOPPED_BY_USER) -> void:
 	var current: _Lane = _lanes.get(lane)
 	if current == null:
 		return
 	_lanes.erase(lane)
+	if current.blueprint != &"" and reason != Reasons.BLUEPRINT_DONE:
+		BlueprintCraft.refund(_session, current.blueprint)
 	_stop_log.append(reason)
 	_events.action_stopped.emit(lane, current.action.skill_id, reason)
 
@@ -182,6 +230,9 @@ func advance(delta_ms: int) -> void:
 
 func _advance_lane(lane_id: StringName, delta_ms: int) -> void:
 	var lane: _Lane = _lanes[lane_id]
+	if lane.blueprint != &"":
+		_advance_blueprint(lane_id, lane, delta_ms)
+		return
 	if lane.interval_ms <= 0:
 		lane.interval_ms = _interval_for(lane.action)
 	var remaining: int = delta_ms
@@ -196,6 +247,28 @@ func _advance_lane(lane_id: StringName, delta_ms: int) -> void:
 			return
 		lane.elapsed_ms = 0
 		lane.interval_ms = _interval_for(lane.action)
+
+
+# Blueprint craft (05 §5.8b): single cycle. With the Armory full at the end the work waits at 100% and retries at
+# every advance (one notification); otherwise piece, xp, blueprint_crafted, action_completed, stop `blueprint_done`.
+func _advance_blueprint(lane_id: StringName, lane: _Lane, delta_ms: int) -> void:
+	lane.elapsed_ms = mini(lane.elapsed_ms + delta_ms, lane.interval_ms)
+	if lane.elapsed_ms < lane.interval_ms:
+		return
+	var uid: int = BlueprintCraft.finish(_session, lane.blueprint, lane.chosen_affix)
+	if uid == 0:
+		if not lane.waiting:
+			lane.waiting = true
+			_events.notification_requested.emit("Armeria piena: il lavoro attende un posto libero.", &"warning")
+		return
+	var blueprint_id: StringName = lane.blueprint
+	var bp: ItemDef = _data.item(blueprint_id)
+	var ctx: ModifierContext = ModifierContext.for_action(lane.action.skill_id, lane.action.id)
+	_session.skills.add_xp(lane.action.skill_id, BlueprintCraft.xp(bp, _data), ctx)
+	_events.blueprint_crafted.emit(blueprint_id, uid)
+	_events.action_completed.emit(lane_id, lane.action.skill_id, lane.action.id, {bp.blueprint.base_id: 1})
+	if _lanes.get(lane_id) == lane:
+		stop(lane_id, Reasons.BLUEPRINT_DONE)
 
 
 # Resolves one cycle. False when the lane is no longer running this cycle's lane (stopped by the outcome, or
@@ -228,6 +301,8 @@ func _cycle_interval(lane: _Lane) -> int:
 func _start_check(action: ActionDef) -> StringName:
 	if action == null:
 		return Reasons.UNKNOWN_ID
+	if action.single:
+		return Reasons.UNKNOWN_ID  # a single-cycle action starts with start_blueprint
 	if _session.skills.get_level(action.skill_id) < action.level:
 		return Reasons.LEVEL_TOO_LOW
 	if action.is_artisan():
@@ -258,6 +333,9 @@ func _load_lane(lane_id: StringName, entry: Variant) -> void:
 	var skill_id: StringName = StringName(str(e.get(SAVE_SKILL_KEY, "")))
 	var action_id: StringName = StringName(str(e.get(SAVE_ACTION_KEY, "")))
 	var action: ActionDef = _find_action(skill_id, action_id)
+	if e.has(SAVE_BLUEPRINT_KEY):
+		_load_blueprint_lane(lane_id, action, e)
+		return
 	var check: StringName = _start_check(action)
 	if check != &"":
 		Log.warn(LOG_CATEGORY, "lane '%s': action '%s' of '%s' cannot run (%s): idle" % [lane_id, action_id,
@@ -281,3 +359,24 @@ func _read_int(v: Variant) -> Variant:
 		if f == floorf(f):
 			return int(f)
 	return null
+
+
+# A saved blueprint craft: the materials are already consumed, so only the blueprint, the action and the duration
+# are checked. Unknown blueprint or malformed duration: reported, lane idle.
+func _load_blueprint_lane(lane_id: StringName, action: ActionDef, e: Dictionary) -> void:
+	var blueprint_id: StringName = StringName(str(e[SAVE_BLUEPRINT_KEY]))
+	var duration: Variant = _read_int(e.get(SAVE_DURATION_KEY))
+	if action == null or not action.single or not _data.has_item(blueprint_id) or not _data.item(blueprint_id).is_blueprint() \
+			or duration == null or int(duration) <= 0:
+		Log.warn(LOG_CATEGORY, "lane '%s': invalid blueprint craft '%s': idle" % [lane_id, blueprint_id])
+		return
+	var read: Variant = _read_int(e.get(SAVE_ELAPSED_KEY))
+	var elapsed: int = 0
+	if read == null or int(read) < 0:
+		Log.warn(LOG_CATEGORY, "lane '%s': invalid elapsed_ms, cycle restarts at 0" % lane_id)
+	else:
+		elapsed = mini(int(read), int(duration))
+	var lane := _Lane.new(action, elapsed, int(duration))
+	lane.blueprint = blueprint_id
+	lane.chosen_affix = StringName(str(e.get(SAVE_AFFIX_KEY, "")))
+	_lanes[lane_id] = lane

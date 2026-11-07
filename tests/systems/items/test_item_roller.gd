@@ -1,5 +1,5 @@
 extends GutTest
-## ItemRoller: F-83 chances and rarity roll, F-85 affix rolls, create, instance modifiers.
+## ItemRoller: F-84 chances and rarity roll, F-85 affix rolls, F-91/F-92 blueprint pieces, create, instance modifiers.
 ## Fixture affixes: test_keen (weapon/offhand), test_mighty (weapon/head/body, tier 2 step 2 from ilvl 30),
 ## test_nimble (armour), test_woodsman (tool_forestry).
 
@@ -19,30 +19,100 @@ class _FixedRng extends RngService:
 		return value
 
 
-func test_craft_rarity() -> void:
-	var a: Vector2 = ItemRoller.craft_chances(0, 0.0, _data)
-	assert_almost_eq(a.x, 10.0, 0.001)
-	assert_almost_eq(a.y, 1.0, 0.001)
-	var b: Vector2 = ItemRoller.craft_chances(50, 20.0, _data)
-	assert_almost_eq(b.x, 36.0, 0.001)
-	assert_almost_eq(b.y, 7.2, 0.001)
-	var c: Vector2 = ItemRoller.craft_chances(99, 0.0, _data)
-	assert_almost_eq(c.x, 49.6, 0.001)
-	assert_almost_eq(c.y, 10.9, 0.001)
-	var d: Vector2 = ItemRoller.craft_chances(99, 1000.0, _data)
-	assert_almost_eq(d.y, 100.0, 0.001)
-	assert_almost_eq(d.x, 0.0, 0.001)
-	var e: Vector2 = ItemRoller.craft_chances(99, 300.0, _data)
-	assert_almost_eq(e.x + e.y, 100.0, 0.001)
+const BlueprintData := preload("res://tests/systems/actions/blueprint_data.gd")
+
+
+func test_roll_rarity() -> void:
 	var chances := Vector2(36.0, 7.2)
 	assert_eq(ItemRoller.roll_rarity(chances, _FixedRng.new(0.05)), &"rare")
 	assert_eq(ItemRoller.roll_rarity(chances, _FixedRng.new(0.20)), &"magic")
 	assert_eq(ItemRoller.roll_rarity(chances, _FixedRng.new(0.50)), &"common")
 
 
+## F-91: p_rare = min(100, (10 + 0.5 L) x k), k = 1 + item_rarity_pct / 100.
+func test_blueprint_rarity() -> void:
+	assert_almost_eq(ItemRoller.blueprint_rare_chance(1, 0.0, _data), 10.5, 0.0001)
+	assert_almost_eq(ItemRoller.blueprint_rare_chance(50, 0.0, _data), 35.0, 0.0001)
+	assert_almost_eq(ItemRoller.blueprint_rare_chance(50, 20.0, _data), 42.0, 0.0001)
+	assert_almost_eq(ItemRoller.blueprint_rare_chance(99, 0.0, _data), 59.5, 0.0001)
+	assert_almost_eq(ItemRoller.blueprint_rare_chance(99, 100.0, _data), 100.0, 0.0001)
+	# p_rare 35: r 20 -> rare, r 50 -> magic; never common even with r 99.9
+	var bp: ItemDef = _blueprint(1)
+	var bp_data: GameData = BlueprintData.data()
+	assert_eq(ItemRoller.create_from_blueprint(bp, 50, 0.0, &"", bp_data, _FixedRng.new(0.20)).rarity, &"rare")
+	assert_eq(ItemRoller.create_from_blueprint(bp, 50, 0.0, &"", bp_data, _FixedRng.new(0.50)).rarity, &"magic")
+	assert_eq(ItemRoller.create_from_blueprint(bp, 50, 0.0, &"", bp_data, _FixedRng.new(0.999)).rarity, &"magic")
+	var inst: ItemInstance = ItemRoller.create_from_blueprint(bp, 50, 0.0, &"", bp_data, RngService.new(5))
+	assert_eq(inst.uid, 0)
+	assert_eq(inst.base_id, &"test_blade")
+	assert_eq(inst.ilvl, 1)
+	assert_gt(inst.affixes.size(), 0)
+
+
+## F-92: the chosen affix comes first at a fixed grade min(2, unlocked), counts in the affix number.
+func test_chosen_affix() -> void:
+	var bp_data: GameData = BlueprintData.data()
+	var base: ItemDef = bp_data.item(&"test_blade")
+	# ilvl 20: keen has tiers from ilvl 1, 20, 45 -> 2 unlocked; mighty (1, 30) -> 1
+	var ids: Array[StringName] = []
+	for def: AffixDef in ItemRoller.chosen_affix_candidates(base, 20, bp_data):
+		ids.append(def.id)
+	assert_eq(ids, [&"test_keen", &"test_mighty"] as Array[StringName])
+	assert_eq(ItemRoller.chosen_affix_candidates(bp_data.item(&"test_helm"), 1, bp_data).size(), 2)
+	var grade3: ItemDef = _blueprint(3)  # grade 3 = level 20 = ilvl 20
+	for seed_value: int in 30:
+		var inst: ItemInstance = ItemRoller.create_from_blueprint(grade3, 60, 0.0, &"test_keen", bp_data,
+				RngService.new(seed_value))
+		assert_eq(inst.ilvl, 20)
+		assert_eq(inst.affixes[0].affix_id, &"test_keen")
+		assert_eq(inst.affixes[0].tier, 2)
+		assert_between(inst.affixes[0].value, 7.0, 12.0)
+		assert_between(inst.affixes.size(), 1, 2 if inst.rarity == &"magic" else 4)
+		var seen: Array[StringName] = []
+		for roll: AffixRoll in inst.affixes:
+			assert_false(seen.has(roll.affix_id), "no duplicate of the chosen affix")
+			seen.append(roll.affix_id)
+	# grade 1 (ilvl 1): grade 1 of the affix; tier 2 of a single-tier ceiling is capped to the unlocked ones
+	var low: ItemInstance = ItemRoller.create_from_blueprint(_blueprint(1), 60, 0.0, &"test_keen", bp_data,
+			RngService.new(3))
+	assert_eq(low.affixes[0].tier, 1)
+	assert_between(low.affixes[0].value, 3.0, 6.0)
+
+
+## Order of the draws: rarity, count, value of the chosen affix, then the others (choice, grade, value).
+func test_chosen_affix_draw_order() -> void:
+	var bp_data: GameData = BlueprintData.data()
+	var grade3: ItemDef = _blueprint(3)
+	var rng := RngService.new(11)
+	var replica := RngService.new(11)
+	var got: ItemInstance = ItemRoller.create_from_blueprint(grade3, 60, 0.0, &"test_keen", bp_data, rng)
+	var rare: bool = replica.randf() * 100.0 < ItemRoller.blueprint_rare_chance(60, 0.0, bp_data)
+	var range_raw: Array = bp_data.balance_value("rarity.affix_count.%s" % ("rare" if rare else "magic"))
+	var count: int = replica.randi_range(int(range_raw[0]), int(range_raw[1]))
+	var tier: AffixTier = bp_data.affix(&"test_keen").tiers[1]
+	var steps: int = floori((tier.max - tier.min) / tier.step + 0.000001)
+	var value: float = snappedf(tier.min + replica.randi_range(0, steps) * tier.step, 0.000001)
+	assert_eq(got.rarity, &"rare" if rare else &"magic")
+	assert_almost_eq(got.affixes[0].value, value, 0.0001)
+	if count > 1:
+		assert_eq(got.affixes.size(), 2)
+		assert_eq(got.affixes[1].affix_id, &"test_mighty")  # the only other weapon affix: one weighted pick
+
+
+## A hand-made blueprint of `grade` for the sword base (the fixture files hold only grades 1 and 2).
+func _blueprint(grade: int) -> ItemDef:
+	var bp := ItemDef.new()
+	bp.id = &"bp_hand_made"
+	bp.category = &"blueprint"
+	bp.blueprint = BlueprintInfo.new()
+	bp.blueprint.base_id = &"test_blade"
+	bp.blueprint.grade = grade
+	return bp
+
+
 func test_item_rarity_pct() -> void:
-	var base: Vector2 = ItemRoller.craft_chances(10, 0.0, _data)
-	var boosted: Vector2 = ItemRoller.craft_chances(10, 50.0, _data)
+	var base: Vector2 = ItemRoller.drop_chances(&"monster", 0.0, _data)
+	var boosted: Vector2 = ItemRoller.drop_chances(&"monster", 50.0, _data)
 	assert_almost_eq(boosted.x, base.x * 1.5, 0.001)
 	assert_almost_eq(boosted.y, base.y * 1.5, 0.001)
 

@@ -14,6 +14,7 @@ const EXPECTED: Dictionary = {
 		["lane", SN, ""], ["skill_id", SN, ""], ["action_id", SN, ""], ["outputs", TYPE_DICTIONARY, ""],
 	],
 	"action_stopped": [["lane", SN, ""], ["skill_id", SN, ""], ["reason", SN, ""]],
+	"blueprint_crafted": [["blueprint_id", SN, ""], ["uid", I, ""]],
 	"xp_gained": [["skill_id", SN, ""], ["amount", I, ""]],
 	"level_up": [["skill_id", SN, ""], ["new_level", I, ""]],
 	"mastery_xp_gained": [["skill_id", SN, ""], ["action_id", SN, ""], ["amount", I, ""]],

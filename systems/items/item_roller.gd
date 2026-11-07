@@ -1,6 +1,6 @@
 class_name ItemRoller
 extends RefCounted
-## Rarity and affix rolls and the modifiers of an instance (F-83, F-85, F-86; docs/05_INTERFACES.md §5.18).
+## Rarity and affix rolls and the modifiers of an instance (F-84, F-85, F-86, F-91, F-92; docs/05_INTERFACES.md §5.18).
 ## Pure logic, no state. Order of draws on `rng`: rarity (one randf), affix count, then for each affix the choice,
 ## the tier and the value.
 
@@ -11,24 +11,16 @@ const TOOL_SLOT_PREFIX: String = "tool_"
 const EPSILON: float = 0.000001
 
 
-## F-83: x = magic %, y = rare %. `rarity_pct` is the total item_rarity_pct.
-static func craft_chances(mastery_level: int, rarity_pct: float, data: GameData) -> Vector2:
+## F-91 (M10): rare chance in percent (0..100) of a blueprint piece; it is never common.
+static func blueprint_rare_chance(forging_level: int, rarity_pct: float, data: GameData) -> float:
 	var k: float = 1.0 + rarity_pct / 100.0
-	var magic: float = (
-		float(data.balance_value("rarity.craft.magic_base_pct"))
-		+ float(data.balance_value("rarity.craft.magic_per_mastery_level")) * mastery_level
-	) * k
-	var rare: float = (
-		float(data.balance_value("rarity.craft.rare_base_pct"))
-		+ float(data.balance_value("rarity.craft.rare_per_mastery_level")) * mastery_level
-	) * k
-	rare = minf(rare, 100.0)
-	magic = minf(magic, 100.0 - rare)
-	return Vector2(magic, rare)
+	var base: float = float(data.balance_value("blueprint.rare_base_pct"))
+	var per_level: float = float(data.balance_value("blueprint.rare_per_forging_level"))
+	return minf((base + per_level * forging_level) * k, 100.0)
 
 
 ## F-84: x = magic %, y = rare %. `source` is `&"monster"` (rarity.drop) or `&"rift_stone"` (rarity.rift_stone); an
-## unknown source logs an error and gives zero. Same `k` and same clamping as F-83.
+## unknown source logs an error and gives zero. Same `k` and same clamping as F-91.
 static func drop_chances(source: StringName, rarity_pct: float, data: GameData) -> Vector2:
 	if source != SOURCE_MONSTER and source != SOURCE_RIFT_STONE:
 		Log.error(LOG_CATEGORY, "unknown drop source '%s'" % source)
@@ -69,10 +61,18 @@ static func extend_affixes(
 		Log.error(LOG_CATEGORY, "no affix count for rarity '%s'" % rarity)
 		return result
 	var count: int = rng.randi_range(int(range_raw[0]), int(range_raw[1]))
+	_roll_more(base, ilvl, result, count - existing.size(), data, rng)
+	return result
+
+
+# F-85: appends up to `missing` new rolls to `result` (no repeated affix; stops when no candidate is left).
+static func _roll_more(
+	base: ItemDef, ilvl: int, result: Array[AffixRoll], missing: int, data: GameData, rng: RngService
+) -> void:
 	var used: Array[StringName] = []
-	for roll: AffixRoll in existing:
+	for roll: AffixRoll in result:
 		used.append(roll.affix_id)
-	for _i: int in maxi(0, count - existing.size()):
+	for _i: int in maxi(0, missing):
 		var candidates: Array[AffixDef] = []
 		for def: AffixDef in data.affixes_for_slot(base.equip.slot):
 			if not used.has(def.id) and _unlocked_count(def, ilvl) > 0:
@@ -84,12 +84,53 @@ static func extend_affixes(
 			weights.append(def.weight)
 		var chosen: AffixDef = candidates[rng.pick_weighted(weights)]
 		var tier_index: int = rng.randi_range(0, _unlocked_count(chosen, ilvl) - 1)
-		var tier: AffixTier = chosen.tiers[tier_index]
-		var steps: int = floori((tier.max - tier.min) / tier.step + EPSILON)
-		var value: float = snappedf(tier.min + rng.randi_range(0, steps) * tier.step, EPSILON)
 		used.append(chosen.id)
-		result.append(AffixRoll.make(chosen.id, tier_index + 1, value))
+		result.append(AffixRoll.make(chosen.id, tier_index + 1, _roll_value(chosen.tiers[tier_index], rng)))
+
+
+static func _roll_value(tier: AffixTier, rng: RngService) -> float:
+	var steps: int = floori((tier.max - tier.min) / tier.step + EPSILON)
+	return snappedf(tier.min + rng.randi_range(0, steps) * tier.step, EPSILON)
+
+
+## F-92 (M10): the affixes the player may choose for `base` at `ilvl` (allowed by the slot, with an unlocked tier).
+static func chosen_affix_candidates(base: ItemDef, ilvl: int, data: GameData) -> Array[AffixDef]:
+	var result: Array[AffixDef] = []
+	if base == null or base.equip == null:
+		return result
+	for def: AffixDef in data.affixes_for_slot(base.equip.slot):
+		if _unlocked_count(def, ilvl) > 0:
+			result.append(def)
 	return result
+
+
+## F-91/F-92 (M10): new instance (uid 0) of the base of blueprint `bp`, never common, `ilvl` = level of the grade.
+## `chosen_affix` &"" = no choice. Draws on `rng`: rarity, affix count, value of the chosen affix, then the others.
+## The caller checked the choice (Forging level, allowed by the slot); an invalid one is logged and ignored.
+static func create_from_blueprint(
+	bp: ItemDef, forging_level: int, rarity_pct: float, chosen_affix: StringName, data: GameData, rng: RngService
+) -> ItemInstance:
+	var base: ItemDef = data.item(bp.blueprint.base_id)
+	var ilvl: int = BlueprintCraft.grade_level(bp.blueprint.grade, data)
+	var inst := ItemInstance.new()
+	inst.base_id = base.id
+	inst.ilvl = ilvl
+	var p_rare: float = blueprint_rare_chance(forging_level, rarity_pct, data)
+	inst.rarity = &"rare" if rng.randf() * 100.0 < p_rare else &"magic"
+	var range_raw: Variant = data.balance_value("rarity.affix_count.%s" % inst.rarity)
+	var count: int = rng.randi_range(int(range_raw[0]), int(range_raw[1]))
+	var picked: AffixDef = null
+	for def: AffixDef in chosen_affix_candidates(base, ilvl, data):
+		if def.id == chosen_affix:
+			picked = def
+	if chosen_affix != &"" and picked == null:
+		Log.error(LOG_CATEGORY, "chosen affix '%s' is not allowed on '%s'" % [chosen_affix, base.id])
+	if picked != null:
+		var cap: int = int(data.balance_value("blueprint.chosen_affix_tier"))
+		var tier_number: int = mini(cap, _unlocked_count(picked, ilvl))
+		inst.affixes.append(AffixRoll.make(picked.id, tier_number, _roll_value(picked.tiers[tier_number - 1], rng)))
+	_roll_more(base, ilvl, inst.affixes, count - inst.affixes.size(), data, rng)
+	return inst
 
 
 ## New instance (uid 0). The rarity is given (rolled by the caller with `roll_rarity`).
