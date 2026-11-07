@@ -593,7 +593,7 @@ Modificatori degli assetti (`data/classes/rift_blade.json`): solo `dual_swords` 
 | Soglia del Rift | `shard_wraith` | 65 | 700 | arcana | 2600 | 70 / 55 / 60 | 15 | 60-120 | 2,0 | 2800 |
 | | `rift_knight` | 78 | 950 | blade | 2400 | 85 / 65 / 80 | 20 | 90-170 | 2,5 | 3800 |
 | | `riftborn_colossus` | 92 | 1300 | marksmanship | 3400 | 100 / 80 / 110 | 25 | 150-300 | 3,0 | 5200 |
-I drop di oggetti (pelli, ossa, materiali dell'area) li definisce il Data Designer: al massimo 4 voci per mostro,
+I drop di oggetti (pelli, ossa, materiali dell'area) li definisce il Data Designer: al massimo 8 voci per mostro,
 probabilità tra 1% e 40%. Requisito di ogni area: `{"character": n}` con n = livello del primo mostro dell'area (1, 16, 38, 65).
 
 **Gruppi** (`packs`, D5, Q38): ogni area ha 3-6 gruppi pesati di 1..`combat.max_pack_size` (6) mostri della stessa

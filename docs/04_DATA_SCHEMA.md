@@ -334,7 +334,7 @@ Classe: `MasteryNodeDef`.
 | `damage_reduction` | float | 0..80 |
 | `gold` | `[min, max]` | 0 ≤ min ≤ max |
 | `rift_shard_chance` | float | 0..100 |
-| `drops` | array | `{item, chance_pct 0..100, qty [min ≥ 1, max ≥ min]}`, max 4 voci; voci `blueprint` ammesse da M10 (cadono nella borsa del bottino come oggetti di bank, `qty` [1, 1]); voci `equipment` ammesse da M7 (`tool` non cade più dall'M10, gli attrezzi sono unici): cadono come istanze con rarità F-84 e affissi F-85 (`ilvl` = massimo dei tre livelli del mostro), `qty` = numero di istanze |
+| `drops` | array | `{item, chance_pct 0..100, qty [min ≥ 1, max ≥ min]}`, max 8 voci (M10: alzato da 4 per ospitare i 64 progetti, `chance_pct` dei progetti anche sotto 1%, min 0,05); voci `blueprint` ammesse da M10 (cadono nella borsa del bottino come oggetti di bank, `qty` [1, 1]); voci `equipment` ammesse da M7 (`tool` non cade più dall'M10, gli attrezzi sono unici): cadono come istanze con rarità F-84 e affissi F-85 (`ilvl` = massimo dei tre livelli del mostro), `qty` = numero di istanze |
 
 Classi: `AreaDef`, `PackDef`, `MonsterDef`, `DropEntry`. Icone dei mostri in `res://assets/icons/monsters/`.
 Fino a M5-04 i due file esistono vuoti (`{"_doc": …, "areas": []}`, `{"_doc": …, "monsters": []}`, creati da M1-12); lo schema con `packs` e `xp` è di M4-01.
@@ -492,7 +492,7 @@ Classi: `AffixDef`, `AffixTier`. Nell'MVP ogni slot d'equipaggiamento ha almeno 
   "pulse_damage", "pulse_ms", "summon_pack" (indice di `packs` dell'area o `null`), "shards": [min, max], "drops": [...]}]}`,
   una per area (F-87; il validatore rifiuta due Pietre sulla stessa area). `summon_pack` obbligatorio (`null` = nessun gruppo).
   `hp` ≥ 1, `xp` ≥ 0, `pulse_damage` ≥ 1, `pulse_ms` ≥ `combat.min_attack_interval_ms`, `icon` in
-  `res://assets/icons/monsters/` (file esistente), `drops` come i mostri (max 4; i pezzi con rarità `rarity.rift_stone`).
+  `res://assets/icons/monsters/` (file esistente), `drops` come i mostri (max 8; i pezzi con rarità `rarity.rift_stone`).
   Classe `RiftStoneDef`; `GameData.rift_stone(id)`, `has_rift_stone(id)`, `rift_stone_for_area(area_id)`.
 - `data/items/materials.json`: Sigillo di salvaguardia (`upgrade.seal_item`).
 - `balance.json`: `rarity.drop`, `rarity.rift_stone`, `upgrade`, `rift_stone`, `salvage`; `stats.json`: `upgrade_success_pct`.

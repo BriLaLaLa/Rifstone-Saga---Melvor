@@ -12,7 +12,7 @@ const MONSTER_ICON_DIR: String = "res://assets/icons/monsters/"
 const CLASS_ICON_DIR: String = "res://assets/icons/classes/"
 const SPRITE_STATES: PackedStringArray = ["idle", "attack", "hit", "death"]  # reserved, no use yet (M6-00a)
 const SPRITE_DIR: String = "res://assets/"
-const MAX_DROPS: int = 4
+const MAX_DROPS: int = 8
 const DAMAGE_REDUCTION_STAT: StringName = &"damage_reduction"  # bounds monster damage_reduction (stats.json)
 const CLASS_FIELDS: PackedStringArray = ["id", "name", "description", "icon", "order", "weapon_kinds", "offhand_kinds",
 	"setups", "traits", "abilities"]
