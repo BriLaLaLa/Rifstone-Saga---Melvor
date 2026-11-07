@@ -64,7 +64,9 @@ func test_has_the_four_buttons_with_italian_texts() -> void:
 	assert_eq((_menu.get_node("%Buttons") as Node).get_child_count(), BUTTONS.size())
 	for button_name: String in BUTTONS:
 		assert_eq(_button(button_name).text, BUTTONS[button_name], button_name)
-	assert_true(_button("SettingsButton").disabled, "settings arrive with M1-12")
+	assert_false(_button("SettingsButton").disabled, "settings are available")
+	assert_eq(_button("SettingsButton").tooltip_text, "")
+	assert_gt(_button("SettingsButton").pressed.get_connections().size(), 0, "Settings has a pressed handler")
 	assert_gt(_button("ExitButton").pressed.get_connections().size(), 0, "Exit has a pressed handler")
 
 

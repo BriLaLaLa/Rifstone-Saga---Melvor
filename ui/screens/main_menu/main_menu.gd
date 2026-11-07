@@ -1,5 +1,5 @@
 extends Control
-## Main menu (docs/01_GDD.md §1): New game, Continue, Settings (M1-12) and Exit. Main scene of the project.
+## Main menu (docs/01_GDD.md §1): New game, Continue, Settings (SettingsPanel) and Exit. Main scene of the project.
 ##
 ## No session exists here and nothing is written to user://: the menu only reads `Game.list_slots()`; the slot
 ## screen (SlotSelect, a child of this scene) sends the commands. New game and Continue are offered only with valid
@@ -17,6 +17,7 @@ const GameScript := preload("res://core/autoload/game.gd")
 const NAME_SETTING := "application/config/name"
 const VERSION_SETTING := "application/config/version"
 const MAIN_SCREEN_PATH := "res://ui/screens/main/main_screen.tscn"
+const HEADLESS_DRIVER: String = "headless"
 const LOG_CATEGORY: String = "ui"
 const DATA_INVALID_TEXT := "I dati di gioco non sono validi: non si può avviare una partita."
 const SCENE_FAILED_TEXT := "Impossibile aprire la schermata di gioco."
@@ -36,6 +37,7 @@ var scene_changer: Callable = Callable()
 @onready var _message_label: Label = %MessageLabel
 @onready var _new_game_button: Button = %NewGameButton
 @onready var _continue_button: Button = %ContinueButton
+@onready var _settings_button: Button = %SettingsButton
 @onready var _exit_button: Button = %ExitButton
 @onready var _buttons: VBoxContainer = %Buttons
 @onready var _slot_select: SlotSelect = %SlotSelect
@@ -43,6 +45,9 @@ var scene_changer: Callable = Callable()
 
 func _ready() -> void:
 	get_window().min_size = UiStyle.WINDOW_MIN_SIZE
+	# Saved window, volume and log settings are applied at start (no window change in headless runs).
+	if DisplayServer.get_name() != HEADLESS_DRIVER:
+		GameSettings.apply(get_window())
 	_background.color = UiStyle.BG
 	_apply_layout()
 	_title_label.text = str(ProjectSettings.get_setting(NAME_SETTING, ""))
@@ -52,6 +57,7 @@ func _ready() -> void:
 	_slot_select.visible = false
 	_new_game_button.pressed.connect(_on_new_game_button_pressed)
 	_continue_button.pressed.connect(_on_continue_button_pressed)
+	_settings_button.pressed.connect(_on_settings_button_pressed)
 	_exit_button.pressed.connect(_on_exit_button_pressed)
 	_slot_select.closed.connect(_on_slot_select_closed)
 	_slot_select.game_started.connect(_on_slot_select_game_started)
@@ -115,6 +121,12 @@ func _on_new_game_button_pressed() -> void:
 
 func _on_continue_button_pressed() -> void:
 	_open_slots(SlotSelect.MODE_CONTINUE)
+
+
+func _on_settings_button_pressed() -> void:
+	var panel := SettingsPanel.new()
+	panel.game = game
+	add_child(panel)
 
 
 func _on_exit_button_pressed() -> void:
