@@ -114,7 +114,7 @@ func test_new_game_while_playing_fails_with_slot_active() -> void:
 	_game.new_game(1, "First")
 	var first: GameSession = _game.session
 	assert_eq(_game.new_game(2, "Second").reason, Reasons.SLOT_ACTIVE)
-	assert_eq(_game.continue_game(1).reason, Reasons.SLOT_ACTIVE)
+	assert_eq((await _game.continue_game(1)).reason, Reasons.SLOT_ACTIVE)
 	assert_eq(_game.session, first)
 	assert_false(SaveService.slot_exists(2))
 
@@ -208,7 +208,7 @@ func test_continue_restores_the_slot() -> void:
 	_game.end_session(true)
 	_saves.clear()
 	_started.clear()
-	var result: CommandResult = _game.continue_game(2)
+	var result: CommandResult = await _game.continue_game(2)
 	assert_true(result.ok)
 	assert_eq(_game.state, &"playing")
 	assert_ne(_game.session, first)
@@ -220,8 +220,82 @@ func test_continue_restores_the_slot() -> void:
 	assert_false(GameClock.is_paused())
 
 
+# --- offline (M9-01, N5) ----------------------------------------------------------------------------------------
+
+# Saves slot 2 with the angling action running, ends the session and moves the clock `away_ms` forward.
+func _leave_and_return(away_ms: int) -> void:
+	_game.new_game(2, "Davide")
+	assert_true(_game.session.actions.start(&"angling", &"catch_brookfin").ok)
+	_game.session.play_time_ms = 5000
+	_game.end_session(true)
+	GameClock.time_source = func() -> int: return NOW_MS + away_ms
+
+
+func test_continue_after_two_hours_simulates_and_keeps_the_summary() -> void:
+	_leave_and_return(2 * 3600000)
+	var states: Array[StringName] = []
+	var order: Array[String] = []
+	EventBus.offline_started.connect(func(_e: int, _c: bool) -> void:
+		states.append(_game.state)
+		order.append("started")
+		assert_true(GameClock.is_paused(), "clock paused during the offline"), CONNECT_ONE_SHOT)
+	EventBus.offline_completed.connect(func(_s: OfflineSummary) -> void: order.append("completed"), CONNECT_ONE_SHOT)
+	_started.clear()
+	var result: CommandResult = await _game.continue_game(2)
+	assert_true(result.ok)
+	assert_eq(states, [&"offline"] as Array[StringName])
+	assert_eq(_game.state, &"playing")
+	assert_not_null(_game.last_offline_summary)
+	assert_eq(_game.last_offline_summary.elapsed_ms, 2 * 3600000)
+	assert_false(_game.last_offline_summary.capped)
+	assert_gt(_game.last_offline_summary.xp.get(&"angling", 0), 0)
+	assert_eq(_game.session.play_time_ms, 5000, "play time grows only online")
+	assert_eq(order, ["started", "completed"])
+	assert_eq(_started, [[2, false]], "session_started is the last step")
+	assert_false(GameClock.is_paused())
+	assert_eq(SaveService.read_slot(2)["saved_at_unix_ms"], NOW_MS + 2 * 3600000, "saved after the offline")
+
+
+func test_continue_after_twenty_hours_is_capped_at_twelve() -> void:
+	_leave_and_return(20 * 3600000)
+	await _game.continue_game(2)
+	assert_eq(_game.last_offline_summary.elapsed_ms, 43200000)
+	assert_true(_game.last_offline_summary.capped)
+
+
+func test_continue_below_the_minimum_simulates_silently() -> void:
+	_leave_and_return(30000)
+	var completed: Array[int] = []
+	var on_completed: Callable = func(_s: OfflineSummary) -> void: completed.append(1)
+	EventBus.offline_completed.connect(on_completed)
+	await _game.continue_game(2)
+	EventBus.offline_completed.disconnect(on_completed)
+	assert_null(_game.last_offline_summary)
+	assert_eq(completed.size(), 0, "no screen and no offline signals")
+	assert_eq(_game.state, &"playing")
+	assert_gt(_game.session.skills.get_xp(&"angling"), 0, "the 30 s were played")
+	assert_eq(_game.session.play_time_ms, 5000)
+
+
+func test_continue_with_the_clock_set_back_has_no_offline() -> void:
+	_leave_and_return(-3600000)
+	await _game.continue_game(2)
+	assert_null(_game.last_offline_summary)
+	assert_eq(_game.session.skills.get_xp(&"angling"), 0)
+
+
+func test_second_continue_during_the_offline_is_refused() -> void:
+	_leave_and_return(2 * 3600000)
+	var second: Array[StringName] = []
+	EventBus.offline_started.connect(func(_e: int, _c: bool) -> void:
+		var refused: CommandResult = await _game.continue_game(2)
+		second.append(refused.reason), CONNECT_ONE_SHOT)
+	await _game.continue_game(2)
+	assert_eq(second, [Reasons.SLOT_ACTIVE] as Array[StringName])
+
+
 func test_continue_empty_slot_fails() -> void:
-	var result: CommandResult = _game.continue_game(1)
+	var result: CommandResult = await _game.continue_game(1)
 	assert_eq(result.reason, Reasons.IO_ERROR)
 	assert_null(_game.session)
 	assert_eq(_game.state, &"menu")
@@ -232,7 +306,7 @@ func test_continue_corrupted_slot_fails() -> void:
 	var file: FileAccess = FileAccess.open(SaveService.slot_path(1), FileAccess.WRITE)
 	file.store_string("not json")
 	file.close()
-	var result: CommandResult = _game.continue_game(1)
+	var result: CommandResult = await _game.continue_game(1)
 	assert_eq(result.reason, Reasons.CORRUPTED)
 	assert_null(_game.session)
 	assert_eq(_game.state, &"menu")

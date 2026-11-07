@@ -21,6 +21,8 @@ const SLOT_COUNT_KEY: String = "slots.count"
 # Player name length after strip_edges (docs/01_GDD.md §1); SlotTexts reads the same keys for its message.
 const NAME_MIN_LENGTH_KEY: String = "player_name.min_length"
 const NAME_MAX_LENGTH_KEY: String = "player_name.max_length"
+const OFFLINE_CAP_KEY: String = "offline.cap_ms"
+const OFFLINE_MIN_KEY: String = "offline.min_ms"
 const STATE_MENU: StringName = &"menu"
 const STATE_LOADING: StringName = &"loading"
 const STATE_OFFLINE: StringName = &"offline"
@@ -33,8 +35,8 @@ const SEED_MASK: int = (1 << 53) - 1
 var session: GameSession = null
 var active_slot: int = -1
 var state: StringName = STATE_MENU
-# Typed OfflineSummary by M6-01 (the class does not exist yet).
-var last_offline_summary: RefCounted = null
+# Set by continue_game when time passed away (null otherwise or after a new game).
+var last_offline_summary: OfflineSummary = null
 
 var _slot_count: int = 0
 var _name_min_length: int = 0
@@ -81,6 +83,7 @@ func new_game(slot: int, player_name: String) -> CommandResult:
 	if not check.ok:
 		return check
 	state = STATE_LOADING
+	last_offline_summary = null
 	var new_session: GameSession = _create_session(slot)
 	new_session.new_game()
 	new_session.player_name = clean_name
@@ -94,7 +97,8 @@ func new_game(slot: int, player_name: String) -> CommandResult:
 	return CommandResult.success()
 
 
-## Reads the migrated slot, from_save (which rebuilds the modifiers), then saves and enters `playing`.
+## Reads the migrated slot, from_save (which rebuilds the modifiers), simulates the time away (a coroutine: `await` it;
+## state `offline` meanwhile, summary in last_offline_summary), then saves and enters `playing`.
 ## Fails with the store's reason (io_error, corrupted, version_unsupported) or the session's, changing nothing.
 func continue_game(slot: int) -> CommandResult:
 	var check: CommandResult = _check_can_start(slot)
@@ -115,7 +119,7 @@ func continue_game(slot: int) -> CommandResult:
 	# The file name decides the slot, whatever the header says.
 	loaded_session.slot = slot
 	_attach(loaded_session, slot)
-	# Offline: M6-01
+	await _simulate_offline(loaded_session, d)
 	var saved: CommandResult = save_now()
 	if not saved.ok:
 		Log.warn(LOG_CATEGORY, "save after loading slot %d failed (%s): retried by the autosave" % [slot, saved.reason])
@@ -154,6 +158,29 @@ func delete_slot(slot: int) -> CommandResult:
 	if session != null and slot == active_slot:
 		return CommandResult.fail(Reasons.SLOT_ACTIVE)
 	return SaveService.delete_slot(slot)
+
+
+# F-40: the time since saved_at, capped. From offline.min_ms on, the state is `offline` while the simulator runs (with
+# a frame between blocks) and the summary is kept in last_offline_summary; below it the same blocks run silently.
+# The clock stays paused (it is paused outside `playing`) and play_time_ms does not grow.
+func _simulate_offline(loaded_session: GameSession, save_dict: Dictionary) -> void:
+	last_offline_summary = null
+	var data: GameData = loaded_session.data
+	var cap_ms: int = int(data.balance_value(OFFLINE_CAP_KEY))
+	var saved_at: int = int(save_dict.get("saved_at_unix_ms", 0))
+	var now: int = GameClock.now_unix_ms()
+	if saved_at > now:
+		Log.warn(LOG_CATEGORY, "system clock set back: no offline time")
+	var elapsed_ms: int = OfflineSimulator.compute_elapsed(saved_at, now, cap_ms)
+	if elapsed_ms <= 0:
+		return
+	if elapsed_ms < int(data.balance_value(OFFLINE_MIN_KEY)):
+		OfflineSimulator.advance_silently(loaded_session, elapsed_ms)
+		return
+	state = STATE_OFFLINE
+	var simulator: OfflineSimulator = OfflineSimulator.new()
+	last_offline_summary = await simulator.run(loaded_session, elapsed_ms, OfflineSimulator.is_capped(saved_at, now, cap_ms))
+	state = STATE_LOADING
 
 
 func _check_can_start(slot: int) -> CommandResult:
