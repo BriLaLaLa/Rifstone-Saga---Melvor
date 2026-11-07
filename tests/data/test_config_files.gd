@@ -102,6 +102,10 @@ const EXPECTED_BALANCE: Dictionary = {
 	"rift.sockets.2.level": 40.0,
 	"rift.sockets.3.level": 60.0,
 	"rift.sockets.4.level": 80.0,
+	"sockets.by_rarity.common": 0.0,
+	"sockets.by_rarity.magic": 1.0,
+	"sockets.by_rarity.rare": 2.0,
+	"sockets.bonus_at_upgrade": 7.0,
 	"offline.cap_ms": 43200000.0,
 	"offline.min_ms": 60000.0,
 	"offline.chunk_ms": 60000.0,
@@ -140,7 +144,7 @@ const STAT_FIELDS: Array[String] = ["id", "name", "format", "min", "max", "descr
 const STAT_FORMATS: Array[String] = ["pct", "flat", "flag"]
 const LATER_MILESTONE_STATS: Array[String] = ["fracture_duration_pct", "parallel_lanes"]
 const LATER_MILESTONE_BALANCE_KEYS: Array[String] = [
-	"sockets", "fractures", "parallel",
+	"fractures", "parallel",
 ]
 
 
