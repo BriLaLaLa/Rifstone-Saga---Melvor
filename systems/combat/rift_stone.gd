@@ -67,7 +67,7 @@ func reward(loot: LootBag, area_id: StringName) -> void:
 	var def: RiftStoneDef = _session.data.rift_stone_for_area(area_id)
 	if def == null:
 		return
-	_session.character.add_xp(def.xp)
+	_session.character.add_xp(KillRewards.base_xp(_session, def.xp))
 	loot.add(SHARD_ITEM, _session.rng.randi_range(def.shards_min, def.shards_max))
 	KillRewards.roll_drops(_session, loot, def.drops, ItemRoller.SOURCE_RIFT_STONE, _area_ilvl(area_id))
 

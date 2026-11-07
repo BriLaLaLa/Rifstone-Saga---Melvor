@@ -9,9 +9,9 @@ const MONSTERS: Array[Array] = [
 	["whisper_wolf", "whisper_wood", 16, 110, "blade", 2600, 20, 15, 18, 4, 8, 18, 1.0, 440],
 	["moss_troll", "whisper_wood", 22, 160, "arcana", 3000, 25, 22, 30, 8, 12, 25, 1.0, 640],
 	["hollow_archer", "whisper_wood", 30, 210, "marksmanship", 2400, 30, 18, 20, 5, 15, 30, 1.0, 840],
-	["crack_golem", "cracked_mines", 38, 320, "blade", 3200, 45, 35, 50, 12, 25, 50, 1.5, 1280],
-	["deep_crawler", "cracked_mines", 46, 400, "marksmanship", 2200, 50, 30, 35, 8, 30, 60, 1.5, 1600],
-	["vein_witch", "cracked_mines", 55, 520, "arcana", 2800, 55, 40, 40, 10, 40, 80, 1.5, 2080],
+	["crack_golem", "cracked_mines", 38, 320, "blade", 3200, 45, 35, 50, 12, 25, 50, 1.5, 1024],
+	["deep_crawler", "cracked_mines", 46, 400, "marksmanship", 2200, 50, 30, 35, 8, 30, 60, 1.5, 1280],
+	["vein_witch", "cracked_mines", 55, 520, "arcana", 2800, 55, 40, 40, 10, 40, 80, 1.5, 1664],
 	["shard_wraith", "rift_threshold", 65, 700, "arcana", 2600, 70, 55, 60, 15, 60, 120, 2.0, 2800],
 	["rift_knight", "rift_threshold", 78, 950, "blade", 2400, 85, 65, 80, 20, 90, 170, 2.5, 3800],
 	["riftborn_colossus", "rift_threshold", 92, 1300, "marksmanship", 3400, 100, 80, 110, 25, 150, 300, 3.0, 5200],
@@ -65,9 +65,6 @@ func test_monsters_follow_table_8_5() -> void:
 		assert_eq(int(m["xp"]), row[13], "%s xp" % row[0])
 
 
-func test_xp_is_four_times_hp_until_tuned() -> void:
-	for m: Dictionary in _monsters.values():
-		assert_eq(int(m["xp"]), 4 * int(m["hp"]), "%s xp (Q41 default)" % m["id"])
 
 
 func test_areas_order_and_requirements() -> void:
@@ -160,3 +157,10 @@ func test_slot_and_class_icons_exist() -> void:
 		assert_true(FileAccess.file_exists("res://assets/icons/slots/%s.svg" % slot), "slot icon %s" % slot)
 	var cls: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/classes/rift_blade.json"))
 	assert_true(FileAccess.file_exists(cls["icon"]), "class icon %s" % cls["icon"])
+
+
+func test_xp_is_four_times_hp_except_the_mines_tuned_by_b1() -> void:
+	# M10-07 (Q54): Miniere Crepate give 0.8 x (4 x hp) so that a night offline from level 50 stays within +12 levels.
+	for m: Dictionary in _monsters.values():
+		var factor: float = 3.2 if m["id"] in ["crack_golem", "deep_crawler", "vein_witch"] else 4.0
+		assert_eq(int(m["xp"]), int(float(m["hp"]) * factor), "%s xp" % m["id"])

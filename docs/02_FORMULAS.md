@@ -211,12 +211,12 @@ Esempi: livello 1 → 60; livello 10 e +20 → 170; livello 99 → 1.040. Test: 
 ### F-28 Esperienza di combattimento (per uccisione)
 Ogni nemico ucciso dà al personaggio `base_xp = floor(xp del mostro × combat.kill_xp_mult)` (campo `xp` del mostro,
 `04_DATA_SCHEMA.md` §8), che passa da F-71. Nessuna XP per danno, nessuna stance (D3). Una Pietra del Rift (F-87) dà il
-suo `xp` con la stessa regola. Valori: tabella §8.5 (`xp = 4 × PV`); **B1 (M10)**: `combat.kill_xp_mult` = 0,15,
-valore di partenza **da tarare** con `tools/sim_combat.gd` (obiettivo: livello 99 in 250-350 h di combattimento
-nell'area giusta, offline compreso, e al massimo +12 livelli dopo il 50 in una notte offline; Q54). Con 1,0 si
-ottiene la regola dell'MVP.
-Esempi (mult 0,15): `plains_boar` (xp 80) → base 12; +25% → 15; gruppo di 3 `plains_boar` → 36. Con mult 1,0: 80,
-100, 240. Test: `tests/systems/combat/test_combat_engine.gd::test_kill_grants_character_xp`.
+suo `xp` con la stessa regola. Valori: tabella §8.5 (`xp = 4 × PV`, tranne le Miniere Crepate a 3,2 × PV, tarate da B1);
+**B1 (M10-07)**: `combat.kill_xp_mult` = **0,11**, tarato con `tools/sim_combat.gd` e `tools/sim_progress.gd`: livello 99 in circa
+296 h nell'area giusta (la più alta consentita dal livello; offline compreso, stesso motore) e una notte offline (12 h) dal 50
+dà al massimo +12 livelli (Q54). Con 1,0 si ottiene la regola dell'MVP.
+Esempi (mult 0,11): `plains_boar` (xp 80) → base 8; +25% → 10; gruppo di 3 `plains_boar` → 24; `redrock_raider` (200) → 22;
+Pietra con xp 240 → 26. Con mult 1,0: 80, 100, 240. Test: `tests/systems/combat/test_combat_engine.gd::test_kill_grants_character_xp`.
 
 ### F-29 Cura del cibo
 `heal = floor(food.heal × (1 + T(food_healing_pct)/100))`; `hp = min(max_hp, hp + heal)`.
@@ -587,9 +587,9 @@ Modificatori degli assetti (`data/classes/rift_blade.json`): solo `dual_swords` 
 | Bosco dei Sussurri | `whisper_wolf` | 16 | 110 | blade | 2600 | 20 / 15 / 18 | 4 | 8-18 | 1,0 | 440 |
 | | `moss_troll` | 22 | 160 | arcana | 3000 | 25 / 22 / 30 | 8 | 12-25 | 1,0 | 640 |
 | | `hollow_archer` | 30 | 210 | marksmanship | 2400 | 30 / 18 / 20 | 5 | 15-30 | 1,0 | 840 |
-| Miniere Crepate | `crack_golem` | 38 | 320 | blade | 3200 | 45 / 35 / 50 | 12 | 25-50 | 1,5 | 1280 |
-| | `deep_crawler` | 46 | 400 | marksmanship | 2200 | 50 / 30 / 35 | 8 | 30-60 | 1,5 | 1600 |
-| | `vein_witch` | 55 | 520 | arcana | 2800 | 55 / 40 / 40 | 10 | 40-80 | 1,5 | 2080 |
+| Miniere Crepate | `crack_golem` | 38 | 320 | blade | 3200 | 45 / 35 / 50 | 12 | 25-50 | 1,5 | 1024 |
+| | `deep_crawler` | 46 | 400 | marksmanship | 2200 | 50 / 30 / 35 | 8 | 30-60 | 1,5 | 1280 |
+| | `vein_witch` | 55 | 520 | arcana | 2800 | 55 / 40 / 40 | 10 | 40-80 | 1,5 | 1664 |
 | Soglia del Rift | `shard_wraith` | 65 | 700 | arcana | 2600 | 70 / 55 / 60 | 15 | 60-120 | 2,0 | 2800 |
 | | `rift_knight` | 78 | 950 | blade | 2400 | 85 / 65 / 80 | 20 | 90-170 | 2,5 | 3800 |
 | | `riftborn_colossus` | 92 | 1300 | marksmanship | 3400 | 100 / 80 / 110 | 25 | 150-300 | 3,0 | 5200 |
@@ -712,7 +712,7 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | ~~`rarity.craft.*`~~ | tolta in M10 | era F-83 (sostituita da F-91) |
 | `blueprint.{duration_base_min, duration_per_grade_min, xp_mult, rare_base_pct, rare_per_forging_level, choose_affix_level, chosen_affix_tier}` (M10) | 10, 7, 1.5, 10, 0.5, 50, 2 | F-90, F-91, F-92 (Q48, Q50; il resto da tarare, Q53) |
 | `tool_upgrade.{interval_base_pct, interval_per_level_pct, levels, plate_items, handle_items}` (M10) | 5, 2, tabella F-94 (9 voci `{min_level, grade, plates, handles, gold}`), 8 id delle piastre T1-T8, 8 id dei manici T1-T8 | F-94 |
-| `combat.kill_xp_mult` (M10) | 0.15 (da tarare, B1/Q54) | F-28 |
+| `combat.kill_xp_mult` (M10) | 0.11 (tarato in M10-07, Q54) | F-28 |
 | `rarity.affix_count.{magic, rare}` | `[1, 2]`, `[3, 4]` | F-85 |
 | `traits.slot_levels` (M6) | `[1, 10, 25, 50]` | F-78 (Q35) |
 | `abilities.slot_levels` (M6) | `[1, 1, 30]` | F-78 (Q36) |

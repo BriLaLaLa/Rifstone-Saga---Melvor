@@ -54,7 +54,7 @@ func test_real_balance_is_valid_with_the_m10_keys() -> void:
 
 
 func test_real_m10_values() -> void:
-	assert_eq(_real.balance_value("combat.kill_xp_mult"), 0.15)
+	assert_eq(_real.balance_value("combat.kill_xp_mult"), 0.11)
 	assert_eq(_real.balance_value("salvage.component_ratio"), 0.4)
 	assert_eq(_real.balance_value("blueprint.duration_base_min"), 10.0)
 	assert_eq(_real.balance_value("blueprint.duration_per_grade_min"), 7.0)

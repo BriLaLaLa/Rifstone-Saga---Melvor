@@ -78,7 +78,7 @@ const EXPECTED_BALANCE: Dictionary = {
 	"combat.auto_eat_tiers.3.target_pct": 90.0,
 	"combat.respawn_ms": 1500.0,
 	"combat.loot_bag_base_slots": 12.0,
-	"combat.kill_xp_mult": 0.15,
+	"combat.kill_xp_mult": 0.11,
 	"character_curve.base": 70.0,
 	"character_curve.growth": 1.1,
 	"character_curve.linear": 8.0,

@@ -1,7 +1,7 @@
 class_name CombatEngine
 extends RefCounted
-## Event-driven group combat (docs/01_GDD.md §10, docs/05_INTERFACES.md §5.10): `advance` jumps from timer to timer
-## (`advance(1000)` = ten `advance(100)`), randomness from `session.rng`. Helpers: EffectSet, AbilityRunner, RiftStone.
+## Event-driven group combat (docs/01_GDD.md §10, docs/05_INTERFACES.md §5.10): `advance` jumps from timer to timer, randomness
+## from `session.rng` (`advance(1000)` = ten `advance(100)`). Helpers: EffectSet, AbilityRunner, RiftStone.
 
 const SAVE_KEY: StringName = &"combat"
 const STATE_IDLE: StringName = &"idle"
@@ -11,6 +11,7 @@ const STATE_RIFTSTONE: StringName = &"riftstone"  # M7
 const PLAYER: int = -1
 
 var loot: LootBag
+var advance_offset_ms: int = 0  # ms of the running `advance` already consumed (B3: dates an event in a block); 0 outside
 
 var _session: GameSession
 var _stone: RiftStone
@@ -42,8 +43,7 @@ func _init(session: GameSession) -> void:
 	session.events.traits_changed.connect(_on_loadout_changed)
 
 
-## unknown_id, requirement_not_met (character level). Stops the main-lane action (REPLACED). Starting the area
-## already fought changes nothing; another area replaces the current fight.
+## unknown_id, requirement_not_met (character level). Stops the main-lane action. The area already fought: no change.
 func start(area_id: StringName) -> CommandResult:
 	if not _session.data.has_area(area_id):
 		return CommandResult.fail(Reasons.UNKNOWN_ID)
@@ -160,10 +160,12 @@ func advance(delta_ms: int) -> void:
 		var next: int = _next_timer()
 		if next > remaining:
 			_consume(remaining)
-			return
+			break
 		_consume(next)
 		remaining -= next
+		advance_offset_ms = delta_ms - remaining
 		_resolve_instant()
+	advance_offset_ms = 0
 
 
 func _next_timer() -> int:
@@ -216,8 +218,7 @@ func _begin_encounter() -> void:
 	_session.events.encounter_started.emit(_encounter.monster_ids())
 
 
-# Base attack: the effects may widen it to every living enemy (F-81) or change its damage. All the rolls come first
-# (position order), then the hand and the timer, then the outcomes (hit event, hp, leech, kill).
+# Base attack: effects may widen it (F-81) or change its damage. Rolls first (position order), then hand and timer, then outcomes.
 func _player_attack() -> void:
 	var first: int = _encounter.target(_fx.target_rule())
 	if first < 0:

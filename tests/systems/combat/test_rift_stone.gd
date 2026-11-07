@@ -189,7 +189,7 @@ func test_killing_the_stone_gives_xp_shards_and_drops() -> void:
 		s.combat.advance(100)
 		guard += 1
 	assert_eq(s.combat.state(), CombatEngine.STATE_BETWEEN, "the encounter is over")
-	assert_eq(s.character.get_xp() - xp, 240, "F-28: the xp of the stone")
+	assert_eq(s.character.get_xp() - xp, 26, "F-28: floor(240 x 0.11) for the stone")
 	assert_eq(s.wallet.get_gold(), gold, "no gold from a stone")
 	var bag: Dictionary = {}
 	for entry: Dictionary in s.combat.loot.items():

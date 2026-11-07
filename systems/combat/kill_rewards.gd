@@ -10,8 +10,13 @@ const RARITY_STAT: StringName = &"item_rarity_pct"
 const EPSILON: float = 1e-9
 
 
+## F-28: floor(xp x combat.kill_xp_mult); F-71 is applied afterwards by `CharacterSystem.add_xp`.
+static func base_xp(session: GameSession, xp: int) -> int:
+	return floori(float(xp) * float(session.data.balance_value("combat.kill_xp_mult")) + EPSILON)
+
+
 static func grant(session: GameSession, loot: LootBag, def: MonsterDef) -> void:
-	session.character.add_xp(def.xp)
+	session.character.add_xp(base_xp(session, def.xp))
 	var gold_pct: float = session.modifiers.total(&"gold_drop_pct")
 	var rolled: int = session.rng.randi_range(def.gold_min, def.gold_max)
 	session.wallet.add_gold(int(floor(float(rolled) * (1.0 + gold_pct / 100.0) + EPSILON)))
