@@ -1,4 +1,41 @@
 {
-  "_doc": "Suggerimenti contestuali (04_DATA_SCHEMA §10). Il contenuto è di M9-05.",
-  "hints": []
+  "_doc": "Suggerimenti contestuali (04_DATA_SCHEMA §10). Uno per trigger; ognuno si vede una volta per slot.",
+  "hints": [
+    {
+      "id": "first_action",
+      "title": "Il primo passo",
+      "text": "Apri una skill di raccolta, scegli un'azione e premi Avvia. Il lavoro prosegue da solo, anche mentre sei via.",
+      "trigger": "session_started_new"
+    },
+    {
+      "id": "bank_full",
+      "title": "Bank piena",
+      "text": "Un oggetto nuovo non trova posto e l'azione si è fermata, senza perdere nulla. Vendi qualcosa o compra una casella nello shop.",
+      "trigger": "bank_full"
+    },
+    {
+      "id": "first_shard",
+      "title": "Un frammento del Rift",
+      "text": "Hai trovato un frammento del Rift. Serve alla raffinazione dei pezzi dal +6 e alla Legatura del Rift: conservalo.",
+      "trigger": "first_shard"
+    },
+    {
+      "id": "mastery_node_ready",
+      "title": "Un nodo ti aspetta",
+      "text": "Il pool di maestria basta per un nodo. Aprine l'albero: il nodo comprato resta tuo per sempre.",
+      "trigger": "mastery_node_affordable"
+    },
+    {
+      "id": "first_defeat",
+      "title": "Sconfitto, non finito",
+      "text": "Alla morte la borsa del bottino va persa, ma Armeria, equipaggiamento e bank restano intatti. Porta del cibo o scegli un'area più mite.",
+      "trigger": "player_died"
+    },
+    {
+      "id": "first_level_ten",
+      "title": "Livello 10",
+      "text": "Hai raggiunto il livello 10. Dai un'occhiata allo shop e alle ricette: potrebbe esserci qualcosa di nuovo da sbloccare.",
+      "trigger": "first_level_10"
+    }
+  ]
 }
