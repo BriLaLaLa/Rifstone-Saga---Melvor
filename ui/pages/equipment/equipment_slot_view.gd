@@ -132,9 +132,11 @@ func _gui_input(event: InputEvent) -> void:
 		accept_event()
 
 
-## The payload of a drag of the worn piece (null if the slot is empty).
+## The payload of a drag of the worn piece (null if the slot is empty or holds a unique tool, M10).
 func drag_payload() -> Variant:
-	return PieceDrag.payload(_uid, _slot) if _uid != 0 else null
+	if _uid == 0 or _slot.begins_with(EquipmentStatsText.TOOL_SLOT_PREFIX):
+		return null
+	return PieceDrag.payload(_uid, _slot)
 
 
 func _get_drag_data(_at_position: Vector2) -> Variant:

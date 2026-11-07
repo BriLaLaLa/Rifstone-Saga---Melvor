@@ -177,7 +177,8 @@ func test_defeat_message_is_cleared_by_a_new_start() -> void:
 	assert_eq(_label("%MessageLabel").text, CombatTexts.DEFEAT_TEXT)
 	_session.combat.stop(Reasons.PLAYER_DIED)
 	assert_true(_session.combat.start(AREA_ID).ok, "restarted outside the page")
-	assert_false(_label("%MessageLabel").visible, "the defeat message goes away on the new start")
+	assert_ne(_label("%MessageLabel").text, CombatTexts.DEFEAT_TEXT, "the defeat message goes away on the new start")
+	assert_eq(_label("%MessageLabel").text, CombatTexts.NO_FOOD_WARNING, "no food: the warning of B2 takes its place")
 
 
 func _label(path: String) -> Label:

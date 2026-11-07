@@ -36,6 +36,15 @@ func setup(text: String, kind: StringName) -> void:
 	tween.tween_property(self, "modulate:a", 1.0, UiStyle.TOAST_FADE_IN_SEC).set_trans(Tween.TRANS_LINEAR)
 
 
+## Replaces the text of a toast that is already shown (the level toasts of the same skill are merged).
+func set_text(text: String) -> void:
+	_message_label.text = text
+
+
+func text() -> String:
+	return _message_label.text
+
+
 ## Fades the toast out, emits `dismissed` and frees it. Calling it twice has no effect.
 func dismiss() -> void:
 	if _is_dismissing:

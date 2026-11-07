@@ -50,6 +50,8 @@ var _pending_texts: PackedStringArray = PackedStringArray()
 var _pending_kinds: Array[StringName] = []
 var _group_qty: Dictionary[StringName, int] = {}
 var _group_start_ms: Dictionary[StringName, int] = {}
+## Presentation: the last level toast of each skill (frame, level before the first gain, text) for B5.
+var _level_toasts: Dictionary[StringName, Dictionary] = {}
 
 
 func _init() -> void:
@@ -162,8 +164,33 @@ func _on_events_bank_changed(item_id: StringName, _new_count: int, delta: int) -
 		_group_start_ms[item_id] = now
 
 
+## B5: the level-ups of the same skill in the same frame become one toast ("Skill: livello 2 → 5"); the first shows at
+## once, the next ones rewrite its text (shown or still waiting).
 func _on_events_level_up(skill_id: StringName, new_level: int) -> void:
-	push("%s: livello %d" % [_display_name(skill_id), new_level], KIND_SUCCESS)
+	var frame: int = Engine.get_process_frames()
+	var skill_name: String = _display_name(skill_id)
+	var last: Dictionary = _level_toasts.get(skill_id, {})
+	if not last.is_empty() and last["frame"] == frame:
+		var merged: String = LevelToastTexts.text(skill_name, last["from"], new_level)
+		if _rewrite(last["text"], merged):
+			last["text"] = merged
+			return
+	var text: String = LevelToastTexts.text(skill_name, new_level - 1, new_level)
+	_level_toasts[skill_id] = {"frame": frame, "from": new_level - 1, "text": text}
+	push(text, KIND_SUCCESS)
+
+
+## Rewrites the toast (shown or waiting) that has `old_text`; false if it is gone.
+func _rewrite(old_text: String, new_text: String) -> bool:
+	for toast: Toast in _active:
+		if toast.text() == old_text:
+			toast.set_text(new_text)
+			return true
+	var index: int = _pending_texts.rfind(old_text)
+	if index >= 0:
+		_pending_texts[index] = new_text
+		return true
+	return false
 
 
 func _on_events_action_stopped(_lane: StringName, skill_id: StringName, reason: StringName) -> void:
@@ -176,6 +203,7 @@ func _on_events_action_stopped(_lane: StringName, skill_id: StringName, reason: 
 func _on_events_session_ended(_slot: int) -> void:
 	_group_qty.clear()
 	_group_start_ms.clear()
+	_level_toasts.clear()
 
 
 func _now() -> int:

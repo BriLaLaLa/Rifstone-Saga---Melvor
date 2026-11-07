@@ -19,6 +19,7 @@ const REFUSED_TEXTS: Dictionary[StringName, String] = {
 	Reasons.UPGRADE_MAX: "Il pezzo è già al livello massimo di raffinazione.",
 	Reasons.BANK_FULL: "Il deposito è pieno: fai posto per i materiali dello smantellamento.",
 	Reasons.INVALID_AMOUNT: "Valore del filtro non valido.",
+	Reasons.ITEM_UNIQUE: "Gli attrezzi sono unici: restano nel loro slot.",
 }
 const REFUSED_TEXT_DEFAULT: String = "Operazione non riuscita."
 const UPGRADE_OK_TEXT: String = "Raffinazione riuscita: %s è ora a +%d."

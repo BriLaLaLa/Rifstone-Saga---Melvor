@@ -17,6 +17,8 @@ var _yield: CombatYield = null
 var _area_ids: Array[StringName] = []
 var _yield_values: Dictionary[StringName, Label] = {}
 var _log_open: bool = false
+## Presentation: whether MessageLabel shows the no-food warning (B2).
+var _food_warning: bool = false
 
 @onready var _margin: MarginContainer = %Margin
 @onready var _main: VBoxContainer = %Main
@@ -89,7 +91,7 @@ func bind(session: GameSession) -> void:
 	_connect(events.monster_hp_changed, resync.unbind(3))
 	_connect(events.monster_killed, _on_monster_killed)
 	_connect(events.food_eaten, _on_food_eaten)
-	_connect(events.food_changed, resync.unbind(1))
+	_connect(events.food_changed, _on_food_changed)
 	_connect(events.bank_changed, resync.unbind(3))
 	_connect(events.loot_bag_changed, resync.unbind(2))
 	_connect(events.equipment_changed, _on_equipment_changed)
@@ -244,7 +246,7 @@ func _refresh_log() -> void:
 
 # --- Commands -------------------------------------------------------------------------------------------------
 func _show_result(result: CommandResult) -> void:
-	_message_label.visible = not result.ok
+	_message_label.visible = not result.ok or _food_warning
 	if not result.ok:
 		_message_label.text = CombatTexts.REASON_TEXTS.get(result.reason, CombatTexts.REASON_TEXT_DEFAULT)
 	_redraw_all()
@@ -258,6 +260,7 @@ func _on_area_selected(index: int) -> void:
 func _on_stop_pressed() -> void:
 	if _session != null:
 		_session.combat.stop()
+		_food_warning = false
 		_message_label.visible = false
 		_redraw_all()
 
@@ -337,6 +340,7 @@ func _on_equipment_changed(_slot: StringName, _uid: int) -> void:
 
 
 func _on_player_died() -> void:
+	_food_warning = false
 	_message_label.text = CombatTexts.DEFEAT_TEXT
 	_message_label.visible = true
 
@@ -348,11 +352,31 @@ func _on_character_level_up(_new_level: int) -> void:
 # A new start (from this page or elsewhere) clears the defeat or refusal message of the previous run.
 func _on_combat_started(_area_id: StringName) -> void:
 	_message_label.visible = false
+	_food_warning = _has_no_food()
+	if _food_warning:
+		_message_label.text = CombatTexts.NO_FOOD_WARNING
+		_message_label.visible = true
 	_redraw_all()
+
+
+## B2: the warning goes away at the first food chosen (it does not block the start).
+func _on_food_changed(_item_id: StringName) -> void:
+	if _food_warning and not _has_no_food():
+		_food_warning = false
+		_message_label.visible = false
+	_redraw_all()
+
+
+func _has_no_food() -> bool:
+	var food_id: StringName = _session.equipment.get_food()
+	return food_id == &"" or _session.bank.get_count(food_id) <= 0
 
 
 # The numbers and animations go away with the combat (a number used to stay on screen after the defeat).
 func _on_combat_stopped(_reason: StringName) -> void:
+	if _food_warning:
+		_food_warning = false
+		_message_label.visible = false
 	_player.clear_effects()
 	_zone.clear_effects()
 	_redraw_all()
