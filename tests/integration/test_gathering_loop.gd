@@ -60,7 +60,7 @@ func test_new_game_starts_idle_and_empty() -> void:
 	assert_false(_session.actions.is_running())
 	assert_eq(_session.skills.get_xp(SKILL), 0)
 	assert_eq(_session.skills.get_level(SKILL), 1)
-	assert_eq(_session.bank.used(), _start_items().size(), "start.items only")
+	assert_eq(_session.bank.used(), _start_items().size(), "the bank starts empty (no kit)")
 	assert_eq(_session.wallet.get_gold(), int(_session.data.balance_value("start.gold")))
 	assert_eq(_session.actions.current_interval_ms(ACTION), EXPECTED_INTERVAL_MS, "F-03 with no modifiers")
 
@@ -172,7 +172,7 @@ func _assert_sixty_second_state(session: GameSession) -> void:
 
 
 func _new_session(seed_value: int) -> GameSession:
-	var session: GameSession = TestFactory.session(seed_value, TestFactory.real_data())
+	var session: GameSession = TestFactory.session_no_kit(seed_value, TestFactory.real_data())
 	if _session == null:
 		session.events.action_completed.connect(_on_action_completed)
 		session.events.xp_gained.connect(_on_xp_gained)
@@ -190,17 +190,13 @@ func _advance_in_ticks(session: GameSession, ms: int) -> void:
 		session.advance(TICK_MS)
 
 
+# The starting kit is removed by TestFactory.session_no_kit (the kit has its own tests): the bank starts empty.
 func _start_items() -> Array:
-	return _session.data.balance_value("start.items") as Array
+	return []
 
 
-func _start_count(session: GameSession, item_id: StringName) -> int:
-	var total: int = 0
-	for entry: Variant in session.data.balance_value("start.items") as Array:
-		var d: Dictionary = entry
-		if StringName(str(d.get("item", ""))) == item_id:
-			total += int(d.get("qty", 0))
-	return total
+func _start_count(_session_arg: GameSession, _item_id: StringName) -> int:
+	return 0
 
 
 func _on_action_completed(_lane: StringName, skill_id: StringName, action_id: StringName,

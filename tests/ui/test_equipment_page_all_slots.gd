@@ -1,14 +1,14 @@
 extends GutTest
-## EquipmentPage (M6-00b) with the real data: drag highlight, drop, right click and Rimuovi on every slot that has
-## pieces in the data (10 of the 12: the data has no neck and ring pieces yet), and the four weapon setups reached with
-## right clicks. A refused command shows its reason and changes nothing.
+## EquipmentPage (M6-00b, M10) with the real data: drag highlight, drop, right click and Rimuovi on every slot that has
+## pieces in the data (7 of the 12: the unique tools of the kit cannot be dropped or removed, and the data has no neck and
+## ring pieces yet), and the four weapon setups reached with right clicks. A refused command shows its reason and changes
+## nothing.
 
 const SCENE: PackedScene = preload("res://ui/pages/equipment/equipment_page.tscn")
 const PIECE_OF_SLOT: Dictionary[StringName, StringName] = {
 	&"head": &"emberbronze_helm", &"body": &"emberbronze_cuirass", &"legs": &"emberbronze_greaves",
 	&"feet": &"emberbronze_boots", &"hands": &"emberbronze_gauntlets", &"weapon": &"emberbronze_sword",
-	&"offhand": &"emberbronze_shield", &"tool_forestry": &"emberbronze_hatchet",
-	&"tool_quarrying": &"emberbronze_pick", &"tool_angling": &"emberbronze_rod",
+	&"offhand": &"emberbronze_shield",
 }
 const SWORD := &"emberbronze_sword"
 const GREATSWORD := &"emberbronze_greatsword"
@@ -19,7 +19,7 @@ var _page: EquipmentPage
 
 
 func before_each() -> void:
-	_session = TestFactory.session(1234, TestFactory.real_data())
+	_session = TestFactory.session_no_kit(1234, TestFactory.real_data())
 
 
 func after_each() -> void:
@@ -62,6 +62,20 @@ func test_every_slot_lights_drops_and_removes() -> void:
 		_click(_cell(uid), MOUSE_BUTTON_RIGHT)
 		assert_eq(_session.equipment.get_uid(slot), uid, "right click equips in %s" % slot)
 		assert_false(_label("%MessageLabel").visible)
+
+
+func test_the_unique_tools_of_the_kit_never_light_up_and_stay_worn() -> void:
+	_session.free()
+	_session = TestFactory.session(1234, TestFactory.real_data())
+	_open()
+	var spare: int = TestFactory.give_piece(_session, SWORD)
+	_page.show_drag_targets(PieceDrag.payload(spare, &""))
+	for slot: StringName in [&"tool_forestry", &"tool_quarrying", &"tool_angling"]:
+		var uid: int = _session.equipment.get_uid(slot)
+		assert_gt(uid, 0, "%s holds its unique tool from the start" % slot)
+		assert_false(_view(slot).is_glowing(), "%s never lights up" % slot)
+		_click(_view(slot), MOUSE_BUTTON_RIGHT)
+		assert_eq(_session.equipment.get_uid(slot), uid, "no Rimuovi on %s" % slot)
 
 
 func test_the_four_setups_with_right_clicks() -> void:

@@ -131,7 +131,7 @@ func test_action_stopped_shows_the_reason() -> void:
 	_events.action_stopped.emit(&"main", SKILL, Reasons.BANK_FULL)
 	_events.action_stopped.emit(&"main", SKILL, Reasons.NOT_RUNNING)
 	assert_eq(_texts(), PackedStringArray([
-		"test_skill: azione fermata (bank piena)",
+		"test_skill: azione fermata (deposito pieno)",
 		"test_skill: azione fermata (interrotta)",
 	]))
 	assert_eq(_accent(_toasts()[0]), UiStyle.BAD)

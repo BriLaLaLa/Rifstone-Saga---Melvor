@@ -21,7 +21,7 @@ const FORMULAS_OF_M7: Array[String] = ["F-83", "F-84", "F-85", "F-86", "F-87", "
 
 
 func _session(seed_value: int = SEED) -> GameSession:
-	return autofree(TestFactory.session(seed_value, TestFactory.real_data()))
+	return autofree(TestFactory.session_no_kit(seed_value, TestFactory.real_data()))
 
 
 # A session in the middle of an M7 play: refined worn sword, refined spare ring, a locked piece, filter rules and a
@@ -126,7 +126,9 @@ func test_a_new_game_resets_the_filter_the_stone_and_the_refinement() -> void:
 	s.new_game()
 	assert_eq(s.armory.filter_rules(), {})
 	assert_eq(s.combat.to_save()["stone"], {"since": 0, "pending": false})
-	assert_eq(s.armory.instances().size(), 0)
+	# a new game gives the starting kit (3 pieces + 3 unique tools), nothing else
+	var kit: int = (s.data.balance_value("start.armory") as Array).size() + (s.data.balance_value("start.tools") as Array).size()
+	assert_eq(s.armory.instances().size(), kit, "only the starting kit")
 
 
 func _kill_boars_with_drops(s: GameSession, data_drop: StringName, kills: int) -> Array[ItemInstance]:
@@ -159,8 +161,8 @@ func _certain_sword_data() -> GameData:
 func test_item_rarity_pct_changes_the_rarity_of_the_drops_end_to_end() -> void:
 	# F-84: base 20% magic + 3% rare. With item_rarity_pct 1000 (k = 11): p_rare 33, p_magic min(220, 67) -> no commons.
 	var data: GameData = _certain_sword_data()
-	var plain: GameSession = autofree(TestFactory.session(SEED, data))
-	var lucky: GameSession = autofree(TestFactory.session(SEED, data))
+	var plain: GameSession = autofree(TestFactory.session_no_kit(SEED, data))
+	var lucky: GameSession = autofree(TestFactory.session_no_kit(SEED, data))
 	for s: GameSession in [plain, lucky]:
 		s.modifiers.set_source(&"test:hero", [Modifier.make(&"power_bonus", 5000.0), Modifier.make(&"max_hp_flat", 100000.0),
 			Modifier.make(&"armory_slots", 500.0)])

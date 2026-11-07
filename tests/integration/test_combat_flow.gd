@@ -31,7 +31,7 @@ var _stops: Array[StringName] = []
 
 # A real-data session with the sword and the shield worn; `hp_flat` > 0 adds max_hp_flat (practically immortal).
 func _geared(seed_value: int, hp_flat: float = 0.0) -> GameSession:
-	var s: GameSession = autofree(TestFactory.session(seed_value, TestFactory.real_data()))
+	var s: GameSession = autofree(TestFactory.session_no_kit(seed_value, TestFactory.real_data()))
 	assert_true(s.equipment.equip(TestFactory.give_piece(s, SWORD)).ok)
 	assert_true(s.equipment.equip(TestFactory.give_piece(s, SHIELD)).ok)
 	var mods: Array[Modifier] = [Modifier.make(&"block_chance", 40.0)]
@@ -240,7 +240,7 @@ func test_save_load_in_the_middle_of_a_fight_is_identical_and_continues_identica
 	var saved: Dictionary = a.to_save(NOW_MS)
 	assert_true((saved["modules"] as Dictionary).has(String(CombatEngine.SAVE_KEY)), "the combat has its own key")
 	var text: String = SaveCodec.encode(saved)
-	var b: GameSession = autofree(TestFactory.session(OTHER_SEED, TestFactory.real_data()))
+	var b: GameSession = autofree(TestFactory.session_no_kit(OTHER_SEED, TestFactory.real_data()))
 	assert_true(b.from_save(SaveCodec.decode(text)).ok)
 	assert_eq(_blob(b), text, "identical byte for byte")
 	assert_eq(b.combat.state(), a.combat.state())
@@ -260,7 +260,7 @@ func test_state_between_encounters_survives_a_save() -> void:
 		a.advance(100)
 		guard += 1
 	assert_eq(a.combat.state(), CombatEngine.STATE_BETWEEN)
-	var b: GameSession = autofree(TestFactory.session(OTHER_SEED, TestFactory.real_data()))
+	var b: GameSession = autofree(TestFactory.session_no_kit(OTHER_SEED, TestFactory.real_data()))
 	assert_true(b.from_save(SaveCodec.decode(_blob(a))).ok)
 	assert_eq(b.combat.state(), CombatEngine.STATE_BETWEEN)
 	assert_eq(int(b.combat.get_state()["between_ms"]), int(a.combat.get_state()["between_ms"]))

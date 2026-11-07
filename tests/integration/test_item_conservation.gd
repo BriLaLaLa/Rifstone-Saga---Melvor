@@ -62,7 +62,7 @@ func after_all() -> void:
 
 
 func test_initial_bank_is_start_items() -> void:
-	_session = _watched_session(TestFactory.real_data())
+	_session = TestFactory.session(SEED, TestFactory.real_data())  # with the starting kit
 	var expected: Dictionary[StringName, int] = {}
 	for entry: Variant in _session.data.balance_value("start.items") as Array:
 		var d: Dictionary = entry
@@ -256,7 +256,7 @@ func _assert_conserved(start: Dictionary[StringName, int]) -> void:
 
 
 func _watched_session(data: GameData) -> GameSession:
-	var session: GameSession = TestFactory.session(SEED, data)
+	var session: GameSession = TestFactory.session_no_kit(SEED, data)
 	session.events.action_completed.connect(_on_action_completed)
 	session.events.bank_changed.connect(_on_bank_changed)
 	session.events.action_stopped.connect(_on_action_stopped)

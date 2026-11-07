@@ -1,30 +1,24 @@
 extends GutTest
-## Integration, reform flow (M4): forge a sword, a shield and a greatsword with different mastery -> Armory instances
-## with rarity and affixes -> equip in the three setups -> save and load identical (slot, uid, affixes); full Armory
-## during crafting; F-83 rarity grows with mastery and with `item_rarity_pct`.
+## Integration, reform flow (M4, reworked for M10): blueprint -> craft -> Armory instance (at least magic, with affixes)
+## -> equip in the three setups -> save and load identical (slot, uid, affixes); full Armory during crafting; F-91 rarity
+## grows with the Forging level and with `item_rarity_pct`.
 ##
-## Real data, fixed seeds, only public APIs. The full-Armory case uses a copy of the real config with
-## `armory.base_slots` = 2 written under PreRun.test_dir() (not a save slot) and removed afterwards.
+## Real data, fixed seeds, only public APIs (docs/05_INTERFACES.md 5.8b). The full-Armory case uses a copy of the real
+## config with `armory.base_slots` = 2 written under PreRun.test_dir() (not a save slot) and removed afterwards.
 
 const SEED: int = 31337
 const OTHER_SEED: int = 99
 const NOW_MS: int = 1793603600000
 const SKILL: StringName = &"forging"
-const FORGE_SWORD: StringName = &"forge_emberbronze_sword"
-const FORGE_GREAT: StringName = &"forge_emberbronze_greatsword"
-const FORGE_SHIELD: StringName = &"forge_emberbronze_shield"
 const SWORD: StringName = &"emberbronze_sword"
 const GREATSWORD: StringName = &"emberbronze_greatsword"
 const SHIELD: StringName = &"emberbronze_shield"
-const INGOT: StringName = &"emberbronze_ingot"
-const GRIP: StringName = &"redbirch_grip"
-const SHIELDCORE: StringName = &"redbirch_shieldcore"
-const RARITIES: Array[StringName] = [&"common", &"magic", &"rare"]
+const RARITIES: Array[StringName] = [&"magic", &"rare"]
 const CONTENT_ROOT: String = "res://data"
 const CONFIG_ROOT: String = "res://data/config"
 const RARITY_STAT: StringName = &"item_rarity_pct"
 const RARITY_SOURCE: StringName = &"test:rarity"
-const SAMPLE_CYCLES: int = 60
+const SAMPLE_CYCLES: int = 80
 const PreRun := preload("res://tests/helpers/gut_pre_run.gd")
 
 var _tmp_config: String = PreRun.test_dir("test_reform_flow")
@@ -53,34 +47,30 @@ func after_all() -> void:
 	DirAccess.remove_absolute(_tmp_config)
 
 
-func test_forging_three_pieces_with_different_mastery_creates_instances() -> void:
-	_stock(5)
-	var levels: Dictionary = {FORGE_SWORD: 1, FORGE_GREAT: 40, FORGE_SHIELD: 99}
-	_set_mastery(levels)
-	for action_id: StringName in levels:
-		assert_eq(_session.mastery.get_mastery_level(action_id), levels[action_id], "mastery of %s" % action_id)
-	var ingots: int = _session.bank.get_count(INGOT)
-	_forge(FORGE_SWORD)
-	_forge(FORGE_GREAT)
-	_forge(FORGE_SHIELD)
+func test_three_blueprints_create_three_pieces_of_at_least_magic_rarity() -> void:
+	for base: StringName in [SWORD, GREATSWORD, SHIELD]:
+		_stock(base)
+		_craft(base)
 	var pieces: Array[ItemInstance] = _session.armory.instances()
-	assert_eq(pieces.size(), 3, "one instance per cycle")
+	assert_eq(pieces.size(), 3, "one instance per blueprint")
 	assert_eq(_bases(pieces), [SWORD, GREATSWORD, SHIELD] as Array[StringName], "insertion order")
 	assert_eq([pieces[0].uid, pieces[1].uid, pieces[2].uid], [1, 2, 3], "uids from 1")
 	for piece: ItemInstance in pieces:
-		assert_true(RARITIES.has(piece.rarity), "%s rarity %s" % [piece.base_id, piece.rarity])
-		assert_eq(piece.ilvl, _session.data.action(FORGE_SWORD).level, "ilvl = recipe level")
+		assert_true(RARITIES.has(piece.rarity), "%s rarity %s: never common (F-91)" % [piece.base_id, piece.rarity])
+		assert_eq(piece.ilvl, 1, "ilvl = level of the grade (grade 1)")
 		assert_eq(piece.upgrade, 0)
 		assert_false(piece.locked)
 		_assert_affix_rules(piece)
-	assert_eq(_session.bank.get_count(INGOT), ingots - 3 - 5 - 4, "ingots of the three recipes consumed")
 	for base: StringName in [SWORD, GREATSWORD, SHIELD]:
 		assert_eq(_session.bank.get_count(base), 0, "a piece is never banked")
-	assert_eq(_stops.size(), 3, "each lane was stopped by the test")
+		assert_eq(_session.bank.get_count(_bp(base)), 0, "the blueprint is consumed")
+	assert_eq(_session.bank.used(), 0, "the materials and the rare components were all consumed")
+	assert_eq(_stops, [Reasons.BLUEPRINT_DONE, Reasons.BLUEPRINT_DONE, Reasons.BLUEPRINT_DONE] as Array[StringName])
+	assert_gt(_session.skills.get_xp(SKILL), 0, "Forging XP earned")
 
 
 func test_pieces_equip_in_the_three_setups() -> void:
-	var pieces: Dictionary = _forge_all()
+	var pieces: Dictionary = _craft_all()
 	assert_true(_session.equipment.equip(pieces[SWORD]).ok)
 	assert_eq(_session.equipment.setup(), &"sword")
 	assert_true(_session.equipment.equip(pieces[SHIELD]).ok)
@@ -96,14 +86,14 @@ func test_pieces_equip_in_the_three_setups() -> void:
 
 
 func test_save_and_load_are_identical_with_worn_pieces() -> void:
-	var pieces: Dictionary = _forge_all()
+	var pieces: Dictionary = _craft_all()
 	assert_true(_session.equipment.equip(pieces[SWORD]).ok)
 	assert_true(_session.equipment.equip(pieces[SHIELD]).ok)
 	assert_true(_session.armory.set_locked(pieces[GREATSWORD], true).ok)
 	_session.slot = 2
 	_session.player_name = "Forgiatore"
 	var text: String = SaveCodec.encode(_session.to_save(NOW_MS))
-	var copy: GameSession = TestFactory.session(OTHER_SEED, _session.data)
+	var copy: GameSession = TestFactory.session_no_kit(OTHER_SEED, _session.data)
 	_extra.append(copy)
 	assert_true(copy.from_save(SaveCodec.decode(text)).ok)
 	assert_eq(SaveCodec.encode(copy.to_save(NOW_MS)), text, "byte for byte")
@@ -125,52 +115,67 @@ func test_save_and_load_are_identical_with_worn_pieces() -> void:
 	assert_eq(copy.armory.create(SWORD, &"common", 1), 4, "next_uid saved: uids are never reused")
 
 
-func test_full_armory_stops_the_forge_without_consuming_anything() -> void:
+func test_full_armory_refuses_the_start_and_waits_at_the_end_without_losing_anything() -> void:
 	_session.free()
 	_session = _new_session(_data_with_armory_slots(2))
-	_stock(3)
-	_forge(FORGE_SWORD)
-	_forge(FORGE_SWORD)
+	for i: int in 3:
+		_stock(SWORD)
+	_craft(SWORD)
+	_craft(SWORD)
 	assert_eq(_session.armory.used(), 2)
 	assert_false(_session.armory.can_add(1), "the Armory is full")
-	var ingots: int = _session.bank.get_count(INGOT)
-	var grips: int = _session.bank.get_count(GRIP)
-	var xp: int = _session.skills.get_xp(SKILL)
-	var mastery_xp: int = _session.mastery.get_mastery_xp(FORGE_SWORD)
-	_stops.clear()
-	assert_true(_session.actions.start(SKILL, FORGE_SWORD).ok, "a full Armory does not forbid starting")
-	_session.advance(_session.data.action(FORGE_SWORD).interval_ms)
-	assert_eq(_stops, [Reasons.ARMORY_FULL] as Array[StringName], "the lane stops with armory_full")
-	assert_false(_session.actions.is_running())
-	assert_eq(_session.armory.used(), 2)
-	assert_eq(_session.armory.instances().size(), 2, "no instance created")
-	assert_eq(_session.bank.get_count(INGOT), ingots, "nothing consumed")
-	assert_eq(_session.bank.get_count(GRIP), grips)
-	assert_eq(_session.skills.get_xp(SKILL), xp, "the cycle did not count")
-	assert_eq(_session.mastery.get_mastery_xp(FORGE_SWORD), mastery_xp)
+	var before: Dictionary = _world()
+	var refused: CommandResult = _session.actions.start_blueprint(_bp(SWORD))
+	assert_eq(refused.reason, Reasons.ARMORY_FULL, "a full Armory refuses the start")
+	assert_eq(_world(), before, "nothing consumed by a refused start")
+	# one place frees up, the craft starts, the place is taken again before the end: the work waits
 	var first: ItemInstance = _session.armory.instances()[0]
 	assert_true(_session.armory.remove(first.uid).ok)
-	_forge(FORGE_SWORD)
-	assert_eq(_session.armory.used(), 2, "freeing one place lets the forge continue")
+	assert_true(_session.actions.start_blueprint(_bp(SWORD)).ok)
+	var duration: int = int(_session.actions.blueprint_state()["duration_ms"])
+	var filler: int = _session.armory.create(SWORD, &"common", 1)
+	assert_gt(filler, 0, "the free place was taken meanwhile")
+	_session.advance(duration)
+	assert_true(bool(_session.actions.blueprint_state().get("waiting", false)), "the finished work waits for a place")
+	assert_true(_session.actions.is_running())
+	assert_eq(_session.armory.used(), 2)
+	_session.advance(duration)
+	assert_true(bool(_session.actions.blueprint_state().get("waiting", false)), "and keeps waiting")
+	assert_true(_session.armory.remove(filler).ok)
+	_session.advance(100)
+	assert_eq(_session.armory.used(), 2, "the piece entered as soon as a place was free")
+	assert_false(_session.actions.is_running())
+	assert_eq(_stops.back(), Reasons.BLUEPRINT_DONE)
 
 
-func test_rarity_grows_with_mastery() -> void:
-	var low: int = _count_non_common(1, 0.0)
-	var high: int = _count_non_common(99, 0.0)
-	assert_gt(high, low, "mastery 99 gives more magic/rare pieces than mastery 1 (F-83, fixed seed)")
-	assert_gt(high, SAMPLE_CYCLES / 4, "about half of the pieces are not common at mastery 99")
+func test_stop_returns_blueprint_and_materials() -> void:
+	_stock(SWORD)
+	var before: Dictionary = _world()
+	assert_true(_session.actions.start_blueprint(_bp(SWORD)).ok)
+	assert_ne(_world(), before, "blueprint and materials left the bank at the start")
+	_session.advance(60000)
+	_session.actions.stop()
+	assert_eq(_world(), before, "stop gives everything back")
+	assert_eq(_session.armory.instances().size(), 0)
+
+
+func test_rarity_grows_with_the_forging_level() -> void:
+	var low: int = _count_rare(1, 0.0)
+	var high: int = _count_rare(99, 0.0)
+	assert_gt(high, low, "Forging 99 gives more rare pieces than level 1 (F-91, fixed seed)")
+	assert_gt(high, SAMPLE_CYCLES / 3, "p_rare 59.5% at level 99")
 
 
 func test_item_rarity_pct_raises_the_rarity_through_the_modifiers() -> void:
-	var base: int = _count_non_common(1, 0.0)
-	var boosted: int = _count_non_common(1, 500.0)
-	assert_gt(boosted, base, "item_rarity_pct +500 gives more magic/rare pieces (F-83)")
+	var base: int = _count_rare(1, 0.0)
+	var boosted: int = _count_rare(1, 500.0)
+	assert_gt(boosted, base, "item_rarity_pct +500 gives more rare pieces (F-91)")
+	assert_eq(boosted, SAMPLE_CYCLES, "p_rare is clamped to 100: all rare")
 
 
 func test_item_rarity_pct_is_read_with_the_context_of_the_action() -> void:
-	# F-83 says "global"; ArtisanResolver reads the stat with the context of the action, so a modifier scoped to
-	# the skill of the action applies and one scoped to another skill does not. Documents the current behaviour.
-	var ctx: ModifierContext = ModifierContext.for_action(SKILL, FORGE_SWORD)
+	# A modifier scoped to the skill of the action applies, one scoped to another skill does not.
+	var ctx: ModifierContext = ModifierContext.for_action(SKILL, &"blueprint_craft")
 	_session.modifiers.set_source(RARITY_SOURCE, [Modifier.make(RARITY_STAT, 100.0)] as Array[Modifier])
 	assert_eq(_session.modifiers.total(RARITY_STAT, ctx), 100.0, "global modifier reaches the forge")
 	var other: Array[Modifier] = [Modifier.make(RARITY_STAT, 100.0, Modifier.SCOPE_SKILL, &"forestry")]
@@ -181,33 +186,35 @@ func test_item_rarity_pct_is_read_with_the_context_of_the_action() -> void:
 # --- helpers ----------------------------------------------------------------------------------------------------
 
 func _new_session(data: GameData) -> GameSession:
-	var session: GameSession = TestFactory.session(SEED, data)
+	var session: GameSession = TestFactory.session_no_kit(SEED, data)
 	session.events.action_stopped.connect(_on_action_stopped)
 	return session
 
 
-# Ingots, grips and shield cores for `multiplier` cycles of each of the three recipes.
-func _stock(multiplier: int) -> void:
-	TestFactory.give(_session, INGOT, 12 * multiplier)
-	TestFactory.give(_session, GRIP, 2 * multiplier)
-	TestFactory.give(_session, SHIELDCORE, multiplier)
+func _bp(base: StringName) -> StringName:
+	return StringName("bp_" + String(base))
 
 
-# One cycle of the action: start, advance exactly its interval, stop.
-func _forge(action_id: StringName) -> void:
-	var interval: int = _session.data.action(action_id).interval_ms
-	assert_true(_session.actions.start(SKILL, action_id).ok, "start %s" % action_id)
-	_session.advance(interval)
-	_session.actions.stop()
+# One blueprint of `base` and everything its craft needs (plates, handles, rare component).
+func _stock(base: StringName) -> void:
+	var blueprint: ItemDef = _session.data.item(_bp(base))
+	TestFactory.give(_session, blueprint.id, 1)
+	for input: ItemQty in BlueprintCraft.inputs(blueprint):
+		TestFactory.give(_session, input.item_id, input.qty)
 
 
-# Forges a sword, a greatsword and a shield; returns {base: uid}.
-func _forge_all() -> Dictionary:
-	_stock(2)
-	_set_mastery({FORGE_SWORD: 1, FORGE_GREAT: 40, FORGE_SHIELD: 99})
-	_forge(FORGE_SWORD)
-	_forge(FORGE_GREAT)
-	_forge(FORGE_SHIELD)
+# Starts the blueprint of `base` and lets it finish (the lane stops by itself with blueprint_done).
+func _craft(base: StringName) -> void:
+	var result: CommandResult = _session.actions.start_blueprint(_bp(base))
+	assert_true(result.ok, "start %s: %s" % [base, result.reason])
+	_session.advance(int(_session.actions.blueprint_state()["duration_ms"]))
+
+
+# Crafts a sword, a greatsword and a shield; returns {base: uid}.
+func _craft_all() -> Dictionary:
+	for base: StringName in [SWORD, GREATSWORD, SHIELD]:
+		_stock(base)
+		_craft(base)
 	var out: Dictionary = {}
 	for piece: ItemInstance in _session.armory.instances():
 		out[piece.base_id] = piece.uid
@@ -215,13 +222,11 @@ func _forge_all() -> Dictionary:
 	return out
 
 
-# Sets the mastery xp of each action to the xp of the given mastery level.
-func _set_mastery(level_by_action: Dictionary) -> void:
-	var actions: Dictionary = {}
-	for action_id: Variant in level_by_action:
-		actions[str(action_id)] = _session.data.mastery_table().xp_for_level(int(level_by_action[action_id]))
-	_session.mastery.from_save({str(SKILL): {"pool": 0, "actions": actions, "nodes": []}})
-	_session.rebuild_modifiers()
+func _world() -> Dictionary:
+	var out: Dictionary = {"pieces": _session.armory.instances().size()}
+	for stack: Dictionary in _session.bank.stacks():
+		out[stack["item"]] = stack["count"]
+	return out
 
 
 func _bases(pieces: Array[ItemInstance]) -> Array[StringName]:
@@ -234,12 +239,10 @@ func _bases(pieces: Array[ItemInstance]) -> Array[StringName]:
 func _assert_affix_rules(piece: ItemInstance) -> void:
 	var count: int = piece.affixes.size()
 	match piece.rarity:
-		&"common":
-			assert_eq(count, 0, "%s common has no affixes" % piece.base_id)
 		&"magic":
 			assert_between(count, 1, 2, "%s magic has 1-2 affixes" % piece.base_id)
 		&"rare":
-			assert_gte(count, 2, "%s rare has at least 2 affixes" % piece.base_id)
+			assert_between(count, 3, 4, "%s rare has 3-4 affixes" % piece.base_id)
 	var seen: Array[StringName] = []
 	for roll: AffixRoll in piece.affixes:
 		assert_false(seen.has(roll.affix_id), "no repeated affix")
@@ -248,24 +251,23 @@ func _assert_affix_rules(piece: ItemInstance) -> void:
 		assert_gte(roll.tier, 1, "tier from 1")
 
 
-# Forges SAMPLE_CYCLES swords from the given starting mastery level with a fresh session and a fixed seed; returns
-# how many are not common. The Armory is emptied after each cycle.
-func _count_non_common(mastery_level: int, rarity_pct: float) -> int:
+# Crafts SAMPLE_CYCLES swords at the given Forging level with a fresh session and a fixed seed; returns how many are
+# rare. The Armory is emptied after each cycle.
+func _count_rare(forging_level: int, rarity_pct: float) -> int:
 	_session.free()
 	_session = _new_session(TestFactory.real_data())
-	TestFactory.give(_session, INGOT, 3 * SAMPLE_CYCLES)
-	TestFactory.give(_session, GRIP, SAMPLE_CYCLES)
-	_set_mastery({FORGE_SWORD: mastery_level})
+	TestFactory.set_level(_session, SKILL, forging_level)
 	if rarity_pct > 0.0:
 		_session.modifiers.set_source(RARITY_SOURCE, [Modifier.make(RARITY_STAT, rarity_pct)] as Array[Modifier])
-	var non_common: int = 0
+	var rare: int = 0
 	for _i: int in SAMPLE_CYCLES:
-		_forge(FORGE_SWORD)
+		_stock(SWORD)
+		_craft(SWORD)
 		for piece: ItemInstance in _session.armory.instances():
-			if piece.rarity != &"common":
-				non_common += 1
+			if piece.rarity == &"rare":
+				rare += 1
 			assert_true(_session.armory.remove(piece.uid).ok)
-	return non_common
+	return rare
 
 
 # Real content with a config copy where the Armory has `slots` base slots.

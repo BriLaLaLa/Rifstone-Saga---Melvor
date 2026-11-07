@@ -38,7 +38,7 @@ func _data(certain_drops: bool = true) -> GameData:
 
 
 func _session(data: GameData, seed_value: int = SEED, hero: bool = true, tank: bool = true) -> GameSession:
-	var s: GameSession = autofree(TestFactory.session(seed_value, data))
+	var s: GameSession = autofree(TestFactory.session_no_kit(seed_value, data))
 	if hero:
 		s.modifiers.set_source(HERO, [Modifier.make(&"power_bonus", 5000.0), Modifier.make(&"max_hp_flat", 100000.0)])
 	elif tank:
@@ -100,7 +100,8 @@ func test_killing_the_stone_pays_xp_shards_and_the_stone_drops() -> void:
 	assert_true(s.combat.start(AREA).ok)
 	assert_eq(s.combat.state(), CombatEngine.STATE_RIFTSTONE, "a pending stone is the first encounter")
 	_run_until(s, func() -> bool: return _stone_kills > 0, 100)
-	assert_eq(s.character.get_xp() - xp_before, STONE_XP, "F-28: the XP of the stone, nothing else")
+	var mult: float = float(s.data.balance_value("combat.kill_xp_mult"))
+	assert_eq(s.character.get_xp() - xp_before, floori(STONE_XP * mult), "F-28: the XP of the stone times kill_xp_mult, nothing else")
 	assert_eq(s.wallet.get_gold(), gold_before, "no gold from a stone")
 	assert_eq(_kills, 0, "a stone is not a counted monster kill")
 	assert_true(s.combat.total_kills().is_empty())
@@ -117,7 +118,9 @@ func test_killing_the_stone_pays_xp_shards_and_the_stone_drops() -> void:
 		assert_eq(inst.ilvl, 8, "F-85: the highest combat level among the monsters of the area (redrock_raider)")
 		assert_eq(inst.upgrade, 0)
 	bases.sort()
-	assert_eq(bases, [&"emberbronze_greaves", &"emberbronze_ring"] as Array[StringName], "one of each, once")
+	assert_eq(bases, [&"emberbronze_amulet", &"emberbronze_ring"] as Array[StringName], "one of each, once")
+	var blueprints: int = int(bag.get(&"bp_ashlead_gauntlets", 0)) + s.bank.get_count(&"bp_ashlead_gauntlets")
+	assert_eq(blueprints, 1, "the blueprint of the stone reaches the loot bag or the bank, never the Armory")
 	assert_eq(s.combat.state(), CombatEngine.STATE_BETWEEN, "then the usual wait before the next group")
 
 

@@ -14,7 +14,7 @@ var _s: GameSession = null
 
 
 func before_each() -> void:
-	_s = TestFactory.session(SEED, TestFactory.real_data())
+	_s = TestFactory.session_no_kit(SEED, TestFactory.real_data())
 
 
 func after_each() -> void:
@@ -151,7 +151,7 @@ func test_refinement_below_the_sockets_keeps_stones_inactive_and_reactivates() -
 	var saved: Dictionary = _s.to_save(NOW_MS)
 	for entry: Dictionary in saved[GameSession.MODULES_KEY]["armory"]["items"]:
 		entry["upgrade"] = 6
-	var low: GameSession = TestFactory.session(SEED, TestFactory.real_data())
+	var low: GameSession = TestFactory.session_no_kit(SEED, TestFactory.real_data())
 	assert_true(low.from_save(saved).ok)
 	var low_uid: int = low.equipment.get_uid(&"weapon")
 	assert_eq(low.armory.get_instance(low_uid).sockets.size(), 3, "all three stones are still in the piece")
@@ -162,7 +162,7 @@ func test_refinement_below_the_sockets_keeps_stones_inactive_and_reactivates() -
 	var back: Dictionary = low.to_save(NOW_MS)
 	for entry: Dictionary in back[GameSession.MODULES_KEY]["armory"]["items"]:
 		entry["upgrade"] = 7
-	var again: GameSession = TestFactory.session(SEED, TestFactory.real_data())
+	var again: GameSession = TestFactory.session_no_kit(SEED, TestFactory.real_data())
 	assert_true(again.from_save(back).ok)
 	assert_eq(again.modifiers.total(&"evasion_bonus"), 9.0, "the third stone works again")
 	low.free()
@@ -204,7 +204,7 @@ func test_currencies_on_real_pieces_with_a_fixed_seed() -> void:
 	assert_eq(_s.bank.get_count(&"currency_spark") + _s.bank.get_count(&"currency_crown"), 0)
 	assert_eq(_s.bank.get_count(&"currency_flux"), 2)
 	# Same seed, same sequence: identical outcome.
-	var twin: GameSession = TestFactory.session(SEED, TestFactory.real_data())
+	var twin: GameSession = TestFactory.session_no_kit(SEED, TestFactory.real_data())
 	var tuid: int = TestFactory.give_piece(twin, BLADE, &"common", ILVL)
 	TestFactory.give(twin, &"currency_spark", 1)
 	assert_true(twin.armory.use_currency(tuid, &"currency_spark").ok)
@@ -258,7 +258,7 @@ func test_save_load_save_identical_with_altar_sockets_and_currencies() -> void:
 	assert_true(_s.armory.socket_stone(spare, SHADE).ok)
 	assert_true(_s.equipment.equip(worn).ok)
 	var text: String = SaveCodec.encode(_s.to_save(NOW_MS))
-	var copy: GameSession = TestFactory.session(SEED + 7, TestFactory.real_data())
+	var copy: GameSession = TestFactory.session_no_kit(SEED + 7, TestFactory.real_data())
 	assert_true(copy.from_save(SaveCodec.decode(text)).ok)
 	assert_eq(SaveCodec.encode(copy.to_save(NOW_MS)), text, "save -> load -> save identical")
 	assert_eq(copy.rift.get_socket(2), &"inf_keen_edge")

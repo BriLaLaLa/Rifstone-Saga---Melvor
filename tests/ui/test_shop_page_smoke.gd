@@ -82,7 +82,7 @@ func test_unlimited_entry_has_no_counter_and_item_entry_fills_the_armory() -> vo
 	assert_false(_buy(&"test_buy_hatchet").disabled)
 	_buy(&"test_buy_hatchet").pressed.emit()
 	assert_eq(_session.armory.used(), 1, "the tool is a piece of the Armory")
-	assert_eq(_session.bank.get_count(&"test_hatchet"), 0, "not in the bank")
+	assert_eq(_session.bank.get_count(&"test_blade"), 0, "not in the bank")
 
 
 func test_character_requirement_is_listed_and_follows_the_level() -> void:
@@ -98,7 +98,7 @@ func test_character_requirement_is_listed_and_follows_the_level() -> void:
 
 func test_sections_follow_categories() -> void:
 	_open()
-	for category: String in ["bank", "tools", "materials"]:
+	for category: String in ["bank", "combat", "materials"]:
 		assert_not_null(_page.find_child("Section_%s" % category, true, false), category)
 
 

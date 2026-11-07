@@ -30,7 +30,7 @@ func after_all() -> void:
 
 
 func test_equipping_moves_one_piece_and_each_piece_exists_once() -> void:
-	_session = TestFactory.session(SEED, TestFactory.real_data())
+	_session = TestFactory.session_no_kit(SEED, TestFactory.real_data())
 	var sword: int = TestFactory.give_piece(_session, SWORD)
 	var great: int = TestFactory.give_piece(_session, GREATSWORD)
 	var shield: int = TestFactory.give_piece(_session, SHIELD)
@@ -55,7 +55,7 @@ func test_equipping_moves_one_piece_and_each_piece_exists_once() -> void:
 
 
 func test_equip_with_full_armory_is_refused_when_pieces_return_without_room() -> void:
-	_session = TestFactory.session(SEED, _data_with_armory_slots(4))
+	_session = TestFactory.session_no_kit(SEED, _data_with_armory_slots(4))
 	assert_eq(_session.armory.capacity(), 4)
 	var sword: int = TestFactory.give_piece(_session, SWORD)
 	var shield: int = TestFactory.give_piece(_session, SHIELD)
@@ -75,14 +75,14 @@ func test_equip_with_full_armory_is_refused_when_pieces_return_without_room() ->
 
 
 func test_save_with_two_handed_weapon_and_offhand_keeps_the_invariants() -> void:
-	_session = TestFactory.session(SEED, TestFactory.real_data())
+	_session = TestFactory.session_no_kit(SEED, TestFactory.real_data())
 	var great: int = TestFactory.give_piece(_session, GREATSWORD)
 	var shield: int = TestFactory.give_piece(_session, SHIELD)
 	var saved: Dictionary = _session.to_save(0)
 	var slots: Dictionary = (saved["modules"] as Dictionary)["equipment"]["slots"]
 	slots["weapon"] = great
 	slots["offhand"] = shield
-	var loaded: GameSession = TestFactory.session(SEED, _session.data)
+	var loaded: GameSession = TestFactory.session_no_kit(SEED, _session.data)
 	assert_true(loaded.from_save(saved).ok, "the edited save loads")
 	assert_eq(loaded.equipment.get_item(&"weapon"), GREATSWORD, "the two-handed weapon is kept")
 	assert_eq(loaded.equipment.get_uid(&"offhand"), 0, "the offhand is dropped")
