@@ -209,10 +209,14 @@ Esempi: 2400, −10 → 2160; 1000, −50 → 500 → **800**; due spade 1800, �
 Esempi: livello 1 → 60; livello 10 e +20 → 170; livello 99 → 1.040. Test: `test_combat_math.gd`.
 
 ### F-28 Esperienza di combattimento (per uccisione)
-Ogni nemico ucciso dà al personaggio il campo `xp` del mostro (`04_DATA_SCHEMA.md` §8), che passa da F-71. Nessuna XP
-per danno, nessuna stance (D3). Una Pietra del Rift (F-87) dà il suo `xp`. Valori: tabella §8.5 (`xp = 4 × PV`).
-Esempi: `plains_boar` (xp 80), +0% → 80; +25% → 100; gruppo di 3 `plains_boar` → 240. Test:
-`tests/systems/combat/test_combat_engine.gd::test_kill_grants_character_xp`.
+Ogni nemico ucciso dà al personaggio `base_xp = floor(xp del mostro × combat.kill_xp_mult)` (campo `xp` del mostro,
+`04_DATA_SCHEMA.md` §8), che passa da F-71. Nessuna XP per danno, nessuna stance (D3). Una Pietra del Rift (F-87) dà il
+suo `xp` con la stessa regola. Valori: tabella §8.5 (`xp = 4 × PV`); **B1 (M10)**: `combat.kill_xp_mult` = 0,15,
+valore di partenza **da tarare** con `tools/sim_combat.gd` (obiettivo: livello 99 in 250-350 h di combattimento
+nell'area giusta, offline compreso, e al massimo +12 livelli dopo il 50 in una notte offline; Q54). Con 1,0 si
+ottiene la regola dell'MVP.
+Esempi (mult 0,15): `plains_boar` (xp 80) → base 12; +25% → 15; gruppo di 3 `plains_boar` → 36. Con mult 1,0: 80,
+100, 240. Test: `tests/systems/combat/test_combat_engine.gd::test_kill_grants_character_xp`.
 
 ### F-29 Cura del cibo
 `heal = floor(food.heal × (1 + T(food_healing_pct)/100))`; `hp = min(max_hp, hp + heal)`.
@@ -352,19 +356,13 @@ Intervalli di formato dei parametri (validatore, `04_DATA_SCHEMA.md` §14): `n` 
 Esempi: 10 caselle comprate → capienza 50; prezzo n 0 → 1.000; 1 → 1.120; 2 → 1.254; 5 → 1.762; 10 → 3.105; 20 → 9.646;
 30 → 29.959. Test: `tests/systems/armory/test_armory.gd`, `tests/systems/shop/test_shop.gd::test_armory_slot_price`.
 
-### F-83 Rarità nell'artigianato
-`M` = livello di maestria della ricetta (1-99, F-09: una ricetta senza XP di maestria è al livello 1; `M 0` negli esempi
-è solo il caso limite della funzione pura), `k = 1 + T(item_rarity_pct, ctx)/100` con `ctx` = contesto dell'azione
-(i modificatori globali valgono sempre; uno con scope di skill o azione vale solo lì).
-`p_magic = (rarity.craft.magic_base_pct + rarity.craft.magic_per_mastery_level × M) × k`;
-`p_rare = (rarity.craft.rare_base_pct + rarity.craft.rare_per_mastery_level × M) × k`; valori 10, 0.4, 1, 0.1.
-Se `p_rare > 100` → 100; se `p_magic + p_rare > 100` → `p_magic = 100 − p_rare`.
-Tiro: `r = rng.randf() × 100`; `r < p_rare` → `rare`; `r < p_rare + p_magic` → `magic`; altrimenti `common`.
-Esempi: M 0, +0% → 10 / 1; M 50, +20% → 36,0 / 7,2; M 99, +0% → 49,6 / 10,9; con (36, 7,2): r 5,0 → raro; r 20 →
-magico; r 50 → comune. Test: `tests/systems/items/test_item_roller.gd::test_craft_rarity`.
+### F-83 Rarità nell'artigianato — **SOSTITUITA da F-91 (M10, R1)**
+Nessuna ricetta produce più equipaggiamento: la rarità per maestria non esiste più. `rarity.craft.*` esce da
+`balance.json`, `ItemRoller.craft_chances` esce dal contratto (sostituita da `blueprint_rare_chance`, F-91). Il tiro
+`roll_rarity` (`r < p_rare` → raro; `r < p_rare + p_magic` → magico; altrimenti comune) resta ed è usato anche da F-84.
 
 ### F-84 Rarità nei drop (M7)
-`p_magic = rarity.drop.magic_pct × k`, `p_rare = rarity.drop.rare_pct × k` (stesso `k` e stesso tiro di F-83); valori
+`p_magic = rarity.drop.magic_pct × k`, `p_rare = rarity.drop.rare_pct × k` (`k = 1 + T(item_rarity_pct, ctx)/100` e tiro come in F-91, con `p_magic` e `p_rare` entrambi presenti); valori
 20, 3 per i mostri, `rarity.rift_stone.magic_pct` 40 e `rare_pct` 12 per le Pietre del Rift. Esempio: mostro con +50% →
 30 / 4,5. Test: `test_item_roller.gd::test_drop_rarity`.
 
@@ -373,7 +371,7 @@ Numero: `randi_range(a, b)` con `rarity.affix_count.magic = [1, 2]`, `rarity.aff
 Per ogni affisso, in ordine: candidati = affissi di `data/affixes/affixes.json` ammessi dallo slot del pezzo, non già
 presenti sul pezzo, con almeno un grado `min_ilvl ≤ ilvl`; `pick_weighted(weight)`; grado = uniforme tra i gradi
 sbloccati; valore = `min + randi_range(0, floor((max − min) / step)) × step` (`step` di default 1). Senza candidati si
-smette (il pezzo ha meno affissi). `ilvl` = livello della ricetta (artigianato); per i drop (M7) il massimo tra `attack_level`, `power_level` e
+smette (il pezzo ha meno affissi). `ilvl` = livello del grado del progetto (F-90); per i drop (M7) il massimo tra `attack_level`, `power_level` e
 `defence_level` del mostro; per una Pietra del Rift il massimo di questo valore sui mostri dell'area.
 Esempi: gradi con `min_ilvl` 1, 20, 45 e ilvl 25 → 2 gradi sbloccati; grado `{min 3, max 6}` → 3..6; `{min 0.5, max 1.5,
 step 0.25}` → 0,5, 0,75 … 1,5; slot con 2 soli affissi ammessi e raro da 4 → 2 affissi.
@@ -382,7 +380,8 @@ Test: `test_item_roller.gd::test_affix_rolls`.
 ### F-86 Raffinazione (M7)
 Tentativo da `+N` a `+N+1` (N 0..8, Q28): costo `upgrade.levels[N] = {success_pct, gold_per_grade, ingots, shards}`:
 oro `gold_per_grade × grado`, `ingots` lingotti del grado del pezzo, `shards` frammenti del Rift.
-`chance = min(100, success_pct × (1 + T(upgrade_success_pct)/100))`. Successo → `+N+1`. Fallimento: materiali persi;
+`chance = min(100, success_pct × (1 + T(upgrade_success_pct)/100))` (da M10 `upgrade_success_pct` include il
+bonus del livello del Fabbro, F-93). Vale per **armi e armature**; gli attrezzi unici usano F-94 (sempre riuscita). Successo → `+N+1`. Fallimento: materiali persi;
 se `N ≥ upgrade.downgrade_from` (4) il pezzo scende a `+N−1`, salvo il Sigillo di salvaguardia (`upgrade.seal_item`,
 consumato); mai distrutto (Q27). Modificatori base del pezzo × `(1 + upgrade.mod_pct_per_level × N / 100)` (10); gli
 affissi non cambiano.
@@ -404,15 +403,86 @@ F-25, parabile con F-75). Una Pietra in attesa (`pending`) ferma conteggio e tir
 garantita; chance 100 → sempre. Test:
 `tests/systems/combat/test_rift_stone.gd`.
 
-### F-88 Smantellamento (M7)
-Lingotti restituiti: `floor(ingots_ricetta × salvage.ingot_ratio)` (0.4) del grado del pezzo (0 per i pezzi senza
-ricetta); frammenti: `salvage.shards_by_rarity[rarity] × grado` (comune 0, magico 1, raro 3) + `N` della raffinazione.
-Esempi: corpetto T3 (5 lingotti) magico +0 → 2 lingotti T3 e 3 frammenti; spada T8 rara +2 → 1 lingotto T8 e 26
-frammenti; anello T5 raro → 0 lingotti, 15 frammenti. Test: `tests/systems/armory/test_salvage.gd`.
+### F-88 Smantellamento (M7) — **SOSTITUITA da F-95 (M10, R2)**
+Restituiva lingotti in base alla ricetta del pezzo; senza ricette in serie restituisce componenti (F-95).
 
 ### F-89 Castoni (M8)
 `sockets = sockets.by_rarity[rarity] + (1 se upgrade ≥ sockets.bonus_at_upgrade)`; comune 0, magico 1, raro 2, bonus a
 +7. Esempi: raro +7 → 3; comune +9 → 1; magico +6 → 1. Test: `tests/systems/armory/test_sockets.gd`.
+
+## 5c. Progetti, attrezzi unici e smantellamento a componenti (F-90…F-95, M10)
+
+Riforma del bottino (R1-R3, `01_GDD.md` §5.1, §23.1). **Tutti i numeri di questa sezione sono valori di partenza da
+tarare** (Q53) con `tools/sim_combat.gd` e `tools/sim_gear_economy.gd`, tranne quelli fissati dall'utente: durata
+(Q48), livello per l'affisso scelto (Q50), raffinazione +0…+9 sempre riuscita, un livello minimo per passo (+4 =
+mestiere 25), kit iniziale (Q51). Il grado `n` va da 1 a 8; "livello del grado" = livello Tn di §8.1 (1, 10, 20, 30,
+45, 60, 75, 90).
+
+### F-90 Craft di un progetto (azione a ciclo unico)
+Livello richiesto del Fabbro: il livello del grado `n` del progetto. Durata (Q48):
+`duration_min = blueprint.duration_base_min + blueprint.duration_per_grade_min × (n − 1)` con 10 e 7 (grado 1: 10
+minuti; grado 8: 59), poi F-03 con `skill_interval_pct` (contesto `for_action(forging, blueprint_craft)`), minimo
+`action.min_interval_ms`. XP (poi F-02): `xp = floor(blueprint.xp_mult × duration_min × xp_min(n))` con
+`xp_min(n) = XP della ricetta di fusione del grado n × 60000 / intervallo della ricetta` e `blueprint.xp_mult` = 1,5
+(la durata è quella base, senza F-03). Nessuna maestria. Materiali: la lista `inputs` del progetto (piastre del Fabbro,
+impugnature o telai del Falegname) più il componente raro del grado, tutti consumati all'avvio (restituiti se il
+lavoro si ferma prima della fine). `ilvl` del pezzo = livello del grado.
+Esempi: grado 1 → 10 min, `xp_min` 8 × 60000/2000 = 240, XP 3.600; grado 4 (fusione XP 32) → 31 min, XP 44.640;
+grado 8 (fusione XP 116) → 59 min, XP 307.980; con `skill_interval_pct` −10 il grado 1 dura 9 min. Test:
+`tests/systems/actions/test_blueprint_craft.gd::test_duration_and_xp`.
+
+### F-91 Rarità di un progetto
+Mai comune. `k = 1 + T(item_rarity_pct, ctx)/100` (come in F-84) e `L` = livello del Fabbro:
+`p_rare = min(100, (blueprint.rare_base_pct + blueprint.rare_per_forging_level × L) × k)` con 10 e 0,5; tiro
+`r = rng.randf() × 100`; `r < p_rare` → `rare`, altrimenti `magic`.
+Esempi: L 1, +0% → 10,5; L 50, +0% → 35; L 50, +20% → 42; L 99, +0% → 59,5; L 99, +100% → 100 (119 limitato). Con
+`p_rare` 35: r 20 → raro; r 50 → magico. Test: `tests/systems/items/test_item_roller.gd::test_blueprint_rarity`.
+
+### F-92 Affisso scelto
+Disponibile se `L ≥ blueprint.choose_affix_level` (50, Q50), altrimenti il comando è rifiutato (`invalid_choice`). Il
+giocatore sceglie un affisso tra quelli ammessi dallo slot del pezzo con almeno un grado sbloccato da `ilvl`; il grado
+è fisso: `min(blueprint.chosen_affix_tier, gradi sbloccati)` con `chosen_affix_tier` = 2; il valore si tira nel grado
+come in F-85. L'affisso scelto è il **primo** degli affissi e conta nel numero della rarità (magico 1-2, raro 3-4,
+`rarity.affix_count`); gli altri si tirano con F-85 senza duplicarlo. Ordine dei tiri su `rng`: rarità, numero di
+affissi, valore dell'affisso scelto, poi gli altri (scelta, grado, valore). Esempi: `ilvl` 20 con gradi `min_ilvl` 1,
+20, 45 → 2 gradi sbloccati, si usa il grado 2; `ilvl` 1 → grado 1; L 49 → rifiutato. Test:
+`tests/systems/items/test_item_roller.gd::test_chosen_affix`.
+
+### F-93 Bonus del Fabbro alla raffinazione
+Sorgente `skill_level:forging` (si ricostruisce a ogni `level_up` e a `from_save`): modificatore globale
+`upgrade_success_pct = skills.forging.level_modifiers[0].per_level × L` con `per_level` = 0,4 (campo `level_modifiers`
+di `data/skills/skills.json`, `04_DATA_SCHEMA.md` §4). Poi F-86 come sempre. Esempi: L 1 → 0,4; L 50 → 20; L 99 →
+39,6; passo +5 → +6 (`success_pct` 55) con L 50 → 55 × 1,2 = 66. Test:
+`tests/systems/armory/test_upgrade.gd::test_forging_level_bonus`.
+
+### F-94 Raffinazione degli attrezzi (+0…+9, sempre riuscita)
+Passo verso `+T` (T 1..9) sull'attrezzo unico della skill `s`. Condizioni: mestiere `s` al livello `min_level(T)`;
+costo `plates(T)` piastre del grado `grade(T)` (item `tool_upgrade.plate_items[grado − 1]`), `handles(T)` manici dello
+stesso grado (`handle_items`) e `gold(T)` oro. **Riesce sempre**: nessun tiro, nessuna discesa, nessun Sigillo.
+| Verso | +1 | +2 | +3 | +4 | +5 | +6 | +7 | +8 | +9 |
+|---|---|---|---|---|---|---|---|---|---|
+| `min_level` del mestiere | 1 | 10 | 20 | 25 | 35 | 50 | 65 | 80 | 90 |
+| `grade` dei componenti | 1 | 2 | 3 | 3 | 4 | 5 | 6 | 7 | 8 |
+| `plates` | 2 | 2 | 3 | 3 | 4 | 4 | 5 | 5 | 6 |
+| `handles` | 1 | 1 | 1 | 1 | 2 | 2 | 2 | 2 | 3 |
+| `gold` | 100 | 250 | 600 | 1.200 | 2.500 | 5.000 | 10.000 | 20.000 | 40.000 |
+Effetto: `skill_interval_pct = −(tool_upgrade.interval_base_pct + tool_upgrade.interval_per_level_pct × N)` con 5 e 2
+(+0 → −5; +9 → −23), scope `skill:<s>`; più `upgrade_extras` dell'attrezzo (`data/items/tools.json`): a +5
+`double_item_chance` +2 (Boscaiolo, Minatore) o `rift_shard_chance` +10 (Pescatore); a +9 altri +3 / +15. La tabella sta
+in `balance.json` (`tool_upgrade.levels`); l'effetto in `balance.json` e nei dati dell'attrezzo.
+Rifiuti, in ordine: `unknown_id`, `not_a_tool` (non è un attrezzo unico), `upgrade_max`, `level_too_low` (mestiere),
+`not_enough_gold`, `not_enough_items`; atomico. Esempi: Accetta +3 → +4: Boscaiolo al livello 25, 3 piastre di acciaio,
+1 manico di quercia, 1.200 oro; Accetta +4 → `skill_interval_pct` −13, +9 → −23 più `double_item_chance` +5; Piccone +0 → +1
+con il Minatore al livello 1: 2 piastre di rame, 1 manico di betulla, 100 oro. Test:
+`tests/systems/armory/test_upgrade_tool.gd`.
+
+### F-95 Smantellamento a componenti
+Sostituisce F-88. Il progetto con `base` uguale a quella del pezzo (uno per base) elenca i componenti: per ognuno,
+tranne il componente raro, restituisce `floor(qty × salvage.component_ratio)` (0,4) dello stesso oggetto;
+frammenti: `salvage.shards_by_rarity[rarity] × grado + N` (comune 0, magico 1, raro 3, come prima). Anelli e amuleti
+(nessun progetto) → 0 componenti. Esempi (quantità di §8.2): spada grado 3 magica +0 → 2 piastre di acciaio, 0
+impugnature, 3 frammenti; corpo grado 3 → 4 piastre; spadone grado 8 raro +2 → 4 piastre di Riftite, 0 impugnature, 26
+frammenti; anello grado 5 raro → 0 componenti, 15 frammenti. Test: `tests/systems/armory/test_salvage.gd`.
 
 ## 6. Offline
 
@@ -426,7 +496,7 @@ Esempi: 5 h → 18.000.000, capped false; 20 h → 43.200.000, capped true; orol
 `chunks = ceil(elapsed / offline_chunk_ms)`, `offline_chunk_ms = 60000`. Esempio: 12 h → 720 blocchi; 90 s → 2 (60 s + 30 s).
 Equivalenza: simulare 600.000 ms in un blocco o in 10 blocchi dà lo stesso stato con lo stesso seme. Test: idem.
 
-## 7. Fratture (M10) e corsie (M11)
+## 7. Fratture (M11) e corsie (M12)
 
 ### F-50 Fratture
 Prossima apertura: `randi_range(fractures.interval_min_ms, fractures.interval_max_ms)` = 7.200.000-14.400.000 ms.
@@ -459,21 +529,35 @@ Controllo: T1 = 12.000 XP/h → livello 10 in circa 6 minuti; T8 ≈ 94.900 XP/h
 ### 8.2 Artigianato
 | Skill | Ricetta (grado n) | Ingredienti | Intervallo | XP | Valore |
 |---|---|---|---|---|---|
-| Forgiatura | Lingotto Tn | 2 × minerale Tn | 2000 | `floor(0,8 × XP raccolta Tn)` (8, 14, 22, 32, 46, 64, 86, 116) | 3 × valore minerale |
-| Forgiatura | Spada Tn | 3 × lingotto Tn + 1 × impugnatura Tn | 3000 | `3 × XP lingotto × 1,2` | 12 × valore minerale + valore impugnatura |
-| Forgiatura | Spadone Tn | 5 × lingotto Tn + 1 × impugnatura Tn | 3500 | `5 × XP lingotto × 1,2` | 20 × valore minerale + valore impugnatura |
-| Forgiatura | Scudo Tn | 4 × lingotto Tn + 1 × anima dello scudo Tn | 3000 | `4 × XP lingotto × 1,2` | 16 × valore minerale + valore anima |
-| Forgiatura | Corpetto Tn / Gambali Tn / Elmo Tn / Stivali Tn / Guanti Tn | 5 / 4 / 3 / 2 / 2 lingotti | 3000 | `lingotti × XP lingotto × 1,2` | `lingotti × 4 ×` valore minerale |
-| Forgiatura | Attrezzo Tn (ascia, piccone, canna) | 2 × lingotto Tn + 1 × manico Tn | 3000 | `2 × XP lingotto × 1,3` | 10 × valore minerale |
-| Focolare | Pesce cotto Tn | 1 × pesce Tn | 2500 | `floor(0,9 × XP pesca Tn)` | 2 × valore pesce |
-| Intaglio | Impugnatura Tn (ingrediente di spade e spadoni) | 1 × legno Tn | 1600 | `XP legno × 0,8` | 2 × valore legno |
-| Intaglio | Anima dello scudo Tn (ingrediente degli scudi) | 2 × legno Tn | 2000 | `2 × XP legno × 0,9` | 4 × valore legno |
-| Intaglio | Manico Tn (ingrediente degli attrezzi) | 1 × legno Tn | 1600 | `XP legno × 0,8` | 2 × valore legno |
-Livello richiesto della ricetta Tn = livello del grado Tn (8.1). Gli arrotondamenti delle XP sono `floor`. Archi e
-bastoni arcani non sono nell'MVP (Q37): tornano con le loro classi. I pezzi `equipment`/`tool` prodotti sono istanze
-dell'Armeria con rarità F-83 e affissi F-85 (`ilvl` = livello della ricetta).
+| Fabbro | Lingotto Tn | 2 × minerale Tn | 2000 | `floor(0,8 × XP raccolta Tn)` (8, 14, 22, 32, 46, 64, 86, 116) | 3 × valore minerale |
+| Fabbro | Piastra Tn (M10, componente) | 2 × lingotto Tn | 2400 | `floor(2 × XP lingotto × 1,2)` | 7 × valore minerale |
+| Cuoco | Pesce cotto Tn | 1 × pesce Tn | 2500 | `floor(0,9 × XP pesca Tn)` | 2 × valore pesce |
+| Falegname | Impugnatura Tn (componente di spade e spadoni) | 1 × legno Tn | 1600 | `XP legno × 0,8` | 2 × valore legno |
+| Falegname | Telaio dello scudo Tn (era "anima dello scudo", componente degli scudi) | 2 × legno Tn | 2000 | `2 × XP legno × 0,9` | 4 × valore legno |
+| Falegname | Manico Tn (componente della raffinazione degli attrezzi, F-94) | 1 × legno Tn | 1600 | `XP legno × 0,8` | 2 × valore legno |
+Livello richiesto della ricetta Tn = livello del grado Tn (8.1). Gli arrotondamenti delle XP sono `floor`. **Dalla
+riforma (M10, R2) le ricette di spade, spadoni, scudi, armature e attrezzi sono eliminate**; restano lingotti, piastre,
+cibo e i componenti del Falegname (la piastra e il telaio sono nuovi o rinominati: gli id dei vecchi oggetti restano,
+Q52). I pezzi si ottengono con i **progetti** (F-90, tabella sotto), dai drop e dal kit iniziale.
 
-### 8.3 Cibo (Focolare)
+**Progetti** (uno per base; 8 basi × 8 gradi = 64; quantità di partenza, da tarare, Q53):
+| Progetto di | Piastre Tn | Falegname Tn | Componente raro |
+|---|---|---|---|
+| Spada | 6 | 2 impugnature | 3 |
+| Spadone | 10 | 2 impugnature | 3 |
+| Scudo | 8 | 2 telai | 3 |
+| Corpo | 10 | — | 3 |
+| Gambe | 8 | — | 3 |
+| Elmo | 6 | — | 3 |
+| Mani / Piedi | 4 | — | 3 |
+Il componente raro è un drop di un mostro dell'area del grado (un solo oggetto per grado, scelto nei dati: es. Nucleo di
+golem); un'area di grado `g` (1, 3, 5, 7) lascia progetti di grado `g` e `g+1`, i gradi pari usano i componenti
+rari dell'area precedente. Probabilità di drop dei progetti (Q49): circa 1 progetto/ora nell'area del proprio livello;
+1 Pietra del Rift su 3 ne lascia uno. Archi e
+bastoni arcani non sono nell'MVP (Q37): tornano con le loro classi.
+Gli attrezzi non hanno ricette (F-94). I pezzi `equipment` prodotti da un progetto sono istanze dell'Armeria con rarità F-91 e affissi F-85 (`ilvl` = livello del grado).
+
+### 8.3 Cibo (Cuoco)
 | Grado | T1 | T2 | T3 | T4 | T5 | T6 | T7 | T8 |
 |---|---|---|---|---|---|---|---|---|
 | `heal` | 20 | 35 | 55 | 80 | 110 | 150 | 200 | 260 |
@@ -489,7 +573,7 @@ dell'Armeria con rarità F-83 e affissi F-85 (`ilvl` = livello della ricetta).
 | Elmo | — | `evasion_bonus 3n`, `damage_reduction ceil(n/2)` | — | personaggio |
 | Stivali / Guanti | — | `evasion_bonus 2n` | — | personaggio |
 | Anello / Amuleto (M7, solo drop, Q30) | — | `accuracy_bonus 3n` / `max_hp_flat 10n` | — | personaggio |
-| Attrezzo | — | `skill_interval_pct −(3 + 2n)` con scope `skill:<skill>` | — | skill dell'attrezzo ≥ livello Tn |
+| Attrezzo unico (M10, R3) | — | `skill_interval_pct −(5 + 2N)` con scope `skill:<skill>`, N = raffinazione +0…+9 (F-94) | — | nessuno per indossarlo; livello del mestiere per raffinare |
 Esempio: set completo T8 con scudo → `damage_reduction` 8 + 4 + 4 + 8 = 24, `block_chance` 15. Ogni pezzo ha `grado` n
 (`equip.grade`). Identità degli assetti (D6): spadone lento e forte, spada e scudo difensivo, due spade rapide (F-73).
 Modificatori degli assetti (`data/classes/rift_blade.json`): solo `dual_swords` con `accuracy_pct −10` (Q39, provvisorio); gli altri nessuno.
@@ -522,15 +606,14 @@ deve avere 0 morti in 1 ora simulata nel gruppo più facile e tenere almeno 60 u
 ### 8.6 Shop
 | Id | Nome | Costo | Max | Requisiti | Effetto |
 |---|---|---|---|---|---|
-| `bank_slot` | Casella della bank | F-17 | 150 | — | `bank_slots +1` |
-| `auto_eat_1` | Razioni da campo I | 2.000 | 1 | — | `auto_eat_tier +1` |
-| `armory_slot` | Casella dell'Armeria | F-82 | 60 | — | `armory_slots +1` |
+| `bank_slot` | Spazio nel deposito | F-17 | 150 | — | `bank_slots +1` |
+| `auto_eat_1` | Razioni da campo I | 2.000 (**già posseduta dall'inizio**, `start.purchases`, B2) | 1 | — | `auto_eat_tier +1` |
+| `armory_slot` | Spazio nell'armeria | F-82 | 60 | — | `armory_slots +1` |
 | `auto_eat_2` | Razioni da campo II | 25.000 | 1 | `auto_eat_1`, personaggio 25 | `auto_eat_tier +1` |
 | `auto_eat_3` | Razioni da campo III | 250.000 | 1 | `auto_eat_2`, personaggio 50 | `auto_eat_tier +1` |
 | `auto_loot` | Raccolta automatica del bottino | 50.000 | 1 | — | `auto_loot +1` |
 | `loot_pocket` | Tasca della borsa | 5.000 | 3 | — | `loot_bag_slots +4` |
-| `novice_hatchet` / `novice_pick` / `novice_rod` | Attrezzi del novizio (T1) | 150 | ∞ | — | istanza comune dell'attrezzo T1 nell'Armeria |
-| `second_thought` (M11) | Secondo pensiero | 1.000.000 | 1 | somma dei livelli ≥ 300 | `parallel_lanes +1` |
+| `second_thought` (M12) | Secondo pensiero | 1.000.000 | 1 | somma dei livelli ≥ 300 | `parallel_lanes +1` |
 
 ### 8.7 Altare e infusioni (Legatura del Rift, M8)
 Prese sbloccate ai livelli `rift.sockets`: 1, 20, 40, 60, 80.
@@ -599,7 +682,11 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | `slots.count` | 4 | SaveStore, menu |
 | `player_name.{min_length, max_length}` | 1, 24 | Game.new_game, SlotTexts (`01_GDD.md` §1) |
 | `start.gold` | 50 | GameSession.new_game |
-| `start.items` | `[]` | GameSession.new_game |
+| `start.items` | `[{"item": "seared_brookfin", "qty": 20}]` (20 pesci cotti di grado 1, Q51; l'id è quello del cibo T1 dei dati, nome "Trota alla griglia") | GameSession.new_game |
+| `start.armory` (M10) | `[{"base": spada T1, "equip": "weapon"}, {"base": spadone T1, "equip": ""}, {"base": scudo T1, "equip": "offhand"}]` (comuni, grado 1; `equip` = slot in cui indossarlo, `""` = resta nell'Armeria; da confermare, Q51) | GameSession.new_game, `01_GDD.md` §1.1 |
+| `start.tools` (M10) | `[{"base": accetta}, {"base": piccone}, {"base": canna}]` (a +0, indossati nello slot del mestiere) | GameSession.new_game |
+| `start.purchases` (M10) | `{"auto_eat_1": 1}` (B2, Q12) | GameSession.new_game, Shop |
+| `start.food` (M10) | id del cibo scelto all'inizio (il pesce cotto T1 di `start.items`) | GameSession.new_game |
 | `xp_curve.{base, growth, linear, max_level, xp_cap}` | 70, 1.1, 8, 99, 50000000 | F-01 |
 | `mastery_curve.{base, growth, linear, max_level}` | 20, 1.1, 4, 99 | F-09 |
 | `mastery.{base_factor, per_level, ratio_weight, pool_share_pct, pool_cap_per_item}` | 1.0, 0.1, 3.0, 20, 300000 | F-10..F-13 |
@@ -622,22 +709,25 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | `character_curve.{base, growth, linear, max_level, xp_cap}` | 70, 1.1, 8, 99, 50000000 | F-71 (Q34) |
 | `character.start_class` | `"rift_blade"` | GameSession.new_game (`01_GDD.md` §19) |
 | `armory.{base_slots, slot_cost_base, slot_cost_growth, slot_cost_cap}` | 40, 1000, 1.12, 2000000 | F-82 (il massimo comprabile è `max_purchases` di `armory_slot`, 60) |
-| `rarity.craft.{magic_base_pct, magic_per_mastery_level, rare_base_pct, rare_per_mastery_level}` | 10, 0.4, 1, 0.1 | F-83 |
+| ~~`rarity.craft.*`~~ | tolta in M10 | era F-83 (sostituita da F-91) |
+| `blueprint.{duration_base_min, duration_per_grade_min, xp_mult, rare_base_pct, rare_per_forging_level, choose_affix_level, chosen_affix_tier}` (M10) | 10, 7, 1.5, 10, 0.5, 50, 2 | F-90, F-91, F-92 (Q48, Q50; il resto da tarare, Q53) |
+| `tool_upgrade.{interval_base_pct, interval_per_level_pct, levels, plate_items, handle_items}` (M10) | 5, 2, tabella F-94 (9 voci `{min_level, grade, plates, handles, gold}`), 8 id delle piastre T1-T8, 8 id dei manici T1-T8 | F-94 |
+| `combat.kill_xp_mult` (M10) | 0.15 (da tarare, B1/Q54) | F-28 |
 | `rarity.affix_count.{magic, rare}` | `[1, 2]`, `[3, 4]` | F-85 |
 | `traits.slot_levels` (M6) | `[1, 10, 25, 50]` | F-78 (Q35) |
 | `abilities.slot_levels` (M6) | `[1, 1, 30]` | F-78 (Q36) |
 | `rarity.drop.{magic_pct, rare_pct}`, `rarity.rift_stone.{magic_pct, rare_pct}` (M7) | 20, 3; 40, 12 | F-84 |
 | `upgrade.{levels, downgrade_from, mod_pct_per_level, seal_item, ingot_items}` (M7) | tabella F-86, 4, 10, id del Sigillo, 8 id dei lingotti T1-T8 | F-86 |
 | `rift_stone.{chance_pct, pity_kills}` (M7) | 0.5, 300 | F-87; `chance_pct` è il default delle aree senza `rift_stone_chance_pct` (Q46) |
-| `salvage.{ingot_ratio, shards_by_rarity}` (M7) | 0.4, `{"common":0,"magic":1,"rare":3}` | F-88 |
+| `salvage.{component_ratio, shards_by_rarity}` (M7; M10: `ingot_ratio` rinominata `component_ratio`) | 0.4, `{"common":0,"magic":1,"rare":3}` | F-95 |
 | `sockets.{by_rarity, bonus_at_upgrade}` (M8) | `{"common":0,"magic":1,"rare":2}`, 7 | F-89 |
 | `rift.sockets` (già presente, usata in M8) | `[{"level":1},{"level":20},{"level":40},{"level":60},{"level":80}]` | 11 |
 | `offline.{cap_ms, min_ms, chunk_ms}` | 43200000, 60000, 60000 | F-40, F-41 |
-| `fractures.{interval_min_ms, interval_max_ms, duration_ms}` (M10) | 7200000, 14400000, 1800000 | F-50 |
-| `parallel.interval_penalty_pct` (M11) | 40 | F-51 |
+| `fractures.{interval_min_ms, interval_max_ms, duration_ms}` (M11) | 7200000, 14400000, 1800000 | F-50 |
+| `parallel.interval_penalty_pct` (M12) | 40 | F-51 |
 
 Chiavi tolte con la riforma (M4-01, D3): `combat.hp_per_vitality`, `combat.hp_skill`, `combat.defence_skill`,
-`combat.xp_per_damage_style`, `combat.xp_per_damage_vitality`. Le chiavi segnate (M6)…(M11) le aggiunge il task che
+`combat.xp_per_damage_style`, `combat.xp_per_damage_vitality`. Le chiavi segnate (M6)…(M12) le aggiunge il task che
 le usa, insieme alla regola del validatore.
 
 I limiti delle stat (es. `damage_reduction` max 80, `preservation_chance` max 80, `skill_interval_pct` min −80) stanno
@@ -678,8 +768,8 @@ sezione (`auto_loot`: `"10.6"` = `01_GDD §10.6`; `04_DATA_SCHEMA.md` §2). Con 
 | `auto_loot` | 0 | 1 | bottino direttamente nella bank | 01_GDD §10.6 | `tests/systems/combat/test_loot_bag.gd::test_auto_loot_to_bank` |
 | `auto_eat_tier` | 0 | 3 | livello delle razioni da campo | F-30 | `tests/systems/combat/test_auto_eat.gd::test_tier_thresholds` |
 | `armory_slots` (M4) | 0 | 10000 | caselle extra dell'Armeria | F-82 | `tests/systems/armory/test_armory.gd::test_capacity_uses_armory_slots` |
-| `item_rarity_pct` (M4) | 0 | 1000 | probabilità di pezzi magici e rari | F-83, F-84 | `tests/systems/items/test_item_roller.gd::test_item_rarity_pct` |
+| `item_rarity_pct` (M4) | 0 | 1000 | probabilità di pezzi magici e rari | F-84, F-91 (M10: `formula` di `stats.json` passa da F-83 a F-84) | `tests/systems/items/test_item_roller.gd::test_item_rarity_pct` |
 | `block_chance` (M5) | 0 | 50 | probabilità di parare un colpo con lo scudo (Q40) | F-75 | `tests/systems/combat/test_combat_engine.gd::test_block_chance` |
-| `upgrade_success_pct` (M7) | 0 | 300 | probabilità di riuscita della raffinazione | F-86 | `tests/systems/armory/test_upgrade.gd::test_upgrade_success_pct` |
-| `fracture_duration_pct` (M10) | 0 | 300 | durata delle Fratture | F-50 | `tests/systems/fractures/test_fracture_system.gd::test_duration_pct` |
-| `parallel_lanes` (M11) | 0 | 1 | corsie extra | F-51 | `tests/systems/actions/test_action_runner.gd::test_secondary_lane_unlock` |
+| `upgrade_success_pct` (M7) | 0 | 300 | probabilità di riuscita della raffinazione | F-86, F-93 (M10: sorgente `skill_level:forging`) | `tests/systems/armory/test_upgrade.gd::test_upgrade_success_pct` |
+| `fracture_duration_pct` (M11) | 0 | 300 | durata delle Fratture | F-50 | `tests/systems/fractures/test_fracture_system.gd::test_duration_pct` |
+| `parallel_lanes` (M12) | 0 | 1 | corsie extra | F-51 | `tests/systems/actions/test_action_runner.gd::test_secondary_lane_unlock` |

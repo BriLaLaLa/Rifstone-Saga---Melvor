@@ -31,7 +31,7 @@ res://
 │   ├── common/                   ← command_result.gd, reasons.gd
 │   ├── data/                     ← game_data.gd, json_loader.gd, data_validator.gd
 │   │   └── defs/                 ← item_def.gd, skill_def.gd, action_def.gd, monster_def.gd, area_def.gd,
-│   │                               shop_entry_def.gd, mastery_node_def.gd, item_qty.gd, drop_entry.gd, fracture_def.gd (M10),
+│   │                               shop_entry_def.gd, mastery_node_def.gd, item_qty.gd, drop_entry.gd, fracture_def.gd (M11),
 │   │                               class_def.gd, setup_def.gd, affix_def.gd, affix_tier.gd, pack_def.gd (M4), trait_def.gd, trait_effect_def.gd, ability_def.gd (M6)
 │   ├── modifiers/                ← modifier.gd, modifier_context.gd, modifier_service.gd, stat_registry.gd
 │   ├── progression/              ← xp_table.gd
@@ -45,7 +45,7 @@ res://
 │   ├── skills/                   ← skills_system.gd
 │   ├── mastery/                  ← mastery_system.gd, mastery_math.gd
 │   ├── actions/                  ← action_runner.gd, action_math.gd, action_outcome.gd,
-│   │                               gathering_resolver.gd, artisan_resolver.gd
+│   │                               gathering_resolver.gd, artisan_resolver.gd, blueprint_craft.gd (M10)
 │   ├── character/                ← character_system.gd (M4), loadout.gd (M6)
 │   ├── items/                    ← item_roller.gd, item_instance.gd, affix_roll.gd (M4)
 │   ├── armory/                   ← armory.gd (M4; raffinazione e smantellamento M7, eventuali file propri)
@@ -56,19 +56,19 @@ res://
 │   ├── shop/                     ← shop.gd
 │   ├── rift/                     ← rift_altar.gd (M8)
 │   ├── hints/                    ← hints_system.gd (M9)
-│   └── fractures/                ← fracture_system.gd (M10)
+│   └── fractures/                ← fracture_system.gd (M11)
 ├── data/
 │   ├── config/                   ← balance.json, stats.json
 │   ├── skills/skills.json        ← 7 skill di supporto
 │   ├── classes/<id>.json         ← classi (M4: rift_blade.json)
 │   ├── affixes/affixes.json      ← affissi (M4)
-│   ├── items/                    ← materials.json, equipment.json, tools.json, food.json, infusions.json, misc.json
+│   ├── items/                    ← materials.json, components.json (M10), blueprints.json (M10), equipment.json, tools.json (3 attrezzi unici), food.json, infusions.json, misc.json
 │   ├── actions/<skill>.json      ← una per skill (7 file)
 │   ├── mastery/<skill>.json      ← nodi della maestria (7 file)
 │   ├── combat/                   ← areas.json, monsters.json, rift_stones.json (M7)
 │   ├── shop/shop.json
 │   ├── hints/hints.json          (M9)
-│   └── fractures/fractures.json  (M10)
+│   └── fractures/fractures.json  (M11)
 ├── ui/
 │   ├── theme/                    ← ui_style.gd, number_format.gd (M1-14), riftstone_idle_theme.tres (generato)
 │   ├── components/               ← game_window/, tooltip/, toast/, item_slot/, progress/, confirm_dialog/
@@ -245,7 +245,7 @@ sequenceDiagram
 - `GameClock._process(delta)` accumula millisecondi reali e, per ogni `tick_ms` (100) intero accumulato, emette
   `ticked(tick_ms)`; massimo `max_catchup_ms` per frame (il resto si scarta). `set_paused(true)` durante menu e offline.
 - `Game` collega `GameClock.ticked` a `session.advance(delta_ms)` solo quando la sessione è in stato `PLAYING`.
-- `GameSession.advance(delta_ms)` chiama in ordine fisso: `fractures.advance` (M10) → `actions.advance` → `combat.advance`
+- `GameSession.advance(delta_ms)` chiama in ordine fisso: `fractures.advance` (M11) → `actions.advance` → `combat.advance`
   → `play_time_ms += delta_ms`.
 - Ogni `advance` gestisce **più eventi nello stesso passo** (es. due cicli d'azione da 250 ms in 600 ms): è la
   condizione che rende identici online e offline (test di equivalenza F-41).
@@ -321,12 +321,12 @@ flowchart TD
     MN[MasterySystem: mastery_node:id] --> MS
     SH[Shop: shop:entry] --> MS
     RA[RiftAltar: rift_socket:i] --> MS
-    FR[FractureSystem: fracture:id M10] --> MS
+    FR[FractureSystem: fracture:id M11] --> MS
     MS -->|"total(stat, ctx)"| F1[ActionMath F-03]
     MS --> F2[SkillsSystem F-02, CharacterSystem F-71]
     MS --> F3[MasteryMath F-10]
     MS --> F4[CombatantStats F-20..F-27, F-70, F-74]
-    MS --> F5[Bank F-16, Armory F-82, ItemRoller F-83, LootBag F-33, AutoEat F-30]
+    MS --> F5[Bank F-16, Armory F-82, ItemRoller F-84, F-91, LootBag F-33, AutoEat F-30]
 ```
 
 - Un **modificatore** è `{stat, value, scope}`. Le sorgenti si registrano con `set_source(source_id, mods)`: chiamarlo

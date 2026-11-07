@@ -62,7 +62,10 @@ l'elenco delle chiavi obbligatorie, `DataValidator.REQUIRED_BALANCE_KEYS`).
   "tick_ms": 100, "max_catchup_ms": 5000, "autosave_interval_ms": 10000,
   "slots": {"count": 4},
   "player_name": {"min_length": 1, "max_length": 24},
-  "start": {"gold": 50, "items": []},
+  "start": {"gold": 50, "items": [{"item": "seared_brookfin", "qty": 20}],
+            "armory": [{"base": "<spada T1>", "equip": "weapon"}, {"base": "<spadone T1>", "equip": ""}, {"base": "<scudo T1>", "equip": "offhand"}],
+            "tools": [{"base": "<accetta>"}, {"base": "<piccone>"}, {"base": "<canna>"}],
+            "purchases": {"auto_eat_1": 1}, "food": "seared_brookfin"},
   "xp_curve": {"base": 70, "growth": 1.1, "linear": 8, "max_level": 99, "xp_cap": 50000000},
   "mastery_curve": {"base": 20, "growth": 1.1, "linear": 4, "max_level": 99},
   "mastery": {"base_factor": 1.0, "per_level": 0.1, "ratio_weight": 3.0, "pool_share_pct": 20, "pool_cap_per_item": 300000,
@@ -83,15 +86,20 @@ l'elenco delle chiavi obbligatorie, `DataValidator.REQUIRED_BALANCE_KEYS`).
     "max_pack_size": 6,
     "auto_eat_tiers": [null, {"threshold_pct": 30, "target_pct": 60},
                        {"threshold_pct": 40, "target_pct": 75}, {"threshold_pct": 50, "target_pct": 90}],
-    "respawn_ms": 1500, "loot_bag_base_slots": 12
+    "respawn_ms": 1500, "loot_bag_base_slots": 12,
+    "kill_xp_mult": 0.15
   },
   "character_curve": {"base": 70, "growth": 1.1, "linear": 8, "max_level": 99, "xp_cap": 50000000},
   "character": {"start_class": "rift_blade"},
   "armory": {"base_slots": 40, "slot_cost_base": 1000, "slot_cost_growth": 1.12, "slot_cost_cap": 2000000},
   "rarity": {
-    "craft": {"magic_base_pct": 10, "magic_per_mastery_level": 0.4, "rare_base_pct": 1, "rare_per_mastery_level": 0.1},
     "affix_count": {"magic": [1, 2], "rare": [3, 4]}
   },
+  "blueprint": {"duration_base_min": 10, "duration_per_grade_min": 7, "xp_mult": 1.5, "rare_base_pct": 10,
+                "rare_per_forging_level": 0.5, "choose_affix_level": 50, "chosen_affix_tier": 2},
+  "tool_upgrade": {"interval_base_pct": 5, "interval_per_level_pct": 2,
+                   "levels": [{"min_level": 1, "grade": 1, "plates": 2, "handles": 1, "gold": 100}],
+                   "plate_items": ["<8 id>"], "handle_items": ["<8 id>"]},
   "rift": {"sockets": [{"level": 1}, {"level": 20}, {"level": 40}, {"level": 60}, {"level": 80}]},
   "offline": {"cap_ms": 43200000, "min_ms": 60000, "chunk_ms": 60000}
 }
@@ -102,9 +110,17 @@ di `data/classes/`. `rarity.affix_count.*` sono coppie `[min, max]` di interi 0.
 `combat.dual_wield.interval_mult` > 0 e ≤ 1. `combat.max_pack_size` intero 1..6 (limite di formato del validatore).
 Chiavi aggiunte dopo (dal task che le usa, `02_FORMULAS.md` §9): `traits`, `abilities` (M6); `rarity.drop`,
 `rarity.rift_stone`, `upgrade`, `rift_stone`, `salvage` (M7); `sockets` (M8).
+**Riforma M10 (R1-R3, B1-B2)**: `start` si estende (sotto); `rarity.craft` **tolta**; aggiunte `blueprint`, `tool_upgrade` e
+`combat.kill_xp_mult` (> 0, ≤ 1, B1); `salvage.ingot_ratio` diventa `salvage.component_ratio`. Nell'esempio sopra `<…>` sta per
+l'id della base nei dati. Regole del validatore: `start.armory[].base` è una base `equipment` di grado 1 (rarità comune,
+senza affissi), `equip` è uno slot compatibile con la base o `""`; `start.tools[].base` è un attrezzo unico (uno per slot
+`tool_*`, tutti e tre); `start.purchases` è `{id voce dello shop: n ≤ max_purchases}`; `start.food` è un cibo presente in
+`start.items`; `blueprint.*` numeri positivi, `chosen_affix_tier` ≥ 1, `choose_affix_level` 1..99; `tool_upgrade.levels` ha
+esattamente 9 voci con `min_level` crescente (1..99), `grade` 1..8 non decrescente, `plates`, `handles` ≥ 1, `gold` ≥ 1;
+`plate_items` e `handle_items` hanno 8 id di oggetti `component` (uno per grado).
 `start.items` è una lista di `{"item": id, "qty": n}`. `player_name.min_length` e `max_length` (lunghezza del nome dopo
 `strip_edges`) sono interi ≥ 1 con `min_length` ≤ `max_length`. `mastery.pool_warning_pct` è un numero > 0 e ≤ 100
-(percentuale del tetto del pool da cui la UI avvisa che il pool è quasi pieno). In M10 si aggiunge `fractures`, in M11 `parallel` (vedi §11, §12).
+(percentuale del tetto del pool da cui la UI avvisa che il pool è quasi pieno). In M11 si aggiunge `fractures`, in M12 `parallel` (vedi §11, §12).
 
 ## 4. `data/skills/skills.json`
 
@@ -129,30 +145,33 @@ Chiavi aggiunte dopo (dal task che le usa, `02_FORMULAS.md` §9): `traits`, `abi
 | `icon` | String | percorso `res://assets/icons/skills/…`, `.svg` o `.png` (se il file manca, icona segnaposto della UI) |
 | `color` | String | `#rrggbb` |
 | `has_mastery` | bool | |
+| `level_modifiers` | array | facoltativo (M10, F-93): `[{"stat": id, "per_level": numero > 0}]`; valore = `per_level × livello della skill`, modificatore globale con sorgente `skill_level:<skill>`, ricostruito a ogni `level_up` e dopo il caricamento. Oggi solo `forging` con `upgrade_success_pct` 0,4. La stat deve essere nel registro |
 | `mastery_bonuses` | array | solo se `has_mastery`; ogni regola ha **o** `every_levels` (1..99) **o** `at_level` (1..99) e `modifiers` (lo `scope` qui è ignorato: vale sempre `action:<azione>`) |
 
 Classe: `SkillDef`.
 
 ## 5. `data/items/*.json`
 
-File per categoria (`materials.json`, `equipment.json`, `tools.json`, `food.json`, `infusions.json`, `misc.json`),
+File per categoria (`materials.json`, `components.json` (M10), `blueprints.json` (M10), `equipment.json`, `tools.json`, `food.json`, `infusions.json`, `misc.json`),
 ognuno `{"items": [...]}`. Campi comuni:
 
 | Campo | Tipo | Vincoli |
 |---|---|---|
 | `id` | String | unico tra tutti i file |
 | `name`, `description` | String | |
-| `category` | String | `material`, `equipment`, `tool`, `food`, `infusion`, `misc`; deve corrispondere al file |
+| `category` | String | `material`, `component` (M10), `blueprint` (M10), `equipment`, `tool`, `food`, `infusion`, `misc`; deve corrispondere al file |
 | `icon` | String | `res://assets/icons/items/…`, `.svg` o `.png` (i segnaposto di M1-12 sono SVG 64×64) |
 | `value` | int ≥ 0 | oro dato dalla vendita (F-18); 0 = non vendibile |
 | `sort_order` | int | ordinamento nella bank dentro la categoria |
 | `equip` | object | obbligatorio per `equipment` e `tool`, vietato per gli altri |
 | `food` | object | obbligatorio per `food`, vietato per gli altri |
 | `infusion` | object | obbligatorio per `infusion`, vietato per gli altri |
+| `blueprint` | object | obbligatorio per `blueprint`, vietato per gli altri (M10, sotto) |
 
 `equip`:
 | Campo | Tipo | Vincoli |
 |---|---|---|
+| `unique` | bool | facoltativo, solo `category: tool` (M10, R3): **obbligatorio** `true` per tutti gli attrezzi; vedi sotto |
 | `slot` | String | `head`, `body`, `legs`, `feet`, `hands`, `neck`, `ring`, `weapon`, `offhand`, `tool_forestry`, `tool_quarrying`, `tool_angling` (i `tool_*` solo per `category: tool`, e un `tool` solo negli slot `tool_*`) |
 | `requirements` | object | `{skill_id | "character": livello}`, può essere vuoto. `equipment`: solo la chiave `character`; `tool`: solo la skill dello slot (`tool_<skill>`) |
 | `modifiers` | array | modificatori (§1): i valori **base** del pezzo (la raffinazione li moltiplica, F-86; gli affissi si aggiungono, §15) |
@@ -178,11 +197,13 @@ Esempi:
            "weapon": {"style": "blade", "attack_interval_ms": 2400, "two_handed": false}}}
 ```
 ```json
-{"id": "emberbronze_hatchet", "name": "Accetta di bronzo di brace", "category": "tool",
- "icon": "res://assets/icons/items/emberbronze_hatchet.png", "value": 10, "sort_order": 10,
- "description": "Taglia più in fretta.",
- "equip": {"slot": "tool_forestry", "grade": 1, "requirements": {"forestry": 1},
-           "modifiers": [{"stat": "skill_interval_pct", "value": -5, "scope": "skill:forestry"}]}}
+{"id": "<accetta>", "name": "Accetta", "category": "tool",
+ "icon": "res://assets/icons/items/<accetta>.svg", "value": 0, "sort_order": 10,
+ "description": "Taglia più in fretta ad ogni potenziamento.",
+ "equip": {"slot": "tool_forestry", "grade": 1, "unique": true, "requirements": {},
+           "modifiers": [{"stat": "skill_interval_pct", "value": -5, "scope": "skill:forestry"}],
+           "upgrade_extras": [{"at": 5, "modifiers": [{"stat": "double_item_chance", "value": 2, "scope": "skill:forestry"}]},
+                              {"at": 9, "modifiers": [{"stat": "double_item_chance", "value": 3, "scope": "skill:forestry"}]}]}}
 ```
 ```json
 {"id": "seared_brookfin", "name": "Pinnarivo scottato", "category": "food", "value": 2, "sort_order": 10,
@@ -193,9 +214,26 @@ Esempi:
  "icon": "res://assets/icons/items/inf_swift_hands.png", "description": "Tutte le azioni sono un poco più rapide.",
  "infusion": {"modifiers": [{"stat": "skill_interval_pct", "value": -3}], "unique": false}}
 ```
+**Componenti e progetti (M10)**: la categoria `component` è un oggetto di bank (come `material`, ma separata nella UI) per piastre,
+impugnature, telai degli scudi e manici di grado 1-8; i lingotti restano `material`. Un `blueprint` ha `blueprint`:
+`{"base": id di una base equipment, "grade": 1..8, "inputs": [{item, qty}] (componenti di grado, almeno 1),
+"rare_component": {item, qty}}` (`rare_component.item` è un `material` di drop di un mostro). Il validatore controlla: `base`
+esiste, è `equipment` (non `tool`, non anello/amuleto) e ha lo stesso `grade`; `inputs` sono `component` o `material` esistenti;
+**una sola** `blueprint` per base; `value` 0 (non vendibile). Esempio:
+```json
+{"id": "bp_claymore", "name": "Progetto: Claymore", "category": "blueprint", "value": 0, "sort_order": 10,
+ "icon": "res://assets/icons/items/bp_claymore.svg", "description": "Lo schema di una Claymore.",
+ "blueprint": {"base": "<spadone T4>", "grade": 4, "inputs": [{"item": "<piastra T4>", "qty": 10}, {"item": "<impugnatura T4>", "qty": 2}],
+               "rare_component": {"item": "<componente raro>", "qty": 3}}}
+```
+**Attrezzi unici (M10, R3)**: ogni base `tool` ha `equip.unique: true`, `equip.modifiers` = i valori a +0 (`skill_interval_pct`
+−5 con scope della skill) e facoltativo `equip.upgrade_extras`: `[{"at": 1..9, "modifiers": [...]}]` (bonus cumulativi dal passo `at`,
+F-94). Ci sono **esattamente tre** attrezzi (uno per slot `tool_*`), `value` 0, `grade` 1, nessun `requirements`. Le 27 basi a gradi
+e le loro ricette sono eliminate (id nuovi per i tre attrezzi; gli altri id restano, Q52).
+
 L'oggetto `rift_shard` (categoria `misc`) è obbligatorio: lo usano F-07 e la Legatura del Rift.
 Gli oggetti `equipment` e `tool` sono **basi**: nel gioco esistono solo come istanze dell'Armeria (`01_GDD.md` §21);
-non entrano mai nella bank e non possono essere in `start.items`. Categorie aggiunte dopo: `stone`, `currency` (M8).
+non entrano mai nella bank e non possono essere in `start.items` (il kit usa `start.armory` e `start.tools`). Categorie aggiunte dopo: `stone`, `currency` (M8).
 Classi: `ItemDef` (con `EquipInfo`, `WeaponInfo` come sotto-oggetti tipizzati nello stesso file), `ItemQty`.
 
 ## 6. `data/actions/<skill>.json`
@@ -226,6 +264,7 @@ Un file per ogni skill di raccolta o artigianato (7 file). Le azioni di raccolta
 | `inputs` | array di `{item, qty}` | vuoto per `gathering`, non vuoto per `artisan` |
 | `outputs` | array di `{item, qty}` | almeno 1 |
 | `icon` | String | facoltativo (default: icona del primo output) |
+| `single` | bool | facoltativo (M10), solo `forging`: **azione a ciclo unico**. Vale `false` se assente. Con `single: true` `inputs` e `outputs` possono essere vuoti, `mastery` è `false`, e durata, XP, materiali e prodotto vengono dal progetto scelto (F-90), non dall'azione: `interval_ms` (≥ `action.min_interval_ms`) e `xp` (≥ 1) sono segnaposto. Alla fine l'azione si ferma da sola (`blueprint_done`). Nei dati veri ce n'è una: `blueprint_craft` in `forging.json` (livello 1, il livello vero è quello del grado) |
 
 Classe: `ActionDef`.
 
@@ -295,7 +334,7 @@ Classe: `MasteryNodeDef`.
 | `damage_reduction` | float | 0..80 |
 | `gold` | `[min, max]` | 0 ≤ min ≤ max |
 | `rift_shard_chance` | float | 0..100 |
-| `drops` | array | `{item, chance_pct 0..100, qty [min ≥ 1, max ≥ min]}`, max 4 voci; voci `equipment` e `tool` ammesse da M7: cadono come istanze con rarità F-84 e affissi F-85 (`ilvl` = massimo dei tre livelli del mostro), `qty` = numero di istanze |
+| `drops` | array | `{item, chance_pct 0..100, qty [min ≥ 1, max ≥ min]}`, max 4 voci; voci `blueprint` ammesse da M10 (cadono nella borsa del bottino come oggetti di bank, `qty` [1, 1]); voci `equipment` ammesse da M7 (`tool` non cade più dall'M10, gli attrezzi sono unici): cadono come istanze con rarità F-84 e affissi F-85 (`ilvl` = massimo dei tre livelli del mostro), `qty` = numero di istanze |
 
 Classi: `AreaDef`, `PackDef`, `MonsterDef`, `DropEntry`. Icone dei mostri in `res://assets/icons/monsters/`.
 Fino a M5-04 i due file esistono vuoti (`{"_doc": …, "areas": []}`, `{"_doc": …, "monsters": []}`, creati da M1-12); lo schema con `packs` e `xp` è di M4-01.
@@ -313,19 +352,16 @@ In M7 si aggiunge `data/combat/rift_stones.json` (§16).
    "description": "Mangia prima e più a lungo.",
    "cost": {"gold": 25000}, "max_purchases": 1,
    "requires": {"entries": ["auto_eat_1"], "character": 25},
-   "effect": {"modifiers": [{"stat": "auto_eat_tier", "value": 1}]}},
-  {"id": "novice_hatchet", "name": "Accetta del novizio", "category": "tools",
-   "description": "Un'accetta semplice.", "cost": {"gold": 150}, "max_purchases": 0,
-   "requires": {}, "effect": {"item": {"item": "novice_hatchet", "qty": 1}}}
+   "effect": {"modifiers": [{"stat": "auto_eat_tier", "value": 1}]}}
 ]}
 ```
 | Campo | Tipo | Vincoli |
 |---|---|---|
-| `category` | String | `bank`, `combat`, `tools`, `materials`, `lanes` (ammessa dal validatore solo da M11) |
+| `category` | String | `bank` (UI "Deposito"), `combat`, `materials`, `lanes` (ammessa dal validatore solo da M12) |
 | `cost` | object | **o** `{"gold": int ≥ 1}` **o** `{"formula": "bank_slot"}` (F-17) **o** `{"formula": "armory_slot"}` (F-82); nessun'altra formula nell'MVP |
 | `max_purchases` | int | ≥ 0; 0 = illimitato (solo per effetti `item`) |
 | `requires` | object | facoltativi `entries` (id dello shop), `character` (int 1..99), `skills` (`{skill: livello}`), `total_level` (int ≥ 0) |
-| `effect` | object | **o** `modifiers` **o** `item` (`{item, qty}`); un `item` `equipment`/`tool` crea `qty` istanze comuni nell'Armeria |
+| `effect` | object | **o** `modifiers` **o** `item` (`{item, qty}`); un `item` `equipment`/`tool` crea `qty` istanze comuni nell'Armeria (da M10 nessuna voce ne ha: la categoria `tools` e gli attrezzi del novizio sono tolti) |
 
 Classe: `ShopEntryDef`. Fino a M3-04 il file esiste vuoto (`{"_doc": …, "entries": []}`, creato da M1-12).
 
@@ -341,7 +377,7 @@ File singolo e **obbligatorio** (`CONTENT_FILES["hints"]`): se manca `GameData` 
 suggerimento per trigger, in ordine di file; `GameData.hint(id)` ritorna `null` per un id sconosciuto. Il salvataggio
 dello slot tiene `{"hints": {"seen": [id, ...]}}`.
 
-## 11. `data/fractures/fractures.json` (M10)
+## 11. `data/fractures/fractures.json` (M11)
 
 ```json
 {"fractures": [{"id": "verdant_rift", "name": "Frattura verdeggiante", "description": "Il legno cresce più in fretta.",
@@ -352,7 +388,7 @@ dello slot tiene `{"hints": {"seen": [id, ...]}}`.
 `balance.json` riceve `"fractures": {"interval_min_ms": 7200000, "interval_max_ms": 14400000, "duration_ms": 1800000}`.
 Classe: `FractureDef`.
 
-## 12. Aggiunte di M11
+## 12. Aggiunte di M12
 
 `balance.json`: `"parallel": {"interval_penalty_pct": 40}`; `stats.json`: `parallel_lanes`; `shop.json`: `second_thought`.
 
@@ -466,3 +502,16 @@ Classi: `AffixDef`, `AffixTier`. Nell'MVP ogni slot d'equipaggiamento ha almeno 
 Categorie di oggetti `stone` (`{"stone": {"modifiers": [...]}}`, almeno 1 modificatore) e `currency`
 (`{"currency": {"effect": "to_magic" | "to_rare" | "reroll"}}`) nei file `stones.json` e `currencies.json`;
 `balance.json`: `sockets`. Ricette di `riftbinding.json` per infusioni, pietre e valute.
+
+## 18. Aggiunte di M10 (riforma del bottino e dei nomi)
+
+Riepilogo per il validatore e i task M10-01…M10-05 (dettagli nelle sezioni indicate):
+- `balance.json` (§3): `start` esteso, `blueprint`, `tool_upgrade`, `combat.kill_xp_mult`; tolta `rarity.craft`; `salvage.component_ratio`.
+- `skills.json` (§4): `level_modifiers` (forging → `upgrade_success_pct`).
+- Oggetti (§5): categorie `component` e `blueprint`, `equip.unique` e `equip.upgrade_extras` degli attrezzi (tre in tutto).
+- Azioni (§6): campo `single` e azione `blueprint_craft`; spariscono le ricette di spade, spadoni, scudi, armature e attrezzi.
+- Mostri e Pietre (§8, §16): `drops` con progetti; componenti rari = materiali di drop già esistenti (nomi in `NOMI.md`).
+- Shop (§9): nessuna voce `tools`; `auto_eat_1` resta e arriva da `start.purchases`.
+- Nomi (Q52): si cambiano solo `name` e `description`; gli **id non cambiano** (tranne i nuovi oggetti: piastre, tre attrezzi, progetti).
+  Il validatore non controlla i nomi; un test dei dati controlla che i nomi di `NOMI.md` ci siano (M10-05).
+- Stat: nessuna stat nuova (`upgrade_success_pct` esiste dal M7; `double_item_chance` e `rift_shard_chance` pure).

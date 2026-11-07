@@ -1276,11 +1276,134 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 - M9-07 · Regressione, prestazioni (12 h con gruppi da 6 < 10 s), foto della UI (QA; M9-01…M9-06; nota ereditata N10).
 - M9-08 · Rilascio dell'MVP: preset Windows, eseguibile di prova, checklist delle Lezioni (REV; tag `m9-mvp`, `m9-done`).
 
-## M10-M12 (dopo l'MVP)
+## Riforma del bottino e dei nomi (R-01) e M10
 
-- M10 · Fratture come mappe: task da definire a fine M9 (`01_GDD.md` §17 da rivedere; nota ereditata N11).
-- M11 · Azioni in parallelo: corsia secondaria, dati, UI, test, integrazione (`01_GDD.md` §18, F-51; nota ereditata N12).
-- M12+ · Seconda classe, boss, dungeon: da definire.
+### R-01 · Riforma dei documenti (bottino, attrezzi, nomi)
+- **Ruolo** REV · **Stima** M · **Dipendenze** M9-08 · **Stato** DONE (commit `docs: R-01 riforma del bottino e dei nomi`)
+- **Ownership** `docs/**` (00-07, OPEN_QUESTIONS, DECISIONS_LOG, STATUS). Fonti: `RIFORMA_BOTTINO.md`, `NOMI.md` (dopo R-01 si
+  leggono solo per i nomi). Rinumerazione: Fratture come mappe M10 → **M11**, azioni in parallelo M11 → **M12**, seconda classe e il resto M12+ → **M13+**.
+
+## M10 · Riforma del bottino e dei nomi
+
+Regole comuni dei brief di M10: i valori di design si leggono **sempre** dalla sezione indicata (mai riscritti nei brief); i numeri
+marcati "da tarare" (Q53, Q54) sono valori di partenza che M10-07 può cambiare nei dati. Salvataggi precedenti: `format_version` 3,
+quelli v1/v2 sono "versione non supportata". Gli **id restano** (Q52): cambiano solo `name` e `description`.
+
+### M10-01 · Schema, validatore e dati di configurazione
+- **Ruolo** CORE · **Stima** L · **Parallelizzabile** no (primo) · **Dipendenze** R-01
+- **Ownership** `core/data/**` (validatori, `game_data.gd`, nuove Def: `blueprint_info.gd`, `tool_extra.gd`, `level_modifier.gd`; estensioni di
+  `item_def.gd`, `equip_info.gd`, `skill_def.gd`, `action_def.gd`), `core/common/reasons.gd`, `core/save/save_migrator.gd` (`CURRENT_VERSION` 3),
+  `data/config/balance.json` e `stats.json` (solo le chiavi di M10 e la formula di `item_rarity_pct`), `tools/validate_data.gd`,
+  `tests/core/data/**`, `tests/data/**`, `tests/fixtures/data/**`, i test di versione del salvataggio (`tests/core/save/**`, `tests/integration/test_save_v2.gd`
+  rinominato `test_save_v3.gd`) e i conteggi nei test esistenti rotti da queste modifiche (id e conteggi, come nelle note di M4).
+- **Leggere** `04_DATA_SCHEMA.md` §3, §4, §5, §6, §9, §18; `05_INTERFACES.md` §1 (Reasons), §2 (`CURRENT_VERSION`), §4 (Def e `GameData`); `02_FORMULAS.md` §9.
+- **Descrizione** Implementare lo schema di `04_DATA_SCHEMA.md` §18: categorie `component` e `blueprint` (con `BlueprintInfo`), `equip.unique` e
+  `upgrade_extras` degli attrezzi (esattamente tre, uno per slot `tool_*`), `level_modifiers` delle skill, azione `single`, chiavi di `balance.json`
+  (`start` esteso, `blueprint`, `tool_upgrade`, `combat.kill_xp_mult`; tolta `rarity.craft`; `salvage.component_ratio`), vincoli incrociati
+  (una `blueprint` per base, base di grado uguale, `start.*` coerente, categoria shop `tools` rifiutata, `equipment` e `tool` non più prodotti di
+  ricette, `drops` con progetti), `GameData.blueprints/blueprint_for_base/unique_tool`, costanti di `Reasons` di 05 §1 (con il test di `reasons.gd`),
+  `SaveMigrator.CURRENT_VERSION` 3. I dati veri (`data/**`) restano quelli precedenti finché non arriva M10-04: il task aggiunge solo le chiavi di
+  configurazione a `balance.json`/`stats.json` e usa le **fixture** per i casi nuovi; i controlli sui dati veri che ancora non reggono
+  (ricette in serie, shop `tools`) sono `pending("M10-04")`.
+- **Accettazione** il validatore accetta le fixture di M10 e rifiuta ogni caso invalido dello schema (un test per vincolo); `tools/validate_data.gd` verde
+  su fixture e dati veri; `format_version` 3 e un save v2 è `version_unsupported`; ogni funzione di `GameData` nuova ha un test.
+- **Test** `tests/data/test_blueprint_schema.gd`, `test_unique_tools_schema.gd`, `test_balance_m10_keys.gd`; fixture in `tests/fixtures/data/`.
+
+### M10-02 · Progetti: craft a ciclo unico, rarità minima, affisso scelto
+- **Ruolo** CORE · **Stima** L · **Parallelizzabile** con M10-03 · **Dipendenze** M10-01
+- **Ownership** `systems/actions/blueprint_craft.gd` (nuovo), `systems/actions/action_runner.gd` e `artisan_resolver.gd` (solo le righe di 05 §5.8b), `systems/items/item_roller.gd`
+  (`blueprint_rare_chance`, `create_from_blueprint`, `chosen_affix_candidates`; tolta `craft_chances`), `core/autoload/event_bus.gd` (`blueprint_crafted`),
+  `tests/systems/actions/**`, `tests/systems/items/**`, la riga di `test_event_bus.gd`.
+- **Leggere** `01_GDD.md` §5.1, §22; `02_FORMULAS.md` F-90, F-91, F-92, §8.2 (progetti), §9 (`blueprint.*`); `05_INTERFACES.md` §3 (`blueprint_crafted`), §5.8 e §5.8b, §5.18.
+- **Descrizione** `BlueprintCraft` e `ActionRunner.start_blueprint/blueprint_state` come in 05 §5.8b; materiali consumati all'avvio e restituiti allo stop; offline e
+  salvataggio come ogni azione; `ArtisanResolver` non crea più istanze; `ItemRoller` con F-91 (mai comune) e F-92 (affisso scelto, ordine dei tiri).
+- **Accettazione** gli esempi di F-90 (10 min / 3.600 XP al grado 1; 31 min / 44.640 al grado 4; 59 min / 307.980 al grado 8; −10% → 9 min), F-91 (10,5 / 35 / 42 /
+  59,5 / 100) e F-92 (grado 2 con `ilvl` 20; livello 49 rifiutato) sono test esatti; un progetto = un pezzo almeno magico; stop restituisce tutto; un salvataggio a
+  metà riprende; con l'Armeria piena alla fine il lavoro aspetta senza perdere nulla.
+- **Test** `tests/systems/actions/test_blueprint_craft.gd`, `tests/systems/items/test_item_roller.gd` (`test_blueprint_rarity`, `test_chosen_affix`).
+
+### M10-03 · Attrezzi unici, raffinazione sempre riuscita, bonus del Fabbro, smantellamento a componenti
+- **Ruolo** CORE · **Stima** L · **Parallelizzabile** con M10-02 · **Dipendenze** M10-01
+- **Ownership** `systems/armory/**` (`armory.gd`, nuovo `tool_upgrade.gd`, `salvage.gd`), `systems/items/item_roller.gd` (solo `instance_modifiers` per gli
+  attrezzi: M10-02 e M10-03 toccano parti diverse del file, il secondo a merge avvenuto rilancia i test), `systems/skills/skills_system.gd` (`rebuild_modifiers`, F-93),
+  `systems/equipment/equipment.gd` (kit iniziale, `item_unique`), `systems/shop/shop.gd` (`start.purchases`, `sell_instance`), `core/session/game_session.gd` (solo il
+  `_join` di `skills.rebuild_modifiers`), `tests/systems/armory/**`, `tests/systems/equipment/**`, `tests/systems/shop/**`, `tests/systems/skills/**`.
+- **Leggere** `01_GDD.md` §1.1, §9, §21, §23, §23.1, §25; `02_FORMULAS.md` F-86, F-93, F-94, F-95; `05_INTERFACES.md` §5.6, §5.9 (nota M10), §5.11, §5.17, §5.18.
+- **Descrizione** Kit iniziale (`Armory.new_game`, `Equipment.new_game`, `Shop.new_game`, 05 §5.9/§5.11/§5.17), `Armory.upgrade_tool/tool_next_step/tool_uid` (F-94),
+  `item_unique` per vendita, smantellamento, blocco e rimozione degli attrezzi, sorgente `skill_level:forging` (F-93, `level_modifiers`), `Salvage` a componenti (F-95).
+- **Accettazione** gli esempi di F-93 (0,4 / 20 / 39,6 / 66), F-94 (tabella dei nove passi, rifiuti nell'ordine, `level_too_low` al +4 con mestiere 24; Accetta +4: −13;
+  +9: −23 e `double_item_chance` +5) e F-95 (2 piastre; 4 piastre; 4 piastre + 26 frammenti; 0 e 15) sono test esatti; una partita nuova ha il kit indossato e le Razioni da
+  campo I; un attrezzo non si vende, non si smantella, non si toglie.
+- **Test** `tests/systems/armory/test_upgrade_tool.gd`, `test_salvage.gd`, `test_upgrade.gd::test_forging_level_bonus`, `tests/systems/equipment/test_starting_kit.gd`.
+
+### M10-04 · Contenuti: componenti, progetti, attrezzi, drop e kit iniziale
+- **Ruolo** DATA · **Stima** L · **Parallelizzabile** no (M10-05 parte dopo, sugli stessi file) · **Dipendenze** M10-02, M10-03
+- **Ownership** `data/items/**` (nuovi `components.json`, `blueprints.json`; `tools.json`, `equipment.json`, `materials.json`), `data/actions/forging.json` e
+  `woodwright.json`, `data/mastery/forging.json` e `woodwright.json` (solo ciò che le ricette tolte rende incoerente), `data/skills/skills.json` (`level_modifiers`),
+  `data/combat/**` (drop di progetti e componenti rari), `data/shop/shop.json` (tolte le voci `tools`), `data/config/balance.json` (`start`, `blueprint`, `tool_upgrade` e
+  tabelle di F-94), `assets/icons/items/**` (segnaposto nuovi), `tests/data/**`.
+- **Leggere** `02_FORMULAS.md` §8.1, §8.2 (ricette e progetti), §8.4, §8.6, F-94; `04_DATA_SCHEMA.md` §5, §6, §8, §18; `NOMI.md` (tabella gradi) per i nomi dei componenti.
+- **Descrizione** Eliminare le ricette di spade, spadoni, scudi, armature e attrezzi e le 27 basi di attrezzi; aggiungere piastre T1-T8 (ricetta), impugnature, telai e manici di grado;
+  64 progetti (8 basi × 8 gradi, quantità di 02 §8.2); 3 attrezzi unici con `upgrade_extras`; azione `blueprint_craft`; componente raro di ogni grado (un drop di un mostro
+  dell'area, regola di 02 §8.2); progetti nei drop dei mostri e nelle Pietre (Q49: circa 1/h nell'area del livello, 1 Pietra su 3); `start` (Q51); pesi e probabilità dei drop dei pezzi
+  perché il giocatore si vesta da solo (obiettivo: un pezzo utile del proprio grado ogni 20-40 min, misurato con `tools/sim_combat.gd loot=1`). Maestria: azioni tolte, nodi
+  e bonus coerenti con le azioni rimaste (Q26 e N4 valgono ancora per `smelt_*`, le piastre e i componenti del Falegname).
+- **Accettazione** `validate_data.gd` verde sui dati veri; nessuna ricetta produce `equipment`/`tool`; ogni grado ha un progetto per base, un componente raro e un
+  piano di drop; i controlli `pending("M10-04")` di M10-01 diventano verdi.
+- **Test** `tests/data/test_data_validity.gd` (conteggi: 64 progetti, 3 attrezzi, 8 piastre…), `test_blueprint_data.gd`.
+
+### M10-05 · Nomi nuovi in tutti i dati e nei testi UI
+- **Ruolo** DATA · **Stima** M · **Parallelizzabile** no · **Dipendenze** M10-04
+- **Ownership** `name` e `description` in `data/**` (skill, classe, aree, mostri, oggetti, tratti e abilità cambiati, infusioni, pietre, valute, shop, suggerimenti),
+  `data/hints/hints.json` (testi; il primo suggerimento punta al combattimento, B4), testi fissi dei contenitori di testo della UI (`UiStyle`, `CombatTexts`, `ArmoryTexts`,
+  `ItemTooltipLines`, …) solo per sostituire "Bank" con "Deposito" e i nomi di skill/classe scritti a mano, `tests/data/**` e i test UI che confrontano testi.
+- **Leggere** `NOMI.md` (intero: è la fonte dei nomi), `04_DATA_SCHEMA.md` §18.
+- **Descrizione** Applicare `NOMI.md` a ogni `name`/`description`; gli **id non cambiano** (Q52). Nessun "Bank" nella UI (resta l'id e il nome del modulo). Un test dei dati
+  controlla i nomi di `NOMI.md` (skill, classe, gradi di metallo/legno/pesce, modelli di equipaggiamento per grado, attrezzi, aree, mostri, drop, tratti/abilità cambiati, pietre,
+  valute, infusioni, shop).
+- **Accettazione** ogni nome della tabella di `NOMI.md` è nei dati; `grep` di "Bank" nei testi visibili non trova nulla; nessun nome da Melvor, Metin2, Path of Exile.
+- **Test** `tests/data/test_names.gd`.
+
+### M10-06 · UI: sezione Progetti nella pagina del Fabbro e raffinazione degli attrezzi
+- **Ruolo** UI · **Stima** L · **Parallelizzabile** no · **Dipendenze** M10-04
+- **Ownership** `ui/pages/skill/**` (nuovi `blueprint_section.gd` e `tool_upgrade_panel.gd` con le scene), `ui/pages/equipment/**` (attrezzo senza "Rimuovi", anteprima di F-95),
+  `ui/pages/combat/**` (solo `NO_FOOD_WARNING`, B2), `ui/components/toast/**` e i punti che emettono i toast dei livelli (B5), `ui/theme/ui_style.gd` (costanti nuove),
+  `tests/ui/**`.
+- **Leggere** `01_GDD.md` §5.1, §13, §23.1; `02_FORMULAS.md` F-90…F-95 (per i valori mostrati, letti dai sistemi, mai ricalcolati); `05_INTERFACES.md` §5.8b, §5.17 (`tool_next_step`), §7.x.
+- **Descrizione** Come in 05 §7.x: `BlueprintSection`, `ToolUpgradePanel`, un solo toast per più livelli della stessa skill, avviso senza cibo; nessuno stato di gioco nella UI.
+- **Accettazione** si avvia e si ferma un progetto dalla pagina del Fabbro (rifiuti con testo), l'affisso si sceglie solo dal livello Q50, il pannello dell'attrezzo mostra costo e livello
+  minimo e raffina; layout verificato a 1600x900 e 1280x720; un salto da livello 2 a 5 produce un solo toast.
+- **Test** `tests/ui/test_blueprint_section_smoke.gd`, `test_tool_upgrade_panel_smoke.gd`, `test_level_toast_grouping.gd`.
+
+### M10-07 · Bilanciamento B1-B5 con `sim_combat` (anche offline)
+- **Ruolo** COMBAT (con QA) · **Stima** L · **Parallelizzabile** no · **Dipendenze** M10-04, M10-06
+- **Ownership** `systems/combat/**` (solo le righe di F-28 e del tempo di stop offline), `core/offline/**` (B3), `data/config/balance.json` (`combat.kill_xp_mult`, `character_curve`),
+  `data/combat/**` (XP dei mostri e drop, se serve), `tools/sim_combat.gd`, `tools/sim_gear_economy.gd`, `tests/systems/combat/**`, `tests/core/offline/**`.
+- **Leggere** `01_GDD.md` §10.4, §10.6, §12; `02_FORMULAS.md` F-28, F-71, §8.5; `05_INTERFACES.md` §5.13 (`stop_times_ms`); `OPEN_QUESTIONS.md` Q41, Q54.
+- **Descrizione** F-28 con `combat.kill_xp_mult`; tarare `kill_xp_mult` e/o `character_curve` con `sim_combat` finché livello 99 arriva in 250-350 h nell'area giusta
+  (offline compreso) e una notte offline dal 50 non supera +12 livelli; B3 (tempo di morte offline vero); aggiornare gli esempi di F-28 e i test; misurare i drop dei pezzi (obiettivo
+  M10-04) e riscriverli in `06_ROADMAP.md` come misure di riferimento di M10.
+- **Accettazione** criteri di `RIFORMA_BOTTINO.md` §7 riportati in 06 (M10 "Uscita"); gli esempi di F-28 coincidono con i test; "morto (dopo 0 s)" non compare più nel riepilogo.
+- **Test** `tests/systems/combat/test_combat_engine.gd::test_kill_grants_character_xp`, `tests/core/offline/test_offline_death_time.gd`.
+
+### M10-08 · Test di M10
+- **Ruolo** QA · **Stima** M · **Parallelizzabile** no · **Dipendenze** M10-01…M10-07
+- **Ownership** `tests/integration/**`, `tests/ui/**`, `tests/data/**` (solo aggiunte).
+- **Leggere** `RELEASE_CHECKLIST_MVP.md` §2; l'accettazione di M10-01…M10-07 in questo file.
+- **Descrizione** Test di flusso: partita nuova (kit, Razioni da campo I, primo suggerimento), combattimento con drop e progetto, craft di un progetto fino alla fine (anche offline),
+  raffinazione di un attrezzo +0…+9 con i livelli minimi, smantellamento a componenti, salvataggio v3 e rifiuto di v2, copertura delle stat in modalità rigida, conservazione degli oggetti
+  (nessun oggetto creato o perso per errore: progetti e componenti inclusi).
+- **Accettazione** `run_checks.ps1` verde; ogni punto di accettazione di M10 ha almeno un test.
+
+### M10-09 · Integrazione di M10
+- **Ruolo** REV · **Stima** S · **Dipendenze** M10-08
+- **Descrizione** Merge, checklist di `06_ROADMAP.md` (M10 "Uscita"), `docs/RELEASE_CHECKLIST_MVP.md` aggiornata, tag `m10-done`, report di milestone. Il push lo fa l'Orchestratore.
+
+## M11-M13 (dopo M10)
+
+- M11 · Fratture come mappe: task da definire a fine M10 (`01_GDD.md` §17 da rivedere; nota ereditata N11).
+- M12 · Azioni in parallelo: corsia secondaria, dati, UI, test, integrazione (`01_GDD.md` §18, F-51; nota ereditata N12; i progetti non girano nella corsia secondaria).
+- M13+ · Seconda classe, boss, dungeon: da definire.
 
 ## Note ereditate dai task superati
 
@@ -1314,7 +1437,7 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 - **N9 (da M3-09)** I toast dei livelli si accumulano sopra le finestre: con il banner del livello decidere livello di
   disegno e limite dei toast (ownership estesa a `ui/components/toast/**`).
 - **N10 (da M1-19)** Modalità rigida di `test_stat_registry_coverage.gd`: nessuna stat in `pending`; `CLOSED_FORMULAS` e
-  `FORMULA_MILESTONES` restano la mappa formula → milestone; le stat di M10/M11 entrano con i loro task.
+  `FORMULA_MILESTONES` restano la mappa formula → milestone; le stat di M11/M12 entrano con i loro task.
 - **N11 (da M7-01 vecchio)** Se `FractureSystem.SAVE_KEY` è `fractures`, rinominare la chiave finta di `ProbeSession`.
 - **N12 (da M1-10/M8-01 vecchio)** Il runner ha già `LANE_ORDER` e `_lanes`; da sbloccare `start`, `from_save`,
   `current_interval_ms`, `lanes_available`; `ActionMath.secondary_interval_ms` (F-51) è già testato; aggiungere

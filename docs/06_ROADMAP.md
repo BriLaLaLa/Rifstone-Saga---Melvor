@@ -1,7 +1,7 @@
 # 06. Roadmap
 
 Milestone incrementali: alla fine di ognuna il gioco si avvia, è giocabile per quello che contiene e tutti i test
-passano (`tools/run_checks.ps1` verde). L'MVP è M0-M9; M10-M12 vengono dopo. Il dettaglio dei task è in `07_TASKS.md`.
+passano (`tools/run_checks.ps1` verde). L'MVP è M0-M9; M10 (riforma del bottino e dei nomi, prima di far provare il gioco agli amici) e M11-M13+ vengono dopo. Il dettaglio dei task è in `07_TASKS.md`.
 Da M4 vale la direzione "combattimento al centro" (decisioni D1-D6, `DECISIONS_LOG.md`); M0-M3 restano valide.
 
 ```mermaid
@@ -15,9 +15,10 @@ flowchart LR
     M6 --> M7[M7 Bottino: drop rari, raffinazione, Pietre del Rift]
     M7 --> M8[M8 Legatura: Altare, castoni, valute]
     M8 --> M9[M9 Offline + polish = MVP]
-    M9 --> M10[M10 Fratture come mappe]
-    M9 --> M11[M11 Azioni in parallelo]
-    M9 --> M12[M12 Seconda classe, boss, dungeon]
+    M9 --> M10[M10 Riforma del bottino e dei nomi]
+    M10 --> M11[M11 Fratture come mappe]
+    M10 --> M12[M12 Azioni in parallelo]
+    M10 --> M13[M13+ Seconda classe, boss, dungeon]
 ```
 
 ## M0: Setup del progetto
@@ -96,17 +97,35 @@ prestazioni, foto automatiche della UI; preset di esportazione Windows e checkli
 **Giocabile**: l'MVP completo. **Uscita**: tutti i test (incluso il controllo di copertura delle stat in modalità
 rigida) verdi; 12 ore di offline con gruppi da 6 simulate in meno di 10 s.
 
-## M10: Fratture come mappe (dopo l'MVP)
+## M10: Riforma del bottino e dei nomi (prima della prova con gli amici)
+**Fonte**: decisioni R1-R4 e B1-B5 (`DECISIONS_LOG.md`); documenti di riferimento `01_GDD.md` §5.1 e §23.1, `02_FORMULAS.md` F-90…F-95
+e §8.2, `04_DATA_SCHEMA.md` §18, `05_INTERFACES.md` §5.8b e §7.x. `docs/RIFORMA_BOTTINO.md` e `docs/NOMI.md` restano solo per i nomi.
+**Contenuto**: l'equipaggiamento arriva dai **mostri**, dal **kit iniziale** o da un **progetto** (craft singolo a ciclo unico: progetto +
+materiali + componente raro = un pezzo almeno magico, con affisso scelto dal livello Q50 del Fabbro); Fabbro e Falegname producono
+**componenti** (lingotti, piastre, impugnature, telai, manici) al posto delle ricette in serie; **tre attrezzi unici** con raffinazione
++0…+9 sempre riuscita; bonus del Fabbro alla raffinazione delle armi (`upgrade_success_pct`); smantellamento a componenti; **nomi nuovi**
+in tutti i dati e i testi (`NOMI.md`, "Deposito" al posto di "Bank"); correzioni B1-B5 (curva del livello, Razioni da campo gratuite, tempo
+di morte offline, primo suggerimento, un solo toast per più livelli); `format_version` 3.
+**Giocabile**: si parte con spada, spadone, scudo e i tre attrezzi, si caccia, si ottengono pezzi dai mostri e progetti, si fa un solo craft
+importante invece di centinaia, si potenziano gli attrezzi con la raffinazione.
+**Uscita**: accettazione di `RIFORMA_BOTTINO.md` §7 (riportata in `07_TASKS.md`): nessuna ricetta produce equipaggiamento in serie; progetto
+= un pezzo almeno magico; tre attrezzi +0…+9; nomi di `NOMI.md` e nessun "Bank" nella UI; `sim_combat`: livello 99 in 250-350 h e al massimo
++12 livelli dopo il 50 in una notte offline; salvataggi precedenti "versione non supportata"; tutti i test verdi.
+
+
+
+## M11: Fratture come mappe (dopo l'MVP)
 Fratture del Rift ripensate come "mappe" con modificatori (`01_GDD.md` §17 da rivedere a inizio milestone).
 
-## M11: Azioni in parallelo (dopo l'MVP)
+## M12: Azioni in parallelo (dopo l'MVP)
 Corsia secondaria nell'ActionRunner, voce dello shop "Secondo pensiero", UI a due corsie (`01_GDD.md` §18).
 
-## M12+: Seconda classe, boss, dungeon (dopo l'MVP)
-Seconda classe con le sue armi (es. arco o bastone, con le ricette di Intaglio che tornano), supporti delle abilità,
+## M13+: Seconda classe, boss, dungeon (dopo l'MVP)
+Seconda classe con le sue armi (es. arco o bastone, con i suoi progetti e componenti del Falegname), supporti delle abilità,
 boss, dungeon a ondate, oggetti unici, elementi e resistenze.
 
 ## Percorso critico e parallelismo
+- M10: R-01 → M10-01 → M10-02 → M10-03 → M10-04 (con M10-05) → M10-06 → M10-07 → M10-08 → M10-09. M10-02 e M10-03 si parallelizzano (file diversi).
 - Percorso critico da M4: R-00 → M4-01 → M4-02 → M4-03 (con M4-04) → M4-05 → M4-06 → M4-07 → M4-08 → M4-10 → M4-11 →
   M5-01 → M5-02 → M5-03 → M5-07 → … → M9-08.
 - Si possono parallelizzare (massimo 2 agenti, `CLAUDE.md`): M4-04 con M4-03; M4-09 con M4-06 o M4-07 (M4-08 parte dopo M4-09: stesso `page_host.gd`); M5-04 (dati) con

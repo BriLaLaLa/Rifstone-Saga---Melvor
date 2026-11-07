@@ -66,6 +66,10 @@ const NOT_STACKABLE := &"not_stackable"     # M4: equipment/tool rifiutati dalla
 const ITEM_EQUIPPED := &"item_equipped"     # M4: pezzo indossato (non si vende né si smantella)
 const SLOT_LOCKED := &"slot_locked"         # M6: slot di tratto/abilità non ancora aperto
 const UPGRADE_MAX := &"upgrade_max"         # M7: raffinazione già a +9
+const ITEM_UNIQUE := &"item_unique"         # M10: attrezzo unico (non si vende, non si smantella, non si toglie)
+const NOT_A_TOOL := &"not_a_tool"           # M10: il pezzo non è un attrezzo unico (raffinazione F-94)
+const INVALID_CHOICE := &"invalid_choice"   # M10: affisso scelto non ammesso o livello del Fabbro < blueprint.choose_affix_level (F-92)
+const BLUEPRINT_DONE := &"blueprint_done"   # M10: motivo di stop di fine progetto (action_stopped)
 ```
 Le costanti nuove le aggiunge il primo task che le usa (M4-01 per quelle di M4), con il test di `reasons.gd`.
 
@@ -141,7 +145,7 @@ var play_time_ms: int
 var total_level: int
 
 class_name SaveMigrator extends RefCounted    # core/save/save_migrator.gd
-const CURRENT_VERSION: int = 2                 # 2 da M4-03 (save v2, D3); nessuna migrazione 1 → 2: un save v1 è version_unsupported
+const CURRENT_VERSION: int = 3                 # 3 da M10 (riforma del bottino); nessuna migrazione 1 → 2 né 2 → 3: un save v1 o v2 è version_unsupported (nessun giocatore reale ancora)
 static func can_load(d: Dictionary) -> bool          # format_version <= CURRENT_VERSION
 static func migrate(d: Dictionary) -> Dictionary     # applica migrations/migration_<a>_to_<b>.gd in catena
 static func migrate_chain(d: Dictionary, target_version: int, step_for: Callable) -> Dictionary
@@ -236,9 +240,9 @@ func hide_tooltip() -> void
 | `armory_changed` | `uid: int, change: StringName` | Armory | M4: `change` = `&"added"`, `&"removed"`, `&"updated"` (blocco, raffinazione, indossato) |
 | `armory_capacity_changed` | `used: int, capacity: int` | Armory | M4 |
 | `armory_rejected` | `base_id: StringName, qty: int` | Armory | M4: istanze non create per Armeria piena |
-| `item_upgraded` | `uid: int, success: bool, new_level: int` | Armory | M7: dopo `armory_changed(uid, updated)` |
+| `item_upgraded` | `uid: int, success: bool, new_level: int` | Armory | M7: dopo `armory_changed(uid, updated)`; M10: anche per gli attrezzi (`success` sempre `true`) |
 | `item_salvaged` | `uid: int, base_id: StringName, auto: bool` | Armory | M7: `auto` = smantellato dal filtro o dall'Armeria piena (`add_drop`); l'uid non è mai nell'Armeria |
-| `item_salvaged` | `uid: int, base_id: StringName, auto: bool` | Armory | M7: `auto` = dal filtro |
+| `blueprint_crafted` | `blueprint_id: StringName, uid: int` | ActionRunner | M10: fine di un progetto, dopo `armory_changed(uid, added)` e prima di `action_completed`/`action_stopped(blueprint_done)` |
 | `modifiers_changed` | — | ModifierService | una volta per modifica o per batch |
 | `combat_started` | `area_id: StringName` | CombatEngine | M5 (prima anche `monster_id`) |
 | `combat_stopped` | `reason: StringName` | CombatEngine | |
@@ -266,8 +270,8 @@ func hide_tooltip() -> void
 | `save_failed` | `slot: int, reason: StringName` | Game | |
 | `notification_requested` | `text: String, kind: StringName` | qualunque sistema | `kind` = `&"info"`, `&"success"`, `&"warning"` |
 | `hint_triggered` (M9) | `hint_id: StringName` | HintsSystem | |
-| `fracture_opened` (M10) | `fracture_id: StringName, duration_ms: int` | FractureSystem | |
-| `fracture_closed` (M10) | `fracture_id: StringName` | FractureSystem | |
+| `fracture_opened` (M11) | `fracture_id: StringName, duration_ms: int` | FractureSystem | |
+| `fracture_closed` (M11) | `fracture_id: StringName` | FractureSystem | |
 
 I segnali segnati M4…M7 li aggiunge (o cambia) in `core/autoload/event_bus.gd` e in `tests/core/autoload/test_event_bus.gd`
 il task che li emette per primo (ownership estesa alle sole righe del segnale). Fino ad allora `event_bus.gd` ha le firme
@@ -310,9 +314,12 @@ func classes() -> Array[ClassDef]                     # M4-01; ordinate per orde
 func affix(id: StringName) -> AffixDef                # M4-01
 func affixes_for_slot(slot: StringName) -> Array[AffixDef]   # M4-01; ordine del file
 func rift_stone_for_area(area_id: StringName) -> RiftStoneDef   # M7
+func blueprints() -> Array[ItemDef]                   # M10: tutti i progetti, ordinati per grado e sort_order
+func blueprint_for_base(base_id: StringName) -> ItemDef   # M10: il progetto della base (uno solo); null senza push_error se non c'è (anelli, amuleti, attrezzi)
+func unique_tool(slot: StringName) -> ItemDef         # M10: l'attrezzo unico dello slot tool_*; null + Log.error se manca
 func hints() -> Array[HintDef]                        # M9-04, nell ordine del file
 func hint(id: StringName) -> HintDef                  # M9-04; null se sconosciuto
-func fractures() -> Array[FractureDef]                # M10: lo aggiunge il task delle Fratture (non esiste in M1-04)
+func fractures() -> Array[FractureDef]                # M11: lo aggiunge il task delle Fratture (non esiste in M1-04)
 const LOG_CATEGORY: String = "data"
 const BALANCE_FILE: String = "balance.json"           # in config_root
 const STATS_FILE: String = "stats.json"               # in config_root
@@ -384,21 +391,29 @@ class_name ItemDef
   var equip: EquipInfo            # null se non equipaggiabile
   var food_heal: int              # 0 se non cibo
   var infusion_modifiers: Array[Modifier]; var infusion_unique: bool
+  var blueprint: BlueprintInfo    # M10: null se non progetto
   func is_equippable() -> bool; func is_food() -> bool; func is_infusion() -> bool
+  func is_blueprint() -> bool; func is_component() -> bool   # M10: categoria blueprint / component
 class_name EquipInfo  ; var slot: StringName; var requirements: Dictionary[StringName, int]   # chiave &"character" = personaggio
                         var modifiers: Array[Modifier]; var weapon: WeaponInfo   # null se non arma
                         var kind: StringName; var grade: int      # M4-01: &"" se lo slot non è weapon/offhand
+                        var unique: bool; var upgrade_extras: Array[ToolExtra]   # M10: attrezzo unico (04 §5); extras vuoto se assente
+class_name ToolExtra  ; var at: int; var modifiers: Array[Modifier]   # M10: bonus cumulativi dal passo `at` (F-94)
+class_name BlueprintInfo ; var base_id: StringName; var grade: int; var inputs: Array[ItemQty]; var rare_component: ItemQty   # M10
 class_name WeaponInfo ; var style: StringName; var attack_interval_ms: int; var two_handed: bool
 class_name SkillDef
   var id: StringName; var name: String; var description: String; var category: StringName
   var order: int; var icon: String; var color: Color; var has_mastery: bool
   var mastery_bonuses: Array[MasteryBonusRule]
+  var level_modifiers: Array[LevelModifier]   # M10: vuoto se assente
+class_name LevelModifier ; var stat: StringName; var per_level: float   # M10, F-93
 class_name MasteryBonusRule ; var every_levels: int; var at_level: int; var modifiers: Array[Modifier]
 class_name ActionDef
   var id: StringName; var skill_id: StringName; var name: String; var level: int
   var interval_ms: int; var xp: int; var mastery: bool; var icon: String
   var inputs: Array[ItemQty]; var outputs: Array[ItemQty]
-  func is_artisan() -> bool       # inputs non vuoto
+  var single: bool                # M10: azione a ciclo unico (04 §6); false se assente
+  func is_artisan() -> bool       # inputs non vuoto; M10: true anche per single (artigianato del Fabbro)
 class_name MasteryNodeDef
   var id: StringName; var skill_id: StringName; var name: String; var description: String
   var cost_pct: float; var requires: Array[StringName]; var pos: Vector2i; var modifiers: Array[Modifier]
@@ -438,7 +453,7 @@ class_name AffixDef (M4)   ; var id: StringName; var name: String; var stat: Str
 class_name AffixTier (M4)  ; var min_ilvl: int; var min: float; var max: float; var step: float
 class_name RiftStoneDef (M7); campi di 04_DATA_SCHEMA §16
 class_name HintDef (M9)    ; var id: StringName; var title: String; var text: String; var trigger: StringName
-class_name FractureDef (M10); var id: StringName; var name: String; var description: String; var weight: int
+class_name FractureDef (M11); var id: StringName; var name: String; var description: String; var weight: int
                              var modifiers: Array[Modifier]; var bonus_area_id: StringName; var bonus_monster_id: StringName
 ```
 (`class_name X ; var ...` è notazione compatta: ogni classe è un file `snake_case` separato.)
@@ -504,7 +519,8 @@ func end_batch() -> void             # emette una sola volta se qualcosa è camb
 ```
 Id delle sorgenti: `equipment:<slot>` (modificatori dell'istanza: base × F-86 + affissi + castoni), `setup:<id>` (M4),
 `trait:<id>` (M6), `ability:<id>` (M6, buff temporanei del combattimento), `mastery_item:<action_id>`,
-`mastery_node:<node_id>`, `shop:<entry_id>`, `rift_socket:<index>` (M8), `fracture:<id>` (M10).
+`mastery_node:<node_id>`, `shop:<entry_id>`, `rift_socket:<index>` (M8), `skill_level:<skill_id>` (M10, F-93: modificatori
+`level_modifiers` della skill, ricostruiti da `SkillsSystem` a ogni `level_up` e in `rebuild_modifiers`), `fracture:<id>` (M11).
 
 ### 5.3 Sessione (`res://core/session/game_session.gd`)
 ```gdscript
@@ -517,7 +533,7 @@ var loadout: Loadout              # M6-03 (null prima)
 var equipment: Equipment; var actions: ActionRunner; var combat: CombatEngine   # combat: M5-03
 var shop: Shop; var rift: RiftAltar   # rift: M8
 var hints: HintsSystem            # M9 (null prima)
-var fractures: FractureSystem     # M10 (null prima)
+var fractures: FractureSystem     # M11 (null prima)
 var slot: int; var player_name: String; var created_at_unix_ms: int; var play_time_ms: int
 func _init(game_data: GameData, game_events: GameEvents, rng_seed: int) -> void
 func new_game() -> void                                  # stato iniziale 01_GDD §1.1 + rebuild_modifiers
@@ -631,6 +647,9 @@ func total_level() -> int
 - Stato: solo l'XP cumulativa per skill (tutte le skill dei dati, in ordine); livello e progresso derivano da `XpTable`
   (F-01); l'XP cresce oltre `max_level` fino a `xp_curve.xp_cap`. `add_xp` con `ctx = null` usa
   `ModifierContext.for_skill(skill_id)`; emette `xp_gained` (se > 0) e poi un `level_up` per livello, dopo il cambio.
+- M10 (F-93): `rebuild_modifiers()` (nuovo, registrato con `_join`) imposta la sorgente `skill_level:<skill_id>` con i
+  `level_modifiers` della skill (`per_level × livello`, scope globale) e si richiama a ogni `level_up` e dopo `from_save`; senza
+  `level_modifiers` nessuna sorgente. Dipende da `modifiers` (già tra le dipendenze).
 - Skill sconosciuta: `Log.error` e nessun cambio; `get_xp`/`get_level` → 0, `get_progress` → 0.0, `add_xp` → 0,
   `meets_requirements` → false (anche con un livello richiesto non numerico). XP base negativa: `Log.error`, `add_xp` → 0.
 - `from_save` tollerante: skill mancanti a 0; voci di skill sconosciute o malformate (non `{"xp": intero}`; i float interi
@@ -698,7 +717,7 @@ func rebuild_modifiers() -> void                                   # sorgenti ma
 ```gdscript
 class_name ActionMath extends RefCounted
 static func interval_ms(base_ms: int, interval_pct: float, min_ms: int) -> int          # F-03
-static func secondary_interval_ms(interval_ms: int, penalty_pct: float) -> int          # F-51 (M11)
+static func secondary_interval_ms(interval_ms: int, penalty_pct: float) -> int          # F-51 (M12)
 
 class_name ActionOutcome extends RefCounted
 var ok: bool; var reason: StringName
@@ -715,7 +734,7 @@ static func resolve(session: GameSession, action: ActionDef) -> ActionOutcome   
 class_name ActionRunner extends RefCounted
 const SAVE_KEY := &"actions"
 const MAIN := &"main"
-const SECONDARY := &"secondary"                    # M11
+const SECONDARY := &"secondary"                    # M12
 func start(skill_id: StringName, action_id: StringName, lane: StringName = MAIN) -> CommandResult
     # unknown_id, level_too_low, missing_inputs, lane_unavailable, skill_in_other_lane; nella corsia main ferma il combattimento (REPLACED)
 func stop(lane: StringName = MAIN, reason: StringName = Reasons.STOPPED_BY_USER) -> void
@@ -723,12 +742,12 @@ func is_running(lane: StringName = MAIN) -> bool
 func get_lane(lane: StringName = MAIN) -> Dictionary     # {} oppure {"skill", "action", "elapsed_ms", "interval_ms"}
 func get_progress(lane: StringName = MAIN) -> float      # F-04
 func current_interval_ms(action_id: StringName, lane: StringName = MAIN) -> int
-func lanes_available() -> int                            # 1 nell'MVP; F-51 in M11
+func lanes_available() -> int                            # 1 nell'MVP; F-51 in M12
 func stop_reasons_log() -> Array[StringName]              # motivi di stop dall'ultima lettura (per OfflineSummary), poi svuota
 func advance(delta_ms: int) -> void
 ```
 Comportamento (M1-10):
-- `start`: ordine dei controlli `lane_unavailable` (ogni corsia diversa da `main` fino a M11) → `unknown_id` (skill o
+- `start`: ordine dei controlli `lane_unavailable` (ogni corsia diversa da `main` fino a M12) → `unknown_id` (skill o
   azione sconosciuta, azione di un'altra skill) → `level_too_low` → `missing_inputs` (azione con `inputs` senza tutti gli
   ingredienti nella bank, `ArtisanResolver.can_start`; stesso controllo in `from_save`); un errore non cambia nulla. Avviare l'azione già in corso nella corsia è un no-op `ok` (il ciclo continua, nessun segnale). Altrimenti
   l'azione in corso si ferma con `replaced`, poi `action_started`. Nella corsia main ferma anche il combattimento
@@ -740,7 +759,7 @@ Comportamento (M1-10):
   completa tutti i cicli che entrano nel passo. Dopo `from_save` l'intervallo è "da fissare" e si calcola al primo
   `advance` (i modificatori si ricostruiscono dopo il caricamento); `get_lane`/`get_progress` intanto usano quello attuale.
 - `get_lane` restituisce l'`interval_ms` del ciclo corrente; `current_interval_ms` quello che avrebbe un ciclo avviato ora
-  (id sconosciuto → 0 con `Log.error` di `GameData.action`; la corsia non conta fino a M11).
+  (id sconosciuto → 0 con `Log.error` di `GameData.action`; la corsia non conta fino a M12).
 - `GatheringResolver`: tiri sempre in quest'ordine su `session.rng`: doppio (F-06), poi frammento (F-07, quantità 1).
   Lo spazio nella bank si controlla **prima** di aggiungere (`can_add` e caselle libere per gli oggetti nuovi, frammento
   compreso): se non c'è, il ciclo non conta, nulla cambia e la corsia si ferma con `bank_full` (nessun `bank_rejected`:
@@ -753,7 +772,7 @@ Comportamento (M1-10):
   consumati del tutto contano per i prodotti nuovi (per questo non si usa `Bank.can_add`, che guarda le caselle prima del
   consumo); se non c'è posto il ciclo non conta, nulla è consumato e la corsia si ferma con `bank_full`. Ciclo conservato:
   `consumed` vuoto, prodotti e XP pieni. Ordine dei segnali come per `GatheringResolver`.
-- `ArtisanResolver` da M4-07: i prodotti `equipment`/`tool` (quantità dopo F-06) non vanno nella bank ma diventano
+- ~~`ArtisanResolver` da M4-07 (SUPERATO da M10, vedi 5.8b: nessuna ricetta produce più equipaggiamento)~~: i prodotti `equipment`/`tool` (quantità dopo F-06) non vanno nella bank ma diventano
   istanze con `session.armory.create(base, ItemRoller.roll_rarity(craft_chances(M, item_rarity_pct)), action.level)`
   (F-83, F-85; `M` = livello di maestria dell'azione **prima** della maestria del ciclo). Lo spazio si controlla prima di
   ogni cambio con `armory.can_add(qty)`: se manca, ciclo non contato, nulla consumato, stop `armory_full`. Tiri su
@@ -762,7 +781,39 @@ Comportamento (M1-10):
   sconosciuta, voce non oggetto, azione sconosciuta/di un'altra skill/non avviabile ora (livello, `inputs`) → `Log.warn`
   e corsia ferma; `elapsed_ms` non intero o negativo → `Log.warn` e ciclo da 0. Nessun segnale.
 
+#### 5.8b Progetti (M10, `01_GDD.md` §5.1, F-90…F-92) — in `systems/actions/`
+```gdscript
+class_name BlueprintCraft extends RefCounted          # blueprint_craft.gd: logica pura, nessuno stato
+static func required_level(blueprint: ItemDef, data: GameData) -> int            # livello del grado (02 §8.1)
+static func duration_ms(blueprint: ItemDef, interval_pct: float, data: GameData) -> int   # F-90, F-03 inclusa
+static func xp(blueprint: ItemDef, data: GameData) -> int                        # F-90, prima di F-02
+static func inputs(blueprint: ItemDef) -> Array[ItemQty]                         # inputs del progetto + rare_component (il progetto stesso escluso)
+static func can_start(session: GameSession, blueprint_id: StringName, chosen_affix: StringName = &"") -> CommandResult
+    # in ordine: unknown_id (non è un progetto o non è in bank), level_too_low, invalid_choice, missing_inputs, armory_full
+static func finish(session: GameSession, blueprint_id: StringName, chosen_affix: StringName) -> int   # crea il pezzo (ItemRoller.create_from_blueprint); uid, 0 se Armeria piena
+# ActionRunner (aggiunte):
+func start_blueprint(blueprint_id: StringName, chosen_affix: StringName = &"") -> CommandResult   # corsia MAIN; stessi rifiuti di can_start, più lane_unavailable
+func blueprint_state() -> Dictionary    # {} oppure {"blueprint", "chosen_affix", "duration_ms", "elapsed_ms", "waiting": bool}
+```
+- `start_blueprint` consuma il progetto e gli `inputs` all'avvio (la bank li toglie in un'operazione sola; nessun cambio se un
+  controllo fallisce), ferma l'azione o il combattimento in corso (`replaced`), emette `action_started(main, forging,
+  blueprint_craft)`. `start(forging, blueprint_craft)` diretto è rifiutato (`unknown_id`): serve `start_blueprint`.
+  Durata fissata all'avvio (F-90, `skill_interval_pct` di quel momento). Un'azione `single` con `mastery: false` non dà maestria.
+- `stop` prima della fine restituisce progetto e materiali (stesse quantità, `bank_changed`; se la bank è piena per un oggetto
+  il resto va perso con `bank_rejected`: caso estremo, ma documentato). Alla fine: tiri su `session.rng` (rarità, affissi, F-91/F-92),
+  `armory.add` → `armory_changed(added)`, XP (F-90, poi F-02) → `xp_gained`/`level_up`, `blueprint_crafted`, `action_completed`
+  (`outputs` = `{base_id: 1}`), poi stop con motivo `blueprint_done`. Armeria piena alla fine: `waiting = true`, nessun
+  segnale di stop, riprova a ogni `advance`, una sola `notification_requested` (warning). I tiri di rarità e affissi si fanno solo quando il pezzo trova posto.
+- Save (§6): la corsia `main` di un progetto è `{"skill": "forging", "action": "blueprint_craft", "elapsed_ms": n, "blueprint": id,
+  "chosen_affix": id, "duration_ms": n}`. `from_save` tollerante: progetto sconosciuto o `duration_ms` non intero → `Log.warn` e
+  corsia ferma (i materiali già consumati non tornano: nessun giocatore reale con quel caso). L'offline lo fa avanzare come ogni azione.
+- `ArtisanResolver`: non crea più istanze (`equipment`/`tool` non sono più prodotti di ricette; il validatore lo vieta); il controllo
+  `armory.can_add` e la rarità F-83 escono. `ItemRoller.craft_chances` esce dal contratto (5.18).
+
 ### 5.9 Equipment (`systems/equipment/equipment.gd`) — dipendenze: data, events, modifiers, bank, character, armory, combat (solo `in_encounter`)
+> M10: `Equipment.new_game()` indossa il kit iniziale: per ogni voce di `start.armory` con `equip` non vuoto il pezzo con quel `uid` (le istanze
+> create da `Armory.new_game()` hanno `uid` 1…n nell'ordine di `start.armory`, poi i tre attrezzi di `start.tools`), gli attrezzi nel proprio slot
+> `tool_*`, il cibo `start.food`. `unequip` di uno slot `tool_*` → `item_unique`; `equip` di un altro pezzo in uno slot `tool_*` → `not_equippable`.
 Firme da M4-06 (prima: `item_id` della bank negli slot e stance, M3-03).
 ```gdscript
 const SAVE_KEY := &"equipment"
@@ -965,6 +1016,8 @@ func sell(item_id: StringName, qty: int) -> CommandResult   # invalid_amount, un
 func sell_instance(uid: int) -> CommandResult         # M4-05: unknown_id, item_locked, item_equipped, not_sellable; F-18 con qty 1
 func rebuild_modifiers() -> void                      # sorgenti shop:<id> (F-19)
 ```
+M10: `Shop.new_game()` imposta gli acquisti di `start.purchases` (senza oro né segnali; i modificatori `shop:<id>` si ricostruiscono
+con `rebuild_modifiers`); `sell_instance` di un attrezzo unico → `item_unique` (prima di `item_equipped`).
 Da M4-05: requisiti con `req_character` (`character.meets_requirements`); effetto `item` di una base `equipment`/`tool`
 → `qty` istanze comuni con `armory.create(base, &"common", 1)`, controllo `armory_full` con `armory.can_add(qty)` al posto
 di `bank_full`; `price` con `cost_formula = &"armory_slot"` → F-82. `sell_instance` toglie il pezzo dall'Armeria e
@@ -1010,7 +1063,7 @@ var xp: Dictionary[StringName, int]; var levels: Dictionary[StringName, Vector2i
 var items: Dictionary[StringName, int]         # differenza (positiva = ottenuti, negativa = consumati)
 var gold_delta: int; var kills: Dictionary[StringName, int]; var deaths: int; var food_eaten: int
 var stop_reasons: Array[StringName]
-var stop_times_ms: Array[int]                  # tempo offline di ogni stop (parallelo a stop_reasons)
+var stop_times_ms: Array[int]                  # tempo offline di ogni stop (parallelo a stop_reasons); M10 (B3): ms dall'INIZIO dell'offline (blocchi già fatti + tempo nel blocco), mai relativi al blocco: una morte dopo 3 h 12 m dice 3 h 12 m
 var pieces_stored: int; var pieces_dismantled: int; var pieces_rejected: int   # Armeria: conservati / smantellati dal filtro / persi per Armeria piena
 var bank_rejected: Dictionary[StringName, int]  # rese che non entrano nella banca (anche rese di smantellamento automatico)
 static func from_snapshots(before: SessionSnapshot, after: SessionSnapshot, elapsed_ms: int, capped: bool, stop_reasons: Array[StringName]) -> OfflineSummary
@@ -1033,7 +1086,7 @@ static func apply_ui_scale(window: Window) -> void
 # chiavi: window_mode, window_size, ui_scale, vsync, fps_limit, volume, log_level
 ```
 
-### 5.15 Hint (M9) e Fratture (M10)
+### 5.15 Hint (M9) e Fratture (M11)
 ```gdscript
 class_name HintsSystem extends RefCounted      # systems/hints/hints_system.gd (M9); dipendenze: data, events
 const SAVE_KEY := &"hints"
@@ -1045,7 +1098,7 @@ func to_save() -> Dictionary                   # {"seen": [id, ...]} nell ordine
 func from_save(d: Dictionary) -> void          # tollerante: lista errata = nessuno visto; id sconosciuti scartati con Log.warn
 func pending() -> Array[StringName]            # attivati e non ancora chiusi; volatile, mai salvato
 
-class_name FractureSystem extends RefCounted   # systems/fractures/fracture_system.gd (M10); dipendenze: data, events, modifiers, rng, combat
+class_name FractureSystem extends RefCounted   # systems/fractures/fracture_system.gd (M11); dipendenze: data, events, modifiers, rng, combat
 const SAVE_KEY := &"fractures"
 func active_id() -> StringName
 func time_left_ms() -> int
@@ -1068,8 +1121,8 @@ class_name SettingsPanel extends Control       # ui/settings/; signal closed; va
     # legge/scrive solo GameSettings; in partita mostra "Salva ed esci" (end_session + scene_changer)
 class_name ToastManager extends Control        # al massimo UiStyle.TOAST_MAX_VISIBLE visibili; oltre UiStyle.TOAST_PENDING_MAX in attesa scarta il piu vecchio
 ```
-M11 non aggiunge classi: estende `ActionRunner` (corsia `SECONDARY`, `lanes_available()` con F-51). Le firme di M10
-si rivedono a inizio M10 (Fratture come mappe, `01_GDD.md` §17).
+M12 non aggiunge classi: estende `ActionRunner` (corsia `SECONDARY`, `lanes_available()` con F-51). Le firme di M11
+si rivedono a inizio M11 (Fratture come mappe, `01_GDD.md` §17).
 
 ### 5.16 CharacterSystem (`systems/character/character_system.gd`) — dipendenze: data, events, modifiers, skills
 ```gdscript
@@ -1139,7 +1192,7 @@ func instance_modifiers(uid: int) -> Array[Modifier]       # ItemRoller.instance
 func upgrade(uid: int, use_seal: bool = false) -> CommandResult   # M7, F-86
     # rifiuti, in ordine: unknown_id, upgrade_max (Reasons.UPGRADE_MAX), not_enough_gold, not_enough_items
     # (lingotti, frammenti, Sigillo se use_seal e il passo può far scendere); atomico: rifiuto = nessun cambiamento
-func salvage(uid: int) -> CommandResult        # M7, F-88: unknown_id, item_locked, item_equipped, bank_full (nulla cambia)
+func salvage(uid: int) -> CommandResult        # M7, F-95 (M10; era F-88): unknown_id, item_unique, item_locked, item_equipped, bank_full (nulla cambia)
 func add_drop(inst: ItemInstance) -> int       # M7: ingresso dei drop; uid se in Armeria, 0 se smantellato (filtro o piena)
 func set_filter(slot: StringName, min_rarity: StringName, min_grade: int) -> CommandResult   # unknown_id, invalid_amount
 func filter_rule(slot: StringName) -> Dictionary          # {"min_rarity", "min_grade"}; "common"/1 = tieni tutto
@@ -1148,8 +1201,17 @@ func is_filtered(inst: ItemInstance) -> bool              # il pezzo sarebbe sma
 func socket_count(uid: int) -> int                       # M8, F-89: castoni del pezzo (Sockets.count)
 func socket_stone(uid: int, stone_id: StringName) -> CommandResult   # M8: unknown_id, not_equippable (non è una pietra), socket_locked (0 castoni), socket_occupied, not_enough_items
 func clear_socket(uid: int, index: int) -> CommandResult  # M8: unknown_id, slot_empty; distrugge la pietra (Q8)
+func upgrade_tool(uid: int) -> CommandResult  # M10, F-94: sempre riuscita; unknown_id, not_a_tool, upgrade_max, level_too_low (mestiere), not_enough_gold, not_enough_items; atomico
+func tool_next_step(uid: int) -> Dictionary   # M10: {} se non è un attrezzo o è a +9; altrimenti {"target", "min_level", "grade", "plates": ItemQty, "handles": ItemQty, "gold", "interval_pct"} (sola lettura, per la UI)
+func tool_uid(slot_id: StringName) -> int     # M10: uid dell'attrezzo unico dello slot tool_* (0 se assente)
+func new_game() -> void                       # M10: crea il kit iniziale (start.armory, poi start.tools), comune, senza affissi; uid 1…n
 func use_currency(uid: int, currency_id: StringName) -> CommandResult   # M8-09, GDD §26: effetti to_magic / to_rare / reroll; unknown_id, not_equippable (non è una valuta), item_locked, item_equipped, requirement_not_met (rarità non adatta), not_enough_items; atomico
 ```
+- M10: `upgrade_tool` consuma `plates` e `handles` dalla bank e l'oro, incrementa `upgrade`, emette `armory_changed(uid, updated)` e
+  `item_upgraded(uid, true, new_level)`; le sorgenti `equipment:tool_*` si ricostruiscono come per ogni pezzo indossato (`Equipment` ascolta
+  `armory_changed`). `set_locked`/`remove`/`salvage` su un attrezzo unico → `item_unique`. `upgrade` (F-86) su un attrezzo unico → `not_equippable`
+  (la raffinazione degli attrezzi ha solo `upgrade_tool`). `salvage` (F-95): componenti del progetto
+  della base (`GameData.blueprint_for_base`) × `salvage.component_ratio`, più frammenti; le rese entrano nella bank (`bank_full` come prima).
 - M7: il Sigillo (`upgrade.seal_item`) si consuma solo a fallimento con `use_seal` quando il passo parte da
   `N ≥ upgrade.downgrade_from`; altrimenti non serve e non si consuma. `upgrade` emette `armory_changed(uid, updated)` e
   `item_upgraded`; `salvage` emette `armory_changed(uid, removed)`, la capacità e `item_salvaged(auto=false)`.
@@ -1168,23 +1230,27 @@ func use_currency(uid: int, currency_id: StringName) -> CommandResult   # M8-09,
 ### 5.18 ItemRoller (`systems/items/item_roller.gd`) — logica pura, nessuno stato
 ```gdscript
 class_name ItemRoller extends RefCounted
-static func craft_chances(mastery_level: int, rarity_pct: float, data: GameData) -> Vector2   # F-83: x = magico, y = raro
 static func drop_chances(source: StringName, rarity_pct: float, data: GameData) -> Vector2     # F-84 (M7): &"monster" / &"rift_stone"
-static func roll_rarity(chances: Vector2, rng: RngService) -> StringName                     # F-83: &"common"/&"magic"/&"rare"
+static func roll_rarity(chances: Vector2, rng: RngService) -> StringName                     # F-84: &"common"/&"magic"/&"rare" (un randf)
+static func blueprint_rare_chance(forging_level: int, rarity_pct: float, data: GameData) -> float   # M10, F-91: p_rare 0..100
+static func create_from_blueprint(bp: ItemDef, forging_level: int, rarity_pct: float, chosen_affix: StringName, data: GameData, rng: RngService) -> ItemInstance   # M10, F-91/F-92: uid 0, mai common; ilvl = livello del grado; chosen_affix &"" = nessuna scelta
+static func chosen_affix_candidates(base: ItemDef, ilvl: int, data: GameData) -> Array[AffixDef]   # M10, F-92: per la UI
 static func roll_affixes(base: ItemDef, rarity: StringName, ilvl: int, data: GameData, rng: RngService) -> Array[AffixRoll]   # F-85
 static func extend_affixes(base: ItemDef, rarity: StringName, ilvl: int, existing: Array[AffixRoll], data: GameData, rng: RngService) -> Array[AffixRoll]   # M8: aggiunge affissi F-85 fino al numero della rarita, senza duplicare quelli in existing
 static func create(base: ItemDef, rarity: StringName, ilvl: int, data: GameData, rng: RngService) -> ItemInstance   # uid 0
 static func instance_modifiers(inst: ItemInstance, data: GameData) -> Array[Modifier]
     # base × F-86 (upgrade) + un modificatore per affisso (scope di 04_DATA_SCHEMA §15) + castoni (M8)
 ```
-- Ordine dei tiri su `rng`: rarità (un `randf`), numero di affissi, poi per ogni affisso scelta, grado, valore (F-85).
+- Ordine dei tiri su `rng`: rarità (un `randf`), numero di affissi, poi per ogni affisso scelta, grado, valore (F-85). Con un affisso scelto
+  (F-92) il primo affisso non ha il tiro di scelta né di grado; per un attrezzo unico `instance_modifiers` non applica F-86 ma F-94
+  (intervallo a N più gli `upgrade_extras` con `at ≤ N`).
 
 ## 6. Formato del salvataggio (`user://saves/slot_<n>.json`)
 
-Versione 2 da M4-03 (D3). Un save v1 non si carica (`version_unsupported`, nessuna migrazione).
+Versione 3 da M10 (v2 da M4-03, D3). Un save v1 o v2 non si carica (`version_unsupported`, nessuna migrazione: nessun giocatore reale ancora).
 ```json
 {
-  "format_version": 2,
+  "format_version": 3,
   "game_version": "0.2.0",
   "slot": 2,
   "player_name": "Davide",
@@ -1204,7 +1270,7 @@ Versione 2 da M4-03 (D3). Un save v1 non si carica (`version_unsupported`, nessu
     "armory": {"next_uid": 4, "items": [
       {"uid": 1, "base": "emberbronze_sword", "rarity": "magic", "ilvl": 1,
        "affixes": [{"affix": "keen", "tier": 1, "value": 4}], "upgrade": 0, "sockets": [], "locked": false},
-      {"uid": 3, "base": "emberbronze_hatchet", "rarity": "common", "ilvl": 1, "affixes": [], "upgrade": 0,
+      {"uid": 3, "base": "hatchet", "rarity": "common", "ilvl": 1, "affixes": [], "upgrade": 3,
        "sockets": [], "locked": true}]},
     "equipment": {"slots": {"weapon": 1, "tool_forestry": 3}, "food": "seared_brookfin"},
     "actions": {"lanes": {"main": {"skill": "forestry", "action": "cut_redbirch", "elapsed_ms": 1200}}},
@@ -1281,6 +1347,30 @@ class_name RecipeCard extends ActionCard         # ui/pages/skill/recipe_card.gd
 # preservation_chance e double_item_chance da modifiers.total con ModifierContext.for_action, Avvia disabilitato se
 # ArtisanResolver.can_start fallisce (tranne la ricetta in corso, che si può sempre fermare).
 # SkillPage la ridisegna anche su bank_changed (collegato solo se la pagina ha ricette).
+
+### 7.x UI della riforma del bottino (M10; nessuno stato di gioco nella UI, solo letture e comandi)
+```gdscript
+class_name BlueprintSection extends VBoxContainer     # ui/pages/skill/blueprint_section.gd (+ .tscn), interna a SkillPage; solo per la skill forging
+func setup(data: GameData) -> void                    # una volta: elenco dei progetti dai dati (GameData.blueprints())
+func redraw(session: GameSession) -> void             # progetti posseduti (bank), requisiti con "posseduti / richiesti", durata (BlueprintCraft.duration_ms), XP, probabilità di raro (ItemRoller.blueprint_rare_chance), lavoro in corso (actions.blueprint_state)
+signal start_requested(blueprint_id: StringName, chosen_affix: StringName)   # la pagina chiama actions.start_blueprint; il rifiuto va in MessageLabel
+signal stop_requested                                 # la pagina chiama actions.stop
+# Scelta dell'affisso: lista di ItemRoller.chosen_affix_candidates, visibile e abilitata solo se il livello del Fabbro >= balance blueprint.choose_affix_level;
+# la scelta corrente è stato di presentazione ammesso (nessuna copia di dati). Nodi per i test: Blueprint_<id>, AffixChoice, StartButton, StopButton, ProgressBar.
+class_name ToolUpgradePanel extends PanelContainer    # ui/pages/skill/tool_upgrade_panel.gd (+ .tscn), interno a SkillPage delle 3 skill di raccolta
+func redraw(session: GameSession) -> void             # attrezzo (armory.tool_uid + get_instance, "Accetta +N"), tool_next_step (costo con "posseduti / richiesti", livello minimo del mestiere), effetti attuali (modifiers.breakdown con ModifierContext.for_skill)
+signal upgrade_requested(uid: int)                    # la pagina chiama armory.upgrade_tool; rifiuto in MessageLabel
+```
+- `SkillPage` mostra `BlueprintSection` per `forging` e `ToolUpgradePanel` per `forestry`, `quarrying`, `angling`; ridisegno su `bank_changed`,
+  `armory_changed`, `level_up`, `action_started/stopped`, `blueprint_crafted`.
+- `ArmoryPage`/`ArmoryItemPanel`: nessun pulsante Vendi/Smantella/Blocca per un attrezzo unico (non compare nell'elenco dell'Armeria: sta nello slot);
+  l'anteprima dello smantellamento mostra le rese di F-95. La riga dell'attrezzo in `EquipmentPage` mostra "Accetta +N" senza "Rimuovi".
+- `ToastManager`/UI dei livelli (B5): i `level_up` e i `character_level_up` ravvicinati (stesso passo del frame) della stessa skill si fondono in un solo
+  toast "Boscaiolo: livello 2 → 5" (`NumberFormat`-style, testo in `UiStyle`/`LevelToastTexts` definito una volta); il banner del livello mostra l'ultimo.
+- `CombatPage` (B2): all'avvio (`combat_started`) se `equipment.get_food()` è vuoto o a quantità 0, `MessageLabel` mostra `CombatTexts.NO_FOOD_WARNING`
+  (non impedisce l'avvio, nessun nuovo motivo di rifiuto); tolto al primo cibo scelto o a `combat_stopped`.
+- Testi (B4/Q52): "Deposito" al posto di "Bank" in sidebar, pagina, shop e tooltip (`UiStyle`/testi centralizzati, nessuna stringa "Bank" visibile);
+  il primo suggerimento (`first_action`) punta al combattimento; i nomi di skill, oggetti, aree e mostri vengono dai dati (`NOMI.md` in M10-05).
 
 class_name BankPage extends Page                 # ui/pages/bank/bank_page.gd (+ .tscn), rotta bank
 const REFUSED_TEXTS: Dictionary[StringName, String]   # motivo di un comando della bank -> testo; altri: REFUSED_TEXT_DEFAULT

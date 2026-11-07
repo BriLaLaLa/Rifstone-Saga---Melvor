@@ -3,7 +3,22 @@
 Aggiornato dall'Orchestratore (unico che modifica questo file). Stati: TODO / IN_PROGRESS / REVIEW / DONE / BLOCKED.
 Se la sessione si interrompe, si riparte da qui.
 
-## Ripartenza (aggiornata il 2026-11-07, fine M9 = MVP)
+## Ripartenza (aggiornata il 2026-11-07, R-01 fatta: inizio M10)
+- **Stato**: MVP rilasciato (`m9-mvp`, `m9-done`). **R-01 DONE**: la riforma del bottino, degli attrezzi e dei nomi è nei documenti canonici
+  (00-07, OPEN_QUESTIONS, DECISIONS_LOG; commit `docs: R-01 riforma del bottino e dei nomi`). Da ora i documenti canonici sono autosufficienti:
+  `RIFORMA_BOTTINO.md` e `VISIONE_V2.md` non si leggono più; `NOMI.md` solo per i nomi (M10-05, M10-04 per i componenti).
+- **Milestone rinumerate**: **M10 Riforma del bottino e dei nomi** (prima di far provare il gioco agli amici); M11 Fratture come mappe; M12 azioni in
+  parallelo; M13+ seconda classe, boss, dungeon.
+- **Task M10** (`07_TASKS.md`): M10-01 schema e validatore (CORE) TODO · M10-02 progetti (CORE) TODO · M10-03 attrezzi unici, F-93/F-94/F-95 (CORE) TODO ·
+  M10-04 contenuti (DATA) TODO · M10-05 nomi (DATA) TODO · M10-06 UI (UI) TODO · M10-07 bilanciamento B1-B5 (COMBAT/QA) TODO · M10-08 test (QA) TODO ·
+  M10-09 integrazione, tag `m10-done` (REV) TODO. Ordine: M10-01 → (M10-02 ∥ M10-03) → M10-04 → M10-05 → M10-06 → M10-07 → M10-08 → M10-09.
+- **Prossimo passo**: lanciare M10-01 (CORE). Salvataggio `format_version` 3 (v1/v2 "versione non supportata"). **Da fare dell'Orchestratore**: aggiornare
+  `CLAUDE.md` (milestone M10-M12 → M10 riforma e M11-M13+; stato) — il Reviewer non lo ha toccato.
+- **Decisioni aperte per l'utente** (default in `OPEN_QUESTIONS.md`): Q48-Q52 (default di `RIFORMA_BOTTINO.md`), Q53 (valori di partenza non presenti
+  nelle fonti, da tarare), Q54 (B1: `combat.kill_xp_mult` 0,15 da tarare); Q26, Q27-Q43 invariate. Ambiguità segnalate in R-01: grado 8 = 59 min (non 60), quantità
+  di materiali e componente raro, kit con spada e scudo già indossati, un'area di grado g lascia progetti g e g+1 (vedi `DECISIONS_LOG.md` R-01).
+
+## Ripartenza precedente (fine M9 = MVP, 2026-11-07)
 - **Stato**: **M9 completata e MVP rilasciato**, tag locali `m9-mvp` e `m9-done` su `main` (il push lo fa l'Orchestratore).
   Merge M9: M9-00 `2e151d5`, M9-01 `7b477d7`, M9-04 `3da7c63`, M9-05 `04393ee`, M9-03 `625ff17`, M9-02 `17f9a27`, M9-06 `873886f`,
   fix suggerimenti `63d7899`, M9-07 `da61e20` (+ ritaratura `d9559bc`). run_checks: 1627 test verdi, dati e controlli di progetto OK.
