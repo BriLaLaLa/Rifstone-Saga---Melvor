@@ -100,7 +100,7 @@ func _recipe(skill: String, output: String) -> Dictionary:
 		if content["skill"] != skill:
 			continue
 		for a: Variant in content["actions"]:
-			if ((a as Dictionary)["outputs"] as Array)[0]["item"] == output:
+			if not ((a as Dictionary)["outputs"] as Array).is_empty() and ((a as Dictionary)["outputs"] as Array)[0]["item"] == output:
 				return a as Dictionary
 	return {}
 
@@ -135,22 +135,44 @@ func test_forging_recipes_follow_8_2() -> void:
 		var m: String = METALS[n - 1]
 		var ore: int = _ore_value(n)
 		var ixp: int = _ingot_xp(n)
-		var grip: String = WOODS[n - 1] + "_grip"
-		var grip_value: int = 2 * _ore_value(n)
 		_assert_recipe("forging", m + "_ingot", n, [[m + "_ore", 2]], 2000, ixp, 3 * ore)
-		for w: Array in WEAPONS:
-			var ing: int = w[6]
-			_assert_recipe("forging", "%s_%s" % [m, w[0]], n, [[m + "_ingot", ing], [grip, 1]], w[7],
-					int(floor(ing * ixp * 1.2)), int(w[8]) * ore + grip_value)
-		_assert_recipe("forging", m + "_shield", n, [[m + "_ingot", 4], [WOODS[n - 1] + "_shieldcore", 1]], 3000,
-				int(floor(4 * ixp * 1.2)), 16 * ore + 4 * _ore_value(n))
-		for p: Array in ARMOR_PIECES:
-			var ing: int = p[1]
-			_assert_recipe("forging", "%s_%s" % [m, p[0]], n, [[m + "_ingot", ing]], 3000,
-					int(floor(ing * ixp * 1.2)), ing * 4 * ore)
-		for t: Array in TOOL_PIECES:
-			_assert_recipe("forging", "%s_%s" % [m, t[0]], n, [[m + "_ingot", 2], [WOODS[n - 1] + "_handle", 1]], 3000,
-					int(floor(2 * ixp * 1.3)), 10 * ore)
+		# M10: the plate is a component (2 ingots, 2400 ms, xp floor(2 x ingot xp x 1.2), value 7 x ore value).
+		_assert_recipe("forging", m + "_plate", n, [[m + "_ingot", 2]], 2400, int(floor(2 * ixp * 1.2)), 7 * ore)
+
+
+func test_no_recipe_makes_equipment_or_tools() -> void:
+	var items: Dictionary = _by_id("items", "items")
+	for path: Variant in _raw["actions"]:
+		for a: Variant in (_raw["actions"][path] as Dictionary)["actions"]:
+			for out: Variant in (a as Dictionary)["outputs"]:
+				var category: String = items[(out as Dictionary)["item"]]["category"]
+				assert_false(category == "equipment" or category == "tool", "%s makes a %s" % [(a as Dictionary)["id"], category])
+
+
+func test_forging_has_only_smelting_plates_and_the_blueprint_action() -> void:
+	var ids: Array = []
+	for path: Variant in _raw["actions"]:
+		var content: Dictionary = _raw["actions"][path] as Dictionary
+		if content["skill"] == "forging":
+			for a: Variant in content["actions"]:
+				ids.append((a as Dictionary)["id"])
+	assert_eq(ids.size(), 17)
+	assert_true(ids.has("blueprint_craft"))
+	for id: Variant in ids:
+		assert_true(str(id).begins_with("smelt_") or str(id).ends_with("_plate") or id == "blueprint_craft", str(id))
+
+
+func test_blueprint_craft_action() -> void:
+	var action: Dictionary = {}
+	for path: Variant in _raw["actions"]:
+		for a: Variant in (_raw["actions"][path] as Dictionary)["actions"]:
+			if (a as Dictionary)["id"] == "blueprint_craft":
+				action = a as Dictionary
+	assert_eq(action.get("single"), true)
+	assert_eq(action.get("mastery"), false)
+	assert_eq(action.get("level"), 1.0)
+	assert_eq(action.get("inputs"), [])
+	assert_eq(action.get("outputs"), [])
 
 
 func test_hearthcraft_recipes_and_food_follow_8_2_and_8_3() -> void:
@@ -236,37 +258,30 @@ func test_full_t8_set_with_shield_follows_the_8_4_example() -> void:
 	assert_eq(_mods_of(items["riftite_shield"])["block_chance"], 15.0)
 
 
-func test_tools_follow_8_4() -> void:
+func test_unique_tools_follow_8_4_and_f94() -> void:
 	var items: Dictionary = _by_id("items", "items")
-	for n: int in range(1, 9):
-		var level: float = float(GATHERING_TIERS[n - 1][0])
-		for t: Array in TOOL_PIECES:
-			var id: String = "%s_%s" % [METALS[n - 1], t[0]]
-			var m: Dictionary = items[id]["equip"]["modifiers"][0] as Dictionary
-			assert_eq(items[id]["category"], "tool", id)
-			assert_eq(items[id]["equip"]["slot"], t[2], "%s slot" % id)
-			assert_eq(items[id]["equip"]["grade"], float(n), "%s grade" % id)
-			assert_eq(items[id]["equip"]["requirements"], {t[1]: level}, "%s requirements" % id)
-			assert_eq(items[id]["equip"]["modifiers"].size(), 1, "%s modifiers" % id)
-			assert_eq([m["stat"], m["value"], m["scope"]],
-					["skill_interval_pct", float(-(3 + 2 * n)), "skill:" + t[1]], id)
-
-
-func test_novice_tools_are_grade_one_tools() -> void:
-	var items: Dictionary = _by_id("items", "items")
+	var extras: Dictionary = {"forestry": ["double_item_chance", 2.0, 3.0], "quarrying": ["double_item_chance", 2.0, 3.0],
+		"angling": ["rift_shard_chance", 10.0, 15.0]}
 	for t: Array in TOOL_PIECES:
-		var id: String = "novice_" + (t[0] as String)
+		var id: String = "unique_" + (t[0] as String)
+		var equip: Dictionary = items[id]["equip"]
 		assert_eq(items[id]["category"], "tool", id)
-		assert_eq(items[id]["equip"]["slot"], t[2], id)
-		assert_eq(items[id]["equip"]["grade"], 1.0, id)
-		assert_eq(items[id]["equip"]["requirements"], {t[1]: 1.0}, id)
-		assert_eq(items[id]["equip"]["modifiers"],
-				[{"stat": "skill_interval_pct", "value": -5.0, "scope": "skill:" + t[1]}], id)
+		assert_eq(items[id]["value"], 0.0, id)
+		assert_eq(equip["slot"], t[2], "%s slot" % id)
+		assert_eq(equip["grade"], 1.0, "%s grade" % id)
+		assert_eq(equip["unique"], true, id)
+		assert_eq(equip["requirements"], {}, id)
+		assert_eq(equip["modifiers"], [{"stat": "skill_interval_pct", "value": -5.0, "scope": "skill:" + t[1]}], id)
+		var extra: Array = extras[t[1]]
+		assert_eq(equip["upgrade_extras"], [
+			{"at": 5.0, "modifiers": [{"stat": extra[0], "value": extra[1], "scope": "skill:" + t[1]}]},
+			{"at": 9.0, "modifiers": [{"stat": extra[0], "value": extra[2], "scope": "skill:" + t[1]}]},
+		], id)
 
 
 func test_shop_follows_8_6() -> void:
 	var shop: Dictionary = _by_id("shop", "entries")
-	assert_eq(shop.size(), 10)
+	assert_eq(shop.size(), 7)
 	assert_false(shop.has("second_thought"))
 	assert_eq(shop["bank_slot"]["cost"], {"formula": "bank_slot"})
 	assert_eq(shop["bank_slot"]["max_purchases"], 150.0)
@@ -286,11 +301,8 @@ func test_shop_follows_8_6() -> void:
 		assert_eq(shop[g[0]]["effect"]["modifiers"], [{"stat": g[3], "value": float(g[4])}], "%s effect" % g[0])
 	assert_eq(shop["auto_eat_2"]["requires"], {"entries": ["auto_eat_1"], "character": 25.0})
 	assert_eq(shop["auto_eat_3"]["requires"], {"entries": ["auto_eat_2"], "character": 50.0})
-	for t: Array in TOOL_PIECES:
-		var id: String = "novice_" + (t[0] as String)
-		assert_eq(shop[id]["cost"], {"gold": 150.0}, id)
-		assert_eq(shop[id]["max_purchases"], 0.0, id)
-		assert_eq(shop[id]["effect"]["item"], {"item": id, "qty": 1.0}, id)
+	for entry: Variant in shop.values():
+		assert_ne((entry as Dictionary)["category"], "tools")
 
 
 func test_rift_blade_class_has_the_four_setups() -> void:

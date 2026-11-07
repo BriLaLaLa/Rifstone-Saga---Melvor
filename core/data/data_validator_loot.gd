@@ -84,9 +84,8 @@ static func _rift_stone(v: DataValidatorRules, stone: Dictionary) -> void:  # F-
 
 
 static func _salvage(v: DataValidatorRules, salvage: Dictionary) -> void:
-	for key: String in ["component_ratio", "ingot_ratio"]:  # ingot_ratio: legacy key, removed with M10-04
-		if DataValidatorRules.is_number(salvage.get(key)):
-			v.number(salvage, key, 0.0, 1.0, "salvage")
+	if DataValidatorRules.is_number(salvage.get("component_ratio")):
+		v.number(salvage, "component_ratio", 0.0, 1.0, "salvage")
 	if not salvage.get("shards_by_rarity") is Dictionary:
 		return
 	var shards: Dictionary = salvage["shards_by_rarity"] as Dictionary

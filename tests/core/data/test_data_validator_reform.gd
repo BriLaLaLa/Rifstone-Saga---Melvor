@@ -87,7 +87,7 @@ func test_grade_is_required_and_between_1_and_8() -> void:
 	_equip(raw, "tools.json")["grade"] = 0
 	_expect(raw, ["equipment.json", "item 'test_blade'", "missing field 'equip.grade'"])
 	_expect(raw, ["equipment.json", "item 'test_greatsword'", "field 'equip.grade' must be >= 1 and <= 8"])
-	_expect(raw, ["tools.json", "item 'test_hatchet'", "field 'equip.grade' must be >= 1 and <= 8"])
+	_expect(raw, ["tools.json", "item 'unique_hatchet'", "field 'equip.grade' must be >= 1 and <= 8"])
 
 
 func test_weapon_slot_needs_the_weapon_object() -> void:
@@ -111,7 +111,7 @@ func test_equipment_character_requirement_is_a_level() -> void:
 func test_tool_cannot_require_the_character_level() -> void:
 	var raw: Dictionary = V.fixture_raw()
 	_equip(raw, "tools.json")["requirements"] = {"character": 5}
-	_expect(raw, ["tools.json", "item 'test_hatchet'", "field 'equip.requirements.character': unknown skill"])
+	_expect(raw, ["tools.json", "item 'unique_hatchet'", "field 'equip.requirements.character': unknown skill"])
 
 
 func test_tool_requires_only_the_skill_of_its_slot() -> void:
@@ -122,7 +122,7 @@ func test_tool_requires_only_the_skill_of_its_slot() -> void:
 	forestry["order"] = 20
 	skills.append(forestry)
 	_equip(raw, "tools.json")["requirements"] = {"test_gather": 1}
-	_expect(raw, ["tools.json", "item 'test_hatchet'", "field 'equip.requirements.test_gather'",
+	_expect(raw, ["tools.json", "item 'unique_hatchet'", "field 'equip.requirements.test_gather'",
 			"only requires skill 'forestry'"])
 	_equip(raw, "tools.json")["requirements"] = {"forestry": 1}
 	for message: String in V.validate(raw):
@@ -132,7 +132,7 @@ func test_tool_requires_only_the_skill_of_its_slot() -> void:
 func test_tool_slots_belong_to_tools() -> void:
 	var raw: Dictionary = V.fixture_raw()
 	_equip(raw, "tools.json")["slot"] = "head"
-	_expect(raw, ["tools.json", "item 'test_hatchet'", "slot 'head' does not fit category 'tool'"])
+	_expect(raw, ["tools.json", "item 'unique_hatchet'", "slot 'head' does not fit category 'tool'"])
 
 
 # --- classes -----------------------------------------------------------------------------------------------------

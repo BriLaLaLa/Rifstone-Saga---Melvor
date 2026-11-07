@@ -12,7 +12,7 @@ var _stones: Array = []
 
 
 func before_all() -> void:
-	for file: String in ["equipment", "materials"]:
+	for file: String in ["equipment", "materials", "blueprints"]:
 		for item: Dictionary in _read("res://data/items/%s.json" % file)["items"]:
 			_items[item["id"]] = item
 	for a: Dictionary in _read("res://data/combat/areas.json")["areas"]:
@@ -92,9 +92,13 @@ func test_every_equipment_drop_is_reachable_by_level() -> void:
 
 
 func test_every_slot_with_drops_exists() -> void:
+	# rings and amulets drop from the Rift Stones only (M10: the monsters have no room for them, 4 entries)
 	var slots: Dictionary = {}
-	for m: Dictionary in _monsters.values():
+	var sources: Array = _monsters.values() + _stones
+	for m: Dictionary in sources:
 		for d: Dictionary in m["drops"]:
 			if _items[d["item"]]["category"] == "equipment":
 				slots[_items[d["item"]]["equip"]["slot"]] = true
 	assert_true(slots.has("ring") and slots.has("neck"))
+	for slot: String in ["head", "body", "legs", "feet", "hands", "weapon", "offhand"]:
+		assert_true(slots.has(slot), "no piece drops for slot %s" % slot)

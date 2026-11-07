@@ -89,6 +89,9 @@ func test_combat_stat_effects_through_player_stats() -> void:
 	# the modifiers (public API: modifiers -> CombatantStats) with the value of CombatMath.
 	var data: GameData = TestFactory.real_data()
 	var session: GameSession = autofree(TestFactory.session(7, data))
+	# M10: a new game wears the starting kit; the cases below expect the bare character of the formulas.
+	for slot: StringName in [&"weapon", &"offhand"]:
+		session.equipment.unequip(slot)
 	var base: CombatantStats = CombatantStats.for_player(session)
 	var cases: Array = [
 		[&"accuracy_bonus", 20.0, &"accuracy", CombatMath.accuracy_rating(1, 20.0, 0.0, data)],

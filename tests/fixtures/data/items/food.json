@@ -1,7 +1,28 @@
 {
   "items": [
-    {"id": "test_ration", "name": "Razione di prova", "category": "food",
-     "icon": "res://assets/icons/items/test_ration.png", "value": 2, "sort_order": 10,
-     "description": "Cura 20 punti vita.", "food": {"heal": 20}}
+    {
+      "id": "test_ration",
+      "name": "Razione di prova",
+      "category": "food",
+      "icon": "res://assets/icons/items/test_ration.png",
+      "value": 2,
+      "sort_order": 10,
+      "description": "Cura 20 punti vita.",
+      "food": {
+        "heal": 20
+      }
+    },
+    {
+      "id": "seared_brookfin",
+      "name": "Pinnarivo scottato",
+      "category": "food",
+      "icon": "res://assets/icons/items/seared_brookfin.svg",
+      "value": 2,
+      "sort_order": 20,
+      "description": "Cura 20 punti vita.",
+      "food": {
+        "heal": 20
+      }
+    }
   ]
 }

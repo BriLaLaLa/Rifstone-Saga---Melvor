@@ -73,7 +73,7 @@ func test_item_icon_must_be_under_the_item_icons() -> void:
 func test_equip_is_required_for_equipment_and_tools() -> void:
 	var raw: Dictionary = V.fixture_raw()
 	_item(raw, "tools.json").erase("equip")
-	_expect(raw, ["tools.json", "item 'test_hatchet'", "missing field 'equip'"])
+	_expect(raw, ["tools.json", "item 'unique_hatchet'", "missing field 'equip'"])
 
 
 func test_sub_objects_are_forbidden_outside_their_category() -> void:
@@ -119,8 +119,8 @@ func test_equip_requirements_by_category() -> void:
 	_expect(raw, ["equipment.json", "item 'test_blade'", "field 'equip.requirements.character' must be >= 1 and <= 99"])
 	raw = V.fixture_raw()
 	_equip(raw, "tools.json")["requirements"] = {"test_gather": 100, "character": 5}
-	_expect(raw, ["tools.json", "item 'test_hatchet'", "field 'equip.requirements.test_gather' must be >= 1 and <= 99"])
-	_expect(raw, ["tools.json", "item 'test_hatchet'", "field 'equip.requirements.character': unknown skill"])
+	_expect(raw, ["tools.json", "item 'unique_hatchet'", "field 'equip.requirements.test_gather' must be >= 1 and <= 99"])
+	_expect(raw, ["tools.json", "item 'unique_hatchet'", "field 'equip.requirements.character': unknown skill"])
 
 
 func test_equip_modifier_scope_must_point_to_known_ids() -> void:
@@ -129,9 +129,9 @@ func test_equip_modifier_scope_must_point_to_known_ids() -> void:
 	mods.append({"stat": "skill_xp_pct", "value": 1, "scope": "action:cut_nothing"})
 	mods.append({"stat": "skill_xp_pct", "value": 1, "scope": "zone:plains"})
 	(mods[0] as Dictionary)["scope"] = "skill:forestry"
-	_expect(raw, ["tools.json", "item 'test_hatchet'", "scope 'skill:forestry' points to an unknown skill"])
-	_expect(raw, ["tools.json", "item 'test_hatchet'", "scope 'action:cut_nothing' points to an unknown action"])
-	_expect(raw, ["tools.json", "item 'test_hatchet'", "scope 'zone:plains' must be global, skill:<id> or action:<id>"])
+	_expect(raw, ["tools.json", "item 'unique_hatchet'", "scope 'skill:forestry' points to an unknown skill"])
+	_expect(raw, ["tools.json", "item 'unique_hatchet'", "scope 'action:cut_nothing' points to an unknown action"])
+	_expect(raw, ["tools.json", "item 'unique_hatchet'", "scope 'zone:plains' must be global, skill:<id> or action:<id>"])
 
 
 func test_weapon_is_only_for_the_weapon_slot() -> void:

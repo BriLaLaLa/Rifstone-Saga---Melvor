@@ -2,11 +2,11 @@ class_name DataValidatorM10Balance
 extends RefCounted
 ## Part of DataValidator (internal, not API for other modules): the M10 keys of balance.json
 ## (docs/04_DATA_SCHEMA.md §3, §18): `combat.kill_xp_mult`, `blueprint`, `tool_upgrade`, the extended `start` and the
-## keys removed by the reform. Rules of the other M10 content: DataValidatorM10 (which also explains the "M10 mode").
+## keys removed by the reform. Rules of the other M10 content: DataValidatorM10.
 
 const M10_REQUIRED_KEYS: PackedStringArray = ["start.armory", "start.tools", "start.purchases", "start.food",
 	"tool_upgrade.plate_items", "tool_upgrade.handle_items"]
-## Keys of balance.json removed by M10 (R-01): still tolerated outside M10 mode, ignored by the type checks.
+## Keys of balance.json removed by M10 (R-01): present means an error.
 const LEGACY_KEYS: PackedStringArray = ["rarity.craft", "salvage.ingot_ratio"]
 const BLUEPRINT_NUMBERS: PackedStringArray = ["duration_base_min", "duration_per_grade_min", "xp_mult", "rare_base_pct",
 	"rare_per_forging_level"]
@@ -20,9 +20,8 @@ const SWORD_KIND: String = "sword"
 
 # --- balance.json ------------------------------------------------------------------------------------------------
 
-## Ranges of the M10 keys and, in M10 mode, the required and the removed keys. Wrong types are already reported.
+## Ranges of the M10 keys, the required keys and the removed keys. Wrong types are already reported.
 static func validate_balance(v: DataValidatorRules, balance: Dictionary) -> void:
-	v.m10_mode = DataValidatorM10.is_m10(balance)
 	var combat: Variant = DataValidator.lookup(balance, "combat")
 	if combat is Dictionary and DataValidatorRules.is_number((combat as Dictionary).get("kill_xp_mult")):
 		v.number(combat as Dictionary, "kill_xp_mult", 0.0, 1.0, "combat", true)  # B1: > 0 and <= 1
@@ -32,8 +31,6 @@ static func validate_balance(v: DataValidatorRules, balance: Dictionary) -> void
 	var tool_upgrade: Variant = DataValidator.lookup(balance, "tool_upgrade")
 	if tool_upgrade is Dictionary:
 		_tool_upgrade(v, tool_upgrade as Dictionary)
-	if not v.m10_mode:
-		return
 	for key: String in M10_REQUIRED_KEYS:
 		if DataValidator.lookup(balance, key) == null:
 			v.fail("missing key '%s'" % key)

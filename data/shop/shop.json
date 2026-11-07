@@ -1,5 +1,5 @@
 {
-  "_doc": "Shop dell'MVP (02_FORMULAS.md §8.6). Senza second_thought (M11).",
+  "_doc": "Shop dell'MVP (02_FORMULAS.md §8.6). Senza second_thought (M11); nessuna voce `tools` dalla riforma M10 (gli attrezzi sono unici, nel kit iniziale).",
   "entries": [
     {"id": "bank_slot", "name": "Casella della bank", "category": "bank",
      "description": "Una casella in più nella bank.",
@@ -28,18 +28,6 @@
     {"id": "loot_pocket", "name": "Tasca della borsa", "category": "combat",
      "description": "Quattro posti in più nella borsa del bottino.",
      "cost": {"gold": 5000}, "max_purchases": 3,
-     "requires": {}, "effect": {"modifiers": [{"stat": "loot_bag_slots", "value": 4}]}},
-    {"id": "novice_hatchet", "name": "Accetta del novizio", "category": "tools",
-     "description": "Un'accetta semplice per cominciare a tagliare.",
-     "cost": {"gold": 150}, "max_purchases": 0,
-     "requires": {}, "effect": {"item": {"item": "novice_hatchet", "qty": 1}}},
-    {"id": "novice_pick", "name": "Piccone del novizio", "category": "tools",
-     "description": "Un piccone semplice per cominciare a scavare.",
-     "cost": {"gold": 150}, "max_purchases": 0,
-     "requires": {}, "effect": {"item": {"item": "novice_pick", "qty": 1}}},
-    {"id": "novice_rod", "name": "Canna del novizio", "category": "tools",
-     "description": "Una canna semplice per cominciare a pescare.",
-     "cost": {"gold": 150}, "max_purchases": 0,
-     "requires": {}, "effect": {"item": {"item": "novice_rod", "qty": 1}}}
+     "requires": {}, "effect": {"modifiers": [{"stat": "loot_bag_slots", "value": 4}]}}
   ]
 }

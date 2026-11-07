@@ -4,13 +4,9 @@ extends RefCounted
 ## (docs/04_DATA_SCHEMA.md §18): blueprints and components, unique tools, `level_modifiers`, single-cycle actions and
 ## the M10 keys of balance.json (those are in DataValidatorM10Balance).
 ##
-## Transition (until M10-04 brings the M10 content): the keys that reference M10 items (`start.armory`, `start.tools`,
-## `start.purchases`, `start.food`, `tool_upgrade.plate_items`, `tool_upgrade.handle_items`) are optional and checked
-## when present. The data is in "M10 mode" (`DataValidatorRules.m10_mode`) when `start.tools` exists: then those keys are
-## required, the legacy keys are errors, there are exactly three unique tools, no recipe produces equipment or tools,
-## the shop has no `tools` entries and tools no longer drop. M10-04 makes this the only mode.
+## Rules of the M10 content: exactly three unique tools, no recipe produces equipment or tools, the shop has no `tools`
+## entries and tools do not drop. The keys of balance.json that reference M10 items are required (DataValidatorM10Balance).
 
-const MODE_MARKER_KEY: String = "start.tools"
 const TOOL_STEPS: int = 9  # refinement steps +1..+9 (F-94)
 const BLUEPRINT_FIELDS: PackedStringArray = ["base", "grade", "inputs", "rare_component"]
 const BLUEPRINT_INPUT_CATEGORIES: PackedStringArray = ["component", "material"]
@@ -19,10 +15,6 @@ const TOOL_SLOTS: PackedStringArray = ["tool_forestry", "tool_quarrying", "tool_
 const GRADE_COUNT: int = 8
 const SINGLE_SKILL: String = "forging"
 const NO_RECIPE_CATEGORIES: PackedStringArray = ["equipment", "tool"]
-
-
-static func is_m10(balance: Dictionary) -> bool:
-	return DataValidator.lookup(balance, MODE_MARKER_KEY) != null
 
 
 # --- skills ------------------------------------------------------------------------------------------------------
@@ -107,7 +99,7 @@ static func tool_fields(v: DataValidatorRules, equip: Dictionary, category: Stri
 			v.fail("field '%s.modifiers' needs at least 1 entries" % prefix)
 
 
-## Constraints across items, after every item passed its own rules: one blueprint per base; in M10 mode exactly
+## Constraints across items, after every item passed its own rules: one blueprint per base; exactly
 ## three unique tools (one per `tool_*` slot, value 0, grade 1, no requirements).
 static func validate_items(v: DataValidatorRules, files: Dictionary[String, Dictionary]) -> void:
 	var by_base: Dictionary[String, StringName] = {}
@@ -128,16 +120,15 @@ static func validate_items(v: DataValidatorRules, files: Dictionary[String, Dict
 				if by_base.has(base):
 					v.fail("blueprint for base '%s' is already given by '%s'" % [base, by_base[base]])
 				by_base[base] = id
-			if category == "tool" and v.m10_mode:
+			if category == "tool":
 				tools += 1
 				_unique_tool(v, e as Dictionary, tool_slots)
-	if v.m10_mode:
-		v.at_file("section 'items'" if files.is_empty() else (files.keys()[0] as String).get_base_dir())
-		if tools != TOOL_SLOTS.size():
-			v.fail("expected exactly %d tools (one unique tool per tool slot), got %d" % [TOOL_SLOTS.size(), tools])
+	v.at_file("section 'items'" if files.is_empty() else (files.keys()[0] as String).get_base_dir())
+	if tools != TOOL_SLOTS.size():
+		v.fail("expected exactly %d tools (one unique tool per tool slot), got %d" % [TOOL_SLOTS.size(), tools])
 
 
-# M10 mode: a tool is unique, free (value 0), of grade 1 and has no requirements.
+# A tool is unique, free (value 0), of grade 1 and has no requirements.
 static func _unique_tool(v: DataValidatorRules, e: Dictionary, slots: Dictionary[String, bool]) -> void:
 	var equip: Variant = e.get("equip")
 	if not equip is Dictionary:
@@ -172,9 +163,9 @@ static func single_action(v: DataValidatorRules, e: Dictionary, skill: String) -
 	return true
 
 
-## M10 mode: a recipe never produces equipment or tools (they come from blueprints and the kit).
+## A recipe never produces equipment or tools (they come from blueprints and the kit).
 static func recipe_outputs(v: DataValidatorRules, e: Dictionary) -> void:
-	if not v.m10_mode or not e.get("outputs") is Array:
+	if not e.get("outputs") is Array:
 		return
 	for output: Variant in e["outputs"] as Array:
 		if not output is Dictionary:
@@ -185,13 +176,13 @@ static func recipe_outputs(v: DataValidatorRules, e: Dictionary) -> void:
 					item.get("category")])
 
 
-## M10 mode: no `tools` category in the shop.
+## No `tools` category in the shop.
 static func shop_entry(v: DataValidatorRules, e: Dictionary) -> void:
-	if v.m10_mode and e.get("category") == "tools":
+	if e.get("category") == "tools":
 		v.fail("category 'tools' no longer exists (M10)")
 
 
-## A drop entry of a monster or a Rift Stone: a blueprint drops once (`qty` [1, 1]); in M10 mode tools do not drop.
+## A drop entry of a monster or a Rift Stone: a blueprint drops once (`qty` [1, 1]); tools do not drop.
 static func drop(v: DataValidatorRules, drop_entry: Dictionary, prefix: String) -> void:
 	var item: Dictionary = v.items.get(StringName(str(drop_entry.get("item"))), {})
 	var category: String = str(item.get("category"))
@@ -199,7 +190,7 @@ static func drop(v: DataValidatorRules, drop_entry: Dictionary, prefix: String) 
 		var qty: Array = drop_entry["qty"] as Array
 		if qty.size() != 2 or qty[0] != 1.0 or qty[1] != 1.0:
 			v.fail("field '%s.qty': a blueprint drops as [1, 1]" % prefix)
-	if category == "tool" and v.m10_mode:
+	if category == "tool":
 		v.fail("field '%s.item': '%s' is a tool, tools no longer drop (M10)" % [prefix, drop_entry["item"]])
 
 
