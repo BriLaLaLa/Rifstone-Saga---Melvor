@@ -1164,7 +1164,8 @@ func rebuild_modifiers() -> void               # sorgenti trait:<id> dei tratti 
 - Save (§6): `{"traits": [id | ""], "abilities": [id | ""]}`. `from_save` tollerante: id sconosciuti, non della classe,
   non sbloccati, duplicati o in slot non aperti → vuoti, con `Log.warn`. Nessun segnale.
 
-### 5.17 Armory (`systems/armory/armory.gd`) — dipendenze: data, events, modifiers, rng, bank, wallet
+### 5.17 Armory (`systems/armory/armory.gd`) — dipendenze: data, events, modifiers, rng, bank, wallet, skills (per `level_too_low`)
+> Nota (M10-03): `use_currency` su un attrezzo unico non è definito (risponde `item_equipped`).
 ```gdscript
 class_name ItemInstance extends RefCounted     # systems/items/item_instance.gd
 var uid: int; var base_id: StringName; var rarity: StringName; var ilvl: int
