@@ -60,9 +60,10 @@ const EXPECTED: Dictionary = {
 	"save_completed": [["slot", I, ""]],
 	"save_failed": [["slot", I, ""], ["reason", SN, ""]],
 	"notification_requested": [["text", TYPE_STRING, ""], ["kind", SN, ""]],
+	"hint_triggered": [["hint_id", SN, ""]],
 }
 
-const LATER_MILESTONE_SIGNALS: PackedStringArray = ["hint_triggered", "fracture_opened", "fracture_closed"]
+const LATER_MILESTONE_SIGNALS: PackedStringArray = ["fracture_opened", "fracture_closed"]
 
 var _events: GameEvents
 

@@ -16,6 +16,7 @@ const CONTENT_FILES: Dictionary[String, String] = {
 	"skills": "skills/skills.json", "areas": "combat/areas.json", "monsters": "combat/monsters.json",
 	"shop": "shop/shop.json", "affixes": "affixes/affixes.json",
 	"rift_stones": "combat/rift_stones.json",
+	"hints": "hints/hints.json",
 }
 const CONTENT_DIRS: Dictionary[String, String] = {
 	"items": "items", "actions": "actions", "mastery": "mastery", "classes": "classes",
@@ -47,6 +48,8 @@ var _classes: Dictionary[StringName, ClassDef] = {}
 var _class_list: Array[ClassDef] = []
 var _affixes: Dictionary[StringName, AffixDef] = {}
 var _affix_list: Array[AffixDef] = []
+var _hints: Dictionary[StringName, HintDef] = {}
+var _hint_list: Array[HintDef] = []
 
 
 static func load_from_dirs(content_root: String = "res://data", config_root: String = "res://data/config") -> GameData:
@@ -238,6 +241,15 @@ func shop_entries() -> Array[ShopEntryDef]:
 	return _shop_list.duplicate()
 
 
+func hint(id: StringName) -> HintDef:
+	return _find(_hints, id, "hint") as HintDef
+
+
+## Every hint, in file order.
+func hints() -> Array[HintDef]:
+	return _hint_list.duplicate()
+
+
 # {path: top-level object} of the files that load as objects; the others are reported in `errors`.
 func _read_files(paths: PackedStringArray) -> Dictionary:
 	var files: Dictionary = {}
@@ -297,6 +309,9 @@ func _build(raw: Dictionary) -> void:
 	for path: String in raw["shop"]:
 		for d: Dictionary in _list(raw["shop"][path], "entries"):
 			_add(ShopEntryDef.from_dict(d), _shop, _shop_list, path, "shop entry", d)
+	for path: String in raw["hints"]:
+		for d: Dictionary in _list(raw["hints"][path], "hints"):
+			_add(HintDef.from_dict(d), _hints, _hint_list, path, "hint", d)
 	_skill_list.sort_custom(func(a: SkillDef, b: SkillDef) -> bool: return a.order < b.order)
 	_area_list.sort_custom(func(a: AreaDef, b: AreaDef) -> bool: return a.order < b.order)
 	_class_list.sort_custom(func(a: ClassDef, b: ClassDef) -> bool: return a.order < b.order)
@@ -337,11 +352,13 @@ static func _action_before(a: ActionDef, b: ActionDef) -> bool:
 # With a Def that could not be built the data is not valid: nothing stays half-loaded.
 func _clear() -> void:
 	for table: Dictionary in [_items, _skills, _actions, _nodes, _areas, _monsters, _stones, _stone_by_area, _shop, _classes,
-			_affixes]:
+			_affixes, _hints]:
 		table.clear()
 	for list: Array in [_item_list, _skill_list, _action_list, _node_list, _area_list, _shop_list, _class_list,
-			_affix_list]:
+			_affix_list, _hint_list]:
 		list.clear()
 	_xp_table = null
 	_mastery_table = null
 	_character_table = null
+	_balance = {}
+	stats = StatRegistry.new()
