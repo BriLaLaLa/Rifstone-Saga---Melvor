@@ -3,7 +3,7 @@ extends GutTest
 ## (`tests/...::test_x`, docs/02_FORMULAS.md §11) and that test must exist as a file and a function.
 ##
 ## Formulas of closed milestones (CLOSED_FORMULAS) must already have their test. For the others the missing tests are
-## reported as pending only for post-MVP formulas (POST_MVP_MILESTONES); from M6-07 a missing test of an MVP formula is an error. A reference that already exists passes.
+## checked too. Strict mode (M9-07, N10): no pending, every stat must name an existing test.
 ## The registry is read through the public API (GameData.stats, StatRegistry.info), test sources are read as text.
 
 const TESTS_PREFIX: String = "tests/"
@@ -32,7 +32,6 @@ const M1_STATS: Array[StringName] = [
 ]
 # Formula -> milestone that implements it (for the pending messages).
 const FORMULA_MILESTONES: Dictionary[String, String] = {"F-50": "M10", "F-51": "M11"}
-const POST_MVP_MILESTONES: Array[String] = ["M10", "M11", "M12"]
 
 var _registry: StatRegistry = null
 var _sources: Dictionary[String, String] = {}
@@ -151,24 +150,14 @@ func test_every_trait_effect_type_used_by_the_class_has_its_test_file() -> void:
 		assert_true(FileAccess.file_exists("res://tests/systems/combat/test_abilities.gd"), "ability tests exist")
 
 
-func test_stats_of_open_milestones() -> void:
+func test_every_stat_has_its_test() -> void:
+	# Strict mode (N10, M9-07): no stat is pending. A stat whose test is missing is an error, whatever its milestone.
 	var missing: PackedStringArray = []
-	var post_mvp: PackedStringArray = []
 	for stat: StringName in _registry.ids():
 		var info: Dictionary = _registry.info(stat)
-		var formula: String = str(info["formula"])
-		if CLOSED_FORMULAS.has(formula) or _reference_exists(str(info["test"])):
-			continue
-		var entry: String = "%s (%s, %s)" % [stat, formula, FORMULA_MILESTONES.get(formula, "?")]
-		if POST_MVP_MILESTONES.has(FORMULA_MILESTONES.get(formula, "?")):
-			post_mvp.append(entry)
-		else:
-			missing.append(entry)
-	assert_eq(missing.size(), 0, "stat tests missing (error from M6-07): %s" % "; ".join(missing))
-	if post_mvp.is_empty():
-		pass_test("every stat has its test")
-		return
-	pending("%d post-MVP stat tests not written yet: %s" % [post_mvp.size(), "; ".join(post_mvp)])
+		if not _reference_exists(str(info["test"])):
+			missing.append("%s (%s, %s)" % [stat, info["formula"], FORMULA_MILESTONES.get(str(info["formula"]), "closed")])
+	assert_eq(missing.size(), 0, "stat tests missing: %s" % "; ".join(missing))
 
 
 func test_the_check_finds_a_missing_function() -> void:
