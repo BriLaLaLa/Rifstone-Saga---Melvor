@@ -1113,10 +1113,15 @@ func set_filter(slot: StringName, min_rarity: StringName, min_grade: int) -> Com
 func filter_rule(slot: StringName) -> Dictionary          # {"min_rarity", "min_grade"}; "common"/1 = tieni tutto
 func filter_rules() -> Dictionary                         # slot -> regola, solo quelle diverse da "tieni tutto"
 func is_filtered(inst: ItemInstance) -> bool              # il pezzo sarebbe smantellato dal filtro
+func socket_count(uid: int) -> int                       # M8, F-89: castoni del pezzo (Sockets.count)
+func socket_stone(uid: int, stone_id: StringName) -> CommandResult   # M8: unknown_id, not_equippable (non è una pietra), socket_locked (0 castoni), socket_occupied, not_enough_items
+func clear_socket(uid: int, index: int) -> CommandResult  # M8: unknown_id, slot_empty; distrugge la pietra (Q8)
+func use_currency(uid: int, currency_id: StringName) -> CommandResult   # M8-09, GDD §26: effetti to_magic / to_rare / reroll; unknown_id, not_equippable (non è una valuta), item_locked, item_equipped, requirement_not_met (rarità non adatta), not_enough_items; atomico
 ```
 - M7: il Sigillo (`upgrade.seal_item`) si consuma solo a fallimento con `use_seal` quando il passo parte da
   `N ≥ upgrade.downgrade_from`; altrimenti non serve e non si consuma. `upgrade` emette `armory_changed(uid, updated)` e
   `item_upgraded`; `salvage` emette `armory_changed(uid, removed)`, la capacità e `item_salvaged(auto=false)`.
+- M8: `socket_stone` e `clear_socket` emettono `armory_changed(uid, updated)`; `ItemInstance.sockets` contiene solo le pietre presenti (nessuna voce vuota), le prime `Sockets.count` sono attive, le altre restano nel pezzo e tornano attive se i castoni risalgono (raffinazione).
 - Il filtro non ha segnale: la UI (M7-06) rilegge `filter_rules()` a ogni apertura/aggiornamento della pagina.
 - `add`/`create` emettono `armory_changed(uid, &"added")` e `armory_capacity_changed`; `remove`, `set_locked`,
   `set_worn` emettono `armory_changed` (`removed`/`updated`); `set_worn` cambia `used()`.
