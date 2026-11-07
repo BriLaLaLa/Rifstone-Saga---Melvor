@@ -14,6 +14,7 @@ signal session_ended(slot: int)
 signal action_started(lane: StringName, skill_id: StringName, action_id: StringName)
 signal action_completed(lane: StringName, skill_id: StringName, action_id: StringName, outputs: Dictionary)
 signal action_stopped(lane: StringName, skill_id: StringName, reason: StringName)
+signal blueprint_crafted(blueprint_id: StringName, uid: int)  # M10: end of a blueprint craft, after armory_changed
 
 # Skills and mastery
 signal xp_gained(skill_id: StringName, amount: int)
