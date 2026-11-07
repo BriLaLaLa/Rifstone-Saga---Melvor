@@ -22,6 +22,7 @@ static func spawn(holder: Control, text: String, color: Color, big: bool) -> Lab
 	label.add_theme_font_override("font", UiStyle.font_bold())
 	label.add_theme_font_size_override("font_size",
 			UiStyle.COMBAT_HIT_BIG_FONT_SIZE if big else UiStyle.COMBAT_HIT_FONT_SIZE)
+	_trim(holder, CombatTexts.MAX_HIT_NUMBERS - 1)
 	var ys: Array[float] = []
 	for other: Node in holder.get_children():
 		if other is Label and not other.is_queued_for_deletion():
@@ -49,6 +50,18 @@ static func free_y(taken: Array[float], start: float, step: float) -> float:
 				y = other + step
 				moved = true
 	return y
+
+
+## Frees the oldest numbers of `holder` until at most `keep` remain (the newest ones stay).
+static func _trim(holder: Control, keep: int) -> void:
+	var live: Array[Node] = []
+	for child: Node in holder.get_children():
+		if child is Label and not child.is_queued_for_deletion():
+			live.append(child)
+	while live.size() > maxi(keep, 0):
+		var oldest: Node = live.pop_front()
+		holder.remove_child(oldest)
+		oldest.queue_free()
 
 
 ## Removes every number still on screen (end of the combat).
