@@ -40,7 +40,7 @@ func test_refine_and_salvage_buttons_come_before_the_detail_lines() -> void:
 	_page._select(uid)
 	var panel: PiecePanel = _page.get_node("%PiecePanel") as PiecePanel
 	var content: Node = panel.get_child(0)
-	var lines_index: int = panel.find_child("LinesLabel", true, false).get_index()
+	var lines_index: int = panel.find_child("Tabs", true, false).get_index()
 	for button_name: String in ["RefineButton", "SalvageButton"]:
 		var button: Button = panel.find_child(button_name, true, false) as Button
 		assert_true(button.is_visible_in_tree(), button_name)

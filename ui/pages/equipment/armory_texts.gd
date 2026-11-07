@@ -14,6 +14,8 @@ const RARITY_NAMES: Dictionary[StringName, String] = {
 }
 ## Stats where a lower value is the better one (shown green when they go down); the registry has no polarity.
 const LOWER_IS_BETTER: Array[StringName] = [&"skill_interval_pct", &"attack_interval_pct"]
+## Titles of the piece panel tabs, in tab order: details, sockets, currencies.
+const PIECE_TAB_TITLES: Array[String] = ["Dettagli", "Castoni", "Valute"]
 const CAPACITY_TEXT: String = "Pezzi: %s / %s"
 const CAPACITY_WORN_TEXT: String = "Pezzi: %s / %s (+%s indossati)"
 const UPGRADE_TEXT: String = "+%d"

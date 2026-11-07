@@ -282,3 +282,19 @@ func test_bank_stone_without_pieces_and_plain_item_has_no_section() -> void:
 	TestFactory.give(_session, TO_MAGIC, 1)
 	panel.show_item(_session, TO_MAGIC)
 	assert_false((panel.find_child("SocketBox", true, false) as Control).visible)
+
+
+# --- M9-00: piece panel tabs ---------------------------------------------------------------------------------------
+
+func test_piece_panel_has_tabs_with_texts_of_armory() -> void:
+	_select_piece(&"magic")
+	var tabs: TabContainer = _page.find_child("Tabs", true, false) as TabContainer
+	assert_not_null(tabs)
+	assert_eq(tabs.get_tab_count(), ArmoryTexts.PIECE_TAB_TITLES.size())
+	for i: int in tabs.get_tab_count():
+		assert_eq(tabs.get_tab_title(i), ArmoryTexts.PIECE_TAB_TITLES[i])
+	assert_eq(tabs.current_tab, 0)
+	tabs.current_tab = 1
+	assert_eq(tabs.get_current_tab_control(), _page.find_child("SocketBox", true, false).get_parent())
+	tabs.current_tab = 2
+	assert_eq(tabs.get_current_tab_control(), _page.find_child("CurrencyBox", true, false).get_parent())

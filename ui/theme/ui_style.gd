@@ -50,6 +50,8 @@ const WINDOW_CLOSE_BUTTON_SIDE: int = 32
 const MENU_PANEL_WIDTH: int = 520
 const SLOT_PANEL_WIDTH: int = 820
 const MENU_BUTTON_HEIGHT: int = 44
+## Minimum height of the piece panel tabs (Dettagli / Castoni / Valute): sockets and currencies fit without scrolling.
+const PIECE_TABS_MIN_HEIGHT: int = 220
 const MENU_TITLE_FONT_SIZE: int = 36
 ## ConfirmDialog: initial size (the text wraps inside it).
 const DIALOG_SIZE := Vector2i(460, 0)
