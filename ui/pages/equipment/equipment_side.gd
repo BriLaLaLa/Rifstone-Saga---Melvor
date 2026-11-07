@@ -6,7 +6,7 @@ extends RefCounted
 const LEVEL_TEXT: String = "Livello %s  ·  Assetto: %s"
 const UNARMED_TEXT: String = "Mani nude"
 const NO_FOOD_TEXT: String = "Nessun cibo scelto"
-const FOOD_TEXT: String = "Cibo: %s (in bank: %s)"
+const FOOD_TEXT: String = "Cibo: %s (nel deposito: %s)"
 
 
 ## Class and setup labels and the 12 slots of `doll`.

@@ -33,7 +33,7 @@ const REASON_TEXTS: Dictionary[StringName, String] = {
 	Reasons.REQUIREMENT_NOT_MET: "Non hai ancora il livello richiesto.",
 	Reasons.NO_FOOD: "Non hai cibo da mangiare.",
 	Reasons.NOT_RUNNING: "Nessun combattimento in corso.",
-	Reasons.BANK_FULL: "La bank è piena: parte del bottino è rimasta nella borsa.",
+	Reasons.BANK_FULL: "Il deposito è pieno: parte del bottino è rimasta nella borsa.",
 }
 const REASON_TEXT_DEFAULT: String = "Operazione non riuscita."
 const DEFEAT_TEXT: String = "Sei stato sconfitto: il bottino della borsa è andato perso."

@@ -1,7 +1,7 @@
 {
   "_doc": "Le 7 skill dell'MVP (00_VISION.md). Il personaggio ha un livello proprio (chiave riservata character). mastery_bonuses: F-11 (raccolta: double_item_chance; artigianato, Legatura del Rift compresa: preservation_chance e skill_interval_pct).",
   "skills": [
-    {"id": "forestry", "name": "Selvicoltura", "category": "gathering", "order": 1, "icon": "res://assets/icons/skills/forestry.svg",
+    {"id": "forestry", "name": "Boscaiolo", "category": "gathering", "order": 1, "icon": "res://assets/icons/skills/forestry.svg",
      "color": "#7fbf6a",
      "description": "Abbatti gli alberi delle Pianure di Roccarossa per ottenere legni.",
      "has_mastery": true,
@@ -9,7 +9,7 @@
        {"every_levels": 10, "modifiers": [{"stat": "double_item_chance", "value": 1}]},
        {"at_level": 99, "modifiers": [{"stat": "double_item_chance", "value": 5}]}
      ]},
-    {"id": "quarrying", "name": "Cavatura", "category": "gathering", "order": 2, "icon": "res://assets/icons/skills/quarrying.svg",
+    {"id": "quarrying", "name": "Minatore", "category": "gathering", "order": 2, "icon": "res://assets/icons/skills/quarrying.svg",
      "color": "#a08c78",
      "description": "Scava nelle cave e nelle crepe lasciate dal Rift per minerali e pietre.",
      "has_mastery": true,
@@ -17,15 +17,15 @@
        {"every_levels": 10, "modifiers": [{"stat": "double_item_chance", "value": 1}]},
        {"at_level": 99, "modifiers": [{"stat": "double_item_chance", "value": 5}]}
      ]},
-    {"id": "angling", "name": "Lenza", "category": "gathering", "order": 3, "icon": "res://assets/icons/skills/angling.svg",
+    {"id": "angling", "name": "Pescatore", "category": "gathering", "order": 3, "icon": "res://assets/icons/skills/angling.svg",
      "color": "#4f9ec4",
-     "description": "Getta la lenza nei torrenti e nelle pozze di Roccarossa per pesci crudi.",
+     "description": "Getta la canna nei torrenti e nelle pozze di Roccarossa per pesci crudi.",
      "has_mastery": true,
      "mastery_bonuses": [
        {"every_levels": 10, "modifiers": [{"stat": "double_item_chance", "value": 1}]},
        {"at_level": 99, "modifiers": [{"stat": "double_item_chance", "value": 5}]}
      ]},
-    {"id": "forging", "name": "Forgiatura", "category": "artisan", "order": 4, "icon": "res://assets/icons/skills/forging.svg",
+    {"id": "forging", "name": "Fabbro", "category": "artisan", "order": 4, "icon": "res://assets/icons/skills/forging.svg",
      "color": "#d9822b",
      "description": "Fondi i minerali in lingotti e piastre, poi forgia i pezzi dai progetti. Più sali, più la raffinazione riesce.",
      "has_mastery": true,
@@ -34,7 +34,7 @@
        {"every_levels": 10, "modifiers": [{"stat": "preservation_chance", "value": 1.5}]},
        {"at_level": 99, "modifiers": [{"stat": "skill_interval_pct", "value": -5}]}
      ]},
-    {"id": "hearthcraft", "name": "Focolare", "category": "artisan", "order": 5, "icon": "res://assets/icons/skills/hearthcraft.svg",
+    {"id": "hearthcraft", "name": "Cuoco", "category": "artisan", "order": 5, "icon": "res://assets/icons/skills/hearthcraft.svg",
      "color": "#e0b040",
      "description": "Cucina il pescato sulla brace: il cibo cura in combattimento.",
      "has_mastery": true,
@@ -42,7 +42,7 @@
        {"every_levels": 10, "modifiers": [{"stat": "preservation_chance", "value": 1.5}]},
        {"at_level": 99, "modifiers": [{"stat": "skill_interval_pct", "value": -5}]}
      ]},
-    {"id": "woodwright", "name": "Intaglio", "category": "artisan", "order": 6, "icon": "res://assets/icons/skills/woodwright.svg",
+    {"id": "woodwright", "name": "Falegname", "category": "artisan", "order": 6, "icon": "res://assets/icons/skills/woodwright.svg",
      "color": "#b07a48",
      "description": "Intaglia i legni in impugnature, telai degli scudi e manici.",
      "has_mastery": true,

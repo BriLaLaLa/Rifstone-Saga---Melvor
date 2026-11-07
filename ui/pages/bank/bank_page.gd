@@ -15,24 +15,24 @@ extends Page
 ## the panel, the hovered cell whose tooltip is refreshed after a redraw).
 
 const ITEM_SLOT_SCENE: PackedScene = preload("res://ui/components/item_slot/item_slot.tscn")
-const TITLE_TEXT: String = "Bank"
+const TITLE_TEXT: String = "Deposito"
 const SLOTS_TEXT: String = "Caselle: %s / %s"
-const FULL_TEXT: String = "La bank è piena: i nuovi oggetti non entrano."
-const EMPTY_TEXT: String = "La bank è vuota."
+const FULL_TEXT: String = "Il deposito è pieno: i nuovi oggetti non entrano."
+const EMPTY_TEXT: String = "Il deposito è vuoto."
 const NO_MATCH_TEXT: String = "Nessun oggetto corrisponde alla ricerca."
 const SEARCH_PLACEHOLDER: String = "Cerca per nome"
 const SORT_TEXT: String = "Ordina"
 const SORT_TOOLTIP: String = "Ordina per categoria e poi per tipo di oggetto."
 ## Reason of a refused bank command -> text shown above the grid; other reasons: REFUSED_TEXT_DEFAULT.
 const REFUSED_TEXTS: Dictionary[StringName, String] = {
-	Reasons.UNKNOWN_ID: "L'oggetto non è più nella bank.",
+	Reasons.UNKNOWN_ID: "L'oggetto non è più nel deposito.",
 	Reasons.INVALID_AMOUNT: "Quantità o posizione non valida.",
 	Reasons.ITEM_LOCKED: "L'oggetto è bloccato: sbloccalo per venderlo.",
 	Reasons.NOT_SELLABLE: "Questo oggetto non si vende.",
 	Reasons.NOT_ENOUGH_ITEMS: "Non ci sono abbastanza oggetti.",
 	Reasons.REQUIREMENT_NOT_MET: "Requisiti non soddisfatti.",
 	Reasons.COMBAT_ACTIVE: "Non puoi cambiare arma durante il combattimento.",
-	Reasons.BANK_FULL: "La bank è piena.",
+	Reasons.BANK_FULL: "Il deposito è pieno.",
 	Reasons.NOT_FOOD: "Questo oggetto non è un cibo.",
 }
 const REFUSED_TEXT_DEFAULT: String = "Operazione non riuscita."

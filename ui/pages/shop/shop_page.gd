@@ -20,7 +20,7 @@ const REQ_TOTAL_TEXT: String = "livello totale %s"
 const REQ_CHARACTER_TEXT: String = "livello del personaggio %s"
 const REQ_SEPARATOR: String = ", "
 const CATEGORY_TEXTS: Dictionary[StringName, String] = {
-	&"bank": "Bank",
+	&"bank": "Deposito",
 	&"combat": ItemTooltipLines.COMBAT_TEXT,
 	&"materials": "Materiali",
 	&"tools": "Attrezzi",
@@ -31,7 +31,7 @@ const REFUSED_TEXTS: Dictionary[StringName, String] = {
 	Reasons.MAX_PURCHASES: "Hai già acquistato il massimo.",
 	Reasons.REQUIREMENT_NOT_MET: "Requisiti non soddisfatti.",
 	Reasons.NOT_ENOUGH_GOLD: "Oro insufficiente.",
-	Reasons.BANK_FULL: "La bank è piena.",
+	Reasons.BANK_FULL: "Il deposito è pieno.",
 	Reasons.ARMORY_FULL: "L'Armeria è piena.",
 }
 const REFUSED_TEXT_DEFAULT: String = "Acquisto non riuscito."
