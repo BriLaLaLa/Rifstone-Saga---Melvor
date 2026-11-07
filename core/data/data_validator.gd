@@ -38,11 +38,9 @@ const REQUIRED_BALANCE_KEYS: PackedStringArray = [
 	"offline.chunk_ms", "traits.slot_levels", "abilities.slot_levels",
 	"upgrade.levels", "upgrade.downgrade_from", "upgrade.mod_pct_per_level", "upgrade.seal_item", "upgrade.ingot_items",
 	"salvage.ingot_ratio", "salvage.shards_by_rarity", "rift_stone.chance_pct", "rift_stone.pity_kills",
+	"sockets.by_rarity", "sockets.bonus_at_upgrade",
 ]
 ## Balance keys holding an array, a combat style or a class id; every other required key holds a number.
-## Balance keys that may be absent for now (validated by DataValidatorLoot when present): `sockets` (F-89, M8). They move
-## to REQUIRED_BALANCE_KEYS when balance.json has them.
-const OPTIONAL_BALANCE_ROOTS: PackedStringArray = ["sockets"]
 const BALANCE_LIST_KEYS: PackedStringArray = [
 	"start.items", "combat.auto_eat_tiers", "rift.sockets", "traits.slot_levels", "abilities.slot_levels", "rarity.affix_count.magic", "rarity.affix_count.rare",
 	"upgrade.levels", "upgrade.ingot_items",
@@ -53,7 +51,7 @@ const BALANCE_STYLE_KEYS: PackedStringArray = [
 ]
 const BALANCE_CLASS_KEYS: PackedStringArray = ["character.start_class"]
 const BALANCE_TEXT_KEYS: PackedStringArray = ["upgrade.seal_item"]  # M7: an item id (checked by DataValidatorLoot)
-const BALANCE_OBJECT_KEYS: PackedStringArray = ["salvage.shards_by_rarity"]
+const BALANCE_OBJECT_KEYS: PackedStringArray = ["salvage.shards_by_rarity", "sockets.by_rarity"]
 const AFFIX_COUNT_KEYS: PackedStringArray = ["rarity.affix_count.magic", "rarity.affix_count.rare"]
 const AFFIX_COUNT_MAX: int = 6
 const PACK_SIZE_MAX: int = 6  # format limit of combat.max_pack_size
@@ -220,7 +218,7 @@ static func _balance_value(v: DataValidatorRules, key: String, value: Variant) -
 static func _unknown_balance_keys(v: DataValidatorRules, node: Dictionary, prefix: String) -> void:
 	for key: Variant in node:
 		var path: String = str(key) if prefix.is_empty() else "%s.%s" % [prefix, key]
-		if str(key) == DataValidatorRules.DOC_KEY or path in REQUIRED_BALANCE_KEYS or path.split(".")[0] in OPTIONAL_BALANCE_ROOTS:
+		if str(key) == DataValidatorRules.DOC_KEY or path in REQUIRED_BALANCE_KEYS:
 			continue
 		var is_prefix: bool = false
 		for required: String in REQUIRED_BALANCE_KEYS:

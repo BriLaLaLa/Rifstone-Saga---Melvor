@@ -1,0 +1,8 @@
+{
+  "_doc": "Valute del Rift (M8-04): to_magic comune→magico, to_rare magico→raro, reroll ritira gli affissi. value 0 = non vendibili.",
+  "items": [
+    {"id":"currency_spark","name":"Scintilla del Rift","category":"currency","value":0,"sort_order":10,"icon":"res://assets/icons/items/currency_spark.svg","description":"Rende magico un pezzo comune.","currency":{"effect":"to_magic"}},
+    {"id":"currency_flux","name":"Flusso del Rift","category":"currency","value":0,"sort_order":20,"icon":"res://assets/icons/items/currency_flux.svg","description":"Ritira gli affissi di un pezzo, senza cambiarne la rarità.","currency":{"effect":"reroll"}},
+    {"id":"currency_crown","name":"Corona del Rift","category":"currency","value":0,"sort_order":30,"icon":"res://assets/icons/items/currency_crown.svg","description":"Rende raro un pezzo magico.","currency":{"effect":"to_rare"}}
+  ]
+}

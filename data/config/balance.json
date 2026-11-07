@@ -177,6 +177,7 @@
       }
     ]
   },
+  "sockets": {"by_rarity": {"common": 0, "magic": 1, "rare": 2}, "bonus_at_upgrade": 7},
   "offline": {
     "cap_ms": 43200000,
     "min_ms": 60000,

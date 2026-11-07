@@ -339,13 +339,14 @@ func test_infusion_items_and_riftbinding_actions_follow_8_7() -> void:
 		assert_true(items.has(row[3]), "ingredient %s exists" % row[3])
 
 
-func test_riftbinding_actions_all_produce_infusions() -> void:
+func test_riftbinding_actions_all_produce_infusions_stones_or_currencies() -> void:
 	var items: Dictionary = _by_id("items", "items")
 	for path: Variant in _raw["actions"]:
 		var content: Dictionary = _raw["actions"][path] as Dictionary
 		if content["skill"] == "riftbinding":
 			for e: Dictionary in content["actions"]:
-				assert_eq(items[e["outputs"][0]["item"]]["category"], "infusion", "output of %s" % e["id"])
+				assert_true(
+						["infusion", "stone", "currency"].has(items[e["outputs"][0]["item"]]["category"]), "output of %s" % e["id"])
 
 
 func test_artisan_mastery_nodes_follow_the_artisan_schema() -> void:
@@ -376,3 +377,43 @@ func test_artisan_mastery_nodes_follow_the_artisan_schema() -> void:
 			if (a["id"] as String).begins_with(["smelt_", "forge_", "cook_", "carve_", "bind_"][ARTISAN_NODE_SKILLS.find(skill)]):
 				own += 1
 		assert_gt(own, 0, "%s has actions with the expected id prefix" % skill)
+
+
+# M8-04: stones and currencies of the Rift (F-89, 01_GDD.md §26).
+const STONE_COUNT: int = 12
+const CURRENCY_EFFECTS: Dictionary = {"currency_spark": "to_magic", "currency_flux": "reroll", "currency_crown": "to_rare"}
+
+
+func test_stones_have_modifiers_and_a_riftbinding_recipe() -> void:
+	var items: Dictionary = _by_id("items", "items")
+	var actions: Array[Dictionary] = _entries("actions", "actions")
+	var stones: int = 0
+	for id: Variant in items:
+		if items[id]["category"] != "stone":
+			continue
+		stones += 1
+		assert_gt((items[id]["stone"]["modifiers"] as Array).size(), 0, "%s modifiers" % id)
+		assert_true(FileAccess.file_exists(items[id]["icon"] as String), "icon of %s" % id)
+		var recipes: int = 0
+		for a: Dictionary in actions:
+			if a["outputs"][0]["item"] == id:
+				recipes += 1
+				assert_eq(a["inputs"][0]["item"], "rift_shard", "%s needs shards" % id)
+		assert_eq(recipes, 1, "recipes of %s" % id)
+	assert_eq(stones, STONE_COUNT, "number of stones")
+
+
+func test_currencies_cover_the_three_effects_with_a_recipe() -> void:
+	var items: Dictionary = _by_id("items", "items")
+	var actions: Array[Dictionary] = _entries("actions", "actions")
+	for id: String in CURRENCY_EFFECTS:
+		assert_true(items.has(id), "currency %s" % id)
+		if not items.has(id):
+			continue
+		assert_eq(items[id]["currency"]["effect"], CURRENCY_EFFECTS[id], "effect of %s" % id)
+		assert_true(FileAccess.file_exists(items[id]["icon"] as String), "icon of %s" % id)
+		var recipes: int = 0
+		for a: Dictionary in actions:
+			if a["outputs"][0]["item"] == id:
+				recipes += 1
+		assert_eq(recipes, 1, "recipes of %s" % id)
