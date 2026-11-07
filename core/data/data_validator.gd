@@ -31,19 +31,21 @@ const REQUIRED_BALANCE_KEYS: PackedStringArray = [
 	"character_curve.base", "character_curve.growth", "character_curve.linear", "character_curve.max_level",
 	"character_curve.xp_cap", "character.start_class",
 	"armory.base_slots", "armory.slot_cost_base", "armory.slot_cost_growth", "armory.slot_cost_cap",
-	"rarity.craft.magic_base_pct", "rarity.craft.magic_per_mastery_level", "rarity.craft.rare_base_pct",
-	"rarity.craft.rare_per_mastery_level", "rarity.affix_count.magic", "rarity.affix_count.rare",
+	"rarity.affix_count.magic", "rarity.affix_count.rare",
 	"rarity.drop.magic_pct", "rarity.drop.rare_pct", "rarity.rift_stone.magic_pct", "rarity.rift_stone.rare_pct",
 	"rift.sockets", "offline.cap_ms", "offline.min_ms",
 	"offline.chunk_ms", "traits.slot_levels", "abilities.slot_levels",
 	"upgrade.levels", "upgrade.downgrade_from", "upgrade.mod_pct_per_level", "upgrade.seal_item", "upgrade.ingot_items",
-	"salvage.ingot_ratio", "salvage.shards_by_rarity", "rift_stone.chance_pct", "rift_stone.pity_kills",
-	"sockets.by_rarity", "sockets.bonus_at_upgrade",
+	"salvage.component_ratio", "salvage.shards_by_rarity", "rift_stone.chance_pct", "rift_stone.pity_kills",
+	"sockets.by_rarity", "sockets.bonus_at_upgrade", "combat.kill_xp_mult",
+	"blueprint.duration_base_min", "blueprint.duration_per_grade_min", "blueprint.xp_mult", "blueprint.rare_base_pct",
+	"blueprint.rare_per_forging_level", "blueprint.choose_affix_level", "blueprint.chosen_affix_tier",
+	"tool_upgrade.interval_base_pct", "tool_upgrade.interval_per_level_pct", "tool_upgrade.levels",
 ]
 ## Balance keys holding an array, a combat style or a class id; every other required key holds a number.
 const BALANCE_LIST_KEYS: PackedStringArray = [
 	"start.items", "combat.auto_eat_tiers", "rift.sockets", "traits.slot_levels", "abilities.slot_levels", "rarity.affix_count.magic", "rarity.affix_count.rare",
-	"upgrade.levels", "upgrade.ingot_items",
+	"upgrade.levels", "upgrade.ingot_items", "tool_upgrade.levels",
 ]
 const BALANCE_STYLE_KEYS: PackedStringArray = [
 	"combat.triangle.beats.blade", "combat.triangle.beats.arcana", "combat.triangle.beats.marksmanship",
@@ -65,7 +67,7 @@ const STAT_FORMULA_PATTERN: String = "^(F-[0-9]{2}|[0-9]+(\\.[0-9]+)*)$"
 const STAT_TEST_PATTERN: String = "^[^:]+\\.gd::[A-Za-z_][A-Za-z0-9_]*$"
 const STAT_NAME_MAX_LENGTH: int = 40
 const SKILL_FIELDS: PackedStringArray = ["id", "name", "description", "category", "order", "icon", "color",
-	"has_mastery", "mastery_bonuses"]
+	"has_mastery", "mastery_bonuses", "level_modifiers"]
 const COLOR_PATTERN: String = "^#[0-9a-fA-F]{6}$"
 const SKILL_ICON_DIR: String = "res://assets/icons/skills/"
 
@@ -86,6 +88,7 @@ static func validate(raw: Dictionary, errors: PackedStringArray) -> void:
 	_collect_classes(v, _files(raw, "classes"))
 	_validate_skills(v, _files(raw, "skills"))
 	DataValidatorItems.validate_items(v, _files(raw, "items"))
+	DataValidatorM10.validate_items(v, _files(raw, "items"))
 	_validate_balance_refs(v, _files(raw, "balance"))
 	DataValidatorItems.validate_actions(v, _files(raw, "actions"))
 	v.validate_mastery(_files(raw, "mastery"))
@@ -195,6 +198,7 @@ static func _validate_balance(v: DataValidatorRules, files: Dictionary[String, D
 		DataValidatorClasses.validate_balance(v, balance)
 		DataValidatorLoot.validate_balance(v, balance)
 		DataValidatorHints.validate_balance(v, balance)
+		DataValidatorM10Balance.validate_balance(v, balance)
 
 
 static func _balance_value(v: DataValidatorRules, key: String, value: Variant) -> void:
@@ -220,7 +224,8 @@ static func _balance_value(v: DataValidatorRules, key: String, value: Variant) -
 static func _unknown_balance_keys(v: DataValidatorRules, node: Dictionary, prefix: String) -> void:
 	for key: Variant in node:
 		var path: String = str(key) if prefix.is_empty() else "%s.%s" % [prefix, key]
-		if str(key) == DataValidatorRules.DOC_KEY or path in REQUIRED_BALANCE_KEYS:
+		if str(key) == DataValidatorRules.DOC_KEY or path in REQUIRED_BALANCE_KEYS \
+				or path in DataValidatorM10Balance.M10_REQUIRED_KEYS or path in DataValidatorM10Balance.LEGACY_KEYS:
 			continue
 		var is_prefix: bool = false
 		for required: String in REQUIRED_BALANCE_KEYS:
@@ -283,6 +288,7 @@ static func _validate_balance_refs(v: DataValidatorRules, files: Dictionary[Stri
 			v.item_qty_list(start as Dictionary, "items", 0, "start")
 			_start_items_are_stackable(v, (start as Dictionary)["items"] as Array)
 		DataValidatorLoot.validate_refs(v, files[path])
+		DataValidatorM10Balance.validate_balance_refs(v, files[path])
 		var character: Variant = lookup(files[path], "character")
 		for key: String in BALANCE_CLASS_KEYS:
 			if character is Dictionary and (character as Dictionary).get(key.get_slice(".", 1)) is String:
@@ -346,6 +352,7 @@ static func _validate_skills(v: DataValidatorRules, files: Dictionary[String, Di
 			icon(v, e, SKILL_ICON_DIR)
 			if v.text(e, "color") and color.search(e["color"] as String) == null:
 				v.fail("field 'color' must be #rrggbb, got '%s'" % e["color"])
+			DataValidatorM10.level_modifiers(v, e)
 			if v.flag(e, "has_mastery"):
 				_skill_mastery(v, e, e["has_mastery"] as bool)
 

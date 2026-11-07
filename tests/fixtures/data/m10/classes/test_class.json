@@ -1,0 +1,47 @@
+{
+  "_doc": "Test fixture (04_DATA_SCHEMA.md §13): the four setups of rift_blade, with test traits and abilities.",
+  "id": "test_class", "name": "Classe di prova", "order": 1,
+  "icon": "res://assets/icons/classes/rift_blade.svg",
+  "description": "Classe per i test.",
+  "weapon_kinds": ["greatsword", "sword"], "offhand_kinds": ["shield", "sword"],
+  "setups": [
+    {"id": "greatsword", "name": "Spadone", "weapon": "greatsword", "offhand": "", "modifiers": []},
+    {"id": "sword_shield", "name": "Spada e scudo", "weapon": "sword", "offhand": "shield", "modifiers": []},
+    {"id": "dual_swords", "name": "Due spade", "weapon": "sword", "offhand": "sword", "alternate": true,
+     "modifiers": [{"stat": "accuracy_pct", "value": -10}]},
+    {"id": "sword", "name": "Spada", "weapon": "sword", "offhand": "", "modifiers": []}
+  ],
+  "traits": [
+    {"id": "test_cleave", "name": "Fendente di prova", "description": "Ogni terzo attacco colpisce tutti.",
+     "unlock_level": 1, "setups": [],
+     "effects": [{"type": "every_nth_attack_all", "params": {"n": 3}}], "modifiers": []},
+    {"id": "test_cut", "name": "Taglio di prova", "description": "Solo con lo spadone.",
+     "unlock_level": 10, "setups": ["greatsword"],
+     "effects": [{"type": "on_kill_timer_cut", "params": {"pct": 50}}],
+     "modifiers": [{"stat": "accuracy_pct", "value": 5}]},
+    {"id": "test_reflect", "name": "Riflesso di prova", "description": "Rimanda parte del danno.",
+     "unlock_level": 10, "setups": [],
+     "effects": [{"type": "reflect_pct", "params": {"pct": 20}}], "modifiers": []},
+    {"id": "test_opening", "name": "Apertura di prova", "description": "Il primo colpo parte subito.",
+     "unlock_level": 25, "setups": [],
+     "effects": [{"type": "opening_strike", "params": {}}], "modifiers": []},
+    {"id": "test_rage", "name": "Furia di prova", "description": "Più danno a pochi PV.",
+     "unlock_level": 50, "setups": [],
+     "effects": [{"type": "low_hp_damage_mult", "params": {"hp_pct": 30, "mult": 2.0, "no_auto_eat": true}}],
+     "modifiers": []}
+  ],
+  "abilities": [
+    {"id": "test_whirl", "name": "Mulinello di prova", "description": "Colpisce tutti.",
+     "unlock_level": 1, "setups": ["greatsword"], "kind": "cleave", "cooldown_ms": 9000,
+     "params": {"power_mult": 1.2, "targets": 0}},
+    {"id": "test_strike", "name": "Colpo di prova", "description": "Un colpo potente.",
+     "unlock_level": 1, "setups": [], "kind": "strike", "cooldown_ms": 8000,
+     "params": {"power_mult": 2.0}},
+    {"id": "test_mend", "name": "Cura di prova", "description": "Recupera PV.",
+     "unlock_level": 30, "setups": [], "kind": "heal", "cooldown_ms": 12000,
+     "params": {"heal_pct": 20}},
+    {"id": "test_guard", "name": "Guardia di prova", "description": "Rafforza la difesa.",
+     "unlock_level": 1, "setups": ["sword_shield"], "kind": "buff", "cooldown_ms": 15000,
+     "params": {"modifiers": [{"stat": "damage_reduction", "value": 5}], "duration_ms": 6000}}
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "affixes": [
+    {"id": "test_keen", "name": "Affilato", "stat": "accuracy_bonus", "slots": ["weapon", "offhand"], "weight": 10,
+     "tiers": [{"min_ilvl": 1, "min": 3, "max": 6}, {"min_ilvl": 20, "min": 7, "max": 12},
+               {"min_ilvl": 45, "min": 13, "max": 20}]},
+    {"id": "test_mighty", "name": "Possente", "stat": "power_bonus", "slots": ["weapon", "head", "body"],
+     "weight": 8, "tiers": [{"min_ilvl": 1, "min": 2, "max": 5}, {"min_ilvl": 30, "min": 6, "max": 10, "step": 2}]},
+    {"id": "test_nimble", "name": "Agile", "stat": "evasion_bonus", "slots": ["head", "body", "legs", "feet"],
+     "weight": 10, "tiers": [{"min_ilvl": 1, "min": 3, "max": 8}]},
+    {"id": "test_woodsman", "name": "del Boscaiolo", "stat": "skill_interval_pct", "slots": ["tool_forestry"],
+     "weight": 10, "tiers": [{"min_ilvl": 1, "min": -2, "max": -1}]}
+  ]
+}

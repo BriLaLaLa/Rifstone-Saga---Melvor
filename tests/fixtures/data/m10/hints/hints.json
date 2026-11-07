@@ -1,0 +1,11 @@
+{
+  "hints": [
+    {"id": "test_first_action", "title": "Primo passo", "text": "Testo di prova.", "trigger": "session_started_new"},
+    {"id": "test_bank_full", "title": "Banca piena", "text": "Testo di prova.", "trigger": "bank_full"},
+    {"id": "test_first_shard", "title": "Frammento", "text": "Testo di prova.", "trigger": "first_shard"},
+    {"id": "test_node", "title": "Nodo", "text": "Testo di prova.", "trigger": "mastery_node_affordable"},
+    {"id": "test_death", "title": "Sconfitta", "text": "Testo di prova.", "trigger": "player_died"},
+    {"id": "test_level_10", "title": "Livello 10", "text": "Testo di prova.", "trigger": "first_level_10"},
+    {"id": "test_second_death", "title": "Ancora", "text": "Testo di prova.", "trigger": "player_died"}
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "areas": [
+    {"id": "test_area", "name": "Area di prova", "order": 1, "description": "Area per i test.",
+     "requirements": {},
+     "packs": [{"weight": 3, "monsters": ["test_monster_a"]},
+               {"weight": 1, "monsters": ["test_monster_a", "test_monster_b"]}]},
+    {"id": "test_stone_area", "name": "Area della Pietra", "order": 2, "description": "Area con una Pietra del Rift.",
+     "requirements": {},
+     "packs": [{"weight": 1, "monsters": ["test_monster_a"]}]}
+  ]
+}

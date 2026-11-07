@@ -227,7 +227,7 @@
       "min": 0,
       "max": 1000,
       "description": "Aumenta la probabilità di ottenere pezzi magici e rari.",
-      "formula": "F-83",
+      "formula": "F-84",
       "test": "tests/systems/items/test_item_roller.gd::test_item_rarity_pct"
     },
     {

@@ -1,0 +1,12 @@
+{
+  "items": [
+    {"id": "test_stone", "name": "Pietra di prova", "category": "stone",
+     "icon": "res://assets/icons/items/test_stone.png", "value": 0, "sort_order": 10,
+     "description": "Una pietra incastonabile per i test.",
+     "stone": {"modifiers": [{"stat": "power_bonus", "value": 5}]}},
+    {"id": "test_stone_b", "name": "Seconda pietra di prova", "category": "stone",
+     "icon": "res://assets/icons/items/test_stone_b.png", "value": 0, "sort_order": 20,
+     "description": "Un altra pietra per i test.",
+     "stone": {"modifiers": [{"stat": "accuracy_bonus", "value": 3}]}}
+  ]
+}

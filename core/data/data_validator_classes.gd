@@ -88,6 +88,7 @@ static func drops(v: DataValidatorRules, monster: Dictionary) -> void:
 		v.ref(drop, "item", v.items, "item", prefix)  # from M7 an equipment or tool entry drops instances (F-84)
 		v.number(drop, "chance_pct", 0.0, 100.0, prefix)
 		v.int_pair(drop, "qty", 1, DataValidatorRules.NO_LIMIT, true, prefix)
+		DataValidatorM10.drop(v, drop, prefix)
 
 
 # --- classes -------------------------------------------------------------------------------------------------------

@@ -1,0 +1,20 @@
+{
+  "items": [
+    {"id": "test_plate_1", "name": "Piastra di prova 1", "category": "component", "icon": "res://assets/icons/items/test_plate_1.png", "value": 1, "sort_order": 10, "description": "Piastra del grado 1 per i test."},
+    {"id": "test_plate_2", "name": "Piastra di prova 2", "category": "component", "icon": "res://assets/icons/items/test_plate_2.png", "value": 2, "sort_order": 20, "description": "Piastra del grado 2 per i test."},
+    {"id": "test_plate_3", "name": "Piastra di prova 3", "category": "component", "icon": "res://assets/icons/items/test_plate_3.png", "value": 3, "sort_order": 30, "description": "Piastra del grado 3 per i test."},
+    {"id": "test_plate_4", "name": "Piastra di prova 4", "category": "component", "icon": "res://assets/icons/items/test_plate_4.png", "value": 4, "sort_order": 40, "description": "Piastra del grado 4 per i test."},
+    {"id": "test_plate_5", "name": "Piastra di prova 5", "category": "component", "icon": "res://assets/icons/items/test_plate_5.png", "value": 5, "sort_order": 50, "description": "Piastra del grado 5 per i test."},
+    {"id": "test_plate_6", "name": "Piastra di prova 6", "category": "component", "icon": "res://assets/icons/items/test_plate_6.png", "value": 6, "sort_order": 60, "description": "Piastra del grado 6 per i test."},
+    {"id": "test_plate_7", "name": "Piastra di prova 7", "category": "component", "icon": "res://assets/icons/items/test_plate_7.png", "value": 7, "sort_order": 70, "description": "Piastra del grado 7 per i test."},
+    {"id": "test_plate_8", "name": "Piastra di prova 8", "category": "component", "icon": "res://assets/icons/items/test_plate_8.png", "value": 8, "sort_order": 80, "description": "Piastra del grado 8 per i test."},
+    {"id": "test_handle_1", "name": "Manico di prova 1", "category": "component", "icon": "res://assets/icons/items/test_handle_1.png", "value": 1, "sort_order": 110, "description": "Manico del grado 1 per i test."},
+    {"id": "test_handle_2", "name": "Manico di prova 2", "category": "component", "icon": "res://assets/icons/items/test_handle_2.png", "value": 2, "sort_order": 120, "description": "Manico del grado 2 per i test."},
+    {"id": "test_handle_3", "name": "Manico di prova 3", "category": "component", "icon": "res://assets/icons/items/test_handle_3.png", "value": 3, "sort_order": 130, "description": "Manico del grado 3 per i test."},
+    {"id": "test_handle_4", "name": "Manico di prova 4", "category": "component", "icon": "res://assets/icons/items/test_handle_4.png", "value": 4, "sort_order": 140, "description": "Manico del grado 4 per i test."},
+    {"id": "test_handle_5", "name": "Manico di prova 5", "category": "component", "icon": "res://assets/icons/items/test_handle_5.png", "value": 5, "sort_order": 150, "description": "Manico del grado 5 per i test."},
+    {"id": "test_handle_6", "name": "Manico di prova 6", "category": "component", "icon": "res://assets/icons/items/test_handle_6.png", "value": 6, "sort_order": 160, "description": "Manico del grado 6 per i test."},
+    {"id": "test_handle_7", "name": "Manico di prova 7", "category": "component", "icon": "res://assets/icons/items/test_handle_7.png", "value": 7, "sort_order": 170, "description": "Manico del grado 7 per i test."},
+    {"id": "test_handle_8", "name": "Manico di prova 8", "category": "component", "icon": "res://assets/icons/items/test_handle_8.png", "value": 8, "sort_order": 180, "description": "Manico del grado 8 per i test."}
+  ]
+}

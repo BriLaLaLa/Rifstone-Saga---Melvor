@@ -5,11 +5,11 @@ extends RefCounted
 
 const ACTION_SKILL_CATEGORIES: PackedStringArray = ["gathering", "artisan"]
 const ITEM_FIELDS: PackedStringArray = ["id", "name", "description", "category", "icon", "value", "sort_order",
-	"equip", "food", "infusion", "stone", "currency"]
+	"equip", "food", "infusion", "stone", "currency", "blueprint"]
 const ITEM_ICON_DIR: String = "res://assets/icons/items/"
 ## Item file name (without `.json`) -> the category of its items.
 const ITEM_FILE_CATEGORIES: Dictionary[String, String] = {
-	"materials": "material", "equipment": "equipment", "tools": "tool", "food": "food", "infusions": "infusion",
+	"materials": "material", "components": "component", "blueprints": "blueprint", "equipment": "equipment", "tools": "tool", "food": "food", "infusions": "infusion",
 	"misc": "misc", "stones": "stone", "currencies": "currency",
 }
 const CURRENCY_EFFECTS: PackedStringArray = ["to_magic", "to_rare", "reroll"]
@@ -28,7 +28,7 @@ const OFFHAND_SLOT_KINDS: PackedStringArray = ["shield"]  # kinds of slot offhan
 const RIFT_SHARD_ID: StringName = &"rift_shard"
 const RIFT_SHARD_CATEGORY: String = "misc"
 const ACTION_FIELDS: PackedStringArray = ["id", "name", "level", "interval_ms", "xp", "mastery", "inputs",
-	"outputs", "icon"]
+	"outputs", "icon", "single"]
 const SHOP_CATEGORIES: PackedStringArray = ["bank", "combat", "tools", "materials"]  # M8 adds "lanes"
 const SHOP_FORMULAS: PackedStringArray = ["bank_slot", "armory_slot"]
 const SHOP_FIELDS: PackedStringArray = ["id", "name", "description", "category", "cost", "max_purchases",
@@ -81,6 +81,8 @@ static func _item(v: DataValidatorRules, e: Dictionary, file_category: String) -
 		v.modifiers(stone, "modifiers", "stone")
 		if stone.get("modifiers") is Array and (stone["modifiers"] as Array).is_empty():
 			v.fail("field 'stone.modifiers' needs at least 1 entries (a stone without effect is decorative)")
+	if _sub_object(v, e, "blueprint", category == "blueprint"):
+		DataValidatorM10.blueprint(v, e)
 	if _sub_object(v, e, "currency", category == "currency"):
 		var currency: Dictionary = e["currency"] as Dictionary
 		v.keys(currency, ["effect"], "currency")
@@ -97,7 +99,8 @@ static func _sub_object(v: DataValidatorRules, e: Dictionary, key: String, wante
 
 
 static func _equip(v: DataValidatorRules, equip: Dictionary, category: String) -> void:
-	v.keys(equip, ["slot", "requirements", "modifiers", "grade", "kind", "weapon"], "equip")
+	v.keys(equip, ["slot", "requirements", "modifiers", "grade", "kind", "weapon", "unique", "upgrade_extras"], "equip")
+	DataValidatorM10.tool_fields(v, equip, category)
 	var slot: String = ""
 	if v.one_of(equip, "slot", EQUIP_SLOTS, "equip"):
 		slot = equip["slot"] as String
@@ -168,12 +171,14 @@ static func validate_actions(v: DataValidatorRules, files: Dictionary[String, Di
 			v.integer(e, "interval_ms", maxf(v.min_action_interval_ms, 1))
 			v.integer(e, "xp", 1)
 			v.flag(e, "mastery")
+			var single: bool = DataValidatorM10.single_action(v, e, skill)
 			if e.has("icon"):
 				v.text(e, "icon")
-			v.item_qty_list(e, "inputs", 1 if category == "artisan" else 0)
+			v.item_qty_list(e, "inputs", 1 if category == "artisan" and not single else 0)
 			if category == "gathering" and e.get("inputs") is Array and not (e["inputs"] as Array).is_empty():
 				v.fail("gathering actions must have no inputs")
-			v.item_qty_list(e, "outputs", 1)
+			v.item_qty_list(e, "outputs", 0 if single else 1)
+			DataValidatorM10.recipe_outputs(v, e)
 
 
 static func validate_shop(v: DataValidatorRules, files: Dictionary[String, Dictionary]) -> void:
@@ -185,6 +190,7 @@ static func validate_shop(v: DataValidatorRules, files: Dictionary[String, Dicti
 			var e: Dictionary = list[index]
 			v.entry("shop entry", index, e, seen, SHOP_FIELDS)
 			v.one_of(e, "category", SHOP_CATEGORIES)
+			DataValidatorM10.shop_entry(v, e)
 			v.integer(e, "max_purchases", 0)
 			var cost: Dictionary = _one_of_two(v, e, "cost", "gold", "formula")
 			if cost.has("gold"):

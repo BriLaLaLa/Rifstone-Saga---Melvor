@@ -44,3 +44,7 @@ const ARMORY_FULL := &"armory_full"  # M4: the Armory has no free slot (docs/01_
 const NOT_STACKABLE := &"not_stackable"  # M4: equipment and tools are rejected by the bank
 const ITEM_EQUIPPED := &"item_equipped"  # M4: a worn piece cannot be sold or salvaged
 const UPGRADE_MAX := &"upgrade_max"  # M7: the piece is already at the highest refinement level (docs/01_GDD.md §23)
+const ITEM_UNIQUE := &"item_unique"  # M10: a unique tool cannot be sold, salvaged or taken off
+const NOT_A_TOOL := &"not_a_tool"  # M10: the piece is not a unique tool (tool refinement, F-94)
+const INVALID_CHOICE := &"invalid_choice"  # M10: chosen affix not allowed or Forging level too low (F-92)
+const BLUEPRINT_DONE := &"blueprint_done"  # M10: stop reason of a finished blueprint craft (action_stopped)

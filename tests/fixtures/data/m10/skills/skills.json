@@ -1,0 +1,38 @@
+{
+  "_doc": "Test fixture (04_DATA_SCHEMA.md §13): stable minimal content, not the real game data.",
+  "skills": [
+    {"id": "test_gather", "name": "Raccolta di prova", "category": "gathering", "order": 1,
+     "icon": "res://assets/icons/skills/test_gather.png", "color": "#7fbf6a",
+     "description": "Skill di raccolta per i test.", "has_mastery": true,
+     "mastery_bonuses": [
+       {"every_levels": 10, "modifiers": [{"stat": "double_item_chance", "value": 1}]},
+       {"at_level": 99, "modifiers": [{"stat": "double_item_chance", "value": 5}]}
+     ]},
+    {"id": "test_gather_b", "name": "Seconda raccolta di prova", "category": "gathering", "order": 2,
+     "icon": "res://assets/icons/skills/test_gather_b.png", "color": "#8f8f8f",
+     "description": "Seconda skill di raccolta per i test.", "has_mastery": true},
+    {"id": "test_craft", "name": "Artigianato di prova", "category": "artisan", "order": 3,
+     "icon": "res://assets/icons/skills/test_craft.png", "color": "#c08040",
+     "description": "Skill di artigianato per i test.", "has_mastery": true,
+     "mastery_bonuses": [
+       {"every_levels": 10, "modifiers": [{"stat": "preservation_chance", "value": 1.5}]},
+       {"at_level": 99, "modifiers": [{"stat": "skill_interval_pct", "value": -5}]}
+     ]},
+    {"id": "forestry", "name": "Selvicoltura di prova", "category": "gathering", "order": 4,
+     "icon": "res://assets/icons/skills/forestry.svg", "color": "#7fbf6a",
+     "description": "Skill dell'attrezzo di prova.", "has_mastery": false},
+    {"id": "quarrying", "name": "Cava di prova", "category": "gathering", "order": 5,
+     "icon": "res://assets/icons/skills/quarrying.svg", "color": "#a0a0a0",
+     "description": "Skill dell'attrezzo di prova.", "has_mastery": false},
+    {"id": "angling", "name": "Pesca di prova", "category": "gathering", "order": 6,
+     "icon": "res://assets/icons/skills/angling.svg", "color": "#5090d0",
+     "description": "Skill dell'attrezzo di prova.", "has_mastery": false},
+    {"id": "forging", "name": "Forgia di prova", "category": "artisan", "order": 7,
+     "icon": "res://assets/icons/skills/forging.svg", "color": "#d06040",
+     "description": "Skill del Fabbro per i test.", "has_mastery": false,
+     "level_modifiers": [{"stat": "upgrade_success_pct", "per_level": 0.4}]},
+    {"id": "riftbinding", "name": "Legatura del Rift", "category": "artisan", "order": 9,
+     "icon": "res://assets/icons/skills/riftbinding.png", "color": "#9060d0",
+     "description": "Infusioni per l'Altare del Rift.", "has_mastery": false}
+  ]
+}

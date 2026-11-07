@@ -1,0 +1,14 @@
+{
+  "skill": "test_gather",
+  "nodes": [
+    {"id": "test_gather_n1", "name": "Primo nodo", "description": "Azioni di raccolta più rapide.",
+     "cost_pct": 5, "requires": [], "pos": [0, 0],
+     "modifiers": [{"stat": "skill_interval_pct", "value": -3}]},
+    {"id": "test_gather_n2", "name": "Secondo nodo", "description": "Più esperienza su un'azione.",
+     "cost_pct": 10, "requires": ["test_gather_n1"], "pos": [0, 1],
+     "modifiers": [{"stat": "skill_xp_pct", "value": 5, "scope": "action:gather_twig"}]},
+    {"id": "test_gather_n3", "name": "Terzo nodo", "description": "Raccolto doppio.",
+     "cost_pct": 20, "requires": ["test_gather_n1", "test_gather_n2"], "pos": [1, 2],
+     "modifiers": [{"stat": "double_item_chance", "value": 2, "scope": "global"}]}
+  ]
+}

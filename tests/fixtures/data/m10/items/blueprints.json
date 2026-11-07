@@ -1,0 +1,21 @@
+{
+  "items": [
+    {"id": "bp_test_blade", "name": "Progetto: Spada di prova", "category": "blueprint", "value": 0, "sort_order": 10,
+     "icon": "res://assets/icons/items/bp_test_blade.png", "description": "Lo schema della spada di prova.",
+     "blueprint": {"base": "test_blade", "grade": 1,
+                   "inputs": [{"item": "test_plate_1", "qty": 5}, {"item": "test_handle_1", "qty": 1}],
+                   "rare_component": {"item": "test_log", "qty": 1}}},
+    {"id": "bp_test_greatsword", "name": "Progetto: Spadone di prova", "category": "blueprint", "value": 0,
+     "sort_order": 20, "icon": "res://assets/icons/items/bp_test_greatsword.png",
+     "description": "Lo schema dello spadone di prova.",
+     "blueprint": {"base": "test_greatsword", "grade": 1,
+                   "inputs": [{"item": "test_plate_1", "qty": 10}, {"item": "test_handle_1", "qty": 2}],
+                   "rare_component": {"item": "test_log", "qty": 2}}},
+    {"id": "bp_test_helm_high", "name": "Progetto: Elmo alto di prova", "category": "blueprint", "value": 0,
+     "sort_order": 30, "icon": "res://assets/icons/items/bp_test_helm_high.png",
+     "description": "Lo schema dell'elmo alto di prova.",
+     "blueprint": {"base": "test_helm_high", "grade": 2,
+                   "inputs": [{"item": "test_plate_2", "qty": 6}],
+                   "rare_component": {"item": "test_log", "qty": 1}}}
+  ]
+}

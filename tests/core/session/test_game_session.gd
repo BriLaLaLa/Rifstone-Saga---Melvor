@@ -298,4 +298,4 @@ func test_real_session_total_level_includes_character() -> void:
 	session.new_game()
 	assert_eq(session.total_level(), session.skills.total_level() + session.character.get_level())
 	assert_true(((session.to_save(0))["modules"] as Dictionary).has("character"))
-	assert_eq((session.to_save(0))["format_version"], 2)
+	assert_eq((session.to_save(0))["format_version"], SaveMigrator.CURRENT_VERSION)

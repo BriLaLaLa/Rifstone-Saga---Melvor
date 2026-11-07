@@ -1,0 +1,16 @@
+{
+  "items": [
+    {"id": "test_currency", "name": "Valuta di prova", "category": "currency",
+     "icon": "res://assets/icons/items/test_currency.png", "value": 0, "sort_order": 10,
+     "description": "Da comune a magico, per i test.",
+     "currency": {"effect": "to_magic"}},
+    {"id": "test_currency_rare", "name": "Valuta di prova (raro)", "category": "currency",
+     "icon": "res://assets/icons/items/test_currency_rare.png", "value": 0, "sort_order": 20,
+     "description": "Da magico a raro, per i test.",
+     "currency": {"effect": "to_rare"}},
+    {"id": "test_currency_reroll", "name": "Valuta di prova (ritiro)", "category": "currency",
+     "icon": "res://assets/icons/items/test_currency_reroll.png", "value": 0, "sort_order": 30,
+     "description": "Ritira gli affissi, per i test.",
+     "currency": {"effect": "reroll"}}
+  ]
+}

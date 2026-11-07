@@ -50,6 +50,9 @@ var _affixes: Dictionary[StringName, AffixDef] = {}
 var _affix_list: Array[AffixDef] = []
 var _hints: Dictionary[StringName, HintDef] = {}
 var _hint_list: Array[HintDef] = []
+var _blueprint_list: Array[ItemDef] = []
+var _blueprint_by_base: Dictionary[StringName, ItemDef] = {}
+var _unique_tools: Dictionary[StringName, ItemDef] = {}  # slot -> unique tool (M10)
 
 
 static func load_from_dirs(content_root: String = "res://data", config_root: String = "res://data/config") -> GameData:
@@ -135,6 +138,21 @@ func has_item(id: StringName) -> bool:
 ## Every item, in load order (files in alphabetical order, then file order).
 func items() -> Array[ItemDef]:
 	return _item_list.duplicate()
+
+
+## Every blueprint item (M10), by grade then `sort_order`.
+func blueprints() -> Array[ItemDef]:
+	return _blueprint_list.duplicate()
+
+
+## The blueprint of an equipment base (one per base). Null, without error, when there is none (rings, amulets, tools).
+func blueprint_for_base(base_id: StringName) -> ItemDef:
+	return _blueprint_by_base.get(base_id) as ItemDef
+
+
+## The unique tool of a `tool_*` slot (M10); null and an error when the slot has none.
+func unique_tool(slot: StringName) -> ItemDef:
+	return _find(_unique_tools, slot, "unique tool slot") as ItemDef
 
 
 func skill(id: StringName) -> SkillDef:
@@ -312,6 +330,7 @@ func _build(raw: Dictionary) -> void:
 	for path: String in raw["hints"]:
 		for d: Dictionary in _list(raw["hints"][path], "hints"):
 			_add(HintDef.from_dict(d), _hints, _hint_list, path, "hint", d)
+	_index_m10_items()
 	_skill_list.sort_custom(func(a: SkillDef, b: SkillDef) -> bool: return a.order < b.order)
 	_area_list.sort_custom(func(a: AreaDef, b: AreaDef) -> bool: return a.order < b.order)
 	_class_list.sort_custom(func(a: ClassDef, b: ClassDef) -> bool: return a.order < b.order)
@@ -321,6 +340,20 @@ func _build(raw: Dictionary) -> void:
 			def.icon = _items[def.outputs[0].item_id].icon
 	if not errors.is_empty():
 		_clear()
+
+
+# M10: the blueprints (by grade, then sort_order) with their index by base, and the unique tools by slot.
+func _index_m10_items() -> void:
+	for def: ItemDef in _item_list:
+		if def.is_blueprint():
+			_blueprint_list.append(def)
+			_blueprint_by_base[def.blueprint.base_id] = def
+		elif def.category == &"tool" and def.equip != null and def.equip.unique:
+			_unique_tools[def.equip.slot] = def
+	_blueprint_list.sort_custom(func(a: ItemDef, b: ItemDef) -> bool:
+		if a.blueprint.grade != b.blueprint.grade:
+			return a.blueprint.grade < b.blueprint.grade
+		return a.sort_order < b.sort_order)
 
 
 func _curve(key: String) -> XpTable:
@@ -352,10 +385,11 @@ static func _action_before(a: ActionDef, b: ActionDef) -> bool:
 # With a Def that could not be built the data is not valid: nothing stays half-loaded.
 func _clear() -> void:
 	for table: Dictionary in [_items, _skills, _actions, _nodes, _areas, _monsters, _stones, _stone_by_area, _shop, _classes,
+			_blueprint_by_base, _unique_tools,
 			_affixes, _hints]:
 		table.clear()
 	for list: Array in [_item_list, _skill_list, _action_list, _node_list, _area_list, _shop_list, _class_list,
-			_affix_list, _hint_list]:
+			_affix_list, _hint_list, _blueprint_list]:
 		list.clear()
 	_xp_table = null
 	_mastery_table = null

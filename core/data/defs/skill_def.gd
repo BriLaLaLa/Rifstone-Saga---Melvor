@@ -13,6 +13,7 @@ var icon: String = ""
 var color: Color = Color()
 var has_mastery: bool = false
 var mastery_bonuses: Array[MasteryBonusRule] = []
+var level_modifiers: Array[LevelModifier] = []  # M10 (F-93): empty when absent
 
 
 static func from_dict(d: Dictionary) -> SkillDef:
@@ -33,4 +34,10 @@ static func from_dict(d: Dictionary) -> SkillDef:
 			r.absorb(rule != null)
 			if rule != null:
 				def.mastery_bonuses.append(rule)
+	if r.has("level_modifiers"):
+		for entry: Dictionary in r.dict_list("level_modifiers"):
+			var level_mod: LevelModifier = LevelModifier.from_dict(entry)
+			r.absorb(level_mod != null)
+			if level_mod != null:
+				def.level_modifiers.append(level_mod)
 	return def if r.ok else null
