@@ -179,3 +179,10 @@ func test_mastery_node_without_skill_id_is_null() -> void:
 		{"id": "forestry_n2", "name": "N", "description": "", "cost_pct": 5, "requires": [],
 		 "pos": [1, 1], "modifiers": []}""")))
 	assert_push_error(1)
+
+
+func test_area_def_rift_stone_chance_optional() -> void:
+	var d: Dictionary = {"id": "a", "name": "A", "description": "d", "order": 1, "requirements": {}, "packs": []}
+	assert_eq(AreaDef.from_dict(d).rift_stone_chance_pct, -1.0, "absent = negative = global default")
+	d["rift_stone_chance_pct"] = 3.5
+	assert_eq(AreaDef.from_dict(d).rift_stone_chance_pct, 3.5)

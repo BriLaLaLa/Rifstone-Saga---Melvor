@@ -397,7 +397,7 @@ spada T4, +5 → +6: 6.400 oro, 3 lingotti T4, 5 frammenti. Test: `tests/systems
 
 ### F-87 Pietre del Rift (M7)
 Dopo ogni uccisione (non di una Pietra): `since += 1`; appare una Pietra se `since ≥ rift_stone.pity_kills` (300)
-oppure `roll_pct(rift_stone.chance_pct)` (0.5); quando appare `since = 0` e il prossimo incontro (dopo `BETWEEN`) è la
+oppure `roll_pct(chance)` con `chance` = `rift_stone_chance_pct` dell'area se presente, altrimenti `rift_stone.chance_pct` (0.5; Q46); quando appare `since = 0` e il prossimo incontro (dopo `BETWEEN`) è la
 Pietra dell'area. La Pietra non attacca: ogni `pulse_ms` infligge `pulse_damage` al giocatore (senza tiro, ridotto da
 F-25, parabile con F-75). Una Pietra in attesa (`pending`) ferma conteggio e tiri: le uccisioni durante l'attesa non contano. Stile della Pietra:
 `combat.unarmed.style` (neutro; nessun campo di tipo di danno nell'MVP). Esempi: `since` 299 → uccisione → Pietra
@@ -628,7 +628,7 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | `abilities.slot_levels` (M6) | `[1, 1, 30]` | F-78 (Q36) |
 | `rarity.drop.{magic_pct, rare_pct}`, `rarity.rift_stone.{magic_pct, rare_pct}` (M7) | 20, 3; 40, 12 | F-84 |
 | `upgrade.{levels, downgrade_from, mod_pct_per_level, seal_item, ingot_items}` (M7) | tabella F-86, 4, 10, id del Sigillo, 8 id dei lingotti T1-T8 | F-86 |
-| `rift_stone.{chance_pct, pity_kills}` (M7) | 0.5, 300 | F-87 |
+| `rift_stone.{chance_pct, pity_kills}` (M7) | 0.5, 300 | F-87; `chance_pct` è il default delle aree senza `rift_stone_chance_pct` (Q46) |
 | `salvage.{ingot_ratio, shards_by_rarity}` (M7) | 0.4, `{"common":0,"magic":1,"rare":3}` | F-88 |
 | `sockets.{by_rarity, bonus_at_upgrade}` (M8) | `{"common":0,"magic":1,"rare":2}`, 7 | F-89 |
 | `rift.sockets` (già presente, usata in M8) | `[{"level":1},{"level":20},{"level":40},{"level":60},{"level":80}]` | 11 |

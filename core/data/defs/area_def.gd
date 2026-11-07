@@ -9,6 +9,8 @@ var name: String = ""
 var description: String = ""
 var order: int = 0
 var requirements: Dictionary[StringName, int] = {}
+## Optional `rift_stone_chance_pct` (F-87, Q46): negative = absent, the global `rift_stone.chance_pct` applies.
+var rift_stone_chance_pct: float = -1.0
 var packs: Array[PackDef] = []
 var monster_ids: Array[StringName] = []
 
@@ -22,6 +24,8 @@ static func from_dict(d: Dictionary) -> AreaDef:
 	def.description = r.text("description")
 	def.order = r.integer("order")
 	def.requirements = r.level_map("requirements")
+	if r.has("rift_stone_chance_pct"):
+		def.rift_stone_chance_pct = r.number("rift_stone_chance_pct")
 	for entry: Dictionary in r.dict_list("packs"):
 		var pack: PackDef = PackDef.from_dict(entry)
 		r.absorb(pack != null)

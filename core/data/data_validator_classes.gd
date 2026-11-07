@@ -3,7 +3,8 @@ extends RefCounted
 ## Fourth part of DataValidator (internal, not API for other modules): the rules of areas and monsters
 ## (docs/04_DATA_SCHEMA.md §8), classes (§14) and affixes (§15), written with the toolkit of DataValidatorRules.
 
-const AREA_FIELDS: PackedStringArray = ["id", "name", "description", "order", "requirements", "packs"]
+const AREA_FIELDS: PackedStringArray = ["id", "name", "description", "order", "requirements", "packs",
+		"rift_stone_chance_pct"]
 const MONSTER_FIELDS: PackedStringArray = ["id", "name", "description", "icon", "hp", "xp", "style",
 	"attack_interval_ms", "attack_level", "power_level", "defence_level", "accuracy_bonus", "power_bonus",
 	"evasion_bonus", "damage_reduction", "gold", "rift_shard_chance", "drops", "sprite"]
@@ -34,6 +35,8 @@ static func validate_areas(v: DataValidatorRules, files: Dictionary[String, Dict
 			var e: Dictionary = list[index]
 			v.entry("area", index, e, seen, AREA_FIELDS, orders)
 			v.level_map(e, "requirements", "", DataValidatorRules.LEVELS_CHARACTER)
+			if e.has("rift_stone_chance_pct"):
+				v.number(e, "rift_stone_chance_pct", 0.0, 100.0)
 			var packs: Array[Dictionary] = v.object_list(e, "packs", "", 1)
 			for pack_index: int in packs.size():
 				_pack(v, packs[pack_index], "packs[%d]" % pack_index)

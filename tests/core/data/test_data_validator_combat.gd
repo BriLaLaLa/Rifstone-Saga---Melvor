@@ -298,3 +298,16 @@ func test_monster_sprite_needs_four_existing_states() -> void:
 	_expect(raw, [MONSTERS, "monster 'test_monster_a'", "field 'sprite.death' is required"])
 	_expect(raw, [MONSTERS, "monster 'test_monster_a'", "sprite.attack", "existing file"])
 	_expect(raw, [MONSTERS, "monster 'test_monster_a'", "unknown field 'sprite.extra'"])
+
+
+func test_area_rift_stone_chance_is_optional_and_0_to_100() -> void:
+	var raw: Dictionary = V.fixture_raw()
+	var area: Dictionary = V.entry_of(raw, "areas", AREAS, "areas", 0)
+	area["rift_stone_chance_pct"] = 2.5
+	assert_eq(V.validate(raw), PackedStringArray(), "a valid per-area chance passes")
+	area["rift_stone_chance_pct"] = 100.5
+	_expect(raw, [AREAS, "area 'test_area'", "rift_stone_chance_pct"])
+	area["rift_stone_chance_pct"] = -1
+	_expect(raw, [AREAS, "area 'test_area'", "rift_stone_chance_pct"])
+	area["rift_stone_chance_pct"] = "5"
+	_expect(raw, [AREAS, "area 'test_area'", "rift_stone_chance_pct", "number"])
