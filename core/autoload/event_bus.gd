@@ -4,7 +4,7 @@ extends Node
 ##
 ## The list and the parameters are the contract of docs/05_INTERFACES.md §3. Systems emit on `session.events`,
 ## which in the game is this autoload and in the tests a private `GameEvents.new()`.
-## M6/M7 signals (`hint_triggered`, `fracture_opened`, `fracture_closed`) are added by their tasks.
+## M10 signals (`fracture_opened`, `fracture_closed`) are added by their tasks.
 
 # Session
 signal session_started(slot: int, is_new: bool)
@@ -76,3 +76,6 @@ signal offline_completed(summary: RefCounted)
 signal save_completed(slot: int)
 signal save_failed(slot: int, reason: StringName)
 signal notification_requested(text: String, kind: StringName)
+
+# Hints (M9)
+signal hint_triggered(hint_id: StringName)

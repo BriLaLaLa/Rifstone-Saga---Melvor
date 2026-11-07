@@ -58,7 +58,7 @@ const PACK_SIZE_MAX: int = 6  # format limit of combat.max_pack_size
 const START_ITEM_FORBIDDEN_CATEGORIES: PackedStringArray = ["equipment", "tool"]  # they live in the Armory only
 ## Sections made of one file (the others are folders, possibly empty).
 const SINGLE_FILE_SECTIONS: PackedStringArray = ["balance", "stats", "skills", "areas", "monsters", "shop", "affixes",
-	"rift_stones"]
+	"rift_stones", "hints"]
 const SKILL_CATEGORIES: PackedStringArray = ["gathering", "artisan"]
 const STAT_FIELDS: PackedStringArray = ["id", "name", "format", "min", "max", "description", "formula", "test"]
 const STAT_FORMULA_PATTERN: String = "^(F-[0-9]{2}|[0-9]+(\\.[0-9]+)*)$"
@@ -94,6 +94,7 @@ static func validate(raw: Dictionary, errors: PackedStringArray) -> void:
 	DataValidatorClasses.validate_classes(v, _files(raw, "classes"))
 	DataValidatorClasses.validate_affixes(v, _files(raw, "affixes"))
 	DataValidatorStones.validate(v, _files(raw, "rift_stones"), _files(raw, "areas"))
+	DataValidatorHints.validate(v, _files(raw, "hints"))
 	DataValidatorItems.validate_shop(v, _files(raw, "shop"))
 	errors.append_array(v.errors)
 
@@ -193,6 +194,7 @@ static func _validate_balance(v: DataValidatorRules, files: Dictionary[String, D
 			v.max_pack_size = DataValidatorRules.NO_LIMIT
 		DataValidatorClasses.validate_balance(v, balance)
 		DataValidatorLoot.validate_balance(v, balance)
+		DataValidatorHints.validate_balance(v, balance)
 
 
 static func _balance_value(v: DataValidatorRules, key: String, value: Variant) -> void:

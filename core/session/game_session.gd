@@ -35,6 +35,7 @@ var actions: ActionRunner
 var combat: CombatEngine
 var shop: Shop
 var rift: RiftAltar
+var hints: HintsSystem
 # The other system fields of docs/05_INTERFACES.md §5.3 are declared by the task that creates each system.
 var slot: int = -1
 var player_name: String = ""
@@ -156,6 +157,9 @@ func _create_systems() -> void:
 	_join(Shop.SAVE_KEY, shop.new_game, shop.to_save, shop.from_save, shop.rebuild_modifiers)
 	rift = RiftAltar.new(self)
 	_join(RiftAltar.SAVE_KEY, rift.new_game, rift.to_save, rift.from_save, rift.rebuild_modifiers)
+	hints = HintsSystem.new(self)
+	_join(HintsSystem.SAVE_KEY, hints.new_game, hints.to_save, hints.from_save)
+	hints.connect_triggers()
 
 
 # Registers a SaveParticipant (docs/05_INTERFACES.md: SAVE_KEY, new_game, to_save, from_save).
