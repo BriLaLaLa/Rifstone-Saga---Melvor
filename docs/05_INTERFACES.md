@@ -1140,6 +1140,7 @@ static func craft_chances(mastery_level: int, rarity_pct: float, data: GameData)
 static func drop_chances(source: StringName, rarity_pct: float, data: GameData) -> Vector2     # F-84 (M7): &"monster" / &"rift_stone"
 static func roll_rarity(chances: Vector2, rng: RngService) -> StringName                     # F-83: &"common"/&"magic"/&"rare"
 static func roll_affixes(base: ItemDef, rarity: StringName, ilvl: int, data: GameData, rng: RngService) -> Array[AffixRoll]   # F-85
+static func extend_affixes(base: ItemDef, rarity: StringName, ilvl: int, existing: Array[AffixRoll], data: GameData, rng: RngService) -> Array[AffixRoll]   # M8: aggiunge affissi F-85 fino al numero della rarita, senza duplicare quelli in existing
 static func create(base: ItemDef, rarity: StringName, ilvl: int, data: GameData, rng: RngService) -> ItemInstance   # uid 0
 static func instance_modifiers(inst: ItemInstance, data: GameData) -> Array[Modifier]
     # base × F-86 (upgrade) + un modificatore per affisso (scope di 04_DATA_SCHEMA §15) + castoni (M8)
