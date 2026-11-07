@@ -4,17 +4,17 @@ extends Control
 ##
 ## The session is read in `_ready` (Game.session is already open and saved when this scene is loaded: no waiting for
 ## `session_started`). On `session_ended` (emitted before the session is freed) every node is unbound and nothing
-## touches the session again. The menu button ends the session with a save and goes back to the main scene.
+## touches the session again. The menu button (and Esc) opens the SettingsPanel in game (M9-06); "Salva ed esci" there
+## ends the session. The HintCard (modal, above the toasts) is created in `_bind`.
 ##
 ## Injection points (set them before adding the node to the tree):
 ## - `session`: the session to show; null means `Game.session`. Tests pass a TestFactory session.
-## - `menu_action`: `() -> void` run by the menu button; empty means `Game.end_session(true)` and then the main scene
-##   of the project (application/run/main_scene). Tests pass a recording callable.
+## - `menu_action`: `() -> void` run by the menu button; empty means open the SettingsPanel. Tests pass a recording
+##   callable.
 ##
 ## The ToastManager is created here, not in the scene, because its `events` must be set before it enters the tree.
 
 const LOG_CATEGORY: String = "ui"
-const MAIN_SCENE_SETTING: String = "application/run/main_scene"
 const FALLBACK_PAGE := &"bank"
 
 ## Session to show; null = `Game.session`.
@@ -24,6 +24,8 @@ var menu_action: Callable = Callable()
 
 var _session: GameSession = null
 var _toasts: ToastManager = null
+var _hint_card: HintCard = null
+var _settings: SettingsPanel = null
 
 @onready var _background: ColorRect = %Background
 @onready var _top_bar: TopBar = %TopBar
@@ -59,6 +61,11 @@ func _bind(target: GameSession) -> void:
 	_page_host.setup(_session)
 	_sidebar.bind(_session, _page_host.has_page)
 	_session.events.session_ended.connect(_on_events_session_ended)
+	# Modal layer: added after the ToastLayer, so it is drawn above the toasts (N9, see ToastManager.push).
+	_hint_card = HintCard.new()
+	_hint_card.name = "HintCard"
+	add_child(_hint_card)
+	_hint_card.bind(_session)
 	_page_host.show_page(_first_page())
 	# Production only (no injected session): the summary of the time away, once.
 	if session == null and Game.last_offline_summary != null:
@@ -72,6 +79,11 @@ func _unbind() -> void:
 		return
 	if is_instance_valid(_session) and _session.events.session_ended.is_connected(_on_events_session_ended):
 		_session.events.session_ended.disconnect(_on_events_session_ended)
+	if _hint_card != null:
+		_hint_card.unbind()
+		remove_child(_hint_card)
+		_hint_card.queue_free()
+		_hint_card = null
 	_page_host.setup(null)
 	_sidebar.unbind()
 	_top_bar.unbind()
@@ -122,5 +134,20 @@ func _on_top_bar_menu_requested() -> void:
 	if menu_action.is_valid():
 		menu_action.call()
 		return
-	Game.end_session(true)
-	get_tree().change_scene_to_file(str(ProjectSettings.get_setting(MAIN_SCENE_SETTING)))
+	_open_settings()
+
+
+## Opens the settings panel inside the game ("Salva ed esci" leaves the session); one at a time.
+func _open_settings() -> void:
+	if _session == null or (_settings != null and is_instance_valid(_settings)):
+		return
+	_settings = SettingsPanel.new()
+	_settings.in_game = true
+	add_child(_settings)
+
+
+## Esc opens the settings, unless a hint card is on screen (it closes with its own button).
+func _unhandled_key_input(event: InputEvent) -> void:
+	if event.is_action_pressed(&"ui_cancel") and (_hint_card == null or _hint_card.current_hint() == &""):
+		_open_settings()
+		get_viewport().set_input_as_handled()
