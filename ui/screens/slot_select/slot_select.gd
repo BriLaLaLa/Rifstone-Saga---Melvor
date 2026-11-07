@@ -129,7 +129,9 @@ func _continue_game(slot: int) -> void:
 	if _loading:
 		return
 	_loading = true  # continue_game can take a while (offline simulation): no second click meanwhile
+	var overlay: OfflineOverlay = OfflineOverlay.attach(self)  # visible only during a long offline simulation
 	var result: CommandResult = await _coordinator().continue_game(slot)
+	overlay.queue_free()
 	_loading = false
 	if not result.ok:
 		_show_message(SlotTexts.reason_text(result.reason))

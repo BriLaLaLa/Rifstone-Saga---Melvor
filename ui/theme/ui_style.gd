@@ -138,6 +138,10 @@ const COMBAT_STONE_TEXT := Color("cdb4ff")
 const COMBAT_FLASH_COLOR := Color(1.0, 0.45, 0.4)
 const COMBAT_EMPTY_BORDER := Color("4a4030")
 
+# Offline screens (M9-02).
+const OFFLINE_DIM := Color(0.02, 0.015, 0.03, 0.82)
+const OFFLINE_WARNING_COLOR := Color("e0a96b")
+
 # --- palette ---
 const BG := Color(0.055, 0.047, 0.063, 0.86)
 const BG_WINDOW := Color(0.086, 0.071, 0.086, 0.95)

@@ -60,6 +60,10 @@ func _bind(target: GameSession) -> void:
 	_sidebar.bind(_session, _page_host.has_page)
 	_session.events.session_ended.connect(_on_events_session_ended)
 	_page_host.show_page(_first_page())
+	# Production only (no injected session): the summary of the time away, once.
+	if session == null and Game.last_offline_summary != null:
+		OfflineSummaryView.open(self, Game.last_offline_summary, _session.data)
+		Game.last_offline_summary = null
 
 
 ## Unbinds every node from the session; safe to call more than once.
