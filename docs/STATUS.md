@@ -3,13 +3,21 @@
 Aggiornato dall'Orchestratore (unico che modifica questo file). Stati: TODO / IN_PROGRESS / REVIEW / DONE / BLOCKED.
 Se la sessione si interrompe, si riparte da qui.
 
-## Ripartenza (aggiornata il 2026-11-06, fine M7)
-- **Stato**: **M7 completata**, tag `m7-done` sul commit docs finale (`main`). Merge di M7: M7-01/02 `ae5abb1`, M7-03/04
-  `09ddd00`, M7-05 `bf21966`, M7-06 `2782b9d`, M7-07 (task/M7-07, 9643a99). Suite e Prova del Giocabile: vedi riga M7-08.
-  M6 era chiusa col tag `m6-done`.
-- **Prossimo passo**: **M8 Legatura del Rift**, dopo l'OK dell'utente: primi task **M8-01** (CORE, Altare del Rift, nota
-  N3) e **M8-02** (DATA, Legatura, infusioni, nodi dell'artigianato, nota N4), indipendenti tra loro (max 2 agenti insieme).
-  Poi M8-03/M8-04 (castoni, pietre, valute).
+## Ripartenza (aggiornata il 2026-11-07, fine M8)
+- **Stato**: **M8 completata**, tag `m8-done` su `main`. Merge: M8-00 `99e35d4`, M8-01 `36fa88d`, Q46 `426e5fa`, M8-02 `46e6a4e`,
+  M8-03 `6c549c0`, M8-09 `be5c0b5`, M8-04 `f6bf583`, M8-06 `ecea8a4`, M8-05 `ea3c1a3`. run_checks: 1531 test verdi.
+- **Prossimo passo**: **M9 Offline e polish** (ultima milestone dell'MVP), sessione nuova: M9-01 (CORE, offline, note N5-N6) e
+  M9-04 (CORE, suggerimenti, N8), poi UI e QA.
+- **Decisioni aperte per l'utente**: Q26, Q27-Q40, Q41, Q42, Q43. Q46 chiusa. Nuove: (a) Pianure a 1,13 Pietre/ora perche la
+  pity globale (300) lo impone; per 1,00 serve `pity_kills` per area; (b) `inf_scholar` +3% e `inf_deep_roots` +5% non si
+  vedono sugli XP bassi (floor F-02); (c) valori di pietre e valute scelti dal Data Designer, da ritarare.
+- **Prove manuali consigliate (M8)**: pagina Altare (5 prese, sblocchi 1/20/40/60/80, Incastona, Togli con conferma, bonus
+  attivi); bank: Incastona all'Altare e pietra su un pezzo; pannello del pezzo: castoni, pietre inattive in grigio dopo
+  un calo della raffinazione, valute (anteprima, rifiuti, conferma del reroll); testi volanti max 3 per carta;
+  Raffina/Smantella senza scorrere; layout a 1600x900 e 1280x720.
+- **Follow-up**: getter del livello di sblocco in `RiftAltar` (la pagina legge `rift.sockets`); Incastona dalla bank non
+  sceglie la presa; `CombatantStats.for_player` usato dai test ma assente da 05; pietre incastonabili tra i drop.
+  Pulizia a mano: worktree `C:\Users\Davide\Desktop\AI\wt-*` (M7-03-04 e M8-*), poi `git worktree prune`.
 - **Decisioni ritarate in M7-07**: Q44 e Q45 (whirl `power_mult` 1,0; rift_maul 2,0; shield_bash 1,8 con ricarica 6500 ms;
   drop dei mostri e delle Pietre; `pulse_damage` Miniere 10, Soglia 15). `balance.json` e formule invariati.
 - **Decisioni aperte per l'utente** (default in `OPEN_QUESTIONS.md`): Q26, Q27-Q40, Q41, Q42, Q43, **Q46** (frequenza delle
@@ -151,13 +159,16 @@ Se la sessione si interrompe, si riparte da qui.
 | M7-06 | M7 | Armeria completa e Pietra nella UI | UI | DONE | task/M7-06 | merge 2782b9d (cf67057); riquadro Raffina (RefineBox/RefineTexts, costi e probabilità da Upgrade), Smantella con conferma (SalvageBox), filtro per slot (FilterPanel), carta Pietra (EnemyView, GameData.rift_stone); equipment_page.gd a 400 righe: nessun margine, spostare codice prima di aggiungerne; item_upgraded senza livello precedente (UI: "è ora a +N"), `previous_level` in 05 non necessario per MVP; prove manuali: riquadro Raffina con/senza Sigillo, Smantella con conferma, filtro per slot, carta Pietra viola con barra impulso, layout 1600x900 e 1280x720 del filtro; run_checks 1419/1419 |
 | M7-07 | M7 | Test di M7 | QA | DONE | task/M7-07 | merge (9643a99); test d'integrazione loot, Pietra, save; sim_combat: scope=easiest con Pietre, opzioni loot=1 e loadout=auto; ritaratura Q44/Q45 solo in dati (rift_blade, monsters, rift_stones) |
 | M7-08 | M7 | Integrazione di M7 | REV | DONE | main | tag m7-done sul commit docs finale; run_checks 1441 test, 1441 passati, 0 pending, 0 falliti; validate_data, righe per file e riferimenti vietati ok (1135 file); Prova del Giocabile 5/5 (test d'integrazione M7 + sim_combat loot=1 loadout=auto, misure in `06_ROADMAP.md`); Q44/Q45 ritarate, Q46 aperta; push di main e m7-done |
-| M8-01 | M8 | Altare del Rift | CORE | TODO | | nota N3 |
-| M8-02 | M8 | Contenuto: Legatura e nodi dell'artigianato | DATA | TODO | | nota N4 |
-| M8-03 | M8 | Castoni, pietre e valute del Rift | CORE | TODO | | |
-| M8-04 | M8 | Contenuto: pietre e valute | DATA | TODO | | |
-| M8-05 | M8 | Pagine dell'Altare e dei castoni | UI | TODO | | |
-| M8-06 | M8 | Test di M8 | QA | TODO | | |
-| M8-07 | M8 | Integrazione di M8 | REV | TODO | | tag m8-done |
+| M8-01 | M8 |Altare del Rift | CORE | DONE | task/M8-01 | merge 36fa88d; Altare, 15 test; nessun cambio di firma |
+| M8-02 | M8 |Contenuto: Legatura e nodi dell'artigianato | DATA | DONE | task/M8-02 | merge 46e6a4e; 9 infusioni, 9 ricette, nodi di forging/hearthcraft/woodwright/riftbinding; DECISIONS_LOG |
+| M8-03 | M8 |Castoni, pietre e valute del Rift | CORE | DONE | task/M8-03 | merge 6c549c0; Sockets F-89, Armory socket_*, categorie stone/currency; firme in 05 |
+| M8-04 | M8 |Contenuto: pietre e valute | DATA | DONE | task/M8-04 | merge f6bf583; 12 pietre, 3 valute, ricette, balance.sockets obbligatoria |
+| M8-05 | M8 |Pagine dell'Altare e dei castoni | UI | DONE | task/M8-05 | merge ea3c1a3; pagina Altare, castoni, valute, bank |
+| M8-06 | M8 |Test di M8 | QA | DONE | task/M8-06 | merge ecea8a4; 137 test di integrazione, nessun bug; XP piccoli nascondono i bonus % (F-02) |
+| M8-07 | M8 |Integrazione di M8 | REV | DONE | main | tag m8-done; run_checks 1531 test, 1531 passati, 0 falliti; validate_data, righe per file (201 file) e riferimenti vietati ok |
+| M8-00 | M8 | Correzioni UI dalla prova visiva di M7 | UI | DONE | task/M8-00 | merge 99e35d4; testi volanti max 3, Raffina/Smantella in cima, Slot:, equipment_page 346 righe |
+| Q46 | M8 | Pietra del Rift per area | COMBAT | DONE | task/Q46 | merge 426e5fa; Pianure 1,13/h (pity globale), Bosco/Miniere 1,00, Soglia 0,96 |
+| M8-09 | M8 | Uso delle valute (use_currency) | CORE | DONE | task/M8-09 | merge be5c0b5; CurrencyUse, extend_affixes |
 | M9-01 | M9 | Simulazione offline | CORE | TODO | | note N5-N6 |
 | M9-02 | M9 | Schermate dell'offline | UI | TODO | | |
 | M9-03 | M9 | Impostazioni (porting) | PORT | TODO | | nota N7 |
