@@ -9,7 +9,7 @@ const REQUIRED: Array[String] = [
 	"blueprint.rare_per_forging_level", "blueprint.choose_affix_level", "blueprint.chosen_affix_tier",
 	"tool_upgrade.interval_base_pct", "tool_upgrade.interval_per_level_pct", "tool_upgrade.levels",
 ]
-const M10_MODE_KEYS: Array[String] = ["start.armory", "start.tools", "start.purchases", "start.food",
+const KIT_KEYS: Array[String] = ["start.armory", "start.tools", "start.purchases", "start.food",
 	"tool_upgrade.plate_items", "tool_upgrade.handle_items"]
 
 var _real: GameData = null
@@ -89,11 +89,26 @@ func test_real_item_rarity_stat_points_to_f84() -> void:
 
 
 func test_real_start_kit_keys() -> void:
-	pending("M10-04: start.armory, start.tools, start.purchases, start.food and tool_upgrade.plate_items/handle_items arrive with the M10 content")
+	assert_eq(_real.balance_value("start.items"), [{"item": "seared_brookfin", "qty": 20.0}])
+	assert_eq(_real.balance_value("start.food"), "seared_brookfin")
+	assert_eq(_real.balance_value("start.purchases"), {"auto_eat_1": 1.0})
+	var armory: Array = _real.balance_value("start.armory") as Array
+	assert_eq(armory.size(), 3)
+	assert_eq(armory[0], {"base": "emberbronze_sword", "equip": "weapon"})
+	assert_eq(armory[1], {"base": "emberbronze_greatsword", "equip": ""})
+	assert_eq(armory[2], {"base": "emberbronze_shield", "equip": "offhand"})
+	assert_eq(_real.balance_value("start.tools"),
+			[{"base": "unique_hatchet"}, {"base": "unique_pick"}, {"base": "unique_rod"}])
+	assert_eq((_real.balance_value("tool_upgrade.plate_items") as Array).size(), 8)
+	assert_eq((_real.balance_value("tool_upgrade.handle_items") as Array).size(), 8)
+	assert_eq((_real.balance_value("tool_upgrade.plate_items") as Array)[7], "riftite_plate")
+	assert_eq((_real.balance_value("tool_upgrade.handle_items") as Array)[0], "redbirch_handle")
 
 
 func test_real_legacy_keys_are_gone() -> void:
-	pending("M10-04: rarity.craft and salvage.ingot_ratio are removed from data/config/balance.json with the M10 content")
+	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/config/balance.json")) as Dictionary
+	assert_false((balance["rarity"] as Dictionary).has("craft"), "rarity.craft is removed")
+	assert_false((balance["salvage"] as Dictionary).has("ingot_ratio"), "salvage.ingot_ratio is removed")
 
 
 # --- required keys -----------------------------------------------------------------------------------------------------
@@ -109,26 +124,14 @@ func test_each_required_key_is_required() -> void:
 		expect_error(raw, [BALANCE, "missing key '%s'" % key])
 
 
-func test_m10_mode_keys_are_required() -> void:
-	for key: String in M10_MODE_KEYS:
-		if key == "start.tools":
-			continue  # without it the data is not in M10 mode: the other keys are then optional
+func test_kit_keys_are_required() -> void:
+	for key: String in KIT_KEYS:
 		var raw: Dictionary = m10_raw()
 		_erase(raw, key)
 		expect_error(raw, [BALANCE, "missing key '%s'" % key])
 
 
-func test_without_start_tools_the_m10_keys_are_optional() -> void:
-	var raw: Dictionary = m10_raw()
-	_erase(raw, "start.tools")
-	for key: String in M10_MODE_KEYS:
-		if key != "start.tools":
-			_erase(raw, key)
-	_put(raw, "start.items", [])
-	assert_eq(validate(raw), PackedStringArray(), "legacy mode: nothing of the M10 kit is required")
-
-
-func test_legacy_keys_are_refused_in_m10_mode() -> void:
+func test_legacy_keys_are_refused() -> void:
 	var raw: Dictionary = m10_raw()
 	_put(raw, "rarity.craft", {"magic_base_pct": 10})
 	expect_error(raw, [BALANCE, "key 'rarity.craft' was removed in M10"])

@@ -27,8 +27,9 @@
      ]},
     {"id": "forging", "name": "Forgiatura", "category": "artisan", "order": 4, "icon": "res://assets/icons/skills/forging.svg",
      "color": "#d9822b",
-     "description": "Fondi i minerali in lingotti e forgia spade, spadoni, scudi, armature e attrezzi.",
+     "description": "Fondi i minerali in lingotti e piastre, poi forgia i pezzi dai progetti. Più sali, più la raffinazione riesce.",
      "has_mastery": true,
+     "level_modifiers": [{"stat": "upgrade_success_pct", "per_level": 0.4}],
      "mastery_bonuses": [
        {"every_levels": 10, "modifiers": [{"stat": "preservation_chance", "value": 1.5}]},
        {"at_level": 99, "modifiers": [{"stat": "skill_interval_pct", "value": -5}]}
@@ -43,7 +44,7 @@
      ]},
     {"id": "woodwright", "name": "Intaglio", "category": "artisan", "order": 6, "icon": "res://assets/icons/skills/woodwright.svg",
      "color": "#b07a48",
-     "description": "Intaglia i legni in impugnature, anime degli scudi e manici.",
+     "description": "Intaglia i legni in impugnature, telai degli scudi e manici.",
      "has_mastery": true,
      "mastery_bonuses": [
        {"every_levels": 10, "modifiers": [{"stat": "preservation_chance", "value": 1.5}]},

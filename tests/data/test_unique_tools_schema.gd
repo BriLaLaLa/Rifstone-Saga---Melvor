@@ -29,7 +29,7 @@ func _forging_action(raw: Dictionary, index: int) -> Dictionary:
 
 # --- unique tools --------------------------------------------------------------------------------------------------
 
-func test_tool_must_be_unique_in_m10_mode() -> void:
+func test_tool_must_be_unique() -> void:
 	var raw: Dictionary = m10_raw()
 	_equip(raw)["unique"] = false
 	expect_error(raw, [TOOLS, "item 'test_hatchet'", "field 'equip.unique' must be true for every tool"])
@@ -161,13 +161,12 @@ func test_tools_do_not_drop() -> void:
 	expect_error(raw, ["monster 'test_monster_b'", "tools no longer drop"])
 
 
-func test_legacy_data_keeps_the_old_tools() -> void:
-	## Outside M10 mode (no `start.tools`) the old fixtures with non-unique tools stay valid.
-	var errors: PackedStringArray = PackedStringArray()
+func test_content_fixtures_with_the_real_config_follow_the_reform() -> void:
+	## res://tests/fixtures/data is read with the real balance.json: it carries the ids of the real kit.
 	var legacy: GameData = GameData.load_from_dirs("res://tests/fixtures/data", "res://data/config")
-	errors.append_array(legacy.errors)
-	assert_eq(errors, PackedStringArray())
-	assert_false(legacy.item(&"test_hatchet").equip.unique)
+	assert_eq(legacy.errors, PackedStringArray())
+	assert_true(legacy.item(&"unique_hatchet").equip.unique)
+	assert_eq(_tools(legacy).size(), 3)
 
 
 # --- level_modifiers -------------------------------------------------------------------------------------------------
@@ -291,9 +290,35 @@ func test_tool_extra_from_dict_errors() -> void:
 	assert_push_error("missing field 'at'")
 
 
+func _tools(data: GameData) -> Array[ItemDef]:
+	var result: Array[ItemDef] = []
+	for item: ItemDef in data.items():
+		if item.category == &"tool":
+			result.append(item)
+	return result
+
+
 func test_real_data_has_no_serial_recipes_and_no_shop_tools() -> void:
-	pending("M10-04: the real recipes of swords, armor and tools and the shop `tools` entries go away with the M10 content")
+	var data: GameData = GameData.load_from_dirs()
+	assert_eq(data.errors, PackedStringArray())
+	for skill: SkillDef in data.skills():
+		for action: ActionDef in data.actions_for_skill(skill.id):
+			for output: ItemQty in action.outputs:
+				var category: StringName = data.item(output.item_id).category
+				assert_false(category == &"equipment" or category == &"tool", "%s produces a %s" % [action.id, category])
+	for entry: ShopEntryDef in data.shop_entries():
+		assert_ne(entry.category, &"tools", entry.id)
 
 
 func test_real_data_has_three_unique_tools() -> void:
-	pending("M10-04: the 27 graded tools become the 3 unique tools in data/items/tools.json")
+	var data: GameData = GameData.load_from_dirs()
+	var tools: Array[ItemDef] = _tools(data)
+	assert_eq(tools.size(), 3)
+	for tool_item: ItemDef in tools:
+		assert_true(tool_item.equip.unique, tool_item.id)
+		assert_eq(tool_item.value, 0)
+		assert_eq(tool_item.equip.grade, 1)
+		assert_true(tool_item.equip.requirements.is_empty())
+		assert_eq(tool_item.equip.upgrade_extras.size(), 2)
+	for slot: StringName in [&"tool_forestry", &"tool_quarrying", &"tool_angling"]:
+		assert_not_null(data.unique_tool(slot), slot)

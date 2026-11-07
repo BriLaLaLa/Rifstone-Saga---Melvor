@@ -37,8 +37,8 @@ func test_upgrade_scalars() -> void:
 
 func test_salvage_values() -> void:
 	var salvage: Dictionary = _balance["salvage"]
-	assert_eq(float(salvage["ingot_ratio"]), 0.4, "legacy key, removed with M10-04")
+	assert_false(salvage.has("ingot_ratio"), "removed in M10")
 	assert_eq(float(salvage["component_ratio"]), 0.4)
 	var shards: Dictionary = salvage["shards_by_rarity"]
 	assert_eq([int(shards["common"]), int(shards["magic"]), int(shards["rare"])], [0, 1, 3])
-	assert_eq(salvage.size(), 3, "no other key (ingot_ratio is legacy until M10-04)")
+	assert_eq(salvage.size(), 2, "no other key")

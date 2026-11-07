@@ -30,7 +30,7 @@ func before_all() -> void:
 	_areas = _read("res://data/combat/areas.json")["areas"]
 	for m: Dictionary in _read("res://data/combat/monsters.json")["monsters"]:
 		_monsters[m["id"]] = m
-	for path: String in ["materials", "equipment"]:
+	for path: String in ["materials", "equipment", "blueprints"]:
 		for m: Dictionary in _read("res://data/items/%s.json" % path)["items"]:
 			_items[m["id"]] = m
 
@@ -126,7 +126,9 @@ func test_drops_use_existing_items() -> void:
 		assert_between(drops.size(), 1, 4, "%s drop count" % m["id"])
 		for d: Dictionary in drops:
 			assert_true(_items.has(d["item"]), "%s drops unknown %s" % [m["id"], d["item"]])
-			assert_between(float(d["chance_pct"]), 1.0, 40.0)
+			# Blueprints are rare on purpose (about one per hour in the whole area, Q49): below the 1% of the other drops.
+			var low: float = 0.05 if str(d["item"]).begins_with("bp_") else 1.0
+			assert_between(float(d["chance_pct"]), low, 40.0, "%s %s" % [m["id"], d["item"]])
 
 
 func test_icons_exist() -> void:

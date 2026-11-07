@@ -151,7 +151,8 @@ func test_mastery_bonuses_follow_f11() -> void:
 func test_every_action_has_mastery() -> void:
 	for path: Variant in _raw["actions"]:
 		for e: Variant in (_raw["actions"][path] as Dictionary)["actions"]:
-			assert_eq((e as Dictionary)["mastery"], true, "action %s of %s" % [(e as Dictionary)["id"], path])
+			# M10: the single-cycle blueprint action has no mastery (04 §6)
+			assert_eq((e as Dictionary)["mastery"], not (e as Dictionary).get("single", false), "action %s of %s" % [(e as Dictionary)["id"], path])
 
 
 func test_gathering_actions_follow_the_tiers() -> void:
@@ -396,7 +397,7 @@ func test_stones_have_modifiers_and_a_riftbinding_recipe() -> void:
 		assert_true(FileAccess.file_exists(items[id]["icon"] as String), "icon of %s" % id)
 		var recipes: int = 0
 		for a: Dictionary in actions:
-			if a["outputs"][0]["item"] == id:
+			if not (a["outputs"] as Array).is_empty() and a["outputs"][0]["item"] == id:
 				recipes += 1
 				assert_eq(a["inputs"][0]["item"], "rift_shard", "%s needs shards" % id)
 		assert_eq(recipes, 1, "recipes of %s" % id)
@@ -414,6 +415,6 @@ func test_currencies_cover_the_three_effects_with_a_recipe() -> void:
 		assert_true(FileAccess.file_exists(items[id]["icon"] as String), "icon of %s" % id)
 		var recipes: int = 0
 		for a: Dictionary in actions:
-			if a["outputs"][0]["item"] == id:
+			if not (a["outputs"] as Array).is_empty() and a["outputs"][0]["item"] == id:
 				recipes += 1
 		assert_eq(recipes, 1, "recipes of %s" % id)

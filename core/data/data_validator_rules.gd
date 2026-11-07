@@ -31,7 +31,6 @@ var max_character_level: float = NO_LIMIT  # character_curve.max_level
 var max_pack_size: float = NO_LIMIT  # combat.max_pack_size
 var min_action_interval_ms: float = 0.0
 var min_attack_interval_ms: float = 0.0
-var m10_mode: bool = false  # balance.json has start.tools: the M10 rules are strict (DataValidatorM10)
 
 var _file: String = ""
 var _where: String = ""
