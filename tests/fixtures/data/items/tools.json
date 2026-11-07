@@ -15,9 +15,9 @@
         "requirements": {},
         "modifiers": [
           {
-            "stat": "mastery_xp_pct",
-            "value": 0.01,
-            "scope": "skill:riftbinding"
+            "stat": "skill_interval_pct",
+            "value": -5,
+            "scope": "skill:test_gather"
           }
         ]
       }

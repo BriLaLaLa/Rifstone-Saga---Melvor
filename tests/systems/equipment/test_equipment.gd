@@ -3,14 +3,14 @@ extends GutTest
 ## combat lock. Setups, sources and food: test_equipment_setups.gd. Save: test_equipment_save.gd.
 ##
 ## Fixture items: test_blade (sword, weapon), test_greatsword (two-handed), test_shield (offhand), test_helm (head),
-## test_helm_high (head, character 10), test_hatchet (tool_forestry, requires test_gather 1), test_ration (food).
+## test_helm_high (head, character 10), unique_hatchet (tool_forestry, requires test_gather 1), test_ration (food).
 
 const BLADE: StringName = &"test_blade"
 const GREAT: StringName = &"test_greatsword"
 const SHIELD: StringName = &"test_shield"
 const HELM: StringName = &"test_helm"
 const HELM_HIGH: StringName = &"test_helm_high"
-const HATCHET: StringName = &"test_hatchet"
+const HATCHET: StringName = &"unique_hatchet"
 const RATION: StringName = &"test_ration"
 const TWIG: StringName = &"gather_twig"
 const FIXTURE_ROOT: String = "res://tests/fixtures/data"

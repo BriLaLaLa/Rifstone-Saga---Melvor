@@ -123,7 +123,7 @@ func test_every_monster_is_in_some_pack() -> void:
 func test_drops_use_existing_items() -> void:
 	for m: Dictionary in _monsters.values():
 		var drops: Array = m["drops"]
-		assert_between(drops.size(), 1, 4, "%s drop count" % m["id"])
+		assert_between(drops.size(), 1, 8, "%s drop count" % m["id"])
 		for d: Dictionary in drops:
 			assert_true(_items.has(d["item"]), "%s drops unknown %s" % [m["id"], d["item"]])
 			# Blueprints are rare on purpose (about one per hour in the whole area, Q49): below the 1% of the other drops.

@@ -1,6 +1,6 @@
 extends GutTest
 ## Armory: F-82 capacity, create/add, uid never reused, worn, lock, remove, signals, save round trip.
-## Fixture pieces: test_blade, test_helm, test_hatchet. Tests that need a tiny Armory use a copy of the config.
+## Fixture pieces: test_blade, test_helm, test_helm_high. Tests that need a tiny Armory use a copy of the config.
 
 const FIXTURE_ROOT: String = "res://tests/fixtures/data"
 const CONFIG_ROOT: String = "res://data/config"
@@ -59,7 +59,7 @@ func test_capacity_uses_armory_slots() -> void:
 	assert_signal_emitted_with_parameters(_session.events, "armory_capacity_changed", [0, SMALL_SLOTS + 2])
 	TestFactory.give_piece(_session, &"test_blade")
 	TestFactory.give_piece(_session, &"test_helm")
-	TestFactory.give_piece(_session, &"test_hatchet")
+	TestFactory.give_piece(_session, &"test_helm_high")
 	TestFactory.give_piece(_session, &"test_blade")
 	assert_true(_armory.can_add(1), "bought slots make room")
 	assert_false(_armory.can_add(2))
@@ -107,7 +107,7 @@ func test_full_armory_rejects_without_changes() -> void:
 
 func test_add_stores_a_copy_and_assigns_the_uid() -> void:
 	var inst := ItemInstance.new()
-	inst.base_id = &"test_hatchet"
+	inst.base_id = &"test_helm_high"
 	var uid: int = _armory.add(inst)
 	assert_eq(uid, 1)
 	assert_eq(inst.uid, 0, "the instance of the caller is untouched")
@@ -187,7 +187,7 @@ func test_save_round_trip_keeps_uids_and_never_reuses_them() -> void:
 	var b: int = TestFactory.give_piece(_session, &"test_helm")
 	_armory.set_locked(b, true)
 	_armory.set_worn(a, true)
-	_armory.remove(TestFactory.give_piece(_session, &"test_hatchet"))  # uid 3 used, then freed
+	_armory.remove(TestFactory.give_piece(_session, &"test_helm_high"))  # uid 3 used, then freed
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(_armory.to_save()))
 	var other: GameSession = autofree(TestFactory.session(5, _small_data))
 	other.armory.from_save(saved)

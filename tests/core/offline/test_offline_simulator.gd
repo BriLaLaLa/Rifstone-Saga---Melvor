@@ -10,6 +10,7 @@ const AREA: StringName = &"redrock_plains"
 const SWORD: StringName = &"emberbronze_sword"
 const RING: StringName = &"emberbronze_ring"
 const INGOT: StringName = &"emberbronze_ingot"
+const PLATE: StringName = &"emberbronze_plate"
 const HOUR_MS: int = 3600000
 const CAP_MS: int = 43200000
 const CHUNK_MS: int = 60000
@@ -173,20 +174,22 @@ func test_filtered_drops_are_counted_as_dismantled_and_pieces_as_stored() -> voi
 	s.modifiers.set_source(HERO, [Modifier.make(&"power_bonus", 5000.0), Modifier.make(&"max_hp_flat", 100000.0)])
 	s.modifiers.set_source(ROOMY, [Modifier.make(&"armory_slots", 500.0), Modifier.make(&"bank_slots", 100.0)])
 	assert_true(s.armory.set_filter(&"weapon", &"magic", 1).ok)
+	var kit_used: int = s.armory.used()  # the unworn pieces of the starting kit
 	assert_true(s.combat.start(AREA).ok)
 	var summary: OfflineSummary = await _run(s, 20 * 60000)
 	assert_gt(summary.pieces_dismantled, 0)
 	assert_gt(summary.pieces_stored, 0)
-	assert_eq(summary.pieces_stored, s.armory.used())
+	assert_eq(summary.pieces_stored, s.armory.used() - kit_used, "the starting kit is not a drop")
 	assert_eq(summary.pieces_rejected, 0)
 	assert_true(summary.bank_rejected.is_empty())
-	assert_eq(summary.items.get(INGOT, 0), summary.pieces_dismantled, "one ingot per salvaged sword")
+	var plates: int = Salvage.components(SWORD, s.data).get(PLATE, 0)
+	assert_eq(summary.items.get(PLATE, 0), summary.pieces_dismantled * plates, "F-95: the plates of every salvaged sword")
 
 
 func test_full_armory_and_full_bank_report_bank_rejected() -> void:
 	var s: GameSession = _session(SEED, _drop_data())
 	s.modifiers.set_source(HERO, [Modifier.make(&"power_bonus", 5000.0), Modifier.make(&"max_hp_flat", 100000.0)])
-	for i: int in s.armory.capacity():
+	for i: int in s.armory.capacity() - s.armory.used():  # the starting kit already takes a place
 		TestFactory.give_piece(s, RING)
 	for item: ItemDef in s.data.items():
 		if s.bank.used() >= s.bank.capacity():
@@ -199,7 +202,7 @@ func test_full_armory_and_full_bank_report_bank_rejected() -> void:
 	assert_gt(summary.pieces_dismantled, 0)
 	assert_eq(summary.pieces_stored, 0)
 	assert_false(summary.bank_rejected.is_empty(), "yields lost to a full bank are counted, never silent")
-	assert_eq(summary.bank_rejected.get(INGOT, 0) > 0, true)
+	assert_eq(summary.bank_rejected.get(PLATE, 0) > 0, true)
 	assert_false(summary.is_empty())
 
 

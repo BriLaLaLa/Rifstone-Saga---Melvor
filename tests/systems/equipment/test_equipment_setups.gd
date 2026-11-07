@@ -1,12 +1,12 @@
 extends GutTest
 ## Equipment by uid, part 2: setups (F-72, F-73), modifier sources, tool intervals and food. Part 1: test_equipment.gd.
-## Fixture items: test_blade (sword), test_greatsword (two-handed), test_shield (offhand), test_hatchet, test_ration.
+## Fixture items: test_blade (sword), test_greatsword (two-handed), test_shield (offhand), unique_hatchet, test_ration.
 
 const BLADE: StringName = &"test_blade"
 const GREAT: StringName = &"test_greatsword"
 const SHIELD: StringName = &"test_shield"
 const HELM: StringName = &"test_helm"
-const HATCHET: StringName = &"test_hatchet"
+const HATCHET: StringName = &"unique_hatchet"
 const RATION: StringName = &"test_ration"
 const TWIG: StringName = &"gather_twig"
 
@@ -122,15 +122,14 @@ func test_swap_rebuilds_the_modifiers_once() -> void:
 	assert_eq(changes[0], 1, "weapon in, offhand out: one batch")
 
 
-func test_tool_changes_the_f03_interval_of_its_skill() -> void:
+func test_a_unique_tool_is_worn_without_effect_outside_its_skill() -> void:
+	# M10: a unique tool acts on the skill of its slot (F-94, scope skill:forestry); the legacy fixtures have no forestry,
+	# so only the equipping is checked here (the interval effect is tested in tests/systems/armory/test_upgrade_tool.gd).
 	assert_eq(_session.actions.current_interval_ms(TWIG), 3000)
 	var hatchet: int = _piece(HATCHET)
 	assert_true(_session.equipment.equip(hatchet).ok)
 	assert_eq(_session.equipment.get_item(&"tool_forestry"), HATCHET)
-	assert_eq(_session.actions.current_interval_ms(TWIG), ActionMath.interval_ms(3000, -5.0, 250))
-	assert_eq(_session.actions.current_interval_ms(TWIG), 2850)
-	_session.equipment.unequip(&"tool_forestry")
-	assert_eq(_session.actions.current_interval_ms(TWIG), 3000)
+	assert_eq(_session.actions.current_interval_ms(TWIG), 3000, "no effect on a skill that is not forestry")
 
 
 func test_food_set_and_errors() -> void:

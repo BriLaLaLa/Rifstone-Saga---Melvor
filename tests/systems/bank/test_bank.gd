@@ -19,7 +19,7 @@ func before_all() -> void:
 	DirAccess.make_dir_recursive_absolute(_tmp_config)
 	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_ROOT.path_join("balance.json")))
 	(balance["bank"] as Dictionary)["base_slots"] = SMALL_BASE_SLOTS
-	(balance["start"] as Dictionary)["items"] = START_ITEMS
+	(balance["start"] as Dictionary)["items"] = START_ITEMS + [{"item": "seared_brookfin", "qty": 1}]  # the kit food, removed by clear_kit
 	_write(_tmp_config.path_join("balance.json"), JSON.stringify(balance))
 	_write(_tmp_config.path_join("stats.json"), FileAccess.get_file_as_string(CONFIG_ROOT.path_join("stats.json")))
 	_small_data = GameData.load_from_dirs(FIXTURE_ROOT, _tmp_config)
@@ -302,7 +302,7 @@ func test_snapshot_reads_bank_and_gold() -> void:
 
 func test_not_stackable_pieces() -> void:
 	watch_signals(_session.events)
-	for id: StringName in [&"test_blade", &"test_hatchet"]:
+	for id: StringName in [&"test_blade", &"unique_hatchet"]:
 		assert_false(_session.bank.can_add(id), "can_add %s" % id)
 		assert_eq(_session.bank.add(id, 1).reason, Reasons.NOT_STACKABLE)
 		assert_eq(_session.bank.add(id, 0).reason, Reasons.NOT_STACKABLE, "before invalid_amount")
@@ -316,7 +316,7 @@ func test_from_save_drops_pieces() -> void:
 	_session.bank.from_save({"stacks": [
 		{"item": "test_blade", "count": 1, "locked": false},
 		{"item": "test_log", "count": 4, "locked": true},
-		{"item": "test_hatchet", "count": 2},
+		{"item": "unique_hatchet", "count": 2},
 	]})
 	assert_eq(_ids(_session.bank), [&"test_log"] as Array[StringName])
 	assert_eq(_session.bank.get_count(&"test_log"), 4)

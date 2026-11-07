@@ -160,7 +160,7 @@ func test_every_area_has_a_drop_plan_for_its_two_grades() -> void:
 			sources.append(_data.monster(monster_id).drops)
 		sources.append(_data.rift_stone_for_area(StringName(AREAS[a])).drops)
 		for drops: Array in sources:
-			assert_lte(drops.size(), 4)
+			assert_lte(drops.size(), 8)
 			for drop: DropEntry in drops:
 				var item: ItemDef = _data.item(drop.item_id)
 				if item.category == &"blueprint":
@@ -168,7 +168,7 @@ func test_every_area_has_a_drop_plan_for_its_two_grades() -> void:
 					assert_eq([drop.qty_min, drop.qty_max], [1, 1])
 					assert_false(seen.has(item.id), "%s is dropped once per area" % item.id)
 					seen[item.id] = true
-		assert_eq(seen.size(), 7, "7 blueprints in %s (the 4-entry limit of a monster leaves no room for 16)" % AREAS[a])
+		assert_eq(seen.size(), 16, "all the blueprints of the two grades of %s have a source" % AREAS[a])
 
 
 func test_a_rift_stone_in_three_leaves_a_blueprint() -> void:
@@ -241,3 +241,18 @@ func test_start_kit_uses_existing_grade_one_items() -> void:
 	assert_eq(food.food_heal, 20)
 	assert_true(_data.shop_entry(&"auto_eat_1") != null)
 	assert_eq(_data.shop_entry(&"auto_eat_1").cost_gold, 2000, "kept in the shop data, owned from the start")
+
+
+func test_every_blueprint_and_every_drop_material_has_a_source() -> void:
+	var dropped: Dictionary = {}
+	for a: int in 4:
+		for monster_id: StringName in _area_monster_ids(a):
+			for drop: DropEntry in _data.monster(monster_id).drops:
+				dropped[drop.item_id] = true
+		for drop: DropEntry in _data.rift_stone_for_area(StringName(AREAS[a])).drops:
+			dropped[drop.item_id] = true
+	for bp: ItemDef in _data.blueprints():
+		assert_true(dropped.has(bp.id), "%s has no source" % bp.id)
+	for item: ItemDef in _data.items():
+		if item.category == &"material" and item.sort_order >= 700:
+			assert_true(dropped.has(item.id), "%s is an orphan" % item.id)

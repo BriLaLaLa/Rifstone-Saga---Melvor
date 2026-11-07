@@ -5,7 +5,7 @@ const BLADE: StringName = &"test_blade"
 const GREAT: StringName = &"test_greatsword"
 const SHIELD: StringName = &"test_shield"
 const HELM: StringName = &"test_helm"
-const HATCHET: StringName = &"test_hatchet"
+const HATCHET: StringName = &"unique_hatchet"
 const RATION: StringName = &"test_ration"
 const TWIG: StringName = &"gather_twig"
 
@@ -44,7 +44,6 @@ func test_save_round_trip_restores_state_and_sources() -> void:
 	assert_true(other.modifiers.has_source(&"setup:dual_swords"))
 	assert_eq(other.modifiers.total(&"power_bonus"), 12.0)
 	assert_eq(other.equipment.base_attack_interval_ms(), 1800)
-	assert_eq(other.actions.current_interval_ms(TWIG), 2850)
 
 
 func test_from_save_json_floats_are_accepted() -> void:
@@ -100,4 +99,4 @@ func test_new_game_resets() -> void:
 	_session.new_game()
 	assert_eq(_session.equipment.get_uid(&"head"), 0)
 	assert_false(_session.modifiers.has_source(&"equipment:head"))
-	assert_eq(_session.armory.instances().size(), 0)
+	assert_eq(_session.armory.instances().size(), ArmoryKit.pieces(_session.data).size(), "only the kit is left")

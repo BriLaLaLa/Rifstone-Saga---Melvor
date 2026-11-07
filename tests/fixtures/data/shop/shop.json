@@ -68,7 +68,7 @@
     },
     {
       "id": "test_buy_hatchet",
-      "name": "Ramo di prova",
+      "name": "Lama di prova",
       "category": "materials",
       "description": "Un ramo.",
       "cost": {
@@ -78,7 +78,7 @@
       "requires": {},
       "effect": {
         "item": {
-          "item": "test_twig",
+          "item": "test_blade",
           "qty": 1
         }
       }

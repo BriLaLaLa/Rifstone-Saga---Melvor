@@ -40,7 +40,7 @@ func before_all() -> void:
 	DirAccess.make_dir_recursive_absolute(config)
 	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_ROOT.path_join("balance.json")))
 	(balance["bank"] as Dictionary)["base_slots"] = 1
-	(balance["start"] as Dictionary)["items"] = [{"item": "test_log", "qty": 1}]
+	(balance["start"] as Dictionary)["items"] = [{"item": "test_log", "qty": 1}, {"item": "seared_brookfin", "qty": 1}]  # the kit food, removed by clear_kit
 	_write(config.path_join("balance.json"), JSON.stringify(balance))
 	_write(config.path_join("stats.json"), FileAccess.get_file_as_string(CONFIG_ROOT.path_join("stats.json")))
 	_small_data = GameData.load_from_dirs(FIXTURE_ROOT, config)
