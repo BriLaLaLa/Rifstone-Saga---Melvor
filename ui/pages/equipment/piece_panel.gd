@@ -51,6 +51,7 @@ var _open_box: StringName = &""
 @onready var _subtitle_label: Label = %SubtitleLabel
 @onready var _close_box: HBoxContainer = %CloseBox
 @onready var _state_label: Label = %StateLabel
+@onready var _tabs: TabContainer = %Tabs
 @onready var _lines_label: RichTextLabel = %LinesLabel
 @onready var _equip_button: Button = %EquipButton
 @onready var _offhand_button: Button = %OffhandButton
@@ -94,6 +95,9 @@ func _ready() -> void:
 	for button: Button in [_equip_button, _offhand_button, _unequip_button, _lock_button, _refine_button,
 			_salvage_button, _sell_button]:
 		button.custom_minimum_size.y = UiStyle.MENU_BUTTON_HEIGHT
+	_tabs.custom_minimum_size.y = UiStyle.PIECE_TABS_MIN_HEIGHT
+	for i: int in ArmoryTexts.PIECE_TAB_TITLES.size():
+		_tabs.set_tab_title(i, ArmoryTexts.PIECE_TAB_TITLES[i])
 	clear()
 
 
@@ -106,6 +110,7 @@ func show_piece(session: GameSession, uid: int) -> bool:
 		return false
 	if uid != _uid:
 		_open_box = &""
+		_tabs.current_tab = 0
 	_uid = uid
 	_session = session
 	var worn_slot: StringName = session.equipment.slot_of(uid)
