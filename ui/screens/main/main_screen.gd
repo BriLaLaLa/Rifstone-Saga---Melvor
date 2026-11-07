@@ -69,7 +69,8 @@ func _bind(target: GameSession) -> void:
 	_page_host.show_page(_first_page())
 	# Production only (no injected session): the summary of the time away, once.
 	if session == null and Game.last_offline_summary != null:
-		OfflineSummaryView.open(self, Game.last_offline_summary, _session.data)
+		var summary_view: OfflineSummaryView = OfflineSummaryView.open(self, Game.last_offline_summary, _session.data)
+		summary_view.closed.connect(_hint_card.refresh)
 		Game.last_offline_summary = null
 
 

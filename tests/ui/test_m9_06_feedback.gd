@@ -93,3 +93,12 @@ func test_menu_opens_settings_in_game_and_main_screen_has_card() -> void:
 	assert_not_null(panel)
 	assert_true(panel.in_game)
 	assert_eq(_screen.get_children().find(panel), _screen.get_child_count() - 1, "drawn above toasts")
+
+
+func test_card_shows_hint_triggered_before_bind() -> void:
+	_session.events.session_started.emit(0, true)
+	var card: HintCard = _card()
+	assert_eq(card.current_hint(), &"test_first_action")
+	assert_true(card.visible)
+	card.close_current()
+	assert_eq(_session.hints.pending(), [] as Array[StringName])

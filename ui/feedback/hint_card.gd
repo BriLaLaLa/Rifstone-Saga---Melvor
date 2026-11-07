@@ -69,6 +69,11 @@ func bind(session: GameSession) -> void:
 	_session = session
 	_session.events.hint_triggered.connect(_on_hint_triggered)
 	_session.events.session_started.connect(_on_session_started)
+	# Hints fired before the card existed (e.g. session_started_new) wait in HintsSystem.pending().
+	for hint_id: StringName in _session.hints.pending():
+		if not _queue.has(hint_id):
+			_queue.append(hint_id)
+	refresh()
 
 
 func unbind() -> void:

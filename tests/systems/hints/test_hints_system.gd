@@ -153,3 +153,19 @@ func test_session_save_has_the_hints_module() -> void:
 	_hints.mark_seen(&"test_death")
 	var modules: Dictionary = _session.to_save(0)["modules"]
 	assert_eq(modules["hints"], {"seen": ["test_death"]})
+
+
+func test_pending_after_trigger_and_removed_by_mark_seen() -> void:
+	assert_eq(_hints.pending(), [] as Array[StringName])
+	_session.events.session_started.emit(0, true)
+	assert_eq(_hints.pending(), [&"test_first_action"] as Array[StringName])
+	assert_eq(_hints.to_save(), {"seen": ["test_first_action"]})
+	_hints.mark_seen(&"test_first_action")
+	assert_eq(_hints.pending(), [] as Array[StringName])
+
+
+func test_pending_is_volatile() -> void:
+	_session.events.session_started.emit(0, true)
+	_hints.from_save(_hints.to_save())
+	assert_eq(_hints.pending(), [] as Array[StringName])
+	assert_true(_hints.is_seen(&"test_first_action"))
