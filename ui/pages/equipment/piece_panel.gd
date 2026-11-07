@@ -15,6 +15,8 @@ signal lock_requested(uid: int, locked: bool)
 signal sell_requested(uid: int)
 signal refine_requested(uid: int, use_seal: bool)
 signal salvage_requested(uid: int)
+## A command on the armory (socket, clear a socket, use a currency) for the page to send.
+signal armory_command_requested(command: Callable)
 signal close_requested
 
 const EQUIP_TEXT: String = "Equipaggia"
@@ -58,6 +60,8 @@ var _open_box: StringName = &""
 @onready var _salvage_button: Button = %SalvageButton
 @onready var _refine_box: RefineBox = %RefineBox
 @onready var _salvage_box: SalvageBox = %SalvageBox
+@onready var _socket_box: SocketBox = %SocketBox
+@onready var _currency_box: CurrencyBox = %CurrencyBox
 @onready var _sell_note: Label = %SellNote
 @onready var _sell_button: Button = %SellButton
 
@@ -84,6 +88,9 @@ func _ready() -> void:
 	_salvage_box.salvage_confirmed.connect(_on_salvage_confirmed)
 	_salvage_box.cancelled.connect(_toggle_box.bind(&""))
 	_sell_button.pressed.connect(_on_sell_pressed)
+	_socket_box.stone_requested.connect(_on_stone_requested)
+	_socket_box.clear_requested.connect(_on_clear_requested)
+	_currency_box.currency_requested.connect(_on_currency_requested)
 	for button: Button in [_equip_button, _offhand_button, _unequip_button, _lock_button, _refine_button,
 			_salvage_button, _sell_button]:
 		button.custom_minimum_size.y = UiStyle.MENU_BUTTON_HEIGHT
@@ -110,6 +117,8 @@ func show_piece(session: GameSession, uid: int) -> bool:
 	_lines_label.text = "\n".join(ArmoryTexts.detail_lines(session, uid))
 	_refresh_actions(inst, base, worn_slot)
 	_apply_box()
+	_socket_box.show_for(session, uid)
+	_currency_box.show_for(session, uid)
 	visible = true
 	return true
 
@@ -223,3 +232,21 @@ func _on_salvage_confirmed() -> void:
 		var uid: int = _uid
 		_open_box = &""
 		salvage_requested.emit(uid)
+
+
+func _on_stone_requested(stone_id: StringName) -> void:
+	_request(_session.armory.socket_stone.bind(_uid, stone_id))
+
+
+func _on_clear_requested(index: int) -> void:
+	_request(_session.armory.clear_socket.bind(_uid, index))
+
+
+func _on_currency_requested(currency_id: StringName) -> void:
+	_request(_session.armory.use_currency.bind(_uid, currency_id))
+
+
+## Hands a command of the boxes to the page (the panel never sends it) while a piece is shown.
+func _request(command: Callable) -> void:
+	if _uid != 0 and _session != null:
+		armory_command_requested.emit(command)

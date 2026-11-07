@@ -51,7 +51,7 @@ func test_show_page_of_every_valid_route() -> void:
 
 func test_unavailable_pages_are_refused() -> void:
 	var host: PageHost = _page_host()
-	for page_id: StringName in [&"rift", &"settings", &"skill:blade",
+	for page_id: StringName in [&"settings", &"skill:blade",
 			&"skill:not_a_skill", &"bank:extra", &"skill:"]:
 		assert_false(host.has_page(page_id), "%s not available" % page_id)
 		host.show_page(page_id)
@@ -92,9 +92,8 @@ func test_sidebar_rows_from_data() -> void:
 	assert_false(gather.disabled)
 	assert_true(gather.button_pressed, "row of the current page highlighted")
 	assert_null(rows.get_node_or_null("SkillBlade"), "no combat skill rows")
-	for page_name: String in ["Character", "Combat", "Bank", "Shop", "Equipment"]:
+	for page_name: String in ["Character", "Combat", "Bank", "Shop", "Equipment", "Rift"]:
 		assert_false((rows.get_node(page_name) as Button).disabled, page_name)
-	assert_null(rows.get_node_or_null("Rift"), "no Altare row before M8")
 	assert_null(rows.get_node_or_null("Settings"))
 	var skill_rows: int = 0
 	for child: Node in rows.get_children():

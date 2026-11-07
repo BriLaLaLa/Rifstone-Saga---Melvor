@@ -14,6 +14,8 @@ const LOG_CATEGORY: String = "ui"
 ## Italian name of each item category (docs/04_DATA_SCHEMA.md §5).
 const CATEGORY_NAMES: Dictionary[StringName, String] = {
 	&"material": "Materiale",
+	&"stone": "Pietra",
+	&"currency": "Valuta",
 	&"equipment": "Equipaggiamento",
 	&"tool": "Attrezzo",
 	&"food": "Cibo",

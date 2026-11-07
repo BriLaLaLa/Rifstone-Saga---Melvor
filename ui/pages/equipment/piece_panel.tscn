@@ -1,8 +1,10 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://ui/pages/equipment/piece_panel.gd" id="1_panel"]
 [ext_resource type="Script" path="res://ui/pages/equipment/refine_box.gd" id="2_refine"]
 [ext_resource type="Script" path="res://ui/pages/equipment/salvage_box.gd" id="3_salvage"]
+[ext_resource type="Script" path="res://ui/pages/equipment/socket_box.gd" id="4_socket"]
+[ext_resource type="Script" path="res://ui/pages/equipment/currency_box.gd" id="5_currency"]
 
 [node name="PiecePanel" type="PanelContainer"]
 theme_type_variation = &"HudPanel"
@@ -122,7 +124,20 @@ bbcode_enabled = true
 fit_content = true
 scroll_active = false
 
-[node name="SellNote"type="Label" parent="Content"]
+[node name="SocketsSeparator" type="HSeparator" parent="Content"]
+layout_mode = 2
+
+[node name="SocketBox" type="VBoxContainer" parent="Content"]
+unique_name_in_owner = true
+layout_mode = 2
+script = ExtResource("4_socket")
+
+[node name="CurrencyBox" type="VBoxContainer" parent="Content"]
+unique_name_in_owner = true
+layout_mode = 2
+script = ExtResource("5_currency")
+
+[node name="SellNote" type="Label" parent="Content"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"MutedLabel"

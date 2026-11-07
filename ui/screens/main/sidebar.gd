@@ -21,6 +21,7 @@ const SECTIONS: Array[Dictionary] = [
 	{"page": &"character", "text": "Personaggio", "icon": "user"},
 	{"page": &"combat", "text": ItemTooltipLines.COMBAT_TEXT, "icon": "sword"},
 	{"page": &"equipment", "text": "Equipaggiamento", "icon": "shirt"},
+	{"page": &"rift", "text": RiftTexts.TITLE_TEXT, "icon": "sparkles"},
 	{"page": &"bank", "text": "Bank", "icon": "box"},
 	{"page": &"shop", "text": "Shop", "icon": "building-store"},
 ]
