@@ -91,7 +91,8 @@
       }
     ],
     "respawn_ms": 1500,
-    "loot_bag_base_slots": 12
+    "loot_bag_base_slots": 12,
+    "kill_xp_mult": 0.15
   },
   "character_curve": {
     "base": 70,
@@ -153,9 +154,34 @@
     "ingot_items": ["emberbronze_ingot", "ashlead_ingot", "stormzinc_ingot", "duskcobalt_ingot", "glimmerite_ingot",
       "palecinnabar_ingot", "emberheart_ingot", "riftite_ingot"]
   },
+  "blueprint": {
+    "duration_base_min": 10,
+    "duration_per_grade_min": 7,
+    "xp_mult": 1.5,
+    "rare_base_pct": 10,
+    "rare_per_forging_level": 0.5,
+    "choose_affix_level": 50,
+    "chosen_affix_tier": 2
+  },
+  "tool_upgrade": {
+    "interval_base_pct": 5,
+    "interval_per_level_pct": 2,
+    "levels": [
+      {"min_level": 1, "grade": 1, "plates": 2, "handles": 1, "gold": 100},
+      {"min_level": 10, "grade": 2, "plates": 2, "handles": 1, "gold": 250},
+      {"min_level": 20, "grade": 3, "plates": 3, "handles": 1, "gold": 600},
+      {"min_level": 25, "grade": 3, "plates": 3, "handles": 1, "gold": 1200},
+      {"min_level": 35, "grade": 4, "plates": 4, "handles": 2, "gold": 2500},
+      {"min_level": 50, "grade": 5, "plates": 4, "handles": 2, "gold": 5000},
+      {"min_level": 65, "grade": 6, "plates": 5, "handles": 2, "gold": 10000},
+      {"min_level": 80, "grade": 7, "plates": 5, "handles": 2, "gold": 20000},
+      {"min_level": 90, "grade": 8, "plates": 6, "handles": 3, "gold": 40000}
+    ]
+  },
   "rift_stone": {"chance_pct": 0.5, "pity_kills": 300},
   "salvage": {
     "ingot_ratio": 0.4,
+    "component_ratio": 0.4,
     "shards_by_rarity": {"common": 0, "magic": 1, "rare": 3}
   },
   "rift": {

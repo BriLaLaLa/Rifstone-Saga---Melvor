@@ -1,0 +1,215 @@
+{
+  "tick_ms": 100,
+  "max_catchup_ms": 5000,
+  "autosave_interval_ms": 10000,
+  "slots": {
+    "count": 4
+  },
+  "player_name": {
+    "min_length": 1,
+    "max_length": 24
+  },
+  "_doc": "Fixture of M10 (docs/04_DATA_SCHEMA.md §18): balance.json of the loot reform with the ids of the fixture items. Not the real game data.",
+  "start": {
+    "gold": 50,
+    "items": [{"item": "test_ration", "qty": 20}],
+    "armory": [{"base": "test_blade", "equip": "weapon"}, {"base": "test_greatsword", "equip": ""},
+               {"base": "test_shield", "equip": "offhand"}],
+    "tools": [{"base": "test_hatchet"}, {"base": "test_pickaxe"}, {"base": "test_rod"}],
+    "purchases": {"test_upgrade_1": 1},
+    "food": "test_ration"
+  },
+  "xp_curve": {
+    "base": 70,
+    "growth": 1.1,
+    "linear": 8,
+    "max_level": 99,
+    "xp_cap": 50000000
+  },
+  "mastery_curve": {
+    "base": 20,
+    "growth": 1.1,
+    "linear": 4,
+    "max_level": 99
+  },
+  "mastery": {
+    "base_factor": 1,
+    "per_level": 0.1,
+    "ratio_weight": 3,
+    "pool_share_pct": 20,
+    "pool_cap_per_item": 300000,
+    "pool_warning_pct": 95
+  },
+  "action": {
+    "min_interval_ms": 250
+  },
+  "gathering": {
+    "rift_shard_base_chance_pct": 0.5
+  },
+  "bank": {
+    "base_slots": 24,
+    "slot_cost_base": 400,
+    "slot_cost_growth": 1.09,
+    "slot_cost_cap": 2000000
+  },
+  "combat": {
+    "acc_level_offset": 8,
+    "acc_bonus_offset": 50,
+    "maxhit_level_offset": 10,
+    "maxhit_bonus_offset": 40,
+    "min_hit_ratio": 0.1,
+    "hit_chance_min": 0.05,
+    "hit_chance_max": 0.95,
+    "triangle": {
+      "advantage_damage_mult": 1.15,
+      "disadvantage_damage_mult": 0.85,
+      "defender_dr_mult": 0.75,
+      "beats": {
+        "blade": "arcana",
+        "arcana": "marksmanship",
+        "marksmanship": "blade"
+      }
+    },
+    "min_attack_interval_ms": 800,
+    "unarmed": {
+      "style": "blade",
+      "attack_interval_ms": 2400
+    },
+    "dual_wield": {
+      "interval_mult": 0.75
+    },
+    "hp_base": 50,
+    "hp_per_level": 10,
+    "max_pack_size": 6,
+    "auto_eat_tiers": [
+      null,
+      {
+        "threshold_pct": 30,
+        "target_pct": 60
+      },
+      {
+        "threshold_pct": 40,
+        "target_pct": 75
+      },
+      {
+        "threshold_pct": 50,
+        "target_pct": 90
+      }
+    ],
+    "respawn_ms": 1500,
+    "loot_bag_base_slots": 12,
+    "kill_xp_mult": 0.15
+  },
+  "character_curve": {
+    "base": 70,
+    "growth": 1.1,
+    "linear": 8,
+    "max_level": 99,
+    "xp_cap": 50000000
+  },
+  "character": {
+    "start_class": "rift_blade"
+  },
+  "traits": {
+    "slot_levels": [1, 10, 25, 50]
+  },
+  "abilities": {
+    "slot_levels": [1, 1, 30]
+  },
+  "armory": {
+    "base_slots": 40,
+    "slot_cost_base": 1000,
+    "slot_cost_growth": 1.12,
+    "slot_cost_cap": 2000000
+  },
+  "rarity": {
+    "drop": {"magic_pct": 20, "rare_pct": 3},
+    "rift_stone": {"magic_pct": 40, "rare_pct": 12},
+    "affix_count": {
+      "magic": [
+        1,
+        2
+      ],
+      "rare": [
+        3,
+        4
+      ]
+    }
+  },
+  "upgrade": {
+    "levels": [
+      {"success_pct": 95, "gold_per_grade": 50, "ingots": 1, "shards": 0},
+      {"success_pct": 90, "gold_per_grade": 100, "ingots": 1, "shards": 0},
+      {"success_pct": 85, "gold_per_grade": 200, "ingots": 2, "shards": 0},
+      {"success_pct": 75, "gold_per_grade": 400, "ingots": 2, "shards": 0},
+      {"success_pct": 65, "gold_per_grade": 800, "ingots": 3, "shards": 0},
+      {"success_pct": 55, "gold_per_grade": 1600, "ingots": 3, "shards": 5},
+      {"success_pct": 45, "gold_per_grade": 3200, "ingots": 4, "shards": 10},
+      {"success_pct": 35, "gold_per_grade": 6400, "ingots": 4, "shards": 15},
+      {"success_pct": 25, "gold_per_grade": 12800, "ingots": 5, "shards": 20}
+    ],
+    "downgrade_from": 4,
+    "mod_pct_per_level": 10,
+    "seal_item": "warding_seal",
+    "ingot_items": ["emberbronze_ingot", "ashlead_ingot", "stormzinc_ingot", "duskcobalt_ingot", "glimmerite_ingot",
+      "palecinnabar_ingot", "emberheart_ingot", "riftite_ingot"]
+  },
+  "blueprint": {
+    "duration_base_min": 10,
+    "duration_per_grade_min": 7,
+    "xp_mult": 1.5,
+    "rare_base_pct": 10,
+    "rare_per_forging_level": 0.5,
+    "choose_affix_level": 50,
+    "chosen_affix_tier": 2
+  },
+  "tool_upgrade": {
+    "interval_base_pct": 5,
+    "interval_per_level_pct": 2,
+    "plate_items": ["test_plate_1", "test_plate_2", "test_plate_3", "test_plate_4", "test_plate_5", "test_plate_6",
+      "test_plate_7", "test_plate_8"],
+    "handle_items": ["test_handle_1", "test_handle_2", "test_handle_3", "test_handle_4", "test_handle_5", "test_handle_6",
+      "test_handle_7", "test_handle_8"],
+    "levels": [
+      {"min_level": 1, "grade": 1, "plates": 2, "handles": 1, "gold": 100},
+      {"min_level": 10, "grade": 2, "plates": 2, "handles": 1, "gold": 250},
+      {"min_level": 20, "grade": 3, "plates": 3, "handles": 1, "gold": 600},
+      {"min_level": 25, "grade": 3, "plates": 3, "handles": 1, "gold": 1200},
+      {"min_level": 35, "grade": 4, "plates": 4, "handles": 2, "gold": 2500},
+      {"min_level": 50, "grade": 5, "plates": 4, "handles": 2, "gold": 5000},
+      {"min_level": 65, "grade": 6, "plates": 5, "handles": 2, "gold": 10000},
+      {"min_level": 80, "grade": 7, "plates": 5, "handles": 2, "gold": 20000},
+      {"min_level": 90, "grade": 8, "plates": 6, "handles": 3, "gold": 40000}
+    ]
+  },
+  "rift_stone": {"chance_pct": 0.5, "pity_kills": 300},
+  "salvage": {
+    "component_ratio": 0.4,
+    "shards_by_rarity": {"common": 0, "magic": 1, "rare": 3}
+  },
+  "rift": {
+    "sockets": [
+      {
+        "level": 1
+      },
+      {
+        "level": 20
+      },
+      {
+        "level": 40
+      },
+      {
+        "level": 60
+      },
+      {
+        "level": 80
+      }
+    ]
+  },
+  "sockets": {"by_rarity": {"common": 0, "magic": 1, "rare": 2}, "bonus_at_upgrade": 7},
+  "offline": {
+    "cap_ms": 43200000,
+    "min_ms": 60000,
+    "chunk_ms": 60000
+  }
+}

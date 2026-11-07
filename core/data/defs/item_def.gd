@@ -4,7 +4,7 @@ extends RefCounted
 ##
 ## Common fields are required. The optional sub-objects map to: `equip` -> `equip` (null when absent),
 ## `food.heal` -> `food_heal` (0 when there is no `food`), `stone.modifiers` -> `stone_modifiers` and `currency.effect` ->
-## `currency_effect` (M8; empty when absent), `infusion.modifiers`/`infusion.unique` ->
+## `currency_effect` (M8; empty when absent), `blueprint` -> `blueprint` (M10; null when absent), `infusion.modifiers`/`infusion.unique` ->
 ## `infusion_modifiers`/`infusion_unique` (empty/false when there is no `infusion`; `unique` defaults to false as in
 ## the schema). Whether the sub-objects match the category is DataValidator's job (M1-04).
 ## `from_dict` returns null (after logging, see DefReader) if a field is missing or mistyped.
@@ -22,6 +22,7 @@ var infusion_modifiers: Array[Modifier] = []
 var infusion_unique: bool = false
 var stone_modifiers: Array[Modifier] = []
 var currency_effect: StringName = &""
+var blueprint: BlueprintInfo = null  # M10: null unless category `blueprint`
 
 
 static func from_dict(d: Dictionary) -> ItemDef:
@@ -56,6 +57,9 @@ static func from_dict(d: Dictionary) -> ItemDef:
 		var currency := DefReader.new(r.dict("currency"), r.context() + " currency")
 		def.currency_effect = currency.id("effect")
 		r.absorb(currency.ok)
+	if r.has("blueprint") and r.is_dict("blueprint"):
+		def.blueprint = BlueprintInfo.from_dict(r.dict("blueprint"))
+		r.absorb(def.blueprint != null)
 	return def if r.ok else null
 
 
@@ -77,3 +81,11 @@ func is_stone() -> bool:
 
 func is_currency() -> bool:
 	return currency_effect != &""
+
+
+func is_blueprint() -> bool:
+	return category == &"blueprint" and blueprint != null
+
+
+func is_component() -> bool:
+	return category == &"component"

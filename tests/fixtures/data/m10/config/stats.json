@@ -1,0 +1,254 @@
+{
+  "stats": [
+    {
+      "id": "skill_interval_pct",
+      "name": "Velocità delle azioni",
+      "format": "pct",
+      "min": -80,
+      "max": 100,
+      "description": "Riduce (se negativo) o allunga l'intervallo delle azioni.",
+      "formula": "F-03",
+      "test": "tests/systems/actions/test_action_math.gd::test_interval_uses_skill_interval_pct"
+    },
+    {
+      "id": "skill_xp_pct",
+      "name": "Esperienza delle skill",
+      "format": "pct",
+      "min": 0,
+      "max": 1000,
+      "description": "Aumenta l'esperienza guadagnata nelle skill.",
+      "formula": "F-02",
+      "test": "tests/systems/skills/test_skills_system.gd::test_add_xp_applies_skill_xp_pct"
+    },
+    {
+      "id": "mastery_xp_pct",
+      "name": "Esperienza di maestria",
+      "format": "pct",
+      "min": 0,
+      "max": 1000,
+      "description": "Aumenta la maestria guadagnata a ogni ciclo.",
+      "formula": "F-10",
+      "test": "tests/systems/mastery/test_mastery_math.gd::test_mastery_xp_pct"
+    },
+    {
+      "id": "double_item_chance",
+      "name": "Probabilità di raccolto doppio",
+      "format": "pct",
+      "min": 0,
+      "max": 100,
+      "description": "Probabilità di ottenere il doppio dei prodotti di un'azione.",
+      "formula": "F-06",
+      "test": "tests/systems/actions/test_gathering_resolver.gd::test_double_item_chance_100"
+    },
+    {
+      "id": "preservation_chance",
+      "name": "Conservazione degli ingredienti",
+      "format": "pct",
+      "min": 0,
+      "max": 80,
+      "description": "Probabilità di non consumare gli ingredienti di una ricetta.",
+      "formula": "F-08",
+      "test": "tests/systems/actions/test_artisan_resolver.gd::test_preservation_cap"
+    },
+    {
+      "id": "rift_shard_chance",
+      "name": "Probabilità di frammento del Rift",
+      "format": "pct",
+      "min": 0,
+      "max": 100,
+      "description": "Aumenta la probabilità di trovare un frammento del Rift.",
+      "formula": "F-07",
+      "test": "tests/systems/actions/test_gathering_resolver.gd::test_rift_shard_chance"
+    },
+    {
+      "id": "bank_slots",
+      "name": "Caselle della bank",
+      "format": "flat",
+      "min": 0,
+      "max": 10000,
+      "description": "Aggiunge caselle extra alla bank.",
+      "formula": "F-16",
+      "test": "tests/systems/bank/test_bank.gd::test_capacity_uses_bank_slots"
+    },
+    {
+      "id": "accuracy_bonus",
+      "name": "Precisione",
+      "format": "flat",
+      "min": -1000,
+      "max": 100000,
+      "description": "Aggiunge precisione piatta agli attacchi.",
+      "formula": "F-20",
+      "test": "tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats"
+    },
+    {
+      "id": "accuracy_pct",
+      "name": "Precisione percentuale",
+      "format": "pct",
+      "min": -90,
+      "max": 1000,
+      "description": "Aumenta in percentuale la precisione degli attacchi.",
+      "formula": "F-20",
+      "test": "tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats"
+    },
+    {
+      "id": "power_bonus",
+      "name": "Potenza",
+      "format": "flat",
+      "min": -1000,
+      "max": 100000,
+      "description": "Aggiunge potenza piatta al danno massimo.",
+      "formula": "F-22",
+      "test": "tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats"
+    },
+    {
+      "id": "power_pct",
+      "name": "Potenza percentuale",
+      "format": "pct",
+      "min": -90,
+      "max": 1000,
+      "description": "Aumenta in percentuale il danno massimo.",
+      "formula": "F-22",
+      "test": "tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats"
+    },
+    {
+      "id": "evasion_bonus",
+      "name": "Schivata",
+      "format": "flat",
+      "min": -1000,
+      "max": 100000,
+      "description": "Aggiunge evasione piatta contro gli attacchi nemici.",
+      "formula": "F-21",
+      "test": "tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats"
+    },
+    {
+      "id": "evasion_pct",
+      "name": "Schivata percentuale",
+      "format": "pct",
+      "min": -90,
+      "max": 1000,
+      "description": "Aumenta in percentuale l'evasione contro gli attacchi nemici.",
+      "formula": "F-21",
+      "test": "tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats"
+    },
+    {
+      "id": "damage_reduction",
+      "name": "Riduzione del danno",
+      "format": "pct",
+      "min": 0,
+      "max": 80,
+      "description": "Riduce in percentuale il danno subito.",
+      "formula": "F-25",
+      "test": "tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats"
+    },
+    {
+      "id": "attack_interval_pct",
+      "name": "Intervallo d'attacco",
+      "format": "pct",
+      "min": -90,
+      "max": 200,
+      "description": "Riduce (se negativo) o allunga l'intervallo tra due attacchi.",
+      "formula": "F-26",
+      "test": "tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats"
+    },
+    {
+      "id": "max_hp_flat",
+      "name": "Punti vita massimi",
+      "format": "flat",
+      "min": 0,
+      "max": 100000,
+      "description": "Aggiunge punti vita massimi.",
+      "formula": "F-27",
+      "test": "tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats"
+    },
+    {
+      "id": "food_healing_pct",
+      "name": "Cura del cibo",
+      "format": "pct",
+      "min": 0,
+      "max": 500,
+      "description": "Aumenta i punti vita recuperati mangiando.",
+      "formula": "F-29",
+      "test": "tests/systems/combat/test_auto_eat.gd::test_food_healing_pct"
+    },
+    {
+      "id": "gold_drop_pct",
+      "name": "Oro dai mostri",
+      "format": "pct",
+      "min": 0,
+      "max": 1000,
+      "description": "Aumenta l'oro lasciato dai mostri sconfitti.",
+      "formula": "F-31",
+      "test": "tests/systems/combat/test_combat_engine.gd::test_gold_drop_pct"
+    },
+    {
+      "id": "loot_bag_slots",
+      "name": "Caselle della borsa del bottino",
+      "format": "flat",
+      "min": 0,
+      "max": 100,
+      "description": "Aggiunge caselle alla borsa del bottino.",
+      "formula": "F-33",
+      "test": "tests/systems/combat/test_loot_bag.gd::test_capacity_uses_loot_bag_slots"
+    },
+    {
+      "id": "auto_loot",
+      "name": "Raccolta automatica del bottino",
+      "format": "flag",
+      "min": 0,
+      "max": 1,
+      "description": "Il bottino dei mostri va direttamente nella bank.",
+      "formula": "10.6",
+      "test": "tests/systems/combat/test_loot_bag.gd::test_auto_loot_to_bank"
+    },
+    {
+      "id": "auto_eat_tier",
+      "name": "Livello delle razioni da campo",
+      "format": "flat",
+      "min": 0,
+      "max": 3,
+      "description": "Livello delle razioni da campo: mangia da solo sotto una soglia di punti vita.",
+      "formula": "F-30",
+      "test": "tests/systems/combat/test_auto_eat.gd::test_tier_thresholds"
+    },
+    {
+      "id": "armory_slots",
+      "name": "Caselle dell'Armeria",
+      "format": "flat",
+      "min": 0,
+      "max": 10000,
+      "description": "Aggiunge caselle extra all'Armeria.",
+      "formula": "F-82",
+      "test": "tests/systems/armory/test_armory.gd::test_capacity_uses_armory_slots"
+    },
+    {
+      "id": "item_rarity_pct",
+      "name": "Rarità degli oggetti",
+      "format": "pct",
+      "min": 0,
+      "max": 1000,
+      "description": "Aumenta la probabilità di ottenere pezzi magici e rari.",
+      "formula": "F-84",
+      "test": "tests/systems/items/test_item_roller.gd::test_item_rarity_pct"
+    },
+    {
+      "id": "block_chance",
+      "name": "Parata",
+      "format": "pct",
+      "min": 0,
+      "max": 50,
+      "description": "Probabilità di parare un colpo con lo scudo.",
+      "formula": "F-75",
+      "test": "tests/systems/combat/test_combat_engine.gd::test_block_chance"
+    },
+    {
+      "id": "upgrade_success_pct",
+      "name": "Riuscita della raffinazione",
+      "format": "pct",
+      "min": 0,
+      "max": 300,
+      "description": "Aumenta la probabilità di riuscita della raffinazione.",
+      "formula": "F-86",
+      "test": "tests/systems/armory/test_upgrade.gd::test_upgrade_success_pct"
+    }
+  ]
+}

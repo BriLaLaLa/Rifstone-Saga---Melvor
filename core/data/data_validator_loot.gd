@@ -1,7 +1,7 @@
 class_name DataValidatorLoot
 extends RefCounted
 ## Part of DataValidator (internal, not API for other modules): the loot keys of balance.json, M7
-## (docs/04_DATA_SCHEMA.md §16): `upgrade` (F-86) and `salvage` (F-88). A missing or mistyped key is already
+## (docs/04_DATA_SCHEMA.md §16): `upgrade` (F-86) and `salvage` (F-95). A missing or mistyped key is already
 ## reported by the required-key checks of DataValidator, so these rules skip what is not the right type.
 
 const LEVEL_FIELDS: PackedStringArray = ["success_pct", "gold_per_grade", "ingots", "shards"]
@@ -84,8 +84,9 @@ static func _rift_stone(v: DataValidatorRules, stone: Dictionary) -> void:  # F-
 
 
 static func _salvage(v: DataValidatorRules, salvage: Dictionary) -> void:
-	if DataValidatorRules.is_number(salvage.get("ingot_ratio")):
-		v.number(salvage, "ingot_ratio", 0.0, 1.0, "salvage")
+	for key: String in ["component_ratio", "ingot_ratio"]:  # ingot_ratio: legacy key, removed with M10-04
+		if DataValidatorRules.is_number(salvage.get(key)):
+			v.number(salvage, key, 0.0, 1.0, "salvage")
 	if not salvage.get("shards_by_rarity") is Dictionary:
 		return
 	var shards: Dictionary = salvage["shards_by_rarity"] as Dictionary

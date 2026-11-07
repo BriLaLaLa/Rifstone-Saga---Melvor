@@ -1,0 +1,13 @@
+{
+  "entries": [
+    {"id": "bank_slot", "name": "Casella della bank", "category": "bank", "description": "Una casella in più.",
+     "cost": {"formula": "bank_slot"}, "max_purchases": 150, "requires": {},
+     "effect": {"modifiers": [{"stat": "bank_slots", "value": 1}]}},
+    {"id": "test_upgrade_1", "name": "Miglioria di prova I", "category": "bank", "description": "Primo livello.",
+     "cost": {"gold": 1000}, "max_purchases": 1, "requires": {},
+     "effect": {"modifiers": [{"stat": "auto_eat_tier", "value": 1}]}},
+    {"id": "test_buy_log", "name": "Tronco di prova", "category": "materials", "description": "Un tronco.",
+     "cost": {"gold": 20}, "max_purchases": 0, "requires": {},
+     "effect": {"item": {"item": "test_log", "qty": 1}}}
+  ]
+}

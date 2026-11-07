@@ -11,6 +11,8 @@ var modifiers: Array[Modifier] = []
 var kind: StringName = &""
 var grade: int = 0
 var weapon: WeaponInfo = null
+var unique: bool = false  # M10: unique tool (04 §5); false when absent
+var upgrade_extras: Array[ToolExtra] = []  # M10: empty when absent
 
 
 static func from_dict(d: Dictionary) -> EquipInfo:
@@ -26,4 +28,12 @@ static func from_dict(d: Dictionary) -> EquipInfo:
 	if r.has("weapon") and r.is_dict("weapon"):
 		def.weapon = WeaponInfo.from_dict(r.dict("weapon"))
 		r.absorb(def.weapon != null)
+	if r.has("unique"):
+		def.unique = r.flag("unique")
+	if r.has("upgrade_extras"):
+		for entry: Dictionary in r.dict_list("upgrade_extras"):
+			var extra: ToolExtra = ToolExtra.from_dict(entry)
+			r.absorb(extra != null)
+			if extra != null:
+				def.upgrade_extras.append(extra)
 	return def if r.ok else null

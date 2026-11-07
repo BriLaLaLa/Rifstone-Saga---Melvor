@@ -1,0 +1,27 @@
+{
+  "items": [
+    {"id": "test_hatchet", "name": "Accetta di prova", "category": "tool",
+     "icon": "res://assets/icons/items/test_hatchet.png", "value": 0, "sort_order": 10,
+     "description": "Attrezzo unico per i test.",
+     "equip": {"slot": "tool_forestry", "grade": 1, "unique": true, "requirements": {},
+               "modifiers": [{"stat": "skill_interval_pct", "value": -5, "scope": "skill:forestry"}],
+               "upgrade_extras": [
+                 {"at": 5, "modifiers": [{"stat": "double_item_chance", "value": 2, "scope": "skill:forestry"}]},
+                 {"at": 9, "modifiers": [{"stat": "double_item_chance", "value": 3, "scope": "skill:forestry"}]}]}},
+    {"id": "test_pickaxe", "name": "Piccone di prova", "category": "tool",
+     "icon": "res://assets/icons/items/test_pickaxe.png", "value": 0, "sort_order": 20,
+     "description": "Attrezzo unico per i test.",
+     "equip": {"slot": "tool_quarrying", "grade": 1, "unique": true, "requirements": {},
+               "modifiers": [{"stat": "skill_interval_pct", "value": -5, "scope": "skill:quarrying"}],
+               "upgrade_extras": [
+                 {"at": 5, "modifiers": [{"stat": "double_item_chance", "value": 2, "scope": "skill:quarrying"}]}]}},
+    {"id": "test_rod", "name": "Canna di prova", "category": "tool",
+     "icon": "res://assets/icons/items/test_rod.png", "value": 0, "sort_order": 30,
+     "description": "Attrezzo unico per i test.",
+     "equip": {"slot": "tool_angling", "grade": 1, "unique": true, "requirements": {},
+               "modifiers": [{"stat": "skill_interval_pct", "value": -5, "scope": "skill:angling"}],
+               "upgrade_extras": [
+                 {"at": 5, "modifiers": [{"stat": "rift_shard_chance", "value": 10, "scope": "skill:angling"}]},
+                 {"at": 9, "modifiers": [{"stat": "rift_shard_chance", "value": 15, "scope": "skill:angling"}]}]}}
+  ]
+}

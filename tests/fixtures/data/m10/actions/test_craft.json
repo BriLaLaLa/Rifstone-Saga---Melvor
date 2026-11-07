@@ -1,0 +1,7 @@
+{
+  "skill": "test_craft",
+  "actions": [
+    {"id": "craft_plank", "name": "Tagliare assi di prova", "level": 1, "interval_ms": 2000, "xp": 8,
+     "mastery": true, "inputs": [{"item": "test_log", "qty": 2}], "outputs": [{"item": "test_plank", "qty": 1}]}
+  ]
+}

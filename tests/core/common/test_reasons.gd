@@ -1,10 +1,10 @@
 extends GutTest
-## Reasons: the closed list of docs/05_INTERFACES.md §1 (35 constants of M0-M3 plus the 3 of M4).
+## Reasons: the closed list of docs/05_INTERFACES.md §1 (35 constants of M0-M3 plus the 3 of M4, 4 of M10).
 
 
 func test_reasons_values_match_their_names() -> void:
 	var constants: Dictionary = (Reasons as Script).get_script_constant_map()
-	assert_eq(constants.size(), 40, "closed list of docs/05_INTERFACES.md §1")
+	assert_eq(constants.size(), 44, "closed list of docs/05_INTERFACES.md §1")
 	for constant_name: String in constants:
 		var value: Variant = constants[constant_name]
 		assert_typeof(value, TYPE_STRING_NAME, constant_name)
@@ -18,3 +18,10 @@ func test_m4_reasons() -> void:
 	assert_eq(Reasons.SLOT_LOCKED, &"slot_locked")
 func test_m7_reasons() -> void:
 	assert_eq(Reasons.UPGRADE_MAX, &"upgrade_max")
+
+
+func test_m10_reasons() -> void:
+	assert_eq(Reasons.ITEM_UNIQUE, &"item_unique")
+	assert_eq(Reasons.NOT_A_TOOL, &"not_a_tool")
+	assert_eq(Reasons.INVALID_CHOICE, &"invalid_choice")
+	assert_eq(Reasons.BLUEPRINT_DONE, &"blueprint_done")

@@ -1,0 +1,9 @@
+{
+  "skill": "forging",
+  "actions": [
+    {"id": "smelt_test", "name": "Fondere di prova", "level": 1, "interval_ms": 2000, "xp": 8,
+     "mastery": false, "inputs": [{"item": "test_log", "qty": 2}], "outputs": [{"item": "test_plate_1", "qty": 1}]},
+    {"id": "blueprint_craft", "name": "Forgiare un progetto", "level": 1, "interval_ms": 600000, "xp": 1,
+     "mastery": false, "single": true, "inputs": [], "outputs": []}
+  ]
+}

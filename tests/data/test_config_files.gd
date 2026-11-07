@@ -66,6 +66,7 @@ const EXPECTED_BALANCE: Dictionary = {
 	"combat.auto_eat_tiers.3.target_pct": 90.0,
 	"combat.respawn_ms": 1500.0,
 	"combat.loot_bag_base_slots": 12.0,
+	"combat.kill_xp_mult": 0.15,
 	"character_curve.base": 70.0,
 	"character_curve.growth": 1.1,
 	"character_curve.linear": 8.0,
@@ -83,6 +84,13 @@ const EXPECTED_BALANCE: Dictionary = {
 	"armory.slot_cost_base": 1000.0,
 	"armory.slot_cost_growth": 1.12,
 	"armory.slot_cost_cap": 2000000.0,
+	"blueprint.duration_base_min": 10.0,
+	"blueprint.duration_per_grade_min": 7.0,
+	"blueprint.xp_mult": 1.5,
+	"blueprint.rare_base_pct": 10.0,
+	"blueprint.rare_per_forging_level": 0.5,
+	"blueprint.choose_affix_level": 50.0,
+	"blueprint.chosen_affix_tier": 2.0,
 	"rarity.craft.magic_base_pct": 10.0,
 	"rarity.craft.magic_per_mastery_level": 0.4,
 	"rarity.craft.rare_base_pct": 1.0,
@@ -135,7 +143,7 @@ const EXPECTED_STATS: Dictionary = {
 	"auto_loot": [0.0, 1.0, "10.6"],
 	"auto_eat_tier": [0.0, 3.0, "F-30"],
 	"armory_slots": [0.0, 10000.0, "F-82"],
-	"item_rarity_pct": [0.0, 1000.0, "F-83"],
+	"item_rarity_pct": [0.0, 1000.0, "F-84"],
 	"block_chance": [0.0, 50.0, "F-75"],
 	"upgrade_success_pct": [0.0, 300.0, "F-86"],
 }
@@ -178,11 +186,12 @@ func _flatten(value: Variant, prefix: String, out: Dictionary) -> void:
 		out[prefix] = value
 
 
-# The leaves of balance.json except the M7 sections `upgrade` and `salvage` (tests/data/test_loot_balance.gd).
+# The leaves of balance.json except the M7 sections `upgrade` and `salvage` (tests/data/test_loot_balance.gd) and the M10
+# section `tool_upgrade` (tests/data/test_balance_m10_keys.gd).
 func _flatten_without_loot(out: Dictionary) -> void:
 	_flatten(_load_dict(BALANCE_PATH), "", out)
 	for key: String in out.keys():
-		if key.begins_with("upgrade.") or key.begins_with("salvage."):
+		if key.begins_with("upgrade.") or key.begins_with("salvage.") or key.begins_with("tool_upgrade."):
 			out.erase(key)
 
 

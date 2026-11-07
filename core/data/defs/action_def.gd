@@ -17,6 +17,7 @@ var mastery: bool = false
 var icon: String = ""
 var inputs: Array[ItemQty] = []
 var outputs: Array[ItemQty] = []
+var single: bool = false  # M10: single-cycle action (04 §6); false when absent
 
 
 static func from_dict(d: Dictionary, file_skill_id: StringName = &"") -> ActionDef:
@@ -36,12 +37,14 @@ static func from_dict(d: Dictionary, file_skill_id: StringName = &"") -> ActionD
 		def.icon = r.text("icon")
 	def.inputs = _item_list(r, "inputs")
 	def.outputs = _item_list(r, "outputs")
+	if r.has("single"):
+		def.single = r.flag("single")
 	return def if r.ok else null
 
 
-## Artisan actions consume inputs; gathering actions have none.
+## Artisan actions consume inputs; gathering actions have none. A single-cycle action (M10) is artisan too.
 func is_artisan() -> bool:
-	return not inputs.is_empty()
+	return not inputs.is_empty() or single
 
 
 static func _item_list(r: DefReader, key: String) -> Array[ItemQty]:

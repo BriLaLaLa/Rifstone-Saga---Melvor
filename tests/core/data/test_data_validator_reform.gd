@@ -300,10 +300,11 @@ func test_affix_unknown_field_is_an_error() -> void:
 
 func test_reform_keys_are_required() -> void:
 	for key: String in ["character_curve.base", "character.start_class", "armory.slot_cost_cap",
-			"rarity.craft.rare_base_pct", "rarity.affix_count.rare", "combat.dual_wield.interval_mult",
+			"combat.kill_xp_mult", "rarity.affix_count.rare", "combat.dual_wield.interval_mult",
 			"combat.max_pack_size", "combat.hp_per_level"]:
 		assert_true(DataValidator.REQUIRED_BALANCE_KEYS.has(key), key)
-	for key: String in ["combat.hp_skill", "combat.defence_skill", "combat.hp_per_vitality",
+	for key: String in ["rarity.craft.magic_base_pct", "rarity.craft.rare_base_pct", "salvage.ingot_ratio",
+			"combat.hp_skill", "combat.defence_skill", "combat.hp_per_vitality",
 			"combat.xp_per_damage_style", "combat.xp_per_damage_vitality"]:
 		assert_false(DataValidator.REQUIRED_BALANCE_KEYS.has(key), key)
 

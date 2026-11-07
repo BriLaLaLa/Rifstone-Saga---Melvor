@@ -73,10 +73,10 @@ func test_upgrade_scalar_keys() -> void:
 
 func test_salvage_rules() -> void:
 	var raw: Dictionary = V.fixture_raw()
-	_salvage(raw)["ingot_ratio"] = 1.5
+	_salvage(raw)["component_ratio"] = 1.5
 	(_salvage(raw)["shards_by_rarity"] as Dictionary).erase("rare")
 	(_salvage(raw)["shards_by_rarity"] as Dictionary)["magic"] = -1
-	_expect(raw, "salvage.ingot_ratio")
+	_expect(raw, "salvage.component_ratio")
 	_expect(raw, "'salvage.shards_by_rarity.rare' is required")
 	_expect(raw, "salvage.shards_by_rarity")
 
@@ -84,4 +84,4 @@ func test_salvage_rules() -> void:
 func test_missing_sections_are_reported() -> void:
 	var raw: Dictionary = V.fixture_raw()
 	V.file_of(raw, "balance", "balance.json").erase("salvage")
-	_expect(raw, "missing key 'salvage.ingot_ratio'")
+	_expect(raw, "missing key 'salvage.component_ratio'")

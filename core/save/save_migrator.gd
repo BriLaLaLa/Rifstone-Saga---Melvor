@@ -6,7 +6,7 @@ extends RefCounted
 ## `migrations/migration_<a>_to_<a+1>.gd`, each with `static func migrate(d: Dictionary) -> Dictionary`.
 ## After each step format_version is set to the new version, so a migration does not have to do it.
 
-const CURRENT_VERSION: int = 2
+const CURRENT_VERSION: int = 3
 const FORMAT_VERSION_KEY: String = "format_version"
 const MIGRATIONS_DIR: String = "res://core/save/migrations"
 const MIGRATION_FILE: String = "migration_%d_to_%d.gd"
