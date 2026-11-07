@@ -37,7 +37,7 @@ func test_empty_bank() -> void:
 	_open()
 	assert_eq(_cells().size(), 0)
 	assert_true(_label("%EmptyLabel").visible)
-	assert_eq(_label("%TitleLabel").text, "Bank")
+	assert_eq(_label("%TitleLabel").text, "Deposito")
 	assert_eq(_label("%SlotsLabel").text, "Caselle: 0 / %s" % NumberFormat.format_int(_session.bank.capacity()))
 	assert_false(_label("%FullLabel").visible)
 

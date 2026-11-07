@@ -157,7 +157,7 @@ func _load_copy(text: String) -> GameSession:
 
 
 func _new_session(seed_value: int) -> GameSession:
-	var session: GameSession = TestFactory.session(seed_value, TestFactory.real_data())
+	var session: GameSession = TestFactory.session_no_kit(seed_value, TestFactory.real_data())
 	_sessions.append(session)
 	return session
 

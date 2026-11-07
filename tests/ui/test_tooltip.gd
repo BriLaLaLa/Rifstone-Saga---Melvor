@@ -50,11 +50,10 @@ func test_show_item_weapon_lines() -> void:
 
 
 func test_show_item_tool_shows_pct_and_skill_scope() -> void:
-	_show_item(&"test_hatchet", 1)
+	_show_item(&"unique_hatchet", 1)
 	assert_eq(_lines(_tooltip.body_text()), PackedStringArray([
-		"Richiede Raccolta di prova livello 1",
 		"Velocità delle azioni -5% (Raccolta di prova)",
-		"Valore: 10 oro",
+		"Non vendibile",  # a unique tool (M10): no value, never sold
 	]))
 
 
@@ -85,7 +84,7 @@ func test_show_item_without_count_has_no_quantity() -> void:
 
 
 func test_show_item_null_hides_and_reports() -> void:
-	_show_item(&"test_hatchet", 1)
+	_show_item(&"unique_hatchet", 1)
 	Tooltips.show_item(null, 1, Vector2.ZERO)
 	assert_push_error("null item")
 	assert_false(_tooltip.is_shown())
@@ -100,7 +99,7 @@ func test_show_text_title_and_body() -> void:
 
 
 func test_hide_tooltip_hides_and_clears() -> void:
-	_show_item(&"test_hatchet", 3)
+	_show_item(&"unique_hatchet", 3)
 	Tooltips.hide_tooltip()
 	assert_false(_tooltip.is_shown())
 	assert_false(_tooltip.visible)
@@ -110,14 +109,14 @@ func test_hide_tooltip_hides_and_clears() -> void:
 
 
 func test_hide_before_placement_keeps_it_hidden() -> void:
-	_show_item(&"test_hatchet", 3)
+	_show_item(&"unique_hatchet", 3)
 	Tooltips.hide_tooltip()
 	await _process_frames(3)
 	assert_false(_tooltip.visible)
 
 
 func test_tooltip_is_clamped_inside_viewport() -> void:
-	Tooltips.show_item(_data.item(&"test_hatchet"), 1, Vector2(100000, 100000))
+	Tooltips.show_item(_data.item(&"unique_hatchet"), 1, Vector2(100000, 100000))
 	# Placement = a deferred call plus one process frame (CustomTooltip._resize_and_place): wait for idle frames, not
 	# for physics frames, whose count per rendered frame varies (this made the test intermittent).
 	await _process_frames(PLACEMENT_FRAMES)

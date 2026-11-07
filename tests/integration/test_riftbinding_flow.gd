@@ -17,7 +17,7 @@ var _s: GameSession = null
 
 
 func before_each() -> void:
-	_s = TestFactory.session(SEED, TestFactory.real_data())
+	_s = TestFactory.session_no_kit(SEED, TestFactory.real_data())
 
 
 func after_each() -> void:
@@ -57,7 +57,7 @@ func test_every_bind_recipe_yields_its_item_with_xp_and_mastery() -> void:
 	var categories: Dictionary[StringName, int] = {}
 	for action: ActionDef in actions:
 		_s.free()
-		_s = TestFactory.session(SEED, TestFactory.real_data())
+		_s = TestFactory.session_no_kit(SEED, TestFactory.real_data())
 		TestFactory.set_level(_s, SKILL, action.level)
 		var xp_start: int = _s.skills.get_xp(SKILL)
 		_bind(action.id)
@@ -104,7 +104,7 @@ func test_sockets_unlock_at_the_balance_levels() -> void:
 		for j: int in levels.size():
 			assert_eq(_s.rift.is_unlocked(j), j <= i, "socket %d at level %d" % [j, levels[i]])
 	# Just below a threshold the next socket is still locked.
-	var t: GameSession = TestFactory.session(SEED, TestFactory.real_data())
+	var t: GameSession = TestFactory.session_no_kit(SEED, TestFactory.real_data())
 	TestFactory.set_level(t, SKILL, 79)
 	assert_false(t.rift.is_unlocked(4), "79 < 80")
 	t.free()
@@ -211,7 +211,7 @@ func test_altar_save_load_save_identical_and_rebuilds_modifiers() -> void:
 	_s.rift.socket(0, &"inf_bulwark")
 	_s.rift.socket(2, &"inf_scholar")
 	var text: String = SaveCodec.encode(_s.to_save(NOW_MS))
-	var copy: GameSession = TestFactory.session(SEED + 1, TestFactory.real_data())
+	var copy: GameSession = TestFactory.session_no_kit(SEED + 1, TestFactory.real_data())
 	assert_true(copy.from_save(SaveCodec.decode(text)).ok)
 	assert_eq(copy.rift.get_socket(0), &"inf_bulwark")
 	assert_eq(copy.rift.get_socket(1), &"")

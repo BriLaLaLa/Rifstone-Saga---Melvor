@@ -72,7 +72,7 @@ var _purchases: Array[StringName] = []
 
 func before_all() -> void:
 	before_each()
-	var session: GameSession = TestFactory.session(SEED, TestFactory.real_data())
+	var session: GameSession = TestFactory.session_no_kit(SEED, TestFactory.real_data())
 	_connect(session)
 	session.actions.start(SKILL, ACTION)
 	var started_ms: int = Time.get_ticks_msec()
@@ -299,7 +299,7 @@ func _levels(from: int, to: int) -> Array[int]:
 
 
 func _restore(save: Dictionary) -> GameSession:
-	var session: GameSession = TestFactory.session(SEED, TestFactory.real_data())
+	var session: GameSession = TestFactory.session_no_kit(SEED, TestFactory.real_data())
 	var result: CommandResult = session.from_save(save.duplicate(true))
 	assert_true(result.ok, "from_save of the long run")
 	_connect(session)

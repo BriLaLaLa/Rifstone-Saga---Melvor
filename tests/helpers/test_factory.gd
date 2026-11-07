@@ -44,6 +44,14 @@ static func session(seed_value: int = 1234, data: GameData = null, keep_kit: boo
 	return result
 
 
+## Like `session`, but always without the starting kit (also on the real data): for flow tests that predate the kit and
+## do not test it. The kit itself is covered by test_starting_kit.gd and test_m10_flow.gd.
+static func session_no_kit(seed_value: int = 1234, data: GameData = null) -> GameSession:
+	var result: GameSession = session(seed_value, data, true)
+	clear_kit(result)
+	return result
+
+
 ## True for the content of res://tests/fixtures/data (it has the test items and the real `start.food`).
 static func is_legacy_fixture(data: GameData) -> bool:
 	return data.has_item(&"test_twig") and data.balance_value("start.food") == "seared_brookfin"

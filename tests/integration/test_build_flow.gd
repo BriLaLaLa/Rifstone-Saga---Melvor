@@ -27,7 +27,7 @@ var _changed: int = 0
 
 # A real-data session at `level` with a sword (+ `offhand` if given) worn and a practically immortal player.
 func _build(seed_value: int, offhand: StringName = SHIELD, level: int = LEVEL) -> GameSession:
-	var s: GameSession = autofree(TestFactory.session(seed_value, TestFactory.real_data()))
+	var s: GameSession = autofree(TestFactory.session_no_kit(seed_value, TestFactory.real_data()))
 	TestFactory.set_character_level(s, level)
 	assert_true(s.equipment.equip(TestFactory.give_piece(s, SWORD)).ok)
 	if offhand != &"":
@@ -64,7 +64,7 @@ func _inventory(s: GameSession) -> Dictionary:
 # --- slots and choice ------------------------------------------------------------------------------------------
 
 func test_slots_open_with_the_character_level() -> void:
-	var s: GameSession = autofree(TestFactory.session(SEED, TestFactory.real_data()))
+	var s: GameSession = autofree(TestFactory.session_no_kit(SEED, TestFactory.real_data()))
 	assert_eq(s.loadout.trait_slots(), 1, "level 1: one trait slot")
 	assert_eq(s.loadout.ability_slots(), 2, "level 1: two ability slots")
 	TestFactory.set_character_level(s, LEVEL)
@@ -187,7 +187,7 @@ func test_save_mid_fight_gives_the_same_continuation() -> void:
 	assert_true(a.combat.start(AREA).ok)
 	_run(a, 90000)
 	var blob: String = _blob(a)
-	var b: GameSession = autofree(TestFactory.session(OTHER_SEED, TestFactory.real_data()))
+	var b: GameSession = autofree(TestFactory.session_no_kit(OTHER_SEED, TestFactory.real_data()))
 	assert_true(b.from_save(SaveCodec.decode(blob)).ok)
 	assert_eq(b.loadout.get_trait(2), &"blood_ember")
 	assert_eq(b.loadout.get_ability(1), &"ember_breath")
@@ -205,7 +205,7 @@ func test_save_with_an_unknown_trait_id_loads_empty_without_breaking_the_game() 
 	var d: Dictionary = a.to_save(NOW_MS)
 	assert_true(d["modules"].has("loadout"), "the loadout is saved under modules.loadout")
 	d["modules"]["loadout"]["traits"] = ["gone_trait", "chain_cleave"]
-	var b: GameSession = autofree(TestFactory.session(OTHER_SEED, TestFactory.real_data()))
+	var b: GameSession = autofree(TestFactory.session_no_kit(OTHER_SEED, TestFactory.real_data()))
 	assert_true(b.from_save(SaveCodec.decode(SaveCodec.encode(d))).ok)
 	assert_eq(b.loadout.get_trait(0), &"", "unknown id dropped")
 	assert_eq(b.loadout.get_trait(1), &"chain_cleave", "the valid one in its slot stays")
@@ -255,7 +255,7 @@ func _gear_for(setup: StringName) -> Array[StringName]:
 func _session_for(setups: Array[StringName], level: int) -> GameSession:
 	var setup: StringName = &"sword_shield" if setups.is_empty() else setups[0]
 	var gear: Array[StringName] = _gear_for(setup)
-	var s: GameSession = autofree(TestFactory.session(SEED, TestFactory.real_data()))
+	var s: GameSession = autofree(TestFactory.session_no_kit(SEED, TestFactory.real_data()))
 	TestFactory.set_character_level(s, level)
 	assert_true(s.equipment.equip(TestFactory.give_piece(s, gear[0])).ok)
 	if gear[1] != &"":

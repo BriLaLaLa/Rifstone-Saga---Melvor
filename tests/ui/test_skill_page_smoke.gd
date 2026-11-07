@@ -239,12 +239,12 @@ func test_gathering_page_has_no_recipe_cards() -> void:
 		assert_false(card is RecipeCard)
 
 
-func test_real_data_forging_scrolls_96_recipes_with_variable_ingredients() -> void:
+func test_real_data_forging_scrolls_16_recipes_and_hides_the_blueprint_action() -> void:
 	_session.free()
 	_session = TestFactory.session(1234, TestFactory.real_data())
 	_open(&"forging")
 	var cards: Array[ActionCard] = _cards()
-	assert_eq(cards.size(), 96)
+	assert_eq(cards.size(), 16, "8 smelting + 8 plate recipes; the blueprint craft has its own section")
 	for card: ActionCard in cards:
 		assert_true(card is RecipeCard)
 	var scroll: ScrollContainer = _page.get_node("Margin/Content/Scroll") as ScrollContainer
@@ -258,7 +258,7 @@ func test_real_data_forging_scrolls_96_recipes_with_variable_ingredients() -> vo
 		var shown: int = (card.get_node("%Ingredients") as Control).get_child_count()
 		assert_eq(shown, distinct.size(), "%s ingredient rows" % card.action_id())
 		counts[shown] = true
-	assert_true(counts.has(1) and counts.has(2), "the number of ingredients varies")
+	assert_true(counts.has(1), "every recipe of the page has one ingredient (ore or ingots)")
 
 
 func test_real_data_forestry_page() -> void:
@@ -267,9 +267,9 @@ func test_real_data_forestry_page() -> void:
 	_open(&"forestry")
 	var cards: Array[ActionCard] = _cards()
 	assert_eq(cards.size(), 8)
-	assert_eq(_label(_page, "%NameLabel").text, "Selvicoltura")
+	assert_eq(_label(_page, "%NameLabel").text, "Boscaiolo")
 	assert_false(_button(cards[0]).disabled)
-	assert_eq(_label(cards[0], "%IntervalValue").text, "3,0 s")
+	assert_eq(_label(cards[0], "%IntervalValue").text, "2,85 s", "the unique hatchet +0 of the kit: -5%")
 	for card: ActionCard in cards.slice(1):
 		assert_true(_button(card).disabled, "%s locked at level 1" % card.action_id())
 

@@ -46,7 +46,7 @@ func after_all() -> void:
 
 
 func test_the_reference_setup_is_the_one_of_f34() -> void:
-	var session: GameSession = TestFactory.session(SEED, _data)
+	var session: GameSession = TestFactory.session_no_kit(SEED, _data)
 	assert_eq(int(_data.balance_value("combat.respawn_ms")), 0)
 	assert_eq(_data.area(AREA).packs.size(), 1)
 	assert_eq(_data.area(AREA).packs[0].monster_ids, [BOAR] as Array[StringName])
@@ -78,7 +78,7 @@ func test_same_seed_gives_the_same_mean() -> void:
 
 # Fights until KILLS boars are dead; returns elapsed seconds / kills.
 func _mean_seconds_per_kill(seed_value: int) -> float:
-	var session: GameSession = TestFactory.session(seed_value, _data)
+	var session: GameSession = TestFactory.session_no_kit(seed_value, _data)
 	session.modifiers.set_source(&"test:immortal", [Modifier.make(&"max_hp_flat", 100000.0)])
 	var pinned_xp: int = session.character.get_xp()
 	assert_true(session.combat.start(AREA).ok)

@@ -14,9 +14,9 @@ const SLOT_B: int = 2
 const SKILL: StringName = &"forestry"
 const ACTION: StringName = &"cut_redbirch"
 const LOG_ITEM: StringName = &"redbirch_log"
-# 10 cycles of cut_redbirch (3000 ms, F-03) plus 1200 ms of the 11th: 100 XP, 10 logs, a lane half way.
+# 10 cycles of cut_redbirch (2850 ms: 3000 ms with the kit hatchet +0, -5%, F-03) plus 2700 ms of the 11th: 100 XP, 10 logs, a lane half way.
 const A_PLAY_MS: int = 31200
-const A_ELAPSED_MS: int = 1200
+const A_ELAPSED_MS: int = 2700
 const A_XP: int = 100
 const A_LOGS: int = 10
 const A_EXTRA_GOLD: int = 123

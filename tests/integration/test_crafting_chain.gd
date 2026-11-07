@@ -1,25 +1,20 @@
 extends GutTest
-## Integration (M3): ore -> ingot -> tool -> equipped -> faster gathering, on the real data with a fixed seed.
-## The chain is played through the public API only (actions.start / advance / equipment.equip); nothing is granted:
-## ore, logs, ingots and the tool all come from completed cycles. Quantities, intervals and slots are read from the
-## data (docs/05_INTERFACES.md 5.8-5.9, docs/02_FORMULAS.md 8.2 / 8.4: smelt_<metal>, forge_<metal>_hatchet|pick|rod).
+## Integration (M3, reworked for M10): ore -> ingot -> plate (and grips from logs) -> blueprint -> piece in the Armory ->
+## equipped, on the real data with a fixed seed. No recipe produces equipment or tools any more (docs/01_GDD.md 5.1).
+## The chain is played through the public API only (actions.start / start_blueprint / advance / equipment.equip);
+## ore, logs, ingots, plates and grips come from completed cycles. The blueprint and the rare component are drops
+## (M10-04), so they are granted. Quantities and intervals are read from the data.
 
 const SEED: int = 31337
 const TICK_MS: int = 100
 const METAL: String = "emberbronze"
 const SMELT_PREFIX: String = "smelt_"
-const FORGE_PREFIX: String = "forge_"
-const INTERVAL_STAT: StringName = &"skill_interval_pct"
-const MIN_INTERVAL_KEY: String = "action.min_interval_ms"
+const PLATE_PREFIX: String = "forge_"
+const PLATE_SUFFIX: String = "_plate"
+const BASE: StringName = &"emberbronze_sword"
+const BLUEPRINT: StringName = &"bp_emberbronze_sword"
 const GATHERING: StringName = &"gathering"
 const ARTISAN: StringName = &"artisan"
-const TOOL_KINDS: Array[String] = ["hatchet", "pick", "rod"]
-const TOOL_SLOTS: Dictionary[String, StringName] = {
-	"hatchet": &"tool_forestry", "pick": &"tool_quarrying", "rod": &"tool_angling",
-}
-const TOOL_SKILLS: Dictionary[String, StringName] = {
-	"hatchet": &"forestry", "pick": &"quarrying", "rod": &"angling",
-}
 const MAX_STEPS: int = 20000
 
 var _session: GameSession = null
@@ -32,110 +27,87 @@ func after_each() -> void:
 	_session = null
 
 
-func test_hatchet_chain_speeds_up_forestry() -> void:
-	_run_chain("hatchet")
+func test_no_recipe_produces_equipment_or_tools() -> void:
+	var data: GameData = TestFactory.real_data()
+	for skill: SkillDef in data.skills_by_category(ARTISAN):
+		for action: ActionDef in data.actions_for_skill(skill.id):
+			for output: ItemQty in action.outputs:
+				var category: StringName = data.item(output.item_id).category
+				assert_false(category == &"equipment" or category == &"tool",
+						"%s must not produce %s" % [action.id, output.item_id])
 
 
-func test_pick_chain_speeds_up_quarrying() -> void:
-	_run_chain("pick")
-
-
-func test_rod_chain_speeds_up_angling() -> void:
-	_run_chain("rod")
-
-
-func test_every_metal_has_its_three_tools_in_the_right_slots() -> void:
+func test_every_metal_has_smelting_and_plate_recipes_with_matching_items() -> void:
 	var data: GameData = TestFactory.real_data()
 	var metals: Array[String] = []
 	for action: ActionDef in data.actions_for_skill(&"forging"):
 		if String(action.id).begins_with(SMELT_PREFIX):
 			metals.append(String(action.id).trim_prefix(SMELT_PREFIX))
-	assert_gt(metals.size(), 0, "smelt_<metal> recipes exist")
+	assert_eq(metals.size(), 8, "eight metals, one per grade")
 	for metal: String in metals:
 		var smelt: ActionDef = data.action(StringName(SMELT_PREFIX + metal))
 		var ingot: StringName = smelt.outputs[0].item_id
-		for kind: String in TOOL_KINDS:
-			var forge: ActionDef = data.action(StringName("%s%s_%s" % [FORGE_PREFIX, metal, kind]))
-			assert_not_null(forge, "forge_%s_%s exists" % [metal, kind])
-			if forge == null:
-				continue
-			var needs_ingot: bool = false
-			for input: ItemQty in forge.inputs:
-				needs_ingot = needs_ingot or input.item_id == ingot
-			assert_true(needs_ingot, "%s uses the ingot of smelt_%s" % [forge.id, metal])
-			var tool_def: ItemDef = data.item(forge.outputs[0].item_id)
-			assert_eq(tool_def.equip.slot, TOOL_SLOTS[kind], "%s goes in %s" % [tool_def.id, TOOL_SLOTS[kind]])
-			var speeds: bool = false
-			for mod: Modifier in tool_def.equip.modifiers:
-				speeds = speeds or (mod.stat == INTERVAL_STAT and mod.value < 0.0 and mod.scope_kind == &"skill"
-						and mod.scope_id == TOOL_SKILLS[kind])
-			assert_true(speeds, "%s lowers the interval of %s" % [tool_def.id, TOOL_SKILLS[kind]])
+		var plate: ActionDef = data.action(StringName("%s%s%s" % [PLATE_PREFIX, metal, PLATE_SUFFIX]))
+		assert_not_null(plate, "forge_%s_plate exists" % metal)
+		if plate == null:
+			continue
+		var needs_ingot: bool = false
+		for input: ItemQty in plate.inputs:
+			needs_ingot = needs_ingot or input.item_id == ingot
+		assert_true(needs_ingot, "%s uses the ingot of smelt_%s" % [plate.id, metal])
+		assert_eq(data.item(plate.outputs[0].item_id).category, &"component", "%s makes a component" % plate.id)
 
 
-# One full chain for a tool kind. All the quantities come from the recipes.
-func _run_chain(kind: String) -> void:
-	_session = TestFactory.session(SEED, TestFactory.real_data())
+func test_ore_to_plate_to_blueprint_to_worn_piece() -> void:
+	_session = TestFactory.session_no_kit(SEED, TestFactory.real_data())
 	var data: GameData = _session.data
+	var blueprint: ItemDef = data.item(BLUEPRINT)
+	assert_eq(_session.armory.instances().size(), 0, "starts without pieces")
+	# 1. raw materials -> ingots -> plates, grips from logs: everything from completed cycles
 	var smelt: ActionDef = data.action(StringName(SMELT_PREFIX + METAL))
-	var forge: ActionDef = data.action(StringName("%s%s_%s" % [FORGE_PREFIX, METAL, kind]))
-	var tool_def: ItemDef = data.item(forge.outputs[0].item_id)
-	var skill: StringName = TOOL_SKILLS[kind]
-	var slot: StringName = TOOL_SLOTS[kind]
-	var base_action: ActionDef = data.actions_for_skill(skill)[0]
-	var before_ms: int = _session.actions.current_interval_ms(base_action.id)
-	assert_eq(_session.armory.instances().size(), 0, "starts without the tool")
-	# 1. raw materials from gathering cycles, then smelting, then forging
+	var plate_action: ActionDef = data.action(StringName("%s%s%s" % [PLATE_PREFIX, METAL, PLATE_SUFFIX]))
+	var needs: Dictionary = {}
+	for input: ItemQty in BlueprintCraft.inputs(blueprint):
+		needs[input.item_id] = input.qty
+	var plate: StringName = plate_action.outputs[0].item_id
+	var plate_cycles: int = ceili(float(needs[plate]) / float(plate_action.outputs[0].qty))
 	var ingot: StringName = smelt.outputs[0].item_id
-	var ingots_needed: int = 0
-	for input: ItemQty in forge.inputs:
-		if input.item_id == ingot:
-			ingots_needed = input.qty
-		else:
-			_obtain(input.item_id, input.qty)
+	var ingots_needed: int = plate_cycles * plate_action.inputs[0].qty
 	var smelt_cycles: int = ceili(float(ingots_needed) / float(smelt.outputs[0].qty))
 	for input: ItemQty in smelt.inputs:
 		_gather(input.item_id, input.qty * smelt_cycles)
 	_run_cycles(smelt, smelt_cycles)
 	assert_eq(_session.bank.get_count(ingot), ingots_needed, "%d cycles of %s" % [smelt_cycles, smelt.id])
-	_run_cycles(forge, 1)
-	var pieces: Array[ItemInstance] = _session.armory.instances()
-	assert_eq(pieces.size(), forge.outputs[0].qty, "the tool is in the Armory")
-	assert_eq(pieces[0].base_id, tool_def.id)
-	assert_eq(_session.bank.get_count(tool_def.id), 0, "not in the bank")
+	_run_cycles(plate_action, plate_cycles)
+	assert_eq(_session.bank.get_count(plate), needs[plate], "the plates of the blueprint")
 	assert_eq(_session.bank.get_count(ingot), 0, "ingots consumed")
-	assert_gt(_session.skills.get_xp(&"forging"), 0, "forging XP earned")
-	# 2. equip: 1 unit from the bank to the slot
+	for item_id: StringName in needs:
+		if item_id != plate and data.item(item_id).category == &"component":
+			_obtain(item_id, needs[item_id])
+		elif item_id != plate:
+			TestFactory.give(_session, item_id, needs[item_id])  # the rare component: a drop of the area
+	TestFactory.give(_session, BLUEPRINT, 1)  # a drop (M10-04)
+	# 2. the blueprint becomes a piece after its duration
+	var level: int = _session.skills.get_level(&"forging")
+	assert_gte(level, BlueprintCraft.required_level(blueprint, data), "the smelting XP made the level")
+	var started: CommandResult = _session.actions.start_blueprint(BLUEPRINT)
+	assert_true(started.ok, "start: %s" % started.reason)
+	var duration: int = int(_session.actions.blueprint_state()["duration_ms"])
+	_session.advance(duration)
+	var pieces: Array[ItemInstance] = _session.armory.instances()
+	assert_eq(pieces.size(), 1, "the piece is in the Armory")
+	assert_eq(pieces[0].base_id, BASE)
+	assert_ne(pieces[0].rarity, &"common", "never common")
+	assert_eq(_session.bank.get_count(BASE), 0, "not in the bank")
+	assert_eq(_session.bank.get_count(BLUEPRINT), 0, "the blueprint is consumed")
+	assert_eq(_session.bank.get_count(plate), 0, "plates consumed")
+	assert_false(_session.actions.is_running(), "the lane stopped by itself")
+	# 3. equip: the Armory piece goes to the slot and its modifiers are active
 	var uid: int = pieces[0].uid
-	var result: CommandResult = _session.equipment.equip(uid)
-	assert_true(result.ok, "equip: %s" % result.reason)
-	assert_eq(_session.equipment.get_item(slot), tool_def.id)
-	assert_eq(_session.equipment.get_uid(slot), uid)
+	assert_true(_session.equipment.equip(uid).ok)
+	assert_eq(_session.equipment.get_item(&"weapon"), BASE)
 	assert_true(_session.armory.is_worn(uid))
-	assert_eq(_session.armory.used(), forge.outputs[0].qty - 1, "the worn piece no longer takes a free slot")
-	# 3. faster gathering
-	var pct: float = _session.modifiers.total(INTERVAL_STAT, ModifierContext.for_skill(skill))
-	assert_almost_eq(pct, _item_interval_pct(tool_def, skill), 0.0001, "modifier equals the item data")
-	assert_lt(pct, 0.0)
-	var min_ms: int = int(data.balance_value(MIN_INTERVAL_KEY))
-	var after_ms: int = _session.actions.current_interval_ms(base_action.id)
-	assert_eq(after_ms, ActionMath.interval_ms(base_action.interval_ms, pct, min_ms), "F-03 with the tool")
-	assert_lt(after_ms, before_ms, "%s is faster" % base_action.id)
-	for other_skill: StringName in TOOL_SKILLS.values():
-		if other_skill != skill:
-			var other: ActionDef = data.actions_for_skill(other_skill)[0]
-			assert_eq(_session.actions.current_interval_ms(other.id), other.interval_ms, "%s unchanged" % other_skill)
-	# 4. the running lane reports the shorter interval
-	assert_true(_session.actions.start(skill, base_action.id).ok)
-	assert_eq(int(_session.actions.get_lane()["interval_ms"]), after_ms)
-	_session.actions.stop()
-
-
-func _item_interval_pct(item: ItemDef, skill: StringName) -> float:
-	var sum: float = 0.0
-	for mod: Modifier in item.equip.modifiers:
-		if mod.stat == INTERVAL_STAT and mod.scope_id == skill:
-			sum += mod.value
-	return sum
+	assert_true(_session.modifiers.has_source(&"equipment:weapon"))
 
 
 # Gathers `qty` of an item running the first gathering action available that produces it.

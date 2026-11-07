@@ -1,14 +1,10 @@
 class_name CombatPage
 extends Page
-## Combat page, GDR layout (docs/UI_GDR.md §2, docs/mockups/combat.dc.html), route `combat`: header with the area
-## choice, food, Eat and Stop; the player column (gold frame) against the enemy zone (red frame); the bottom row with the
-## loot bag, the yield and the log.
-##
-## Everything is read from `session.combat.get_state()`, `session.character`, `session.equipment`, `session.loadout`,
-## `session.armory`, `session.bank` and `session.data`: on the combat signals and every frame (`_process`, bars only
-## move). Player actions are commands (`combat.start`, `combat.stop`, `combat.eat`, `combat.loot.collect_all`); a
-## refused command shows its reason. It keeps no game state: the session reference, its nodes and the connections.
-## The yield and the log (`CombatYield`) are derived readings of the events, never saved.
+## Combat page, GDR layout (docs/UI_GDR.md §2), route `combat`: header (area, food, Eat, Stop), player column against
+## the enemy zone, bottom row with loot bag, yield and log. Everything is read from `session` (combat state, character,
+## equipment, loadout, armory, bank, data) on the combat signals and every frame (`_process`, bars only move). Player
+## actions are commands (`combat.start/stop/eat`, `combat.loot.collect_all`); a refused command shows its reason. It keeps
+## no game state. The yield and the log (`CombatYield`) are derived readings of the events, never saved.
 
 var _session: GameSession = null
 ## Signal, callable pairs connected in `bind` (disconnected in `unbind`).

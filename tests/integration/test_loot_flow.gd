@@ -11,6 +11,7 @@ const AREA: StringName = &"redrock_plains"
 const SWORD: StringName = &"emberbronze_sword"
 const RING: StringName = &"emberbronze_ring"
 const INGOT: StringName = &"emberbronze_ingot"
+const PLATE: StringName = &"emberbronze_plate"
 const SHARD: StringName = &"rift_shard"
 const SEAL: StringName = &"warding_seal"
 const HERO: StringName = &"test:hero"
@@ -46,7 +47,7 @@ func _drop_data() -> GameData:
 
 
 func _hero_session(data: GameData, seed_value: int = SEED) -> GameSession:
-	var s: GameSession = autofree(TestFactory.session(seed_value, data))
+	var s: GameSession = autofree(TestFactory.session_no_kit(seed_value, data))
 	s.modifiers.set_source(HERO, [Modifier.make(&"power_bonus", 5000.0), Modifier.make(&"max_hp_flat", 100000.0)])
 	s.modifiers.set_source(ROOMY, [Modifier.make(&"armory_slots", 500.0), Modifier.make(&"bank_slots", 100.0)])
 	_added = []
@@ -98,8 +99,8 @@ func test_every_drop_is_either_in_the_armory_or_salvaged_by_the_filter() -> void
 		assert_true([1, 4, 8].has(inst.ilvl), "ilvl = highest combat level of the monster that dropped it (F-85): boar 1, rat 4, raider 8")
 	assert_eq(_count_by_base(RING, _auto_salvaged), 0, "the ring has no rule: never filtered")
 	assert_gt(_count_by_base(SWORD, _auto_salvaged), 0, "with 40 kills some common sword is filtered (20+3% only)")
-	# F-88: a common sword (3 ingots in its recipe) pays floor(3 x 0.4) = 1 ingot and no shard; nothing else pays.
-	assert_eq(s.bank.get_count(INGOT), _count_by_base(SWORD, _auto_salvaged), "one T1 ingot per salvaged sword")
+	# F-88 / F-95: a common sword (6 plates + 2 grips in its blueprint) pays floor(6 x 0.4) = 2 plates, 0 grips and no shard.
+	assert_eq(s.bank.get_count(PLATE), 2 * _count_by_base(SWORD, _auto_salvaged), "two T1 plates per salvaged sword (F-95)")
 	assert_eq(s.bank.get_count(SHARD), 0, "common pieces give no shards")
 	for stack: Dictionary in s.bank.stacks():
 		assert_false(String(stack["item"]).ends_with("_sword") or String(stack["item"]).ends_with("_ring"),
@@ -143,8 +144,8 @@ func test_salvage_and_the_filter_respect_lock_and_worn() -> void:
 	assert_true(s.armory.salvage(spare).ok)
 	assert_false(s.armory.has(spare), "gone for good")
 	assert_eq(s.armory.salvage(spare).reason, Reasons.UNKNOWN_ID, "it cannot be salvaged twice")
-	# magic T1 sword: 1 ingot (floor(3 x 0.4)) and 1 shard (magic x grade 1), no refinement.
-	assert_eq(s.bank.get_count(INGOT), 1)
+	# magic T1 sword: 2 plates (floor(6 x 0.4), F-95) and 1 shard (magic x grade 1), no refinement.
+	assert_eq(s.bank.get_count(PLATE), 2)
 	assert_eq(s.bank.get_count(SHARD), 1)
 	assert_eq(_auto_salvaged.size(), 0, "a manual salvage is not auto")
 

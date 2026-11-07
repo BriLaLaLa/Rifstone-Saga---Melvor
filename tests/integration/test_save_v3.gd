@@ -15,6 +15,8 @@ const SWORD: StringName = &"emberbronze_sword"
 const SHIELD: StringName = &"emberbronze_shield"
 const GREATSWORD: StringName = &"emberbronze_greatsword"
 const CHARACTER_XP: int = 5000
+# Starting kit (balance start.armory 3 pieces + start.tools 3 tools): worn, uids 1..6 in a new game.
+const KIT: int = 6
 
 var _test_dir: String = PreRun.save_dir()
 var _game: GameScript
@@ -84,10 +86,10 @@ func test_slots_are_independent_for_armory_character_and_worn_pieces() -> void:
 	var a: GameSession = _game.session
 	var sword: int = TestFactory.give_piece(a, SWORD, &"rare", 1)
 	var shield: int = TestFactory.give_piece(a, SHIELD, &"magic", 1)
-	TestFactory.give_piece(a, GREATSWORD)
+	var locked: int = TestFactory.give_piece(a, GREATSWORD)
 	assert_true(a.equipment.equip(sword).ok)
 	assert_true(a.equipment.equip(shield).ok)
-	assert_true(a.armory.set_locked(3, true).ok)
+	assert_true(a.armory.set_locked(locked, true).ok)
 	a.character.add_xp(CHARACTER_XP)
 	var a_xp: int = a.character.get_xp()
 	var a_level: int = a.character.get_level()
@@ -97,34 +99,34 @@ func test_slots_are_independent_for_armory_character_and_worn_pieces() -> void:
 	var a_text: String = _slot_text(SLOT_A)
 	assert_true(_game.new_game(SLOT_B, "Beta").ok)
 	var b: GameSession = _game.session
-	assert_eq(b.armory.instances().size(), 0, "B has no pieces of A")
-	assert_eq(b.armory.used(), 0)
-	assert_eq(b.equipment.get_uid(&"weapon"), 0)
-	assert_eq(b.equipment.setup(), Equipment.UNARMED)
+	assert_eq(b.armory.instances().size(), KIT, "B has only its own starting kit, no pieces of A")
+	assert_eq(b.armory.used(), 1, "only the unworn kit greatsword takes a place")
+	assert_eq(b.equipment.get_uid(&"weapon"), 1, "the kit sword of B, not the sword of A")
+	assert_eq(b.equipment.setup(), &"sword_shield", "the kit is worn")
 	assert_eq(b.character.get_xp(), 0)
 	assert_eq(b.character.get_level(), 1)
 	var b_piece: int = TestFactory.give_piece(b, SWORD, &"common", 1)
-	assert_eq(b_piece, 1, "uids restart from 1 in a new slot")
+	assert_eq(b_piece, KIT + 1, "uids restart from 1 in a new slot: after the kit")
 	b.character.add_xp(10)
 	_game.end_session(true)
 	assert_eq(_slot_text(SLOT_A), a_text, "slot A byte for byte")
 	assert_true((await _game.continue_game(SLOT_A)).ok)
 	var again: GameSession = _game.session
-	assert_eq(again.armory.instances().size(), 3, "A keeps its three pieces")
+	assert_eq(again.armory.instances().size(), KIT + 3, "A keeps its kit and its three pieces")
 	assert_eq(again.equipment.get_uid(&"weapon"), sword)
 	assert_eq(again.equipment.get_uid(&"offhand"), shield)
 	assert_eq(again.equipment.setup(), &"sword_shield")
-	assert_true(again.armory.get_instance(3).locked)
+	assert_true(again.armory.get_instance(locked).locked)
 	assert_eq(again.armory.get_instance(sword).rarity, &"rare")
 	assert_eq(again.character.get_xp(), a_xp)
 	assert_eq(again.character.get_level(), a_level)
 	assert_eq(again.total_level(), a_total)
 	_game.end_session(true)
 	assert_true((await _game.continue_game(SLOT_B)).ok)
-	assert_eq(_game.session.armory.instances().size(), 1, "B keeps only its piece")
-	assert_eq(_game.session.armory.instances()[0].base_id, SWORD)
+	assert_eq(_game.session.armory.instances().size(), KIT + 1, "B keeps its kit and its piece")
+	assert_eq(_game.session.armory.instances().back().base_id, SWORD)
 	assert_eq(_game.session.character.get_xp(), 10)
-	assert_eq(_game.session.equipment.get_uid(&"weapon"), 0)
+	assert_eq(_game.session.equipment.get_uid(&"weapon"), 1, "B keeps the sword of its kit")
 
 
 func test_slot_list_shows_the_total_level_with_the_character() -> void:
@@ -150,7 +152,7 @@ func test_deleting_one_slot_keeps_the_pieces_of_the_other() -> void:
 	assert_true(_game.delete_slot(SLOT_A).ok)
 	assert_eq(_slot_text(SLOT_B), b_text)
 	assert_true((await _game.continue_game(SLOT_B)).ok)
-	assert_eq(_game.session.armory.instances()[0].base_id, SHIELD)
+	assert_eq(_game.session.armory.instances().back().base_id, SHIELD)
 
 
 # --- tolerant load ----------------------------------------------------------------------------------------------
@@ -164,10 +166,10 @@ func test_missing_armory_character_and_equipment_modules_start_as_a_new_game() -
 		(saved["modules"] as Dictionary).erase(module)
 	var loaded: GameSession = _session(55)
 	assert_true(loaded.from_save(saved).ok)
-	assert_eq(loaded.armory.instances().size(), 0)
+	assert_eq(loaded.armory.instances().size(), KIT, "the missing module starts as a new game: the starting kit")
 	assert_eq(loaded.character.get_xp(), 0)
 	assert_eq(loaded.character.class_id(), StringName(loaded.data.balance_value("character.start_class")))
-	assert_eq(loaded.equipment.get_uid(&"weapon"), 0)
+	assert_ne(loaded.equipment.get_uid(&"weapon"), 0, "the kit sword is worn")
 
 
 func test_invalid_armory_entries_are_discarded_and_next_uid_is_repaired() -> void:
@@ -231,7 +233,7 @@ func test_the_worn_flag_is_not_saved_in_the_armory() -> void:
 
 # A session on the real data, tracked and freed after the test.
 func _session(seed_value: int = 4242) -> GameSession:
-	var session: GameSession = TestFactory.session(seed_value, TestFactory.real_data())
+	var session: GameSession = TestFactory.session_no_kit(seed_value, TestFactory.real_data())
 	_extra.append(session)
 	return session
 

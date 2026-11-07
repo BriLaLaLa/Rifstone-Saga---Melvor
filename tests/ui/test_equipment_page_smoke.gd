@@ -10,7 +10,7 @@ const GREATSWORD := &"test_greatsword"
 const SHIELD := &"test_shield"
 const HELM := &"test_helm"
 const HELM_HIGH := &"test_helm_high"
-const HATCHET := &"test_hatchet"
+const HATCHET := &"unique_hatchet"  # the unique tool of the fixtures (M10): only the kit can wear it
 const RATION := &"test_ration"
 const DR := &"damage_reduction"
 const OBSERVED: Array[StringName] = [
@@ -408,11 +408,12 @@ func test_stats_show_the_final_values_and_the_summary_keeps_the_sources() -> voi
 
 
 func test_summary_shows_the_tool_scoped_to_a_skill() -> void:
-	var uid: int = TestFactory.give_piece(_session, HATCHET)
-	assert_true(_session.equipment.equip(uid).ok)
+	# M10: the interval modifier of a unique tool is scoped to the skill of its slot (tool_forestry -> forestry).
+	_session.free()
+	_session = TestFactory.session(1234, TestFactory.real_data())  # with the starting kit
 	var text: String = EquipmentStatsText.summary(_session)
-	assert_string_contains(text, _session.data.skill(&"test_gather").name)
-	assert_string_contains(text, _session.data.item(HATCHET).name)
+	assert_string_contains(text, _session.data.skill(&"forestry").name)
+	assert_string_contains(text, _session.data.item(&"unique_hatchet").name)
 
 
 func test_setup_source_is_shown_as_text() -> void:
@@ -427,7 +428,7 @@ func test_food_row_shows_the_choice_and_clears_it() -> void:
 	assert_eq(_label("%FoodLabel").text, "Nessun cibo scelto")
 	assert_true((_page.get_node("%ClearFoodButton") as Button).disabled)
 	assert_true(_session.equipment.set_food(RATION).ok)
-	assert_eq(_label("%FoodLabel").text, "Cibo: %s (in bank: 3)" % _session.data.item(RATION).name)
+	assert_eq(_label("%FoodLabel").text, "Cibo: %s (nel deposito: 3)" % _session.data.item(RATION).name)
 	(_page.get_node("%ClearFoodButton") as Button).pressed.emit()
 	assert_eq(_session.equipment.get_food(), &"")
 
