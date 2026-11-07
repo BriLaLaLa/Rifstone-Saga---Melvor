@@ -216,3 +216,28 @@ func test_max_level_is_rejected() -> void:
 	assert_false(result.ok)
 	assert_eq(result.reason, Reasons.UPGRADE_MAX)
 	assert_eq(session.wallet.get_gold(), 1000000)
+
+
+## F-93: the source `skill_level:forging` gives `upgrade_success_pct` = 0.4 x level (level_modifiers of the skill); with
+## the Forgiatura at 50 the step +5 -> +6 (success_pct 55) is 55 x 1.2 = 66. M10 fixtures (forging has level_modifiers).
+func test_forging_level_bonus() -> void:
+	var data: GameData = preload("res://tests/systems/actions/blueprint_data.gd").data()
+	var session: GameSession = autofree(TestFactory.session(3, data))
+	assert_almost_eq(session.modifiers.total(&"upgrade_success_pct"), 0.4, 0.0001, "level 1")
+	TestFactory.set_level(session, &"forging", 50)
+	assert_almost_eq(session.modifiers.total(&"upgrade_success_pct"), 20.0, 0.0001, "level 50")
+	assert_almost_eq(Upgrade.chance_pct(5, session.modifiers.total(Upgrade.STAT), data), 66.0, 0.0001)
+	TestFactory.set_level(session, &"forging", 99)
+	assert_almost_eq(session.modifiers.total(&"upgrade_success_pct"), 39.6, 0.0001, "level 99")
+	assert_true(session.modifiers.has_source(&"skill_level:forging"))
+	assert_false(session.modifiers.has_source(&"skill_level:forestry"), "skills without level_modifiers: no source")
+
+
+## The source is rebuilt from the saved experience.
+func test_forging_level_bonus_after_load() -> void:
+	var data: GameData = preload("res://tests/systems/actions/blueprint_data.gd").data()
+	var a: GameSession = autofree(TestFactory.session(3, data))
+	TestFactory.set_level(a, &"forging", 50)
+	var b: GameSession = autofree(TestFactory.session(4, data))
+	assert_true(b.from_save(a.to_save(0)).ok)
+	assert_almost_eq(b.modifiers.total(&"upgrade_success_pct"), 20.0, 0.0001)

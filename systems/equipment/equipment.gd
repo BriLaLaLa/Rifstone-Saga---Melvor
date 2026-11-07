@@ -85,8 +85,8 @@ func equip(uid: int, slot: StringName = &"") -> CommandResult:
 	if not def.is_equippable():
 		return CommandResult.fail(Reasons.NOT_EQUIPPABLE)
 	var target: StringName = slot if slot != &"" else def.equip.slot
-	if slot_of(uid) != &"" or not _fits_slot(def, target):
-		return CommandResult.fail(Reasons.NOT_EQUIPPABLE)
+	if slot_of(uid) != &"" or not _fits_slot(def, target) or _is_unique(_def_of(get_uid(target))):
+		return CommandResult.fail(Reasons.NOT_EQUIPPABLE)  # a unique tool never leaves its slot
 	if not _session.character.meets_requirements(def.equip.requirements) or not _class_allows(def, target):
 		return CommandResult.fail(Reasons.REQUIREMENT_NOT_MET)
 	var after: Dictionary[StringName, int] = _worn.duplicate()
@@ -116,6 +116,8 @@ func equip(uid: int, slot: StringName = &"") -> CommandResult:
 func unequip(slot: StringName) -> CommandResult:
 	if get_uid(slot) == 0:
 		return CommandResult.fail(Reasons.SLOT_EMPTY)
+	if _is_unique(_def_of(get_uid(slot))):
+		return CommandResult.fail(Reasons.ITEM_UNIQUE)
 	var after: Dictionary[StringName, int] = _worn.duplicate()
 	var leaving: Array[StringName] = [slot]
 	if slot == WEAPON and after.has(OFFHAND) and not _is_shield(_def_of(after[OFFHAND])):
@@ -198,9 +200,19 @@ func rebuild_modifiers() -> void:
 	_apply_sources()
 
 
-## docs/01_GDD.md §1.1: nothing worn, no food.
+## docs/01_GDD.md §1.1: the starting kit (ArmoryKit; uids 1…n in order) worn in the slots it names, tools in their own,
+## and the starting food `start.food` (the bank already holds it). Without a kit: nothing worn, no food.
 func new_game() -> void:
 	_reset()
+	var uid: int = 0
+	for entry: Dictionary in ArmoryKit.entries(_data):
+		uid += 1
+		if entry["slot"] != &"":
+			_worn[entry["slot"]] = uid
+			_armory.set_worn(uid, true, true)
+	var food: StringName = ArmoryKit.food(_data)
+	if food != &"" and _is_food(food) and _bank.has(food, 1):
+		_food = food
 
 
 func to_save() -> Dictionary:
@@ -287,6 +299,10 @@ func _def_of(uid: int) -> ItemDef:
 
 func _is_two_handed(def: ItemDef) -> bool:
 	return def != null and def.equip != null and def.equip.weapon != null and def.equip.weapon.two_handed
+
+
+func _is_unique(def: ItemDef) -> bool:
+	return def != null and def.equip != null and def.equip.unique
 
 
 func _is_shield(def: ItemDef) -> bool:

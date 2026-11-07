@@ -145,7 +145,7 @@ static func create(
 	return inst
 
 
-## Base modifiers x (1 + upgrade.mod_pct_per_level x N / 100), then one modifier per affix, then those of the stones in the active sockets (F-89).
+## A unique tool: F-94 (ToolUpgrade.modifiers). Otherwise base modifiers x (1 + upgrade.mod_pct_per_level x N / 100), then one modifier per affix, then those of the stones in the active sockets (F-89).
 static func instance_modifiers(inst: ItemInstance, data: GameData) -> Array[Modifier]:
 	var result: Array[Modifier] = []
 	if not data.has_item(inst.base_id):
@@ -153,6 +153,8 @@ static func instance_modifiers(inst: ItemInstance, data: GameData) -> Array[Modi
 	var base: ItemDef = data.item(inst.base_id)
 	if base.equip == null:
 		return result
+	if base.equip.unique:
+		return ToolUpgrade.modifiers(base, inst.upgrade, data)  # F-94 instead of F-86; no affixes, no sockets
 	var factor: float = 1.0
 	if inst.upgrade > 0:
 		factor += float(data.balance_value("upgrade.mod_pct_per_level")) * inst.upgrade / 100.0

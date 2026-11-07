@@ -29,3 +29,19 @@ static func active(inst: ItemInstance, data: GameData) -> Array[StringName]:
 ## True when `item_id` is a stone item.
 static func is_stone(item_id: StringName, data: GameData) -> bool:
 	return data.has_item(item_id) and data.item(item_id).category == &"stone"
+
+
+## Sets `stone_id` from the bank into the first free socket of `inst`. unknown_id is the caller's; not_equippable (not a
+## stone), socket_locked (the piece has no socket), socket_occupied (all full), not_enough_items. Atomic.
+static func set_stone(inst: ItemInstance, stone_id: StringName, bank: Bank, data: GameData) -> CommandResult:
+	if not is_stone(stone_id, data):
+		return CommandResult.fail(Reasons.NOT_EQUIPPABLE)
+	var total: int = count(inst.rarity, inst.upgrade, data)
+	if total == 0:
+		return CommandResult.fail(Reasons.SOCKET_LOCKED)
+	if inst.sockets.size() >= total:
+		return CommandResult.fail(Reasons.SOCKET_OCCUPIED)
+	var removed: CommandResult = bank.remove(stone_id, 1)
+	if removed.ok:
+		inst.sockets.append(stone_id)
+	return removed

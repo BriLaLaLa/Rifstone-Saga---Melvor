@@ -11,6 +11,7 @@ const LOG_CATEGORY: String = "skills"
 const XP_CAP_KEY: String = "xp_curve.xp_cap"
 const XP_PCT_STAT: StringName = &"skill_xp_pct"
 const SAVE_XP_KEY: String = "xp"
+const LEVEL_SOURCE_PREFIX: String = "skill_level:"
 
 var _data: GameData
 var _events: GameEvents
@@ -100,6 +101,8 @@ func add_xp(skill_id: StringName, base_amount: int, ctx: ModifierContext = null)
 	var old_level: int = _table.level_for_xp(old_xp)
 	_xp[skill_id] = new_xp
 	var new_level: int = _table.level_for_xp(new_xp)
+	if new_level != old_level:
+		_apply_level_source(skill_id)
 	_events.xp_gained.emit(skill_id, gained)
 	for level: int in range(old_level + 1, new_level + 1):
 		_events.level_up.emit(skill_id, level)
@@ -127,6 +130,26 @@ func total_level() -> int:
 	for skill_id: StringName in _xp:
 		total += _table.level_for_xp(_xp[skill_id])
 	return total
+
+
+## F-93 (M10): the source `skill_level:<skill_id>` of every skill with `level_modifiers` (`per_level` x level, global);
+## skills without them get no source. Called by the session after `new_game`/`from_save`; `add_xp` keeps it current.
+func rebuild_modifiers() -> void:
+	_modifiers.begin_batch()
+	for def: SkillDef in _data.skills():
+		_apply_level_source(def.id)
+	_modifiers.end_batch()
+
+
+func _apply_level_source(skill_id: StringName) -> void:
+	var def: SkillDef = _data.skill(skill_id)
+	if def.level_modifiers.is_empty():
+		return
+	var level: int = _table.level_for_xp(_xp[skill_id])
+	var mods: Array[Modifier] = []
+	for entry: LevelModifier in def.level_modifiers:
+		mods.append(Modifier.make(entry.stat, entry.per_level * level))
+	_modifiers.set_source(StringName(LEVEL_SOURCE_PREFIX + String(skill_id)), mods)
 
 
 func _reset() -> void:

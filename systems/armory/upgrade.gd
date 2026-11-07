@@ -50,3 +50,37 @@ static func cost(level: int, grade: int, data: GameData) -> Dictionary:
 		"ingots": int(r["ingots"]),
 		"shards": int(r["shards"]),
 	}
+
+
+## F-86 refusals in order after `unknown_id`: upgrade_max, not_enough_gold, not_enough_items (ingots, shards and, when
+## `use_seal` and the step can lose a level, the Seal).
+static func check(inst: ItemInstance, use_seal: bool, wallet: Wallet, bank: Bank, data: GameData) -> CommandResult:
+	if inst.upgrade >= max_level(data):
+		return CommandResult.fail(Reasons.UPGRADE_MAX)
+	var price: Dictionary = cost(inst.upgrade, data.item(inst.base_id).equip.grade, data)
+	if wallet.get_gold() < int(price["gold"]):
+		return CommandResult.fail(Reasons.NOT_ENOUGH_GOLD)
+	if not bank.has(price["ingot"], int(price["ingots"])) or not bank.has(SHARD_ITEM, int(price["shards"])) \
+			or (seal_needed(inst, use_seal, data) and not bank.has(seal_item(data), 1)):
+		return CommandResult.fail(Reasons.NOT_ENOUGH_ITEMS)
+	return CommandResult.success()
+
+
+## True when the Seal is consumed by a failure: asked for and the step can lose a level.
+static func seal_needed(inst: ItemInstance, use_seal: bool, data: GameData) -> bool:
+	return use_seal and failed_level(inst.upgrade, data) < inst.upgrade
+
+
+## Spends the cost of the step of `inst` (gold, ingots, shards); the checks have passed.
+static func pay(inst: ItemInstance, wallet: Wallet, bank: Bank, data: GameData) -> void:
+	var price: Dictionary = cost(inst.upgrade, data.item(inst.base_id).equip.grade, data)
+	if int(price["gold"]) > 0:
+		wallet.spend(int(price["gold"]))
+	spend(bank, price["ingot"], int(price["ingots"]))
+	spend(bank, SHARD_ITEM, int(price["shards"]))
+
+
+## Removes `qty` of `item_id` from the bank when positive.
+static func spend(bank: Bank, item_id: StringName, qty: int) -> void:
+	if qty > 0:
+		bank.remove(item_id, qty)

@@ -134,12 +134,14 @@ func sell(item_id: StringName, qty: int) -> CommandResult:
 	return CommandResult.success()
 
 
-## Sells a piece of the Armory for F-18 with qty 1. Checks in order: unknown_id, item_locked, item_equipped,
+## Sells a piece of the Armory for F-18 with qty 1. Checks in order: unknown_id, item_unique (unique tool), item_locked, item_equipped,
 ## not_sellable (value 0).
 func sell_instance(uid: int) -> CommandResult:
 	var inst: ItemInstance = _armory.get_instance(uid)
 	if inst == null:
 		return CommandResult.fail(Reasons.UNKNOWN_ID)
+	if _data.has_item(inst.base_id) and _data.item(inst.base_id).equip != null and _data.item(inst.base_id).equip.unique:
+		return CommandResult.fail(Reasons.ITEM_UNIQUE)
 	if inst.locked:
 		return CommandResult.fail(Reasons.ITEM_LOCKED)
 	if _armory.is_worn(uid):
@@ -163,8 +165,17 @@ func rebuild_modifiers() -> void:
 	_modifiers.end_batch()
 
 
+## `start.purchases` (docs/01_GDD.md §1.1) are already owned: no gold, no signal; the modifiers come with `rebuild_modifiers`.
+## The key is optional in the data until M10-04.
 func new_game() -> void:
 	_purchases.clear()
+	var purchases: Dictionary = (_data.balance_value("start") as Dictionary).get("purchases", {}) as Dictionary
+	for key: Variant in purchases:
+		var entry_id: StringName = StringName(str(key))
+		if _entries.has(entry_id):
+			_purchases[entry_id] = int(purchases[key])
+		else:
+			Log.error(LOG_CATEGORY, "start.purchases: unknown entry '%s'" % entry_id)
 
 
 func to_save() -> Dictionary:
