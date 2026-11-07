@@ -208,12 +208,12 @@ func test_monster_may_drop_equipment_from_m7() -> void:
 	assert_eq(V.validate(raw), PackedStringArray(), "a piece drops as an instance (F-84)")
 
 
-func test_monster_has_at_most_4_drops() -> void:
+func test_monster_has_at_most_8_drops() -> void:
 	var raw: Dictionary = V.fixture_raw()
 	var drops: Array = _monster(raw, 0)["drops"] as Array
-	for i: int in 4:
+	for i: int in 8:
 		drops.append((drops[0] as Dictionary).duplicate(true))
-	_expect(raw, [MONSTERS, "monster 'test_monster_a'", "field 'drops' has 5 entries, at most 4"])
+	_expect(raw, [MONSTERS, "monster 'test_monster_a'", "field 'drops' has 9 entries, at most 8"])
 
 
 # --- shop --------------------------------------------------------------------------------------------------------
