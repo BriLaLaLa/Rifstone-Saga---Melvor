@@ -111,3 +111,6 @@ func test_main_menu_settings_button_opens_panel() -> void:
 	(menu.get_node("%SettingsButton") as Button).pressed.emit()
 	var found: Array[Node] = menu.get_children().filter(func(n: Node) -> bool: return n is SettingsPanel)
 	assert_eq(found.size(), 1)
+	# M9-07: freeing a panel (OptionButton popups = Windows) in the frame it was built crashes Godot (signal 11) in the
+	# next UI test, about 7 runs out of 8; two frames of life avoid it.
+	await wait_process_frames(2)
