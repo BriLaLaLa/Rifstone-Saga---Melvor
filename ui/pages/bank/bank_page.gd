@@ -85,6 +85,8 @@ func _ready() -> void:
 	_item_panel.lock_requested.connect(_on_item_panel_lock_requested)
 	_item_panel.sell_requested.connect(_on_item_panel_sell_requested)
 	_item_panel.food_requested.connect(_on_item_panel_food_requested)
+	_item_panel.infusion_socket_requested.connect(_on_item_panel_infusion_socket_requested)
+	_item_panel.stone_socket_requested.connect(_on_item_panel_stone_socket_requested)
 	_item_panel.close_requested.connect(_on_item_panel_close_requested)
 	_grid.set_drag_forwarding(Callable(), _can_drop_on_grid, _drop_on_grid)
 
@@ -282,6 +284,29 @@ func _on_item_panel_sell_requested(item_id: StringName, qty: int) -> void:
 func _on_item_panel_food_requested(item_id: StringName) -> void:
 	if _session != null:
 		_show_result(_session.equipment.set_food(item_id))
+
+
+## "Incastona" on an infusion: the first free socket of the Altar; the reason of a refusal is shown in Italian.
+func _on_item_panel_infusion_socket_requested(item_id: StringName) -> void:
+	if _session == null:
+		return
+	for i: int in _session.rift.socket_total():
+		if _session.rift.is_unlocked(i) and _session.rift.get_socket(i) == &"":
+			_show_text(_session.rift.socket(i, item_id), RiftTexts.refused)
+			return
+	_message_label.text = RiftTexts.NO_FREE_SOCKET_TEXT
+	_message_label.visible = true
+
+
+## "Incastona" on a stone: the piece chosen in the panel.
+func _on_item_panel_stone_socket_requested(item_id: StringName, uid: int) -> void:
+	if _session != null:
+		_show_text(_session.armory.socket_stone(uid, item_id), SocketTexts.refused)
+
+
+func _show_text(result: CommandResult, worded: Callable) -> void:
+	_message_label.text = "" if result.ok else worded.call(result.reason) as String
+	_message_label.visible = not result.ok
 
 
 func _on_item_panel_close_requested() -> void:

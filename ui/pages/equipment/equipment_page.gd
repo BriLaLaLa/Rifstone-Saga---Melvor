@@ -81,6 +81,7 @@ func _ready() -> void:
 	_panel.close_requested.connect(_on_panel_close_requested)
 	_panel.refine_requested.connect(_on_panel_refine_requested)
 	_panel.salvage_requested.connect(_on_panel_salvage_requested)
+	_panel.armory_command_requested.connect(_on_panel_armory_command)
 	_filter_toggle.text = FILTER_TEXT
 	_filter_toggle.toggled.connect(_on_filter_toggled)
 	_filter_panel.rule_changed.connect(_on_filter_rule_changed)
@@ -243,7 +244,7 @@ func _hide_tooltip() -> void:
 # --- Commands ---------------------------------------------------------------------------------------------------
 
 ## Sends the command built by `command` and shows its reason if it is refused (nothing changes then).
-func _send(command: Callable) -> void:
+func _send(command: Callable, refused_text: Callable = Callable()) -> void:
 	if _session == null:
 		return
 	_message_label.visible = false
@@ -251,7 +252,8 @@ func _send(command: Callable) -> void:
 	if not result.ok:
 		_message_label.visible = true
 		_message_label.add_theme_color_override("font_color", UiStyle.BAD)
-		_message_label.text = EquipmentMessages.refused(result.reason)
+		var worded: Callable = EquipmentMessages.refused if refused_text.is_null() else refused_text
+		_message_label.text = worded.call(result.reason) as String
 	_redraw()
 
 
@@ -344,3 +346,8 @@ func _notify(text: String, good: bool) -> void:
 	_message_label.text = text
 	_message_label.add_theme_color_override("font_color", UiStyle.GOOD if good else UiStyle.GOLD_LIGHT)
 	_message_label.visible = true
+
+
+## A socket or currency command built by the panel: sent as it is, the refusal is worded by `SocketTexts`.
+func _on_panel_armory_command(command: Callable) -> void:
+	_send(command, SocketTexts.refused)

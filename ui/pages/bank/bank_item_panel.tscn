@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://ui/pages/bank/bank_item_panel.gd" id="1_panel"]
+[ext_resource type="Script" path="res://ui/pages/rift/bank_socket_box.gd" id="sock_box"]
 
 [node name="BankItemPanel" type="PanelContainer"]
 size_flags_horizontal = 0
@@ -90,6 +91,11 @@ text = "Blocca"
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
+
+[node name="SocketBox" type="VBoxContainer" parent="Scroll/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+script = ExtResource("sock_box")
 
 [node name="SellSeparator" type="HSeparator" parent="Scroll/Content"]
 layout_mode = 2

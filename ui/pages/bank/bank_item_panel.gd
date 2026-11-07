@@ -12,6 +12,8 @@ extends PanelContainer
 signal lock_requested(item_id: StringName, locked: bool)
 signal sell_requested(item_id: StringName, qty: int)
 signal food_requested(item_id: StringName)
+signal infusion_socket_requested(item_id: StringName)
+signal stone_socket_requested(item_id: StringName, uid: int)
 signal close_requested
 
 const COUNT_TEXT: String = "Quantità: %s"
@@ -44,6 +46,7 @@ var _session: GameSession = null
 @onready var _lock_button: Button = %LockButton
 @onready var _close_box: HBoxContainer = %CloseBox
 @onready var _food_button: Button = %FoodButton
+@onready var _socket_box: BankSocketBox = %SocketBox
 @onready var _sell_section: VBoxContainer = %SellSection
 @onready var _sell_slider: HSlider = %SellSlider
 @onready var _sell_preview: Label = %SellPreview
@@ -64,6 +67,8 @@ func _ready() -> void:
 	_lock_button.pressed.connect(_on_lock_button_pressed)
 	_food_button.text = FOOD_TEXT
 	_food_button.pressed.connect(_on_food_button_pressed)
+	_socket_box.infusion_requested.connect(func(id: StringName) -> void: infusion_socket_requested.emit(id))
+	_socket_box.stone_requested.connect(func(id: StringName, uid: int) -> void: stone_socket_requested.emit(id, uid))
 	_sell_button.text = SELL_TEXT
 	_sell_but_one_button.text = SELL_ALL_BUT_ONE_TEXT
 	_sell_all_button.text = SELL_ALL_TEXT
@@ -97,6 +102,7 @@ func show_item(session: GameSession, item_id: StringName) -> bool:
 	_lines_label.text = "\n".join(ItemTooltipLines.body(item, session.data))
 	_lock_button.text = UNLOCK_TEXT if locked else LOCK_TEXT
 	_refresh_actions(item)
+	_socket_box.show_for(session, item_id)
 	_refresh_sell(item, count, locked, same_item)
 	visible = true
 	return true
@@ -116,6 +122,7 @@ func clear() -> void:
 	_lock_button.text = LOCK_TEXT
 	_sell_section.visible = false
 	_food_button.visible = false
+	_socket_box.visible = false
 	visible = false
 
 
