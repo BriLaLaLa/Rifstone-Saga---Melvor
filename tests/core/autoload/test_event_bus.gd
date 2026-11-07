@@ -56,8 +56,7 @@ const EXPECTED: Dictionary = {
 	"infusion_removed": [["socket_index", I, ""], ["item_id", SN, ""]],
 	"offline_started": [["elapsed_ms", I, ""], ["capped", B, ""]],
 	"offline_progress": [["done_ms", I, ""], ["total_ms", I, ""]],
-	# Contract type OfflineSummary does not exist before M6-01: base class RefCounted meanwhile.
-	"offline_completed": [["summary", TYPE_OBJECT, "RefCounted"]],
+	"offline_completed": [["summary", TYPE_OBJECT, "OfflineSummary"]],
 	"save_completed": [["slot", I, ""]],
 	"save_failed": [["slot", I, ""], ["reason", SN, ""]],
 	"notification_requested": [["text", TYPE_STRING, ""], ["kind", SN, ""]],

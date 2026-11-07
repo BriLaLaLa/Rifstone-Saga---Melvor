@@ -68,9 +68,7 @@ signal infusion_removed(socket_index: int, item_id: StringName)
 # Offline
 signal offline_started(elapsed_ms: int, capped: bool)
 signal offline_progress(done_ms: int, total_ms: int)
-# Contract type is OfflineSummary (core/offline/offline_summary.gd, task M6-01). That class does not exist yet,
-# so the parameter is typed with its base class RefCounted until it does.
-signal offline_completed(summary: RefCounted)
+signal offline_completed(summary: OfflineSummary)
 
 # Save and notifications
 signal save_completed(slot: int)

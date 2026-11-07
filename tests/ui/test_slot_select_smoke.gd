@@ -14,6 +14,8 @@ class FakeGame:
 	var new_game_result: CommandResult = CommandResult.success()
 	var continue_result: CommandResult = CommandResult.success()
 	var delete_result: CommandResult = CommandResult.success()
+	var hold_continue: bool = false
+	signal released
 
 	func list_slots() -> Array[SlotInfo]:
 		return slots.duplicate()
@@ -22,8 +24,12 @@ class FakeGame:
 		calls.append("new_game:%d:%s" % [slot, player_name])
 		return new_game_result
 
+	# Like the real continue_game (a coroutine since M9-01): with hold_continue it waits for `released`, as the offline
+	# simulation does between blocks; otherwise it finishes at once.
 	func continue_game(slot: int) -> CommandResult:
 		calls.append("continue_game:%d" % slot)
+		if hold_continue:
+			await released
 		return continue_result
 
 	func delete_slot(slot: int) -> CommandResult:
@@ -105,6 +111,20 @@ func test_continue_ok_emits_game_started() -> void:
 	_choose(1).pressed.emit()
 	assert_eq(_game.calls, ["continue_game:1"] as Array[String])
 	assert_eq(_started, 1)
+
+
+func test_second_click_during_the_offline_wait_is_ignored() -> void:
+	_game.hold_continue = true
+	_select.open(SlotSelect.MODE_CONTINUE)
+	_choose(1).pressed.emit()
+	_choose(1).pressed.emit()
+	assert_eq(_game.calls, ["continue_game:1"] as Array[String], "one call while the first is running")
+	assert_eq(_started, 0, "not started before continue_game returns")
+	_game.released.emit()
+	assert_eq(_started, 1)
+	_choose(1).pressed.emit()
+	assert_eq(_game.calls.size(), 2, "clicks work again afterwards")
+	_game.released.emit()
 
 
 func test_continue_error_shows_reason_and_does_not_start() -> void:

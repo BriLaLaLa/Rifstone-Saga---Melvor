@@ -35,6 +35,7 @@ var game: GameScript = null
 var _mode: StringName = MODE_CONTINUE
 var _name_slot: int = -1
 var _asking: bool = false
+var _loading: bool = false
 
 @onready var _title_label: Label = %TitleLabel
 @onready var _slot_list: VBoxContainer = %SlotList
@@ -125,7 +126,11 @@ func _start_new_game() -> void:
 
 
 func _continue_game(slot: int) -> void:
-	var result: CommandResult = _coordinator().continue_game(slot)
+	if _loading:
+		return
+	_loading = true  # continue_game can take a while (offline simulation): no second click meanwhile
+	var result: CommandResult = await _coordinator().continue_game(slot)
+	_loading = false
 	if not result.ok:
 		_show_message(SlotTexts.reason_text(result.reason))
 		_redraw_rows()
@@ -141,7 +146,7 @@ func _confirm(title: String, text: String) -> bool:
 
 
 func _on_row_chosen(slot: int) -> void:
-	if _asking:
+	if _asking or _loading:
 		return
 	_show_message("")
 	var info: SlotInfo = _slot_info(slot)
@@ -149,7 +154,7 @@ func _on_row_chosen(slot: int) -> void:
 		return
 	if _mode == MODE_CONTINUE:
 		if info.state == SlotTexts.STATE_OK:
-			_continue_game(slot)
+			await _continue_game(slot)
 		return
 	if info.state == SlotTexts.STATE_OK:
 		if not await _confirm(OVERWRITE_TITLE, OVERWRITE_TEXT % [slot, info.player_name]):
@@ -160,7 +165,7 @@ func _on_row_chosen(slot: int) -> void:
 
 
 func _on_row_delete_requested(slot: int) -> void:
-	if _asking:
+	if _asking or _loading:
 		return
 	_show_message("")
 	if not await _confirm(DELETE_TITLE, DELETE_TEXT % slot):
@@ -187,5 +192,7 @@ func _on_name_back_button_pressed() -> void:
 
 
 func _on_back_button_pressed() -> void:
+	if _loading:
+		return
 	visible = false
 	closed.emit()

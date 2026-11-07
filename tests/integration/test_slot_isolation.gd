@@ -113,7 +113,7 @@ func test_continue_a_after_b_restores_only_a() -> void:
 	_game.session.wallet.add_gold(B_EXTRA_GOLD)
 	_game.session.advance(A_PLAY_MS * 2)
 	_game.end_session(true)
-	assert_true(_game.continue_game(SLOT_A).ok)
+	assert_true((await _game.continue_game(SLOT_A)).ok)
 	var a: GameSession = _game.session
 	assert_eq(a.player_name, "Alfa")
 	assert_eq(a.slot, SLOT_A)
@@ -130,9 +130,9 @@ func test_continue_b_after_a_has_no_action_in_progress() -> void:
 	_game.end_session(true)
 	_game.new_game(SLOT_B, "Beta")
 	_game.end_session(true)
-	_game.continue_game(SLOT_A)
+	await _game.continue_game(SLOT_A)
 	_game.end_session(true)
-	assert_true(_game.continue_game(SLOT_B).ok)
+	assert_true((await _game.continue_game(SLOT_B)).ok)
 	assert_false(_game.session.actions.is_running())
 	assert_eq(_game.session.skills.get_xp(SKILL), 0)
 	assert_eq(_game.session.wallet.get_gold(), int(_game.session.data.balance_value("start.gold")))
@@ -161,7 +161,7 @@ func test_no_listener_of_a_survives_into_b() -> void:
 	_game.new_game(SLOT_B, "Beta")
 	assert_eq(_event_bus_connections(), during_a, "B has the same listeners as A had, not more")
 	_game.end_session(true)
-	_game.continue_game(SLOT_A)
+	await _game.continue_game(SLOT_A)
 	assert_eq(_event_bus_connections(), during_a)
 
 

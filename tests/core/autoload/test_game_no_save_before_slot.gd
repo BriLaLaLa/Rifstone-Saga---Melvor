@@ -33,7 +33,7 @@ func test_menu_commands_write_nothing() -> void:
 	var saved: CommandResult = _game.save_now()
 	assert_false(saved.ok)
 	assert_eq(saved.reason, Reasons.SLOT_NOT_SELECTED)
-	var loaded: CommandResult = _game.continue_game(1)
+	var loaded: CommandResult = await _game.continue_game(1)
 	assert_false(loaded.ok)
 	assert_eq(_game.state, &"menu")
 	_game.delete_slot(1)

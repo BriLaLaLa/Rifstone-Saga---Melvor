@@ -50,7 +50,7 @@ func test_format_version_is_2() -> void:
 func test_v1_file_is_refused_and_left_untouched() -> void:
 	_write_raw_v1()
 	var before: String = _slot_text(SLOT_A)
-	var result: CommandResult = _game.continue_game(SLOT_A)
+	var result: CommandResult = await _game.continue_game(SLOT_A)
 	assert_false(result.ok)
 	assert_eq(result.reason, Reasons.VERSION_UNSUPPORTED)
 	assert_null(_game.session, "no session")
@@ -74,7 +74,7 @@ func test_new_game_over_a_v1_slot_writes_v2() -> void:
 	assert_true(_game.new_game(SLOT_A, "Nuova").ok, "a new game overwrites the old slot")
 	_game.end_session(true)
 	assert_eq(int(SaveCodec.decode(_slot_text(SLOT_A))["format_version"]), 2)
-	assert_true(_game.continue_game(SLOT_A).ok)
+	assert_true((await _game.continue_game(SLOT_A)).ok)
 
 
 # --- two slots, Armory and character ----------------------------------------------------------------------------
@@ -108,7 +108,7 @@ func test_slots_are_independent_for_armory_character_and_worn_pieces() -> void:
 	b.character.add_xp(10)
 	_game.end_session(true)
 	assert_eq(_slot_text(SLOT_A), a_text, "slot A byte for byte")
-	assert_true(_game.continue_game(SLOT_A).ok)
+	assert_true((await _game.continue_game(SLOT_A)).ok)
 	var again: GameSession = _game.session
 	assert_eq(again.armory.instances().size(), 3, "A keeps its three pieces")
 	assert_eq(again.equipment.get_uid(&"weapon"), sword)
@@ -120,7 +120,7 @@ func test_slots_are_independent_for_armory_character_and_worn_pieces() -> void:
 	assert_eq(again.character.get_level(), a_level)
 	assert_eq(again.total_level(), a_total)
 	_game.end_session(true)
-	assert_true(_game.continue_game(SLOT_B).ok)
+	assert_true((await _game.continue_game(SLOT_B)).ok)
 	assert_eq(_game.session.armory.instances().size(), 1, "B keeps only its piece")
 	assert_eq(_game.session.armory.instances()[0].base_id, SWORD)
 	assert_eq(_game.session.character.get_xp(), 10)
@@ -149,7 +149,7 @@ func test_deleting_one_slot_keeps_the_pieces_of_the_other() -> void:
 	var b_text: String = _slot_text(SLOT_B)
 	assert_true(_game.delete_slot(SLOT_A).ok)
 	assert_eq(_slot_text(SLOT_B), b_text)
-	assert_true(_game.continue_game(SLOT_B).ok)
+	assert_true((await _game.continue_game(SLOT_B)).ok)
 	assert_eq(_game.session.armory.instances()[0].base_id, SHIELD)
 
 
