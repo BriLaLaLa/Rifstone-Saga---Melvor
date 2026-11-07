@@ -284,10 +284,10 @@ func test_mastery_node_costs_total_55_to_65_pct() -> void:
 const INFUSIONS: Array[Array] = [
 	[1, "inf_swift_hands", 5, "redbirch_log", 10, "skill_interval_pct", -3.0, false, 40, 4000],
 	[15, "inf_bountiful", 8, "ashlead_ore", 10, "double_item_chance", 2.0, false, 70, 4000],
-	[25, "inf_scholar", 12, "seared_redscale", 10, "skill_xp_pct", 3.0, false, 110, 4500],
+	[25, "inf_scholar", 12, "seared_redscale", 10, "skill_xp_pct", 6.0, false, 110, 4500],
 	[35, "inf_keen_edge", 16, "duskcobalt_ingot", 5, "accuracy_pct", 4.0, false, 150, 4500],
 	[45, "inf_stoneskin", 20, "glimmerite_ingot", 5, "damage_reduction", 2.0, false, 200, 5000],
-	[55, "inf_deep_roots", 25, "shardcedar_log", 20, "mastery_xp_pct", 5.0, false, 260, 5000],
+	[55, "inf_deep_roots", 25, "shardcedar_log", 20, "mastery_xp_pct", 10.0, false, 260, 5000],
 	[65, "inf_hearthfire", 30, "seared_mist_barbel", 20, "food_healing_pct", 10.0, false, 330, 5500],
 	[75, "inf_riftsense", 40, "emberheart_ore", 10, "rift_shard_chance", 0.5, true, 420, 5500],
 	[85, "inf_bulwark", 50, "riftite_ingot", 5, "max_hp_flat", 60.0, false, 520, 6000],
