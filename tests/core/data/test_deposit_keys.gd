@@ -54,14 +54,11 @@ func test_shop_without_slot_entries_and_formulas() -> void:
 
 
 func test_real_data_has_the_five_bags() -> void:
-	var bags: Array[StringName] = []
+	var slots: Dictionary = {}
 	for item: ItemDef in TestFactory.real_data().items():
 		if item.category == &"bag":
-			bags.append(item.id)
-	if bags.is_empty():
-		pending("M12-05: the real bags (bags.json) arrive with the content task")
-		return
-	assert_eq(bags.size(), 5)
+			slots[item.id] = item.bag_slots
+	assert_eq(slots, {&"bag_canvas": 6, &"bag_leather": 10, &"bag_reinforced": 14, &"bag_wayfarer": 18, &"bag_runic": 24})
 
 
 # --- fixtures ----------------------------------------------------------------------------------------------------

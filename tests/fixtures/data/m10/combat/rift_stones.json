@@ -1,6 +1,6 @@
 {
   "rift_stones": [
-    {"id": "test_stone", "name": "Pietra di prova", "description": "Pietra per i test.",
+    {"id": "test_stone", "name": "Pietra di prova", "description": "Pietra per i test.", "loot_tables": ["test_stone_loot"],
      "icon": "res://assets/icons/monsters/plains_boar.svg", "area": "test_stone_area", "hp": 60, "xp": 240,
      "pulse_damage": 7, "pulse_ms": 3000, "summon_pack": null, "shards": [2, 4],
      "drops": [{"item": "test_log", "chance_pct": 100, "qty": [2, 2]}]}

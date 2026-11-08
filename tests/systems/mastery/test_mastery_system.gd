@@ -39,7 +39,7 @@ func test_new_game_starts_empty() -> void:
 
 ## F-13 with the real data: forestry has 8 mastery actions -> 2,400,000.
 func test_f13_real_forestry_cap() -> void:
-	var real: GameSession = autofree(TestFactory.session(1, TestFactory.real_data()))
+	var real: GameSession = autofree(TestFactory.session_no_kit(1, TestFactory.real_data()))
 	assert_eq(real.mastery.get_pool_cap(&"forestry"), 2400000)
 
 
@@ -135,14 +135,15 @@ func test_item_bonus_source_only_when_it_has_modifiers() -> void:
 
 
 func test_f11_with_real_data() -> void:
-	pending("M12-05: the real gathering actions get their milestones")
-	return
-	var real: GameSession = autofree(TestFactory.session(1, TestFactory.real_data()))
+	var real: GameSession = autofree(TestFactory.session_no_kit(1, TestFactory.real_data()))
 	real.mastery.from_save({"forestry": {"actions": {"cut_redbirch": _table.xp_for_level(99)}}})
 	real.rebuild_modifiers()
+	var interval: StringName = &"skill_interval_pct"
 	var ctx: ModifierContext = ModifierContext.for_action(&"forestry", &"cut_redbirch")
-	assert_eq(real.modifiers.total(DOUBLE, ctx), 14.0)
-	assert_eq(real.modifiers.total(DOUBLE, ModifierContext.for_action(&"forestry", &"cut_ashpine")), 0.0)
+	assert_eq(real.modifiers.total(interval, ctx), -8.5, "own resource -8 and trade -0.5")
+	assert_eq(real.modifiers.total(interval, ModifierContext.for_action(&"forestry", &"cut_ashpine")), -0.5,
+			"the trade bonus is for the whole skill, the resource bonus only for its own")
+	assert_eq(real.modifiers.total(DOUBLE, ctx), 0.0, "no F-11 for the gathering trades")
 
 
 ## Acceptance: the pool never exceeds the F-13 cap (gather_log at L 50 gives +5; the surplus is lost).

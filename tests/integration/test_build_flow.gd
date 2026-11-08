@@ -90,19 +90,24 @@ func test_choice_rules_with_real_ids() -> void:
 # --- the build changes the fight ---------------------------------------------------------------------------------
 
 func test_traits_change_how_the_fight_goes() -> void:
-	var plain: GameSession = _build(SEED)
-	assert_true(plain.combat.start(AREA).ok)
-	_run(plain, FIGHT_MS)
-	var plain_kills: int = _kills
-	assert_eq(_triggered.size(), 0, "no trait, no trait_triggered")
-	var built: GameSession = _build(SEED)
-	assert_true(built.loadout.set_trait(0, &"ember_thirst").ok)
-	assert_true(built.loadout.set_trait(1, &"chain_cleave").ok)
-	assert_true(built.combat.start(AREA).ok)
-	_run(built, FIGHT_MS)
-	assert_true(_triggered.has(&"ember_thirst"), "ember_thirst fired: %s" % [_triggered.slice(0, 5)])
-	assert_true(_triggered.has(&"chain_cleave"), "chain_cleave fired")
-	assert_gt(_kills, plain_kills, "timer cut and cleave kill more than the plain build in the same time")
+	# Summed over three seeds: the loot tables of M12 draw from the same stream, so a single seed is too lucky to compare.
+	var plain_kills: int = 0
+	var built_kills: int = 0
+	for seed_value: int in [SEED, OTHER_SEED, 77]:
+		var plain: GameSession = _build(seed_value)
+		assert_true(plain.combat.start(AREA).ok)
+		_run(plain, FIGHT_MS)
+		plain_kills += _kills
+		assert_eq(_triggered.size(), 0, "no trait, no trait_triggered")
+		var built: GameSession = _build(seed_value)
+		assert_true(built.loadout.set_trait(0, &"ember_thirst").ok)
+		assert_true(built.loadout.set_trait(1, &"chain_cleave").ok)
+		assert_true(built.combat.start(AREA).ok)
+		_run(built, FIGHT_MS)
+		built_kills += _kills
+		assert_true(_triggered.has(&"ember_thirst"), "ember_thirst fired: %s" % [_triggered.slice(0, 5)])
+		assert_true(_triggered.has(&"chain_cleave"), "chain_cleave fired")
+	assert_gt(built_kills, plain_kills, "timer cut and cleave kill more than the plain build in the same time")
 
 
 func test_abilities_are_used_and_respect_the_cooldown() -> void:

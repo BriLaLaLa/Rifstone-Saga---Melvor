@@ -58,6 +58,8 @@ const MXP_AT_85: int = 29
 const MXP_AT_85_WITH_N5: int = 31
 const MASTERY_XP_MAX: int = 2296551
 
+static var _plain_data: GameData = null
+
 var _long_run_save: Dictionary = {}
 var _long_run: Dictionary = {}
 var _session: GameSession = null
@@ -70,9 +72,19 @@ var _pool_changes: Array[int] = []
 var _purchases: Array[StringName] = []
 
 
+## The real data without the forestry milestones (M12): this file is about the pool and the nodes, with the fixed numbers of
+## the comments above; the milestones are tested in tests/systems/mastery/test_mastery_milestones.gd.
+static func _data() -> GameData:
+	if _plain_data == null:
+		_plain_data = GameData.load_from_dirs()
+		for action: ActionDef in _plain_data.actions_for_skill(SKILL):
+			action.milestones.clear()
+	return _plain_data
+
+
 func before_all() -> void:
 	before_each()
-	var session: GameSession = TestFactory.session_no_kit(SEED, TestFactory.real_data())
+	var session: GameSession = TestFactory.session_no_kit(SEED, _data())
 	_connect(session)
 	session.actions.start(SKILL, ACTION)
 	var started_ms: int = Time.get_ticks_msec()
@@ -110,7 +122,7 @@ func after_each() -> void:
 
 
 func test_expected_numbers_follow_the_formulas() -> void:
-	var data: GameData = TestFactory.real_data()
+	var data: GameData = _data()
 	var table: XpTable = data.mastery_table()
 	var base_factor: float = float(data.balance_value("mastery.base_factor"))
 	var per_level: float = float(data.balance_value("mastery.per_level"))
@@ -299,7 +311,7 @@ func _levels(from: int, to: int) -> Array[int]:
 
 
 func _restore(save: Dictionary) -> GameSession:
-	var session: GameSession = TestFactory.session_no_kit(SEED, TestFactory.real_data())
+	var session: GameSession = TestFactory.session_no_kit(SEED, _data())
 	var result: CommandResult = session.from_save(save.duplicate(true))
 	assert_true(result.ok, "from_save of the long run")
 	_connect(session)

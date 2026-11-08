@@ -18,7 +18,6 @@ static func fixture_raw() -> Dictionary:
 		"balance": _read([CONFIG_ROOT.path_join(GameData.BALANCE_FILE)], errors),
 		"stats": _read([CONFIG_ROOT.path_join(GameData.STATS_FILE)], errors),
 	}
-	raw["loot_tables"] = _read(LootIndex.files(FIXTURE_ROOT), errors)  # M12: optional file
 	for section: String in GameData.CONTENT_FILES:
 		raw[section] = _read([FIXTURE_ROOT.path_join(GameData.CONTENT_FILES[section])], errors)
 	for section: String in GameData.CONTENT_DIRS:

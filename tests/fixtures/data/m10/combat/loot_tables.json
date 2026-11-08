@@ -1,0 +1,6 @@
+{
+  "tables": [
+    {"id": "test_stone_loot", "entries": [
+      {"item": "test_twig", "chance_pct": 0.01, "qty": [1, 1]}]}
+  ]
+}

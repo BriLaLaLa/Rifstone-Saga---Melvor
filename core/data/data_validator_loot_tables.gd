@@ -1,8 +1,8 @@
 class_name DataValidatorLootTables
 extends RefCounted
 ## Loot table rules of DataValidator (internal, M12; docs/04_DATA_SCHEMA.md §8b): `data/combat/loot_tables.json` and the
-## `loot_tables` references of areas, monsters and Rift Stones. The file is optional until the contents of M12-05;
-## when it exists it must have tables, and every table must be used by an area, a monster or a Rift Stone.
+## `loot_tables` references of areas, monsters and Rift Stones. The file is mandatory (see SINGLE_FILE_SECTIONS);
+## it must have tables, and every table must be used by an area, a monster or a Rift Stone.
 
 const TABLE_FIELDS: PackedStringArray = ["id", "entries"]
 const ENTRY_FIELDS: PackedStringArray = ["item", "chance_pct", "qty"]

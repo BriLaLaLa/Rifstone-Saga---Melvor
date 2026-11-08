@@ -1,0 +1,10 @@
+{
+  "_doc": "Borse (02_FORMULAS.md §8.6b, F-100): vanno negli slot borsa del Deposito e ne aumentano la capienza. value 0 = non vendibili.",
+  "items": [
+    {"id":"bag_canvas","name":"Borsa di tela","category":"bag","icon":"res://assets/icons/items/bag_canvas.svg","value":0,"sort_order":10,"description":"Una borsa semplice e robusta: aggiunge 6 caselle al Deposito.","bag":{"slots":6}},
+    {"id":"bag_leather","name":"Borsa di cuoio","category":"bag","icon":"res://assets/icons/items/bag_leather.svg","value":0,"sort_order":20,"description":"Cuoio conciato e cucito a mano: aggiunge 10 caselle al Deposito.","bag":{"slots":10}},
+    {"id":"bag_reinforced","name":"Borsa rinforzata","category":"bag","icon":"res://assets/icons/items/bag_reinforced.svg","value":0,"sort_order":30,"description":"Tela e cuoio rinforzati con sottoprodotti rari: aggiunge 14 caselle al Deposito.","bag":{"slots":14}},
+    {"id":"bag_wayfarer","name":"Borsa del viandante","category":"bag","icon":"res://assets/icons/items/bag_wayfarer.svg","value":0,"sort_order":40,"description":"Fatta per chi non torna mai a casa: aggiunge 18 caselle al Deposito.","bag":{"slots":18}},
+    {"id":"bag_runic","name":"Borsa runica","category":"bag","icon":"res://assets/icons/items/bag_runic.svg","value":0,"sort_order":50,"description":"Segni del Rift cuciti nella stoffa: aggiunge 24 caselle al Deposito.","bag":{"slots":24}}
+  ]
+}

@@ -3,7 +3,7 @@
     {"id": "guide_altar", "section": "altar", "title": "Altare del Rift", "order": 1,
      "help_for": ["rift", "altar"],
      "blocks": [
-       {"type": "text", "text": "L'Altare ha cinque Incavi, che si aprono salendo di livello nella {link:skill:riftbinding|Legatura del Rift}, la skill che crea le rune. In ogni Incavo metti una runa: ne attiva gli effetti finché resta lì."},
+       {"type": "text", "text": "L'Altare ha cinque Incavi, che si aprono salendo di livello come {link:skill:riftbinding|Incisore}, la skill che crea le rune. In ogni Incavo metti una runa: ne attiva gli effetti finché resta lì."},
        {"type": "text", "text": "La runa incastonata esce dal Deposito. Toglierla la distrugge; sostituirla ne distrugge una. Una stessa runa può stare in più Incavi, tranne quelle uniche."},
        {"type": "table", "source": "infusions"}
      ]}
