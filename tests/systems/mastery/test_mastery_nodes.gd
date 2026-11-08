@@ -185,8 +185,8 @@ func test_nodes_are_permanent_after_spending_the_pool() -> void:
 
 ## rebuild_modifiers registers mastery_item:* and mastery_node:* in the same batch: one modifiers_changed.
 func test_rebuild_modifiers_registers_node_sources_in_one_batch() -> void:
-	var twig_l10: int = _session.data.mastery_table().xp_for_level(10)
-	_mastery.from_save({SKILL: {"pool": 0, "actions": {TWIG: twig_l10}, "nodes": [N1, N3]}})
+	var twig_l50: int = _session.data.mastery_table().xp_for_level(50)
+	_mastery.from_save({SKILL: {"pool": 0, "actions": {TWIG: twig_l50}, "nodes": [N1, N3]}})
 	_session.modifiers.clear_all()
 	watch_signals(_session.events)
 	_mastery.rebuild_modifiers()
@@ -195,7 +195,7 @@ func test_rebuild_modifiers_registers_node_sources_in_one_batch() -> void:
 	assert_true(_session.modifiers.has_source(&"mastery_node:test_gather_n1"))
 	assert_true(_session.modifiers.has_source(&"mastery_node:test_gather_n3"))
 	assert_false(_session.modifiers.has_source(&"mastery_node:test_gather_n2"))
-	assert_eq(_total(&"double_item_chance", ModifierContext.for_action(SKILL, TWIG)), 3.0)
+	assert_eq(_total(&"double_item_chance", ModifierContext.for_action(SKILL, TWIG)), 10.0)
 
 
 func test_to_save_lists_owned_nodes_in_data_order() -> void:

@@ -37,7 +37,13 @@
     "ratio_weight": 3,
     "pool_share_pct": 20,
     "pool_cap_per_item": 300000,
-    "pool_warning_pct": 95
+    "pool_warning_pct": 95,
+    "milestones": {
+      "byproduct_at": 25,
+      "resource_at": 50,
+      "trade_at": 99,
+      "byproduct_chance_pct": 2.0
+    }
   },
   "action": {
     "min_interval_ms": 250

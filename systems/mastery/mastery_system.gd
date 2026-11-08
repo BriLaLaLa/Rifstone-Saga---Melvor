@@ -6,6 +6,7 @@ extends RefCounted
 ## `has_mastery` skill. Levels derive from the F-09 table; xp stops at the max-level total. A cycle gives F-10 mxp and
 ## F-12 pool share up to the F-13 cap; the pool can be spent on an action (F-14). Per-action bonuses (F-11) are the
 ## `mastery_item:<action_id>` modifier sources, rebuilt from the levels and refreshed on every mastery level up.
+## Gathering (M12, F-103/F-108): milestones replace F-11 (sources `mastery_item:<action>` and `mastery_trade:<skill>`).
 ## Mastery nodes (docs/01_GDD.md §6.3) cost F-15 of the pool cap, need their prerequisites and are permanent once
 ## bought; each owned node is the `mastery_node:<node_id>` source with the node's modifiers.
 ## Signals go to the session EventBus after the state changed; `new_game`/`from_save` emit nothing.
@@ -18,6 +19,7 @@ const CAP_PER_ITEM_KEY: String = "mastery.pool_cap_per_item"
 const XP_PCT_STAT: StringName = &"mastery_xp_pct"
 const ITEM_SOURCE_PREFIX: String = "mastery_item:"
 const NODE_SOURCE_PREFIX: String = "mastery_node:"
+const TRADE_SOURCE_PREFIX: String = "mastery_trade:"
 const SAVE_POOL_KEY: String = "pool"
 const SAVE_ACTIONS_KEY: String = "actions"
 const SAVE_NODES_KEY: String = "nodes"
@@ -26,6 +28,7 @@ var _data: GameData
 var _events: GameEvents
 var _modifiers: ModifierService
 var _table: XpTable
+var _milestones: MasteryMilestones
 var _max_xp: int = 0
 var _share_pct: float = 0.0
 # Tracked actions: action id -> skill id; skill id -> its tracked action ids (data order).
@@ -49,6 +52,7 @@ func _init(session: GameSession) -> void:
 	_events = session.events
 	_modifiers = session.modifiers
 	_table = _data.mastery_table()
+	_milestones = MasteryMilestones.new(_data)
 	_max_xp = _table.xp_for_level(_table.max_level)
 	_share_pct = float(_data.balance_value(SHARE_PCT_KEY))
 	var per_item: int = int(_data.balance_value(CAP_PER_ITEM_KEY))
@@ -178,6 +182,20 @@ func spend_pool_on_action(action_id: StringName, amount: int) -> CommandResult:
 	return CommandResult.success()
 
 
+## M12: the milestone thresholds (25/50/99, in order) that a gathering action's mastery level reached; [] for the others.
+func milestones_reached(action_id: StringName) -> Array[int]:
+	var none: Array[int] = []
+	if not _xp.has(action_id) or not _milestones.is_gathering(_skill_of[action_id]) \
+			or _data.action(action_id).milestones.is_empty():
+		return none
+	return _milestones.reached(get_mastery_level(action_id))
+
+
+## M12: true when the action's mastery level is at least `at`.
+func milestone_active(action_id: StringName, at: int) -> bool:
+	return _xp.has(action_id) and get_mastery_level(action_id) >= at
+
+
 ## F-15: ceil(pool cap of the node's skill × cost_pct / 100); 0 for an unknown node.
 func node_cost(node_id: StringName) -> int:
 	var node: MasteryNodeDef = _node_defs.get(node_id)
@@ -229,6 +247,9 @@ func rebuild_modifiers() -> void:
 	_modifiers.begin_batch()
 	for action_id: StringName in _xp:
 		_apply_item_bonus(action_id)
+	for skill_id: StringName in _actions_of:
+		if _milestones.is_gathering(skill_id):
+			_apply_trade_bonus(skill_id)
 	for node_id: StringName in _node_defs:
 		if _owned.has(node_id):
 			_apply_node_bonus(_node_defs[node_id])
@@ -298,13 +319,19 @@ func _grant(skill_id: StringName, action_id: StringName, amount: int) -> void:
 	var old_level: int = _table.level_for_xp(old_xp)
 	_xp[action_id] = new_xp
 	var new_level: int = _table.level_for_xp(new_xp)
-	if new_level != old_level and _bonus_changes(skill_id, old_level, new_level):
+	var gathering: bool = _milestones.is_gathering(skill_id)
+	if new_level != old_level and _bonus_changes(skill_id, gathering, old_level, new_level):
 		_modifiers.begin_batch()
 		_apply_item_bonus(action_id)
+		if gathering:
+			_apply_trade_bonus(skill_id)
 		_modifiers.end_batch()
 	_events.mastery_xp_gained.emit(skill_id, action_id, new_xp - old_xp)
 	for level: int in range(old_level + 1, new_level + 1):
 		_events.mastery_level_up.emit(skill_id, action_id, level)
+	if gathering and not _data.action(action_id).milestones.is_empty():
+		for at: int in _milestones.crossed(old_level, new_level):
+			_events.mastery_milestone_reached.emit(skill_id, action_id, at)
 
 
 func _change_pool(skill_id: StringName, new_pool: int) -> void:
@@ -314,25 +341,43 @@ func _change_pool(skill_id: StringName, new_pool: int) -> void:
 	_events.mastery_pool_changed.emit(skill_id, new_pool)
 
 
-# True when some F-11 rule of the skill gives a different multiplier at the two levels.
-func _bonus_changes(skill_id: StringName, old_level: int, new_level: int) -> bool:
+# True when a source changes between the two levels: a milestone threshold (gathering) or some F-11 rule (artisan).
+func _bonus_changes(skill_id: StringName, gathering: bool, old_level: int, new_level: int) -> bool:
+	if gathering:
+		return _milestones.changes_sources(old_level, new_level)
 	for rule: MasteryBonusRule in _data.skill(skill_id).mastery_bonuses:
 		if MasteryMath.rule_multiplier(rule, old_level) != MasteryMath.rule_multiplier(rule, new_level):
 			return true
 	return false
 
 
-# F-11: every rule's modifiers × its multiplier, with scope action:<id>; no modifiers → no source.
+# Gathering: the `resource` milestone (F-103) at its level. Artisan, F-11: every rule's modifiers × its multiplier, with
+# scope action:<id>. No modifiers → no source.
 func _apply_item_bonus(action_id: StringName) -> void:
 	var level: int = _table.level_for_xp(_xp[action_id])
 	var mods: Array[Modifier] = []
-	for rule: MasteryBonusRule in _data.skill(_skill_of[action_id]).mastery_bonuses:
-		var times: int = MasteryMath.rule_multiplier(rule, level)
-		if times <= 0:
-			continue
-		for mod: Modifier in rule.modifiers:
-			mods.append(Modifier.make(mod.stat, mod.value * float(times), Modifier.SCOPE_ACTION, action_id))
-	var source_id: StringName = StringName(ITEM_SOURCE_PREFIX + String(action_id))
+	if _milestones.is_gathering(_skill_of[action_id]):
+		mods = _milestones.resource_modifiers(_data.action(action_id), level)
+	else:
+		for rule: MasteryBonusRule in _data.skill(_skill_of[action_id]).mastery_bonuses:
+			var times: int = MasteryMath.rule_multiplier(rule, level)
+			if times <= 0:
+				continue
+			for mod: Modifier in rule.modifiers:
+				mods.append(Modifier.make(mod.stat, mod.value * float(times), Modifier.SCOPE_ACTION, action_id))
+	_set_source(StringName(ITEM_SOURCE_PREFIX + String(action_id)), mods)
+
+
+# F-108: the `trade` milestones of the skill's actions at level >= trade_at, summed in one source mastery_trade:<skill>.
+func _apply_trade_bonus(skill_id: StringName) -> void:
+	var mods: Array[Modifier] = []
+	for action_id: StringName in _actions_of[skill_id]:
+		mods.append_array(_milestones.trade_modifiers(_data.action(action_id), _table.level_for_xp(_xp[action_id])))
+	_set_source(StringName(TRADE_SOURCE_PREFIX + String(skill_id)), mods)
+
+
+# The source with `mods`, or no source when there are none.
+func _set_source(source_id: StringName, mods: Array[Modifier]) -> void:
 	if mods.is_empty():
 		_modifiers.clear_source(source_id)
 	else:
@@ -341,11 +386,7 @@ func _apply_item_bonus(action_id: StringName) -> void:
 
 # The node's modifiers (scopes from the data) as source mastery_node:<id>; no modifiers → no source.
 func _apply_node_bonus(node: MasteryNodeDef) -> void:
-	var source_id: StringName = StringName(NODE_SOURCE_PREFIX + String(node.id))
-	if node.modifiers.is_empty():
-		_modifiers.clear_source(source_id)
-	else:
-		_modifiers.set_source(source_id, node.modifiers)
+	_set_source(StringName(NODE_SOURCE_PREFIX + String(node.id)), node.modifiers)
 
 
 # int from an int or an integral float (JSON); null otherwise.

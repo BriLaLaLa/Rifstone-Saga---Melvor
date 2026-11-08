@@ -3,10 +3,25 @@
   "actions": [
     {"id": "gather_log", "name": "Raccogliere tronchi di prova", "level": 5, "interval_ms": 4000, "xp": 20,
      "mastery": true, "inputs": [], "outputs": [{"item": "test_log", "qty": 1}],
-     "icon": "res://assets/icons/items/test_log_action.png"},
+     "icon": "res://assets/icons/items/test_log_action.png",
+     "milestones": [
+       {"at": 25, "type": "byproduct", "item": "test_sap"},
+       {"at": 50, "type": "resource", "modifiers": [{"stat": "double_item_chance", "value": 6}]},
+       {"at": 99, "type": "trade", "modifiers": [{"stat": "double_item_chance", "value": 1}]}
+     ]},
     {"id": "gather_twig", "name": "Raccogliere rametti di prova", "level": 1, "interval_ms": 3000, "xp": 10,
-     "mastery": true, "inputs": [], "outputs": [{"item": "test_twig", "qty": 1}]},
+     "mastery": true, "inputs": [], "outputs": [{"item": "test_twig", "qty": 1}],
+     "milestones": [
+       {"at": 25, "type": "byproduct", "item": "test_resin"},
+       {"at": 50, "type": "resource", "modifiers": [{"stat": "double_item_chance", "value": 8}]},
+       {"at": 99, "type": "trade", "modifiers": [{"stat": "double_item_chance", "value": 0.5}]}
+     ]},
     {"id": "gather_bundle", "name": "Raccogliere fasci di prova", "level": 1, "interval_ms": 3000, "xp": 10,
-     "mastery": false, "inputs": [], "outputs": [{"item": "test_twig", "qty": 2}]}
+     "mastery": false, "inputs": [], "outputs": [{"item": "test_twig", "qty": 2}],
+     "milestones": [
+       {"at": 25, "type": "byproduct", "item": "test_resin"},
+       {"at": 50, "type": "resource", "modifiers": [{"stat": "double_item_chance", "value": 8}]},
+       {"at": 99, "type": "trade", "modifiers": [{"stat": "double_item_chance", "value": 0.5}]}
+     ]}
   ]
 }

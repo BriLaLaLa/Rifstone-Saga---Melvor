@@ -142,7 +142,7 @@ func test_unknown_top_level_field_is_an_error() -> void:
 # --- balance.json ------------------------------------------------------------------------------------------------
 
 func test_required_balance_keys_are_all_in_the_real_file() -> void:
-	assert_eq(DataValidator.REQUIRED_BALANCE_KEYS.size(), 93)  # M12: bank.* and armory.* (8) out, deposit.* (2) and helper.* (3) in
+	assert_eq(DataValidator.REQUIRED_BALANCE_KEYS.size(), 97)  # M12: milestones.* (4) in; bank.* and armory.* (8) out, deposit.* (2) and helper.* (3) in
 	for key: String in DataValidator.REQUIRED_BALANCE_KEYS:
 		assert_not_null(DataValidator.lookup(file_of(fixture_raw(), "balance", BALANCE), key), key)
 
@@ -336,31 +336,31 @@ func test_mastery_bonuses_need_has_mastery() -> void:
 
 func test_mastery_bonus_needs_exactly_one_of_every_levels_and_at_level() -> void:
 	var raw: Dictionary = fixture_raw()
-	((_skill(raw, 0)["mastery_bonuses"] as Array)[0] as Dictionary)["at_level"] = 50
-	((_skill(raw, 0)["mastery_bonuses"] as Array)[1] as Dictionary).erase("at_level")
-	_expect(raw, [SKILLS, "skill 'test_gather'", "'mastery_bonuses[0]' needs exactly one of"])
-	_expect(raw, [SKILLS, "skill 'test_gather'", "'mastery_bonuses[1]' needs exactly one of"])
+	((_skill(raw, 2)["mastery_bonuses"] as Array)[0] as Dictionary)["at_level"] = 50
+	((_skill(raw, 2)["mastery_bonuses"] as Array)[1] as Dictionary).erase("at_level")
+	_expect(raw, [SKILLS, "skill 'test_craft'", "'mastery_bonuses[0]' needs exactly one of"])
+	_expect(raw, [SKILLS, "skill 'test_craft'", "'mastery_bonuses[1]' needs exactly one of"])
 
 
 func test_mastery_bonus_level_is_within_the_mastery_curve() -> void:
 	var raw: Dictionary = fixture_raw()
-	((_skill(raw, 0)["mastery_bonuses"] as Array)[1] as Dictionary)["at_level"] = 100
-	_expect(raw, [SKILLS, "skill 'test_gather'", "field 'mastery_bonuses[1].at_level' must be >= 1 and <= 99"])
+	((_skill(raw, 2)["mastery_bonuses"] as Array)[1] as Dictionary)["at_level"] = 100
+	_expect(raw, [SKILLS, "skill 'test_craft'", "field 'mastery_bonuses[1].at_level' must be >= 1 and <= 99"])
 
 
 func test_modifier_stat_must_be_registered() -> void:
 	var raw: Dictionary = fixture_raw()
-	(((_skill(raw, 0)["mastery_bonuses"] as Array)[0] as Dictionary)["modifiers"] as Array)[0]["stat"] = "luck"
-	_expect(raw, [SKILLS, "skill 'test_gather'", "mastery_bonuses[0].modifiers[0].stat': stat 'luck' is not in"])
+	(((_skill(raw, 2)["mastery_bonuses"] as Array)[0] as Dictionary)["modifiers"] as Array)[0]["stat"] = "luck"
+	_expect(raw, [SKILLS, "skill 'test_craft'", "mastery_bonuses[0].modifiers[0].stat': stat 'luck' is not in"])
 
 
 func test_modifier_value_must_not_be_zero() -> void:
 	var raw: Dictionary = fixture_raw()
-	(((_skill(raw, 0)["mastery_bonuses"] as Array)[0] as Dictionary)["modifiers"] as Array)[0]["value"] = 0
-	_expect(raw, [SKILLS, "skill 'test_gather'", "field 'mastery_bonuses[0].modifiers[0].value' must not be 0"])
+	(((_skill(raw, 2)["mastery_bonuses"] as Array)[0] as Dictionary)["modifiers"] as Array)[0]["value"] = 0
+	_expect(raw, [SKILLS, "skill 'test_craft'", "field 'mastery_bonuses[0].modifiers[0].value' must not be 0"])
 
 
 func test_mastery_bonus_scope_is_ignored() -> void:
 	var raw: Dictionary = fixture_raw()
-	(((_skill(raw, 0)["mastery_bonuses"] as Array)[0] as Dictionary)["modifiers"] as Array)[0]["scope"] = "x"
+	(((_skill(raw, 2)["mastery_bonuses"] as Array)[0] as Dictionary)["modifiers"] as Array)[0]["scope"] = "x"
 	assert_eq(validate(raw), PackedStringArray())

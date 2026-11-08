@@ -222,7 +222,7 @@ func test_all_nodes_in_prerequisite_order() -> void:
 	assert_eq(_pool_changes.size(), 6)
 	assert_eq(_session.actions.current_interval_ms(ACTION), INTERVAL_AFTER_N1_N6, "F-03 with −8")
 	var ctx: ModifierContext = ModifierContext.for_action(SKILL, ACTION)
-	assert_eq(_session.modifiers.total(&"double_item_chance", ctx), 16.0, "F-11 floor(85/10) = 8 + n2 3 + n6 5")
+	assert_eq(_session.modifiers.total(&"double_item_chance", ctx), 8.0, "n2 3 + n6 5 (M12: no F-11 for gathering; the milestones come with M12-05)")
 	assert_eq(_session.modifiers.total(&"skill_xp_pct", ctx), 4.0)
 	assert_eq(_session.modifiers.total(&"rift_shard_chance", ctx), 0.25)
 	assert_eq(_session.modifiers.total(&"mastery_xp_pct", ctx), 5.0)
@@ -256,8 +256,8 @@ func test_spending_the_pool_on_an_action_gives_a_level_and_the_bonus() -> void:
 	var pool: int = EXPECTED_POOL - NODE_COSTS[N1] - 5000
 	assert_eq(_session.mastery.get_pool(SKILL), pool)
 	assert_eq(_pool_changes, [pool] as Array[int])
-	assert_eq(_session.modifiers.total(&"double_item_chance", ctx), 3.0, "F-11 floor(30/10)")
-	assert_true(_has_source(&"double_item_chance", ctx, &"mastery_item:cut_ashpine"))
+	assert_eq(_session.modifiers.total(&"double_item_chance", ctx), 0.0, "M12: no F-11 for gathering")
+	assert_false(_has_source(&"double_item_chance", ctx, &"mastery_item:cut_ashpine"), "milestones: M12-05")
 	assert_eq(_session.mastery.get_skill_ratio(SKILL), float(EXPECTED_MASTERY_LEVEL + 30 + 6) / 792.0, "R of F-10")
 	# More than the pool: F-14 spends what is left (671) → 5671 xp → level 32 (5485 ≤ 5671 < xp_for_level(33)).
 	assert_true(_session.mastery.spend_pool_on_action(OTHER_ACTION, 5000).ok)
@@ -267,8 +267,8 @@ func test_spending_the_pool_on_an_action_gives_a_level_and_the_bonus() -> void:
 	assert_eq(_session.mastery.spend_pool_on_action(OTHER_ACTION, 1).reason, Reasons.POOL_INSUFFICIENT)
 	assert_true(_session.mastery.owns_node(N1), "spending the pool keeps the nodes")
 	assert_eq(_session.actions.current_interval_ms(ACTION), INTERVAL_AFTER_N1)
-	assert_eq(_session.modifiers.total(&"double_item_chance", ModifierContext.for_action(SKILL, ACTION)), 8.0,
-			"the bonus is per action: cut_redbirch keeps floor(85/10)")
+	assert_eq(_session.modifiers.total(&"double_item_chance", ModifierContext.for_action(SKILL, ACTION)), 0.0,
+			"M12: no per-action F-11 bonus for gathering (milestones: M12-05)")
 
 
 func test_spending_to_level_99_gives_the_full_bonus() -> void:
@@ -281,7 +281,7 @@ func test_spending_to_level_99_gives_the_full_bonus() -> void:
 	assert_eq(_mastery_level_ups, _levels(EXPECTED_MASTERY_LEVEL + 1, 99))
 	assert_eq(_session.mastery.get_pool(SKILL), EXPECTED_POOL_CAP - needed)
 	var ctx: ModifierContext = ModifierContext.for_action(SKILL, ACTION)
-	assert_eq(_session.modifiers.total(&"double_item_chance", ctx), 14.0, "F-11 at 99: 9 + 5")
+	assert_eq(_session.modifiers.total(&"double_item_chance", ctx), 0.0, "M12: no F-11 at 99 for gathering (milestones: M12-05)")
 	assert_eq(_session.mastery.spend_pool_on_action(ACTION, 1).reason, Reasons.MASTERY_MAX)
 	_mastery_gains.clear()
 	_session.advance(BASE_INTERVAL_MS)

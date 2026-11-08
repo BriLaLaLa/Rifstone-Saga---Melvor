@@ -29,7 +29,7 @@ const OFFHAND_SLOT_KINDS: PackedStringArray = ["shield"]  # kinds of slot offhan
 const RIFT_SHARD_ID: StringName = &"rift_shard"
 const RIFT_SHARD_CATEGORY: String = "misc"
 const ACTION_FIELDS: PackedStringArray = ["id", "name", "level", "interval_ms", "xp", "mastery", "inputs",
-	"outputs", "icon", "single"]
+	"outputs", "icon", "single", "milestones"]
 const SHOP_CATEGORIES: PackedStringArray = ["bank", "combat", "tools", "materials"]  # M8 adds "lanes"
 ## Vendors (stalls) the shop page groups the entries under; the page lists them in this order (P-04).
 const SHOP_VENDORS: PackedStringArray = ["bottegaia", "fabbro", "armaiolo", "mercante_armature"]  # M12: "deposito" has no entries
@@ -168,6 +168,7 @@ static func _kind(v: DataValidatorRules, equip: Dictionary, slot: String) -> Str
 
 
 static func validate_actions(v: DataValidatorRules, files: Dictionary[String, Dictionary]) -> void:
+	var milestones_active: bool = DataValidatorMilestones.is_active(v, files)
 	var seen: Dictionary[StringName, bool] = {}
 	for path: String in files:
 		v.at_file(path)
@@ -189,6 +190,7 @@ static func validate_actions(v: DataValidatorRules, files: Dictionary[String, Di
 				v.fail("gathering actions must have no inputs")
 			v.item_qty_list(e, "outputs", 0 if single else 1)
 			DataValidatorM10.recipe_outputs(v, e)
+			DataValidatorMilestones.action(v, e, skill, category, milestones_active)
 
 
 static func validate_shop(v: DataValidatorRules, files: Dictionary[String, Dictionary]) -> void:
