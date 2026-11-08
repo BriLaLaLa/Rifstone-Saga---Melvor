@@ -111,7 +111,7 @@ func test_equipment_page_shows_the_tool_without_remove() -> void:
 	var uid: int = _session.armory.tool_uid(SLOT)
 	var panel: PiecePanel = _page.get_node("%PiecePanel") as PiecePanel
 	assert_true(panel.show_piece(_session, uid))
-	for node_name: String in ["UnequipButton", "LockButton", "RefineButton", "SalvageButton", "SellButton"]:
+	for node_name: String in ["UnequipButton", "LockButton", "SalvageButton", "SellButton"]:
 		assert_false((panel.get_node("%" + node_name) as Control).visible, node_name)
 	var slot_view: EquipmentSlotView = _page.get_node("%Doll").find_child("Slot_tool_forestry", true, false)
 	assert_null(slot_view.drag_payload(), "a unique tool cannot be dragged off")

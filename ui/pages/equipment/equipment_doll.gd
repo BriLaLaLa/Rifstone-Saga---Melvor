@@ -25,6 +25,8 @@ const SLOT_RECTS: Dictionary[StringName, Rect2] = {
 	&"tool_quarrying": Rect2(-36, 480, 72, 72),
 	&"tool_angling": Rect2(78, 480, 72, 72),
 }
+## The "Cibo" slot (not an `Equipment.SLOTS` entry): below the second hand, above the tool row.
+const FOOD_RECT := Rect2(96, 384, 84, 92)
 ## Silhouette (viewBox 60 x 150 of the mockup) drawn as outlines.
 const SILHOUETTE_HEAD_CENTER := Vector2(30, 14)
 const SILHOUETTE_HEAD_RADIUS: float = 10.0
@@ -41,6 +43,7 @@ const SILHOUETTE_COLOR := Color("5e4c26")
 const HEAD_POINTS: int = 32
 
 var _views: Dictionary[StringName, EquipmentSlotView] = {}
+var _food: FoodSlotView = null
 
 
 func _init() -> void:
@@ -55,12 +58,22 @@ func build(label_of: Callable) -> void:
 		remove_child(view)
 		view.queue_free()
 	_views.clear()
+	if _food != null:
+		remove_child(_food)
+		_food.queue_free()
+	_food = FoodSlotView.new()
+	add_child(_food)
 	for slot: StringName in Equipment.SLOTS:
 		var view: EquipmentSlotView = EquipmentSlotView.new()
 		add_child(view)
 		view.setup(slot, label_of.call(slot) as String)
 		_views[slot] = view
 	_layout()
+
+
+## The Cibo slot (null before `build`).
+func food_slot() -> FoodSlotView:
+	return _food
 
 
 func slot_view(slot: StringName) -> EquipmentSlotView:
@@ -82,6 +95,9 @@ func _layout() -> void:
 		var rect: Rect2 = SLOT_RECTS[slot]
 		_views[slot].position = origin + rect.position * factor
 		_views[slot].size = rect.size * factor
+	if _food != null:
+		_food.position = origin + FOOD_RECT.position * factor
+		_food.size = FOOD_RECT.size * factor
 	queue_redraw()
 
 

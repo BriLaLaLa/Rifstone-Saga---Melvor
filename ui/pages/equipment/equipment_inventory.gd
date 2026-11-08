@@ -30,12 +30,15 @@ static func build_filters(session: GameSession, slot_option: OptionButton, rarit
 	rarity_option.select(0)
 
 
-## Rebuilds the cells of `grid` (pieces not worn that pass the filters) and wires them to `page`'s handlers.
+## Brings the cells of `grid` (pieces not worn that pass the filters) up to date and wires new ones to `page`'s
+## handlers. A cell whose piece is still shown is kept (redrawn, moved to its place), never freed and recreated: a
+## redraw caused by the click that starts a drag must not destroy the cell under the mouse, or the drag would be lost.
 static func rebuild_grid(session: GameSession, grid: Container, empty_label: Label, slot_filter: StringName,
 		rarity_filter: StringName, selected_uid: int, handlers: Dictionary) -> void:
+	var existing: Dictionary[int, InventoryCell] = {}
 	for child: Node in grid.get_children():
-		grid.remove_child(child)
-		child.queue_free()
+		if not child.is_queued_for_deletion():
+			existing[(child as InventoryCell).uid()] = child as InventoryCell
 	var all_pieces: Array[ItemInstance] = session.armory.instances()
 	var shown: int = 0
 	for inst: ItemInstance in all_pieces:
@@ -43,16 +46,24 @@ static func rebuild_grid(session: GameSession, grid: Container, empty_label: Lab
 		if session.armory.is_worn(inst.uid) or base == null or base.equip == null \
 				or not passes_filters(inst, base, slot_filter, rarity_filter):
 			continue
-		var cell: InventoryCell = CELL_SCENE.instantiate() as InventoryCell
-		cell.name = CELL_NAME % inst.uid
-		grid.add_child(cell)
+		var cell: InventoryCell = existing.get(inst.uid)
+		if cell == null:
+			cell = CELL_SCENE.instantiate() as InventoryCell
+			cell.name = CELL_NAME % inst.uid
+			grid.add_child(cell)
+			cell.pressed.connect(handlers["pressed"] as Callable)
+			cell.right_clicked.connect(handlers["right_clicked"] as Callable)
+			cell.unequip_dropped.connect(handlers["unequip_dropped"] as Callable)
+			cell.hover_started.connect(handlers["hover_started"] as Callable)
+			cell.hover_ended.connect(handlers["hover_ended"] as Callable)
+		else:
+			existing.erase(inst.uid)
+		grid.move_child(cell, shown)
 		cell.set_piece(inst, base, inst.uid == selected_uid)
-		cell.pressed.connect(handlers["pressed"] as Callable)
-		cell.right_clicked.connect(handlers["right_clicked"] as Callable)
-		cell.unequip_dropped.connect(handlers["unequip_dropped"] as Callable)
-		cell.hover_started.connect(handlers["hover_started"] as Callable)
-		cell.hover_ended.connect(handlers["hover_ended"] as Callable)
 		shown += 1
+	for stale: InventoryCell in existing.values():
+		grid.remove_child(stale)
+		stale.queue_free()
 	empty_label.visible = shown == 0
 	empty_label.text = EMPTY_TEXT if all_pieces.is_empty() else NO_MATCH_TEXT
 
