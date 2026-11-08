@@ -142,7 +142,7 @@ func test_unknown_top_level_field_is_an_error() -> void:
 # --- balance.json ------------------------------------------------------------------------------------------------
 
 func test_required_balance_keys_are_all_in_the_real_file() -> void:
-	assert_eq(DataValidator.REQUIRED_BALANCE_KEYS.size(), 90)  # M12: bank.* and armory.* (8) out, deposit.* (2) in
+	assert_eq(DataValidator.REQUIRED_BALANCE_KEYS.size(), 93)  # M12: bank.* and armory.* (8) out, deposit.* (2) and helper.* (3) in
 	for key: String in DataValidator.REQUIRED_BALANCE_KEYS:
 		assert_not_null(DataValidator.lookup(file_of(fixture_raw(), "balance", BALANCE), key), key)
 

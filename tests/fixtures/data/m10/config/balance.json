@@ -50,6 +50,16 @@
     "base_slots": 60,
     "bag_slots": 6
   },
+  "helper": {
+    "xp_pct": 25,
+    "mastery_pct": 25,
+    "grades": [
+      {"id": "apprentice", "interval_mult": 3.0},
+      {"id": "journeyman", "interval_mult": 2.5},
+      {"id": "expert", "interval_mult": 2.0},
+      {"id": "master", "interval_mult": 1.5}
+    ]
+  },
   "combat": {
     "acc_level_offset": 8,
     "acc_bonus_offset": 50,

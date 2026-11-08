@@ -80,10 +80,10 @@ func get_progress(skill_id: StringName) -> float:
 	return _table.progress(_xp[skill_id])
 
 
-## F-02: granted = floor(base × (1 + T(skill_xp_pct, ctx)/100)), then xp = min(xp + granted, xp_cap).
+## F-02: granted = floor(base × (1 + T(skill_xp_pct, ctx)/100)), then (M12, F-102) floor(granted × share_pct / 100), then xp = min(xp + granted, xp_cap).
 ## ctx = null uses the skill context. Returns the xp actually added (0 at the cap). Emits xp_gained when > 0,
 ## then one level_up per level gained. A negative amount or an unknown skill is an error and changes nothing.
-func add_xp(skill_id: StringName, base_amount: int, ctx: ModifierContext = null) -> int:
+func add_xp(skill_id: StringName, base_amount: int, ctx: ModifierContext = null, share_pct: float = 100.0) -> int:
 	if not _is_known(skill_id):
 		return 0
 	if base_amount < 0:
@@ -93,6 +93,8 @@ func add_xp(skill_id: StringName, base_amount: int, ctx: ModifierContext = null)
 	var pct: float = _modifiers.total(XP_PCT_STAT, context)
 	# (100 + pct) / 100 keeps whole-percent results exact (10 × 115 / 100 = 11.5, not 11.4999…).
 	var granted: int = floori(float(base_amount) * (100.0 + pct) / 100.0)
+	if share_pct != 100.0:
+		granted = floori(float(granted) * share_pct / 100.0)
 	var old_xp: int = _xp[skill_id]
 	var new_xp: int = mini(old_xp + maxi(granted, 0), _xp_cap)
 	var gained: int = new_xp - old_xp

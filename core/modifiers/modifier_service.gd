@@ -54,6 +54,7 @@ func has_source(source_id: StringName) -> bool:
 
 
 ## F-05: sum of the applicable modifiers of `stat`, limited to the stat's min/max. null = global context.
+## Sources in `ctx.excluded_sources` (M12, `ModifierContext.for_helper`) are ignored.
 func total(stat: StringName, ctx: ModifierContext = null) -> float:
 	if not _stats.has(stat):
 		Log.error("modifiers", "total of unknown stat '%s'" % stat)
@@ -63,6 +64,8 @@ func total(stat: StringName, ctx: ModifierContext = null) -> float:
 		return _cache[key]
 	var sum: float = 0.0
 	for source_id: StringName in _sources:
+		if ctx != null and ctx.excluded_sources.has(source_id):
+			continue
 		sum += _source_sum(source_id, stat, ctx)
 	var result: float = _stats.clamp_total(stat, sum)
 	_cache[key] = result
@@ -89,6 +92,8 @@ func breakdown(stat: StringName, ctx: ModifierContext = null) -> Array[Dictionar
 		Log.error("modifiers", "breakdown of unknown stat '%s'" % stat)
 		return result
 	for source_id: StringName in _sources:
+		if ctx != null and ctx.excluded_sources.has(source_id):
+			continue
 		if _source_applies(source_id, stat, ctx):
 			result.append({"source": source_id, "value": _source_sum(source_id, stat, ctx)})
 	return result
@@ -141,4 +146,6 @@ func _source_applies(source_id: StringName, stat: StringName, ctx: ModifierConte
 static func _cache_key(stat: StringName, ctx: ModifierContext) -> String:
 	if ctx == null:
 		return "%s||" % stat
-	return "%s|%s|%s" % [stat, ctx.skill_id, ctx.action_id]
+	if ctx.excluded_sources.is_empty():
+		return "%s|%s|%s" % [stat, ctx.skill_id, ctx.action_id]
+	return "%s|%s|%s|%s" % [stat, ctx.skill_id, ctx.action_id, String(",").join(PackedStringArray(ctx.excluded_sources))]

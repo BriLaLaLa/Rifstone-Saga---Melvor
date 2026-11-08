@@ -140,9 +140,9 @@ func get_pool_cap(skill_id: StringName) -> int:
 
 
 ## One completed cycle of `action`: F-10 mastery xp (capped at the max level), F-12 share to the pool (capped at
-## F-13). Returns the mxp of F-10, or 0 for an action without mastery (nothing changes). Emits mastery_xp_gained,
+## F-13). With `share_pct` < 100 (helper, M12 F-102) the mxp is round(F-10 × share_pct / 100) and F-12 applies to it. Returns the mxp, or 0 for an action without mastery (nothing changes). Emits mastery_xp_gained,
 ## one mastery_level_up per level (after the action's bonus source is updated) and mastery_pool_changed.
-func add_for_action(action: ActionDef) -> int:
+func add_for_action(action: ActionDef, share_pct: float = 100.0) -> int:
 	if action == null:
 		Log.error(LOG_CATEGORY, "add_for_action without an action")
 		return 0
@@ -152,6 +152,8 @@ func add_for_action(action: ActionDef) -> int:
 	var ctx: ModifierContext = ModifierContext.for_action(skill_id, action.id)
 	var mxp: int = MasteryMath.mastery_xp(action.interval_ms, get_mastery_level(action.id),
 			get_skill_ratio(skill_id), _modifiers.total(XP_PCT_STAT, ctx), _data)
+	if share_pct != 100.0:
+		mxp = MasteryMath.helper_share(mxp, share_pct)
 	_grant(skill_id, action.id, mxp)
 	_change_pool(skill_id, mini(_pool[skill_id] + MasteryMath.pool_gain(mxp, _share_pct), _caps[skill_id]))
 	return mxp

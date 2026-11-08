@@ -20,6 +20,7 @@ const REQUIRED_BALANCE_KEYS: PackedStringArray = [
 	"mastery.pool_cap_per_item", "mastery.pool_warning_pct", "action.min_interval_ms",
 	"gathering.rift_shard_base_chance_pct",
 	"deposit.base_slots", "deposit.bag_slots",
+	"helper.xp_pct", "helper.mastery_pct", "helper.grades",
 	"combat.acc_level_offset", "combat.acc_bonus_offset", "combat.maxhit_level_offset", "combat.maxhit_bonus_offset",
 	"combat.min_hit_ratio", "combat.hit_chance_min", "combat.hit_chance_max",
 	"combat.triangle.advantage_damage_mult", "combat.triangle.disadvantage_damage_mult",
@@ -45,6 +46,7 @@ const REQUIRED_BALANCE_KEYS: PackedStringArray = [
 const BALANCE_LIST_KEYS: PackedStringArray = [
 	"start.items", "combat.auto_eat_tiers", "rift.sockets", "traits.slot_levels", "abilities.slot_levels", "rarity.affix_count.magic", "rarity.affix_count.rare",
 	"upgrade.levels", "upgrade.ingot_items", "tool_upgrade.levels",
+	"helper.grades",
 ]
 const BALANCE_STYLE_KEYS: PackedStringArray = [
 	"combat.triangle.beats.blade", "combat.triangle.beats.arcana", "combat.triangle.beats.marksmanship",
@@ -198,6 +200,7 @@ static func _validate_balance(v: DataValidatorRules, files: Dictionary[String, D
 			v.max_pack_size = DataValidatorRules.NO_LIMIT
 		DataValidatorClasses.validate_balance(v, balance)
 		DataValidatorLoot.validate_balance(v, balance)
+		DataValidatorHelper.validate_balance(v, balance)
 		DataValidatorHints.validate_balance(v, balance)
 		DataValidatorM10Balance.validate_balance(v, balance)
 

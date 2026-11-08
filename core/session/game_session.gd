@@ -16,8 +16,9 @@ const RNG_KEY: String = "rng"
 # Advance phases, in the fixed order of docs/01_GDD.md §2.
 const _PHASE_FRACTURES: int = 0
 const _PHASE_ACTIONS: int = 1
-const _PHASE_COMBAT: int = 2
-const _PHASE_COUNT: int = 3
+const _PHASE_HELPERS: int = 2  # M12
+const _PHASE_COMBAT: int = 3
+const _PHASE_COUNT: int = 4
 
 var data: GameData
 var events: GameEvents
@@ -33,6 +34,7 @@ var armory: Armory
 var equipment: Equipment
 var loadout: Loadout
 var actions: ActionRunner
+var helpers: HelperSystem
 var combat: CombatEngine
 var shop: Shop
 var rift: RiftAltar
@@ -66,7 +68,7 @@ func new_game() -> void:
 	rebuild_modifiers()
 
 
-## One fixed step: fractures, actions, combat (only the systems that exist), then play time.
+## One fixed step: fractures, actions, helpers, combat (only the systems that exist), then play time.
 func advance(delta_ms: int) -> void:
 	for step: Callable in _steps:
 		if step.is_valid():
@@ -153,6 +155,9 @@ func _create_systems() -> void:
 	actions = ActionRunner.new(self)
 	_join(ActionRunner.SAVE_KEY, actions.new_game, actions.to_save, actions.from_save)
 	_tick(_PHASE_ACTIONS, actions.advance)
+	helpers = HelperSystem.new(self)
+	_join(HelperSystem.SAVE_KEY, helpers.new_game, helpers.to_save, helpers.from_save)
+	_tick(_PHASE_HELPERS, helpers.advance)
 	combat = CombatEngine.new(self)
 	_join(CombatEngine.SAVE_KEY, combat.new_game, combat.to_save, combat.from_save, combat.rebuild_modifiers)
 	_tick(_PHASE_COMBAT, combat.advance)

@@ -24,6 +24,8 @@ var stone_modifiers: Array[Modifier] = []
 var currency_effect: StringName = &""
 var blueprint: BlueprintInfo = null  # M10: null unless category `blueprint`
 var bag_slots: int = 0  # M12: `bag.slots` of a category `bag` item (F-100); 0 otherwise
+var contract_skill: StringName = &""  # M12: `contract.skill` of a category `contract` item (a gathering skill)
+var contract_grade: StringName = &""  # M12: `contract.grade` (an id of helper.grades)
 
 
 static func from_dict(d: Dictionary) -> ItemDef:
@@ -65,6 +67,11 @@ static func from_dict(d: Dictionary) -> ItemDef:
 		var bag := DefReader.new(r.dict("bag"), r.context() + " bag")
 		def.bag_slots = bag.integer("slots")
 		r.absorb(bag.ok)
+	if r.has("contract") and r.is_dict("contract"):
+		var contract := DefReader.new(r.dict("contract"), r.context() + " contract")
+		def.contract_skill = contract.id("skill")
+		def.contract_grade = contract.id("grade")
+		r.absorb(contract.ok)
 	return def if r.ok else null
 
 
@@ -90,6 +97,14 @@ func is_currency() -> bool:
 
 func is_blueprint() -> bool:
 	return category == &"blueprint" and blueprint != null
+
+
+func is_bag() -> bool:
+	return category == &"bag" and bag_slots > 0
+
+
+func is_contract() -> bool:
+	return category == &"contract" and contract_skill != &""
 
 
 func is_component() -> bool:

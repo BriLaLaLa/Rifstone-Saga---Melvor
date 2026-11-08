@@ -1,0 +1,28 @@
+{
+  "items": [
+    {"id": "contract_test_gather_apprentice", "name": "Contratto di prova test_gather apprentice", "category": "contract",
+     "icon": "res://assets/icons/items/contract_test_gather.png", "value": 0, "sort_order": 10,
+     "description": "Contratto di prova per un aiutante.", "contract": {"skill": "test_gather", "grade": "apprentice"}},
+    {"id": "contract_test_gather_journeyman", "name": "Contratto di prova test_gather journeyman", "category": "contract",
+     "icon": "res://assets/icons/items/contract_test_gather.png", "value": 0, "sort_order": 20,
+     "description": "Contratto di prova per un aiutante.", "contract": {"skill": "test_gather", "grade": "journeyman"}},
+    {"id": "contract_test_gather_expert", "name": "Contratto di prova test_gather expert", "category": "contract",
+     "icon": "res://assets/icons/items/contract_test_gather.png", "value": 0, "sort_order": 30,
+     "description": "Contratto di prova per un aiutante.", "contract": {"skill": "test_gather", "grade": "expert"}},
+    {"id": "contract_test_gather_master", "name": "Contratto di prova test_gather master", "category": "contract",
+     "icon": "res://assets/icons/items/contract_test_gather.png", "value": 0, "sort_order": 40,
+     "description": "Contratto di prova per un aiutante.", "contract": {"skill": "test_gather", "grade": "master"}},
+    {"id": "contract_test_gather_b_apprentice", "name": "Contratto di prova test_gather_b apprentice", "category": "contract",
+     "icon": "res://assets/icons/items/contract_test_gather_b.png", "value": 0, "sort_order": 50,
+     "description": "Contratto di prova per un aiutante.", "contract": {"skill": "test_gather_b", "grade": "apprentice"}},
+    {"id": "contract_test_gather_b_journeyman", "name": "Contratto di prova test_gather_b journeyman", "category": "contract",
+     "icon": "res://assets/icons/items/contract_test_gather_b.png", "value": 0, "sort_order": 60,
+     "description": "Contratto di prova per un aiutante.", "contract": {"skill": "test_gather_b", "grade": "journeyman"}},
+    {"id": "contract_test_gather_b_expert", "name": "Contratto di prova test_gather_b expert", "category": "contract",
+     "icon": "res://assets/icons/items/contract_test_gather_b.png", "value": 0, "sort_order": 70,
+     "description": "Contratto di prova per un aiutante.", "contract": {"skill": "test_gather_b", "grade": "expert"}},
+    {"id": "contract_test_gather_b_master", "name": "Contratto di prova test_gather_b master", "category": "contract",
+     "icon": "res://assets/icons/items/contract_test_gather_b.png", "value": 0, "sort_order": 80,
+     "description": "Contratto di prova per un aiutante.", "contract": {"skill": "test_gather_b", "grade": "master"}}
+  ]
+}
