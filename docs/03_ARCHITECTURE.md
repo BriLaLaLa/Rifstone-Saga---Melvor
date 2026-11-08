@@ -31,7 +31,7 @@ res://
 │   ├── common/                   ← command_result.gd, reasons.gd
 │   ├── data/                     ← game_data.gd, json_loader.gd, data_validator.gd
 │   │   └── defs/                 ← item_def.gd, skill_def.gd, action_def.gd, monster_def.gd, area_def.gd,
-│   │                               shop_entry_def.gd, mastery_node_def.gd, item_qty.gd, drop_entry.gd, fracture_def.gd (M11),
+│   │                               shop_entry_def.gd, mastery_node_def.gd, item_qty.gd, drop_entry.gd, fracture_def.gd (M12),
 │   │                               class_def.gd, setup_def.gd, affix_def.gd, affix_tier.gd, pack_def.gd (M4), trait_def.gd, trait_effect_def.gd, ability_def.gd (M6)
 │   ├── modifiers/                ← modifier.gd, modifier_context.gd, modifier_service.gd, stat_registry.gd
 │   ├── progression/              ← xp_table.gd
@@ -56,7 +56,7 @@ res://
 │   ├── shop/                     ← shop.gd
 │   ├── rift/                     ← rift_altar.gd (M8)
 │   ├── hints/                    ← hints_system.gd (M9)
-│   └── fractures/                ← fracture_system.gd (M11)
+│   └── fractures/                ← fracture_system.gd (M12)
 ├── data/
 │   ├── config/                   ← balance.json, stats.json
 │   ├── skills/skills.json        ← 7 skill di supporto
@@ -68,7 +68,7 @@ res://
 │   ├── combat/                   ← areas.json, monsters.json, rift_stones.json (M7)
 │   ├── shop/shop.json
 │   ├── hints/hints.json          (M9)
-│   └── fractures/fractures.json  (M11)
+│   └── fractures/fractures.json  (M12)
 ├── ui/
 │   ├── theme/                    ← ui_style.gd, number_format.gd (M1-14), riftstone_idle_theme.tres (generato)
 │   ├── components/               ← game_window/, tooltip/, toast/, item_slot/, progress/, confirm_dialog/
@@ -245,7 +245,7 @@ sequenceDiagram
 - `GameClock._process(delta)` accumula millisecondi reali e, per ogni `tick_ms` (100) intero accumulato, emette
   `ticked(tick_ms)`; massimo `max_catchup_ms` per frame (il resto si scarta). `set_paused(true)` durante menu e offline.
 - `Game` collega `GameClock.ticked` a `session.advance(delta_ms)` solo quando la sessione è in stato `PLAYING`.
-- `GameSession.advance(delta_ms)` chiama in ordine fisso: `fractures.advance` (M11) → `actions.advance` → `combat.advance`
+- `GameSession.advance(delta_ms)` chiama in ordine fisso: `fractures.advance` (M12) → `actions.advance` → `combat.advance`
   → `play_time_ms += delta_ms`.
 - Ogni `advance` gestisce **più eventi nello stesso passo** (es. due cicli d'azione da 250 ms in 600 ms): è la
   condizione che rende identici online e offline (test di equivalenza F-41).
@@ -321,7 +321,7 @@ flowchart TD
     MN[MasterySystem: mastery_node:id] --> MS
     SH[Shop: shop:entry] --> MS
     RA[RiftAltar: rift_socket:i] --> MS
-    FR[FractureSystem: fracture:id M11] --> MS
+    FR[FractureSystem: fracture:id M12] --> MS
     MS -->|"total(stat, ctx)"| F1[ActionMath F-03]
     MS --> F2[SkillsSystem F-02, CharacterSystem F-71]
     MS --> F3[MasteryMath F-10]

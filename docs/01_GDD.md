@@ -7,9 +7,9 @@ sono elencate in `res://data/config/stats.json` (sezione 15). Le firme dei metod
 Indice: 1 Slot e sessione · 2 Tempo di gioco · 3 Skill ed esperienza · 4 Azioni di raccolta · 5 Azioni di
 artigianato · 6 Maestria · 7 Bank · 8 Oro e shop · 9 Equipaggiamento e attrezzi · 10 Combattimento a gruppi ·
 11 Legatura del Rift e Altare (M8) · 12 Progressione offline · 13 Feedback e notifiche · 14 Suggerimenti ·
-15 Modificatori e stat · 16 Impostazioni · 17 Fratture del Rift (M11) · 18 Azioni in parallelo (M12) ·
+15 Modificatori e stat · 16 Impostazioni · 17 Fratture del Rift (M12) · 18 Azioni in parallelo (M13) ·
 19 Personaggio e classe · 20 Tratti e abilità (M6) · 21 Armeria · 22 Rarità e affissi · 23 Raffinazione (M7) ·
-24 Pietre del Rift (M7) · 25 Smantellamento e filtro (M7) · 26 Castoni e valute del Rift (M8)
+24 Pietre del Rift (M7) · 25 Smantellamento e filtro (M7) · 26 Castoni e valute del Rift (M8) · 27 Guida in gioco (M11)
 
 Direzione del gioco da M4 (decisioni D1-D6 in `DECISIONS_LOG.md`): il **combattimento è il cuore** (gruppi di mostri,
 bottino con rarità e affissi, potenziamento, build di tratti e abilità); raccolta e artigianato sono il ciclo di
@@ -71,7 +71,7 @@ fuori dallo slot per scelta: non sono stato di gioco).
   `advance(delta_ms)` e deve dare lo stesso risultato sia con un passo da 1000 ms sia con dieci da 100 ms (più eventi
   dentro un passo si risolvono in ordine).
 - Tutte le durate sono in millisecondi interi.
-- L'ordine di aggiornamento in un passo è fisso: fratture (M11) → corsie delle azioni → combattimento → tempo di gioco.
+- L'ordine di aggiornamento in un passo è fisso: fratture (M12) → corsie delle azioni → combattimento → tempo di gioco.
   Il combattimento è un motore a eventi (§10.10): salta da un timer all'altro, con lo stesso risultato del passo fisso.
 - Il tempo di gioco (`play_time_ms`) cresce solo durante `PLAYING` (non durante l'offline, che ha il suo totale).
 
@@ -111,7 +111,7 @@ Altare del Rift. Il combattimento dà XP solo al personaggio (F-28).
      maestria), si ferma con motivo `bank_full` e nulla va perso;
   4. si danno XP (F-02) e maestria (F-10);
   5. l'azione riparte da sola (ciclo infinito) finché il giocatore non la ferma.
-- Una sola azione alla volta nella corsia principale (fino a M12): avviarne un'altra ferma la precedente; avviare il
+- Una sola azione alla volta nella corsia principale (fino a M13): avviarne un'altra ferma la precedente; avviare il
   combattimento ferma l'azione; avviare un'azione ferma il combattimento.
 - L'**attrezzo unico** della skill (slot `tool_<skill>`, §9, §23.1) dà modificatori alla skill (`skill_interval_pct`
   negativo e, ai passi alti della raffinazione, `double_item_chance` o `rift_shard_chance`).
@@ -165,7 +165,7 @@ l'intervallo si ricalcola a ogni avvio di ciclo).
   di affissi della rarità.
 - Armeria piena: l'avvio è rifiutato (`armory_full`); se si riempie durante il lavoro, alla fine il lavoro resta al
   100% e riprova a ogni passo (notifica `armory_full` una volta), senza perdere nulla.
-- Un solo lavoro alla volta (la corsia principale); la corsia secondaria (M12) non può eseguire progetti.
+- Un solo lavoro alla volta (la corsia principale); la corsia secondaria (M13) non può eseguire progetti.
 
 **Stati**: corsia `RUNNING(forging, blueprint_craft, elapsed_ms, durata, progetto, affisso scelto)`; lo stato extra sta nel
 salvataggio di `actions`. **Casi limite**: livello insufficiente (`level_too_low`), materiali o componente raro
@@ -240,7 +240,7 @@ perdono); oggetto sconosciuto in un salvataggio (scartato al caricamento, con av
   - **Materiali**: oggetti base comprabili (es. sale, spago) a prezzo fisso;
   - ~~Attrezzi del novizio~~: tolti con la riforma (R3); gli attrezzi unici arrivano con il kit iniziale (§1.1). La
     categoria `tools` dello shop non esiste più;
-  - **Corsie** (M12): "Secondo pensiero" (`parallel_lanes` +1).
+  - **Corsie** (M13): "Secondo pensiero" (`parallel_lanes` +1).
 - Ogni voce ha: costo (oro fisso o formula), massimo di acquisti, requisiti (livello del personaggio, skill/livello,
   altra voce, livello totale), effetto (modificatori o oggetto).
 - Gli effetti a modificatore valgono `valore × numero di acquisti` (sorgente `shop:<id>`).
@@ -432,7 +432,7 @@ sviluppo.
 - Esiste **un solo** sistema di modificatori. Un modificatore è `{stat, value, scope}`; lo scope è `global`,
   `skill:<id>` o `action:<id>`. Le sorgenti sono: equipaggiamento (pezzo base × raffinazione + affissi + castoni),
   assetto, tratti, buff delle abilità (temporanei), maestria per oggetto, nodi della maestria, shop, prese dell'Altare,
-  fratture (M11).
+  fratture (M12).
 - Il valore finale di una stat in un contesto è la **somma** dei modificatori applicabili, limitata da `min`/`max`
   della stat (F-05). Ogni formula dice come usa la stat.
 - I modificatori **non si salvano**: si ricostruiscono dallo stato salvato (cosa è indossato, quali nodi, quanti
@@ -445,7 +445,7 @@ Elenco delle stat dell'MVP (dettagli in `02_FORMULAS.md` §11):
 `rift_shard_chance`, `bank_slots`, `accuracy_bonus`, `accuracy_pct`, `power_bonus`, `power_pct`, `evasion_bonus`,
 `evasion_pct`, `damage_reduction`, `attack_interval_pct`, `max_hp_flat`, `food_healing_pct`, `gold_drop_pct`,
 `loot_bag_slots`, `auto_loot`, `auto_eat_tier`, `armory_slots`, `item_rarity_pct` (M4), `block_chance` (M5),
-`upgrade_success_pct` (M7). Dopo l'MVP: `fracture_duration_pct` (M11), `parallel_lanes` (M12).
+`upgrade_success_pct` (M7). Dopo l'MVP: `fracture_duration_pct` (M12), `parallel_lanes` (M13).
 Gli effetti dei tratti che non sono somme di stat (es. "evasione a 0") non sono stat: sono tipi di effetto (F-81).
 
 ## 16. Impostazioni
@@ -453,9 +453,9 @@ Gli effetti dei tratti che non sono somme di stat (es. "evasione a 0") non sono 
 Globali (non per slot, perché non sono stato di gioco): modalità finestra, dimensione, scala UI, VSync, limite FPS,
 volume, livello dei log. File `user://settings.cfg`. Pannello dal menu e in partita (Esc).
 
-## 17. Fratture del Rift (M11, dopo l'MVP)
+## 17. Fratture del Rift (M12, dopo l'MVP)
 
-Da rivedere a inizio M11: le Fratture diventano "mappe" con modificatori (`VISIONE_V2.md` §7). Le regole sotto sono quelle
+Da rivedere a inizio M12: le Fratture diventano "mappe" con modificatori (`VISIONE_V2.md` §7). Le regole sotto sono quelle
 di partenza.
 
 - Ogni `fractures.interval_min_ms`-`interval_max_ms` (2-4 ore) di tempo di sessione (online + offline) si apre una
@@ -464,7 +464,7 @@ di partenza.
 - Una Frattura applica modificatori globali (sorgente `fracture:<id>`) e/o rende disponibile un mostro speciale
   in un'area. Alla chiusura tutto torna normale. Stato salvato (prossima apertura, frattura attiva, tempo rimasto).
 
-## 18. Azioni in parallelo (M12, dopo l'MVP)
+## 18. Azioni in parallelo (M13, dopo l'MVP)
 
 - La stat `parallel_lanes` (base 1) apre una seconda corsia `secondary` per un'azione **non di combattimento**.
 - L'azione della corsia secondaria ha intervallo × `(1 + parallel.interval_penalty_pct/100)` (+40%).
@@ -592,3 +592,49 @@ Castoni sui pezzi (F-89, da rarità e raffinazione); pietre incastonabili (categ
 del Rift e Legatura; tre valute (categoria `currency`, prodotte dalla Legatura): comune → magico, magico → raro (aggiunge
 affissi fino al numero del raro), ritiro degli affissi (stessa rarità, F-85 di nuovo). Una pietra tolta da un castone si
 distrugge (come le infusioni, Q8).
+
+## 27. Guida in gioco (M11)
+
+Decisioni G1-G2 (`DECISIONS_LOG.md`): la wiki sta **dentro il gioco** (pagina "Guida") e arriva **prima delle mappe**. Ispirata alla
+**struttura** delle wiki dei giochi idle (pagina per mestiere, oggetto, mostro, meccanica), mai ai testi.
+
+**Principi**
+- **Generata dai dati**: tabelle, drop, ricette, statistiche e numeri si leggono da `data/`, `balance.json` e `stats.json` a ogni apertura.
+  Nessun numero ricopiato nei testi: un testo cita un valore con un segnaposto che la Guida sostituisce (`04_DATA_SCHEMA.md` §19).
+- **A mano** solo i testi delle meccaniche e dei primi passi (`data/guide/*.json`, in italiano, al massimo ~150 parole per pagina di meccanica).
+- Logica separata dalla UI: l'indice "da dove viene / a cosa serve" è una classe testata (`05_INTERFACES.md` §5.19).
+- Ogni oggetto, mostro, area, mestiere, stat, tratto e abilità ha **la sua pagina**.
+
+**Struttura** (pagina nella sidebar, sezione Partita: indice a sinistra, contenuto a destra, ricerca in alto, cronologia "indietro")
+
+| Sezione | Pagine | Origine |
+|---|---|---|
+| Primi passi | la prima ora: combattere, mangiare, raccogliere il bottino, equipaggiare, i mestieri | testo a mano |
+| Personaggio e combattimento | livello, assetti, triangolo, tratti, abilità, cibo e Razioni, morte e borsa del bottino, gruppi e bersaglio | testo a mano + tabelle dai dati (tratti, abilità con sblocco e ricarica) |
+| Bottino | rarità, affissi (tabella dei gradi), raffinazione (costi e probabilità), castoni e pietre, valute, smantellamento e filtro, Pietre del Rift, progetti | testo a mano + tabelle dai dati |
+| Mestieri | una pagina per mestiere: cosa fa, tabella delle azioni (livello, XP, durata, ingredienti, prodotto), maestria e nodi, attrezzo e raffinazione | testo breve a mano + tabelle dai dati |
+| Oggetti | descrizione, valore, **Si ottiene da** (mostri con area e %, ricette, shop, Pietre, smantellamento, kit iniziale), **Serve a** (ricette, progetti, raffinazione, castoni, Altare, cibo) | tutto dai dati |
+| Mostri e aree | area: livello richiesto, gruppi, mostri; mostro: statistiche, stile, intervallo, drop con % | tutto dai dati |
+| Altare del Rift | prese, livelli di sblocco, infusioni con effetto | dai dati + testo breve |
+| Statistiche | glossario: nome, descrizione, limiti (da `stats.json`) | dai dati |
+| Offline | come funziona, limite di ore, cosa prosegue e cosa no | testo a mano con segnaposto |
+
+Testi a mano (≈ 20 pagine brevi): Primi passi; Livello del personaggio; Assetti; Triangolo; Tratti; Abilità; Cibo e Razioni; Morte;
+Gruppi e bersaglio; Rarità e affissi; Raffinazione; Castoni e pietre; Valute; Smantellamento e filtro; Pietre del Rift; Progetti;
+Maestria; Attrezzi; Altare del Rift; Offline.
+
+**Collegamenti, "?" e tooltip**
+- Ogni nome di oggetto, mostro, area, mestiere, stat, tratto o abilità nella Guida è un **collegamento** che apre la sua pagina.
+- **Pulsante "?"** nell'intestazione di ogni pagina del gioco (Combattimento, Equipaggiamento, Personaggio, Altare, Deposito, Shop, pagine
+  dei mestieri): apre la pagina di Guida pertinente.
+- **Tooltip degli oggetti**: due righe in fondo, "Si ottiene da: …" e "Serve a: …" (al massimo 3 voci ciascuna, poi "e altro"), dallo
+  stesso indice della Guida.
+- **Tooltip delle stat** (personaggio ed equipaggiamento): la descrizione da `stats.json`.
+
+**Accettazione**
+- La Guida si apre dalla sidebar; ricerca per nome; ogni nome è un collegamento; "indietro" funziona.
+- Ogni entità elencata sopra ha la sua pagina; ogni oggetto mostra "Si ottiene da" e "Serve a"; un oggetto senza fonte o senza uso è
+  segnalato dal test, salvo eccezioni dichiarate nei dati.
+- Nessun numero scritto a mano nei testi (solo segnaposto); nessun segnaposto o collegamento non risolto.
+- Ogni pagina del gioco ha il suo "?". Nomi da `NOMI.md`. Layout a 1600×900 e 1280×720.
+- Nessuno stato di gioco nella Guida: legge solo i dati (e non entra nel salvataggio).

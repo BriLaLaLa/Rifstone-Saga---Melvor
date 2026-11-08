@@ -1,7 +1,7 @@
 # 06. Roadmap
 
 Milestone incrementali: alla fine di ognuna il gioco si avvia, è giocabile per quello che contiene e tutti i test
-passano (`tools/run_checks.ps1` verde). L'MVP è M0-M9; M10 (riforma del bottino e dei nomi, prima di far provare il gioco agli amici) e M11-M13+ vengono dopo. Il dettaglio dei task è in `07_TASKS.md`.
+passano (`tools/run_checks.ps1` verde). L'MVP è M0-M9; M10 (riforma del bottino e dei nomi, prima di far provare il gioco agli amici) e M11-M14+ vengono dopo. Il dettaglio dei task è in `07_TASKS.md`.
 Da M4 vale la direzione "combattimento al centro" (decisioni D1-D6, `DECISIONS_LOG.md`); M0-M3 restano valide.
 
 ```mermaid
@@ -16,9 +16,10 @@ flowchart LR
     M7 --> M8[M8 Legatura: Altare, castoni, valute]
     M8 --> M9[M9 Offline + polish = MVP]
     M9 --> M10[M10 Riforma del bottino e dei nomi]
-    M10 --> M11[M11 Fratture come mappe]
-    M10 --> M12[M12 Azioni in parallelo]
-    M10 --> M13[M13+ Seconda classe, boss, dungeon]
+    M10 --> M11[M11 Guida in gioco]
+    M11 --> M12[M12 Fratture come mappe]
+    M11 --> M13[M13 Azioni in parallelo]
+    M11 --> M14[M14+ Seconda classe, boss, dungeon]
 ```
 
 ## M0: Setup del progetto
@@ -126,17 +127,25 @@ non vincolanti come le formule). `combat.kill_xp_mult` = 0,11; XP delle Miniere 
 
 
 
-## M11: Fratture come mappe (dopo l'MVP)
+## M11: Guida in gioco (dopo l'MVP, prima delle mappe)
+Pagina "Guida" generata dai dati (indice "da dove viene / a cosa serve", testi a mano in `data/guide/`, segnaposto verso
+`balance.json` e `stats.json`), pulsanti "?" nelle pagine, righe "Si ottiene da / Serve a" nei tooltip (`01_GDD.md` §27, decisioni G1-G2).
+- **Uscita**: la Guida si apre dalla sidebar con ricerca e collegamenti; ogni oggetto, mostro, area, mestiere, stat, tratto e abilità ha la sua
+  pagina; nessun segnaposto non risolto né numero scritto a mano nei testi; ogni pagina del gioco ha il suo "?"; layout 1600x900 e 1280x720.
+- **Task** M11-01…M11-07 (`07_TASKS.md`); tag `m11-done`.
+
+## M12: Fratture come mappe (dopo la Guida)
 Fratture del Rift ripensate come "mappe" con modificatori (`01_GDD.md` §17 da rivedere a inizio milestone).
 
-## M12: Azioni in parallelo (dopo l'MVP)
+## M13: Azioni in parallelo (dopo la Guida)
 Corsia secondaria nell'ActionRunner, voce dello shop "Secondo pensiero", UI a due corsie (`01_GDD.md` §18).
 
-## M13+: Seconda classe, boss, dungeon (dopo l'MVP)
+## M14+: Seconda classe, boss, dungeon (dopo l'MVP)
 Seconda classe con le sue armi (es. arco o bastone, con i suoi progetti e componenti del Falegname), supporti delle abilità,
 boss, dungeon a ondate, oggetti unici, elementi e resistenze.
 
 ## Percorso critico e parallelismo
+- M11: R-02 → (M11-01 ∥ M11-02) → M11-03 → M11-04 → M11-05 → M11-06 → M11-07.
 - M10: R-01 → M10-01 → M10-02 → M10-03 → M10-04 (con M10-05) → M10-06 → M10-07 → M10-08 → M10-09. M10-02 e M10-03 si parallelizzano (file diversi).
 - Percorso critico da M4: R-00 → M4-01 → M4-02 → M4-03 (con M4-04) → M4-05 → M4-06 → M4-07 → M4-08 → M4-10 → M4-11 →
   M5-01 → M5-02 → M5-03 → M5-07 → … → M9-08.

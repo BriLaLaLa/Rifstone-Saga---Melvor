@@ -270,8 +270,8 @@ func hide_tooltip() -> void
 | `save_failed` | `slot: int, reason: StringName` | Game | |
 | `notification_requested` | `text: String, kind: StringName` | qualunque sistema | `kind` = `&"info"`, `&"success"`, `&"warning"` |
 | `hint_triggered` (M9) | `hint_id: StringName` | HintsSystem | |
-| `fracture_opened` (M11) | `fracture_id: StringName, duration_ms: int` | FractureSystem | |
-| `fracture_closed` (M11) | `fracture_id: StringName` | FractureSystem | |
+| `fracture_opened` (M12) | `fracture_id: StringName, duration_ms: int` | FractureSystem | |
+| `fracture_closed` (M12) | `fracture_id: StringName` | FractureSystem | |
 
 I segnali segnati M4…M7 li aggiunge (o cambia) in `core/autoload/event_bus.gd` e in `tests/core/autoload/test_event_bus.gd`
 il task che li emette per primo (ownership estesa alle sole righe del segnale). Fino ad allora `event_bus.gd` ha le firme
@@ -319,7 +319,7 @@ func blueprint_for_base(base_id: StringName) -> ItemDef   # M10: il progetto del
 func unique_tool(slot: StringName) -> ItemDef         # M10: l'attrezzo unico dello slot tool_*; null + Log.error se manca
 func hints() -> Array[HintDef]                        # M9-04, nell ordine del file
 func hint(id: StringName) -> HintDef                  # M9-04; null se sconosciuto
-func fractures() -> Array[FractureDef]                # M11: lo aggiunge il task delle Fratture (non esiste in M1-04)
+func fractures() -> Array[FractureDef]                # M12: lo aggiunge il task delle Fratture (non esiste in M1-04)
 const LOG_CATEGORY: String = "data"
 const BALANCE_FILE: String = "balance.json"           # in config_root
 const STATS_FILE: String = "stats.json"               # in config_root
@@ -453,7 +453,7 @@ class_name AffixDef (M4)   ; var id: StringName; var name: String; var stat: Str
 class_name AffixTier (M4)  ; var min_ilvl: int; var min: float; var max: float; var step: float
 class_name RiftStoneDef (M7); campi di 04_DATA_SCHEMA §16
 class_name HintDef (M9)    ; var id: StringName; var title: String; var text: String; var trigger: StringName
-class_name FractureDef (M11); var id: StringName; var name: String; var description: String; var weight: int
+class_name FractureDef (M12); var id: StringName; var name: String; var description: String; var weight: int
                              var modifiers: Array[Modifier]; var bonus_area_id: StringName; var bonus_monster_id: StringName
 ```
 (`class_name X ; var ...` è notazione compatta: ogni classe è un file `snake_case` separato.)
@@ -520,7 +520,7 @@ func end_batch() -> void             # emette una sola volta se qualcosa è camb
 Id delle sorgenti: `equipment:<slot>` (modificatori dell'istanza: base × F-86 + affissi + castoni), `setup:<id>` (M4),
 `trait:<id>` (M6), `ability:<id>` (M6, buff temporanei del combattimento), `mastery_item:<action_id>`,
 `mastery_node:<node_id>`, `shop:<entry_id>`, `rift_socket:<index>` (M8), `skill_level:<skill_id>` (M10, F-93: modificatori
-`level_modifiers` della skill, ricostruiti da `SkillsSystem` a ogni `level_up` e in `rebuild_modifiers`), `fracture:<id>` (M11).
+`level_modifiers` della skill, ricostruiti da `SkillsSystem` a ogni `level_up` e in `rebuild_modifiers`), `fracture:<id>` (M12).
 
 ### 5.3 Sessione (`res://core/session/game_session.gd`)
 ```gdscript
@@ -533,7 +533,7 @@ var loadout: Loadout              # M6-03 (null prima)
 var equipment: Equipment; var actions: ActionRunner; var combat: CombatEngine   # combat: M5-03
 var shop: Shop; var rift: RiftAltar   # rift: M8
 var hints: HintsSystem            # M9 (null prima)
-var fractures: FractureSystem     # M11 (null prima)
+var fractures: FractureSystem     # M12 (null prima)
 var slot: int; var player_name: String; var created_at_unix_ms: int; var play_time_ms: int
 func _init(game_data: GameData, game_events: GameEvents, rng_seed: int) -> void
 func new_game() -> void                                  # stato iniziale 01_GDD §1.1 + rebuild_modifiers
@@ -717,7 +717,7 @@ func rebuild_modifiers() -> void                                   # sorgenti ma
 ```gdscript
 class_name ActionMath extends RefCounted
 static func interval_ms(base_ms: int, interval_pct: float, min_ms: int) -> int          # F-03
-static func secondary_interval_ms(interval_ms: int, penalty_pct: float) -> int          # F-51 (M12)
+static func secondary_interval_ms(interval_ms: int, penalty_pct: float) -> int          # F-51 (M13)
 
 class_name ActionOutcome extends RefCounted
 var ok: bool; var reason: StringName
@@ -734,7 +734,7 @@ static func resolve(session: GameSession, action: ActionDef) -> ActionOutcome   
 class_name ActionRunner extends RefCounted
 const SAVE_KEY := &"actions"
 const MAIN := &"main"
-const SECONDARY := &"secondary"                    # M12
+const SECONDARY := &"secondary"                    # M13
 func start(skill_id: StringName, action_id: StringName, lane: StringName = MAIN) -> CommandResult
     # unknown_id, level_too_low, missing_inputs, lane_unavailable, skill_in_other_lane; nella corsia main ferma il combattimento (REPLACED)
 func stop(lane: StringName = MAIN, reason: StringName = Reasons.STOPPED_BY_USER) -> void
@@ -742,12 +742,12 @@ func is_running(lane: StringName = MAIN) -> bool
 func get_lane(lane: StringName = MAIN) -> Dictionary     # {} oppure {"skill", "action", "elapsed_ms", "interval_ms"}
 func get_progress(lane: StringName = MAIN) -> float      # F-04
 func current_interval_ms(action_id: StringName, lane: StringName = MAIN) -> int
-func lanes_available() -> int                            # 1 nell'MVP; F-51 in M12
+func lanes_available() -> int                            # 1 nell'MVP; F-51 in M13
 func stop_reasons_log() -> Array[StringName]              # motivi di stop dall'ultima lettura (per OfflineSummary), poi svuota
 func advance(delta_ms: int) -> void
 ```
 Comportamento (M1-10):
-- `start`: ordine dei controlli `lane_unavailable` (ogni corsia diversa da `main` fino a M12) → `unknown_id` (skill o
+- `start`: ordine dei controlli `lane_unavailable` (ogni corsia diversa da `main` fino a M13) → `unknown_id` (skill o
   azione sconosciuta, azione di un'altra skill) → `level_too_low` → `missing_inputs` (azione con `inputs` senza tutti gli
   ingredienti nella bank, `ArtisanResolver.can_start`; stesso controllo in `from_save`); un errore non cambia nulla. Avviare l'azione già in corso nella corsia è un no-op `ok` (il ciclo continua, nessun segnale). Altrimenti
   l'azione in corso si ferma con `replaced`, poi `action_started`. Nella corsia main ferma anche il combattimento
@@ -759,7 +759,7 @@ Comportamento (M1-10):
   completa tutti i cicli che entrano nel passo. Dopo `from_save` l'intervallo è "da fissare" e si calcola al primo
   `advance` (i modificatori si ricostruiscono dopo il caricamento); `get_lane`/`get_progress` intanto usano quello attuale.
 - `get_lane` restituisce l'`interval_ms` del ciclo corrente; `current_interval_ms` quello che avrebbe un ciclo avviato ora
-  (id sconosciuto → 0 con `Log.error` di `GameData.action`; la corsia non conta fino a M12).
+  (id sconosciuto → 0 con `Log.error` di `GameData.action`; la corsia non conta fino a M13).
 - `GatheringResolver`: tiri sempre in quest'ordine su `session.rng`: doppio (F-06), poi frammento (F-07, quantità 1).
   Lo spazio nella bank si controlla **prima** di aggiungere (`can_add` e caselle libere per gli oggetti nuovi, frammento
   compreso): se non c'è, il ciclo non conta, nulla cambia e la corsia si ferma con `bank_full` (nessun `bank_rejected`:
@@ -1086,7 +1086,7 @@ static func apply_ui_scale(window: Window) -> void
 # chiavi: window_mode, window_size, ui_scale, vsync, fps_limit, volume, log_level
 ```
 
-### 5.15 Hint (M9) e Fratture (M11)
+### 5.15 Hint (M9) e Fratture (M12)
 ```gdscript
 class_name HintsSystem extends RefCounted      # systems/hints/hints_system.gd (M9); dipendenze: data, events
 const SAVE_KEY := &"hints"
@@ -1098,7 +1098,7 @@ func to_save() -> Dictionary                   # {"seen": [id, ...]} nell ordine
 func from_save(d: Dictionary) -> void          # tollerante: lista errata = nessuno visto; id sconosciuti scartati con Log.warn
 func pending() -> Array[StringName]            # attivati e non ancora chiusi; volatile, mai salvato
 
-class_name FractureSystem extends RefCounted   # systems/fractures/fracture_system.gd (M11); dipendenze: data, events, modifiers, rng, combat
+class_name FractureSystem extends RefCounted   # systems/fractures/fracture_system.gd (M12); dipendenze: data, events, modifiers, rng, combat
 const SAVE_KEY := &"fractures"
 func active_id() -> StringName
 func time_left_ms() -> int
@@ -1121,8 +1121,8 @@ class_name SettingsPanel extends Control       # ui/settings/; signal closed; va
     # legge/scrive solo GameSettings; in partita mostra "Salva ed esci" (end_session + scene_changer)
 class_name ToastManager extends Control        # al massimo UiStyle.TOAST_MAX_VISIBLE visibili; oltre UiStyle.TOAST_PENDING_MAX in attesa scarta il piu vecchio
 ```
-M12 non aggiunge classi: estende `ActionRunner` (corsia `SECONDARY`, `lanes_available()` con F-51). Le firme di M11
-si rivedono a inizio M11 (Fratture come mappe, `01_GDD.md` §17).
+M13 non aggiunge classi: estende `ActionRunner` (corsia `SECONDARY`, `lanes_available()` con F-51). Le firme di M12
+si rivedono a inizio M12 (Fratture come mappe, `01_GDD.md` §17).
 
 ### 5.16 CharacterSystem (`systems/character/character_system.gd`) — dipendenze: data, events, modifiers, skills
 ```gdscript
@@ -1245,6 +1245,45 @@ static func instance_modifiers(inst: ItemInstance, data: GameData) -> Array[Modi
 - Ordine dei tiri su `rng`: rarità (un `randf`), numero di affissi, poi per ogni affisso scelta, grado, valore (F-85). Con un affisso scelto
   (F-92) il primo affisso non ha il tiro di scelta né di grado; per un attrezzo unico `instance_modifiers` non applica F-86 ma F-94
   (intervallo a N più gli `upgrade_extras` con `at ≤ N`).
+
+### 5.19 Guida in gioco (M11; `01_GDD.md` §27, `04_DATA_SCHEMA.md` §19) — sola lettura dei dati, nessuno stato, nessun salvataggio
+```gdscript
+class_name GuidePageDef extends RefCounted     # core/data/defs/guide_page_def.gd
+var id: StringName; var section: StringName; var title: String; var order: int
+var blocks: Array[Dictionary]                  # come nel file (type, text, source, targets)
+var help_for: PackedStringArray; var allow_digits: bool
+# GameData (M11-02): carica data/guide/*.json e lo valida con gli altri dati
+func guide_pages() -> Array[GuidePageDef]      # ordinate per sezione, order, id
+func guide_page(id: StringName) -> GuidePageDef   # null + Log.error se manca
+func guide_exceptions() -> Dictionary          # {"no_source": Array[StringName], "no_use": Array[StringName]}
+
+class_name GuideIndex extends RefCounted       # core/guide/guide_index.gd (dipendenze: data); costruito da GameData, immutabile
+func _init(data: GameData) -> void
+static func entry(kind: StringName, id: StringName) -> StringName   # id canonico di una pagina generata: &"item:<id>", &"monster:<id>", &"area:<id>", &"skill:<id>", &"stat:<id>", &"trait:<id>", &"ability:<id>"
+func sources_of(item_id: StringName) -> Array[GuideRef]    # "Si ottiene da": drop dei mostri (con area e %), ricette/progetti, shop, Pietre del Rift, smantellamento, kit iniziale
+func uses_of(item_id: StringName) -> Array[GuideRef]       # "Serve a": ricette, progetti, raffinazione, castoni, Altare, cibo
+func items_without_source() -> Array[StringName]           # per i test: esclude no_source delle eccezioni
+func items_without_use() -> Array[StringName]              # per i test: esclude no_use delle eccezioni
+func summary_line(refs: Array[GuideRef], max_entries: int = 3) -> String   # "a, b, c e altro" (tooltip)
+
+class_name GuideRef extends RefCounted         # core/guide/guide_ref.gd
+var kind: StringName                           # monster / recipe / blueprint / shop / rift_stone / salvage / starter_kit / refine / socket / altar / food
+var target: StringName                         # pagina collegata (id canonico di entry())
+var label: String                              # nome da mostrare (dai dati)
+var detail: String                             # opzionale, es. area e percentuale (numeri dai dati, mai scritti a mano)
+
+class_name GuideText extends RefCounted        # core/guide/guide_text.gd: risoluzione dei segnaposto (logica pura)
+static func resolve(text: String, data: GameData) -> String                       # sostituisce {balance:…}, {stat:…}; {link:…} diventa il solo testo
+static func parse_links(text: String) -> Array[Dictionary]                        # [{"kind","id","label","start","end"}] per la UI
+static func validate(text: String, data: GameData, allow_digits: bool) -> PackedStringArray   # errori (vuoto = ok): segnaposto o link sconosciuti, cifre a mano
+
+class_name GuideTables extends RefCounted      # core/guide/guide_tables.gd: tabelle generate dai dati per i blocchi `table`
+static func ids() -> PackedStringArray         # sorgenti dichiarate (es. affix_tiers, refine_costs, traits, abilities, actions:<skill>)
+static func build(source: String, data: GameData) -> Array[Array]                   # righe di testo, la prima è l'intestazione; sorgente sconosciuta: Log.error e []
+static func page_ids(data: GameData) -> Array[StringName]                           # tutte le pagine: scritte a mano + generate (una per entità)
+```
+- `sources_of`/`uses_of` seguono l'ordine dei dati. Un `item_id` sconosciuto → `[]` con `Log.error`.
+- La Guida non emette né ascolta segnali dell'`EventBus`, non entra in `GameSession` né nel salvataggio (si ricostruisce da `GameData`).
 
 ## 6. Formato del salvataggio (`user://saves/slot_<n>.json`)
 
@@ -1709,6 +1748,22 @@ prerequisiti; lo stato è sempre `MasteryNodeView.state_of` (nessuna copia dei n
 comprabile e pool insufficiente (disabilitato), = `mastery.buy_node`. Ogni comando rifiutato mostra
 `MasteryTexts.reason_text` e non cambia nulla; il modello cambia solo con i comandi e la vista solo con gli eventi.
 Stato di presentazione ammesso: azione bersaglio e valore del cursore. Costanti di presentazione: `UiStyle.MASTERY_*`.
+
+### 7.y UI della Guida (M11; nessuno stato di gioco, solo letture dei dati; la cronologia è stato di presentazione)
+```gdscript
+class_name GuidePage extends Page              # ui/pages/guide/guide_page.gd (+ .tscn), rotta guide (voce "Guida" della sidebar, sezione Partita)
+func open_entry(entry_id: StringName) -> void # apre una pagina (id di GuideIndex.entry o di una pagina a mano); sconosciuta: Log.error e resta dov'è
+func go_back() -> bool                         # false se la cronologia è vuota
+func search(query: String) -> Array[StringName]   # pagine il cui titolo contiene query (senza maiuscole/accenti); vuota: indice completo
+signal entry_opened(entry_id: StringName)
+# Nodi per i test: IndexTree, ContentView, SearchEdit, BackButton, ResultsList. Contenuto da GuideText/GuideTables/GuideIndex; i link chiamano open_entry.
+class_name HelpButton extends Button           # ui/components/help/help_button.gd (+ .tscn): "?" nell'intestazione di ogni pagina di gioco
+@export var guide_entry: StringName            # pagina di Guida da aprire; deve esistere (verificato da test)
+signal guide_requested(entry_id: StringName)  # la shell apre la rotta guide e chiama open_entry
+```
+- Tooltip (`ItemTooltipLines`): in fondo "Si ottiene da: …" e "Serve a: …" con `GuideIndex.summary_line` (3 voci + "e altro"); riga omessa se la
+  lista è vuota. Il tooltip delle stat usa la descrizione di `stats.json` (`Tooltips.show_text`). Nessuna copia dei dati nella UI.
+- Nessun testo di Guida è scritto nel codice: titoli e contenuti vengono da `data/guide/` e dai dati.
 
 ## 8. Helper dei test (`res://tests/helpers/`)
 

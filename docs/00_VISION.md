@@ -67,8 +67,8 @@ potenziato con la raffinazione +0…+9 che riesce sempre.
 | Potenziamenti | Molte fonti diverse | **Infusioni del Rift**: la skill Legatura del Rift crea infusioni da incastonare nelle prese dell'Altare; ogni infusione è un insieme di modificatori |
 | Combattimento | Duello contro un mostro alla volta, skill di combattimento separate | **Gruppi di mostri** (1-6) con bersagli e motore a eventi; un **livello del personaggio** unico; tratti e abilità della classe |
 | Equipaggiamento | Oggetti impilabili e uguali tra loro, prodotti in serie dall'artigianato | **Pezzi unici** nell'Armeria con rarità e affissi a gradi, dai **mostri** o da **un singolo craft** (progetto + materiali + componente raro); raffinazione +0…+9 che non distrugge; castoni |
-| Eventi | Nessun evento periodico nel gioco base | **Pietre del Rift** (M7): incontri speciali con garanzia; **Fratture del Rift** (dopo l'MVP, M11) |
-| Azioni | Una sola azione alla volta | **Due azioni in parallelo** (dopo l'MVP, M12): una seconda corsia per un'azione non di combattimento, con penalità di velocità |
+| Eventi | Nessun evento periodico nel gioco base | **Pietre del Rift** (M7): incontri speciali con garanzia; **Fratture del Rift** (dopo l'MVP, M12) |
+| Azioni | Una sola azione alla volta | **Due azioni in parallelo** (dopo l'MVP, M13): una seconda corsia per un'azione non di combattimento, con penalità di velocità |
 | Morte | Si perde un oggetto equipaggiato a caso | Si perde il **contenuto della borsa del bottino** (loot non ancora raccolto); l'equipaggiamento è al sicuro |
 | Precisione | Formula a due rami | Formula originale a rapporto: `AR / (AR + ER)`, limitata tra 5% e 95% |
 | Triangolo | Mischia > distanza > magia > mischia | **Lama > Arcano > Mira > Lama** |
@@ -86,7 +86,7 @@ Nell'MVP (M0-M9) **non** ci sono:
 - dungeon a ondate, boss con meccaniche, incarichi di caccia, preghiere, farming, agricoltura, pozioni;
 - schede (tab) multiple della bank (vedi `OPEN_QUESTIONS.md`);
 - multiplayer, cloud save, achievement di piattaforma, mobile, web, localizzazione oltre l'italiano;
-- Fratture del Rift come mappe (M11), azioni in parallelo (M12), seconda classe, boss e dungeon (M13+): documentati
+- Fratture del Rift come mappe (M12), azioni in parallelo (M13), seconda classe, boss e dungeon (M14+): documentati
   o accennati, pianificati dopo l'MVP.
 
 Nell'MVP **ci sono** (prima erano fuori scope): affissi casuali, rarità, raffinazione +N, castoni e pietre (M4-M8).

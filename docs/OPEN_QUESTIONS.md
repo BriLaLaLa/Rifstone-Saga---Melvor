@@ -20,7 +20,7 @@ in "Chiuse".
 |---|---|---|
 | Q7 | Penalità di morte: solo la borsa del bottino? | Sì; niente perdita di equipaggiamento o oro |
 | Q8 | Togliere un'infusione dall'Altare la distrugge? | Sì (consumo); alternativa futura: recupero con costo in frammenti |
-| Q11 | Mostri "boss" o dungeon a ondate? | Dopo l'MVP (M13+) |
+| Q11 | Mostri "boss" o dungeon a ondate? | Dopo l'MVP (M14+) |
 | Q12 | Le razioni da campo devono funzionare anche senza acquisto (livello base)? | **Cambiata da B2 (M10)**: le Razioni da campo I sono gratuite dall'inizio (`start.purchases`); livello 0 non esiste più in partita; avviso se si combatte senza cibo scelto |
 | Q13 | Livelli oltre il 99? | No; l'XP continua fino a `xp_cap` |
 | Q14 | Skill da sbloccare (a pagamento) o tutte subito? | Tutte subito |
@@ -33,7 +33,7 @@ in "Chiuse".
 |---|---|---|
 | Q16 | Limite offline aumentabile (es. voce dello shop)? | No: 12 ore fisse |
 | Q17 | Si può interrompere la simulazione offline? | No; deve durare < 10 s |
-| Q18 | Le Fratture (M11) avanzano anche offline? | Sì, con la stessa simulazione |
+| Q18 | Le Fratture (M12) avanzano anche offline? | Sì, con la stessa simulazione |
 
 ## UI, contenuti, piattaforma
 
@@ -55,7 +55,7 @@ I documenti sono già scritti con questi default (R-00).
 |---|---|---|---|
 | Q27 | La raffinazione può distruggere un pezzo? | No: da +4 il fallimento fa scendere di un livello | F-86, `01_GDD.md` §23 |
 | Q28 | Raffinazione massima | +9 | F-86 |
-| Q29 | Unici nell'MVP? | No (M13+) | `01_GDD.md` §22 |
+| Q29 | Unici nell'MVP? | No (M14+) | `01_GDD.md` §22 |
 | Q30 | Anelli e amuleti forgiabili? | No, solo drop (M7) | §8.4, `01_GDD.md` §22 |
 | Q31 | Raffinazione istantanea o azione a tempo? | Istantanea | `01_GDD.md` §23 |
 | Q32 | Attrezzi di raccolta con rarità e affissi? | ~~Sì~~ **Superata da R3 (M10)**: gli attrezzi sono tre oggetti unici senza rarità né affissi | §8.9, `01_GDD.md` §22 |

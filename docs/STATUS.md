@@ -3,13 +3,15 @@
 Aggiornato dall'Orchestratore (unico che modifica questo file). Stati: TODO / IN_PROGRESS / REVIEW / DONE / BLOCKED.
 Se la sessione si interrompe, si riparte da qui.
 
-## Ripartenza (aggiornata il 2026-11-08, fine M10 = riforma del bottino e dei nomi)
+## Ripartenza (aggiornata il 2026-11-08, fine M10 e R-02 fatta)
+- **R-02 DONE** (2026-11-08): Guida in gioco (M11, decisioni G1-G2) riportata nei documenti canonici (`01_GDD.md` §27, `04_DATA_SCHEMA.md` §19, `05_INTERFACES.md` §5.19 e §7.y, `06_ROADMAP.md`, `07_TASKS.md` M11-01…M11-07); milestone rinumerate: M11 Guida, M12 Fratture come mappe, M13 corsie parallele, M14+ il resto. `GUIDA.md` superato, non si legge più.
+- **R-02 DONE** (2026-11-08): Guida in gioco (M11, decisioni G1-G2) riportata nei documenti canonici (`01_GDD.md` §27, `04_DATA_SCHEMA.md` §19, `05_INTERFACES.md` §5.19 e §7.y, `06_ROADMAP.md`, `07_TASKS.md` M11-01…M11-07); milestone rinumerate: M11 Guida, M12 Fratture come mappe, M13 corsie parallele, M14+ il resto. `GUIDA.md` superato, non si legge più.
 - **Stato**: **M10 completata**, tag `m10-done` su `main`. R-01 `4f990db`. Merge: M10-01 `7b1a226`, M10-02 `285e2de`, M10-03 `4a098cb`,
   M10-04 `793b445` (+ rifinitura drop/kit `79087c8`), M10-05 `42c4f99`, M10-06 `4ad4758`, M10-07 `42c3c50`, M10-08 `803b79a`; M10-09 = commit di chiusura.
   `run_checks` su main: 1848 test verdi, dati (fixture e veri), righe per file e riferimenti vietati OK.
 - **Misure (M10-07, `06_ROADMAP.md`)**: livello 99 in circa 299 h; una notte offline dal 50 dà +11/+12 livelli; un pezzo ogni 21-22 min nelle 4 aree.
   `MAX_DROPS` alzato a 8 (64 progetti). `combat.kill_xp_mult` 0,11. Save `format_version` 3 (v1/v2 "versione non supportata").
-- **Prossimo passo**: **M11 Fratture come mappe** (`01_GDD.md` §17, `06_ROADMAP.md`), sessione nuova da questo file. Poi M12 corsie parallele, M13+ il resto.
+- **Prossimo passo**: **M11-01** (CORE, in parallelo con M11-02): Guida in gioco, task in `07_TASKS.md` (M11-01…M11-07), sessione nuova da questo file. Poi M12 Fratture come mappe, M13 corsie parallele, M14+ il resto.
 - **Da tarare / aperto**: Q53 (quantità componenti, tabella F-94 degli attrezzi, `xp_mult`); progetti dalle Pietre del Rift non misurati (stima ~1/h);
   Bosco e Soglia sforano di poco 20-40 min con la lettura stretta del grado; foto di layout 1600x900 e 1280x720 non fatta (pagina Progetti, pannello attrezzo);
   kit iniziale con spada e scudo già indossati (da confermare). Q26, Q27-Q43, Q47 invariate.

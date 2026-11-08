@@ -496,7 +496,7 @@ Esempi: 5 h → 18.000.000, capped false; 20 h → 43.200.000, capped true; orol
 `chunks = ceil(elapsed / offline_chunk_ms)`, `offline_chunk_ms = 60000`. Esempio: 12 h → 720 blocchi; 90 s → 2 (60 s + 30 s).
 Equivalenza: simulare 600.000 ms in un blocco o in 10 blocchi dà lo stesso stato con lo stesso seme. Test: idem.
 
-## 7. Fratture (M11) e corsie (M12)
+## 7. Fratture (M12) e corsie (M13)
 
 ### F-50 Fratture
 Prossima apertura: `randi_range(fractures.interval_min_ms, fractures.interval_max_ms)` = 7.200.000-14.400.000 ms.
@@ -613,7 +613,7 @@ deve avere 0 morti in 1 ora simulata nel gruppo più facile e tenere almeno 60 u
 | `auto_eat_3` | Razioni da campo III | 250.000 | 1 | `auto_eat_2`, personaggio 50 | `auto_eat_tier +1` |
 | `auto_loot` | Raccolta automatica del bottino | 50.000 | 1 | — | `auto_loot +1` |
 | `loot_pocket` | Tasca della borsa | 5.000 | 3 | — | `loot_bag_slots +4` |
-| `second_thought` (M12) | Secondo pensiero | 1.000.000 | 1 | somma dei livelli ≥ 300 | `parallel_lanes +1` |
+| `second_thought` (M13) | Secondo pensiero | 1.000.000 | 1 | somma dei livelli ≥ 300 | `parallel_lanes +1` |
 
 ### 8.7 Altare e infusioni (Legatura del Rift, M8)
 Prese sbloccate ai livelli `rift.sockets`: 1, 20, 40, 60, 80.
@@ -723,11 +723,11 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | `sockets.{by_rarity, bonus_at_upgrade}` (M8) | `{"common":0,"magic":1,"rare":2}`, 7 | F-89 |
 | `rift.sockets` (già presente, usata in M8) | `[{"level":1},{"level":20},{"level":40},{"level":60},{"level":80}]` | 11 |
 | `offline.{cap_ms, min_ms, chunk_ms}` | 43200000, 60000, 60000 | F-40, F-41 |
-| `fractures.{interval_min_ms, interval_max_ms, duration_ms}` (M11) | 7200000, 14400000, 1800000 | F-50 |
-| `parallel.interval_penalty_pct` (M12) | 40 | F-51 |
+| `fractures.{interval_min_ms, interval_max_ms, duration_ms}` (M12) | 7200000, 14400000, 1800000 | F-50 |
+| `parallel.interval_penalty_pct` (M13) | 40 | F-51 |
 
 Chiavi tolte con la riforma (M4-01, D3): `combat.hp_per_vitality`, `combat.hp_skill`, `combat.defence_skill`,
-`combat.xp_per_damage_style`, `combat.xp_per_damage_vitality`. Le chiavi segnate (M6)…(M12) le aggiunge il task che
+`combat.xp_per_damage_style`, `combat.xp_per_damage_vitality`. Le chiavi segnate (M6)…(M13) le aggiunge il task che
 le usa, insieme alla regola del validatore.
 
 I limiti delle stat (es. `damage_reduction` max 80, `preservation_chance` max 80, `skill_interval_pct` min −80) stanno
@@ -771,5 +771,5 @@ sezione (`auto_loot`: `"10.6"` = `01_GDD §10.6`; `04_DATA_SCHEMA.md` §2). Con 
 | `item_rarity_pct` (M4) | 0 | 1000 | probabilità di pezzi magici e rari | F-84, F-91 (M10: `formula` di `stats.json` passa da F-83 a F-84) | `tests/systems/items/test_item_roller.gd::test_item_rarity_pct` |
 | `block_chance` (M5) | 0 | 50 | probabilità di parare un colpo con lo scudo (Q40) | F-75 | `tests/systems/combat/test_combat_engine.gd::test_block_chance` |
 | `upgrade_success_pct` (M7) | 0 | 300 | probabilità di riuscita della raffinazione | F-86, F-93 (M10: sorgente `skill_level:forging`) | `tests/systems/armory/test_upgrade.gd::test_upgrade_success_pct` |
-| `fracture_duration_pct` (M11) | 0 | 300 | durata delle Fratture | F-50 | `tests/systems/fractures/test_fracture_system.gd::test_duration_pct` |
-| `parallel_lanes` (M12) | 0 | 1 | corsie extra | F-51 | `tests/systems/actions/test_action_runner.gd::test_secondary_lane_unlock` |
+| `fracture_duration_pct` (M12) | 0 | 300 | durata delle Fratture | F-50 | `tests/systems/fractures/test_fracture_system.gd::test_duration_pct` |
+| `parallel_lanes` (M13) | 0 | 1 | corsie extra | F-51 | `tests/systems/actions/test_action_runner.gd::test_secondary_lane_unlock` |

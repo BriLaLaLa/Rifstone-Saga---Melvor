@@ -80,7 +80,7 @@ La pagina Armeria sparisce dalla sidebar; la sua logica UI (filtri, pannello del
 
 ## 5. Fuori da M6-00
 
-Mappe alla PoE (M11), sprite animati veri, regole condizionali delle abilità, preset delle build, registro completo
+Mappe alla PoE (M12), sprite animati veri, regole condizionali delle abilità, preset delle build, registro completo
 con filtri: idee annotate, non in questo task.
 
 ## 6. Proposta di task (per `07_TASKS.md`)

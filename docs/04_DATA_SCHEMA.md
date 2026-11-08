@@ -120,7 +120,7 @@ esattamente 9 voci con `min_level` crescente (1..99), `grade` 1..8 non decrescen
 `plate_items` e `handle_items` hanno 8 id di oggetti `component` (uno per grado).
 `start.items` è una lista di `{"item": id, "qty": n}`. `player_name.min_length` e `max_length` (lunghezza del nome dopo
 `strip_edges`) sono interi ≥ 1 con `min_length` ≤ `max_length`. `mastery.pool_warning_pct` è un numero > 0 e ≤ 100
-(percentuale del tetto del pool da cui la UI avvisa che il pool è quasi pieno). In M11 si aggiunge `fractures`, in M12 `parallel` (vedi §11, §12).
+(percentuale del tetto del pool da cui la UI avvisa che il pool è quasi pieno). In M12 si aggiunge `fractures`, in M13 `parallel` (vedi §11, §12).
 
 ## 4. `data/skills/skills.json`
 
@@ -357,7 +357,7 @@ In M7 si aggiunge `data/combat/rift_stones.json` (§16).
 ```
 | Campo | Tipo | Vincoli |
 |---|---|---|
-| `category` | String | `bank` (UI "Deposito"), `combat`, `materials`, `lanes` (ammessa dal validatore solo da M12) |
+| `category` | String | `bank` (UI "Deposito"), `combat`, `materials`, `lanes` (ammessa dal validatore solo da M13) |
 | `cost` | object | **o** `{"gold": int ≥ 1}` **o** `{"formula": "bank_slot"}` (F-17) **o** `{"formula": "armory_slot"}` (F-82); nessun'altra formula nell'MVP |
 | `max_purchases` | int | ≥ 0; 0 = illimitato (solo per effetti `item`) |
 | `requires` | object | facoltativi `entries` (id dello shop), `character` (int 1..99), `skills` (`{skill: livello}`), `total_level` (int ≥ 0) |
@@ -377,7 +377,7 @@ File singolo e **obbligatorio** (`CONTENT_FILES["hints"]`): se manca `GameData` 
 suggerimento per trigger, in ordine di file; `GameData.hint(id)` ritorna `null` per un id sconosciuto. Il salvataggio
 dello slot tiene `{"hints": {"seen": [id, ...]}}`.
 
-## 11. `data/fractures/fractures.json` (M11)
+## 11. `data/fractures/fractures.json` (M12)
 
 ```json
 {"fractures": [{"id": "verdant_rift", "name": "Frattura verdeggiante", "description": "Il legno cresce più in fretta.",
@@ -388,7 +388,7 @@ dello slot tiene `{"hints": {"seen": [id, ...]}}`.
 `balance.json` riceve `"fractures": {"interval_min_ms": 7200000, "interval_max_ms": 14400000, "duration_ms": 1800000}`.
 Classe: `FractureDef`.
 
-## 12. Aggiunte di M12
+## 12. Aggiunte di M13
 
 `balance.json`: `"parallel": {"interval_penalty_pct": 40}`; `stats.json`: `parallel_lanes`; `shop.json`: `second_thought`.
 
@@ -515,3 +515,36 @@ Riepilogo per il validatore e i task M10-01…M10-05 (dettagli nelle sezioni ind
 - Nomi (Q52): si cambiano solo `name` e `description`; gli **id non cambiano** (tranne i nuovi oggetti: piastre, tre attrezzi, progetti).
   Il validatore non controlla i nomi; un test dei dati controlla che i nomi di `NOMI.md` ci siano (M10-05).
 - Stat: nessuna stat nuova (`upgrade_success_pct` esiste dal M7; `double_item_chance` e `rift_shard_chance` pure).
+
+## 19. `data/guide/*.json` (M11, Guida in gioco)
+
+Testi a mano della Guida (`01_GDD.md` §27); un file per sezione (`primi_passi.json`, `combattimento.json`, `bottino.json`, `mestieri.json`,
+`altare.json`, `offline.json`, …). Le pagine di oggetti, mostri, aree, mestieri, stat, tratti e abilità **non** si scrivono: le genera la Guida dai dati.
+Radice: `{ "pages": [ … ] }`.
+
+| Campo di pagina | Tipo | Note |
+|---|---|---|
+| `id` | String | unico fra tutti i file (anche rispetto alle pagine generate); snake_case |
+| `section` | String | una delle sezioni di `01_GDD.md` §27 (id: `first_steps`, `character`, `loot`, `crafts`, `altar`, `offline`) |
+| `title` | String | italiano, nomi da `NOMI.md` |
+| `order` | int | ordine nell'indice della sezione |
+| `blocks` | Array | blocchi in ordine (sotto) |
+| `help_for` | Array[String] (opz.) | id delle pagine di gioco a cui il "?" porta qui (es. `combat`, `armory`, `skill:forging`) |
+| `allow_digits` | bool (opz., default false) | ammette cifre nel testo (es. "livello 1", "3 aree"); da usare con parsimonia |
+
+Blocchi (`type`): `text` (`text: String`, paragrafo) · `heading` (`text`) · `table` (`source: String`, id di una tabella generata fra quelle
+dichiarate dal contratto di `05_INTERFACES.md` §5.19, es. `affix_tiers`, `refine_costs`, `traits`, `abilities`) · `links` (`targets: Array` di collegamenti).
+
+**Segnaposto** nei testi (unico modo di citare un numero):
+- `{balance:<percorso>|<formato>}`: valore di `balance.json` (percorso come `GameData.balance_value`); formato `int`, `pct`, `ore` (ms → ore),
+  `min` (ms → minuti), `sec` (ms → secondi).
+- `{stat:<id>}`: nome della stat da `stats.json`; `{stat:<id>|desc}` la descrizione; `{stat:<id>|min}` e `{stat:<id>|max}` i limiti.
+- `{link:<tipo>:<id>|<testo>}`: collegamento a una pagina (`tipo` = `item`, `monster`, `area`, `skill`, `stat`, `trait`, `ability`, `page`).
+Un segnaposto con percorso, formato, id o tipo sconosciuto è un errore di validazione; le graffe letterali non esistono nei testi.
+
+**Eccezioni dichiarate** (`data/guide/exceptions.json`): `{ "no_source": [item_id…], "no_use": [item_id…] }`: oggetti ammessi senza "Si ottiene da"
+o senza "Serve a" (es. valute di sola uscita). Ogni id deve esistere; un'eccezione superflua (l'oggetto ha fonte/uso) è un errore.
+
+Regole del validatore: id di pagina unici; `section` valida; `order` ≥ 0; ogni `links.targets`/`{link:…}` punta a un id esistente (o a una pagina di guida
+esistente); ogni `help_for` è una rotta nota; ogni `table.source` è dichiarata; nessuna cifra scritta a mano nei testi (le sequenze di cifre fuori da un segnaposto
+sono un errore, salvo anni/numeri ordinali dichiarati in `allow_digits: true` sulla pagina); nessun fallback silenzioso (errore e nessun dato in caso di file non valido).

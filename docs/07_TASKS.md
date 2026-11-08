@@ -1399,11 +1399,71 @@ quelli v1/v2 sono "versione non supportata". Gli **id restano** (Q52): cambiano 
 - **Ruolo** REV · **Stima** S · **Dipendenze** M10-08
 - **Descrizione** Merge, checklist di `06_ROADMAP.md` (M10 "Uscita"), `docs/RELEASE_CHECKLIST_MVP.md` aggiornata, tag `m10-done`, report di milestone. Il push lo fa l'Orchestratore.
 
-## M11-M13 (dopo M10)
+## M11 · Guida in gioco (`01_GDD.md` §27, `GUIDA.md` superato da R-02)
 
-- M11 · Fratture come mappe: task da definire a fine M10 (`01_GDD.md` §17 da rivedere; nota ereditata N11).
-- M12 · Azioni in parallelo: corsia secondaria, dati, UI, test, integrazione (`01_GDD.md` §18, F-51; nota ereditata N12; i progetti non girano nella corsia secondaria).
-- M13+ · Seconda classe, boss, dungeon: da definire.
+Ordine: M11-01 ∥ M11-02 (file diversi) → M11-03 → M11-04 → M11-05 → M11-06 → M11-07.
+
+### M11-01 · Indice "da dove viene / a cosa serve" e tabelle generate
+- **Ruolo** CORE · **Stima** M · **Parallelizzabile** con M11-02 · **Dipendenze** M10-09
+- **Ownership** `core/guide/guide_index.gd`, `core/guide/guide_ref.gd`, `core/guide/guide_tables.gd`, `tests/core/guide/test_guide_index.gd`, `tests/core/guide/test_guide_tables.gd`.
+- **Leggere** `05_INTERFACES.md` §5.19; `04_DATA_SCHEMA.md` §5-9, §16; `01_GDD.md` §27 (Struttura).
+- **Descrizione** `GuideIndex`, `GuideRef`, `GuideTables` come in §5.19, dai soli dati (drop dei mostri e delle Pietre, ricette, progetti, shop, smantellamento,
+  kit iniziale, raffinazione, castoni, Altare, cibo). Nessun numero di design nel codice.
+- **Accettazione** per ogni oggetto dei dati reali `sources_of`/`uses_of` riflettono i dati (test su un campione per ogni tipo di fonte e di uso); `summary_line` con 3 voci + "e altro";
+  `items_without_source/use` esclude le eccezioni; `GuideTables.page_ids` ha una pagina per ogni oggetto, mostro, area, mestiere, stat, tratto e abilità; id sconosciuto → `[]` + `Log.error`.
+- **Test richiesti** i due file sopra (dati di test in `tests/fixtures/data` e un test sui dati veri).
+
+### M11-02 · Schema e validatore di `data/guide/*.json`, segnaposto
+- **Ruolo** CORE · **Stima** M · **Parallelizzabile** con M11-01 · **Dipendenze** M10-09
+- **Ownership** `core/data/defs/guide_page_def.gd`, `core/guide/guide_text.gd`, `core/data/data_validator_guide.gd` (nuovo), le sole righe di caricamento di `core/data/game_data.gd` e di
+  chiamata in `data_validator.gd`, `tests/fixtures/data/guide/**`, `tests/core/data/test_guide_data.gd`, `tests/core/guide/test_guide_text.gd`.
+- **Leggere** `04_DATA_SCHEMA.md` §19; `05_INTERFACES.md` §5.19 (e §3 `GameData`); `09_CONVENTIONS.md` (validatore in più file).
+- **Descrizione** Caricamento (`GameData.guide_pages/guide_page/guide_exceptions`), validazione (tutte le regole di §19) e `GuideText` (`resolve`, `parse_links`, `validate`).
+- **Accettazione** ogni regola del validatore ha un caso di errore testato (segnaposto sconosciuto, formato sconosciuto, link rotto, id duplicato, `help_for` ignoto, cifre a mano, eccezione superflua);
+  `resolve` sostituisce `{balance:…|ore}`, `{stat:…}`; nessun fallback silenzioso; `tools/validate_data.gd` valida anche `data/guide`.
+- **Test richiesti** i due file sopra.
+
+### M11-03 · Testi delle pagine a mano e dei primi passi
+- **Ruolo** DATA · **Stima** M · **Parallelizzabile** no · **Dipendenze** M11-01, M11-02
+- **Ownership** `data/guide/*.json` (compreso `exceptions.json`), `tests/data/test_guide_texts.gd`.
+- **Leggere** `01_GDD.md` §27; `04_DATA_SCHEMA.md` §19; `NOMI.md`; per ogni pagina la sezione del GDD e di `02_FORMULAS.md` citata (solo per capire, mai per ricopiare numeri).
+- **Descrizione** Le ≈ 20 pagine a mano elencate in `01_GDD.md` §27 (Primi passi incluso), in italiano, ≤ ~150 parole per pagina di meccanica, con `help_for` per i "?" delle pagine di gioco.
+  Ogni numero è un segnaposto. Nomi solo da `NOMI.md`.
+- **Accettazione** `validate_data` verde; ogni pagina a mano dell'elenco esiste; nessuna cifra scritta a mano; ogni `help_for` copre le pagine di gioco di §27 (Combattimento, Equipaggiamento, Personaggio, Altare, Deposito, Shop, mestieri).
+
+### M11-04 · Pagina Guida
+- **Ruolo** UI · **Stima** L · **Parallelizzabile** no · **Dipendenze** M11-03
+- **Ownership** `ui/pages/guide/**`, voce "Guida" in `ui/screens/main/sidebar.gd` e rotta nella shell (solo le righe indicate), `tests/ui/guide/**`.
+- **Leggere** `05_INTERFACES.md` §5.19, §7.y, §7 (Sidebar, Page); `01_GDD.md` §27; `UI_GDR.md` (tema).
+- **Descrizione** `GuidePage` come in §7.y: indice a sinistra, contenuto a destra, ricerca, collegamenti cliccabili, cronologia. Pagine generate da `GuideIndex`/`GuideTables`/`GuideText`;
+  nessuno stato di gioco, nessun file oltre 400 righe (dividere in componenti).
+- **Accettazione** si apre dalla sidebar; la ricerca trova per nome; ogni nome nel contenuto è un collegamento; `go_back` funziona; layout 1600×900 e 1280×720 senza tagli.
+- **Test richiesti** `tests/ui/guide/test_guide_page.gd` (apertura, ricerca, link, indietro, pagina sconosciuta).
+
+### M11-05 · Pulsanti "?" e righe dei tooltip
+- **Ruolo** UI · **Stima** M · **Parallelizzabile** no · **Dipendenze** M11-04
+- **Ownership** `ui/components/help/**`, `ui/components/tooltip/item_tooltip_lines.gd`, le sole righe dell'intestazione delle pagine di gioco (`ui/pages/*/`), tooltip delle stat in `ui/pages/character/**` e `ui/pages/equipment/**` (solo le righe indicate), `tests/ui/help/**`.
+- **Leggere** `05_INTERFACES.md` §7.y, §Tooltips; `01_GDD.md` §27 (Collegamenti, "?" e tooltip).
+- **Descrizione** `HelpButton` in ogni pagina di gioco; righe "Si ottiene da / Serve a" nei tooltip degli oggetti; descrizione delle stat nei tooltip.
+- **Accettazione** ogni pagina ha il suo "?" che apre una pagina esistente (test su tutte le rotte); le righe rispettano il massimo di 3 voci; il tooltip delle stat mostra la descrizione di `stats.json`.
+
+### M11-06 · Test della Guida
+- **Ruolo** QA · **Stima** M · **Parallelizzabile** no · **Dipendenze** M11-05
+- **Ownership** `tests/integration/**`, `tests/data/**` (solo aggiunte).
+- **Leggere** l'accettazione di M11-01…M11-05; `01_GDD.md` §27 (Accettazione).
+- **Descrizione** Test sui dati veri: ogni entità ha una pagina; nessun collegamento rotto; nessun segnaposto non risolto; nessun numero scritto a mano; ogni oggetto ha fonte e uso (o eccezione);
+  ogni pagina di gioco ha il "?"; un flusso di apertura/ricerca/indietro; copertura della modalità rigida delle stat invariata.
+- **Accettazione** `run_checks.ps1` verde; ogni punto di accettazione di M11 ha almeno un test.
+
+### M11-07 · Integrazione di M11
+- **Ruolo** REV · **Stima** S · **Parallelizzabile** no · **Dipendenze** M11-06
+- **Descrizione** Merge, checklist di `06_ROADMAP.md` (M11 "Uscita"), layout a 1600×900 e 1280×720, tag `m11-done`, report di milestone. Il push lo fa l'Orchestratore.
+
+## M12-M14 (dopo M11)
+
+- M12 · Fratture come mappe: task da definire a fine M11 (`01_GDD.md` §17 da rivedere; nota ereditata N11). I task si chiameranno M12-xx.
+- M13 · Azioni in parallelo: corsia secondaria, dati, UI, test, integrazione (`01_GDD.md` §18, F-51; nota ereditata N12; i progetti non girano nella corsia secondaria). I task si chiameranno M13-xx.
+- M14+ · Seconda classe, boss, dungeon: da definire.
 
 ## Note ereditate dai task superati
 
@@ -1437,7 +1497,7 @@ quelli v1/v2 sono "versione non supportata". Gli **id restano** (Q52): cambiano 
 - **N9 (da M3-09)** I toast dei livelli si accumulano sopra le finestre: con il banner del livello decidere livello di
   disegno e limite dei toast (ownership estesa a `ui/components/toast/**`).
 - **N10 (da M1-19)** Modalità rigida di `test_stat_registry_coverage.gd`: nessuna stat in `pending`; `CLOSED_FORMULAS` e
-  `FORMULA_MILESTONES` restano la mappa formula → milestone; le stat di M11/M12 entrano con i loro task.
+  `FORMULA_MILESTONES` restano la mappa formula → milestone; le stat di M12/M13 entrano con i loro task.
 - **N11 (da M7-01 vecchio)** Se `FractureSystem.SAVE_KEY` è `fractures`, rinominare la chiave finta di `ProbeSession`.
 - **N12 (da M1-10/M8-01 vecchio)** Il runner ha già `LANE_ORDER` e `_lanes`; da sbloccare `start`, `from_save`,
   `current_interval_ms`, `lanes_available`; `ActionMath.secondary_interval_ms` (F-51) è già testato; aggiungere
