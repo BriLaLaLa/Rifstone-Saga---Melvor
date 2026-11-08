@@ -51,7 +51,7 @@ func test_unworn_piece_says_slot_not_a_state() -> void:
 	_page._select(uid)
 	var sub: Label = _page.get_node("%PiecePanel").find_child("SubtitleLabel", true, false) as Label
 	assert_string_contains(sub.text, "Livello oggetto")
-	assert_string_contains(sub.text, "+0")
+	assert_false(sub.text.contains("+0"), "no +0 on a piece that is not refined")
 	var state: Label = _page.get_node("%PiecePanel").find_child("StateLabel", true, false) as Label
 	assert_false(state.text.contains("In mano"))
 	_session.equipment.equip(uid)

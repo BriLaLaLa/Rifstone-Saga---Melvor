@@ -92,7 +92,6 @@ I documenti sono già scritti con questi default (R-01). Valgono finché l'utent
 
 | # | Domanda | Default proposto | Dove impatta |
 |---|---|---|---|
-| Q55 | I nomi delle valute nei dati differiscono da `NOMI.md` (`currency_flux` "Sabbia del mutamento", `currency_crown` "Essenza del Rift"; `NOMI.md` li ha scambiati) | Restano i nomi dei dati (la descrizione combacia con l'effetto); correggere `NOMI.md` | M10-05, `data/items/currencies.json`, Guida |
 | Q56 | Con la borsa piena i progetti dai mostri si perdono (~0,38 progetti/h in un seme, Q49) | Accettato: la perdita è visibile in `sim_combat` (`bp lost/h`); nessuna modifica | Q49, M10-02 |
 | Q57 | I titoli di gruppo dell'indice della Guida sono costanti in `guide_nav.gd`, non in dati | Restano costanti di presentazione (come Q42); spostarli in `data/guide/` se serviranno traduzioni o modifiche frequenti | M11-04 |
 
@@ -100,6 +99,7 @@ I documenti sono già scritti con questi default (R-01). Valgono finché l'utent
 
 | # | Domanda | Decisione | Data |
 |---|---|---|---|
+| Q55 | Nomi delle valute in `NOMI.md` scambiati rispetto ai dati | `NOMI.md` corretto, i dati restano | 2026-11-08 (P-04) |
 | Q6 | Munizioni per Mira e rune/consumabili per Arcano? | Niente munizioni né rune; la classe dell'MVP usa solo spade (D6); archi e bastoni tornano con le loro classi | 2026-11-03 (`VISIONE_V2.md` §8) |
 | Q9 | Stance con bonus nascosti? | La stance è tolta: tutta l'XP va al personaggio (D3, F-28) | 2026-11-03 |
 | Q10 | Attacchi speciali o abilità delle armi? | Sì: abilità attive automatiche della classe, 2 per assetto (`01_GDD.md` §20.2, M6) | 2026-11-03 |

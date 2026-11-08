@@ -96,11 +96,6 @@ func test_character_requirement_is_listed_and_follows_the_level() -> void:
 	assert_false(_buy(&"test_buy_hatchet").disabled)
 
 
-func test_sections_follow_categories() -> void:
-	_open()
-	for category: String in ["bank", "combat", "materials"]:
-		assert_not_null(_page.find_child("Section_%s" % category, true, false), category)
-
 
 func test_unbind_disconnects_everything() -> void:
 	_open()
@@ -137,9 +132,6 @@ func _buy(entry_id: StringName) -> Button:
 	return _row(entry_id).find_child("BuyButton", true, false) as Button
 
 
-func test_combat_category_has_an_italian_title() -> void:
-	assert_eq(ShopPage.CATEGORY_TEXTS[&"combat"], "Combattimento")
-
 
 func test_armory_slot_is_in_the_category_of_the_bank_slot() -> void:
 	var shop: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/shop/shop.json"))
@@ -147,3 +139,18 @@ func test_armory_slot_is_in_the_category_of_the_bank_slot() -> void:
 	for entry: Dictionary in shop["entries"]:
 		categories[entry["id"]] = entry["category"]
 	assert_eq(categories["armory_slot"], categories["bank_slot"])
+
+
+func test_vendors_are_listed_and_empty_ones_say_coming_soon() -> void:
+	_open()
+	for vendor: String in DataValidatorItems.SHOP_VENDORS:
+		assert_not_null(_page.find_child("Section_%s" % vendor, true, false), vendor)
+	var armorer: Node = _page.find_child("Section_armaiolo", true, false)
+	assert_eq((armorer.find_child("ComingSoon", true, false) as Label).text, "In arrivo")
+	assert_null(_page.find_child("Section_deposito", true, false).find_child("ComingSoon", true, false))
+
+
+func test_every_real_shop_entry_has_a_vendor() -> void:
+	var shop: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/shop/shop.json"))
+	for entry: Dictionary in shop["entries"]:
+		assert_true(DataValidatorItems.SHOP_VENDORS.has(str(entry["vendor"])), str(entry["id"]))

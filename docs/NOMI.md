@@ -90,8 +90,8 @@ spaccaossa**; Respiro di brace → **Seconda forza**.
 ## Pietre, valute, rune, oggetti speciali
 - Pietre (Scheggia / Pietra / Cuore): famiglia `ember` → **di furia**, `eye` → **di precisione**, `shade` →
   **d'ombra**, `root` → **di roccia** (es. "Cuore di furia").
-- Valute (rare, esotiche): `currency_spark` **Scintilla del Rift** (comune → magico), `currency_flux` **Essenza del
-  Rift** (magico → raro), `currency_crown` **Sabbia del mutamento** (ritira gli affissi).
+- Valute (rare, esotiche): `currency_spark` **Scintilla del Rift** (comune → magico), `currency_flux` **Sabbia del
+  mutamento** (ritira gli affissi), `currency_crown` **Essenza del Rift** (magico → raro). Allineato ai dati (Q55, P-04).
 - Rune (ex Infusioni, P-03): **Runa della rapidità**, **Runa dell'abbondanza**, **Runa della sapienza**, **Runa della
   precisione**, **Runa della pelle di pietra**, **Runa della pazienza**, **Runa del banchetto**, **Runa del senso del
   Rift**, **Runa del baluardo** (stessi id di prima).

@@ -242,7 +242,7 @@ Un file per ogni skill di raccolta o artigianato (7 file). Le azioni di raccolta
 
 ```json
 {"skill": "forestry", "actions": [
-  {"id": "cut_redbirch", "name": "Abbattere betulla rossa", "level": 1, "interval_ms": 3000, "xp": 10,
+  {"id": "cut_redbirch", "name": "Betulla rossa", "level": 1, "interval_ms": 3000, "xp": 10,
    "mastery": true, "inputs": [], "outputs": [{"item": "redbirch_log", "qty": 1}]}
 ]}
 ```
@@ -344,11 +344,11 @@ In M7 si aggiunge `data/combat/rift_stones.json` (§16).
 
 ```json
 {"entries": [
-  {"id": "bank_slot", "name": "Casella della bank", "category": "bank",
+  {"id": "bank_slot", "name": "Casella della bank", "category": "bank", "vendor": "deposito",
    "description": "Una casella in più nella bank.",
    "cost": {"formula": "bank_slot"}, "max_purchases": 150,
    "requires": {}, "effect": {"modifiers": [{"stat": "bank_slots", "value": 1}]}},
-  {"id": "auto_eat_2", "name": "Razioni da campo II", "category": "combat",
+  {"id": "auto_eat_2", "name": "Razioni da campo II", "category": "combat", "vendor": "bottegaia",
    "description": "Mangia prima e più a lungo.",
    "cost": {"gold": 25000}, "max_purchases": 1,
    "requires": {"entries": ["auto_eat_1"], "character": 25},
@@ -358,6 +358,7 @@ In M7 si aggiunge `data/combat/rift_stones.json` (§16).
 | Campo | Tipo | Vincoli |
 |---|---|---|
 | `category` | String | `bank` (UI "Deposito"), `combat`, `materials`, `lanes` (ammessa dal validatore solo da M13) |
+| `vendor` | String | bottega della pagina Shop (solo raggruppamento): `bottegaia`, `fabbro`, `deposito`, `armaiolo`, `mercante_armature`; una bottega senza voci mostra "In arrivo" |
 | `cost` | object | **o** `{"gold": int ≥ 1}` **o** `{"formula": "bank_slot"}` (F-17) **o** `{"formula": "armory_slot"}` (F-82); nessun'altra formula nell'MVP |
 | `max_purchases` | int | ≥ 0; 0 = illimitato (solo per effetti `item`) |
 | `requires` | object | facoltativi `entries` (id dello shop), `character` (int 1..99), `skills` (`{skill: livello}`), `total_level` (int ≥ 0) |

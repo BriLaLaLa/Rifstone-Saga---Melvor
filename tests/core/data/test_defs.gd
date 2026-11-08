@@ -84,12 +84,12 @@ func test_mastery_bonus_without_level_rule_is_null() -> void:
 
 func test_action_gathering_example() -> void:
 	var action: ActionDef = ActionDef.from_dict(_parse("""
-		{"id": "cut_redbirch", "name": "Abbattere betulla rossa", "level": 1, "interval_ms": 3000, "xp": 10,
+		{"id": "cut_redbirch", "name": "Betulla rossa", "level": 1, "interval_ms": 3000, "xp": 10,
 		 "mastery": true, "inputs": [], "outputs": [{"item": "redbirch_log", "qty": 1}]}"""), &"forestry")
 	assert_not_null(action)
 	assert_eq(action.id, &"cut_redbirch")
 	assert_eq(action.skill_id, &"forestry")
-	assert_eq(action.name, "Abbattere betulla rossa")
+	assert_eq(action.name, "Betulla rossa")
 	assert_eq(action.level, 1)
 	assert_eq(action.interval_ms, 3000)
 	assert_eq(typeof(action.interval_ms), TYPE_INT)

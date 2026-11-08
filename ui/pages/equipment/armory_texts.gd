@@ -22,7 +22,6 @@ const UPGRADE_TEXT: String = "+%d"
 const AFFIX_GRADE_TEXT: String = "grado %d"
 const LEVEL_TEXT: String = "Livello oggetto %d"
 const SUBTITLE_TEXT: String = "%s  ·  %s  ·  Slot: %s"
-const CARD_SUBTITLE_TEXT: String = "%s  ·  %s  ·  %s"
 const REQUIREMENTS_TITLE: String = "Requisiti"
 const WEAPON_TITLE: String = "Arma"
 const AFFIXES_TITLE: String = "Affissi"
@@ -68,8 +67,8 @@ static func subtitle(inst: ItemInstance, base: ItemDef, data: GameData) -> Strin
 
 ## Item card line (docs/UI_GDR.md): "Slot  ·  Livello oggetto N  ·  +N".
 static func card_subtitle(inst: ItemInstance, base: ItemDef, data: GameData) -> String:
-	return CARD_SUBTITLE_TEXT % [EquipmentStatsText.slot_text(base.equip.slot, data), LEVEL_TEXT % inst.ilvl,
-			UPGRADE_TEXT % inst.upgrade]
+	var text: String = "%s  ·  %s" % [EquipmentStatsText.slot_text(base.equip.slot, data), LEVEL_TEXT % inst.ilvl]
+	return text if inst.upgrade <= 0 else "%s  ·  %s" % [text, UPGRADE_TEXT % inst.upgrade]
 
 
 ## BBCode lines of the top block of the item card: requirements (red if unmet), weapon and stats (no affixes, no

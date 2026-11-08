@@ -6,6 +6,9 @@ Se la sessione si interrompe, si riparte da qui.
 - **P-02 Scheda pezzo, Banco del fabbro, slot Cibo (2026-11-08, merge 55730ff)**: scheda del pezzo, Banco del fabbro nella pagina Fabbro, slot Cibo nella bambola, drag reale (fix a `EquipmentInventory.rebuild_grid`).
 - P-02 aperto: layout non verificato a schermo; manca l'icona `food.svg`; il tipo del pezzo mostra il nome dello slot.
 - P-02 nessun cambio di dati.
+- **P-04 Rifiniture dalla review (2026-11-08)**: fatto. Scheda pezzo senza "+0" e con Vendi sotto Blocca/Smantella, scheda in cima alla colonna destra; rune dell'Altare con effetto numerico; totali dell'Equipaggiamento senza razioni/raffinazione; etichette ricetta a capo; Deposito con caselle vuote fino alla capienza; azioni di raccolta senza verbo.
+- P-04: Shop per botteghe (campo `vendor` obbligatorio e validato: bottegaia, fabbro, deposito, armaiolo, mercante_armature; vuote = "In arrivo"; razioni -> Bottegaia, spazi/auto-loot/tasca -> Deposito, Fabbro vuoto perché lo shop non ha componenti né Sigilli). Q55 chiusa (NOMI.md allineato ai dati).
+- P-04 aperto: layout 1600x900/1280x720 non visto a schermo (Vendi in vista solo per costruzione); Guida cita ancora le azioni di raccolta solo via dati.
 - **P-03 Rinomina, Rune e Incavi (2026-11-08)**: fatto (merge dati `598d8a3`, UI `15bc0cf`). Rune/Incavi in dati, UI, Guida e NOMI.md (id invariati); pagina Guida "Pietre e Rune", Altare con stato degli incavi e elenco rune del Deposito con link a Legatura.
 - P-03: tabelle Tratti/Abilità della Guida da `LoadoutDescribe` (ora `core/guide/`, `NumberFormat` spostato in `core/common/`); descrizioni dei dati senza cifre; `player_renamed` aggiorna la TopBar (chiude l'aperto di P-01).
 - P-03 aperto: Q55 valute (flux/crown) invariata; layout 1600x900/1280x720, popup del cibo con mouse vero e icona `food.svg` non verificati; il test dedicato rinomina-pagina->barra passa da `PlayerName.rename`, non dal clic.

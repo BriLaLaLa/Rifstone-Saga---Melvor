@@ -249,7 +249,7 @@ func test_monster_bad_gold_is_null() -> void:
 
 func test_shop_bank_slot_example() -> void:
 	var entry: ShopEntryDef = ShopEntryDef.from_dict(_parse("""
-		{"id": "bank_slot", "name": "Casella della bank", "category": "bank",
+		{"id": "bank_slot", "name": "Casella della bank", "category": "bank", "vendor": "deposito",
 		 "description": "Una casella in più nella bank.",
 		 "cost": {"formula": "bank_slot"}, "max_purchases": 150,
 		 "requires": {}, "effect": {"modifiers": [{"stat": "bank_slots", "value": 1}]}}"""))
@@ -272,7 +272,7 @@ func test_shop_bank_slot_example() -> void:
 
 func test_shop_armory_slot_formula() -> void:
 	var entry: ShopEntryDef = ShopEntryDef.from_dict(_parse("""
-		{"id": "armory_slot", "name": "Casella dell'Armeria", "category": "bank", "description": "Una casella in più.",
+		{"id": "armory_slot", "name": "Casella dell'Armeria", "category": "bank", "vendor": "deposito", "description": "Una casella in più.",
 		 "cost": {"formula": "armory_slot"}, "max_purchases": 60, "requires": {},
 		 "effect": {"modifiers": [{"stat": "armory_slots", "value": 1}]}}"""))
 	assert_not_null(entry)
@@ -281,7 +281,7 @@ func test_shop_armory_slot_formula() -> void:
 
 func test_shop_auto_eat_example() -> void:
 	var entry: ShopEntryDef = ShopEntryDef.from_dict(_parse("""
-		{"id": "auto_eat_2", "name": "Razioni da campo II", "category": "combat",
+		{"id": "auto_eat_2", "name": "Razioni da campo II", "category": "combat", "vendor": "bottegaia",
 		 "description": "Mangia prima e più a lungo.",
 		 "cost": {"gold": 25000}, "max_purchases": 1,
 		 "requires": {"entries": ["auto_eat_1"], "character": 25},
@@ -302,7 +302,7 @@ func test_shop_auto_eat_example() -> void:
 
 func test_shop_item_example() -> void:
 	var entry: ShopEntryDef = ShopEntryDef.from_dict(_parse("""
-		{"id": "novice_hatchet", "name": "Accetta del novizio", "category": "tools",
+		{"id": "novice_hatchet", "name": "Accetta del novizio", "category": "tools", "vendor": "fabbro",
 		 "description": "Un'accetta semplice.", "cost": {"gold": 150}, "max_purchases": 0,
 		 "requires": {}, "effect": {"item": {"item": "novice_hatchet", "qty": 1}}}"""))
 	assert_not_null(entry)
@@ -317,27 +317,27 @@ func test_shop_item_example() -> void:
 
 func test_shop_total_level_requirement() -> void:
 	var entry: ShopEntryDef = ShopEntryDef.from_dict(_parse("""
-		{"id": "e", "name": "E", "category": "combat", "description": "", "cost": {"gold": 10},
+		{"id": "e", "name": "E", "category": "combat", "vendor": "bottegaia", "description": "", "cost": {"gold": 10},
 		 "max_purchases": 1, "requires": {"total_level": 120}, "effect": {"modifiers": []}}"""))
 	assert_eq(entry.req_total_level, 120)
 
 
 func test_shop_cost_without_gold_or_formula_is_null() -> void:
 	assert_null(ShopEntryDef.from_dict(_parse("""
-		{"id": "e", "name": "E", "category": "combat", "description": "", "cost": {},
+		{"id": "e", "name": "E", "category": "combat", "vendor": "bottegaia", "description": "", "cost": {},
 		 "max_purchases": 1, "requires": {}, "effect": {"modifiers": []}}""")))
 	assert_push_error("needs 'gold' or 'formula'")
 
 
 func test_shop_effect_without_modifiers_or_item_is_null() -> void:
 	assert_null(ShopEntryDef.from_dict(_parse("""
-		{"id": "e", "name": "E", "category": "combat", "description": "", "cost": {"gold": 1},
+		{"id": "e", "name": "E", "category": "combat", "vendor": "bottegaia", "description": "", "cost": {"gold": 1},
 		 "max_purchases": 1, "requires": {}, "effect": {}}""")))
 	assert_push_error("needs 'modifiers' or 'item'")
 
 
 func test_shop_missing_requires_is_null() -> void:
 	assert_null(ShopEntryDef.from_dict(_parse("""
-		{"id": "e", "name": "E", "category": "combat", "description": "", "cost": {"gold": 1},
+		{"id": "e", "name": "E", "category": "combat", "vendor": "bottegaia", "description": "", "cost": {"gold": 1},
 		 "max_purchases": 1, "effect": {"modifiers": []}}""")))
 	assert_push_error("missing field 'requires'")

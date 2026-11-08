@@ -22,7 +22,8 @@ theme_override_constants/separation = 4
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text_overrun_behavior = 3
+custom_minimum_size = Vector2(120, 0)
+autowrap_mode = 3
 
 [node name="PreservationValue" type="Label" parent="Content/Stats" index="11"]
 unique_name_in_owner = true
@@ -33,7 +34,8 @@ size_flags_horizontal = 3
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
-text_overrun_behavior = 3
+custom_minimum_size = Vector2(120, 0)
+autowrap_mode = 3
 
 [node name="DoubleValue" type="Label" parent="Content/Stats" index="13"]
 unique_name_in_owner = true

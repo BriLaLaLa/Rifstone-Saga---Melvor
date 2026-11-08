@@ -12,6 +12,7 @@ var id: StringName = &""
 var name: String = ""
 var description: String = ""
 var category: StringName = &""
+var vendor: StringName = &""  # stall of the shop page (P-04): one of DataValidatorItems.SHOP_VENDORS
 var cost_gold: int = 0
 var cost_formula: StringName = &""  # &"", &"bank_slot" (F-17) or &"armory_slot" (F-82)
 var max_purchases: int = 0
@@ -31,6 +32,7 @@ static func from_dict(d: Dictionary) -> ShopEntryDef:
 	def.name = r.text("name")
 	def.description = r.text("description")
 	def.category = r.id("category")
+	def.vendor = r.id("vendor")
 	def.max_purchases = r.integer("max_purchases")
 	if r.is_dict("cost"):
 		_read_cost(def, DefReader.new(r.dict("cost"), r.context() + " cost"), r)

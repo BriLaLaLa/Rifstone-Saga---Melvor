@@ -3,7 +3,7 @@
     {
       "id": "bank_slot",
       "name": "Casella della bank",
-      "category": "bank",
+      "category": "bank", "vendor": "deposito",
       "description": "Una casella in più.",
       "cost": {
         "formula": "bank_slot"
@@ -22,7 +22,7 @@
     {
       "id": "test_upgrade_1",
       "name": "Miglioria di prova I",
-      "category": "bank",
+      "category": "bank", "vendor": "deposito",
       "description": "Primo livello.",
       "cost": {
         "gold": 1000
@@ -41,7 +41,7 @@
     {
       "id": "test_upgrade_2",
       "name": "Miglioria di prova II",
-      "category": "bank",
+      "category": "bank", "vendor": "deposito",
       "description": "Secondo livello.",
       "cost": {
         "gold": 5000
@@ -69,7 +69,7 @@
     {
       "id": "test_buy_hatchet",
       "name": "Lama di prova",
-      "category": "materials",
+      "category": "materials", "vendor": "bottegaia",
       "description": "Un ramo.",
       "cost": {
         "gold": 150
@@ -86,7 +86,7 @@
     {
       "id": "test_buy_log",
       "name": "Tronco di prova",
-      "category": "materials",
+      "category": "materials", "vendor": "bottegaia",
       "description": "Un tronco.",
       "cost": {
         "gold": 20
@@ -103,7 +103,7 @@
     {
       "id": "auto_eat_1",
       "name": "Razioni da campo I",
-      "category": "combat",
+      "category": "combat", "vendor": "bottegaia",
       "description": "Prima razione.",
       "cost": {
         "gold": 2000

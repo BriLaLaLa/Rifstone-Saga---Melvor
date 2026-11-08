@@ -102,7 +102,7 @@ Altare del Rift. Il combattimento dà XP solo al personaggio (F-28).
 ## 4. Azioni di raccolta (Selvicoltura, Cavatura, Lenza)
 
 **Regole**
-- Ogni skill di raccolta ha una lista di azioni (es. "Abbattere betulla rossa") con: livello richiesto, intervallo
+- Ogni skill di raccolta ha una lista di azioni (es. "Betulla rossa") con: livello richiesto, intervallo
   base, XP, oggetto prodotto e quantità.
 - Si avvia un'azione dalla pagina della skill; parte una barra di progresso. Alla fine dell'intervallo (F-03):
   1. si calcolano i prodotti: quantità base, raddoppiata se riesce il tiro `double_item_chance` (F-06);

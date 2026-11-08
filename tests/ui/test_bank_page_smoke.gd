@@ -303,10 +303,11 @@ func _assert_cells_match_stacks() -> void:
 		assert_eq(_count_text(index), NumberFormat.format_compact(stacks[index]["count"]), "count of cell %d" % index)
 
 
+## The cells that hold an item (the grid also draws empty cells up to the capacity).
 func _cells() -> Array[ItemSlotView]:
 	var cells: Array[ItemSlotView] = []
 	for child: Node in _page.get_node("%Grid").get_children():
-		if child is ItemSlotView and not child.is_queued_for_deletion():
+		if child is ItemSlotView and not child.is_queued_for_deletion() and (child as ItemSlotView).item_id() != &"":
 			cells.append(child as ItemSlotView)
 	return cells
 
@@ -394,3 +395,13 @@ func _push_motion(previous: Vector2, at: Vector2) -> void:
 	event.global_position = at
 	event.relative = at - previous
 	get_viewport().push_input(event, true)
+
+
+func test_empty_cells_fill_the_grid_up_to_the_capacity() -> void:
+	TestFactory.give(_session, TWIG, 3)
+	_open()
+	await _settle()
+	var all: Array[Node] = _page.get_node("%Grid").get_children().filter(
+			func(n: Node) -> bool: return not n.is_queued_for_deletion())
+	assert_eq(all.size(), _session.bank.capacity(), "one cell per slot")
+	assert_eq(_cells().size(), _session.bank.used())

@@ -134,17 +134,24 @@ func _redraw() -> void:
 	_refresh_hovered_tooltip()
 
 
-## One cell per stack that matches the search, in the bank's order: existing cells are reused, extra ones removed.
+## One cell per stack that matches the search, in the bank's order, then (with no search) one empty cell per free
+## slot up to the capacity: existing cells are reused, extra ones removed.
 func _redraw_cells() -> void:
 	var stacks: Array[Dictionary] = _shown_stacks()
+	var empty_slots: int = maxi(0, _session.bank.capacity() - _session.bank.used()) \
+			if _search_edit.text.strip_edges().is_empty() else 0
+	var total: int = stacks.size() + empty_slots
 	var cells: Array[Node] = _grid.get_children()
-	for index: int in range(stacks.size(), cells.size()):
+	for index: int in range(total, cells.size()):
 		_grid.remove_child(cells[index])
 		cells[index].queue_free()
-	for index: int in stacks.size():
+	for index: int in total:
 		var cell: ItemSlotView = cells[index] as ItemSlotView if index < cells.size() else _new_cell(index)
-		var stack: Dictionary = stacks[index]
-		cell.set_item(_session.data.item(stack[STACK_ITEM_KEY]), stack[STACK_COUNT_KEY], stack[STACK_LOCKED_KEY])
+		if index < stacks.size():
+			var stack: Dictionary = stacks[index]
+			cell.set_item(_session.data.item(stack[STACK_ITEM_KEY]), stack[STACK_COUNT_KEY], stack[STACK_LOCKED_KEY])
+		else:
+			cell.clear()
 	_empty_label.text = EMPTY_TEXT if _session.bank.used() == 0 else NO_MATCH_TEXT
 	_empty_label.visible = stacks.is_empty()
 
@@ -232,12 +239,13 @@ func _cell_drag_data(_at_position: Vector2, cell: ItemSlotView) -> Variant:
 
 
 func _can_drop_on_cell(_at_position: Vector2, data: Variant, cell: ItemSlotView) -> bool:
-	return _is_stack_drag(data) and cell.item_id() != &""
+	return _is_stack_drag(data)
 
 
 func _drop_on_cell(_at_position: Vector2, data: Variant, cell: ItemSlotView) -> void:
 	if _session != null:
-		_move((data as Dictionary)[DRAG_ITEM_KEY], _bank_index(cell.item_id()))
+		var target: int = _bank_index(cell.item_id()) if cell.item_id() != &"" else _session.bank.used() - 1
+		_move((data as Dictionary)[DRAG_ITEM_KEY], target)
 
 
 func _can_drop_on_grid(_at_position: Vector2, data: Variant) -> bool:

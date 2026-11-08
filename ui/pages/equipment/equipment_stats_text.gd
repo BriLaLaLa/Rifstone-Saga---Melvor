@@ -48,6 +48,10 @@ static func doll_text(slot: StringName, data: GameData) -> String:
 	return slot_text(slot, data)
 
 
+## Stats shown on the character page, not in the equipment totals.
+const TOTALS_HIDDEN_STATS: Array[StringName] = [&"auto_eat_tier", &"upgrade_success_pct"]
+
+
 ## BBCode of the final values: the combat values of the character (the same lines as the character page,
 ## `CombatTexts.final_stat_lines`), then one line "name  total" for every stat with at least one source in the global
 ## context.
@@ -57,7 +61,7 @@ static func totals(session: GameSession) -> String:
 		lines.append(ItemTooltipLines.escape(text))
 	var bonuses: PackedStringArray = PackedStringArray()
 	for stat: StringName in session.data.stats.ids():
-		if session.modifiers.breakdown(stat).is_empty():
+		if TOTALS_HIDDEN_STATS.has(stat) or session.modifiers.breakdown(stat).is_empty():
 			continue
 		var info: Dictionary = session.data.stats.info(stat)
 		var total: String = ItemTooltipLines.format_stat(info["format"] as String, session.modifiers.total(stat))

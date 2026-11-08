@@ -69,7 +69,8 @@ func test_altar_lists_runes_with_description_and_craft_link() -> void:
 	_open(RIFT_SCENE)
 	var line: Label = _node.find_child("Rune_%s" % INF, true, false) as Label
 	assert_not_null(line)
-	assert_string_contains(line.text, _session.data.item(INF).description)
+	var def: ItemDef = _session.data.item(INF)
+	assert_string_contains(line.text, RiftTexts.modifiers_inline(def.infusion_modifiers, _session.data))
 	assert_string_contains(line.text, "x2")
 	assert_not_null(_node.find_child("CraftRunesButton", true, false))
 

@@ -205,7 +205,7 @@ func _redraw_runes() -> void:
 		var line := Label.new()
 		line.name = "Rune_%s" % def.id
 		line.text = "%s\n%s" % [RiftTexts.RUNE_LINE_TEXT % [def.name, NumberFormat.format_int(int(entry["count"]))],
-				def.description]
+				RiftTexts.modifiers_inline(def.infusion_modifiers, _session.data)]
 		line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		_runes_box.add_child(line)
 	var craft := Button.new()

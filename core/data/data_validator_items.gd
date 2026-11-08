@@ -31,7 +31,9 @@ const ACTION_FIELDS: PackedStringArray = ["id", "name", "level", "interval_ms", 
 	"outputs", "icon", "single"]
 const SHOP_CATEGORIES: PackedStringArray = ["bank", "combat", "tools", "materials"]  # M8 adds "lanes"
 const SHOP_FORMULAS: PackedStringArray = ["bank_slot", "armory_slot"]
-const SHOP_FIELDS: PackedStringArray = ["id", "name", "description", "category", "cost", "max_purchases",
+## Vendors (stalls) the shop page groups the entries under; the page lists them in this order (P-04).
+const SHOP_VENDORS: PackedStringArray = ["bottegaia", "fabbro", "deposito", "armaiolo", "mercante_armature"]
+const SHOP_FIELDS: PackedStringArray = ["id", "name", "description", "category", "vendor", "cost", "max_purchases",
 	"requires", "effect"]
 
 
@@ -190,6 +192,7 @@ static func validate_shop(v: DataValidatorRules, files: Dictionary[String, Dicti
 			var e: Dictionary = list[index]
 			v.entry("shop entry", index, e, seen, SHOP_FIELDS)
 			v.one_of(e, "category", SHOP_CATEGORIES)
+			v.one_of(e, "vendor", SHOP_VENDORS)
 			DataValidatorM10.shop_entry(v, e)
 			v.integer(e, "max_purchases", 0)
 			var cost: Dictionary = _one_of_two(v, e, "cost", "gold", "formula")

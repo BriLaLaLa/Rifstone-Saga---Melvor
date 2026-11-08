@@ -1,6 +1,6 @@
 class_name ShopPage
 extends Page
-## Shop page (docs/01_GDD.md §8), route `shop`: the entries of `data.shop_entries()` grouped by category, each with
+## Shop page (docs/01_GDD.md §8), route `shop`: the entries of `data.shop_entries()` grouped by vendor (stall), each with
 ## its price, the purchase counter (only for limited entries), the missing requirements and the "Compra" button.
 ## Selling is done from the item panel of the bank page.
 ##
@@ -19,11 +19,13 @@ const REQ_SKILL_TEXT: String = "%s livello %s"
 const REQ_TOTAL_TEXT: String = "livello totale %s"
 const REQ_CHARACTER_TEXT: String = "livello del personaggio %s"
 const REQ_SEPARATOR: String = ", "
-const CATEGORY_TEXTS: Dictionary[StringName, String] = {
-	&"bank": "Deposito",
-	&"combat": ItemTooltipLines.COMBAT_TEXT,
-	&"materials": "Materiali",
-	&"tools": "Attrezzi",
+const COMING_SOON_TEXT: String = "In arrivo"
+const VENDOR_TEXTS: Dictionary[StringName, String] = {
+	&"bottegaia": "Bottegaia",
+	&"fabbro": "Fabbro",
+	&"deposito": "Deposito",
+	&"armaiolo": "Armaiolo",
+	&"mercante_armature": "Mercante d'armature",
 }
 ## Reason of `can_buy` / `buy` -> text; other reasons: REFUSED_TEXT_DEFAULT.
 const REFUSED_TEXTS: Dictionary[StringName, String] = {
@@ -106,26 +108,31 @@ func _exit_tree() -> void:
 	unbind()
 
 
-## One section per category (in the order of first appearance in the data), one row per entry.
+## One section per vendor (always all of them, in the order of `DataValidatorItems.SHOP_VENDORS`), one row per entry;
+## a vendor without entries shows "In arrivo".
 func _build_rows() -> void:
 	for child: Node in _list.get_children():
 		_list.remove_child(child)
 		child.queue_free()
 	_rows.clear()
 	var sections: Dictionary[StringName, VBoxContainer] = {}
+	for vendor: String in DataValidatorItems.SHOP_VENDORS:
+		sections[StringName(vendor)] = _new_section(StringName(vendor))
 	for entry: ShopEntryDef in _session.data.shop_entries():
-		if not sections.has(entry.category):
-			sections[entry.category] = _new_section(entry.category)
-		_rows[entry.id] = _new_row(sections[entry.category], entry)
+		_rows[entry.id] = _new_row(sections[entry.vendor], entry)
+	for vendor: StringName in sections:
+		if sections[vendor].get_child_count() == 0:
+			var soon: Label = _label(sections[vendor], COMING_SOON_TEXT, &"MutedLabel")
+			soon.name = "ComingSoon"
 
 
-func _new_section(category: StringName) -> VBoxContainer:
+func _new_section(vendor: StringName) -> VBoxContainer:
 	var title: Label = Label.new()
 	title.theme_type_variation = &"HeaderLabel"
-	title.text = CATEGORY_TEXTS.get(category, String(category))
+	title.text = VENDOR_TEXTS.get(vendor, String(vendor))
 	_list.add_child(title)
 	var box: VBoxContainer = VBoxContainer.new()
-	box.name = "Section_%s" % category
+	box.name = "Section_%s" % vendor
 	box.add_theme_constant_override("separation", SECTION_SEPARATION)
 	_list.add_child(box)
 	return box
