@@ -1475,7 +1475,7 @@ migrazione). Gli **id restano** (Q52) tranne gli oggetti nuovi (`NOMI.md`, sezio
 (`core/data/**`, `event_bus.gd`, `reasons.gd`, `game_session.gd`): **vanno in sequenza**. Test di accettazione generali: `RIFORMA_2.md` §10 riportato nelle singole accettazioni.
 
 ### M12-01 · Deposito unico e borse
-- **Ruolo** CORE · **Stima** L · **Parallelizzabile** no (primo) · **Dipendenze** R-03
+- **Ruolo** CORE · **Stima** L · **Parallelizzabile** no (primo) · **Dipendenze** R-03 · **Stato** DONE (merge ba4bad4)
 - **Ownership** `systems/deposit/**` (nuovo), `systems/bank/**`, `systems/armory/armory.gd` (solo capienza, `can_add`, segnali), `systems/shop/shop.gd` (via `cost_formula`/formule),
   `core/session/game_session.gd` e `session_participants.gd` (modulo `deposit`, registrazione degli occupanti), `core/autoload/event_bus.gd` (righe `deposit_changed`, `bags_changed`;
   tolti `bank_capacity_changed`, `armory_capacity_changed`) con `tests/core/autoload/test_event_bus.gd`, `core/common/reasons.gd`, `core/save/save_migrator.gd` (`CURRENT_VERSION` 4),
@@ -1504,7 +1504,7 @@ migrazione). Gli **id restano** (Q52) tranne gli oggetti nuovi (`NOMI.md`, sezio
 - **Test** `tests/systems/deposit/test_deposit.gd`, `tests/systems/bank/test_bank_bags.gd`, `tests/systems/armory/test_armory_shared_capacity.gd`, `tests/integration/test_save_v4.gd`, `tests/core/data/test_deposit_keys.gd`.
 
 ### M12-02 · Aiutanti
-- **Ruolo** CORE · **Stima** L · **Parallelizzabile** no · **Dipendenze** M12-01
+- **Ruolo** CORE · **Stima** L · **Parallelizzabile** no · **Dipendenze** M12-01 · **Stato** DONE (merge dcdeff4)
 - **Ownership** `systems/helpers/**` (nuovo), `systems/actions/gathering_resolver.gd` (parametro `helper_grade`), `systems/skills/skills_system.gd` (solo `add_xp` con `share_pct`), `systems/mastery/**`
   (solo `add_for_action` con `share_pct`), `core/modifiers/modifier_context.gd` e `modifier_service.gd` (`excluded_sources`, `for_helper`) con `tests/core/modifiers/**`, `core/session/game_session.gd`
   (`helpers`, `_PHASE_HELPERS`), `core/autoload/event_bus.gd` (righe `helper_*`) con il suo test, `core/common/reasons.gd`, `core/data/**` (`HelperGradeDef`, categoria `contract`, `ItemDef` campi, `GameData.helper_grades/helper_grade/contract_for`,
@@ -1519,7 +1519,7 @@ migrazione). Gli **id restano** (Q52) tranne gli oggetti nuovi (`NOMI.md`, sezio
 - **Test** `tests/systems/helpers/test_helper_system.gd`, `test_helper_math.gd`, `test_helper_offline.gd`, `tests/core/modifiers/test_excluded_sources.gd`, `tests/data/test_balance_invariants.gd`.
 
 ### M12-03 · Maestria per risorsa
-- **Ruolo** CORE · **Stima** L · **Parallelizzabile** no · **Dipendenze** M12-02
+- **Ruolo** CORE · **Stima** L · **Parallelizzabile** no · **Dipendenze** M12-02 · **Stato** DONE (merge b363fe4)
 - **Ownership** `systems/mastery/**`, `systems/actions/gathering_resolver.gd` (sottoprodotto), `core/data/**` (`MilestoneDef`, `ActionDef.milestones`, validatore dei traguardi, divieto di `mastery_bonuses` per le skill di
   raccolta, regola degli alberi diversi), `core/autoload/event_bus.gd` (riga `mastery_milestone_reached`), `data/config/balance.json` (`mastery.milestones`), `tests/systems/mastery/**`, `tests/systems/actions/**` (solo aggiunte),
   `tests/data/**` (solo regole nuove), `tests/fixtures/data/**`.
@@ -1532,7 +1532,7 @@ migrazione). Gli **id restano** (Q52) tranne gli oggetti nuovi (`NOMI.md`, sezio
 - **Test** `tests/systems/mastery/test_mastery_milestones.gd`, `tests/systems/actions/test_gathering_milestones.gd`, `tests/data/test_milestone_schema.gd`.
 
 ### M12-04 · Incisore: azioni a drop, cristallizzare, rune a gradi, tabelle di drop
-- **Ruolo** CORE · **Stima** L · **Parallelizzabile** no · **Dipendenze** M12-03
+- **Ruolo** CORE · **Stima** L · **Parallelizzabile** no · **Dipendenze** M12-03 · **Stato** DONE (merge 4625818)
 - **Ownership** `systems/actions/engraver_resolver.gd` (nuovo), `systems/actions/action_runner.gd` e `action_outcome.gd` (dispatch per `kind`, campo `failed`), `systems/combat/**` (solo il tiro delle
   `loot_tables` all'uccisione e per i Monoliti, 5.22), `core/data/**` (`ActionDef.kind`, `LootTableDef`, `data/combat/loot_tables.json` come file obbligatorio, `loot_tables` su aree/mostri/Monoliti, `infusion.grade/family`,
   regole delle ricette dell'Incisore e delle rune a 5 gradi, `engraver.*` e `rune.*`), `data/config/balance.json` (`engraver`, `rune`), `core/common/reasons.gd` (se manca qualcosa), `tools/validate_data.gd`,
@@ -1547,7 +1547,7 @@ migrazione). Gli **id restano** (Q52) tranne gli oggetti nuovi (`NOMI.md`, sezio
 - **Test** `tests/systems/actions/test_engraver_resolver.gd`, `tests/systems/combat/test_loot_tables.gd`, `tests/data/test_engraver_recipes.gd`, `tests/data/test_rune_grades.gd`, `tests/data/test_loot_tables_schema.gd`.
 
 ### M12-05 · Contenuti: borse, contratti, sottoprodotti, alberi, ricette dell'Incisore, tabelle di drop, nomi
-- **Ruolo** DATA · **Stima** L · **Parallelizzabile** no · **Dipendenze** M12-04
+- **Ruolo** DATA · **Stima** L · **Parallelizzabile** no · **Dipendenze** M12-04 · **Stato** DONE (merge 8fe91f3)
 - **Ownership** `data/**` (nuovi `data/items/bags.json`, `contracts.json`, `data/combat/loot_tables.json`; modificati `materials.json`, `stones.json`, `currencies.json`, `infusions.json`, `misc.json` per `rift_dust`/`rune_slab`,
   `data/actions/{forestry,quarrying,angling,woodwright,riftbinding}.json`, `data/mastery/{forestry,quarrying,angling}.json`, `data/combat/{areas,monsters,rift_stones}.json` (solo `loot_tables`),
   `data/skills/skills.json` (nome Incisore; niente `mastery_bonuses` per la raccolta), `data/config/balance.json` (solo valori di partenza di `helper`, `engraver`, `rune`, `mastery.milestones` già definiti), icone segnaposto
@@ -1563,7 +1563,7 @@ migrazione). Gli **id restano** (Q52) tranne gli oggetti nuovi (`NOMI.md`, sezio
 - **Test** `tests/data/test_m12_content.gd`, `test_names_m12.gd`, `test_loot_tables_content.gd`.
 
 ### M12-06 · UI: Deposito a schede con slot borsa, riga Aiutante, pagina Incisore, Guida aggiornata
-- **Ruolo** UI · **Stima** L · **Parallelizzabile** sì, con M12-07 (file diversi) · **Dipendenze** M12-05
+- **Ruolo** UI · **Stima** L · **Parallelizzabile** sì, con M12-07 (file diversi) · **Dipendenze** M12-05 · **Stato** DONE (merge 630950a)
 - **Ownership** `ui/pages/bank/**`, `ui/pages/skill/{skill_page,helper_row}.*`, `ui/pages/equipment/**` e `ui/pages/armory/**` (solo contatore e vista condivisa), `ui/screens/main/{top_bar,sidebar}.*`, `ui/pages/shop/**` (bottega
   "deposito" tolta), `ui/pages/combat/**` (testi "Monolito del Rift"), `ui/theme/**` e i file di testi centralizzati, `ui/components/toast/**` (toast dei traguardi), `data/guide/**` (pagine nuove e correzioni),
   `core/guide/**` (tabelle `bags`, `helper_grades`, `engraver_recipes`, `mastery_milestones:<skill>`, fonti da `loot_tables`), `ui/pages/guide/**`, `tests/ui/**`, `tests/core/guide/**`.
@@ -1577,7 +1577,7 @@ migrazione). Gli **id restano** (Q52) tranne gli oggetti nuovi (`NOMI.md`, sezio
 - **Test** `tests/ui/test_deposit_page.gd`, `test_bag_slots_bar.gd`, `test_helper_row.gd`, `test_engraver_sections.gd`, `tests/core/guide/test_guide_m12.gd`, `tests/ui/test_no_old_names.gd`.
 
 ### M12-07 · Bilanciamento con `sim`: aiutanti, Incisore, drop di Schegge e Cristalli, progetti (Q49)
-- **Ruolo** COMBAT · **Stima** M · **Parallelizzabile** sì, con M12-06 · **Dipendenze** M12-05
+- **Ruolo** COMBAT · **Stima** M · **Parallelizzabile** sì, con M12-06 · **Dipendenze** M12-05 · **Stato** DONE (merge ae59020)
 - **Ownership** `tools/sim_combat.gd`, `tools/sim_progress.gd`, `data/combat/loot_tables.json` e `data/config/balance.json` (solo i valori di M12), `docs/02_FORMULAS.md` (solo i valori e gli esempi dei numeri cambiati, come
   da regola di quel file), `tests/tools/**` e i test di esempio rotti dai valori cambiati.
 - **Leggere** `02_FORMULAS.md` F-100…F-104, §8.5b, §9; `05_INTERFACES.md` (strumento `sim_combat`: opzioni `helpers`, `engraver`, `deposit`); `OPEN_QUESTIONS.md` Q49, Q56, Q58-Q61.
@@ -1589,7 +1589,7 @@ migrazione). Gli **id restano** (Q52) tranne gli oggetti nuovi (`NOMI.md`, sezio
 - **Test** `tests/tools/test_sim_m12_options.gd`, `tests/data/test_balance_invariants.gd` (aggiornato).
 
 ### M12-08 · Test di M12
-- **Ruolo** QA · **Stima** M · **Parallelizzabile** no · **Dipendenze** M12-06, M12-07
+- **Ruolo** QA · **Stima** M · **Parallelizzabile** no · **Dipendenze** M12-06, M12-07 · **Stato** DONE (merge d6bb3c2; commit di test Reasons f02740d)
 - **Ownership** `tests/integration/**`, `tests/ui/**`, `tests/data/**` (solo aggiunte).
 - **Leggere** `RELEASE_CHECKLIST_MVP.md` §2; l'accettazione di M12-01…M12-07 in questo file; `RIFORMA_2.md` §10 (storico).
 - **Descrizione** Test di flusso: partita nuova (slot borsa vuoti, capienza base), mettere/togliere una borsa con oggetti e pezzi, Bank e Armory sullo stesso spazio, aiutante assunto da un contratto che lavora durante il
@@ -1598,12 +1598,12 @@ migrazione). Gli **id restano** (Q52) tranne gli oggetti nuovi (`NOMI.md`, sezio
 - **Accettazione** `run_checks.ps1` verde; ogni punto di accettazione di M12 ha almeno un test.
 
 ### M12-09 · Integrazione di M12
-- **Ruolo** REV · **Stima** S · **Dipendenze** M12-08
+- **Ruolo** REV · **Stima** S · **Dipendenze** M12-08 · **Stato** DONE (commit docs: M12-09 chiusura Riforma 2)
 - **Descrizione** Merge, checklist di `06_ROADMAP.md` (M12 "Uscita"), `docs/RELEASE_CHECKLIST_MVP.md` aggiornata, tag `m12-done`, report di milestone. Il push lo fa l'Orchestratore.
 
 ## M13-M14 (dopo M12)
 
-- M13 · Fratture come mappe: task da definire a fine M12 (`01_GDD.md` §17 da rivedere; nota ereditata N11). I task si chiameranno M13-xx.
+- M13 · Fratture come mappe: task da definire all'inizio di M13 (M12 chiusa) (`01_GDD.md` §17 da rivedere; nota ereditata N11). I task si chiameranno M13-xx.
 - M14+ · Seconda classe, boss, dungeon: da definire.
 - Le **corsie parallele** (ex M13, `01_GDD.md` §18, F-51, nota N12) sono **eliminate**: le sostituiscono gli aiutanti di M12.
 

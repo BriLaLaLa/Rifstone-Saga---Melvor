@@ -588,6 +588,9 @@ Un segnaposto con percorso, formato, id o tipo sconosciuto è un errore di valid
 
 **Eccezioni dichiarate** (`data/guide/exceptions.json`): `{ "no_source": [item_id…], "no_use": [item_id…] }`: oggetti ammessi senza "Si ottiene da"
 o senza "Serve a" (es. valute di sola uscita). Ogni id deve esistere; un'eccezione superflua (l'oggetto ha fonte/uso) è un errore.
+Il file ammette la chiave `_doc` (commento, ignorata). Da M12 la fonte può venire anche da tabelle di drop (`loot_tables`) e da sottoprodotti dei traguardi di maestria, l'uso da borse
+(`bag`) e contratti (`contract`): sono nell'indice e non vanno dichiarate. Restano in `no_source` i 8 anelli e amuleti di base; in `no_use` le valute di sola uscita e i
+sottoprodotti di raccolta senza ricette (27 voci a fine M12).
 
 Regole del validatore: id di pagina unici; `section` valida; `order` ≥ 0; ogni `links.targets`/`{link:…}` punta a un id esistente (o a una pagina di guida
 esistente); ogni `help_for` è una rotta nota; ogni `table.source` è dichiarata; nessuna cifra scritta a mano nei testi (le sequenze di cifre fuori da un segnaposto
@@ -604,6 +607,10 @@ Riepilogo per il validatore e i task M12-01…M12-05 (dettagli nelle sezioni ind
 - Azioni (§6): `milestones` obbligatori nelle 24 azioni di raccolta; `kind: crystallize`; ricette dell'Incisore riscritte; Falegname: ricette delle borse di tela e rinforzata.
 - Maestria (§7): alberi diversi per Boscaiolo, Minatore, Pescatore; `mastery_bonuses` vietato per le skill di raccolta.
 - Combattimento (§8, §8b): nuovo `loot_tables.json`; `loot_tables` su aree, mostri e Monoliti.
+- **Fine transizione (M12-05)**: `combat/loot_tables.json` è un file **obbligatorio** (`CONTENT_FILES`, `LootIndex.FILE`; assente o senza tabelle = errore) e il **gate dei traguardi** (`DataValidatorMilestones.is_active`,
+  regole attive solo se almeno un'azione aveva `milestones`) è tolto: `milestones` su ogni azione di raccolta, niente `mastery_bonuses` per la raccolta e alberi diversi valgono sempre. Le fixture di test devono rispettarle
+  (`tests/fixtures/data/m10` è uno snapshot vecchio e non si valida da sola: 28 errori, non usata da `run_checks.ps1`).
+- Guida (§19): `data/guide/deposito.json` (pagine `guide_deposit`, `guide_helpers`, `guide_resource_mastery`, `guide_engraver`, sezioni `first_steps`/`crafts`; tabelle `bags`, `helper_grades`, `engraver_recipes`); eccezioni aggiornate (§19).
 - Guida (§19): pagine nuove (Deposito e borse, Aiutanti, Maestria per risorsa, Incisore, Monoliti del Rift) e tabelle generate `bags`, `helper_grades`,
   `engraver_recipes`, `mastery_milestones` (`05_INTERFACES.md` §5.19).
 - Nomi: solo `name` e `description` (Q52); i nomi di `NOMI.md` (sezione Riforma 2) li controlla un test dei dati.

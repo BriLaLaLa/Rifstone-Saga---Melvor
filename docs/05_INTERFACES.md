@@ -44,7 +44,7 @@ const NOT_FOOD := &"not_food"
 const SLOT_EMPTY := &"slot_empty"
 const COMBAT_ACTIVE := &"combat_active"
 const LANE_UNAVAILABLE := &"lane_unavailable"   # M12: solo per una corsia diversa da MAIN (le corsie parallele non esistono più: nessun uso reale)
-# SKILL_IN_OTHER_LANE: TOLTA in M12 (corsie parallele eliminate, W3)
+const SKILL_IN_OTHER_LANE := &"skill_in_other_lane"   # M12: costante rimasta, nessun uso reale (corsie parallele eliminate, W3)
 const SOCKET_LOCKED := &"socket_locked"
 const SOCKET_OCCUPIED := &"socket_occupied"
 const POOL_INSUFFICIENT := &"pool_insufficient"
@@ -77,7 +77,7 @@ const NO_HELPER := &"no_helper"                   # M12: il mestiere non ha un a
 const HELPER_NOT_BETTER := &"helper_not_better"   # M12: il contratto non supera il grado dell'aiutante attuale (non si consuma)
 const BLUEPRINT_DONE := &"blueprint_done"   # M10: motivo di stop di fine progetto (action_stopped)
 ```
-Le costanti nuove le aggiunge il primo task che le usa (M4-01 per quelle di M4), con il test di `reasons.gd`.
+Le costanti nuove le aggiunge il primo task che le usa (M4-01 per quelle di M4), con il test di `reasons.gd`. A fine M12 la lista chiusa conta **50** costanti.
 
 ## 2. Autoload
 
@@ -627,6 +627,7 @@ func can_add(item_id: StringName) -> bool          # già presente o casella lib
 func add(item_id: StringName, qty: int) -> CommandResult      # unknown_id, not_stackable (M4-05: equipment/tool), invalid_amount, bank_full
 func remove(item_id: StringName, qty: int) -> CommandResult   # invalid_amount, not_enough_items
 func capacity() -> int                             # M12: delega a deposit.capacity() (F-100)
+func free_boxes() -> int                           # M12: caselle libere del Deposito condiviso (deposit.free_slots())
 func used() -> int
 func stacks() -> Array[Dictionary]                 # copie: [{"item": StringName, "count": int, "locked": bool}] in ordine
 func is_locked(item_id: StringName) -> bool
@@ -682,6 +683,7 @@ func total_level() -> int
 class_name MasteryMath extends RefCounted
 static func mastery_xp(interval_ms: int, item_level: int, skill_ratio: float, mastery_xp_pct: float, data: GameData) -> int  # F-10
 static func pool_gain(mastery_xp: int, share_pct: float) -> int     # F-12
+static func helper_share(mastery_xp: int, share_pct: float) -> int  # M12, F-102: quota di maestria dell'aiutante, round(mastery_xp × share_pct / 100)
 static func pool_cap(action_count: int, per_item: int) -> int       # F-13
 static func node_cost(pool_cap: int, cost_pct: float) -> int        # F-15
 static func rule_multiplier(rule: MasteryBonusRule, level: int) -> int   # F-11: floor(L/k) o 0/1
@@ -1026,8 +1028,8 @@ Comportamento (M5-03):
   sono rimossi (M6-02: `GameData.has_area`/`has_monster`, §4).
 - File di M6-02 (interni al modulo): `CombatSave` (`combat_save.gd`: `write(snapshot)`/`read(d, data)` statici del formato
   di §6; un motore `idle` scrive `player_hp`, `player_timer_ms`, `hand`, `between_ms` a 0, `area` `""`, `enemies` `[]`,
-  `effects` `{}`, così save -> load -> save è identico); `KillRewards` (`kill_rewards.gd`, `grant(session, loot, def)`:
-  xp, oro, drop, frammento); `EffectSet` (`effects/effect_set.gd`: effetti dei tratti di `Loadout.active_traits()`,
+  `effects` `{}`, così save -> load -> save è identico); `KillRewards` (`kill_rewards.gd`, `grant(session, loot, def, area_id = &"")`:
+  xp, oro, drop propri, tabelle dell'area (se `area_id` non vuoto) e del mostro, frammento; statici anche `base_xp`, `roll_drops`, `roll_tables`, `roll_piece`, `monster_ilvl`); `EffectSet` (`effects/effect_set.gd`: effetti dei tratti di `Loadout.active_traits()`,
   dispatch degli agganci, emette `trait_triggered`) e `TraitEffect` con un file per tipo di F-81. Per M6-03: i colpi
   delle abilità passano da `EffectSet.hit(ctx, damage)` (altrimenti `leech_pct` non cura).
 
@@ -1320,14 +1322,16 @@ class_name Deposit extends RefCounted
 const SAVE_KEY := &"deposit"
 func capacity() -> int                          # F-100: deposit.base_slots + extra_slots()
 func used() -> int                              # somma degli occupanti registrati (Bank: tipi di oggetto; Armory: pezzi non indossati)
-func free() -> int                              # max(0, capacity() − used())
-func has_room(count: int = 1) -> bool           # free() >= count
+func free_slots() -> int                        # max(0, capacity() − used()); non si chiama free() perché collide con Object.free()
+func has_room(count: int = 1) -> bool           # free_slots() >= count
 func register_occupant(occupant_id: StringName, used_fn: Callable) -> void   # used_fn: () -> int; id duplicato → assert; la chiamano Bank e Armory in _create_systems()
 func bag_slot_count() -> int                    # deposit.bag_slots (6)
 func get_bag(slot_index: int) -> StringName     # id della borsa nello slot, &"" se vuoto o indice fuori
 func bags() -> Array[StringName]                # copia, lunghezza bag_slot_count()
 func extra_slots() -> int                       # Σ bag.slots delle borse negli slot
 func assign_bag(slot_index: int, item_id: StringName) -> void   # INTERNO: solo Bank.equip_bag/unequip_bag; &"" svuota; emette bags_changed
+func sync_known() -> void                       # registra used/capacity attuali come già annunciati, senza segnale; Bank e Armory la chiamano dopo un cambio silenzioso (new_game, from_save, set_worn quieto)
+func is_bag(item_id: StringName) -> bool        # l'oggetto è una borsa (categoria bag)
 func notify_changed() -> void                   # emette deposit_changed(used, capacity) se uno dei due è diverso dall'ultima emissione; la chiamano Bank e Armory dopo ogni variazione di caselle
 func new_game() -> void; func to_save() -> Dictionary; func from_save(d: Dictionary) -> void
 ```
@@ -1399,6 +1403,13 @@ static func resolve(session: GameSession, action: ActionDef) -> ActionOutcome   
   `&"crystallize"`) e `var milestones: Array[MilestoneDef]` (vuoto per le azioni non di raccolta). `ItemDef` ha `bag_slots: int` (0 se non borsa), `contract_skill: StringName`,
   `contract_grade: StringName`, `infusion_grade: int` (default 1), `infusion_family: StringName`; `is_bag()`, `is_contract()`. `class_name HelperGradeDef` (`id`, `interval_mult`);
   `GameData.helper_grades() -> Array[HelperGradeDef]` (ordine di grado), `helper_grade(id)`, `contract_for(skill_id, grade_id) -> ItemDef`.
+- **Helper interni di `core/data/`** (non API per gli altri moduli, esistono per il limite di righe di `game_data.gd`): `HelperIndex` (`helper_index.gd`: `grades`, `by_id`,
+  `build(balance, items)`, `contract_for`, `clear`), `LootIndex` (`loot_index.gd`: `by_id`, `list`, `build(raw, errors)`, `clear`; `combat/loot_tables.json` è un file obbligatorio),
+  `DataBuildUtil` (`data_build_util.gd`: statici `curve`, `action_before`, `list`). `MasteryMilestones` (`systems/mastery/mastery_milestones.gd`, helper di `MasterySystem`):
+  `is_gathering`, `changes_sources`, `crossed`, `reached`, `resource_modifiers`, `trade_modifiers` (sorgenti `mastery_item:<action>` e `mastery_trade:<skill>`).
+- **Guida (M12)**: `GuideHelperGradeNames` = `HelperGradeNames` (`core/guide/helper_grade_names.gd`, `static func name_of(grade_id) -> String`: nome italiano del grado, l'id se
+  sconosciuto; solo presentazione). `GuideRef` ha i tipi `KIND_LOOT_TABLE`, `KIND_MILESTONE`, `KIND_BAG`, `KIND_CONTRACT`; `GuideIndex` le pagine `PAGE_DEPOSIT` (`guide_deposit`)
+  e `PAGE_HELPERS` (`guide_helpers`); `GuideTables` le tabelle `bags`, `helper_grades`, `engraver_recipes` e `mastery_milestones:<skill>`.
 
 ## 6. Formato del salvataggio (`user://saves/slot_<n>.json`)
 

@@ -16,7 +16,20 @@ Se la sessione si interrompe, si riparte da qui.
 - Descrizioni di tratti e abilità generate da effetti, parametri e ricarica (`ui/pages/character/loadout_describe.gd`, il campo `description` dei dati non si mostra più); stat `damage_reduction` ora si chiama "Armatura" (solo testo in `stats.json`).
 - Aperto di P-01 chiuso da P-03 (`player_renamed`).
 
-## Ripartenza (aggiornata il 2026-11-08, R-03 fatta: Riforma 2 nei documenti)
+## Ripartenza (fine M12, 2026-11-08)
+- **Stato**: **M12 Riforma 2 completata** (tutti i task DONE); il tag `m12-done` e il push li fa l'Orchestratore. `run_checks.ps1` verde su main: **2274 test**, dati, righe, riferimenti.
+- **Hash** (merge su main): M12-01 `ba4bad4`, M12-02 `dcdeff4`, M12-03 `b363fe4`, M12-04 `4625818`, M12-05 `8fe91f3`, M12-06 `630950a`, M12-07 `ae59020`, M12-08 `d6bb3c2` (commit di test dei Reasons `f02740d`),
+  M12-09 = commit `docs: M12-09 chiusura Riforma 2` (`git log --grep "M12-09"`).
+- **Prossimo passo**: **M13 Fratture come mappe** (`01_GDD.md` §17 da rivedere a inizio milestone; task da definire in `07_TASKS.md`), sessione nuova da questo file. Poi M14+.
+- **Documenti allineati al codice (M12-09)**: `05_INTERFACES.md` (`Deposit.free_slots()` al posto di `free()` che collideva con `Object.free()`, `sync_known`, `Bank.free_boxes`, `MasteryMath.helper_share`, `KillRewards.grant(…, area_id)`,
+  helper interni `HelperIndex`/`LootIndex`/`DataBuildUtil`/`MasteryMilestones`, `HelperGradeNames`; Reasons = 50), `04_DATA_SCHEMA.md` (`loot_tables.json` obbligatorio, gate dei traguardi tolto, `deposito.json`, eccezioni della Guida),
+  `06_ROADMAP.md` (misure di M12-07), `OPEN_QUESTIONS.md` (Q56 accettata, Q49 confermata, misure su Q58-Q61, **Q62 nuova**).
+- **Aperti**: layout 1600x900 e 1280x720 non visto a schermo; **Q62** (Runa di grado V troppo costosa, default "lasciare", da tarare); worktree `wt-M12-*` e `.claude/worktrees/agent-*` da potare a mano
+  (poi `git worktree prune` e cancellare i branch `task/*` mergiati); `tests/fixtures/data/m10` non è validabile da sola (28 errori, snapshot vecchio, non usata da `run_checks.ps1`);
+  `tests/data/test_stat_registry_coverage.gd` `CLOSED_FORMULAS` elenca ancora F-16 e F-82, eliminate.
+- **Valori da tarare dopo la prova** (misure in `06_ROADMAP.md` M12): ingredienti delle borse di tela e rinforzata, oro dei sottoprodotti, contratto Maestro `chance_pct` 0,01 (~1 ogni 50 h), `deposit.base_slots` 60 (pieno dopo 8-10 h senza vendere).
+
+## Ripartenza precedente (inizio M12, R-03 fatta: Riforma 2 nei documenti)
 - **Stato**: **R-03 DONE**: la Riforma 2 (decisioni W1-W7, fonte `RIFORMA_2.md`) è nei documenti canonici (`NOMI.md`, `OPEN_QUESTIONS.md` Q58-Q61 e Q26 chiusa, `DECISIONS_LOG.md` W1-W7 e scelte R-03,
   `00_VISION.md`, `01_GDD.md` §4.1/§6.4/§7/§11/§18, `02_FORMULAS.md` F-100…F-108 e §8.5b-§8.8b, `03_ARCHITECTURE.md`, `04_DATA_SCHEMA.md` §20, `05_INTERFACES.md` §5.20-§5.22 e §7.w, `06_ROADMAP.md`,
   `07_TASKS.md`, `CLAUDE.md`). Hash: R-03 = commit `docs: R-03 riforma 2 nei documenti canonici` (`git log --grep "R-03"`); tag M11 `m11-done` già messo; P-01…P-04 (rifiniture) già su main.

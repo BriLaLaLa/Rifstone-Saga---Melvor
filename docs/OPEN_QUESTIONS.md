@@ -91,7 +91,7 @@ I documenti sono già scritti con questi default (R-01). Valgono finché l'utent
 
 | # | Domanda | Default proposto | Dove impatta |
 |---|---|---|---|
-| Q56 | Con la borsa piena i progetti dai mostri si perdono (~0,38 progetti/h in un seme, Q49) | Accettato: la perdita è visibile in `sim_combat` (`bp lost/h`); nessuna modifica | Q49, M10-02 |
+| Q56 | Con la borsa piena i progetti dai mostri si perdono (~0,38 progetti/h in un seme, Q49) | Accettato: la perdita è visibile in `sim_combat` (`bp lost/h`); nessuna modifica. **Accettata** da M12-07 (`sim_m12`): perdita ~0/h con svuotamento ogni 10 min, 1-2,6/h ogni 4 h | Q49, M10-02, M12-07 |
 | Q57 | I titoli di gruppo dell'indice della Guida sono costanti in `guide_nav.gd`, non in dati | Restano costanti di presentazione (come Q42); spostarli in `data/guide/` se serviranno traduzioni o modifiche frequenti | M11-04 |
 
 ## Riforma 2 (M12, `RIFORMA_2.md` riportata da R-03)
@@ -101,10 +101,11 @@ in M12-07 (`tools/sim_combat.gd`).
 
 | # | Domanda | Default proposto | Dove impatta |
 |---|---|---|---|
-| Q58 | Borse: caselle e fonti | 6 slot borsa; Borsa di tela +6 (ricetta del Falegname, comune), di cuoio +10 (drop di Pianure e Bosco), rinforzata +14 (ricetta del Falegname con sottoprodotti della maestria: la fonte dice "progetto"), del viandante +18 (drop raro delle Miniere), runica +24 (Monoliti). `deposit.base_slots` 60 (non nella fonte: 24 + 40 di oggi meno il surplus, da tarare) | F-100, `balance.json` `deposit.*`, M12-01, M12-05 |
-| Q59 | Aiutanti: lentezza per grado, XP e maestria | Intervallo × 3,0 / 2,5 / 2,0 / 1,5 (Apprendista, Garzone, Esperto, Maestro) rispetto al giocatore senza attrezzo; XP e maestria al 25% | F-101, F-102, `balance.json` `helper.*`, M12-02, M12-07 |
-| Q60 | Traguardi della maestria per risorsa | 25 sottoprodotto raro, 50 bonus della risorsa, 99 bonus permanente del mestiere (piccolo, si somma tra le risorse); valori in `02_FORMULAS.md` §8.8b | F-103, `data/actions/` (`milestones`), `data/mastery/`, M12-03, M12-05 |
-| Q61 | Cristallizzare: probabilità per livello e fallimento | 40% al livello 1 → 90% al 99 (lineare); fallimento = metà della polvere persa | F-104, `balance.json` `engraver.*`, M12-04 |
+| Q58 | Borse: caselle e fonti | 6 slot borsa; Borsa di tela +6 (ricetta del Falegname, comune), di cuoio +10 (drop di Pianure e Bosco), rinforzata +14 (ricetta del Falegname con sottoprodotti della maestria: la fonte dice "progetto"), del viandante +18 (drop raro delle Miniere), runica +24 (Monoliti). `deposit.base_slots` 60 (non nella fonte: 24 + 40 di oggi meno il surplus, da tarare). **Misura M12-07**: la base di 60 si riempie dopo 8-10 h senza vendere; ingredienti delle borse di tela e rinforzata e oro dei sottoprodotti scelti dal Data Designer = valori di partenza da tarare | F-100, `balance.json` `deposit.*`, M12-01, M12-05 |
+| Q59 | Aiutanti: lentezza per grado, XP e maestria | Intervallo × 3,0 / 2,5 / 2,0 / 1,5 (Apprendista, Garzone, Esperto, Maestro) rispetto al giocatore senza attrezzo; XP e maestria al 25%. **Misura M12-07** (sim 8 h, 3 semi): tre aiutanti Maestro = 0,448 dell'XP/h del giocatore (invariante ≤ 1 rispettata); contratto Maestro con `chance_pct` 0,01 (minimo del validatore, invece di 0,005): ~1 ogni 50 h | F-101, F-102, `balance.json` `helper.*`, M12-02, M12-07 |
+| Q60 | Traguardi della maestria per risorsa | 25 sottoprodotto raro, 50 bonus della risorsa, 99 bonus permanente del mestiere (piccolo, si somma tra le risorse); valori in `02_FORMULAS.md` §8.8b. **Misura M12-07**: Polvere ~38-79/h, Schegge 2,6-4,1/h per famiglia, Pietre 0,16-0,25/h; i Cristalli diretti non cadono nelle Miniere | F-103, `data/actions/` (`milestones`), `data/mastery/`, M12-03, M12-05 |
+| Q61 | Cristallizzare: probabilità per livello e fallimento | 40% al livello 1 → 90% al 99 (lineare); fallimento = metà della polvere persa. **Misura M12-07**: primo Cristallo del risveglio dopo 0,2-0,4 h, del mutamento 0,5-1,0 h, dell'ascesa 0,8-1,7 h; prima Pietra perfetta dopo 1,9-2,9 h | F-104, `balance.json` `engraver.*`, M12-04 |
+| Q62 | Runa di grado V troppo costosa da farmare: V = 81 rune di grado I (`rune.upgrade_ratio`^4); farming 7,7-37 h, la Runa del baluardo V ≈ 93 h (misura M12-07) | Lasciare com'è; da tarare dopo la prova (quantità o frequenza del drop delle rune più rare, o `rune.upgrade_ratio`) | F-107, `balance.json` `rune.*`, M12-07 |
 
 ## Chiuse
 
@@ -115,4 +116,4 @@ in M12-07 (`tools/sim_combat.gd`).
 | Q6 | Munizioni per Mira e rune/consumabili per Arcano? | Niente munizioni né rune; la classe dell'MVP usa solo spade (D6); archi e bastoni tornano con le loro classi | 2026-11-03 (`VISIONE_V2.md` §8) |
 | Q9 | Stance con bonus nascosti? | La stance è tolta: tutta l'XP va al personaggio (D3, F-28) | 2026-11-03 |
 | Q10 | Attacchi speciali o abilità delle armi? | Sì: abilità attive automatiche della classe, 2 per assetto (`01_GDD.md` §20.2, M6) | 2026-11-03 |
-| Q49 | Frequenza dei progetti (in 8 h offline nelle Miniere liv. 50 nessun progetto) | Verificata, nessuna ritaratura dei dati: ~1 progetto/h (mostri + 1 Pietra su 3) in tutte le aree; lo zero osservato era varianza (probabilità < 0,5% con il valore atteso). `sim_combat` riporta ora `bp/h` e `bp lost/h` | 2026-11-08 |
+| Q49 | Frequenza dei progetti (in 8 h offline nelle Miniere liv. 50 nessun progetto) | Verificata, nessuna ritaratura dei dati: ~1 progetto/h (mostri + 1 Pietra su 3) in tutte le aree; lo zero osservato era varianza (probabilità < 0,5% con il valore atteso). `sim_combat` riporta ora `bp/h` e `bp lost/h`. Confermata da M12-07 (`sim_m12`): 0,9-1,0 progetti/h | 2026-11-08 |

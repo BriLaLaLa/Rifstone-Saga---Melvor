@@ -153,6 +153,14 @@ Schegge, Pietre, Cristalli, Contratti e borse; **Monoliti del Rift** (nome); nom
 mestiere di raccolta, in parallelo al combattimento e offline, con XP al 25% e più lento del giocatore (la sim conferma F-102); ogni risorsa con i suoi 3 traguardi e alberi diversi per i tre
 mestieri; l'Incisore sale di livello solo consumando drop (più la Lastra runica) e pietre, valute e polvere cadono dai mostri; nomi di `NOMI.md`; Guida aggiornata; tutti i test verdi.
 **Task** M12-01…M12-09 (`07_TASKS.md`); tag `m12-done`.
+**Misure di M12-07** (`tools/sim_m12.gd`, 8 h simulate, 3 semi; valori di partenza da tarare dopo la prova, domande Q56, Q58-Q62 in `OPEN_QUESTIONS.md`):
+- Aiutanti: tre aiutanti Maestro insieme guadagnano **0,448** dell'XP/h del giocatore (invariante di F-102 ≤ 1 rispettata).
+- Incisore: Polvere ~38-79/h; Schegge 2,6-4,1/h per famiglia; Pietre 0,16-0,25/h. Primo Cristallo del risveglio dopo 0,2-0,4 h, del mutamento 0,5-1,0 h, dell'ascesa 0,8-1,7 h; prima Pietra perfetta dopo 1,9-2,9 h.
+- Rune: la Runa di grado V richiede 81 rune di grado I; farmarla costa 7,7-37 h, la Runa del baluardo V circa 93 h (Q62, default: lasciare, da tarare).
+- Borsa del bottino: perdita ~0/h con svuotamento ogni 10 min, fino a 1-2,6/h con svuotamento ogni 4 h (Q56 accettata). Progetti dai mostri 0,9-1,0/h (Q49 confermata).
+- Deposito: la base di 60 caselle si riempie dopo 8-10 h senza vendere.
+- Dati: contratto Maestro `chance_pct` 0,01 invece di 0,005 (minimo del validatore), circa 1 ogni 50 h; i Cristalli diretti non cadono nelle Miniere; ingredienti delle borse di tela e rinforzata e valori in oro dei
+  sottoprodotti scelti dal Data Designer (vedi i dati) sono valori di partenza da tarare.
 
 ## M13: Fratture come mappe (dopo la Riforma 2)
 Fratture del Rift ripensate come "mappe" con modificatori (`01_GDD.md` §17 da rivedere a inizio milestone; F-50, `FractureSystem`). Le corsie parallele non esistono più (W3).
