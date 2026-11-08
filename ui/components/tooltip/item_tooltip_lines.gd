@@ -2,7 +2,7 @@ class_name ItemTooltipLines
 extends RefCounted
 ## Builds the BBCode lines of an item tooltip from an ItemDef (display only, no game state).
 ##
-## Numbers use NumberFormat (ui/theme/number_format.gd).
+## Numbers use NumberFormat (core/common/number_format.gd).
 ##
 ## Ported from the item part of the previous game's tooltip: there it read loose item dictionaries with rarity,
 ## upgrade levels and a hard-coded list of stat names. Here every modifier line takes its label and format from
@@ -19,7 +19,7 @@ const CATEGORY_NAMES: Dictionary[StringName, String] = {
 	&"equipment": "Equipaggiamento",
 	&"tool": "Attrezzo",
 	&"food": "Cibo",
-	&"infusion": "Infusione",
+	&"infusion": "Runa",
 	&"misc": "Varie",
 }
 ## Italian name of each weapon style (docs/OPEN_QUESTIONS.md Q42): styles are not skills any more.
@@ -70,7 +70,7 @@ static func body(item: ItemDef, data: GameData) -> PackedStringArray:
 	if item.is_infusion() and has_data:
 		lines.append_array(modifier_lines(item.infusion_modifiers, data))
 		if item.infusion_unique:
-			lines.append(_muted("Unica: non si incastona in più prese"))
+			lines.append(_muted("Unica: non si incastona in più incavi"))
 	if item.is_food():
 		lines.append("Cura %s punti vita" % _value(NumberFormat.format_int(item.food_heal)))
 	if item.value > 0:

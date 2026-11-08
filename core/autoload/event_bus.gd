@@ -27,6 +27,7 @@ signal mastery_node_purchased(skill_id: StringName, node_id: StringName)
 # Character
 signal character_xp_gained(amount: int)
 signal character_level_up(new_level: int)
+signal player_renamed(new_name: String)
 signal traits_changed()
 
 # Bank, wallet, equipment, modifiers

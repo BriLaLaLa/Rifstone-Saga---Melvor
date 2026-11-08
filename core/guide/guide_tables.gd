@@ -139,7 +139,7 @@ static func _traits(data: GameData) -> Array[Array]:
 	var rows: Array[Array] = [["Tratto", "Livello", "Descrizione"]]
 	for class_def: ClassDef in data.classes():
 		for trait_def: TraitDef in class_def.traits:
-			rows.append([trait_def.name, str(trait_def.unlock_level), trait_def.description])
+			rows.append([trait_def.name, str(trait_def.unlock_level), LoadoutDescribe.trait_text(trait_def, data, class_def)])
 	return rows
 
 
@@ -148,7 +148,7 @@ static func _abilities(data: GameData) -> Array[Array]:
 	for class_def: ClassDef in data.classes():
 		for ability: AbilityDef in class_def.abilities:
 			rows.append([ability.name, str(ability.unlock_level), _n(ability.cooldown_ms / MS_PER_SEC),
-					ability.description])
+					LoadoutDescribe.ability_text(ability, data, class_def)])
 	return rows
 
 
@@ -162,7 +162,7 @@ static func _stats(data: GameData) -> Array[Array]:
 
 
 static func _infusions(data: GameData) -> Array[Array]:
-	var rows: Array[Array] = [["Infusione", "Effetto"]]
+	var rows: Array[Array] = [["Runa", "Effetto"]]
 	for item: ItemDef in data.items():
 		if item.is_infusion():
 			rows.append([item.name, item.description])

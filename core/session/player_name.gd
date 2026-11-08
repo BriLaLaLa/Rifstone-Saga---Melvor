@@ -14,5 +14,8 @@ static func rename(session: GameSession, new_name: String) -> CommandResult:
 	var max_length: int = int(session.data.balance_value(GameScript.NAME_MAX_LENGTH_KEY))
 	if clean_name.length() < min_length or clean_name.length() > max_length:
 		return CommandResult.fail(Reasons.INVALID_NAME)
+	var changed: bool = clean_name != session.player_name
 	session.player_name = clean_name
+	if changed:
+		session.events.player_renamed.emit(clean_name)
 	return CommandResult.success()

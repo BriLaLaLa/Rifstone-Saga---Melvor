@@ -65,7 +65,7 @@ func test_show_item_infusion_lines() -> void:
 	_show_item(&"test_infusion", 2)
 	assert_eq(_lines(_tooltip.body_text()), PackedStringArray([
 		"Velocità delle azioni -3%",
-		"Unica: non si incastona in più prese",
+		"Unica: non si incastona in più incavi",
 		"Non vendibile",
 		"Serve a: Altare del Rift",
 	]))
