@@ -132,7 +132,7 @@
     },
     {
       "id": "damage_reduction",
-      "name": "Riduzione del danno",
+      "name": "Armatura",
       "format": "pct",
       "min": 0,
       "max": 80,

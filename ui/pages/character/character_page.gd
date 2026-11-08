@@ -1,17 +1,18 @@
 class_name CharacterPage
 extends Page
-## Character page (docs/01_GDD.md §19, 05_INTERFACES.md §7), route `character`: class name and description, character
-## level with its XpBar, the setup worn now and the setups of the class.
+## Character page (docs/01_GDD.md §19, 05_INTERFACES.md §7), route `character`: the player's name (renamable), under it
+## "<class> · Livello N", the XpBar, the combat values and the traits/abilities panel (two tabs).
 ##
-## Everything is read from `session.character`, `session.data` and `session.equipment` at every redraw, which runs on
-## `character_xp_gained`, `character_level_up` and `equipment_changed`. The current setup comes from
-## `Equipment.setup()` (05 §5.9). It keeps no game state, only references to its own nodes.
+## Everything is read from `session.player_name`, `session.character` and `session.data` at every redraw, which runs on
+## `character_xp_gained`, `character_level_up` and `equipment_changed`. It keeps no game state, only references to its
+## own nodes. The setups are chosen in the equipment page, not here.
 
-const LEVEL_TEXT: String = "Livello %s"
+const LEVEL_TEXT: String = "%s · Livello %s"
 const NO_CLASS_TEXT: String = "Classe non disponibile"
+const RENAME_TEXT: String = "Rinomina"
+const SAVE_NAME_TEXT: String = "Salva"
 const MARGIN: int = 16
 const SECTION_SEPARATION: int = 12
-const SETUP_ROW_NAME: String = "Setup_%s"
 ## Key of CombatTexts.STAT_NAME_SOURCES for each line of `final_stat_lines`; damage (empty) has no stat, so no tooltip.
 const STAT_LINE_KEYS: Array[StringName] = [&"accuracy", &"evasion", &"", &"max_hp"]
 
@@ -19,12 +20,12 @@ var _session: GameSession = null
 
 @onready var _margin: MarginContainer = %Margin
 @onready var _content: VBoxContainer = %Content
-@onready var _class_label: Label = %ClassLabel
+@onready var _name_label: Label = %NameLabel
+@onready var _name_edit: LineEdit = %NameEdit
+@onready var _rename_button: Button = %RenameButton
+@onready var _rename_error: Label = %RenameError
 @onready var _level_label: Label = %LevelLabel
-@onready var _description_label: Label = %DescriptionLabel
 @onready var _xp_bar: XpBar = %XpBar
-@onready var _setup_title: Label = %SetupTitle
-@onready var _setup_list: VBoxContainer = %SetupList
 @onready var _stats_title: Label = %StatsTitle
 @onready var _stats_list: VBoxContainer = %StatsList
 @onready var _loadout: LoadoutPanel = %LoadoutPanel
@@ -34,15 +35,19 @@ func _ready() -> void:
 	for side: String in ["margin_left", "margin_top", "margin_right", "margin_bottom"]:
 		_margin.add_theme_constant_override(side, MARGIN)
 	_content.add_theme_constant_override("separation", SECTION_SEPARATION)
-	_setup_title.text = ItemTooltipLines.SETUP_LABEL
 	_stats_title.text = CombatTexts.STATS_TITLE
+	_rename_button.text = RENAME_TEXT
+	_rename_button.pressed.connect(_on_rename_pressed)
+	_name_edit.text_submitted.connect(_submit_name)
+	_rename_error.add_theme_color_override("font_color", UiStyle.BAD)
 
 
 ## Draws the character of `session` and follows its changes.
 func bind(session: GameSession) -> void:
 	unbind()
 	_session = session
-	HelpButton.attach(_class_label.get_parent(), session.data, &"character")
+	HelpButton.attach(_name_label.get_parent(), session.data, &"character")
+	_set_editing(false)
 	var events: GameEvents = _session.events
 	events.character_xp_gained.connect(_on_character_xp_gained)
 	events.character_level_up.connect(_on_character_level_up)
@@ -51,7 +56,6 @@ func bind(session: GameSession) -> void:
 	for sig: Signal in _loadout_signals(events):
 		sig.connect(_refresh_loadout)
 	_loadout.bind(_session)
-	_build_setup_list()
 	_refresh()
 
 
@@ -79,51 +83,56 @@ func _exit_tree() -> void:
 	unbind()
 
 
-## One line per setup of the class (the definitions never change while the page is bound).
-func _build_setup_list() -> void:
-	for child: Node in _setup_list.get_children():
-		_setup_list.remove_child(child)
-		child.queue_free()
-	var class_def: ClassDef = _session.character.class_def()
-	if class_def == null:
-		return
-	for setup: SetupDef in class_def.setups:
-		var line: Label = Label.new()
-		line.name = SETUP_ROW_NAME % setup.id
-		line.text = setup.name
-		_setup_list.add_child(line)
-
-
-## Rereads class, level, XP and current setup.
+## Rereads name, class, level and XP.
 func _refresh() -> void:
 	if _session == null:
 		return
 	var class_def: ClassDef = _session.character.class_def()
-	_class_label.text = class_def.name if class_def != null else NO_CLASS_TEXT
-	_description_label.text = class_def.description if class_def != null else ""
-	_level_label.text = LEVEL_TEXT % NumberFormat.format_int(_session.character.get_level())
+	_name_label.text = _session.player_name
+	_level_label.text = LEVEL_TEXT % [class_def.name if class_def != null else NO_CLASS_TEXT,
+			NumberFormat.format_int(_session.character.get_level())]
 	var table: XpTable = _session.data.character_xp_table()
 	if table != null:
 		_xp_bar.set_xp(table, _session.character.get_xp())
 	_refresh_stats()
 	_loadout.refresh()
-	var current: StringName = _current_setup_id()
-	for row: Node in _setup_list.get_children():
-		var is_current: bool = current != &"" and row.name == SETUP_ROW_NAME % current
-		(row as Label).add_theme_color_override("font_color", UiStyle.GOLD_LIGHT if is_current else UiStyle.TEXT_2)
 
 
-## Id of the worn setup among the setups of the class; `&""` if the hands are bare.
-func _current_setup_id() -> StringName:
-	var id: StringName = _session.equipment.setup()
-	if id == Equipment.UNARMED:
-		return &""
-	var class_def: ClassDef = _session.character.class_def()
-	if class_def != null:
-		for setup: SetupDef in class_def.setups:
-			if setup.id == id:
-				return id
-	return &""
+## Rename button: first press opens the field, the second (or Enter) sends the command `PlayerName.rename` and
+## saves the slot; a refusal shows its reason and keeps the field open.
+func _on_rename_pressed() -> void:
+	if _session == null:
+		return
+	if not _name_edit.visible:
+		_set_editing(true)
+		return
+	_submit_name(_name_edit.text)
+
+
+func _submit_name(text: String) -> void:
+	if _session == null:
+		return
+	var result: CommandResult = PlayerName.rename(_session, text)
+	if not result.ok:
+		_rename_error.text = SlotTexts.reason_text(result.reason)
+		_rename_error.visible = true
+		return
+	if Game.session == _session:
+		Game.save_now()
+	_set_editing(false)
+	_refresh()
+
+
+func _set_editing(editing: bool) -> void:
+	_name_edit.visible = editing
+	_name_label.visible = not editing
+	_rename_error.visible = false
+	_rename_button.text = SAVE_NAME_TEXT if editing else RENAME_TEXT
+	if editing:
+		_name_edit.text = _session.player_name
+		_name_edit.grab_focus()
+		_name_edit.select_all()
+
 
 
 func _on_character_xp_gained(_amount: int) -> void:

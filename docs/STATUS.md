@@ -3,6 +3,10 @@
 Aggiornato dall'Orchestratore (unico che modifica questo file). Stati: TODO / IN_PROGRESS / REVIEW / DONE / BLOCKED.
 Se la sessione si interrompe, si riparte da qui.
 
+- **P-01 Pagina Personaggio (2026-11-08, dopo m11-done)**: nome del personaggio in grande con Rinomina (`PlayerName.rename`, limiti `player_name` di `balance.json`, salvataggio dello slot), sotto "Spadaccino · Livello N"; tolta la sezione Assetto; tratti e abilità in un riquadro a due schede.
+- Descrizioni di tratti e abilità generate da effetti, parametri e ricarica (`ui/pages/character/loadout_describe.gd`, il campo `description` dei dati non si mostra più); stat `damage_reduction` ora si chiama "Armatura" (solo testo in `stats.json`).
+- Aperto: la barra in alto mostra il nome vecchio fino al prossimo caricamento (nessun segnale di rinomina); le tabelle Tratti/Abilità della Guida usano ancora il campo `description`.
+
 ## Ripartenza (aggiornata il 2026-11-08, fine M11)
 - **Stato**: **M11 Guida in gioco completata**, tag `m11-done` (lo mette e lo pusha l'Orchestratore). Hash: R-02 `4097d40`, M11-01 `ce3d07c`, M11-02 `0cbf41b`,
   Q49 `6c8ad78`, M11-03 `d9e7eac` (+ allineamento tabelle `7042376`), M11-04 `4d766d1`, M11-05 `e6f9e66`, M11-06 `47dbfc5`; M11-07 = commit di chiusura.

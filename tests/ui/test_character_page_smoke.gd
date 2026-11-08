@@ -25,45 +25,57 @@ func after_each() -> void:
 	await wait_physics_frames(1)
 
 
-func test_shows_class_level_and_xp() -> void:
+func test_shows_name_class_level_and_xp() -> void:
 	var class_def: ClassDef = _session.character.class_def()
-	assert_eq(_label("%ClassLabel").text, class_def.name)
-	assert_eq(_label("%DescriptionLabel").text, class_def.description)
-	assert_eq(_label("%LevelLabel").text, "Livello 1")
+	assert_eq(_label("%NameLabel").text, _session.player_name)
+	assert_eq(_label("%LevelLabel").text, "%s · Livello 1" % class_def.name)
+	assert_null(_page.find_child("DescriptionLabel", true, false))
 	assert_eq((_page.get_node("%XpBar") as XpBar).shown_progress(), 0.0)
 
 
 func test_xp_and_level_up_redraw() -> void:
 	_session.character.add_xp(_session.data.character_xp_table().xp_for_level(3))
-	assert_eq(_label("%LevelLabel").text, "Livello %d" % _session.character.get_level())
+	assert_string_ends_with(_label("%LevelLabel").text, "Livello %d" % _session.character.get_level())
 	assert_gte(_session.character.get_level(), 3)
 
 
-func test_lists_the_setups_of_the_class() -> void:
-	for setup: SetupDef in _session.character.class_def().setups:
-		assert_not_null(_page.find_child("Setup_%s" % setup.id, true, false), setup.id)
+func test_no_setup_section() -> void:
+	assert_null(_page.find_child("SetupList", true, false))
+	assert_null(_page.find_child("SetupTitle", true, false))
 
 
-func test_equipped_weapon_highlights_its_setup() -> void:
-	assert_null(_page.find_child("CurrentSetupLabel", true, false), "the setups are a list, no title in the middle")
-	assert_eq(_label("%SetupTitle").text, ItemTooltipLines.SETUP_LABEL)
-	var class_def: ClassDef = _session.character.class_def()
-	for setup: SetupDef in class_def.setups:
-		assert_eq(_row_color(setup.id), UiStyle.TEXT_2, "nothing worn: no setup highlighted")
-	assert_true(_session.equipment.equip(TestFactory.give_piece(_session, &"test_blade")).ok)
-	var current: SetupDef = _session.equipment.setup_def()
-	assert_not_null(current, "a sword has a setup")
-	for setup: SetupDef in class_def.setups:
-		var expected: Color = UiStyle.GOLD_LIGHT if setup.id == current.id else UiStyle.TEXT_2
-		assert_eq(_row_color(setup.id), expected, setup.id)
-		assert_eq((_page.find_child("Setup_%s" % setup.id, true, false) as Label).text, setup.name)
-	_session.equipment.unequip(&"weapon")
-	assert_eq(_row_color(current.id), UiStyle.TEXT_2, "redraw on equipment_changed")
+func test_rename_opens_field_then_sets_the_name() -> void:
+	var button: Button = _page.get_node("%RenameButton") as Button
+	var edit: LineEdit = _page.get_node("%NameEdit") as LineEdit
+	assert_false(edit.visible)
+	button.pressed.emit()
+	assert_true(edit.visible)
+	edit.text = "  Aldo  "
+	button.pressed.emit()
+	assert_eq(_session.player_name, "Aldo")
+	assert_eq(_label("%NameLabel").text, "Aldo")
+	assert_false(edit.visible)
 
 
-func _row_color(setup_id: StringName) -> Color:
-	var row: Label = _page.find_child("Setup_%s" % setup_id, true, false) as Label
-	return row.get_theme_color("font_color")
+func test_rename_refused_keeps_the_name_and_shows_the_reason() -> void:
+	var old_name: String = _session.player_name
+	var edit: LineEdit = _page.get_node("%NameEdit") as LineEdit
+	(_page.get_node("%RenameButton") as Button).pressed.emit()
+	edit.text = "   "
+	(_page.get_node("%RenameButton") as Button).pressed.emit()
+	assert_eq(_session.player_name, old_name)
+	assert_true(edit.visible, "the field stays open")
+	assert_true(_label("%RenameError").visible)
+	var max_length: int = int(_session.data.balance_value("player_name.max_length"))
+	assert_false(PlayerName.rename(_session, "x".repeat(max_length + 1)).ok)
+	assert_true(PlayerName.rename(_session, "x".repeat(max_length)).ok)
+
+
+func test_traits_and_abilities_share_one_panel_with_two_tabs() -> void:
+	var tabs: TabContainer = _page.find_child("Tabs", true, false) as TabContainer
+	assert_eq(tabs.get_tab_count(), 2)
+	assert_eq(tabs.get_tab_title(0), LoadoutTexts.TRAITS_TITLE)
+	assert_eq(tabs.get_tab_title(1), LoadoutTexts.ABILITIES_TITLE)
 
 
 func test_unbind_disconnects_everything() -> void:

@@ -17,18 +17,15 @@ var _session: GameSession = null
 ## Per kind: {"note": Label, "summary": Label, "grid": GridContainer, "cards": Array[LoadoutCard]}.
 var _sections: Dictionary[StringName, Dictionary] = {}
 
-@onready var _title: Label = %PanelTitle
-@onready var _trait_title: Label = %TraitTitle
+@onready var _tabs: TabContainer = %Tabs
 @onready var _trait_rows: VBoxContainer = %TraitRows
-@onready var _ability_title: Label = %AbilityTitle
 @onready var _ability_rows: VBoxContainer = %AbilityRows
 @onready var _message: Label = %Message
 
 
 func _ready() -> void:
-	_title.text = LoadoutTexts.PANEL_TITLE
-	_trait_title.text = LoadoutTexts.TRAITS_TITLE
-	_ability_title.text = LoadoutTexts.ABILITIES_TITLE
+	_tabs.set_tab_title(_tabs.get_tab_idx_from_control(_trait_rows), LoadoutTexts.TRAITS_TITLE)
+	_tabs.set_tab_title(_tabs.get_tab_idx_from_control(_ability_rows), LoadoutTexts.ABILITIES_TITLE)
 	_message.add_theme_color_override("font_color", UiStyle.BAD)
 	_message.visible = false
 
@@ -102,7 +99,9 @@ func _refresh_section(kind: StringName, class_def: ClassDef, locked: bool) -> vo
 		var unlock_text: String = LoadoutTexts.UNLOCK_TEXT % entry.unlock_level if level < entry.unlock_level \
 				else LoadoutTexts.UNLOCKED_TEXT % entry.unlock_level
 		var warning: String = LoadoutTexts.NOT_FOR_SETUP_TEXT if slot >= 0 and not entry.allows_setup(setup_id) else ""
-		(cards[i] as LoadoutCard).show_entry(entry.id, entry.name, entry.description, unlock_text,
+		var description: String = LoadoutDescribe.trait_text(entry, _session.data, class_def) if is_trait \
+				else LoadoutDescribe.ability_text(entry, _session.data, class_def)
+		(cards[i] as LoadoutCard).show_entry(entry.id, entry.name, description, unlock_text,
 				LoadoutTexts.SLOT_CHOSEN_TEXT % (slot + 1) if slot >= 0 else "", warning,
 				level < entry.unlock_level and slot < 0, not locked)
 

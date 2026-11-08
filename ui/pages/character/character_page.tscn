@@ -44,45 +44,38 @@ theme_override_constants/separation = 8
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="ClassLabel" type="Label" parent="Margin/Scroll/Content/Header/Info/Row"]
+[node name="NameLabel" type="Label" parent="Margin/Scroll/Content/Header/Info/Row"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"TitleLabel"
 
-[node name="LevelLabel" type="Label" parent="Margin/Scroll/Content/Header/Info/Row"]
+[node name="NameEdit" type="LineEdit" parent="Margin/Scroll/Content/Header/Info/Row"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="RenameButton" type="Button" parent="Margin/Scroll/Content/Header/Info/Row"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 4
-theme_type_variation = &"HeaderLabel"
 
-[node name="DescriptionLabel" type="Label" parent="Margin/Scroll/Content/Header/Info"]
+[node name="LevelLabel" type="Label" parent="Margin/Scroll/Content/Header/Info"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_type_variation = &"MutedLabel"
+theme_type_variation = &"HeaderLabel"
+
+[node name="RenameError" type="Label" parent="Margin/Scroll/Content/Header/Info"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
 autowrap_mode = 3
 
 [node name="XpBar" parent="Margin/Scroll/Content/Header/Info" instance=ExtResource("2_xp")]
 unique_name_in_owner = true
 layout_mode = 2
-
-[node name="SetupPanel" type="PanelContainer" parent="Margin/Scroll/Content"]
-layout_mode = 2
-theme_type_variation = &"HudPanel"
-
-[node name="SetupBox" type="VBoxContainer" parent="Margin/Scroll/Content/SetupPanel"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="SetupTitle" type="Label" parent="Margin/Scroll/Content/SetupPanel/SetupBox"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_variation = &"HeaderLabel"
-
-[node name="SetupList" type="VBoxContainer" parent="Margin/Scroll/Content/SetupPanel/SetupBox"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_constants/separation = 4
 
 [node name="StatsPanel" type="PanelContainer" parent="Margin/Scroll/Content"]
 layout_mode = 2

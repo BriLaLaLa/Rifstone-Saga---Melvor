@@ -49,7 +49,7 @@ func test_card_shows_name_description_and_unlock_level() -> void:
 	var def: AbilityDef = _session.character.class_def().abilities[0]
 	var card: LoadoutCard = _panel.card(LoadoutPanel.KIND_ABILITY, def.id)
 	assert_eq(card.title_text(), def.name)
-	assert_eq(card.description_text(), def.description)
+	assert_eq(card.description_text(), LoadoutDescribe.ability_text(def, _session.data, _session.character.class_def()))
 	assert_string_contains(card.unlock_text(), str(def.unlock_level))
 
 
