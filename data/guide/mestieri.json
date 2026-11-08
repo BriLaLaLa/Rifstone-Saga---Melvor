@@ -10,7 +10,8 @@
     {"id": "guide_tools", "section": "crafts", "title": "Attrezzi", "order": 2,
      "blocks": [
        {"type": "text", "text": "Accetta, Piccone e Canna da pesca sono attrezzi unici, uno per mestiere di raccolta: li hai dall'inizio e non si tolgono né si vendono."},
-       {"type": "text", "text": "Si raffinano senza rischio da zero a nove: ogni passo costa oro e componenti del grado (piastre del Fabbro e manici del Falegname) e chiede un livello minimo del mestiere. Ogni passo accelera il lavoro ({stat:skill_interval_pct}); ai passi alti arrivano piccoli bonus di raccolta."}
+       {"type": "text", "text": "Si raffinano senza rischio da zero a nove: ogni passo costa oro e componenti del grado (piastre del Fabbro e manici del Falegname) e chiede un livello minimo del mestiere. Ogni passo accelera il lavoro ({stat:skill_interval_pct}); ai passi alti arrivano piccoli bonus di raccolta."},
+       {"type": "table", "source": "tool_upgrades"}
      ]}
   ]
 }
