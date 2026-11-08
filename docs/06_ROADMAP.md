@@ -1,7 +1,7 @@
 # 06. Roadmap
 
 Milestone incrementali: alla fine di ognuna il gioco si avvia, è giocabile per quello che contiene e tutti i test
-passano (`tools/run_checks.ps1` verde). L'MVP è M0-M9; M10 (riforma del bottino e dei nomi, prima di far provare il gioco agli amici) e M11-M14+ vengono dopo. Il dettaglio dei task è in `07_TASKS.md`.
+passano (`tools/run_checks.ps1` verde). L'MVP è M0-M9; M10 (riforma del bottino e dei nomi, prima di far provare il gioco agli amici) e M11-M14+ vengono dopo (M12 = Riforma 2, M13 = Fratture come mappe). Il dettaglio dei task è in `07_TASKS.md`.
 Da M4 vale la direzione "combattimento al centro" (decisioni D1-D6, `DECISIONS_LOG.md`); M0-M3 restano valide.
 
 ```mermaid
@@ -17,9 +17,9 @@ flowchart LR
     M8 --> M9[M9 Offline + polish = MVP]
     M9 --> M10[M10 Riforma del bottino e dei nomi]
     M10 --> M11[M11 Guida in gioco]
-    M11 --> M12[M12 Fratture come mappe]
-    M11 --> M13[M13 Azioni in parallelo]
-    M11 --> M14[M14+ Seconda classe, boss, dungeon]
+    M11 --> M12[M12 Riforma 2: Deposito, aiutanti, Incisore]
+    M12 --> M13[M13 Fratture come mappe]
+    M12 --> M14[M14+ Seconda classe, boss, dungeon]
 ```
 
 ## M0: Setup del progetto
@@ -86,7 +86,7 @@ bilanciamento non bloccante); scontro con la Pietra di 45-80 s con il 20-35% dei
 un Sigillo di salvaguardia ogni 3-5 ore di caccia (Pianure circa 1,8 h, Bosco 2,9, Miniere 3,4, Soglia 3); i tre assetti
 entro ±30% di uccisioni/ora (misurati da -29% a +27% sullo scudo). Frequenza delle Pietre (Q46, per area): circa 1 Pietra/h in ogni area (misurate 1,13 / 1,00 / 1,00 / 0,96 su 48 h).
 
-## M8: Legatura del Rift
+## M8: Legatura del Rift (dal M12 "Incisore")
 **Contenuto**: Altare del Rift (5 prese) e infusioni; nodi della maestria delle 4 skill di artigianato; castoni (F-89),
 pietre incastonabili e tre valute del Rift; pagine dell'Altare e dei castoni.
 **Giocabile**: frammenti da raccolta, mostri e Pietre trasformati in infusioni, pietre e crafting degli affissi.
@@ -141,17 +141,28 @@ Pagina "Guida" generata dai dati (indice "da dove viene / a cosa serve", testi a
   - Suite su main: 1958 test verdi, dati, righe per file e riferimenti vietati OK.
 - **Task** M11-01…M11-07 (`07_TASKS.md`); tag `m11-done`.
 
-## M12: Fratture come mappe (dopo la Guida)
-Fratture del Rift ripensate come "mappe" con modificatori (`01_GDD.md` §17 da rivedere a inizio milestone).
+## M12: Riforma 2 (Deposito, aiutanti, maestria per risorsa, Incisore, nomi)
+**Fonte**: decisioni W1-W7 (`DECISIONS_LOG.md`, approvate dall'utente il 2026-11-08); documenti `01_GDD.md` §4.1, §6.4, §7, §11, `02_FORMULAS.md` F-100…F-108 e §8.5b-§8.8b,
+`04_DATA_SCHEMA.md` §20, `05_INTERFACES.md` §5.20-§5.22 e §7.w. Le **corsie parallele (ex M13) sono tolte**: le sostituiscono gli aiutanti.
+**Contenuto**: **Deposito unico** (oggetti ed Equipaggiamento sulla stessa capienza, 6 slot borsa, 5 borse; spariscono gli "spazi" dello shop); **aiutanti** per Boscaiolo, Minatore e
+Pescatore (contratti dai mostri, gradi Apprendista…Maestro, XP al 25%, più lenti, anche offline); **maestria per risorsa** (3 traguardi per ogni risorsa, alberi dei nodi diversi per
+mestiere: chiude Q26); **Incisore** al posto della Legatura (trasforma i drop: Fondere, Cristallizzare, Incidere e Potenziare rune a 5 gradi, Lastra runica); tabelle di drop con Polvere,
+Schegge, Pietre, Cristalli, Contratti e borse; **Monoliti del Rift** (nome); nomi nuovi di `NOMI.md`; `format_version` 4 (salvataggi precedenti "versione non supportata").
+**Giocabile**: si caccia, i mostri lasciano Polvere, Schegge e Contratti; si assume un aiutante che raccoglie mentre si combatte; si incidono rune e si fondono pietre; il Deposito cresce con le borse.
+**Uscita** (accettazione di `RIFORMA_2.md` §10, riportata in `07_TASKS.md`): un solo Deposito con capienza unica e 6 slot borsa, caselle vuote visibili, niente spazi in vendita; un aiutante per
+mestiere di raccolta, in parallelo al combattimento e offline, con XP al 25% e più lento del giocatore (la sim conferma F-102); ogni risorsa con i suoi 3 traguardi e alberi diversi per i tre
+mestieri; l'Incisore sale di livello solo consumando drop (più la Lastra runica) e pietre, valute e polvere cadono dai mostri; nomi di `NOMI.md`; Guida aggiornata; tutti i test verdi.
+**Task** M12-01…M12-09 (`07_TASKS.md`); tag `m12-done`.
 
-## M13: Azioni in parallelo (dopo la Guida)
-Corsia secondaria nell'ActionRunner, voce dello shop "Secondo pensiero", UI a due corsie (`01_GDD.md` §18).
+## M13: Fratture come mappe (dopo la Riforma 2)
+Fratture del Rift ripensate come "mappe" con modificatori (`01_GDD.md` §17 da rivedere a inizio milestone; F-50, `FractureSystem`). Le corsie parallele non esistono più (W3).
 
 ## M14+: Seconda classe, boss, dungeon (dopo l'MVP)
 Seconda classe con le sue armi (es. arco o bastone, con i suoi progetti e componenti del Falegname), supporti delle abilità,
 boss, dungeon a ondate, oggetti unici, elementi e resistenze.
 
 ## Percorso critico e parallelismo
+- M12: R-03 → M12-01 → M12-02 → M12-03 → M12-04 → M12-05 → (M12-06 ∥ M12-07) → M12-08 → M12-09. I task CORE toccano file comuni (`core/data/**`, `event_bus.gd`, `reasons.gd`, `game_session.gd`): vanno in sequenza; M12-06 (UI) e M12-07 (bilanciamento) hanno file diversi.
 - M11: R-02 → (M11-01 ∥ M11-02) → M11-03 → M11-04 → M11-05 → M11-06 → M11-07.
 - M10: R-01 → M10-01 → M10-02 → M10-03 → M10-04 (con M10-05) → M10-06 → M10-07 → M10-08 → M10-09. M10-02 e M10-03 si parallelizzano (file diversi).
 - Percorso critico da M4: R-00 → M4-01 → M4-02 → M4-03 (con M4-04) → M4-05 → M4-06 → M4-07 → M4-08 → M4-10 → M4-11 →

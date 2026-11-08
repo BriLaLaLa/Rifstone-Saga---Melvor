@@ -4,12 +4,12 @@ Ogni sistema ha: **regole**, **stati**, **casi limite** e **interazioni**. I num
 come `F-xx`); i parametri hanno un'unica definizione in `res://data/config/balance.json`; le stat dei modificatori
 sono elencate in `res://data/config/stats.json` (sezione 15). Le firme dei metodi sono in `05_INTERFACES.md`.
 
-Indice: 1 Slot e sessione · 2 Tempo di gioco · 3 Skill ed esperienza · 4 Azioni di raccolta · 5 Azioni di
-artigianato · 6 Maestria · 7 Bank · 8 Oro e shop · 9 Equipaggiamento e attrezzi · 10 Combattimento a gruppi ·
-11 Legatura del Rift e Altare (M8) · 12 Progressione offline · 13 Feedback e notifiche · 14 Suggerimenti ·
-15 Modificatori e stat · 16 Impostazioni · 17 Fratture del Rift (M12) · 18 Azioni in parallelo (M13) ·
+Indice: 1 Slot e sessione · 2 Tempo di gioco · 3 Skill ed esperienza · 4 Azioni di raccolta (4.1 Aiutanti) · 5 Azioni di
+artigianato · 6 Maestria · 7 Deposito (ex Bank) · 8 Oro e shop · 9 Equipaggiamento e attrezzi · 10 Combattimento a gruppi ·
+11 Incisore e Altare del Rift (M8, M12) · 12 Progressione offline · 13 Feedback e notifiche · 14 Suggerimenti ·
+15 Modificatori e stat · 16 Impostazioni · 17 Fratture del Rift come mappe (M13) · 18 Azioni in parallelo (eliminate, M12) ·
 19 Personaggio e classe · 20 Tratti e abilità (M6) · 21 Armeria · 22 Rarità e affissi · 23 Raffinazione (M7) ·
-24 Pietre del Rift (M7) · 25 Smantellamento e filtro (M7) · 26 Castoni e valute del Rift (M8) · 27 Guida in gioco (M11)
+24 Monoliti del Rift (M7) · 25 Smantellamento e filtro (M7) · 26 Castoni e valute del Rift (M8) · 27 Guida in gioco (M11)
 
 Direzione del gioco da M4 (decisioni D1-D6 in `DECISIONS_LOG.md`): il **combattimento è il cuore** (gruppi di mostri,
 bottino con rarità e affissi, potenziamento, build di tratti e abilità); raccolta e artigianato sono il ciclo di
@@ -21,6 +21,10 @@ un **singolo craft** (un progetto = un pezzo, §5.1). Le skill artigiane produco
 sono **tre oggetti unici** potenziati con la raffinazione (§23.1). I nomi visibili seguono `NOMI.md` (gli **id** non
 cambiano, Q52): in questo documento i nomi delle skill sono quelli di `00_VISION.md` e la UI dice "Deposito" dove qui
 si legge "bank" (il modulo e gli id restano `bank`).
+
+Riforma 2 da M12 (decisioni W1-W7 in `DECISIONS_LOG.md`, nomi in `NOMI.md`): un **Deposito unico** con **borse** (§7), gli **aiutanti** dei mestieri di raccolta al posto
+delle corsie parallele (§4.1, §18), la **maestria per risorsa** con alberi diversi per mestiere (§6.4), l'**Incisore** che trasforma i drop dei mostri (§11) e i
+**Monoliti del Rift** (§24). Il formato del salvataggio passa alla versione 4.
 
 ---
 
@@ -43,11 +47,11 @@ si legge "bank" (il modulo e gli id restano `bank`).
 
 ### 1.1 Stato iniziale di una partita nuova
 Tutte le skill al livello 1 (0 XP), maestria a 0, pool vuoti, 0 nodi; personaggio al livello 1 (0 XP) della classe
-`character.start_class` (nell'MVP la scelta è fissa, §19), nessun tratto e nessuna abilità equipaggiati; bank vuota con
-capienza base; oro `start.gold`; oggetti iniziali `start.items` (materiali e cibo, definiti in `balance.json`);
+`character.start_class` (nell'MVP la scelta è fissa, §19), nessun tratto e nessuna abilità equipaggiati; Deposito vuoto con
+capienza base e 6 slot borsa vuoti (nessuna borsa, nessun aiutante); oro `start.gold`; oggetti iniziali `start.items` (materiali e cibo, definiti in `balance.json`);
 **kit iniziale** (R1, Q51): l'Armeria contiene i pezzi di `start.armory` (spada, spadone e scudo comuni di grado 1,
 senza affissi) e i tre attrezzi unici a +0 di `start.tools`, che sono già indossati; l'Armeria ha il filtro "tieni
-tutto"; spada e scudo sono indossati (assetto spada e scudo), lo spadone resta nell'Armeria; il bank contiene 20 pesci
+tutto"; spada e scudo sono indossati (assetto spada e scudo), lo spadone resta nell'Armeria; il Deposito contiene 20 pesci
 cotti di grado 1 (`start.items`) e il cibo scelto è quello; acquisti dello shop di `start.purchases` (le Razioni da campo I, B2/Q12,
 già possedute); nessuna azione in corso; incavi dell'Altare vuoti; seme casuale nuovo.
 
@@ -71,7 +75,7 @@ fuori dallo slot per scelta: non sono stato di gioco).
   `advance(delta_ms)` e deve dare lo stesso risultato sia con un passo da 1000 ms sia con dieci da 100 ms (più eventi
   dentro un passo si risolvono in ordine).
 - Tutte le durate sono in millisecondi interi.
-- L'ordine di aggiornamento in un passo è fisso: fratture (M12) → corsie delle azioni → combattimento → tempo di gioco.
+- L'ordine di aggiornamento in un passo è fisso: fratture (M13) → azioni → aiutanti (M12) → combattimento → tempo di gioco.
   Il combattimento è un motore a eventi (§10.10): salta da un timer all'altro, con lo stesso risultato del passo fisso.
 - Il tempo di gioco (`play_time_ms`) cresce solo durante `PLAYING` (non durante l'offline, che ha il suo totale).
 
@@ -83,7 +87,7 @@ reali (computer in sospensione con il gioco aperto) sono trattate come offline a
 ## 3. Skill ed esperienza
 
 **Regole**
-- 7 skill di supporto (tabella in `00_VISION.md`: 3 di raccolta, 3 di artigianato, Legatura del Rift), tutte
+- 7 skill di supporto (tabella in `00_VISION.md`: 3 di raccolta, 3 di artigianato, Incisore), tutte
   disponibili dall'inizio. Le 5 skill di combattimento non esistono più: le sostituisce il **livello del personaggio**
   (§19, D3), che segue regole analoghe con la sua curva (F-71).
 - L'esperienza è un intero cumulativo per skill. Il livello si ricava dall'XP con la tabella `F-01` (livelli 1-99).
@@ -99,20 +103,20 @@ reali (computer in sospensione con il gioco aperto) sono trattate come offline a
 **Interazioni**: azioni, maestria, requisiti degli attrezzi (gli equipaggiamenti richiedono il livello del personaggio),
 Altare del Rift. Il combattimento dà XP solo al personaggio (F-28).
 
-## 4. Azioni di raccolta (Selvicoltura, Cavatura, Lenza)
+## 4. Azioni di raccolta (Boscaiolo, Minatore, Pescatore)
 
 **Regole**
 - Ogni skill di raccolta ha una lista di azioni (es. "Betulla rossa") con: livello richiesto, intervallo
   base, XP, oggetto prodotto e quantità.
 - Si avvia un'azione dalla pagina della skill; parte una barra di progresso. Alla fine dell'intervallo (F-03):
   1. si calcolano i prodotti: quantità base, raddoppiata se riesce il tiro `double_item_chance` (F-06);
-  2. si tenta il frammento del Rift con probabilità F-07 (`rift_shard` ×1);
+  2. si tenta il frammento del Rift con probabilità F-07 (`rift_shard` ×1) e, se la maestria dell'azione ha raggiunto il traguardo 25, il sottoprodotto (F-103, §6.4);
   3. si aggiunge tutto alla bank; se un oggetto **nuovo** non trova posto, l'azione **non** conta (niente XP né
      maestria), si ferma con motivo `bank_full` e nulla va perso;
   4. si danno XP (F-02) e maestria (F-10);
   5. l'azione riparte da sola (ciclo infinito) finché il giocatore non la ferma.
-- Una sola azione alla volta nella corsia principale (fino a M13): avviarne un'altra ferma la precedente; avviare il
-  combattimento ferma l'azione; avviare un'azione ferma il combattimento.
+- Una sola azione alla volta del giocatore (corsia principale): avviarne un'altra ferma la precedente; avviare il
+  combattimento ferma l'azione; avviare un'azione ferma il combattimento. In parallelo lavorano solo gli **aiutanti** (§4.1).
 - L'**attrezzo unico** della skill (slot `tool_<skill>`, §9, §23.1) dà modificatori alla skill (`skill_interval_pct`
   negativo e, ai passi alti della raffinazione, `double_item_chance` o `rift_shard_chance`).
 
@@ -122,7 +126,30 @@ Altare del Rift. Il combattimento dà XP solo al personaggio (F-28).
 ridotto sotto il minimo (`action.min_interval_ms`); cambio di attrezzo durante l'azione (vale dal ciclo successivo:
 l'intervallo si ricalcola a ogni avvio di ciclo).
 
-## 5. Azioni di artigianato (Fabbro, Cuoco, Falegname, Legatura del Rift)
+### 4.1 Aiutanti (M12, W3; F-101, F-102)
+
+**Regole**
+- Ogni mestiere di raccolta (Boscaiolo, Minatore, Pescatore) può avere **un aiutante**, che lavora **mentre il giocatore fa altro** (combatte, lavora un'altra azione, un progetto)
+  e **anche offline**. Sostituiscono le corsie parallele (§18).
+- Si ottiene con un **Contratto** (oggetto `category: contract`: mestiere e grado) che cade dai mostri (`02_FORMULAS.md` §8.5b). Usarlo (`hire`) assume l'aiutante di quel mestiere
+  al grado del contratto e consuma il contratto. I gradi sono **Apprendista, Garzone, Esperto, Maestro**. Un contratto di grado più alto sostituisce quello attuale; uno di grado uguale o
+  inferiore non si usa (`helper_not_better`, non si consuma).
+- Un aiutante lavora **una risorsa già sbloccata** dal giocatore (livello del mestiere sufficiente), a scelta. Non usa l'attrezzo del giocatore; nodi, traguardi di maestria e
+  rune valgono anche per lui.
+- Produce **tutte le risorse** (doppio prodotto, Frammenti, sottoprodotti come il giocatore), ma solo il **25% dell'XP** e il 25% della maestria (F-102), ed è **più lento**: l'intervallo
+  è il suo (F-101) × 3,0 / 2,5 / 2,0 / 1,5 per grado. I prodotti vanno nel Deposito; se non c'è posto per un oggetto nuovo l'aiutante **aspetta** (nessun progresso perso) e riparte da solo
+  quando c'è spazio.
+- Il bilanciamento (`tools/sim_combat.gd`, M12-07) verifica che combattere con tre aiutanti attivi non dia più XP di mestiere all'ora del lavorare di persona su un solo mestiere (F-102).
+- UI: nella pagina del mestiere una riga "Aiutante: <grado> — lavora: <risorsa> [Cambia] [Ferma]".
+
+**Stati**: per mestiere `{grado, azione, elapsed_ms}` (salvato nello slot, modulo `helpers`); `blocked` è derivato (Deposito pieno).
+
+**Casi limite**: nessun aiutante (`no_helper` su `set_action`); risorsa non ancora sbloccata (`level_too_low`); non è un contratto (`not_a_contract`); risorsa di un altro mestiere
+(`unknown_id`); Deposito pieno (attesa); cambio di risorsa (il progresso del ciclo riparte da 0).
+
+**Interazioni**: Deposito (spazio), maestria (traguardi e nodi), skill (XP), modificatori (`for_helper`), offline (fase aiutanti del tick), Guida.
+
+## 5. Azioni di artigianato (Fabbro, Cuoco, Falegname, Incisore)
 
 **Regole**
 - Ogni ricetta ha: livello richiesto, intervallo, XP, **ingredienti** (`inputs`, oggetto e quantità) e **prodotti**
@@ -141,13 +168,14 @@ l'intervallo si ricalcola a ogni avvio di ciclo).
   attrezzi a gradi sono eliminate con le loro maestrie per azione.
 - **Fabbro** (`forging`): minerale → lingotto; 2 lingotti → **piastra** (componente di grado, ricette in `02_FORMULAS.md` §8.2); inoltre le
   azioni a ciclo unico dei progetti (§5.1). **Falegname** (`woodwright`): legno → **impugnatura**, **telaio dello
-  scudo**, **manico** (componenti di grado). **Cuoco** (`hearthcraft`): pesce cotto, invariato.
+  scudo**, **manico** (componenti di grado) e le **borse** di tela e rinforzata (§7). **Cuoco** (`hearthcraft`): pesce cotto, invariato. **Incisore** (`riftbinding`): trasforma
+  i drop dei mostri (§11); le sue ricette consumano drop, tranne la Lastra runica.
 
 ### 5.1 Progetti: il craft singolo (R1)
 - Un **progetto** (`blueprint`) è un oggetto di bank (categoria `blueprint`) che indica la **base** da produrre (un
   modello di spada, spadone, scudo, elmo, corpo, gambe, piedi o mani) e il suo **grado**. Un progetto = un pezzo.
   Anelli e amuleti non hanno progetto (solo drop, Q30).
-- Fonti dei progetti: **drop rari dei mostri** e **Pietre del Rift** (più spesso), pesati sul grado dell'area
+- Fonti dei progetti: **drop rari dei mostri** e **Monoliti del Rift** (più spesso), pesati sul grado dell'area
   (`Q49`: circa 1 progetto all'ora nell'area del proprio livello, 1 su 3 Pietre); un'area di grado `g` lascia progetti
   di grado `g` e `g+1`.
 - Si avvia dalla pagina del **Fabbro**, sezione "Progetti". Requisiti: il livello del Fabbro del grado (livello di
@@ -165,7 +193,7 @@ l'intervallo si ricalcola a ogni avvio di ciclo).
   di affissi della rarità.
 - Armeria piena: l'avvio è rifiutato (`armory_full`); se si riempie durante il lavoro, alla fine il lavoro resta al
   100% e riprova a ogni passo (notifica `armory_full` una volta), senza perdere nulla.
-- Un solo lavoro alla volta (la corsia principale); la corsia secondaria (M13) non può eseguire progetti.
+- Un solo lavoro alla volta (la corsia principale); gli aiutanti (§4.1) lavorano solo risorse di raccolta, mai progetti.
 
 **Stati**: corsia `RUNNING(forging, blueprint_craft, elapsed_ms, durata, progetto, affisso scelto)`; lo stato extra sta nel
 salvataggio di `actions`. **Casi limite**: livello insufficiente (`level_too_low`), materiali o componente raro
@@ -182,8 +210,9 @@ dalla bank: il cibo disponibile cala).
 - Ogni azione di raccolta e artigianato (`mastery: true` nei dati) ha un livello di maestria 1-99 (tabella F-09).
 - A ogni ciclo completato si guadagna maestria di quell'azione (F-10). Il valore cresce con: durata dell'azione,
   livello di maestria dell'azione, maestria totale della skill, `mastery_xp_pct`.
-- I bonus della maestria per oggetto sono definiti per skill (`mastery_bonuses` nel file della skill): ad es.
-  "ogni 10 livelli +1 punto di `double_item_chance` per questa azione". Sono modificatori con ambito azione (F-11).
+- I bonus della maestria per oggetto dell'**artigianato** sono definiti per skill (`mastery_bonuses` nel file della skill): ad es.
+  "ogni 10 livelli +1 punto di `preservation_chance` per questa azione". Sono modificatori con ambito azione (F-11). Per la **raccolta** (M12) valgono invece i
+  traguardi per risorsa (§6.4).
 - Tutte le 7 skill hanno maestria; il livello del personaggio no (D3).
 
 ### 6.2 Pool della maestria
@@ -195,7 +224,7 @@ dalla bank: il cibo disponibile cala).
   2. **comprare nodi** (6.3).
 
 ### 6.3 Nodi della maestria (differenza rispetto al modello di riferimento)
-- Ogni skill con maestria ha un albero di 6-8 nodi (`data/mastery/<skill>.json`). Un nodo ha: costo in percentuale
+- Ogni skill con maestria ha un albero di 6-8 nodi (`data/mastery/<skill>.json`); dal M12 l'albero è **diverso per ogni mestiere di raccolta** (§6.4). Un nodo ha: costo in percentuale
   del tetto del pool (F-15), prerequisiti (altri nodi), modificatori con ambito skill.
 - Comprare un nodo toglie il costo dal pool; il nodo è **permanente** (non si perde se il pool cala).
 - Nessuna soglia del pool dà bonus: solo i nodi.
@@ -206,25 +235,41 @@ comprato (`node_owned`); spesa che porterebbe la maestria oltre il 99 (si spende
 
 **Interazioni**: azioni (guadagno), modificatori (bonus), UI pannello maestria.
 
-## 7. Bank
+### 6.4 Traguardi per risorsa (M12, W4; F-103, F-108)
+- Ogni **risorsa di raccolta** (azione di Boscaiolo, Minatore, Pescatore) ha **3 traguardi** di maestria, raggiunti al livello di maestria **della risorsa**:
+  - **25**: un **sottoprodotto raro** della risorsa (es. Betulla → Resina, Rame → Pepita, Trota → Squama), che esce con piccola probabilità a ogni ciclo e serve come componente per
+    borse e progetti;
+  - **50**: un bonus **solo per quella risorsa** (velocità o doppio prodotto o XP, a seconda del mestiere);
+  - **99**: un bonus **permanente per tutto il mestiere**, piccolo e che **si somma tra le risorse**: padroneggiare anche le risorse basse conviene.
+- I traguardi valgono anche per l'aiutante (§4.1). Il raggiungimento di un traguardo mostra un toast. Le skill di artigianato non hanno traguardi (restano i bonus per oggetto di F-11).
+- Per le skill di raccolta i traguardi **sostituiscono** i vecchi bonus per oggetto ("ogni 10 livelli…"); i nomi delle azioni di raccolta sono solo il nome della risorsa ("Betulla").
+- L'**albero dei nodi** (§6.3) è **diverso per ogni mestiere** di raccolta (stat e temi diversi; chiude Q26): vedi `02_FORMULAS.md` §8.8b.
+
+## 7. Deposito (ex Bank; M12, W1-W2)
 
 **Regole**
-- La bank è l'**unico** contenitore degli oggetti impilabili posseduti (materiali, cibo, rune, pietre, valute;
-  esclusi la borsa del bottino e gli incavi dell'Altare). Equipaggiamenti e attrezzi **non** entrano nella bank: sono
-  istanze dell'Armeria (§21); `add` di un oggetto `equipment`/`tool` è rifiutata (`not_stackable`). Ogni tipo di oggetto occupa **una** casella, con quantità illimitata (intero a 64 bit).
-- Capienza = `bank.base_slots` (24) + somma della stat `bank_slots` (caselle comprate nello shop, F-17).
-- Aggiungere un oggetto già presente non occupa caselle; aggiungerne uno nuovo richiede una casella libera, altrimenti
-  l'aggiunta fallisce (`bank_full`) e il chiamante decide cosa fare (le azioni si fermano, la borsa del bottino tiene
-  l'oggetto, l'acquisto non avviene).
-- Quando la quantità arriva a 0 la casella si libera.
-- Ogni casella può essere **bloccata**: un oggetto bloccato non si vende (né singolo né "vendi tutto").
-- Ordine: quello di inserimento; il giocatore può spostare le caselle (trascinamento) o usare "Ordina" (per categoria,
-  poi per `sort_order` dell'oggetto).
-- Dal pannello dell'oggetto: vendi (quantità con cursore, "tutti tranne 1", "tutti"), blocca, scegli come cibo,
-  incastona (rune, M8). Si equipaggia dall'Armeria (§21).
+- Il Deposito è l'**unico** contenitore degli oggetti posseduti (materiali, cibo, rune, pietre, valute, borse, contratti, progetti, componenti; esclusi la borsa del
+  bottino e gli incavi dell'Altare) **e dei pezzi dell'Armeria** non indossati (§21). Ha **una sola capienza** (F-100) e **due schede**, Oggetti ed
+  Equipaggiamento: sono solo una vista (i moduli `bank` e `armory` e gli id restano). L'inventario della pagina Equipaggiamento mostra gli stessi pezzi della scheda.
+  Un tipo di oggetto impilato occupa **una** casella (quantità illimitata, intero a 64 bit); un pezzo occupa una casella come un tipo di oggetto.
+- Capienza = `deposit.base_slots` (60) + le caselle delle borse negli **slot borsa** (`deposit.bag_slots` = 6, in cima al Deposito). Le caselle vuote sono visibili fino alla capienza.
+- **Borse** (`category: bag`, `bag.slots`): oggetti che si mettono in uno slot e aggiungono le loro caselle. Sono: Borsa di tela +6 (ricetta del Falegname), Borsa di cuoio +10
+  (drop delle Pianure e del Bosco), Borsa rinforzata +14 (ricetta del Falegname con sottoprodotti della maestria), Borsa del viandante +18 (drop raro delle Miniere), Borsa
+  runica +24 (Monoliti); valori in `02_FORMULAS.md` §8.6b. Una borsa nello slot non occupa caselle. Si toglie dallo slot solo se le caselle in più sono vuote
+  (`deposit_not_empty`, F-100); tornando nel Deposito occupa una casella.
+- Spariscono "Spazio nel deposito" e "Spazio nell'armeria" dello shop; gli acquisti già fatti nei vecchi salvataggi non contano (salvataggi incompatibili, `format_version` 4).
+- Aggiungere un oggetto già presente non occupa caselle; aggiungerne uno nuovo (o un pezzo) richiede una casella libera, altrimenti l'aggiunta fallisce (`bank_full` per gli
+  oggetti, `armory_full` per i pezzi) e il chiamante decide cosa fare (le azioni e gli aiutanti si fermano o attendono, la borsa del bottino tiene l'oggetto, l'acquisto non avviene,
+  un drop di pezzo si smantella, §25).
+- Quando la quantità di un oggetto arriva a 0 la casella si libera.
+- Ogni casella (oggetto o pezzo) può essere **bloccata**: un oggetto bloccato non si vende (né singolo né "vendi tutto").
+- Ordine: quello di inserimento; il giocatore può spostare le caselle (trascinamento) o usare "Ordina" (per categoria, poi per `sort_order`).
+- Dal pannello dell'oggetto: vendi (quantità con cursore, "tutti tranne 1", "tutti"), blocca, scegli come cibo, metti nello slot borsa (borse), assumi (contratti), incastona
+  (rune). Si equipaggia dall'Armeria (§21).
 
-**Casi limite**: capienza che scende sotto le caselle usate (non può succedere nell'MVP: le caselle comprate non si
-perdono); oggetto sconosciuto in un salvataggio (scartato al caricamento, con avviso nel log); quantità ≤ 0 (rifiutata).
+**Casi limite**: capienza che scende sotto le caselle usate (non succede: la borsa non si toglie, `deposit_not_empty`; un salvataggio con più caselle usate della capienza si carica
+comunque e blocca solo i nuovi ingressi); oggetto sconosciuto in un salvataggio (scartato, con avviso nel log); quantità ≤ 0 (rifiutata); borsa messa in uno slot occupato
+(`bag_slot_occupied`); oggetto che non è una borsa (`not_a_bag`).
 
 ## 8. Oro e shop
 
@@ -232,15 +277,14 @@ perdono); oggetto sconosciuto in un salvataggio (scartato al caricamento, con av
 - Unica valuta: **Oro** (`gold`, intero ≥ 0).
 - Vendere: oro = `item.value × quantità` (F-18). Oggetti con `value = 0` non si vendono.
 - Lo shop ha voci (`data/shop/shop.json`), per categoria:
-  - **Deposito** (categoria `bank`): "Spazio nel deposito" (+1 `bank_slots`), prezzo crescente F-17, massimo = `max_purchases` della voce `bank_slot` in `shop.json`;
-    "Spazio nell'armeria" (+1 `armory_slots`), prezzo crescente F-82, massimo = `max_purchases` di `armory_slot` (Q33);
+  - ~~**Deposito**: "Spazio nel deposito" e "Spazio nell'armeria"~~: **tolti in M12** (W2); la capienza cresce con le borse (§7). La categoria `bank` esiste ma non ha voci;
   - **Combattimento**: "Razioni da campo I/II/III" (stat `auto_eat_tier`, una alla volta, in ordine; **le Razioni da
     campo I sono già possedute a partita nuova**, B2/Q12: `start.purchases`, la voce resta nei dati),
     "Raccolta automatica del bottino" (`auto_loot`), "Tasca della borsa" (+4 `loot_bag_slots`, max 3);
   - **Materiali**: oggetti base comprabili (es. sale, spago) a prezzo fisso;
   - ~~Attrezzi del novizio~~: tolti con la riforma (R3); gli attrezzi unici arrivano con il kit iniziale (§1.1). La
     categoria `tools` dello shop non esiste più;
-  - **Corsie** (M13): "Secondo pensiero" (`parallel_lanes` +1).
+  - ~~**Corsie** (M13): "Secondo pensiero"~~: tolta con le corsie parallele (§18).
 - Ogni voce ha: costo (oro fisso o formula), massimo di acquisti, requisiti (livello del personaggio, skill/livello,
   altra voce, livello totale), effetto (modificatori o oggetto).
 - Gli effetti a modificatore valgono `valore × numero di acquisti` (sorgente `shop:<id>`).
@@ -327,6 +371,8 @@ perdono); oggetto sconosciuto in un salvataggio (scartato al caricamento, con av
   principale dei pezzi** (R1): le probabilità sono tarate perché il giocatore si vesta da solo, circa **un pezzo utile
   del proprio grado ogni 20-40 minuti** nell'area del proprio livello. I **progetti** (§5.1) sono una voce di drop
   rara dei mostri e delle Pietre; i **componenti rari** (es. Nucleo di golem) sono materiali di drop dell'area.
+- Dal M12 (W6) si tirano anche le **tabelle di drop** (`data/combat/loot_tables.json`) dell'area, del mostro e del Monolito: Polvere del Rift, Schegge, Pietre, Cristalli,
+  Contratti degli aiutanti e borse (§7, §11, `02_FORMULAS.md` §8.5b). Vanno nella borsa del bottino come ogni altro oggetto.
 - La borsa ha `combat.loot_bag_base_slots` (12) + `loot_bag_slots` caselle (una per tipo, quantità illimitata). Se è
   piena, gli oggetti nuovi si perdono (notifica).
 - "Raccogli tutto" sposta tutto nella bank (ciò che non entra resta nella borsa). Con `auto_loot` ≥ 1 ogni drop va
@@ -367,22 +413,28 @@ area) e stampa uccisioni/ora, morti, oro/ora, XP/ora, cibo consumato. Si usa a o
 (criteri in `02_FORMULAS.md` §8.5). Opzioni `loot=1` (tabelle di bottino, Pietre e costo della raffinazione) e
 `loadout=auto` (tratti e abilità sbloccati negli slot aperti): vedi `05_INTERFACES.md` §8.
 
-## 11. Legatura del Rift e Altare del Rift (M8)
+## 11. Incisore e Altare del Rift (M8; riscritta in M12, W5-W6)
 
 **Regole**
-- **Frammenti del Rift** (`rift_shard`): cadono con piccola probabilità dalle azioni di raccolta e dai mostri (F-07),
-  in quantità dalle Pietre del Rift (§24) e dallo smantellamento (§25). Servono anche alla raffinazione da +6 (§23).
-- La Legatura produce anche le pietre da incastonare e le valute del Rift (§26).
-- **Legatura del Rift** è una skill di artigianato (con maestria): le ricette consumano frammenti e materiali e
-  producono **rune** (oggetti di tipo `infusion`, ognuna con una lista di modificatori).
-- **Altare del Rift**: 5 incavi, sbloccati ai livelli di Legatura `rift.sockets[].level` (1, 20, 40, 60, 80).
-  Incastonare una runa la toglie dalla bank (1 pezzo) e attiva i suoi modificatori (sorgente `rift_socket:<i>`).
-- Togliere una runa dall'incavo la **distrugge** (scelta di design: le rune sono un consumo). Rimpiazzarla
-  richiede prima di toglierla (conferma nella UI).
-- Una stessa runa può stare in più incavi (i modificatori si sommano), salvo il campo `unique: true`.
+- **Frammenti del Rift** (`rift_shard`): cadono con piccola probabilità dalle azioni di raccolta e dai mostri (F-07), in quantità dai Monoliti (§24) e dallo
+  smantellamento (§25). Servono anche alla raffinazione da +6 (§23) e alla Lastra runica.
+- L'**Incisore** (`riftbinding`, era Legatura del Rift) è una skill di artigianato (con maestria) che **non crea dal nulla: trasforma i drop dei mostri**.
+  Sale di livello **consumando drop** (più l'azione base). Pietre, valute e materia grezza cadono dai mostri e dai Monoliti (§10.6, `02_FORMULAS.md` §8.5b); le valute
+  cadono anche già pronte (rare). Non esiste più la produzione di valute e pietre da soli frammenti e materiali di raccolta.
+- **Drop dell'Incisore**: **Polvere del Rift** (comune), **Schegge** delle pietre (4 famiglie: di forza, di precisione, di agilità, di tempra), raramente Pietre intere,
+  raramente **Cristalli** già pronti (del risveglio, dell'ascesa, del mutamento: gli effetti di §26).
+- **Azioni** (`02_FORMULAS.md` §8.7):
+  - **Lastra runica** (base, sempre disponibile): minerale di grado 1 del Minatore + Frammenti del Rift; poca XP; serve per le rune.
+  - **Fondere**: 3 Schegge → 1 Pietra; 3 Pietre → 1 Pietra perfetta (stessa famiglia), F-105.
+  - **Cristallizzare**: Polvere del Rift → un Cristallo con probabilità che cresce con il livello dell'Incisore (40% → 90%); se fallisce si perde metà della Polvere (F-104).
+  - **Incidere una runa**: 1 Lastra runica + 3 drop del mostro tematico → Runa di grado I (livello richiesto per runa).
+  - **Potenziare una runa**: 3 rune di grado N → 1 di grado N+1, fino al grado V (F-106). L'effetto cresce con il grado (F-107).
+- **Altare del Rift**: 5 incavi, sbloccati ai livelli dell'Incisore `rift.sockets[].level` (1, 20, 40, 60, 80). Incastonare una runa la toglie dal Deposito (1 pezzo) e attiva i suoi
+  modificatori (sorgente `rift_socket:<i>`). Togliere una runa dall'incavo la **distrugge** (le rune sono un consumo; conferma nella UI). Una stessa runa può stare in più incavi
+  (i modificatori si sommano), salvo `unique: true`; rune di gradi diversi della stessa famiglia sono oggetti diversi.
 
-**Casi limite**: incavo non sbloccato (`socket_locked`); incavo occupato (`socket_occupied`); oggetto non runa
-(`not_equippable`); runa unica già incastonata (`requirement_not_met`).
+**Casi limite**: incavo non sbloccato (`socket_locked`); incavo occupato (`socket_occupied`); oggetto non runa (`not_equippable`); runa unica già incastonata
+(`requirement_not_met`); ingredienti mancanti (`missing_inputs`); Deposito senza posto per un prodotto nuovo (`bank_full`, l'azione si ferma).
 
 ## 12. Progressione offline
 
@@ -396,7 +448,7 @@ area) e stampa uccisioni/ora, morti, oro/ora, XP/ora, cibo consumato. Si usa a o
   motivo dell'eventuale stop (es. "Ingredienti finiti alle 3h 12m"). Poi salvataggio. Il tempo di uno stop è il
   **tempo vero** in cui è avvenuto (B3): una morte dopo 3 h 12 m dice "dopo 3h 12m", mai "dopo 0 s" (il tempo si ricava
   dall'avanzamento della simulazione, non da un contatore azzerato a ogni blocco).
-- Un progetto in corso (§5.1) avanza anche offline e può finire durante l'assenza.
+- Un progetto in corso (§5.1) avanza anche offline e può finire durante l'assenza. Gli **aiutanti** (§4.1) lavorano anche offline (fase `_PHASE_HELPERS` dello stesso motore).
 - Il combattimento offline usa il motore a eventi (§10.10) e il filtro automatico dell'Armeria (§25).
 - Se `elapsed < offline_min_ms` si simula senza schermata.
 - La simulazione si può **non** interrompere nell'MVP (vedi `OPEN_QUESTIONS.md`).
@@ -431,8 +483,8 @@ sviluppo.
 **Regole**
 - Esiste **un solo** sistema di modificatori. Un modificatore è `{stat, value, scope}`; lo scope è `global`,
   `skill:<id>` o `action:<id>`. Le sorgenti sono: equipaggiamento (pezzo base × raffinazione + affissi + castoni),
-  assetto, tratti, buff delle abilità (temporanei), maestria per oggetto, nodi della maestria, shop, incavi dell'Altare,
-  fratture (M12).
+  assetto, tratti, buff delle abilità (temporanei), maestria (per oggetto dell'artigianato, traguardi per risorsa e del mestiere, M12), nodi della maestria, shop, incavi dell'Altare,
+  fratture (M13). Il contesto dell'aiutante esclude la sorgente dell'attrezzo del giocatore (`ModifierContext.for_helper`).
 - Il valore finale di una stat in un contesto è la **somma** dei modificatori applicabili, limitata da `min`/`max`
   della stat (F-05). Ogni formula dice come usa la stat.
 - I modificatori **non si salvano**: si ricostruiscono dallo stato salvato (cosa è indossato, quali nodi, quanti
@@ -442,10 +494,10 @@ sviluppo.
 
 Elenco delle stat dell'MVP (dettagli in `02_FORMULAS.md` §11):
 `skill_interval_pct`, `skill_xp_pct`, `mastery_xp_pct`, `double_item_chance`, `preservation_chance`,
-`rift_shard_chance`, `bank_slots`, `accuracy_bonus`, `accuracy_pct`, `power_bonus`, `power_pct`, `evasion_bonus`,
+`rift_shard_chance`, `accuracy_bonus`, `accuracy_pct`, `power_bonus`, `power_pct`, `evasion_bonus`,
 `evasion_pct`, `damage_reduction`, `attack_interval_pct`, `max_hp_flat`, `food_healing_pct`, `gold_drop_pct`,
-`loot_bag_slots`, `auto_loot`, `auto_eat_tier`, `armory_slots`, `item_rarity_pct` (M4), `block_chance` (M5),
-`upgrade_success_pct` (M7). Dopo l'MVP: `fracture_duration_pct` (M12), `parallel_lanes` (M13).
+`loot_bag_slots`, `auto_loot`, `auto_eat_tier`, `item_rarity_pct` (M4), `block_chance` (M5),
+`upgrade_success_pct` (M7). Dopo l'MVP: `fracture_duration_pct` (M13). Tolte in M12: `bank_slots`, `armory_slots` (capienza dalle borse), `parallel_lanes` (corsie eliminate).
 Gli effetti dei tratti che non sono somme di stat (es. "evasione a 0") non sono stat: sono tipi di effetto (F-81).
 
 ## 16. Impostazioni
@@ -453,9 +505,9 @@ Gli effetti dei tratti che non sono somme di stat (es. "evasione a 0") non sono 
 Globali (non per slot, perché non sono stato di gioco): modalità finestra, dimensione, scala UI, VSync, limite FPS,
 volume, livello dei log. File `user://settings.cfg`. Pannello dal menu e in partita (Esc).
 
-## 17. Fratture del Rift (M12, dopo l'MVP)
+## 17. Fratture del Rift (M13, dopo la Riforma 2)
 
-Da rivedere a inizio M12: le Fratture diventano "mappe" con modificatori (`VISIONE_V2.md` §7). Le regole sotto sono quelle
+Da rivedere a inizio M13: le Fratture diventano "mappe" con modificatori (`VISIONE_V2.md` §7). Le regole sotto sono quelle
 di partenza.
 
 - Ogni `fractures.interval_min_ms`-`interval_max_ms` (2-4 ore) di tempo di sessione (online + offline) si apre una
@@ -464,13 +516,10 @@ di partenza.
 - Una Frattura applica modificatori globali (sorgente `fracture:<id>`) e/o rende disponibile un mostro speciale
   in un'area. Alla chiusura tutto torna normale. Stato salvato (prossima apertura, frattura attiva, tempo rimasto).
 
-## 18. Azioni in parallelo (M13, dopo l'MVP)
+## 18. Azioni in parallelo — ELIMINATE (M12, W3)
 
-- La stat `parallel_lanes` (base 1) apre una seconda corsia `secondary` per un'azione **non di combattimento**.
-- L'azione della corsia secondaria ha intervallo × `(1 + parallel.interval_penalty_pct/100)` (+40%).
-- Le due corsie non possono usare la stessa skill; ingredienti presi dalla stessa bank (ordine di risoluzione: corsia
-  principale, poi secondaria).
-- Il combattimento resta solo nella corsia principale.
+Le corsie parallele (stat `parallel_lanes`, voce "Secondo pensiero", F-51) **non esistono più**: le sostituiscono gli **aiutanti** (§4.1). Il combattimento e le azioni
+del giocatore restano in una sola corsia (`main`).
 
 ## 19. Personaggio e classe
 
@@ -529,8 +578,8 @@ più basso).
   `sockets`, `locked`) nell'Armeria. Le istanze nascono da **drop** (§10.6, §24), **progetti** (§5.1) e **kit
   iniziale** (§1.1); i `uid` sono interi crescenti per slot di salvataggio, mai riusati. Gli attrezzi unici (§9) sono
   istanze di basi `tool` con `unique`: indossati dall'inizio, sempre nello slot, `upgrade` = +0…+9 (§23.1).
-- Capienza: F-82 (`armory.base_slots` 40 + stat `armory_slots`); contano solo i pezzi non indossati. Armeria piena: il
-  progetto non parte (`armory_full`), un drop si smantella (§25), l'acquisto di caselle non è toccato.
+- Capienza: **unica con il Deposito** (§7, F-100, M12); i pezzi non indossati occupano una casella ciascuno, quelli indossati nessuna. Deposito pieno: il
+  progetto non parte (`armory_full`), un drop si smantella (§25).
 - Un pezzo **bloccato** non si smantella né si vende; un pezzo indossato non si smantella né si vende (`item_equipped`).
   Un attrezzo unico non si vende, non si smantella, non si toglie (`item_unique`).
 - I pezzi si possono vendere (F-18 con il `value` della base; M4) e smantellare (M7, §25).
@@ -566,12 +615,12 @@ mestiere al livello 25). La tabella dei passi è in `02_FORMULAS.md` F-94. Ogni 
 mestiere; ai passi alti anche un piccolo bonus di raccolta (`double_item_chance` o `rift_shard_chance`). Nessun
 castone sugli attrezzi.
 
-## 24. Pietre del Rift (M7)
+## 24. Monoliti del Rift (M7; ex "Pietre del Rift", nome visibile cambiato in M12/W7, id e stato `RIFTSTONE` invariati)
 
-Incontro speciale (stato `RIFTSTONE`): dopo un'uccisione c'è una probabilità, con garanzia dopo N uccisioni (F-87), che
-il prossimo incontro sia la Pietra del Rift dell'area: molti PV, nessun attacco, un impulso periodico di danno, e
-facoltativamente un gruppo evocato. Bottino: frammenti del Rift in quantità, materiali di raffinazione, pietre da
-incastonare (M8), gioielli (rarità F-84).
+Incontro speciale: dopo un'uccisione c'è una probabilità, con garanzia dopo N uccisioni (F-87), che
+il prossimo incontro sia il Monolito del Rift dell'area (il termine "Pietra" resta alle pietre dei castoni): molti PV, nessun attacco, un impulso periodico di danno, e
+facoltativamente un gruppo evocato. Bottino: frammenti del Rift in quantità, materiali di raffinazione, gioielli (rarità F-84) e, dal M12, la **tabella dei Monoliti** (Polvere in quantità, Schegge, Pietre, Cristalli, Borsa runica,
+Contratti; `02_FORMULAS.md` §8.5b).
 
 - La Pietra in attesa si consuma al primo nuovo incontro (resta nel salvataggio finché non appare). Nell'incontro la
   Pietra viene per prima, poi l'eventuale gruppo evocato; l'incontro finisce solo con la morte di **tutti** i nemici.
@@ -588,9 +637,9 @@ incastonare (M8), gioielli (rarità F-84).
 
 ## 26. Castoni e valute del Rift (M8)
 
-Castoni sui pezzi (F-89, da rarità e raffinazione); pietre incastonabili (categoria `stone`, con modificatori) da Pietre
-del Rift e Legatura; tre valute (categoria `currency`, prodotte dalla Legatura): comune → magico, magico → raro (aggiunge
-affissi fino al numero del raro), ritiro degli affissi (stessa rarità, F-85 di nuovo). Una pietra tolta da un castone si
+Castoni sui pezzi (F-89, da rarità e raffinazione); pietre incastonabili (categoria `stone`, con modificatori; famiglie di forza, di precisione, di agilità, di tempra; gradi Scheggia → Pietra →
+Pietra perfetta) che **cadono dai mostri e dai Monoliti** e si migliorano con Fondere dell'Incisore (F-105); tre valute (categoria `currency`), che **cadono dai mostri** o si ottengono
+con Cristallizzare (F-104): Cristallo del risveglio (comune → magico), Cristallo dell'ascesa (magico → raro, aggiunge affissi fino al numero del raro), Cristallo del mutamento (ritira gli affissi, stessa rarità, F-85 di nuovo). Una pietra tolta da un castone si
 distrugge (come le rune, Q8).
 
 ## 27. Guida in gioco (M11)
@@ -611,16 +660,20 @@ Decisioni G1-G2 (`DECISIONS_LOG.md`): la wiki sta **dentro il gioco** (pagina "G
 |---|---|---|
 | Primi passi | la prima ora: combattere, mangiare, raccogliere il bottino, equipaggiare, i mestieri | testo a mano |
 | Personaggio e combattimento | livello, assetti, triangolo, tratti, abilità, cibo e Razioni, morte e borsa del bottino, gruppi e bersaglio | testo a mano + tabelle dai dati (tratti, abilità con sblocco e ricarica) |
-| Bottino | rarità, affissi (tabella dei gradi), raffinazione (costi e probabilità), castoni e pietre, valute, smantellamento e filtro, Pietre del Rift, progetti | testo a mano + tabelle dai dati |
+| Bottino | rarità, affissi (tabella dei gradi), raffinazione (costi e probabilità), castoni e pietre, valute, smantellamento e filtro, Monoliti del Rift, progetti | testo a mano + tabelle dai dati |
 | Mestieri | una pagina per mestiere: cosa fa, tabella delle azioni (livello, XP, durata, ingredienti, prodotto), maestria e nodi, attrezzo e raffinazione | testo breve a mano + tabelle dai dati |
 | Oggetti | descrizione, valore, **Si ottiene da** (mostri con area e %, ricette, shop, Pietre, smantellamento, kit iniziale), **Serve a** (ricette, progetti, raffinazione, castoni, Altare, cibo) | tutto dai dati |
 | Mostri e aree | area: livello richiesto, gruppi, mostri; mostro: statistiche, stile, intervallo, drop con % | tutto dai dati |
-| Altare del Rift | incavi, livelli di sblocco, rune con effetto | dai dati + testo breve |
+| Altare del Rift | incavi, livelli di sblocco, rune con effetto e gradi | dai dati + testo breve |
+| Deposito e borse (M12) | capienza unica, slot borsa, tabella delle borse | testo a mano + tabella `bags` |
+| Aiutanti (M12) | contratti, gradi (tabella `helper_grades`), XP e velocità, Deposito pieno | testo a mano + tabella dai dati |
+| Maestria per risorsa (M12) | traguardi 25/50/99 di ogni risorsa (tabella `mastery_milestones:<skill>`), alberi dei nodi | testo a mano + tabelle dai dati |
+| Incisore (M12) | azioni e ricette (tabella `engraver_recipes`), probabilità di Cristallizzare, gradi delle rune, Monoliti del Rift | testo a mano + tabelle dai dati |
 | Statistiche | glossario: nome, descrizione, limiti (da `stats.json`) | dai dati |
 | Offline | come funziona, limite di ore, cosa prosegue e cosa no | testo a mano con segnaposto |
 
-Testi a mano (≈ 20 pagine brevi): Primi passi; Livello del personaggio; Assetti; Triangolo; Tratti; Abilità; Cibo e Razioni; Morte;
-Gruppi e bersaglio; Rarità e affissi; Raffinazione; Castoni e pietre; Valute; Smantellamento e filtro; Pietre del Rift; Progetti;
+Testi a mano (≈ 25 pagine brevi; dal M12 anche Deposito e borse, Aiutanti, Maestria per risorsa, Incisore, Monoliti del Rift): Primi passi; Livello del personaggio; Assetti; Triangolo; Tratti; Abilità; Cibo e Razioni; Morte;
+Gruppi e bersaglio; Rarità e affissi; Raffinazione; Castoni e pietre; Valute; Smantellamento e filtro; Monoliti del Rift; Progetti;
 Maestria; Attrezzi; Altare del Rift; Offline.
 
 **Collegamenti, "?" e tooltip**

@@ -25,7 +25,6 @@ in "Chiuse".
 | Q13 | Livelli oltre il 99? | No; l'XP continua fino a `xp_cap` |
 | Q14 | Skill da sbloccare (a pagamento) o tutte subito? | Tutte subito |
 | Q15 | Valori delle soglie delle razioni da campo, dei prezzi dello shop, dei mostri | quelli di `02_FORMULAS.md` §8-9, da rivedere dopo una prova di gioco a fine M5 (combattimento), con `tools/sim_combat.gd` |
-| Q26 | I nodi della maestria di Cavatura e Lenza devono differire da quelli di Selvicoltura (es. Cavatura più `double_item_chance`, Lenza più `rift_shard_chance`)? Le stat di raccolta del registro sono solo cinque e Selvicoltura le usa tutte | No per ora: stessi costi, prerequisiti, stat e valori di §8.8, nomi e testi a tema (M2-02); da rivedere con Q15 dopo una prova di gioco |
 
 ## Offline
 
@@ -59,7 +58,7 @@ I documenti sono già scritti con questi default (R-00).
 | Q30 | Anelli e amuleti forgiabili? | No, solo drop (M7) | §8.4, `01_GDD.md` §22 |
 | Q31 | Raffinazione istantanea o azione a tempo? | Istantanea | `01_GDD.md` §23 |
 | Q32 | Attrezzi di raccolta con rarità e affissi? | ~~Sì~~ **Superata da R3 (M10)**: gli attrezzi sono tre oggetti unici senza rarità né affissi | §8.9, `01_GDD.md` §22 |
-| Q33 | Capienza iniziale dell'Armeria | 40 + caselle nello shop (`armory_slot`) | F-82 |
+| Q33 | Capienza iniziale dell'Armeria | SUPERATA da M12 (W1): capienza unica del Deposito, `deposit.base_slots` (Q58) | F-100 |
 | Q34 | Livello massimo del personaggio | 99, curva `character_curve` | F-71 |
 | Q35 | Livelli di apertura degli slot dei tratti | 1, 10, 25, 50 | F-78 |
 | Q36 | Slot delle abilità | 2, il 3° al livello 30 | F-78 |
@@ -95,10 +94,23 @@ I documenti sono già scritti con questi default (R-01). Valgono finché l'utent
 | Q56 | Con la borsa piena i progetti dai mostri si perdono (~0,38 progetti/h in un seme, Q49) | Accettato: la perdita è visibile in `sim_combat` (`bp lost/h`); nessuna modifica | Q49, M10-02 |
 | Q57 | I titoli di gruppo dell'indice della Guida sono costanti in `guide_nav.gd`, non in dati | Restano costanti di presentazione (come Q42); spostarli in `data/guide/` se serviranno traduzioni o modifiche frequenti | M11-04 |
 
+## Riforma 2 (M12, `RIFORMA_2.md` riportata da R-03)
+
+I documenti sono già scritti con questi default. I numeri non presenti nella fonte sono valori di partenza **da tarare**
+in M12-07 (`tools/sim_combat.gd`).
+
+| # | Domanda | Default proposto | Dove impatta |
+|---|---|---|---|
+| Q58 | Borse: caselle e fonti | 6 slot borsa; Borsa di tela +6 (ricetta del Falegname, comune), di cuoio +10 (drop di Pianure e Bosco), rinforzata +14 (ricetta del Falegname con sottoprodotti della maestria: la fonte dice "progetto"), del viandante +18 (drop raro delle Miniere), runica +24 (Monoliti). `deposit.base_slots` 60 (non nella fonte: 24 + 40 di oggi meno il surplus, da tarare) | F-100, `balance.json` `deposit.*`, M12-01, M12-05 |
+| Q59 | Aiutanti: lentezza per grado, XP e maestria | Intervallo × 3,0 / 2,5 / 2,0 / 1,5 (Apprendista, Garzone, Esperto, Maestro) rispetto al giocatore senza attrezzo; XP e maestria al 25% | F-101, F-102, `balance.json` `helper.*`, M12-02, M12-07 |
+| Q60 | Traguardi della maestria per risorsa | 25 sottoprodotto raro, 50 bonus della risorsa, 99 bonus permanente del mestiere (piccolo, si somma tra le risorse); valori in `02_FORMULAS.md` §8.8b | F-103, `data/actions/` (`milestones`), `data/mastery/`, M12-03, M12-05 |
+| Q61 | Cristallizzare: probabilità per livello e fallimento | 40% al livello 1 → 90% al 99 (lineare); fallimento = metà della polvere persa | F-104, `balance.json` `engraver.*`, M12-04 |
+
 ## Chiuse
 
 | # | Domanda | Decisione | Data |
 |---|---|---|---|
+| Q26 | Nodi della maestria di Minatore e Pescatore uguali a quelli del Boscaiolo? | Chiusa dalla decisione W4: albero dei nodi diverso per ogni mestiere di raccolta, più 3 traguardi propri per ogni risorsa (`02_FORMULAS.md` §8.8, §8.8b) | 2026-11-08 (R-03) |
 | Q55 | Nomi delle valute in `NOMI.md` scambiati rispetto ai dati | `NOMI.md` corretto, i dati restano | 2026-11-08 (P-04) |
 | Q6 | Munizioni per Mira e rune/consumabili per Arcano? | Niente munizioni né rune; la classe dell'MVP usa solo spade (D6); archi e bastoni tornano con le loro classi | 2026-11-03 (`VISIONE_V2.md` §8) |
 | Q9 | Stance con bonus nascosti? | La stance è tolta: tutta l'XP va al personaggio (D3, F-28) | 2026-11-03 |

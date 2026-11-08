@@ -31,7 +31,7 @@ res://
 │   ├── common/                   ← command_result.gd, reasons.gd
 │   ├── data/                     ← game_data.gd, json_loader.gd, data_validator.gd
 │   │   └── defs/                 ← item_def.gd, skill_def.gd, action_def.gd, monster_def.gd, area_def.gd,
-│   │                               shop_entry_def.gd, mastery_node_def.gd, item_qty.gd, drop_entry.gd, fracture_def.gd (M12),
+│   │                               shop_entry_def.gd, mastery_node_def.gd, item_qty.gd, drop_entry.gd, fracture_def.gd (M13), milestone_def.gd, loot_table_def.gd (M12),
 │   │                               class_def.gd, setup_def.gd, affix_def.gd, affix_tier.gd, pack_def.gd (M4), trait_def.gd, trait_effect_def.gd, ability_def.gd (M6)
 │   ├── modifiers/                ← modifier.gd, modifier_context.gd, modifier_service.gd, stat_registry.gd
 │   ├── progression/              ← xp_table.gd
@@ -42,10 +42,12 @@ res://
 ├── systems/
 │   ├── wallet/                   ← wallet.gd
 │   ├── bank/                     ← bank.gd
+│   ├── deposit/                  ← deposit.gd (M12: capienza unica, slot borsa)
+│   ├── helpers/                  ← helper_system.gd, helper_math.gd (M12: aiutanti dei mestieri di raccolta)
 │   ├── skills/                   ← skills_system.gd
 │   ├── mastery/                  ← mastery_system.gd, mastery_math.gd
 │   ├── actions/                  ← action_runner.gd, action_math.gd, action_outcome.gd,
-│   │                               gathering_resolver.gd, artisan_resolver.gd, blueprint_craft.gd (M10)
+│   │                               gathering_resolver.gd, artisan_resolver.gd, blueprint_craft.gd (M10), engraver_resolver.gd (M12: cristallizzare)
 │   ├── character/                ← character_system.gd (M4), loadout.gd (M6)
 │   ├── items/                    ← item_roller.gd, item_instance.gd, affix_roll.gd (M4)
 │   ├── armory/                   ← armory.gd (M4; raffinazione e smantellamento M7, eventuali file propri)
@@ -56,7 +58,7 @@ res://
 │   ├── shop/                     ← shop.gd
 │   ├── rift/                     ← rift_altar.gd (M8)
 │   ├── hints/                    ← hints_system.gd (M9)
-│   └── fractures/                ← fracture_system.gd (M12)
+│   └── fractures/                ← fracture_system.gd (M13)
 ├── data/
 │   ├── config/                   ← balance.json, stats.json
 │   ├── skills/skills.json        ← 7 skill di supporto
@@ -65,10 +67,10 @@ res://
 │   ├── items/                    ← materials.json, components.json (M10), blueprints.json (M10), equipment.json, tools.json (3 attrezzi unici), food.json, infusions.json, misc.json
 │   ├── actions/<skill>.json      ← una per skill (7 file)
 │   ├── mastery/<skill>.json      ← nodi della maestria (7 file)
-│   ├── combat/                   ← areas.json, monsters.json, rift_stones.json (M7)
+│   ├── combat/                   ← areas.json, monsters.json, rift_stones.json (M7; "Monoliti del Rift" per la UI), loot_tables.json (M12)
 │   ├── shop/shop.json
 │   ├── hints/hints.json          (M9)
-│   └── fractures/fractures.json  (M12)
+│   └── fractures/fractures.json  (M13)
 ├── ui/
 │   ├── theme/                    ← ui_style.gd, number_format.gd (M1-14), riftstone_idle_theme.tres (generato)
 │   ├── components/               ← game_window/, tooltip/, toast/, item_slot/, progress/, confirm_dialog/
@@ -129,8 +131,8 @@ classDiagram
       +events: GameEvents
       +rng: RngService
       +modifiers: ModifierService
-      +wallet, bank, skills, mastery, character
-      +armory, equipment, loadout, actions, combat, shop, rift
+      +wallet, bank, deposit, skills, mastery, character
+      +armory, equipment, loadout, actions, helpers, combat, shop, rift
       +advance(delta_ms)
       +to_save() Dictionary
       +from_save(d)
@@ -193,6 +195,9 @@ flowchart TD
     CE --> WL[Wallet]
     CE --> AM
     SH[Shop] --> BK & WL & AM & CH
+    HS[HelperSystem M12] --> BK & SK & MS & DP
+    BK & AM --> DP[Deposit M12]
+    DP --> GD2[GameData]
     RA[RiftAltar] --> BK & SK
     EQ --> BK & AM & CH
     LO --> CH & EQ
@@ -202,6 +207,12 @@ flowchart TD
     MOD --> SR[StatRegistry]
     BK & SK & MS & EQ & SH & RA & CE & CH & AM & LO & IR --> GD[GameData]
 ```
+
+**M12 (W1-W3)**: `Deposit` (capienza unica, slot borsa) è una foglia (dipende solo da data ed events). `Bank` e `Armory` lo
+consultano per lo spazio e **si registrano come occupanti** (`deposit.register_occupant(id, used_fn)` in `_create_systems()`):
+non c'è ciclo di classi (Deposit non conosce Bank né Armory; i comandi che spostano una borsa tra casella e slot stanno in
+`Bank`). `HelperSystem` è un sistema parallelo ad `ActionRunner` (stesso `GatheringResolver`, profilo "aiutante") e non lo
+conosce: le corsie parallele non esistono più.
 
 Regola: i sistemi "foglia" (`Wallet`, `Bank`, `SkillsSystem`, `MasterySystem`, `ModifierService`, `ItemRoller`) non
 conoscono azioni, combattimento o UI. Eccezioni dichiarate (una sola lettura, null-safe): `Equipment` e `Loadout`
@@ -287,6 +298,8 @@ sequenceDiagram
   (`test_write_200_kb_and_measure`), 200 KB scritti in ~10-12 ms, quindi niente thread (Q5 confermato col default);
   il test segnala con un warning se si superano 30 ms.
 - **Stato derivato non salvato**: livelli, modificatori, capienze, statistiche di combattimento si ricalcolano.
+- **Versione 4 (M12)**: `format_version` 3 → 4 (Deposito, aiutanti). I salvataggi v3 non si caricano (`version_unsupported`, nessuna
+  migrazione: come per M4 e M10, nessun giocatore reale); gli "spazi" già comprati non contano più.
 - **Isolamento**: caricare lo slot B dopo lo slot A crea una `GameSession` nuova; niente sopravvive tra slot
   (test `tests/integration/test_slot_isolation.gd`).
 
@@ -305,7 +318,8 @@ flowchart LR
     I --> J[salvataggio, PLAYING]
 ```
 
-- `OfflineSimulator` usa lo **stesso** `session.advance`: nessuna formula duplicata per l'offline.
+- `OfflineSimulator` usa lo **stesso** `session.advance`: nessuna formula duplicata per l'offline. Da M12 la fase `_PHASE_HELPERS`
+  (dopo le azioni, prima del combattimento) fa avanzare anche gli **aiutanti**: lavorano offline come online.
 - I sistemi raccolgono contatori di sessione che servono al riepilogo (uccisioni, morti, cibo mangiato, motivi di
   stop) in `SessionSnapshot`; la differenza tra due snapshot dà il riepilogo.
 - Durante la simulazione `GameClock` è in pausa e la UI non accetta comandi (overlay modale).
@@ -326,7 +340,7 @@ flowchart TD
     MS --> F2[SkillsSystem F-02, CharacterSystem F-71]
     MS --> F3[MasteryMath F-10]
     MS --> F4[CombatantStats F-20..F-27, F-70, F-74]
-    MS --> F5[Bank F-16, Armory F-82, ItemRoller F-84, F-91, LootBag F-33, AutoEat F-30]
+    MS --> F5[Deposit F-100 (Bank e Armory), ItemRoller F-84, F-91, LootBag F-33, AutoEat F-30]
 ```
 
 - Un **modificatore** è `{stat, value, scope}`. Le sorgenti si registrano con `set_source(source_id, mods)`: chiamarlo
@@ -353,6 +367,9 @@ flowchart TD
 - `PageHost` istanzia la pagina richiesta (`&"skill:forestry"`, `&"bank"`…) e chiama `bind(session)`; cambiando pagina
   chiama `unbind()` e la libera. Le pagine si collegano all'`EventBus` in `bind` e si scollegano in `unbind`.
 - Una sola `SkillPage` generica disegna tutte le skill di raccolta e artigianato leggendo i dati (niente scena per skill).
+- M12: la pagina **Deposito** (rotta `bank`) ha due schede (Oggetti, Equipaggiamento) sulla stessa capienza e 6 slot borsa in cima;
+  la pagina Equipaggiamento mostra gli stessi pezzi (nessuna copia di dati); la `SkillPage` dei mestieri di raccolta ha la riga
+  **Aiutante**; la pagina dell'Incisore usa la `SkillPage` generica (contratto in `05_INTERFACES.md` §7.w).
 - Risoluzione base 1600×900, minimo 1280×720; scala UI dalle impostazioni.
 - Tema: `ui/theme/ui_style.gd` (porting di `UiStyle` di RiftStone) genera `riftstone_idle_theme.tres`.
 

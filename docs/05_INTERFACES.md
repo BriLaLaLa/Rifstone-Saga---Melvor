@@ -43,8 +43,8 @@ const NOT_EQUIPPABLE := &"not_equippable"
 const NOT_FOOD := &"not_food"
 const SLOT_EMPTY := &"slot_empty"
 const COMBAT_ACTIVE := &"combat_active"
-const LANE_UNAVAILABLE := &"lane_unavailable"
-const SKILL_IN_OTHER_LANE := &"skill_in_other_lane"
+const LANE_UNAVAILABLE := &"lane_unavailable"   # M12: solo per una corsia diversa da MAIN (le corsie parallele non esistono più: nessun uso reale)
+# SKILL_IN_OTHER_LANE: TOLTA in M12 (corsie parallele eliminate, W3)
 const SOCKET_LOCKED := &"socket_locked"
 const SOCKET_OCCUPIED := &"socket_occupied"
 const POOL_INSUFFICIENT := &"pool_insufficient"
@@ -69,6 +69,12 @@ const UPGRADE_MAX := &"upgrade_max"         # M7: raffinazione già a +9
 const ITEM_UNIQUE := &"item_unique"         # M10: attrezzo unico (non si vende, non si smantella, non si toglie)
 const NOT_A_TOOL := &"not_a_tool"           # M10: il pezzo non è un attrezzo unico (raffinazione F-94)
 const INVALID_CHOICE := &"invalid_choice"   # M10: affisso scelto non ammesso o livello del Fabbro < blueprint.choose_affix_level (F-92)
+const DEPOSIT_NOT_EMPTY := &"deposit_not_empty"   # M12: togliere la borsa lascerebbe più caselle usate che capienza (F-100)
+const NOT_A_BAG := &"not_a_bag"                   # M12: l'oggetto non è una borsa (categoria bag)
+const BAG_SLOT_OCCUPIED := &"bag_slot_occupied"   # M12: lo slot borsa non è vuoto
+const NOT_A_CONTRACT := &"not_a_contract"         # M12: l'oggetto non è un contratto (categoria contract)
+const NO_HELPER := &"no_helper"                   # M12: il mestiere non ha un aiutante
+const HELPER_NOT_BETTER := &"helper_not_better"   # M12: il contratto non supera il grado dell'aiutante attuale (non si consuma)
 const BLUEPRINT_DONE := &"blueprint_done"   # M10: motivo di stop di fine progetto (action_stopped)
 ```
 Le costanti nuove le aggiunge il primo task che le usa (M4-01 per quelle di M4), con il test di `reasons.gd`.
@@ -229,7 +235,9 @@ func hide_tooltip() -> void
 | `mastery_pool_changed` | `skill_id: StringName, pool_xp: int` | MasterySystem | |
 | `mastery_node_purchased` | `skill_id: StringName, node_id: StringName` | MasterySystem | |
 | `bank_changed` | `item_id: StringName, new_count: int, delta: int` | Bank | ogni variazione; `delta` = variazione con segno di quella singola operazione (`new_count` dopo − prima). La Bank (M1-07) deve emetterlo così; la UI non ricava il delta da copie delle quantità |
-| `bank_capacity_changed` | `used: int, capacity: int` | Bank | variano caselle usate o capienza |
+| ~~`bank_capacity_changed`~~ | — | — | **tolto in M12** (sostituito da `deposit_changed`) |
+| `deposit_changed` | `used: int, capacity: int` | Deposit | M12: variano le caselle usate (Bank o Armory) o la capienza (borse); emesso solo se uno dei due valori cambia davvero |
+| `bags_changed` | — | Deposit | M12: uno slot borsa è cambiato (`equip_bag`/`unequip_bag`) |
 | `bank_rejected` | `item_id: StringName, qty: int` | Bank | `add` fallita per bank piena |
 | `gold_changed` | `new_amount: int, delta: int` | Wallet | |
 | `equipment_changed` | `slot_id: StringName, uid: int` | Equipment | M4: `uid` 0 = slot vuoto (prima: `item_id`; il segnale non si usa più per cibo e stance) |
@@ -239,7 +247,7 @@ func hide_tooltip() -> void
 | `player_renamed` | `new_name: String` | PlayerName | P-03: emesso da `PlayerName.rename` quando il nome cambia davvero; la TopBar lo ascolta e aggiorna l'etichetta |
 | `traits_changed` | — | Loadout | M6: tratti o abilità equipaggiati cambiati |
 | `armory_changed` | `uid: int, change: StringName` | Armory | M4: `change` = `&"added"`, `&"removed"`, `&"updated"` (blocco, raffinazione, indossato) |
-| `armory_capacity_changed` | `used: int, capacity: int` | Armory | M4 |
+| ~~`armory_capacity_changed`~~ | — | — | **tolto in M12** (sostituito da `deposit_changed`) |
 | `armory_rejected` | `base_id: StringName, qty: int` | Armory | M4: istanze non create per Armeria piena |
 | `item_upgraded` | `uid: int, success: bool, new_level: int` | Armory | M7: dopo `armory_changed(uid, updated)`; M10: anche per gli attrezzi (`success` sempre `true`) |
 | `item_salvaged` | `uid: int, base_id: StringName, auto: bool` | Armory | M7: `auto` = smantellato dal filtro o dall'Armeria piena (`add_drop`); l'uid non è mai nell'Armeria |
@@ -271,8 +279,12 @@ func hide_tooltip() -> void
 | `save_failed` | `slot: int, reason: StringName` | Game | |
 | `notification_requested` | `text: String, kind: StringName` | qualunque sistema | `kind` = `&"info"`, `&"success"`, `&"warning"` |
 | `hint_triggered` (M9) | `hint_id: StringName` | HintsSystem | |
-| `fracture_opened` (M12) | `fracture_id: StringName, duration_ms: int` | FractureSystem | |
-| `fracture_closed` (M12) | `fracture_id: StringName` | FractureSystem | |
+| `helper_changed` (M12) | `skill_id: StringName, grade: StringName, action_id: StringName` | HelperSystem | assunzione, cambio di azione o stop (`grade` e `action_id` vuoti se assenti) |
+| `helper_completed` (M12) | `skill_id: StringName, action_id: StringName, outputs: Dictionary` | HelperSystem | fine di un ciclo dell'aiutante (`outputs`: `{item_id: qty}`) |
+| `helper_blocked` (M12) | `skill_id: StringName, blocked: bool` | HelperSystem | l'aiutante attende (Deposito pieno) o riparte; emesso solo al cambio |
+| `mastery_milestone_reached` (M12) | `skill_id: StringName, action_id: StringName, at: int` | MasterySystem | un traguardo (25/50/99) raggiunto in gioco, dopo `mastery_level_up`; mai in `from_save` |
+| `fracture_opened` (M13) | `fracture_id: StringName, duration_ms: int` | FractureSystem | |
+| `fracture_closed` (M13) | `fracture_id: StringName` | FractureSystem | |
 
 I segnali segnati M4…M7 li aggiunge (o cambia) in `core/autoload/event_bus.gd` e in `tests/core/autoload/test_event_bus.gd`
 il task che li emette per primo (ownership estesa alle sole righe del segnale). Fino ad allora `event_bus.gd` ha le firme
@@ -320,7 +332,7 @@ func blueprint_for_base(base_id: StringName) -> ItemDef   # M10: il progetto del
 func unique_tool(slot: StringName) -> ItemDef         # M10: l'attrezzo unico dello slot tool_*; null + Log.error se manca
 func hints() -> Array[HintDef]                        # M9-04, nell ordine del file
 func hint(id: StringName) -> HintDef                  # M9-04; null se sconosciuto
-func fractures() -> Array[FractureDef]                # M12: lo aggiunge il task delle Fratture (non esiste in M1-04)
+func fractures() -> Array[FractureDef]                # M13: lo aggiunge il task delle Fratture (non esiste in M1-04)
 const LOG_CATEGORY: String = "data"
 const BALANCE_FILE: String = "balance.json"           # in config_root
 const STATS_FILE: String = "stats.json"               # in config_root
@@ -428,14 +440,15 @@ class_name MonsterDef
   var attack_level: int; var power_level: int; var defence_level: int
   var accuracy_bonus: int; var power_bonus: int; var evasion_bonus: int; var damage_reduction: float
   var gold_min: int; var gold_max: int; var rift_shard_chance: float; var drops: Array[DropEntry]
+class_name MilestoneDef (M12)   ; var at: int; var type: StringName; var item: StringName; var modifiers: Array[Modifier]   # 5.22
+class_name LootTableDef (M12)   ; var id: StringName; var entries: Array[DropEntry]
 class_name ShopEntryDef
   var id: StringName; var name: String; var description: String; var category: StringName
-  var cost_gold: int; var cost_formula: StringName      # &"" oppure &"bank_slot"
+  var cost_gold: int                                    # M12: sempre un prezzo fisso (cost_formula eliminato)
   var max_purchases: int                                # 0 = illimitato
   var req_entries: Array[StringName]; var req_skills: Dictionary[StringName, int]; var req_total_level: int
   var req_character: int                                # M4-01; 0 = nessun requisito
   var effect_modifiers: Array[Modifier]; var effect_item: ItemQty   # uno dei due
-  # cost_formula: &"" oppure &"bank_slot" (F-17) oppure &"armory_slot" (F-82, M4-01)
 class_name ClassDef (M4)   ; var id: StringName; var name: String; var description: String; var order: int
                              var weapon_kinds: Array[StringName]; var offhand_kinds: Array[StringName]
                              var setups: Array[SetupDef]; var traits: Array[TraitDef]; var abilities: Array[AbilityDef]
@@ -497,6 +510,8 @@ var skill_id: StringName; var action_id: StringName
 static func global_ctx() -> ModifierContext
 static func for_skill(skill_id: StringName) -> ModifierContext
 static func for_action(skill_id: StringName, action_id: StringName) -> ModifierContext
+var excluded_sources: Array[StringName]   # M12: sorgenti ignorate da total/breakdown con questo contesto (default vuoto)
+static func for_helper(skill_id: StringName, action_id: StringName) -> ModifierContext   # M12, F-101: come for_action con excluded_sources = [equipment:tool_<skill>]
 
 class_name StatRegistry extends RefCounted
 static func from_array(stats: Array, errors: PackedStringArray) -> StatRegistry
@@ -534,11 +549,12 @@ var loadout: Loadout              # M6-03 (null prima)
 var equipment: Equipment; var actions: ActionRunner; var combat: CombatEngine   # combat: M5-03
 var shop: Shop; var rift: RiftAltar   # rift: M8
 var hints: HintsSystem            # M9 (null prima)
-var fractures: FractureSystem     # M12 (null prima)
+var deposit: Deposit; var helpers: HelperSystem   # M12-01 / M12-02 (null prima)
+var fractures: FractureSystem     # M13 (null prima)
 var slot: int; var player_name: String; var created_at_unix_ms: int; var play_time_ms: int
 func _init(game_data: GameData, game_events: GameEvents, rng_seed: int) -> void
 func new_game() -> void                                  # stato iniziale 01_GDD §1.1 + rebuild_modifiers
-func advance(delta_ms: int) -> void                      # ordine: fractures, actions, combat, play_time
+func advance(delta_ms: int) -> void                      # ordine: fractures, actions, helpers, combat, play_time
 func to_save(now_unix_ms: int) -> Dictionary             # file completo (§6)
 func from_save(d: Dictionary) -> CommandResult           # poi rebuild_modifiers
 func rebuild_modifiers() -> void                         # begin_batch, clear_all, rebuild di ogni sistema, end_batch
@@ -562,9 +578,9 @@ func _create_systems() -> void
 func _join(key: StringName, new_game_fn: Callable, to_save_fn: Callable, from_save_fn: Callable,
 		rebuild_fn: Callable = Callable()) -> void            # SAVE_KEY duplicata → assert
 func _tick(phase: int, advance_fn: Callable) -> void         # una fase = un solo sistema, altrimenti assert
-const _PHASE_FRACTURES: int; const _PHASE_ACTIONS: int; const _PHASE_COMBAT: int
+const _PHASE_FRACTURES: int; const _PHASE_ACTIONS: int; const _PHASE_HELPERS: int; const _PHASE_COMBAT: int   # _PHASE_HELPERS: M12-02
 ```
-- `advance`: ordine fisso fratture → azioni → combattimento (solo le fasi registrate), poi `play_time_ms`; indipendente
+- `advance`: ordine fisso fratture → azioni → aiutanti → combattimento (solo le fasi registrate), poi `play_time_ms`; indipendente
   dall'ordine di `_join`. `new_game`, `to_save`, `from_save` e `rebuild_modifiers` seguono l'ordine di `_join`.
 - `from_save`: `format_version` assente o intestazione malformata (`slot`, `created_at_unix_ms`, `play_time_ms` non interi,
   `player_name` non stringa, `rng`/`modules` non oggetti) → `corrupted` senza toccare nulla; `format_version` ≠
@@ -587,6 +603,9 @@ const _PHASE_FRACTURES: int; const _PHASE_ACTIONS: int; const _PHASE_COMBAT: int
   chiavi finte non devono coincidere con le `SAVE_KEY` dei sistemi veri (oggi `lanes`, `combat`, `fractures`): il task
   che registra un sistema con la stessa chiave rinomina quella finta.
 
+- **M12**: `_create_systems()` crea `deposit` subito dopo `wallet` e prima di `bank`; `bank` e `armory` si registrano con `deposit.register_occupant(&"bank", bank.used)` e
+  `(&"armory", armory.used)`; `helpers` dopo `mastery` e `actions` (`_tick(_PHASE_HELPERS, helpers.advance)`, senza `rebuild_fn`). `to_save`/`from_save` aggiungono i moduli `deposit` e `helpers` (§6).
+
 ### 5.4 Wallet (`systems/wallet/wallet.gd`) — dipendenze: events
 ```gdscript
 const SAVE_KEY := &"wallet"
@@ -607,16 +626,18 @@ func has(item_id: StringName, qty: int) -> bool
 func can_add(item_id: StringName) -> bool          # già presente o casella libera; false per equipment/tool (M4-05)
 func add(item_id: StringName, qty: int) -> CommandResult      # unknown_id, not_stackable (M4-05: equipment/tool), invalid_amount, bank_full
 func remove(item_id: StringName, qty: int) -> CommandResult   # invalid_amount, not_enough_items
-func capacity() -> int                             # F-16
+func capacity() -> int                             # M12: delega a deposit.capacity() (F-100)
 func used() -> int
 func stacks() -> Array[Dictionary]                 # copie: [{"item": StringName, "count": int, "locked": bool}] in ordine
 func is_locked(item_id: StringName) -> bool
 func set_locked(item_id: StringName, locked: bool) -> CommandResult   # unknown_id se non presente
 func move_stack(item_id: StringName, new_index: int) -> CommandResult
-func sort_stacks() -> void                         # per categoria (ordine: material, food, infusion, misc; M4-05), sort_order, id
+$1func equip_bag(slot_index: int, item_id: StringName) -> CommandResult   # M12, 5.20: invalid_amount, unknown_id, not_a_bag, bag_slot_occupied, not_enough_items
+func unequip_bag(slot_index: int) -> CommandResult                      # M12, 5.20: invalid_amount, slot_empty, deposit_not_empty
 ```
-- Capienza F-16 = `bank.base_slots + floori(total(bank_slots))`; su `modifiers_changed`, solo se la capienza cambia,
-  `bank_capacity_changed(used, capacity)`. Lo emettono anche `add` di un oggetto nuovo e la casella liberata.
+- **M12 (W1)**: la capienza è unica e sta in `Deposit` (F-100, 5.20): `Bank.used()` conta i tipi di oggetto, `Bank.capacity()` rimanda a `deposit.capacity()`. Un oggetto
+  nuovo richiede `deposit.has_room()` (lo spazio è condiviso con l'Armeria). Dopo ogni variazione di caselle `Bank` chiama `deposit.notify_changed()` (→ `deposit_changed`).
+  La stat `bank_slots`, `bank.*` di `balance.json` e `bank_capacity_changed` non esistono più. `sort_stacks` ordina le categorie: material, bag, contract, food, infusion, misc.
 - `add`: id sconosciuto → `unknown_id` (prima del controllo della quantità); `qty ≤ 0` → `invalid_amount`; oggetto nuovo
   con bank piena → `bank_rejected(item_id, qty)` + `bank_full`, nessun `bank_changed`. Un oggetto già presente entra
   sempre. `remove`: `qty ≤ 0` → `invalid_amount`; quantità insufficiente o oggetto assente → `not_enough_items`;
@@ -628,7 +649,7 @@ func sort_stacks() -> void                         # per categoria (ordine: mate
   ok senza segnali. Le altre caselle scorrono.
 - `can_add` di un id sconosciuto → false. `has(item_id, qty)` = `get_count(item_id) >= qty`.
 - `new_game` (applica `start.items`) e `from_save` non emettono segnali (la UI legge dopo `session_started`); il
-  `rebuild_modifiers` che li segue può emettere `bank_capacity_changed` se la capienza cambia.
+  `rebuild_modifiers` che li segue non emette segnali di capienza (la capienza sta in `Deposit`).
 - `from_save` tollerante, ordine conservato: voci con id sconosciuto, duplicate, `count` non intero o ≤ 0 (i float interi
   del JSON sono accettati) → `Log.warn` e scartate; `locked` non booleano → false; `stacks` non lista → bank vuota.
   Non controlla la capienza (le caselle comprate non si perdono, `01_GDD.md` §7).
@@ -641,7 +662,7 @@ const SAVE_KEY := &"skills"
 func get_xp(skill_id: StringName) -> int
 func get_level(skill_id: StringName) -> int
 func get_progress(skill_id: StringName) -> float
-func add_xp(skill_id: StringName, base_amount: int, ctx: ModifierContext = null) -> int   # F-02; restituisce XP data
+func add_xp(skill_id: StringName, base_amount: int, ctx: ModifierContext = null, share_pct: float = 100.0) -> int   # F-02, poi × share_pct/100 con floor (M12, F-102); restituisce XP data
 func meets_requirements(requirements: Dictionary) -> bool    # {skill_id: livello}
 func total_level() -> int
 ```
@@ -672,13 +693,14 @@ func get_mastery_level(action_id: StringName) -> int
 func get_skill_ratio(skill_id: StringName) -> float                # R di F-10
 func get_pool(skill_id: StringName) -> int
 func get_pool_cap(skill_id: StringName) -> int
-func add_for_action(action: ActionDef) -> int                      # F-10 + F-12; restituisce mxp
+func add_for_action(action: ActionDef, share_pct: float = 100.0) -> int                      # F-10 + F-12; restituisce mxp
 func spend_pool_on_action(action_id: StringName, amount: int) -> CommandResult   # F-14; invalid_amount, pool_insufficient, mastery_max
 func node_cost(node_id: StringName) -> int
 func owns_node(node_id: StringName) -> bool
 func can_buy_node(node_id: StringName) -> CommandResult            # unknown_id, node_owned, node_prereq_missing, pool_insufficient
 func buy_node(node_id: StringName) -> CommandResult
-func rebuild_modifiers() -> void                                   # sorgenti mastery_item:* e mastery_node:*
+$1func milestones_reached(action_id: StringName) -> Array[int]     # M12: soglie (25/50/99) raggiunte dall'azione di raccolta, in ordine; [] per le altre
+func milestone_active(action_id: StringName, at: int) -> bool      # M12: livello di maestria dell'azione ≥ at
 ```
 - Stato: la xp di maestria di ogni azione `mastery: true` delle skill `has_mastery` e il pool di ogni skill `has_mastery`;
   il livello deriva da F-09. La xp di maestria si ferma a `xp_for_level(max_level)` (nessun guadagno oltre il 99).
@@ -714,11 +736,16 @@ func rebuild_modifiers() -> void                                   # sorgenti ma
   nessun nodo (`Log.warn`); voci non stringa, id sconosciuti o di un'altra skill → `Log.warn` e scartati; i
   prerequisiti **non** si ricontrollano al caricamento (un nodo salvato resta posseduto).
 
+- **M12 (W4, F-103, F-108)**: `add_for_action(action, share_pct)` con `share_pct < 100` (aiutante, F-102) dà `round(F-10 × share_pct/100)` e la quota F-12 su quel valore.
+  Per le azioni di **raccolta** le sorgenti diventano: `mastery_item:<action_id>` = modificatori del traguardo `resource` (scope `action:<id>`) se `L ≥ resource_at`, e **`mastery_trade:<skill_id>`**
+  = somma dei modificatori dei traguardi `trade` delle azioni con `L ≥ trade_at` (scope `skill:<id>`; nessun modificatore → `clear_source`). Le `mastery_bonuses` per oggetto (F-11) valgono solo per
+  l'artigianato. Dopo un `mastery_level_up` che attraversa 25/50/99 emette `mastery_milestone_reached(skill, action, at)` (una volta per soglia, mai in `from_save`/`new_game`) e, se serve, ricostruisce le sorgenti in un solo batch.
+  Il sottoprodotto (25) lo tira il resolver (5.8), non la maestria.
+
 ### 5.8 Azioni (`systems/actions/`) — dipendenze: data, events, modifiers, bank, skills, mastery, rng, combat (solo `stop`)
 ```gdscript
 class_name ActionMath extends RefCounted
 static func interval_ms(base_ms: int, interval_pct: float, min_ms: int) -> int          # F-03
-static func secondary_interval_ms(interval_ms: int, penalty_pct: float) -> int          # F-51 (M13)
 
 class_name ActionOutcome extends RefCounted
 var ok: bool; var reason: StringName
@@ -726,7 +753,7 @@ var outputs: Dictionary[StringName, int]; var consumed: Dictionary[StringName, i
 var xp: int; var mastery_xp: int; var shard: bool
 
 class_name GatheringResolver extends RefCounted
-static func resolve(session: GameSession, action: ActionDef) -> ActionOutcome         # 01_GDD §4, F-06, F-07
+static func resolve(session: GameSession, action: ActionDef, helper_grade: StringName = &"") -> ActionOutcome   # 01_GDD §4, F-06, F-07, F-103 (M12); helper_grade non vuoto = profilo aiutante (F-102, ModifierContext.for_helper)
 
 class_name ArtisanResolver extends RefCounted
 static func can_start(session: GameSession, action: ActionDef) -> CommandResult       # missing_inputs
@@ -735,15 +762,13 @@ static func resolve(session: GameSession, action: ActionDef) -> ActionOutcome   
 class_name ActionRunner extends RefCounted
 const SAVE_KEY := &"actions"
 const MAIN := &"main"
-const SECONDARY := &"secondary"                    # M13
 func start(skill_id: StringName, action_id: StringName, lane: StringName = MAIN) -> CommandResult
-    # unknown_id, level_too_low, missing_inputs, lane_unavailable, skill_in_other_lane; nella corsia main ferma il combattimento (REPLACED)
+    # unknown_id, level_too_low, missing_inputs, lane_unavailable (lane ≠ MAIN); nella corsia main ferma il combattimento (REPLACED)
 func stop(lane: StringName = MAIN, reason: StringName = Reasons.STOPPED_BY_USER) -> void
 func is_running(lane: StringName = MAIN) -> bool
 func get_lane(lane: StringName = MAIN) -> Dictionary     # {} oppure {"skill", "action", "elapsed_ms", "interval_ms"}
 func get_progress(lane: StringName = MAIN) -> float      # F-04
 func current_interval_ms(action_id: StringName, lane: StringName = MAIN) -> int
-func lanes_available() -> int                            # 1 nell'MVP; F-51 in M13
 func stop_reasons_log() -> Array[StringName]              # motivi di stop dall'ultima lettura (per OfflineSummary), poi svuota
 func advance(delta_ms: int) -> void
 ```
@@ -761,7 +786,8 @@ Comportamento (M1-10):
   `advance` (i modificatori si ricostruiscono dopo il caricamento); `get_lane`/`get_progress` intanto usano quello attuale.
 - `get_lane` restituisce l'`interval_ms` del ciclo corrente; `current_interval_ms` quello che avrebbe un ciclo avviato ora
   (id sconosciuto → 0 con `Log.error` di `GameData.action`; la corsia non conta fino a M13).
-- `GatheringResolver`: tiri sempre in quest'ordine su `session.rng`: doppio (F-06), poi frammento (F-07, quantità 1).
+- `GatheringResolver`: tiri sempre in quest'ordine su `session.rng`: doppio (F-06), poi frammento (F-07, quantità 1), poi (M12, F-103) il sottoprodotto del traguardo 25 se attivo
+  (`roll_pct(mastery.milestones.byproduct_chance_pct)`, quantità 1, mai raddoppiato; l'oggetto entra in `outputs`). Lo spazio per il sottoprodotto si controlla insieme agli altri oggetti nuovi.
   Lo spazio nella bank si controlla **prima** di aggiungere (`can_add` e caselle libere per gli oggetti nuovi, frammento
   compreso): se non c'è, il ciclo non conta, nulla cambia e la corsia si ferma con `bank_full` (nessun `bank_rejected`:
   il feedback è `action_stopped(bank_full)`). Ciclo riuscito: `bank_changed` → `xp_gained`/`level_up` →
@@ -1009,7 +1035,7 @@ Comportamento (M5-03):
 ```gdscript
 const SAVE_KEY := &"shop"
 func purchase_count(entry_id: StringName) -> int
-func price(entry_id: StringName) -> int               # F-17 / F-82 per formula, altrimenti cost_gold
+func price(entry_id: StringName) -> int               # M12: cost_gold (F-17/F-82 eliminate)
 func can_buy(entry_id: StringName) -> CommandResult   # unknown_id, max_purchases, requirement_not_met, not_enough_gold, bank_full, armory_full
 func buy(entry_id: StringName) -> CommandResult
 func sell_value(item_id: StringName, qty: int) -> int # F-18
@@ -1021,7 +1047,7 @@ M10: `Shop.new_game()` imposta gli acquisti di `start.purchases` (senza oro né 
 con `rebuild_modifiers`); `sell_instance` di un attrezzo unico → `item_unique` (prima di `item_equipped`).
 Da M4-05: requisiti con `req_character` (`character.meets_requirements`); effetto `item` di una base `equipment`/`tool`
 → `qty` istanze comuni con `armory.create(base, &"common", 1)`, controllo `armory_full` con `armory.can_add(qty)` al posto
-di `bank_full`; `price` con `cost_formula = &"armory_slot"` → F-82. `sell_instance` toglie il pezzo dall'Armeria e
+di `bank_full`; ~~`price` con `cost_formula = &"armory_slot"` → F-82~~ (M12: eliminato; le voci di spazio non esistono più). `sell_instance` toglie il pezzo dall'Armeria e
 aggiunge l'oro, poi `item_sold(base_id, 1, gold)`.
 Comportamento (M3-02):
 - `can_buy`/`buy`: controlli nell'ordine della firma; `max_purchases` 0 = illimitato; `bank_full` solo per effetti
@@ -1034,7 +1060,7 @@ Comportamento (M3-02):
   conteggio oltre `max_purchases` (se > 0) → limitato a `max_purchases`. Nessun segnale; i modificatori si ricostruiscono
   con `rebuild_modifiers`.
 
-### 5.12 RiftAltar (`systems/rift/rift_altar.gd`, M8) — dipendenze: data, events, modifiers, bank, skills
+### 5.12 RiftAltar (`systems/rift/rift_altar.gd`, M8; M12: il mestiere `riftbinding` è l'Incisore, API invariata; le rune hanno 5 gradi con effetto F-107, ognuna è un oggetto con il suo id) — dipendenze: data, events, modifiers, bank, skills
 ```gdscript
 const SAVE_KEY := &"rift"
 const SKILL := &"riftbinding"
@@ -1087,7 +1113,7 @@ static func apply_ui_scale(window: Window) -> void
 # chiavi: window_mode, window_size, ui_scale, vsync, fps_limit, volume, log_level
 ```
 
-### 5.15 Hint (M9) e Fratture (M12)
+### 5.15 Hint (M9) e Fratture (M13)
 ```gdscript
 class_name HintsSystem extends RefCounted      # systems/hints/hints_system.gd (M9); dipendenze: data, events
 const SAVE_KEY := &"hints"
@@ -1099,7 +1125,7 @@ func to_save() -> Dictionary                   # {"seen": [id, ...]} nell ordine
 func from_save(d: Dictionary) -> void          # tollerante: lista errata = nessuno visto; id sconosciuti scartati con Log.warn
 func pending() -> Array[StringName]            # attivati e non ancora chiusi; volatile, mai salvato
 
-class_name FractureSystem extends RefCounted   # systems/fractures/fracture_system.gd (M12); dipendenze: data, events, modifiers, rng, combat
+class_name FractureSystem extends RefCounted   # systems/fractures/fracture_system.gd (M13); dipendenze: data, events, modifiers, rng, combat
 const SAVE_KEY := &"fractures"
 func active_id() -> StringName
 func time_left_ms() -> int
@@ -1122,8 +1148,8 @@ class_name SettingsPanel extends Control       # ui/settings/; signal closed; va
     # legge/scrive solo GameSettings; in partita mostra "Salva ed esci" (end_session + scene_changer)
 class_name ToastManager extends Control        # al massimo UiStyle.TOAST_MAX_VISIBLE visibili; oltre UiStyle.TOAST_PENDING_MAX in attesa scarta il piu vecchio
 ```
-M13 non aggiunge classi: estende `ActionRunner` (corsia `SECONDARY`, `lanes_available()` con F-51). Le firme di M12
-si rivedono a inizio M12 (Fratture come mappe, `01_GDD.md` §17).
+Le corsie parallele sono eliminate (M12, W3): niente `SECONDARY`, `lanes_available()` né F-51; le sostituisce `HelperSystem` (5.21). Le firme delle Fratture
+si rivedono a inizio M13 (Fratture come mappe, `01_GDD.md` §17).
 
 ### 5.16 CharacterSystem (`systems/character/character_system.gd`) — dipendenze: data, events, modifiers, skills
 ```gdscript
@@ -1178,9 +1204,9 @@ var affix_id: StringName; var tier: int; var value: float   # tier da 1
 
 class_name Armory extends RefCounted
 const SAVE_KEY := &"armory"
-func capacity() -> int                         # F-82
-func used() -> int                             # pezzi non indossati
-func can_add(count: int = 1) -> bool
+# capacity(): TOLTA in M12 (capienza unica nel Deposito, F-100; il contatore è deposit.used()/capacity())
+func used() -> int                             # pezzi non indossati (occupante "armory" del Deposito, F-100)
+func can_add(count: int = 1) -> bool          # M12: deposit.has_room(count)
 func add(inst: ItemInstance) -> int            # assegna il uid e lo restituisce; 0 + armory_rejected se piena
 func create(base_id: StringName, rarity: StringName, ilvl: int) -> int   # ItemRoller.create + add; 0 se piena o base non equipment/tool
 func get_instance(uid: int) -> ItemInstance    # copia; null se assente
@@ -1219,7 +1245,7 @@ func use_currency(uid: int, currency_id: StringName) -> CommandResult   # M8-09,
   `item_upgraded`; `salvage` emette `armory_changed(uid, removed)`, la capacità e `item_salvaged(auto=false)`.
 - M8: `socket_stone` e `clear_socket` emettono `armory_changed(uid, updated)`; `ItemInstance.sockets` contiene solo le pietre presenti (nessuna voce vuota), le prime `Sockets.count` sono attive, le altre restano nel pezzo e tornano attive se i castoni risalgono (raffinazione).
 - Il filtro non ha segnale: la UI (M7-06) rilegge `filter_rules()` a ogni apertura/aggiornamento della pagina.
-- `add`/`create` emettono `armory_changed(uid, &"added")` e `armory_capacity_changed`; `remove`, `set_locked`,
+- `add`/`create` emettono `armory_changed(uid, &"added")` e (via `deposit.notify_changed()`) `deposit_changed`; `remove`, `set_locked`,
   `set_worn` emettono `armory_changed` (`removed`/`updated`); `set_worn` cambia `used()`.
 - `uid` crescenti da 1 (`next_uid` salvato), mai riusati.
 - Save (§6): `{"next_uid": int, "items": [ItemInstance.to_dict()], "filter": {slot: {"min_rarity": str, "min_grade": int}}}`
@@ -1285,13 +1311,101 @@ static func page_ids(data: GameData) -> Array[StringName]                       
 ```
 - `sources_of`/`uses_of` seguono l'ordine dei dati. Un `item_id` sconosciuto → `[]` con `Log.error`.
 - La Guida non emette né ascolta segnali dell'`EventBus`, non entra in `GameSession` né nel salvataggio (si ricostruisce da `GameData`).
+- **M12**: `GuideIndex.sources_of` considera anche le `loot_tables` di aree, mostri e Monoliti (e le ricette dell'Incisore e del Falegname per le borse) e i traguardi di maestria (sottoprodotti); `GuideRef.kind` aggiunge
+  `loot_table`, `milestone`, `helper_contract`. `GuideTables.ids()` aggiunge `bags`, `helper_grades`, `engraver_recipes`, `mastery_milestones:<skill>`. I contratti hanno "Serve a: assumere l'aiutante".
+
+### 5.20 Deposit (`systems/deposit/deposit.gd`, M12; F-100) — dipendenze: data, events (foglia)
+```gdscript
+class_name Deposit extends RefCounted
+const SAVE_KEY := &"deposit"
+func capacity() -> int                          # F-100: deposit.base_slots + extra_slots()
+func used() -> int                              # somma degli occupanti registrati (Bank: tipi di oggetto; Armory: pezzi non indossati)
+func free() -> int                              # max(0, capacity() − used())
+func has_room(count: int = 1) -> bool           # free() >= count
+func register_occupant(occupant_id: StringName, used_fn: Callable) -> void   # used_fn: () -> int; id duplicato → assert; la chiamano Bank e Armory in _create_systems()
+func bag_slot_count() -> int                    # deposit.bag_slots (6)
+func get_bag(slot_index: int) -> StringName     # id della borsa nello slot, &"" se vuoto o indice fuori
+func bags() -> Array[StringName]                # copia, lunghezza bag_slot_count()
+func extra_slots() -> int                       # Σ bag.slots delle borse negli slot
+func assign_bag(slot_index: int, item_id: StringName) -> void   # INTERNO: solo Bank.equip_bag/unequip_bag; &"" svuota; emette bags_changed
+func notify_changed() -> void                   # emette deposit_changed(used, capacity) se uno dei due è diverso dall'ultima emissione; la chiamano Bank e Armory dopo ogni variazione di caselle
+func new_game() -> void; func to_save() -> Dictionary; func from_save(d: Dictionary) -> void
+```
+- Sostituisce `bank_capacity_changed` e `armory_capacity_changed` (tolti dall'EventBus): un solo segnale `deposit_changed(used, capacity)` per le caselle e `bags_changed` per gli slot borsa.
+- **Comandi sulle borse** stanno in `Bank` (spostano uno stack tra casella e slot; `Deposit` non conosce `Bank`):
+```gdscript
+# in Bank (5.5)
+func equip_bag(slot_index: int, item_id: StringName) -> CommandResult
+    # in ordine: invalid_amount (slot_index fuori da 0..bag_slot_count()−1), unknown_id, not_a_bag (categoria ≠ bag), bag_slot_occupied (slot non vuoto:
+    # prima unequip_bag), not_enough_items. Effetto: 1 borsa tolta dalla Bank (bank_changed −1), poi deposit.assign_bag → bags_changed, deposit_changed
+func unequip_bag(slot_index: int) -> CommandResult
+    # in ordine: invalid_amount, slot_empty, deposit_not_empty (F-100: dopo l'operazione used' > capacity'). Effetto: slot svuotato, la borsa torna nella Bank (bank_changed +1)
+```
+- `used()` conta anche le borse non messe negli slot (sono oggetti della Bank). Le borse negli slot non occupano caselle.
+- Save (§6): `{"bags": [id | "", …]}` con esattamente `bag_slot_count()` voci. `from_save` tollerante: `bags` non lista → tutto vuoto; voce non stringa, id sconosciuto o non `bag` → `Log.warn` e slot vuoto; lista più lunga → troncata, più corta → completata con vuoti. Non controlla la capienza (le caselle già occupate non si perdono). Nessun segnale; `new_game` = slot vuoti.
+- Ordine in `_create_systems()`: `wallet`, **`deposit`**, `bank` (si registra come occupante), … `armory` (si registra come occupante). `from_save` ricarica `deposit` prima di `bank`.
+
+### 5.21 HelperSystem (`systems/helpers/helper_system.gd`, M12; F-101, F-102) — dipendenze: data, events, modifiers, bank, deposit, skills, mastery, rng
+```gdscript
+class_name HelperSystem extends RefCounted
+const SAVE_KEY := &"helpers"
+func is_helper_skill(skill_id: StringName) -> bool       # skill di categoria gathering (forestry, quarrying, angling)
+func get_grade(skill_id: StringName) -> StringName       # id di helper.grades ("apprentice"…) o &"" se nessun aiutante
+func grade_rank(skill_id: StringName) -> int             # 0 = nessuno, 1..4 (posizione in helper.grades)
+func get_action(skill_id: StringName) -> StringName      # azione assegnata, &"" se nessuna
+func is_blocked(skill_id: StringName) -> bool            # in attesa perché il Deposito è pieno
+func get_progress(skill_id: StringName) -> float         # F-04
+func interval_ms(skill_id: StringName, action_id: StringName = &"") -> int   # F-101; action_id vuoto = azione corrente; 0 se manca l'aiutante o l'azione
+func available_actions(skill_id: StringName) -> Array[StringName]   # azioni della skill con level ≤ livello del giocatore (ordine dei dati)
+func hire(contract_item_id: StringName) -> CommandResult
+    # in ordine: unknown_id, not_a_contract, not_enough_items, helper_not_better (grado ≤ aiutante attuale: il contratto NON si consuma)
+func set_action(skill_id: StringName, action_id: StringName) -> CommandResult   # unknown_id (skill non gathering o azione di un'altra skill), no_helper, level_too_low
+func stop(skill_id: StringName) -> void                  # toglie l'azione (l'aiutante resta); no-op senza azione
+func advance(delta_ms: int) -> void                      # fase _PHASE_HELPERS, dopo le azioni
+func new_game() -> void; func to_save() -> Dictionary; func from_save(d: Dictionary) -> void
+```
+- **Un solo aiutante per mestiere**, a un solo grado. `hire`: toglie 1 contratto dalla Bank, imposta il grado (sostituisce quello di grado più basso), **conserva
+  l'azione assegnata** se esiste e azzera il progresso; `helper_changed`.
+- `set_action` con la stessa azione già assegnata: no-op ok. Altrimenti progresso a 0 e `helper_changed`.
+- `advance`: per ogni mestiere con aiutante e azione, accumula il tempo; l'intervallo è F-101 fissato all'inizio di ogni ciclo (come F-03 per il giocatore); a fine
+  ciclo chiama `GatheringResolver.resolve(session, action, grade_id)` (profilo aiutante: `ModifierContext.for_helper`, XP e maestria in quota F-102, stessi tiri
+  di F-06/F-07/F-103). Esito riuscito: `helper_completed(skill, action, outputs)`. Deposito pieno per un oggetto nuovo (come `bank_full` della raccolta): il ciclo non
+  conta, `blocked = true` con `helper_blocked(skill, true)` una sola volta e una `notification_requested` (warning); a ogni `advance` riprova e, quando c'è posto,
+  `helper_blocked(skill, false)` e riparte (il progresso non si perde). Lavora in parallelo a qualunque cosa faccia il giocatore (azione, progetto, combattimento) e **anche offline**.
+- Nessuna sorgente di modificatori e nessun `rebuild_modifiers`. Non usa l'attrezzo del giocatore (`ModifierContext.for_helper`); i nodi, i traguardi di maestria e le
+  rune valgono anche per lui.
+- Save (§6): `{skill_id: {"grade": id, "action": id | "", "elapsed_ms": int}}`, solo i mestieri con aiutante. `from_save` tollerante: skill non gathering, grado
+  sconosciuto → `Log.warn` e scartato; azione sconosciuta/di un'altra skill/oltre il livello → aiutante senza azione; `elapsed_ms` non intero o negativo → 0.
+- Contratto: oggetto `category: contract` (`contract.skill`, `contract.grade`); si usa con `hire` dalla Bank (UI: pulsante "Assumi" sul pannello dell'oggetto e sulla riga
+  Aiutante del mestiere).
+
+### 5.22 Incisore e tabelle di drop (M12; F-103…F-107)
+```gdscript
+class_name EngraverResolver extends RefCounted   # systems/actions/engraver_resolver.gd — azioni con kind = crystallize
+static func crystal_chance_pct(engraver_level: int, data: GameData) -> float        # F-104 (40…90)
+static func fail_loss(qty: int, data: GameData) -> int                              # F-104: floor(qty × crystal_fail_loss_pct / 100)
+static func can_start(session: GameSession, action: ActionDef) -> CommandResult     # missing_inputs
+static func resolve(session: GameSession, action: ActionDef) -> ActionOutcome       # un solo tiro roll_pct su session.rng per ciclo
+```
+- `ActionOutcome` ha un campo nuovo `var failed: bool` (tiro fallito: il ciclo conta, `consumed` parziale, nessun output). `ActionRunner` smista per `action.kind`:
+  `crystallize` → `EngraverResolver`; tutte le altre azioni dell'Incisore (Lastra, Fondere, Incidere, Potenziare) sono ricette ordinarie di `ArtisanResolver` (F-08 e F-06 valgono come per ogni artigianato).
+- `crystallize`: spazio controllato **prima** del tiro come in `ArtisanResolver` (Cristallo nuovo senza casella libera, al netto di quelle liberate dalla Polvere → stop `bank_full`, nessun tiro).
+  Riuscito: consuma `N` Polvere, +1 Cristallo, XP e maestria pieni. Fallito: consuma `fail_loss(N)`, XP = `floor(xp × lost / N)`, nessuna maestria, `action_completed` con `outputs` vuoto e il ciclo ripete se restano `N` Polvere (altrimenti `missing_inputs`).
+- `data.loot_table(id)` / `data.loot_tables()` (`LootTableDef`: `id`, `entries: Array[DropEntry]`). `AreaDef`, `MonsterDef` e `RiftStoneDef` hanno `loot_tables: Array[StringName]`.
+  **Ordine alla morte di un mostro** (aggiunge a 5.10): oro (F-31), `drops` propri nell'ordine dei dati (F-32), poi le tabelle dell'**area** nell'ordine, poi quelle del **mostro**,
+  ogni voce con un tiro di probabilità e poi uno di quantità (F-32), infine il frammento (F-07). Per un Monolito: `drops` propri, poi le `loot_tables` **del Monolito** (non quelle dell'area).
+  Gli oggetti vanno nella borsa del bottino (o nella Bank con `auto_loot`), come ogni drop.
+- `MilestoneDef` (`core/data/defs/milestone_def.gd`): `var at: int; var type: StringName; var item: StringName; var modifiers: Array[Modifier]`. `ActionDef` ha `var kind: StringName` (`&"craft"` default,
+  `&"crystallize"`) e `var milestones: Array[MilestoneDef]` (vuoto per le azioni non di raccolta). `ItemDef` ha `bag_slots: int` (0 se non borsa), `contract_skill: StringName`,
+  `contract_grade: StringName`, `infusion_grade: int` (default 1), `infusion_family: StringName`; `is_bag()`, `is_contract()`. `class_name HelperGradeDef` (`id`, `interval_mult`);
+  `GameData.helper_grades() -> Array[HelperGradeDef]` (ordine di grado), `helper_grade(id)`, `contract_for(skill_id, grade_id) -> ItemDef`.
 
 ## 6. Formato del salvataggio (`user://saves/slot_<n>.json`)
 
-Versione 3 da M10 (v2 da M4-03, D3). Un save v1 o v2 non si carica (`version_unsupported`, nessuna migrazione: nessun giocatore reale ancora).
+Versione **4 da M12** (v3 da M10, v2 da M4-03, D3). Un save v1, v2 o **v3 non si carica** (`version_unsupported`, nessuna migrazione: nessun giocatore reale ancora; gli "spazi" comprati nei v3 non contano). `SaveMigrator.CURRENT_VERSION` = 4.
 ```json
 {
-  "format_version": 3,
+  "format_version": 4,
   "game_version": "0.2.0",
   "slot": 2,
   "player_name": "Davide",
@@ -1319,7 +1433,9 @@ Versione 3 da M10 (v2 da M4-03, D3). Un save v1 o v2 non si carica (`version_uns
                "between_ms": 700, "enemies": [],
                "abilities": {"whirl": 3000}, "buffs": {}, "effects": {"chain_cleave": {"count": 2}},
                "loot": [{"item": "boar_tusk", "qty": 2}], "kills": {"plains_boar": 41}, "deaths": 1, "food_eaten": 12},
-    "shop": {"purchases": {"bank_slot": 3, "auto_eat_1": 1}},
+    "shop": {"purchases": {"loot_pocket": 2, "auto_eat_1": 1}},
+    "deposit": {"bags": ["bag_canvas", "bag_leather", "", "", "", ""]},
+    "helpers": {"forestry": {"grade": "journeyman", "action": "cut_redbirch", "elapsed_ms": 4200}},
     "rift": {"sockets": ["inf_swift_hands", "", "", "", ""]},
     "hints": {"seen": ["first_action"]},
     "fractures": {"active": "", "time_left_ms": 0, "next_in_ms": 9000000}
@@ -1329,7 +1445,7 @@ Versione 3 da M10 (v2 da M4-03, D3). Un save v1 o v2 non si carica (`version_uns
 Regole: chiavi assenti in `modules` = stato di partita nuova per quel sistema (così aggiungere un sistema non richiede
 migrazioni); id sconosciuti al caricamento vengono scartati con `Log.warn`; enum sempre come stringhe; `total_level`,
 `player_name`, `saved_at_unix_ms`, `play_time_ms` in testa servono al menu senza caricare tutto. I modificatori e le
-statistiche derivate non si salvano. Lo stato del giocatore non esiste fuori da questo file. In `combat.enemies` ogni
+statistiche derivate non si salvano (M12: anche la capienza del Deposito). Lo stato del giocatore non esiste fuori da questo file. In `combat.enemies` ogni
 voce è `{"monster", "hp", "timer_ms"}` (posizione = indice); `loadout` e `abilities`/`effects`/`buffs` di `combat` esistono da M6.
 
 ## 7. Contratti della UI (`res://ui/`)
@@ -1460,7 +1576,7 @@ const REFUSED_TEXT_DEFAULT: String
 # modificatori (Armory.instance_modifiers), requisiti, confronto con il pezzo indossato nello stesso slot,
 # "Equipaggia" (per una spada: "In mano" / "Seconda mano"), "Blocca", "Vendi" (shop.sell_instance); da M7 raffina e
 # smantella. Nessuna copia dello stato: il pannello tiene solo l'uid. Ridisegno su armory_changed,
-# armory_capacity_changed, equipment_changed, character_level_up (scollegati in unbind).
+# deposit_changed (M12), equipment_changed, character_level_up (scollegati in unbind).
 # Il confronto con il pezzo indossato elenca le differenze (candidato meno indossato) senza colori buono/cattivo.
 # Stato di presentazione ammesso: i due filtri e l'uid selezionato. Costanti di presentazione: UiStyle.ARMORY_*.
 
@@ -1706,7 +1822,7 @@ sessione in `_ready` (non aspetta `session_started`), crea il `ToastManager` con
 prima pagina di skill disponibile (altrimenti `bank`) e su `session_ended` scollega TopBar, Sidebar, PageHost e toast;
 lo stesso quando la schermata esce dall'albero. Le voci della Sidebar senza pagina sono disabilitate con "In arrivo"
 (`is_available` = `PageHost.has_page`); il livello delle skill si ridisegna su `level_up`, la TopBar su `gold_changed` e
-`bank_capacity_changed`. Numeri via `NumberFormat`; costanti di presentazione di tooltip e GameWindow in
+`deposit_changed` (M12; era bank_capacity_changed). Numeri via `NumberFormat`; costanti di presentazione di tooltip e GameWindow in
 `UiStyle.TOOLTIP_*`/`UiStyle.WINDOW_*`.
 Pagina skill (M1-15): `SkillPage` legge la skill da `PageHost.argument_of(page_id)` in `bind` (skill sconosciuta:
 `Log.warn`, pagina vuota), crea per ogni azione di `actions_for_skill` una `ActionCard` (una `RecipeCard` se ha `inputs`) e si collega a sei segnali di
@@ -1722,7 +1838,7 @@ chiama di nuovo `set_item` quando la quantità cambia. Costanti di presentazione
 Bank minima (M1-18): `BankPage` disegna una `ItemSlotView` per voce di `bank.stacks()`, nell'ordine della bank (caselle
 riusate per indice, quelle in più liberate; nessuna casella vuota disegnata), il contatore "Caselle: usate / capienza"
 da `bank.used()`/`bank.capacity()`, la riga di bank piena (`used >= capacity`) e "La bank è vuota.". Si collega a
-`bank_changed` e `bank_capacity_changed` di `session.events` e a ognuno rilegge tutto (nessuna copia delle quantità oltre
+`bank_changed` e `deposit_changed` (M12) di `session.events` e a ognuno rilegge tutto (nessuna copia delle quantità oltre
 quella di presentazione di `ItemSlotView`); scollega in `unbind` e in `_exit_tree`. Solo vista: blocco, ordine,
 spostamento e vendita arrivano con M2-04/M3-06.
 Bank completa (M2-04): ricerca per nome (sottostringa senza distinzione di maiuscole, ordine della bank conservato;
@@ -1800,6 +1916,8 @@ Opzioni aggiunte in M7-07, oltre a quelle di M5-06: `loot=0|1` (con 1 stampa anc
 Pietre del Rift, scontro con la Pietra e costo atteso della raffinazione) e `loadout=none|auto` (con `auto` riempie gli slot
 aperti di tratti e abilità con i primi sbloccati consentiti dall'assetto; default `none`). `scope=easiest` include le Pietre.
 
+Opzioni di M12-07: `helpers=0|1` (simula i tre aiutanti Maestro e stampa XP/ora di mestiere con e senza aiutanti, per l'invariante F-102), `engraver=0|1` (polvere, schegge e cristalli per ora e tempo per un Cristallo), `deposit=0|1` (caselle usate nel tempo e perdita di oggetti con la borsa del bottino piena).
+
 ### 7.z UI di P-01/P-02 (pagina Personaggio, Banco del fabbro, slot Cibo)
 ```gdscript
 # core/session/player_name.gd (P-01/P-03): rinomina del personaggio dello slot corrente
@@ -1816,3 +1934,37 @@ func show_food(food: ItemDef, count: int) -> void # count = quantita' nel deposi
 func open_menu(foods: Array[Dictionary]) -> void
 func food_id() -> StringName; func menu() -> PopupMenu; func clear_button() -> Button
 ```
+
+
+### 7.w UI della Riforma 2 (M12-06; nessuno stato di gioco nella UI, solo letture e comandi)
+```gdscript
+# BankPage (rotta bank) diventa la pagina "Deposito" a due schede sulla stessa capienza (W1)
+class_name DepositTabs extends TabContainer     # ui/pages/bank/deposit_tabs.gd (+ .tscn), dentro BankPage; nodo "DepositTabs"
+# Scheda "Oggetti": bank.stacks() (come oggi). Scheda "Equipaggiamento": armory.instances() non indossate (armory.is_worn).
+# Entrambe disegnano `deposit.capacity()` caselle: le piene dai dati, le vuote come nodi "EmptyCell" (decorativi, nessun dato) fino alla capienza;
+# il contatore "usate / capienza" viene da deposit.used()/capacity(); su deposit_changed e bags_changed rileggono tutto. Nessuna copia dei dati.
+class_name BagSlotsBar extends HBoxContainer    # ui/pages/bank/bag_slots_bar.gd (+ .tscn), in cima alla BankPage; nodi "BagSlot_0" … "BagSlot_5"
+signal equip_requested(slot_index: int, item_id: StringName)   # la pagina chiama bank.equip_bag
+signal unequip_requested(slot_index: int)                      # la pagina chiama bank.unequip_bag
+func redraw(session: GameSession) -> void       # deposit.bags(), nome e caselle della borsa; uno slot vuoto offre le borse possedute (bank.stacks con is_bag)
+# Rifiuti in MessageLabel con BagTexts.REFUSED (deposit_not_empty: "Libera prima le caselle in più", bag_slot_occupied, not_a_bag, not_enough_items).
+class_name HelperRow extends HBoxContainer      # ui/pages/skill/helper_row.gd (+ .tscn), interna a SkillPage dei tre mestieri di raccolta; nodo "HelperRow"
+signal change_requested(skill_id: StringName, action_id: StringName)   # la pagina chiama helpers.set_action
+signal stop_requested(skill_id: StringName)                            # helpers.stop
+signal hire_requested(contract_item_id: StringName)                    # helpers.hire
+func redraw(session: GameSession) -> void       # "Aiutante: <grado> — lavora: <risorsa> [Cambia] [Ferma]"; senza aiutante "Aiutante: nessuno" e i contratti posseduti per "Assumi";
+                                                # barra da helpers.get_progress, intervallo da helpers.interval_ms; se is_blocked "In attesa: Deposito pieno"
+# Scelta della risorsa: helpers.available_actions (nomi = solo il nome della risorsa). Redraw su helper_changed, helper_completed, helper_blocked, bank_changed, level_up.
+```
+- **Pagina dell'Incisore**: la `SkillPage` generica per `riftbinding` (nessuna pagina nuova); le sezioni per tipo di azione (Lastra, Fondere, Cristalli, Incidere,
+  Potenziare) sono raggruppamenti di presentazione dei dati (`ActionDef.kind`, id con prefisso); ogni azione `crystallize` mostra "Probabilità: N%"
+  (`EngraverResolver.crystal_chance_pct` al livello attuale) e "Fallimento: perdi M Polvere" (`fail_loss`). Nessuna ricetta mostra produzione "dal nulla": gli ingredienti
+  sono sempre drop, e la card dice da dove vengono (stessa fonte di `GuideIndex.sources_of`).
+- **TopBar** mostra `deposit.used()/capacity()` e si aggiorna su `deposit_changed` (non più `bank_capacity_changed`); `ArmoryPage`/`EquipmentPage` mostrano il contatore del Deposito
+  (stesse `used/capacity`) e si ridisegnano su `deposit_changed` al posto di `armory_capacity_changed`.
+- **Pannello dell'oggetto** (`BankItemPanel`): per una `bag` il pulsante "Metti nello slot" (primo slot libero → `equip_requested`); per un `contract` il pulsante "Assumi" (`hire`).
+- **Shop**: scompaiono le voci di spazio e la bottega "deposito"; **Combattimento/Guida/testi**: "Monolito del Rift" al posto di "Pietra del Rift" (bersaglio speciale), "Incisore" al posto
+  di "Legatura del Rift", i nomi di pietre/valute/rune di `NOMI.md`; testi in `UiStyle`/file di testi centralizzati, nessuna stringa vecchia visibile (test).
+- **Toast/feedback**: `mastery_milestone_reached` → toast "Traguardo di maestria: <risorsa> (25/50/99)"; `helper_blocked(true)` → avviso "L'aiutante del <mestiere> è fermo: Deposito pieno".
+- **Guida** (M12-06): pagine scritte a mano nuove (`data/guide/`): Deposito e borse, Aiutanti, Maestria per risorsa, Incisore, Monoliti del Rift (sezioni e `help_for` di
+  `04_DATA_SCHEMA.md` §19; "?" nelle pagine Deposito e dell'Incisore); tabelle generate nuove in `GuideTables`: `bags`, `helper_grades`, `engraver_recipes`, `mastery_milestones:<skill>`.

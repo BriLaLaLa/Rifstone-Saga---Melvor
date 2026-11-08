@@ -9,7 +9,7 @@ Nel mondo di RiftStone le Pietre del Rift si sono incrinate e ogni giorno ne cad
 Roccarossa. Il giocatore è uno **Spadaccino**, che caccia i mostri attirati dai frammenti: affronta
 **gruppi** di nemici, raccoglie bottino con **rarità e affissi**, lo **raffina** e lo incastona, e costruisce la sua
 build con **tratti** e **abilità** che cambiano il modo di combattere. Per sostenere la caccia taglia legna, scava,
-pesca, forgia i componenti, cucina, lavora il legno e impara a **legare** i frammenti del Rift. Il gioco va avanti da solo, anche a
+pesca, forgia i componenti, cucina, lavora il legno e impara a **incidere** in rune, pietre e cristalli ciò che i mostri lasciano cadere. Il gioco va avanti da solo, anche a
 finestra chiusa (fino a 12 ore): il giocatore decide la build, dove combattere, cosa tenere e cosa potenziare.
 
 È un idle/incremental con il **combattimento al centro** (D1): il ciclo principale (combatti → bottino → potenziamento
@@ -23,7 +23,7 @@ room esteso a Melvor Idle, Metin2, Path of Exile e No Rest for the Wicked: si pr
 1. **Progressione sempre leggibile.** Ogni azione mostra cosa dà (XP, oggetti, maestria) e quanto manca al prossimo
    sblocco. Ogni numero visibile ha una formula in `02_FORMULAS.md` e un test.
 2. **Scelte che contano nel lungo periodo.** Assetto (spadone, spada e scudo, due spade), tratti, abilità, bottino da
-   tenere e potenziare, maestria a nodi e infusioni del Rift creano build e percorsi diversi tra un giocatore e
+   tenere e potenziare, maestria a nodi, rune dell'Altare e aiutanti creano build e percorsi diversi tra un giocatore e
    l'altro. Ogni skill di supporto produce qualcosa che serve al combattimento o al potenziamento.
 3. **Rispetto del tempo del giocatore.** Progressione offline fino a 12 ore con riepilogo dettagliato al rientro;
    nessuna punizione per chi chiude il gioco.
@@ -49,7 +49,7 @@ Nomi visibili dalla riforma R4 (M10; fonte `NOMI.md`, gli **id non cambiano**, Q
 | Artigianato | `forging` | Fabbro (era Forgiatura) | lingotti e **piastre**; i **progetti** (craft singolo di un pezzo con rarità) |
 | Artigianato | `hearthcraft` | Cuoco (era Focolare) | cibo cucinato (cura in combattimento) |
 | Artigianato | `woodwright` | Falegname (era Intaglio) | **componenti**: impugnature, telai degli scudi, manici |
-| Rift | `riftbinding` | Legatura del Rift | infusioni per l'Altare, pietre da incastonare, valute del Rift (M8) |
+| Rift | `riftbinding` | **Incisore** (era Legatura del Rift, R-03/W5) | trasforma i **drop dei mostri**: pietre (Fondere), Cristalli (Cristallizzare), rune a 5 gradi (Incidere, Potenziare) per l'Altare |
 
 La classe `rift_blade` si chiama **Spadaccino** (era "Lama del Rift"). La UI dice **Deposito** dove i documenti dicono
 "bank". Nei documenti tecnici i nomi precedenti compaiono ancora in alcuni riferimenti storici: vale questa tabella.
@@ -59,16 +59,22 @@ craft fatto come si deve** (un progetto + molti materiali + un componente raro =
 artigiane non producono più equipaggiamento in serie. Un solo **attrezzo unico** per mestiere (accetta, piccone, canna),
 potenziato con la raffinazione +0…+9 che riesce sempre.
 
+**Riforma 2 (M12; decisioni W1-W7, `DECISIONS_LOG.md`)**: i tre mestieri di raccolta hanno ciascuno un **aiutante** (contratti che cadono dai mostri; gradi Apprendista,
+Garzone, Esperto, Maestro) che lavora anche offline; ogni risorsa ha i suoi traguardi di maestria; l'**Incisore** (ex Legatura del Rift) non crea dal nulla ma trasforma i drop
+dei mostri; pietre, valute e polvere **cadono dai mostri** e dai Monoliti; un solo **Deposito** con borse; nomi nuovi in `NOMI.md`. Le corsie parallele non esistono più.
+
 ## Differenze rispetto al modello di riferimento (Melvor Idle)
 
 | Area | Nel modello di riferimento | In RiftStone Saga: Idle |
 |---|---|---|
 | Maestria | Pool con 4 soglie fisse che danno bonus finché il pool resta pieno | **Maestria a nodi**: il pool si spende per comprare nodi permanenti di un piccolo albero per skill (o per alzare la maestria di un oggetto) |
-| Potenziamenti | Molte fonti diverse | **Infusioni del Rift**: la skill Legatura del Rift crea infusioni da incastonare nelle prese dell'Altare; ogni infusione è un insieme di modificatori |
+| Potenziamenti | Molte fonti diverse | **Rune del Rift**: l'Incisore trasforma i drop dei mostri in rune (5 gradi) da mettere negli incavi dell'Altare; ogni runa è un insieme di modificatori |
 | Combattimento | Duello contro un mostro alla volta, skill di combattimento separate | **Gruppi di mostri** (1-6) con bersagli e motore a eventi; un **livello del personaggio** unico; tratti e abilità della classe |
 | Equipaggiamento | Oggetti impilabili e uguali tra loro, prodotti in serie dall'artigianato | **Pezzi unici** nell'Armeria con rarità e affissi a gradi, dai **mostri** o da **un singolo craft** (progetto + materiali + componente raro); raffinazione +0…+9 che non distrugge; castoni |
-| Eventi | Nessun evento periodico nel gioco base | **Pietre del Rift** (M7): incontri speciali con garanzia; **Fratture del Rift** (dopo l'MVP, M12) |
-| Azioni | Una sola azione alla volta | **Due azioni in parallelo** (dopo l'MVP, M13): una seconda corsia per un'azione non di combattimento, con penalità di velocità |
+| Eventi | Nessun evento periodico nel gioco base | **Monoliti del Rift** (M7, ex "Pietre del Rift"): incontri speciali con garanzia; **Fratture del Rift** come mappe (dopo l'MVP, M13) |
+| Azioni | Una sola azione alla volta | Una azione (o il combattimento) alla volta, più gli **aiutanti** (M12): un aiutante per mestiere di raccolta lavora mentre il giocatore combatte, con tutte le risorse ma il 25% dell'XP e più lento di lui |
+| Maestria della raccolta | Bonus per oggetto uguali per ogni risorsa | **3 traguardi per ogni risorsa** (sottoprodotto, bonus della risorsa, bonus del mestiere) e un albero di nodi **diverso per ogni mestiere** (M12) |
+| Inventario | Una bank a caselle comprate | Un **Deposito unico** (oggetti ed equipaggiamento sulla stessa capienza) che cresce con **6 slot borsa** (M12), non con caselle in vendita |
 | Morte | Si perde un oggetto equipaggiato a caso | Si perde il **contenuto della borsa del bottino** (loot non ancora raccolto); l'equipaggiamento è al sicuro |
 | Precisione | Formula a due rami | Formula originale a rapporto: `AR / (AR + ER)`, limitata tra 5% e 95% |
 | Triangolo | Mischia > distanza > magia > mischia | **Lama > Arcano > Mira > Lama** |
@@ -84,9 +90,9 @@ Nell'MVP (M0-M9) **non** ci sono:
 - elementi (fuoco/ghiaccio/fulmine) e resistenze, oggetti unici, supporti delle abilità;
 - classi oltre la Lama del Rift, e quindi archi, bastoni e le loro munizioni o rune (Q6, Q37);
 - dungeon a ondate, boss con meccaniche, incarichi di caccia, preghiere, farming, agricoltura, pozioni;
-- schede (tab) multiple della bank (vedi `OPEN_QUESTIONS.md`);
+- schede (tab) per categoria della bank: il Deposito ha solo le due schede Oggetti ed Equipaggiamento, sulla stessa capienza (M12, W1);
 - multiplayer, cloud save, achievement di piattaforma, mobile, web, localizzazione oltre l'italiano;
-- Fratture del Rift come mappe (M12), azioni in parallelo (M13), seconda classe, boss e dungeon (M14+): documentati
+- Fratture del Rift come mappe (M13), seconda classe, boss e dungeon (M14+): documentati
   o accennati, pianificati dopo l'MVP.
 
 Nell'MVP **ci sono** (prima erano fuori scope): affissi casuali, rarità, raffinazione +N, castoni e pietre (M4-M8).

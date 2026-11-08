@@ -94,10 +94,10 @@ Parametri: `mastery.base_factor = 1.0`, `mastery.per_level = 0.1`, `mastery.rati
 Esempi: t 3, L 1, R 1/792 → **3**; t 3, L 50, R 0,25 → **20**; t 3, L 99, R 1,0 → **41**; t 2,5, L 10, R 0,05, pct 5 → **5**.
 Test: `tests/systems/mastery/test_mastery_math.gd`.
 
-### F-11 Bonus della maestria per oggetto
+### F-11 Bonus della maestria per oggetto (dal M12 solo artigianato; la raccolta usa F-103 e F-108)
 Per ogni regola in `skill.mastery_bonuses`: `every_levels: k` → valore × `floor(L/k)`; `at_level: n` → valore se `L ≥ n`.
 Scope dei modificatori: `action:<id>`. Regole iniziali:
-- raccolta: `every_levels 10 → double_item_chance +1`; `at_level 99 → double_item_chance +5`;
+- ~~raccolta: `every_levels 10 → double_item_chance +1`; `at_level 99 → double_item_chance +5`~~ (**sostituita in M12** dai traguardi per risorsa, F-103/F-108; gli esempi di raccolta qui sotto non valgono più);
 - artigianato: `every_levels 10 → preservation_chance +1.5`; `at_level 99 → skill_interval_pct −5`.
 Esempi: raccolta L 35 → +3; L 99 → +9 +5 = **+14**; artigianato L 50 → +7,5 conservazione; L 99 → +13,5 e −5% intervallo.
 Test: `tests/systems/mastery/test_mastery_system.gd`.
@@ -123,11 +123,10 @@ Test: `tests/systems/mastery/test_mastery_nodes.gd` (`test_f15_examples`, `test_
 
 ## 4. Bank, oro, shop
 
-### F-16 Capienza della bank
-`capacity = bank.base_slots + floor(T(bank_slots, global))`; `bank.base_slots = 24`.
-Esempio: 3 caselle comprate → 27. Test: `tests/systems/bank/test_bank.gd`.
+### F-16 Capienza della bank — **SOSTITUITA da F-100 (M12, W1)**
+La capienza è una sola per Bank e Armeria (Deposito); la stat `bank_slots` e `bank.*` spariscono.
 
-### F-17 Prezzo della prossima casella
+### F-17 Prezzo della prossima casella — **ELIMINATA in M12 (W2)**: le caselle non si comprano più, vedi le borse (§8.6b, F-100). Testo storico:
 `n` = caselle già comprate. `price(n) = min(bank.slot_cost_cap, floor(bank.slot_cost_base × bank.slot_cost_growth^n))`
 Parametri: `slot_cost_base = 400`, `slot_cost_growth = 1.09`, `slot_cost_cap = 2000000`. Massimo di caselle comprabili: `max_purchases` della voce `bank_slot` (§8.6, `data/shop/shop.json`, 150).
 | n | prezzo | n | prezzo |
@@ -349,7 +348,7 @@ Intervalli di formato dei parametri (validatore, `04_DATA_SCHEMA.md` §14): `n` 
 
 ## 5b. Armeria e bottino (F-82…F-89)
 
-### F-82 Capienza dell'Armeria e prezzo delle caselle
+### F-82 Capienza dell'Armeria e prezzo delle caselle — **ELIMINATA in M12 (W1, W2)**: capienza unica F-100. Testo storico:
 `capacity = armory.base_slots + floor(T(armory_slots, global))`; `armory.base_slots = 40` (Q33). Contano solo i pezzi
 **non indossati**. Prezzo della prossima casella (voce `armory_slot` dello shop, `cost.formula = "armory_slot"`):
 `price(n) = min(armory.slot_cost_cap, floor(armory.slot_cost_base × armory.slot_cost_growth^n))`, con 1000, 1.12, 2000000.
@@ -394,7 +393,7 @@ affissi non cambiano.
 Esempi: +5 → +6 con +10% → 60,5%; fallimento da +5 → +4; fallimento da +3 → resta +3; `power_bonus` 48 a +3 → 62,4;
 spada T4, +5 → +6: 6.400 oro, 3 lingotti T4, 5 frammenti. Test: `tests/systems/armory/test_upgrade.gd`.
 
-### F-87 Pietre del Rift (M7)
+### F-87 Monoliti del Rift (M7; ex "Pietre del Rift", W7: solo il nome visibile cambia, id invariati)
 Dopo ogni uccisione (non di una Pietra): `since += 1`; appare una Pietra se `since ≥ rift_stone.pity_kills` (300)
 oppure `roll_pct(chance)` con `chance` = `rift_stone_chance_pct` dell'area se presente, altrimenti `rift_stone.chance_pct` (0.5; Q46); quando appare `since = 0` e il prossimo incontro (dopo `BETWEEN`) è la
 Pietra dell'area. La Pietra non attacca: ogni `pulse_ms` infligge `pulse_damage` al giocatore (senza tiro, ridotto da
@@ -484,6 +483,97 @@ frammenti: `salvage.shards_by_rarity[rarity] × grado + N` (comune 0, magico 1, 
 impugnature, 3 frammenti; corpo grado 3 → 4 piastre; spadone grado 8 raro +2 → 4 piastre di Riftite, 0 impugnature, 26
 frammenti; anello grado 5 raro → 0 componenti, 15 frammenti. Test: `tests/systems/armory/test_salvage.gd`.
 
+## 5d. Deposito, aiutanti, maestria per risorsa e Incisore (F-100…F-108, M12, Riforma 2)
+
+Fonte: decisioni W1-W7 (`DECISIONS_LOG.md`). Tutti i valori sono **valori di partenza** (chiavi di `balance.json` in §9) da
+tarare in M12-07 con `tools/sim_combat.gd` (Q58-Q61); gli esempi sono casi di test e cambiano insieme ai valori.
+
+### F-100 Capienza del Deposito
+`capacity = deposit.base_slots + Σ slots delle borse negli slot borsa` (`deposit.base_slots = 60`, `deposit.bag_slots = 6`;
+una borsa è un oggetto `category: bag` con `bag.slots`, §8.6b). `used = caselle della Bank (un tipo di oggetto impilato = 1)
++ pezzi dell'Armeria non indossati (1 ciascuno)`; `free = capacity − used`. Le borse messe negli slot borsa **non** occupano
+caselle; una borsa fuori dagli slot è un oggetto della Bank (1 casella). Il solo scopo della capienza è accettare o rifiutare
+oggetti nuovi (`bank_full` / `armory_full`).
+Togliere una borsa dallo slot (`unequip_bag`): la borsa torna nella Bank; si può solo se, dopo, `used' ≤ capacity'`, con
+`capacity' = capacity − bag.slots` e `used' = used + 1` (1 solo se la borsa non ha già uno stack nella Bank); altrimenti
+`deposit_not_empty`. Mettere una borsa (`equip_bag`) la toglie dalla Bank (1 pezzo) e aumenta la capienza.
+Esempi: nessuna borsa → **60**; Borsa di tela (+6) e Borsa di cuoio (+10) → **76**; sei Borse runiche (+24) → **204**.
+Con capienza 76 e `used` 66: togliere la Borsa di cuoio → 66 + 1 = 67 > 66 → `deposit_not_empty`; con `used` 65 → 66 ≤ 66 → ok.
+Test: `tests/systems/deposit/test_deposit.gd`.
+
+### F-101 Intervallo dell'aiutante
+`p_h = total_without(skill_interval_pct, ctx_action, [equipment:tool_<skill>])` (come F-05 senza la sorgente dell'attrezzo del
+giocatore: l'aiutante non lo usa; nodi, maestria della risorsa e del mestiere, rune valgono anche per lui).
+`base_h = F-03(base_interval_ms, p_h)` (con il minimo `action.min_interval_ms`); `interval_h = round(base_h × mult(grade))`,
+`mult` da `helper.grades[].interval_mult` = 3,0 (Apprendista), 2,5 (Garzone), 2,0 (Esperto), 1,5 (Maestro).
+Esempi: Betulla 3000 ms, `p_h` 0 → Apprendista **9000**, Garzone **7500**, Esperto **6000**, Maestro **4500**;
+`p_h` −10 → base 2700, Maestro **4050**; 1000 ms con `p_h` −80 → base 250 (minimo), Maestro **375**.
+Per costruzione l'aiutante è almeno `mult` volte più lento del giocatore con la stessa azione. Test:
+`tests/systems/helpers/test_helper_math.gd`.
+
+### F-102 XP e maestria dell'aiutante
+`xp_h = floor(F-02(base_xp, T_h(skill_xp_pct)) × helper.xp_pct / 100)` con `helper.xp_pct = 25` (`T_h` come in F-101);
+`mxp_h = round(F-10 × helper.mastery_pct / 100)` con `helper.mastery_pct = 25`; il pool riceve la quota F-12 di `mxp_h`.
+Prodotti, doppio prodotto (F-06), Frammento (F-07) e sottoprodotto (F-103) come per il giocatore (**tutte le risorse**).
+Esempi: XP base 10, pct 0 → F-02 = 10 → **2**; base 28, pct 25 → 35 → **8**; base 3 → 0 (nessun `xp_gained`).
+`mxp`: F-10 = 3 → **1**; 20 → **5**; 41 → **10**; 5 → **1**; F-12 su `mxp_h` 5 → **1**.
+**Invariante di bilanciamento** (test): `3 × helper.xp_pct / (100 × min(interval_mult)) ≤ 1` (3 aiutanti Maestro: 3 × 25 /
+150 = 0,5 ≤ 1: combattere con tre aiutanti non dà più XP di mestiere all'ora del lavorare di persona su un solo mestiere).
+Test: `tests/systems/helpers/test_helper_math.gd`, `tests/data/test_balance_invariants.gd`.
+
+### F-103 Traguardi della maestria per risorsa
+Ogni azione di raccolta ha 3 traguardi in `milestones` (`data/actions/<skill>.json`, `04_DATA_SCHEMA.md` §6), al **livello di
+maestria dell'azione** `L` (F-09), soglie da `mastery.milestones.{byproduct_at, resource_at, trade_at}` = 25, 50, 99:
+- **25 (sottoprodotto)**: se `L ≥ 25`, dopo il tiro del Frammento (F-07) un tiro `roll_pct(mastery.milestones.byproduct_chance_pct)`
+  (2,0) dà 1 sottoprodotto (`item` del traguardo; mai raddoppiato da F-06). Vale anche per l'aiutante (F-102). Ordine dei
+  tiri su `session.rng`: doppio (F-06), Frammento (F-07), sottoprodotto.
+- **50 (bonus della risorsa)**: se `L ≥ 50`, i `modifiers` del traguardo con scope `action:<id>` (sorgente
+  `mastery_item:<action_id>`, la stessa che F-11 usava per le skill di raccolta). Valori di partenza in §8.8b.
+- **99 (bonus del mestiere)**: vedi F-108.
+Per le skill di raccolta questi traguardi **sostituiscono** le regole per oggetto di F-11 (`mastery_bonuses` di `skills.json`
+dev'essere assente per le skill `gathering`); F-11 resta per l'artigianato.
+Esempi: livello 24 → nessun tiro; livello 25 con chance 100 → sempre 1 sottoprodotto (chance 0 → mai); Betulla al livello 49 →
+nessun bonus, al 50 → il bonus di §8.8b solo su Betulla (non sulle altre azioni del Boscaiolo).
+Test: `tests/systems/mastery/test_mastery_milestones.gd`, `tests/systems/actions/test_gathering_resolver.gd`.
+
+### F-104 Cristallizzare (Incisore)
+Azione con `kind: crystallize` (inputs: Polvere del Rift ×`N`, output: 1 Cristallo). Con `L` = livello dell'Incisore (1..99):
+`chance_pct = crystal_chance_min_pct + (crystal_chance_max_pct − crystal_chance_min_pct) × (L − 1) / 98`
+(`engraver.crystal_chance_min_pct = 40`, `engraver.crystal_chance_max_pct = 90`). Il tiro `roll_pct(chance_pct)` si fa a fine ciclo.
+Riuscito: consuma `N` Polvere, dà il Cristallo, XP e maestria pieni. Fallito: consuma `lost = floor(N × engraver.crystal_fail_loss_pct / 100)`
+Polvere (`crystal_fail_loss_pct = 50`), niente Cristallo, XP = `floor(xp × lost / N)` (poi F-02), niente maestria; il ciclo
+conta e l'azione continua se restano `N` Polvere (altrimenti si ferma con `missing_inputs`).
+Esempi: L 1 → **40**; L 50 → **65**; L 99 → **90**; L 25 → **52,2449…**; `N` 10 → perse **5**; `N` 25 → perse **12**;
+`N` 50 con XP 160 → XP del fallimento **80**. Test: `tests/systems/actions/test_engraver_resolver.gd`.
+
+### F-105 Fondere (Incisore)
+Ricetta deterministica (azione `craft` ordinaria): `engraver.merge_ratio` (3) oggetti di una pietra della stessa famiglia e dello
+stesso grado → 1 del grado successivo (Scheggia `_chip` → Pietra `_stone` → Pietra perfetta `_heart`); famiglie di forza (`ember`), di precisione (`eye`), di agilità
+(`shade`), di tempra (`root`): ids `stone_<famiglia>_<grado>` (`NOMI.md`). Nessun tiro. Esempi: 9 Schegge di forza → 3 cicli → **3** Pietre di forza; 3 Pietre di
+agilità → **1** Pietra perfetta di agilità; 2 Schegge → `missing_inputs`; la Pietra perfetta non si fonde oltre. Il validatore
+controlla che ogni ricetta `fuse_*` abbia la quantità uguale a `engraver.merge_ratio`. Test:
+`tests/data/test_engraver_recipes.gd`, `tests/systems/actions/test_artisan_resolver.gd`.
+
+### F-106 Potenziare una runa (Incisore)
+Ricetta deterministica: `rune.upgrade_ratio` (3) rune di grado `N` (1..4) → 1 runa di grado `N+1` (stessa famiglia). Esempi:
+3 × "Runa della rapidità II" → **1** "Runa della rapidità III"; 81 rune di grado I → 1 di grado V (3⁴); il grado V non ha ricetta di
+potenziamento. Livello richiesto: livello della runa di grado I + 5 × (`N`), massimo 99. Test: `tests/data/test_engraver_recipes.gd`.
+
+### F-107 Effetto del grado di una runa
+Una runa di grado `g` (1..5) ha, per ogni modificatore della runa di grado I, `value_g = value_I × rune.grade_mult[g−1]`
+(`rune.grade_mult = [1, 2, 3, 4, 5]`). Esempi: Rapidità `skill_interval_pct −3` → grado III **−9**; Baluardo `max_hp_flat +60` →
+grado V **+300**; Senso del Rift `rift_shard_chance +0.5` → grado II **+1,0**. L'Altare usa i `modifiers` dell'oggetto-runa
+(sorgente `rift_socket:<i>`, invariato). Test: `tests/data/test_rune_grades.gd`.
+
+### F-108 Bonus del mestiere dalla maestria (traguardo 99)
+Per ogni azione di raccolta con `L ≥ mastery.milestones.trade_at` (99): i `modifiers` del suo traguardo `trade` (scope
+`skill:<id>`, sorgente unica `mastery_trade:<skill_id>` ricostruita da `MasterySystem.rebuild_modifiers` e a ogni `mastery_level_up`
+che attraversa il 99) **si sommano tra le risorse** e poi vale il limite della stat (F-05). Valori di partenza in §8.8b.
+Esempi (Boscaiolo, `skill_interval_pct −0,5` per risorsa): 0 risorse al 99 → nessuna sorgente; 3 → **−1,5**; 8 → **−4,0**.
+Test: `tests/systems/mastery/test_mastery_milestones.gd`.
+
+---
+
 ## 6. Offline
 
 ### F-40 Tempo offline
@@ -496,16 +586,17 @@ Esempi: 5 h → 18.000.000, capped false; 20 h → 43.200.000, capped true; orol
 `chunks = ceil(elapsed / offline_chunk_ms)`, `offline_chunk_ms = 60000`. Esempio: 12 h → 720 blocchi; 90 s → 2 (60 s + 30 s).
 Equivalenza: simulare 600.000 ms in un blocco o in 10 blocchi dà lo stesso stato con lo stesso seme. Test: idem.
 
-## 7. Fratture (M12) e corsie (M13)
+## 7. Fratture come mappe (M13)
+
+Le **corsie parallele** (ex M13) sono **eliminate** (W3): le sostituiscono gli aiutanti (F-101, F-102). F-51, `parallel.*` e la stat
+`parallel_lanes` non esistono più. Le Fratture sono rilette come mappe in M13 (`VISIONE_V2.md` §7): F-50 è la regola di partenza.
 
 ### F-50 Fratture
 Prossima apertura: `randi_range(fractures.interval_min_ms, fractures.interval_max_ms)` = 7.200.000-14.400.000 ms.
 Durata: `round(fractures.duration_ms × (1 + T(fracture_duration_pct)/100))`; `duration_ms = 1800000`.
 Esempio: +20% → 2.160.000. Test: `tests/systems/fractures/test_fracture_system.gd`.
 
-### F-51 Penalità della corsia secondaria
-`interval_secondary = round(F-03 × (1 + parallel.interval_penalty_pct/100))`; `interval_penalty_pct = 40`.
-Esempio: 3000 → 4200. Corsie disponibili = `1 + clamp(floor(T(parallel_lanes)), 0, 1)`. Test: `test_action_runner.gd`.
+### F-51 Penalità della corsia secondaria — **ELIMINATA in M12** (corsie parallele sostituite dagli aiutanti, F-101)
 
 ---
 
@@ -603,31 +694,83 @@ mostro (il più debole). Esempio (Pianure): `[plains_boar]` peso 4, `[plains_boa
 confermano con `tools/sim_combat.gd` (M5): un personaggio con il set forgiato del grado dell'area e il cibo del grado
 deve avere 0 morti in 1 ora simulata nel gruppo più facile e tenere almeno 60 uccisioni/ora nell'area.
 
+### 8.5b Tabelle di drop dell'Incisore e delle borse (M12, W6, Q58)
+Pietre, valute e materia grezza **cadono dai mostri e dai Monoliti** (non si producono più da frammenti e materiali di raccolta).
+Si definiscono in `data/combat/loot_tables.json` (`04_DATA_SCHEMA.md` §8b) e si attaccano alle aree (valgono per ogni mostro
+dell'area), ai mostri e ai Monoliti, in aggiunta ai `drops` propri (che restano al massimo 8). Valori di partenza per **ogni
+uccisione** (da tarare in M12-07 con `sim_combat`; i gradi alti delle pietre e i Cristalli sono più frequenti nelle aree alte):
+| Voce | Pianure / Bosco / Miniere / Soglia | Quantità |
+|---|---|---|
+| Polvere del Rift (`rift_dust`) | 20% | 1-2 |
+| Scheggia (per ciascuna delle 4 famiglie) | 1% | 1 |
+| Pietra (per ciascuna famiglia) | 0,05% (solo Bosco, Miniere, Soglia) | 1 |
+| Cristallo del risveglio / mutamento / ascesa | 0,05% / 0,03% / 0,02% (solo Bosco, Miniere, Soglia) | 1 |
+| Contratto (per ciascuno dei 3 mestieri) | Apprendista 0,02% nelle Pianure e nel Bosco; Garzone 0,015% (Bosco, Miniere); Esperto 0,01% (Miniere, Soglia); Maestro 0,005% (Soglia) | 1 |
+| Borsa di cuoio | 0,05% (Pianure, Bosco) | 1 |
+| Borsa del viandante | 0,02% (Miniere) | 1 |
+**Monoliti** (tabella di ogni Monolito, che oggi lascia già frammenti e materiali): Polvere 100% (20-40); Scheggia di ogni famiglia
+100% (2-4); Pietra di ogni famiglia 20%; Cristallo del risveglio 15%, del mutamento 10%, dell'ascesa 5%; Borsa runica 5% (solo
+il Monolito della Soglia); un Contratto di grado pari al massimo dell'area con probabilità 2% per mestiere.
+La borsa del bottino del combattimento (12 caselle + `loot_bag_slots`) non cambia: più tipi di oggetto in caduta la riempiono
+prima (Q56): M12-07 verifica la perdita con `sim_combat` (`lost/h`).
+
 ### 8.6 Shop
 | Id | Nome | Costo | Max | Requisiti | Effetto |
 |---|---|---|---|---|---|
-| `bank_slot` | Spazio nel deposito | F-17 | 150 | — | `bank_slots +1` |
+| ~~`bank_slot`~~ | ~~Spazio nel deposito~~ | **tolta in M12** (W2: sostituita dalle borse, §8.6b) | | | |
 | `auto_eat_1` | Razioni da campo I | 2.000 (**già posseduta dall'inizio**, `start.purchases`, B2) | 1 | — | `auto_eat_tier +1` |
-| `armory_slot` | Spazio nell'armeria | F-82 | 60 | — | `armory_slots +1` |
+| ~~`armory_slot`~~ | ~~Spazio nell'armeria~~ | **tolta in M12** (W2) | | | |
 | `auto_eat_2` | Razioni da campo II | 25.000 | 1 | `auto_eat_1`, personaggio 25 | `auto_eat_tier +1` |
 | `auto_eat_3` | Razioni da campo III | 250.000 | 1 | `auto_eat_2`, personaggio 50 | `auto_eat_tier +1` |
 | `auto_loot` | Raccolta automatica del bottino | 50.000 | 1 | — | `auto_loot +1` |
 | `loot_pocket` | Tasca della borsa | 5.000 | 3 | — | `loot_bag_slots +4` |
-| `second_thought` (M13) | Secondo pensiero | 1.000.000 | 1 | somma dei livelli ≥ 300 | `parallel_lanes +1` |
+| ~~`second_thought`~~ | ~~Secondo pensiero~~ | **tolta** (corsie parallele eliminate, W3) | | | |
 
-### 8.7 Altare e infusioni (Legatura del Rift, M8)
-Prese sbloccate ai livelli `rift.sockets`: 1, 20, 40, 60, 80.
-| Livello ricetta | Infusione (id) | Frammenti | Altri ingredienti | Modificatori (global) | XP | Intervallo |
-|---|---|---|---|---|---|---|
-| 1 | `inf_swift_hands` | 5 | 10 legno T1 | `skill_interval_pct −3` | 40 | 4000 |
-| 15 | `inf_bountiful` | 8 | 10 minerale T2 | `double_item_chance +2` | 70 | 4000 |
-| 25 | `inf_scholar` | 12 | 10 pesce cotto T3 | `skill_xp_pct +6` | 110 | 4500 |
-| 35 | `inf_keen_edge` | 16 | 5 lingotto T4 | `accuracy_pct +4` | 150 | 4500 |
-| 45 | `inf_stoneskin` | 20 | 5 lingotto T5 | `damage_reduction +2` | 200 | 5000 |
-| 55 | `inf_deep_roots` | 25 | 20 legno T5 | `mastery_xp_pct +10` | 260 | 5000 |
-| 65 | `inf_hearthfire` | 30 | 20 pesce cotto T6 | `food_healing_pct +10` | 330 | 5500 |
-| 75 | `inf_riftsense` (unica) | 40 | 10 minerale T7 | `rift_shard_chance +0.5` | 420 | 5500 |
-| 85 | `inf_bulwark` | 50 | 5 lingotto T8 | `max_hp_flat +60` | 520 | 6000 |
+### 8.6b Borse (M12, W2, Q58)
+Oggetti `category: bag` (`bag.slots`, `04_DATA_SCHEMA.md` §5), da mettere negli slot borsa del Deposito (F-100).
+| Id | Nome | Caselle | Fonte |
+|---|---|---|---|
+| `bag_canvas` | Borsa di tela | +6 | ricetta del Falegname (livello 1, comune) |
+| `bag_leather` | Borsa di cuoio | +10 | drop delle Pianure di Roccarossa e del Bosco dei Sussurri (tabella d'area) |
+| `bag_reinforced` | Borsa rinforzata | +14 | ricetta del Falegname (livello 45) che usa sottoprodotti della maestria (traguardo 25, §8.8b) |
+| `bag_wayfarer` | Borsa del viandante | +18 | drop raro delle Miniere Abbandonate (tabella d'area) |
+| `bag_runic` | Borsa runica | +24 | drop dei Monoliti del Rift (tabelle dei Monoliti) |
+Gli id dei nuovi oggetti sono quelli della colonna; il Falegname produce le borse con ricette ordinarie (ingredienti e quantità
+nei dati, valori di partenza da tarare in M12-07). Valore in oro 0 (non vendibili).
+
+### 8.7 Altare, rune e Incisore (M8, riscritta in M12; mestiere `riftbinding` = **Incisore**)
+Incavi dell'Altare sbloccati ai livelli dell'Incisore `rift.sockets`: 1, 20, 40, 60, 80 (invariato). Le **rune** hanno 5 gradi
+(F-107, `rune.grade_mult`); id: grado I = id attuale (`inf_swift_hands`, …), gradi II-V = `<id>_2` … `<id>_5`.
+
+**Azioni dell'Incisore** (`data/actions/riftbinding.json`, sostituiscono tutte le ricette precedenti; la skill ha maestria):
+| Azione (id) | Livello | Ingredienti | Prodotto | XP | Intervallo ms |
+|---|---|---|---|---|---|
+| `make_rune_slab` (base) | 1 | 2 Minerale di rame (grado 1 del Minatore: la "pietra grezza" della fonte, nessun oggetto nuovo) + 1 `rift_shard` | 1 Lastra runica (`rune_slab`) | 6 | 3000 |
+| `fuse_<famiglia>_stone` (×4) | 10 | 3 Schegge della famiglia (F-105) | 1 Pietra | 20 | 3000 |
+| `fuse_<famiglia>_heart` (×4) | 40 | 3 Pietre della famiglia | 1 Pietra perfetta | 60 | 4000 |
+| `crystallize_spark` | 5 | 10 Polvere del Rift (F-104) | 1 Cristallo del risveglio | 25 | 3000 |
+| `crystallize_flux` | 25 | 25 Polvere del Rift | 1 Cristallo del mutamento | 80 | 4000 |
+| `crystallize_crown` | 45 | 50 Polvere del Rift | 1 Cristallo dell'ascesa | 160 | 5000 |
+| `engrave_<runa>` (×9) | livello della runa (sotto) | 1 Lastra runica + 3 drop tematici (sotto) | 1 runa di grado I | XP della runa (sotto) | intervallo della runa |
+| `upgrade_<runa>_<g>` (×36, g = 2..5) | livello della runa I + 5 × (g−1), max 99 | 3 rune di grado g−1 (F-106) | 1 runa di grado g | XP della runa × g | intervallo della runa |
+Le azioni `fuse_*`, `crystallize_*`, `engrave_*`, `upgrade_*` consumano **solo drop dei mostri** (o prodotti di altre azioni
+dell'Incisore): per questo l'Incisore sale di livello consumando drop; la Lastra runica è l'unica azione "base". Valori di partenza
+da tarare in M12-07. Le valute di sola uscita (`currency_*`) restano nei dati con l'effetto di prima (nomi nuovi, `NOMI.md`).
+
+**Rune** (grado I; i modificatori sono quelli di prima, F-107 li scala):
+| Livello | Runa (id) | Drop tematico (×3) | Modificatori (global) | XP | Intervallo |
+|---|---|---|---|---|---|
+| 1 | `inf_swift_hands` | Zanna di cinghiale (Pianure) | `skill_interval_pct −3` | 40 | 4000 |
+| 15 | `inf_bountiful` | Pelliccia di ratto (Pianure) | `double_item_chance +2` | 70 | 4000 |
+| 25 | `inf_scholar` | Zanna di lupo (Bosco) | `skill_xp_pct +6` | 110 | 4500 |
+| 35 | `inf_keen_edge` | Punta di freccia (Bosco) | `accuracy_pct +4` | 150 | 4500 |
+| 45 | `inf_stoneskin` | Muschio di troll (Bosco) | `damage_reduction +2` | 200 | 5000 |
+| 55 | `inf_deep_roots` | Nucleo di golem (Miniere) | `mastery_xp_pct +10` | 260 | 5000 |
+| 65 | `inf_hearthfire` | Chitina di ragno (Miniere) | `food_healing_pct +10` | 330 | 5500 |
+| 75 | `inf_riftsense` (unica) | Velo dello spettro (Soglia) | `rift_shard_chance +0.5` | 420 | 5500 |
+| 85 | `inf_bulwark` | Placca del caduto (Soglia) | `max_hp_flat +60` | 520 | 6000 |
+Nomi: "Runa della rapidità" … "Runa del baluardo" + grado in cifre romane ("Runa della rapidità III"). Togliere una runa
+dall'incavo la distrugge (invariato).
 
 ### 8.8 Nodi della maestria (esempio completo: Selvicoltura)
 | Id | Costo % del tetto | Prerequisiti | Modificatori (scope `skill:forestry`) |
@@ -638,11 +781,35 @@ Prese sbloccate ai livelli `rift.sockets`: 1, 20, 40, 60, 80.
 | `forestry_n4_rift_bark` | 10 | n2 | `rift_shard_chance +0.25` |
 | `forestry_n5_patience` | 10 | n3 | `mastery_xp_pct +5` |
 | `forestry_n6_master` | 20 | n4, n5 | `skill_interval_pct −5`, `double_item_chance +5` |
-Totale 60% del tetto. Le altre skill con maestria seguono lo stesso schema (6 nodi, totale 55-65%).
-Cavatura (`quarrying_n1_steady_pick` … `quarrying_n6_master`) e Lenza (`angling_n1_quick_cast` … `angling_n6_master`)
-hanno oggi gli stessi costi, prerequisiti, stat e valori di Selvicoltura con scope della propria skill (M2-02,
-`OPEN_QUESTIONS.md` Q26). Disposizione (`pos` = `[col, row]`) comune ai tre alberi: n1 `[1,0]`, n2 `[0,1]`, n3 `[2,1]`,
+Totale 60% del tetto. Le altre skill con maestria seguono lo stesso schema (6 nodi, totale 55-65%). **Da M12 (W4, Q26 chiusa)**
+gli alberi di Minatore e Pescatore **non** sono più copie di quello del Boscaiolo: vedi §8.8b (questa tabella resta
+il Boscaiolo). Disposizione (`pos` = `[col, row]`) comune ai tre alberi: n1 `[1,0]`, n2 `[0,1]`, n3 `[2,1]`,
 n4 `[0,2]`, n5 `[2,2]`, n6 `[1,3]`.
+
+### 8.8b Alberi per mestiere e traguardi per risorsa (M12, W4, Q60)
+**Alberi di nodi** (costi in % del tetto, prerequisiti e `pos` come §8.8; ogni albero totale 60%; scope `skill:<id>`; i nomi
+dei nodi e i testi li scrive il Data Designer, a tema del mestiere). Id: `<skill>_n1_…` … `<skill>_n6_…`.
+| Nodo | Boscaiolo (ritmo e velocità) | Minatore (quantità) | Pescatore (esperienza e Frammenti) | Costo % | Prerequisiti |
+|---|---|---|---|---|---|
+| n1 | `skill_interval_pct −3` | `double_item_chance +2` | `skill_xp_pct +3` | 5 | — |
+| n2 | `double_item_chance +3` | `rift_shard_chance +0.25` | `skill_interval_pct −3` | 7,5 | n1 |
+| n3 | `skill_xp_pct +4` | `mastery_xp_pct +4` | `rift_shard_chance +0.25` | 7,5 | n1 |
+| n4 | `rift_shard_chance +0.25` | `double_item_chance +4` | `skill_xp_pct +5` | 10 | n2 |
+| n5 | `mastery_xp_pct +5` | `skill_xp_pct +5` | `double_item_chance +3` | 10 | n3 |
+| n6 | `skill_interval_pct −5`, `double_item_chance +5` | `double_item_chance +6`, `rift_shard_chance +0.25` | `skill_interval_pct −5`, `rift_shard_chance +0.5` | 20 | n4, n5 |
+Il validatore (e `tests/data/test_data_validity.gd`) controlla: costo totale 55-65% per albero; **i tre alberi di raccolta non
+sono identici** (l'insieme delle coppie stat-valore per nodo differisce almeno in 3 nodi su 6).
+
+**Traguardi per risorsa** (F-103, F-108). Ogni azione di raccolta (8 per mestiere, T1-T8) ha `milestones` con 3 voci:
+| Soglia | Tipo | Boscaiolo | Minatore | Pescatore |
+|---|---|---|---|---|
+| 25 | `byproduct` | 1 sottoprodotto per risorsa (oggetto `material` raro, nome a una parola, es. Betulla → Resina) | Rame → Pepita | Trota → Squama |
+| 50 | `resource` (scope `action:<id>`) | `skill_interval_pct −8` | `double_item_chance +8` | `skill_xp_pct +10` |
+| 99 | `trade` (scope `skill:<id>`, F-108) | `skill_interval_pct −0,5` | `double_item_chance +0,5` | `skill_xp_pct +0,5` |
+Il sottoprodotto è un oggetto diverso per ogni risorsa (24 oggetti `material` in `data/items/materials.json`, valore 0 salvo
+quelli per la Borsa rinforzata e i progetti, §8.6b, §8.2); la probabilità è `mastery.milestones.byproduct_chance_pct` (2,0)
+uguale per tutte. Con tutte le 8 risorse al 99 il bonus del mestiere vale: Boscaiolo −4% intervallo, Minatore +4 doppio prodotto,
+Pescatore +4% XP del mestiere. Test dei dati: ogni azione di raccolta ha esattamente 3 traguardi nell'ordine 25/50/99 e i tipi sopra.
 
 ### 8.9 Affissi (`data/affixes/affixes.json`, M4)
 Gradi sbloccati a `min_ilvl` 1, 20, 45, 75 (livelli dei gradi T1, T3, T5, T7 di §8.1); intervalli `min..max` interi
@@ -693,7 +860,13 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | `mastery.pool_warning_pct` | 95 | MasteryPanel: avviso del pool quasi pieno (`01_GDD.md` §6.2); > 0 e ≤ 100 |
 | `action.min_interval_ms` | 250 | F-03 |
 | `gathering.rift_shard_base_chance_pct` | 0.5 | F-07 |
-| `bank.{base_slots, slot_cost_base, slot_cost_growth, slot_cost_cap}` | 24, 400, 1.09, 2000000 | F-16, F-17 (il massimo di caselle comprabili è `max_purchases` di `bank_slot`, §8.6) |
+| ~~`bank.*`~~ | tolta in M12 | era F-16, F-17 (sostituite da F-100) |
+| `deposit.{base_slots, bag_slots}` (M12) | 60, 6 | F-100 (Q58) |
+| `helper.{xp_pct, mastery_pct}` (M12) | 25, 25 | F-102 (Q59) |
+| `helper.grades` (M12) | `[{"id":"apprentice","interval_mult":3.0},{"id":"journeyman","interval_mult":2.5},{"id":"expert","interval_mult":2.0},{"id":"master","interval_mult":1.5}]` (in ordine di grado) | F-101 (Q59) |
+| `mastery.milestones.{byproduct_at, resource_at, trade_at, byproduct_chance_pct}` (M12) | 25, 50, 99, 2.0 | F-103, F-108 (Q60) |
+| `engraver.{crystal_chance_min_pct, crystal_chance_max_pct, crystal_fail_loss_pct, merge_ratio}` (M12) | 40, 90, 50, 3 | F-104, F-105 (Q61) |
+| `rune.{upgrade_ratio, grade_mult}` (M12) | 3, `[1, 2, 3, 4, 5]` | F-106, F-107 |
 | `combat.{acc_level_offset, acc_bonus_offset}` | 8, 50 | F-20, F-21 |
 | `combat.{maxhit_level_offset, maxhit_bonus_offset, min_hit_ratio}` | 10, 40, 0.1 | F-22 |
 | `combat.{hit_chance_min, hit_chance_max}` | 0.05, 0.95 | F-23 |
@@ -708,7 +881,7 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | `combat.{respawn_ms, loot_bag_base_slots}` | 1500, 12 | 10.1 (attesa `BETWEEN`), F-33 |
 | `character_curve.{base, growth, linear, max_level, xp_cap}` | 70, 1.1, 8, 99, 50000000 | F-71 (Q34) |
 | `character.start_class` | `"rift_blade"` | GameSession.new_game (`01_GDD.md` §19) |
-| `armory.{base_slots, slot_cost_base, slot_cost_growth, slot_cost_cap}` | 40, 1000, 1.12, 2000000 | F-82 (il massimo comprabile è `max_purchases` di `armory_slot`, 60) |
+| ~~`armory.*`~~ | tolta in M12 | era F-82 (sostituita da F-100) |
 | ~~`rarity.craft.*`~~ | tolta in M10 | era F-83 (sostituita da F-91) |
 | `blueprint.{duration_base_min, duration_per_grade_min, xp_mult, rare_base_pct, rare_per_forging_level, choose_affix_level, chosen_affix_tier}` (M10) | 10, 7, 1.5, 10, 0.5, 50, 2 | F-90, F-91, F-92 (Q48, Q50; il resto da tarare, Q53) |
 | `tool_upgrade.{interval_base_pct, interval_per_level_pct, levels, plate_items, handle_items}` (M10) | 5, 2, tabella F-94 (9 voci `{min_level, grade, plates, handles, gold}`), 8 id delle piastre T1-T8, 8 id dei manici T1-T8 | F-94 |
@@ -723,8 +896,8 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | `sockets.{by_rarity, bonus_at_upgrade}` (M8) | `{"common":0,"magic":1,"rare":2}`, 7 | F-89 |
 | `rift.sockets` (già presente, usata in M8) | `[{"level":1},{"level":20},{"level":40},{"level":60},{"level":80}]` | 11 |
 | `offline.{cap_ms, min_ms, chunk_ms}` | 43200000, 60000, 60000 | F-40, F-41 |
-| `fractures.{interval_min_ms, interval_max_ms, duration_ms}` (M12) | 7200000, 14400000, 1800000 | F-50 |
-| `parallel.interval_penalty_pct` (M13) | 40 | F-51 |
+| `fractures.{interval_min_ms, interval_max_ms, duration_ms}` (M13) | 7200000, 14400000, 1800000 | F-50 |
+| ~~`parallel.*`~~ | tolta | era F-51 (corsie eliminate) |
 
 Chiavi tolte con la riforma (M4-01, D3): `combat.hp_per_vitality`, `combat.hp_skill`, `combat.defence_skill`,
 `combat.xp_per_damage_style`, `combat.xp_per_damage_vitality`. Le chiavi segnate (M6)…(M13) le aggiunge il task che
@@ -752,7 +925,6 @@ sezione (`auto_loot`: `"10.6"` = `01_GDD §10.6`; `04_DATA_SCHEMA.md` §2). Con 
 | `double_item_chance` | 0 | 100 | probabilità di prodotto doppio | F-06 | `tests/systems/actions/test_gathering_resolver.gd::test_double_item_chance_100` |
 | `preservation_chance` | 0 | 80 | probabilità di non consumare ingredienti | F-08 | `tests/systems/actions/test_artisan_resolver.gd::test_preservation_cap` |
 | `rift_shard_chance` | 0 | 100 | aumenta la probabilità di frammento | F-07 | `tests/systems/actions/test_gathering_resolver.gd::test_rift_shard_chance` |
-| `bank_slots` | 0 | 10000 | caselle extra della bank | F-16 | `tests/systems/bank/test_bank.gd::test_capacity_uses_bank_slots` |
 | `accuracy_bonus` | −1000 | 100000 | precisione piatta | F-20 | `tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats` |
 | `accuracy_pct` | −90 | 1000 | precisione percentuale | F-20 | `tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats` |
 | `power_bonus` | −1000 | 100000 | danno massimo piatto | F-22 | `tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats` |
@@ -767,9 +939,10 @@ sezione (`auto_loot`: `"10.6"` = `01_GDD §10.6`; `04_DATA_SCHEMA.md` §2). Con 
 | `loot_bag_slots` | 0 | 100 | caselle della borsa | F-33 | `tests/systems/combat/test_loot_bag.gd::test_capacity_uses_loot_bag_slots` |
 | `auto_loot` | 0 | 1 | bottino direttamente nella bank | 01_GDD §10.6 | `tests/systems/combat/test_loot_bag.gd::test_auto_loot_to_bank` |
 | `auto_eat_tier` | 0 | 3 | livello delle razioni da campo | F-30 | `tests/systems/combat/test_auto_eat.gd::test_tier_thresholds` |
-| `armory_slots` (M4) | 0 | 10000 | caselle extra dell'Armeria | F-82 | `tests/systems/armory/test_armory.gd::test_capacity_uses_armory_slots` |
 | `item_rarity_pct` (M4) | 0 | 1000 | probabilità di pezzi magici e rari | F-84, F-91 (M10: `formula` di `stats.json` passa da F-83 a F-84) | `tests/systems/items/test_item_roller.gd::test_item_rarity_pct` |
 | `block_chance` (M5) | 0 | 50 | probabilità di parare un colpo con lo scudo (Q40) | F-75 | `tests/systems/combat/test_combat_engine.gd::test_block_chance` |
 | `upgrade_success_pct` (M7) | 0 | 300 | probabilità di riuscita della raffinazione | F-86, F-93 (M10: sorgente `skill_level:forging`) | `tests/systems/armory/test_upgrade.gd::test_upgrade_success_pct` |
-| `fracture_duration_pct` (M12) | 0 | 300 | durata delle Fratture | F-50 | `tests/systems/fractures/test_fracture_system.gd::test_duration_pct` |
-| `parallel_lanes` (M13) | 0 | 1 | corsie extra | F-51 | `tests/systems/actions/test_action_runner.gd::test_secondary_lane_unlock` |
+| `fracture_duration_pct` (M13) | 0 | 300 | durata delle Fratture | F-50 | `tests/systems/fractures/test_fracture_system.gd::test_duration_pct` |
+
+Stat **tolte in M12** (nessuna stat decorativa: la capienza viene dalle borse, F-100; le corsie non esistono): `bank_slots`, `armory_slots`, `parallel_lanes`.
+Nessuna stat nuova in M12: aiutanti, traguardi e Incisore usano stat esistenti (`skill_interval_pct`, `double_item_chance`, `skill_xp_pct`, `rift_shard_chance`, `mastery_xp_pct`).

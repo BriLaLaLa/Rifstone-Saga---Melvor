@@ -4,8 +4,8 @@ Idle/incremental nell'universo di RiftStone con il **combattimento al centro** (
 `docs/DECISIONS_LOG.md`): idee da Melvor Idle, Metin2 e Path of Exile studiate in clean room, contenuti originali.
 Godot **4.5 stable**, GDScript tipizzato, renderer GL Compatibility, PC desktop, **solo UI**.
 MVP: una classe (Lama del Rift, solo spade in tre assetti) con livello del personaggio, tratti e abilità; combattimento
-automatico a gruppi con triangolo; Armeria di pezzi unici con rarità, affissi, raffinazione e castoni; Pietre del Rift;
-7 skill di supporto (3 raccolta, 3 artigianato, Legatura del Rift) con maestria a nodi; bank, shop, Altare del Rift,
+automatico a gruppi con triangolo; Armeria di pezzi unici con rarità, affissi, raffinazione e castoni; Monoliti del Rift;
+7 skill di supporto (3 raccolta con aiutanti, 3 artigianato, Incisore) con maestria a nodi e per risorsa; Deposito con borse, shop, Altare del Rift,
 offline fino a 12 ore.
 
 ## Le due cartelle
@@ -44,7 +44,7 @@ Agenti: `.claude/agents/` (un file per ruolo di `08_TEAM.md`).
 7. Lavoro per task: un branch/worktree per task, solo i file in Ownership, report di fine task (`08_TEAM.md` §6).
 
 ## Lezioni da RiftStone (vincoli di progetto)
-- **Niente god object**: un modulo per dominio (wallet, bank, skill, maestria, azioni, equip, combattimento, shop,
+- **Niente god object**: un modulo per dominio (wallet, deposito, bank, skill, maestria, azioni, equip, combattimento, shop,
   Altare, save); `GameSession` solo composizione.
 - **Unica fonte di verità**: gli oggetti esistono solo nel modello (bank, slot indossati, borsa, prese); la UI non tiene dati.
 - **Nessuna stat decorativa**: ogni stat è in `data/config/stats.json` con effetto, formula e test; senza effetto non esiste.
@@ -112,5 +112,5 @@ M0 (Setup) completata, tag `m0-done`. M1 (Prima skill completa, Selvicoltura) co
 completata, tag `m2-done`. M3 (Artigianato, shop, equipaggiamento) completata, tag `m3-done`. Visione v2 approvata e
 riportata nei documenti (R-00, fonte `docs/VISIONE_V2.md`). M4 (Riforma: personaggio e Armeria) completata, tag
 `m4-done`. M5 (Combattimento a gruppi) completata, tag `m5-done`. M6 (Abilità e tratti) completata, tag `m6-done`. M7 (Bottino) completata, tag `m7-done`. M8 (Legatura del Rift) completata, tag `m8-done`.
-M9 (Offline e polish) completata, tag `m9-mvp` e `m9-done`: **l'MVP è rilasciato**. M10 (Riforma del bottino e dei nomi: progetti, attrezzi unici, kit iniziale, nomi nuovi, bilanciamento B1-B5) completata, tag `m10-done`. M11 (Guida in gioco) completata, tag `m11-done`. Prossime milestone: **M12** Fratture come mappe, **M13** corsie parallele, **M14+** il resto (sessione nuova da `docs/STATUS.md`). Checklist di rilascio in `docs/RELEASE_CHECKLIST_MVP.md`.
+M9 (Offline e polish) completata, tag `m9-mvp` e `m9-done`: **l'MVP è rilasciato**. M10 (Riforma del bottino e dei nomi: progetti, attrezzi unici, kit iniziale, nomi nuovi, bilanciamento B1-B5) completata, tag `m10-done`. M11 (Guida in gioco) completata, tag `m11-done`. Riforma 2 (Deposito unico e borse, aiutanti, maestria per risorsa, Incisore, nomi nuovi; decisioni W1-W7) riportata nei documenti (R-03, fonte `docs/RIFORMA_2.md`): **M12 Riforma 2 in corso** (task M12-01…M12-09 in `docs/07_TASKS.md`, salvataggio v4). Prossime milestone: **M13** Fratture come mappe, **M14+** il resto (le corsie parallele sono eliminate: le sostituiscono gli aiutanti; sessione nuova da `docs/STATUS.md`). Checklist di rilascio in `docs/RELEASE_CHECKLIST_MVP.md`.
 Avanzamento dei task in `docs/STATUS.md`.

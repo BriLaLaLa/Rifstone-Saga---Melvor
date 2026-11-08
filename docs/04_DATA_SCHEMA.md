@@ -69,10 +69,16 @@ l'elenco delle chiavi obbligatorie, `DataValidator.REQUIRED_BALANCE_KEYS`).
   "xp_curve": {"base": 70, "growth": 1.1, "linear": 8, "max_level": 99, "xp_cap": 50000000},
   "mastery_curve": {"base": 20, "growth": 1.1, "linear": 4, "max_level": 99},
   "mastery": {"base_factor": 1.0, "per_level": 0.1, "ratio_weight": 3.0, "pool_share_pct": 20, "pool_cap_per_item": 300000,
-              "pool_warning_pct": 95},
+              "pool_warning_pct": 95,
+              "milestones": {"byproduct_at": 25, "resource_at": 50, "trade_at": 99, "byproduct_chance_pct": 2.0}},
   "action": {"min_interval_ms": 250},
   "gathering": {"rift_shard_base_chance_pct": 0.5},
-  "bank": {"base_slots": 24, "slot_cost_base": 400, "slot_cost_growth": 1.09, "slot_cost_cap": 2000000},
+  "deposit": {"base_slots": 60, "bag_slots": 6},
+  "helper": {"xp_pct": 25, "mastery_pct": 25,
+             "grades": [{"id": "apprentice", "interval_mult": 3.0}, {"id": "journeyman", "interval_mult": 2.5},
+                        {"id": "expert", "interval_mult": 2.0}, {"id": "master", "interval_mult": 1.5}]},
+  "engraver": {"crystal_chance_min_pct": 40, "crystal_chance_max_pct": 90, "crystal_fail_loss_pct": 50, "merge_ratio": 3},
+  "rune": {"upgrade_ratio": 3, "grade_mult": [1, 2, 3, 4, 5]},
   "combat": {
     "acc_level_offset": 8, "acc_bonus_offset": 50,
     "maxhit_level_offset": 10, "maxhit_bonus_offset": 40, "min_hit_ratio": 0.1,
@@ -91,7 +97,6 @@ l'elenco delle chiavi obbligatorie, `DataValidator.REQUIRED_BALANCE_KEYS`).
   },
   "character_curve": {"base": 70, "growth": 1.1, "linear": 8, "max_level": 99, "xp_cap": 50000000},
   "character": {"start_class": "rift_blade"},
-  "armory": {"base_slots": 40, "slot_cost_base": 1000, "slot_cost_growth": 1.12, "slot_cost_cap": 2000000},
   "rarity": {
     "affix_count": {"magic": [1, 2], "rare": [3, 4]}
   },
@@ -120,7 +125,8 @@ esattamente 9 voci con `min_level` crescente (1..99), `grade` 1..8 non decrescen
 `plate_items` e `handle_items` hanno 8 id di oggetti `component` (uno per grado).
 `start.items` è una lista di `{"item": id, "qty": n}`. `player_name.min_length` e `max_length` (lunghezza del nome dopo
 `strip_edges`) sono interi ≥ 1 con `min_length` ≤ `max_length`. `mastery.pool_warning_pct` è un numero > 0 e ≤ 100
-(percentuale del tetto del pool da cui la UI avvisa che il pool è quasi pieno). In M12 si aggiunge `fractures`, in M13 `parallel` (vedi §11, §12).
+(percentuale del tetto del pool da cui la UI avvisa che il pool è quasi pieno). In M13 si aggiungerà `fractures` (vedi §11). Le corsie parallele (`parallel`) non esistono più (§12).
+**Riforma 2 (M12, W1-W7)**: tolte le chiavi `bank` e `armory`; aggiunte `deposit`, `helper`, `engraver`, `rune` e `mastery.milestones` (esempio sopra; valori e formule in `02_FORMULAS.md` §9, F-100…F-108). Regole del validatore: `deposit.base_slots` ≥ 1, `deposit.bag_slots` 1..12; `helper.grades` ha **4 voci** in ordine di grado con `interval_mult` ≥ 1 non crescente (i più lenti per primi) e `id` unici; `helper.xp_pct` e `helper.mastery_pct` 1..100; **invariante** `3 × helper.xp_pct / (100 × min interval_mult) ≤ 1` (F-102); `mastery.milestones.byproduct_at < resource_at < trade_at` (1..99), `byproduct_chance_pct` 0..100; `engraver.crystal_chance_min_pct ≤ crystal_chance_max_pct` (0..100), `crystal_fail_loss_pct` 0..100, `merge_ratio` ≥ 2; `rune.upgrade_ratio` ≥ 2, `rune.grade_mult` ha 5 numeri > 0, crescente, il primo è 1.
 
 ## 4. `data/skills/skills.json`
 
@@ -146,20 +152,20 @@ esattamente 9 voci con `min_level` crescente (1..99), `grade` 1..8 non decrescen
 | `color` | String | `#rrggbb` |
 | `has_mastery` | bool | |
 | `level_modifiers` | array | facoltativo (M10, F-93): `[{"stat": id, "per_level": numero > 0}]`; valore = `per_level × livello della skill`, modificatore globale con sorgente `skill_level:<skill>`, ricostruito a ogni `level_up` e dopo il caricamento. Oggi solo `forging` con `upgrade_success_pct` 0,4. La stat deve essere nel registro |
-| `mastery_bonuses` | array | solo se `has_mastery`; ogni regola ha **o** `every_levels` (1..99) **o** `at_level` (1..99) e `modifiers` (lo `scope` qui è ignorato: vale sempre `action:<azione>`) |
+| `mastery_bonuses` | array | solo se `has_mastery`; **dal M12 vietato per le skill `gathering`** (la raccolta usa i `milestones` delle azioni, §6); ogni regola ha **o** `every_levels` (1..99) **o** `at_level` (1..99) e `modifiers` (lo `scope` qui è ignorato: vale sempre `action:<azione>`) |
 
 Classe: `SkillDef`.
 
 ## 5. `data/items/*.json`
 
-File per categoria (`materials.json`, `components.json` (M10), `blueprints.json` (M10), `equipment.json`, `tools.json`, `food.json`, `infusions.json`, `misc.json`),
+File per categoria (`materials.json`, `components.json` (M10), `blueprints.json` (M10), `equipment.json`, `tools.json`, `food.json`, `infusions.json`, `misc.json`, `bags.json` (M12), `contracts.json` (M12)),
 ognuno `{"items": [...]}`. Campi comuni:
 
 | Campo | Tipo | Vincoli |
 |---|---|---|
 | `id` | String | unico tra tutti i file |
 | `name`, `description` | String | |
-| `category` | String | `material`, `component` (M10), `blueprint` (M10), `equipment`, `tool`, `food`, `infusion`, `misc`; deve corrispondere al file |
+| `category` | String | `material`, `component` (M10), `blueprint` (M10), `equipment`, `tool`, `food`, `infusion`, `misc`, `bag` (M12), `contract` (M12); deve corrispondere al file |
 | `icon` | String | `res://assets/icons/items/…`, `.svg` o `.png` (i segnaposto di M1-12 sono SVG 64×64) |
 | `value` | int ≥ 0 | oro dato dalla vendita (F-18); 0 = non vendibile |
 | `sort_order` | int | ordinamento nella bank dentro la categoria |
@@ -167,6 +173,8 @@ ognuno `{"items": [...]}`. Campi comuni:
 | `food` | object | obbligatorio per `food`, vietato per gli altri |
 | `infusion` | object | obbligatorio per `infusion`, vietato per gli altri |
 | `blueprint` | object | obbligatorio per `blueprint`, vietato per gli altri (M10, sotto) |
+| `bag` | object | obbligatorio per `bag`, vietato per gli altri (M12): `{"slots": int 1..100}` |
+| `contract` | object | obbligatorio per `contract`, vietato per gli altri (M12): `{"skill": id di una skill gathering, "grade": id di helper.grades}` |
 
 `equip`:
 | Campo | Tipo | Vincoli |
@@ -179,8 +187,14 @@ ognuno `{"items": [...]}`. Campi comuni:
 | `kind` | String | obbligatorio per `slot: weapon` e `slot: offhand`, vietato per gli altri: `greatsword`, `sword`, `shield` (`greatsword`/`sword` solo con `weapon`, `shield` solo con `slot: offhand`). Una `sword` ha `slot: weapon` ma si può indossare anche nell'`offhand` se la classe lo ammette |
 | `weapon` | object | obbligatorio con `slot: weapon`, vietato per gli altri: `style` (`blade`/`marksmanship`/`arcana`), `attack_interval_ms` (≥ 800), `two_handed` (bool; `true` se e solo se `kind: greatsword`) |
 
-`food`: `{"heal": int ≥ 1}`. `infusion`: `{"modifiers": [...], "unique": bool}` (default `false`); `modifiers` ha almeno
-1 modificatore (una runa senza effetto sarebbe decorativa).
+`food`: `{"heal": int ≥ 1}`. `infusion`: `{"modifiers": [...], "unique": bool, "grade": 1..5, "family": id}` (`unique` default `false`; `grade` default 1,
+M12); `modifiers` ha almeno 1 modificatore (una runa senza effetto sarebbe decorativa). **Gradi delle rune (M12, F-107)**: la runa di grado I
+ha `family` uguale al proprio `id`; le rune di grado 2-5 hanno `family` = id della runa di grado I, id `<family>_<grado>` e ogni
+`value` = `value` di grado I × `rune.grade_mult[grado−1]` (lo controlla il validatore); 5 oggetti per famiglia, nessun grado mancante.
+**Borse e contratti (M12)**: una `bag` ha `value` 0 e `slots` ≥ 1 (F-100); si può mettere in uno slot borsa. Un `contract` ha `value` 0, ed esiste
+**uno per ogni coppia** (mestiere di raccolta, grado): 3 × 4 = 12 oggetti, id `contract_<skill>_<grade>`. Il sottoprodotto di un traguardo
+(`milestones`) è un `material`. Pietre e valute (categorie `stone`, `currency`) restano con id `stone_<famiglia>_<chip|stone|heart>` e
+`currency_*`: cambiano solo i nomi (`NOMI.md`); `rift_dust` (Polvere del Rift) e `rune_slab` (Lastra runica) sono `material`.
 
 Esempi:
 ```json
@@ -264,9 +278,19 @@ Un file per ogni skill di raccolta o artigianato (7 file). Le azioni di raccolta
 | `inputs` | array di `{item, qty}` | vuoto per `gathering`, non vuoto per `artisan` |
 | `outputs` | array di `{item, qty}` | almeno 1 |
 | `icon` | String | facoltativo (default: icona del primo output) |
+| `kind` | String | facoltativo (M12), solo `riftbinding`: `craft` (default) o `crystallize` (F-104: `inputs` = una sola voce Polvere del Rift, `outputs` = un solo Cristallo `currency`, `mastery: true`). Il tiro usa il livello dell'Incisore |
+| `milestones` | array | **obbligatorio** per le azioni `gathering` (M12), vietato per le altre: esattamente 3 voci nell'ordine 25, 50, 99 (sotto) |
 | `single` | bool | facoltativo (M10), solo `forging`: **azione a ciclo unico**. Vale `false` se assente. Con `single: true` `inputs` e `outputs` possono essere vuoti, `mastery` è `false`, e durata, XP, materiali e prodotto vengono dal progetto scelto (F-90), non dall'azione: `interval_ms` (≥ `action.min_interval_ms`) e `xp` (≥ 1) sono segnaposto. Alla fine l'azione si ferma da sola (`blueprint_done`). Nei dati veri ce n'è una: `blueprint_craft` in `forging.json` (livello 1, il livello vero è quello del grado) |
 
-Classe: `ActionDef`.
+**Traguardi (`milestones`, M12, F-103, F-108)**: `[{"at": 25, "type": "byproduct", "item": id di un material}, {"at": 50, "type": "resource", "modifiers": [...]},
+{"at": 99, "type": "trade", "modifiers": [...]}]`. `at` deve essere uguale a `mastery.milestones.byproduct_at` / `resource_at` / `trade_at`;
+`modifiers` ha almeno 1 modificatore; lo `scope` dei `resource` vale `action:<id>` se manca, quello dei `trade` `skill:<skill>` (altri scope sono un errore).
+Esempio: `{"id": "cut_redbirch", …, "milestones": [{"at": 25, "type": "byproduct", "item": "<sottoprodotto>"}, {"at": 50, "type": "resource",
+"modifiers": [{"stat": "skill_interval_pct", "value": -8}]}, {"at": 99, "type": "trade", "modifiers": [{"stat": "skill_interval_pct", "value": -0.5}]}]}`.
+Nota: i sottoprodotti sono 24 `material` diversi (uno per risorsa). **Incisore (M12)**: le azioni di `riftbinding.json` sono quelle di `02_FORMULAS.md` §8.7
+(Lastra, `fuse_*`, `crystallize_*`, `engrave_*`, `upgrade_*`); ogni `fuse_*` ha la quantità degli ingredienti = `engraver.merge_ratio` e ogni `upgrade_*`
+= `rune.upgrade_ratio` (validatore); le ricette di Legatura precedenti (`bind_*`) sono eliminate.
+Classe: `ActionDef` (con `MilestoneDef`).
 
 ## 7. `data/mastery/<skill>.json`
 
@@ -287,6 +311,8 @@ Classe: `ActionDef`.
 | `modifiers` | array | se lo `scope` manca vale `skill:<skill>` |
 
 Classe: `MasteryNodeDef`.
+**M12 (W4, Q26 chiusa)**: i file dei tre mestieri di raccolta hanno alberi **diversi** (`02_FORMULAS.md` §8.8b): il validatore rifiuta due
+alberi di raccolta in cui meno di 3 nodi su 6 differiscono per l'insieme `(stat, value)`; costo totale per albero 55-65%.
 
 ## 8. `data/combat/areas.json` e `monsters.json`
 
@@ -305,6 +331,7 @@ Classe: `MasteryNodeDef`.
 | `order` | int | unico |
 | `requirements` | object | `{"character": livello}`, può essere vuoto |
 | `packs` | array | almeno 1 gruppo (D5); ogni gruppo `{weight: int ≥ 1, monsters: array di id}` con 1..`combat.max_pack_size` mostri esistenti (ripetibili) |
+| `loot_tables` | array di id | facoltativo (M12): tabelle di `loot_tables.json` (§8b) che valgono per ogni mostro dell'area; ogni id esiste |
 | `rift_stone_chance_pct` | float | facoltativo, 0..100: probabilità della Pietra del Rift dopo ogni uccisione in quest'area (F-87, Q46); assente = `rift_stone.chance_pct` di `balance.json`. La garanzia `rift_stone.pity_kills` resta globale |
 
 `AreaDef.monster_ids` (mostri distinti dei gruppi, in ordine di prima comparsa) lo calcola `from_dict`. Il campo
@@ -334,20 +361,35 @@ Classe: `MasteryNodeDef`.
 | `damage_reduction` | float | 0..80 |
 | `gold` | `[min, max]` | 0 ≤ min ≤ max |
 | `rift_shard_chance` | float | 0..100 |
+| `loot_tables` | array di id | facoltativo (M12): tabelle di `loot_tables.json` (§8b) in aggiunta ai `drops`; ogni id esiste |
 | `drops` | array | `{item, chance_pct 0..100, qty [min ≥ 1, max ≥ min]}`, max 8 voci (M10: alzato da 4 per ospitare i 64 progetti, `chance_pct` dei progetti anche sotto 1%, min 0,05); voci `blueprint` ammesse da M10 (cadono nella borsa del bottino come oggetti di bank, `qty` [1, 1]); voci `equipment` ammesse da M7 (`tool` non cade più dall'M10, gli attrezzi sono unici): cadono come istanze con rarità F-84 e affissi F-85 (`ilvl` = massimo dei tre livelli del mostro), `qty` = numero di istanze |
 
 Classi: `AreaDef`, `PackDef`, `MonsterDef`, `DropEntry`. Icone dei mostri in `res://assets/icons/monsters/`.
 Fino a M5-04 i due file esistono vuoti (`{"_doc": …, "areas": []}`, `{"_doc": …, "monsters": []}`, creati da M1-12); lo schema con `packs` e `xp` è di M4-01.
 In M7 si aggiunge `data/combat/rift_stones.json` (§16).
 
+### 8b. `data/combat/loot_tables.json` (M12, W6)
+
+```json
+{"tables": [
+  {"id": "area_pianure", "entries": [
+    {"item": "rift_dust", "chance_pct": 20, "qty": [1, 2]},
+    {"item": "stone_ember_chip", "chance_pct": 1, "qty": [1, 1]},
+    {"item": "bag_leather", "chance_pct": 0.05, "qty": [1, 1]}]}
+]}
+```
+| Campo | Tipo | Vincoli |
+|---|---|---|
+| `id` | String | unico; regex comune |
+| `entries` | array | 1..24 voci `{item, chance_pct 0.01..100, qty [min ≥ 1, max ≥ min]}`; `item` di categoria `material`, `stone`, `currency`, `bag`, `contract` (mai `equipment`, `tool`, `blueprint`: restano nei `drops`) |
+Ogni uccisione tira, per ogni tabella dell'area, del mostro (e, per un Monolito, della sua voce `loot_tables`), ogni voce con la propria probabilità
+(come F-32); gli oggetti vanno nella borsa del bottino. Ogni tabella deve essere usata da almeno un'area, un mostro o un Monolito (il validatore segnala
+quelle orfane). Classe: `LootTableDef`. Valori di partenza in `02_FORMULAS.md` §8.5b; file **obbligatorio** da M12 (vuoto non ammesso).
+
 ## 9. `data/shop/shop.json`
 
 ```json
 {"entries": [
-  {"id": "bank_slot", "name": "Casella della bank", "category": "bank", "vendor": "deposito",
-   "description": "Una casella in più nella bank.",
-   "cost": {"formula": "bank_slot"}, "max_purchases": 150,
-   "requires": {}, "effect": {"modifiers": [{"stat": "bank_slots", "value": 1}]}},
   {"id": "auto_eat_2", "name": "Razioni da campo II", "category": "combat", "vendor": "bottegaia",
    "description": "Mangia prima e più a lungo.",
    "cost": {"gold": 25000}, "max_purchases": 1,
@@ -357,9 +399,9 @@ In M7 si aggiunge `data/combat/rift_stones.json` (§16).
 ```
 | Campo | Tipo | Vincoli |
 |---|---|---|
-| `category` | String | `bank` (UI "Deposito"), `combat`, `materials`, `lanes` (ammessa dal validatore solo da M13) |
-| `vendor` | String | bottega della pagina Shop (solo raggruppamento): `bottegaia`, `fabbro`, `deposito`, `armaiolo`, `mercante_armature`; una bottega senza voci mostra "In arrivo" |
-| `cost` | object | **o** `{"gold": int ≥ 1}` **o** `{"formula": "bank_slot"}` (F-17) **o** `{"formula": "armory_slot"}` (F-82); nessun'altra formula nell'MVP |
+| `category` | String | `bank` (UI "Deposito"; oggi senza voci), `combat`, `materials` (**M12**: `lanes` non esiste più) |
+| `vendor` | String | bottega della pagina Shop (solo raggruppamento): `bottegaia`, `fabbro`, `armaiolo`, `mercante_armature` (M12: `deposito` tolta, non ha più voci); una bottega senza voci mostra "In arrivo" |
+| `cost` | object | `{"gold": int ≥ 1}` (M12: `cost.formula` e le formule F-17/F-82 sono eliminate; ogni voce ha un prezzo fisso) |
 | `max_purchases` | int | ≥ 0; 0 = illimitato (solo per effetti `item`) |
 | `requires` | object | facoltativi `entries` (id dello shop), `character` (int 1..99), `skills` (`{skill: livello}`), `total_level` (int ≥ 0) |
 | `effect` | object | **o** `modifiers` **o** `item` (`{item, qty}`); un `item` `equipment`/`tool` crea `qty` istanze comuni nell'Armeria (da M10 nessuna voce ne ha: la categoria `tools` e gli attrezzi del novizio sono tolti) |
@@ -378,7 +420,7 @@ File singolo e **obbligatorio** (`CONTENT_FILES["hints"]`): se manca `GameData` 
 suggerimento per trigger, in ordine di file; `GameData.hint(id)` ritorna `null` per un id sconosciuto. Il salvataggio
 dello slot tiene `{"hints": {"seen": [id, ...]}}`.
 
-## 11. `data/fractures/fractures.json` (M12)
+## 11. `data/fractures/fractures.json` (M13)
 
 ```json
 {"fractures": [{"id": "verdant_rift", "name": "Frattura verdeggiante", "description": "Il legno cresce più in fretta.",
@@ -389,9 +431,10 @@ dello slot tiene `{"hints": {"seen": [id, ...]}}`.
 `balance.json` riceve `"fractures": {"interval_min_ms": 7200000, "interval_max_ms": 14400000, "duration_ms": 1800000}`.
 Classe: `FractureDef`.
 
-## 12. Aggiunte di M13
+## 12. Corsie parallele (ELIMINATE in M12)
 
-`balance.json`: `"parallel": {"interval_penalty_pct": 40}`; `stats.json`: `parallel_lanes`; `shop.json`: `second_thought`.
+Non esistono più (W3, sostituite dagli aiutanti): niente `balance.json` `parallel`, niente stat `parallel_lanes`, niente voce `second_thought`, niente
+categoria `lanes` dello shop. Gli aiutanti sono descritti in `01_GDD.md` §4.1 e `05_INTERFACES.md` §5.21.
 
 ## 13. Dati di test (`res://tests/fixtures/data/`)
 
@@ -492,7 +535,7 @@ Classi: `AffixDef`, `AffixTier`. Nell'MVP ogni slot d'equipaggiamento ha almeno 
 - `data/combat/rift_stones.json`: `{"rift_stones": [{"id", "name", "description", "icon", "area", "hp", "xp",
   "pulse_damage", "pulse_ms", "summon_pack" (indice di `packs` dell'area o `null`), "shards": [min, max], "drops": [...]}]}`,
   una per area (F-87; il validatore rifiuta due Pietre sulla stessa area). `summon_pack` obbligatorio (`null` = nessun gruppo).
-  `hp` ≥ 1, `xp` ≥ 0, `pulse_damage` ≥ 1, `pulse_ms` ≥ `combat.min_attack_interval_ms`, `icon` in
+  `loot_tables` (array di id, facoltativo, M12), `hp` ≥ 1, `xp` ≥ 0, `pulse_damage` ≥ 1, `pulse_ms` ≥ `combat.min_attack_interval_ms`, `icon` in
   `res://assets/icons/monsters/` (file esistente), `drops` come i mostri (max 8; i pezzi con rarità `rarity.rift_stone`).
   Classe `RiftStoneDef`; `GameData.rift_stone(id)`, `has_rift_stone(id)`, `rift_stone_for_area(area_id)`.
 - `data/items/materials.json`: Sigillo di salvaguardia (`upgrade.seal_item`).
@@ -549,3 +592,18 @@ o senza "Serve a" (es. valute di sola uscita). Ogni id deve esistere; un'eccezio
 Regole del validatore: id di pagina unici; `section` valida; `order` ≥ 0; ogni `links.targets`/`{link:…}` punta a un id esistente (o a una pagina di guida
 esistente); ogni `help_for` è una rotta nota; ogni `table.source` è dichiarata; nessuna cifra scritta a mano nei testi (le sequenze di cifre fuori da un segnaposto
 sono un errore, salvo anni/numeri ordinali dichiarati in `allow_digits: true` sulla pagina); nessun fallback silenzioso (errore e nessun dato in caso di file non valido).
+
+## 20. Aggiunte di M12 (Riforma 2: Deposito, aiutanti, maestria per risorsa, Incisore)
+
+Riepilogo per il validatore e i task M12-01…M12-05 (dettagli nelle sezioni indicate):
+- `balance.json` (§3): tolte `bank` e `armory`; aggiunte `deposit`, `helper`, `engraver`, `rune`, `mastery.milestones`; le regole del validatore sono in §3.
+- `stats.json` (§2): **tolte** `bank_slots` e `armory_slots` (la capienza viene dalle borse; nessuna stat decorativa). Nessuna stat nuova.
+- `shop.json` (§9): tolte `bank_slot` e `armory_slot`; niente `cost.formula`; vendor `deposito` tolta.
+- Oggetti (§5): categorie `bag` (5 borse, `bags.json`) e `contract` (12 contratti, `contracts.json`); `infusion.grade`/`family` (45 rune = 9 famiglie × 5 gradi);
+  nuovi `material`: `rift_dust`, `rune_slab`, 24 sottoprodotti; nomi di pietre e valute cambiati (`NOMI.md`), id invariati.
+- Azioni (§6): `milestones` obbligatori nelle 24 azioni di raccolta; `kind: crystallize`; ricette dell'Incisore riscritte; Falegname: ricette delle borse di tela e rinforzata.
+- Maestria (§7): alberi diversi per Boscaiolo, Minatore, Pescatore; `mastery_bonuses` vietato per le skill di raccolta.
+- Combattimento (§8, §8b): nuovo `loot_tables.json`; `loot_tables` su aree, mostri e Monoliti.
+- Guida (§19): pagine nuove (Deposito e borse, Aiutanti, Maestria per risorsa, Incisore, Monoliti del Rift) e tabelle generate `bags`, `helper_grades`,
+  `engraver_recipes`, `mastery_milestones` (`05_INTERFACES.md` §5.19).
+- Nomi: solo `name` e `description` (Q52); i nomi di `NOMI.md` (sezione Riforma 2) li controlla un test dei dati.

@@ -16,7 +16,23 @@ Se la sessione si interrompe, si riparte da qui.
 - Descrizioni di tratti e abilità generate da effetti, parametri e ricarica (`ui/pages/character/loadout_describe.gd`, il campo `description` dei dati non si mostra più); stat `damage_reduction` ora si chiama "Armatura" (solo testo in `stats.json`).
 - Aperto di P-01 chiuso da P-03 (`player_renamed`).
 
-## Ripartenza (aggiornata il 2026-11-08, fine M11)
+## Ripartenza (aggiornata il 2026-11-08, R-03 fatta: Riforma 2 nei documenti)
+- **Stato**: **R-03 DONE**: la Riforma 2 (decisioni W1-W7, fonte `RIFORMA_2.md`) è nei documenti canonici (`NOMI.md`, `OPEN_QUESTIONS.md` Q58-Q61 e Q26 chiusa, `DECISIONS_LOG.md` W1-W7 e scelte R-03,
+  `00_VISION.md`, `01_GDD.md` §4.1/§6.4/§7/§11/§18, `02_FORMULAS.md` F-100…F-108 e §8.5b-§8.8b, `03_ARCHITECTURE.md`, `04_DATA_SCHEMA.md` §20, `05_INTERFACES.md` §5.20-§5.22 e §7.w, `06_ROADMAP.md`,
+  `07_TASKS.md`, `CLAUDE.md`). Hash: R-03 = commit `docs: R-03 riforma 2 nei documenti canonici` (`git log --grep "R-03"`); tag M11 `m11-done` già messo; P-01…P-04 (rifiniture) già su main.
+  Codice e dati **non** toccati: il gioco è ancora quello di M11 (+ P-01…P-04); i documenti descrivono lo stato di arrivo di M12.
+- **Prossimo passo**: **M12-01 Deposito unico e borse** (CORE; il suo primo sotto-punto allinea i riferimenti vecchi: `shop.json` `_doc` e `FORMULA_MILESTONES`), poi M12-02 aiutanti, M12-03 maestria per risorsa,
+  M12-04 Incisore, M12-05 contenuti, M12-06 UI ∥ M12-07 bilanciamento, M12-08 test, M12-09 integrazione (`m12-done`). Poi **M13 Fratture come mappe** e M14+. Sessione nuova da questo file.
+- **Milestone rinumerate (R-03)**: M12 Riforma 2, M13 Fratture come mappe, M14+ invariato; le **corsie parallele sono eliminate** (aiutanti, W3).
+- **Formato del salvataggio**: `format_version` 4 da M12 (v1/v2/v3 "versione non supportata", nessuna migrazione).
+- **Da tarare / aperto**: Q58-Q61 (borse, aiutanti, traguardi, Cristallizzare) con tutti i valori di partenza non presenti nella fonte (`deposit.base_slots` 60, probabilità dei sottoprodotti, bonus dei traguardi 50 e 99,
+  nodi dei tre alberi, ricette e livelli dell'Incisore, `rune.grade_mult`, tabelle di drop di §8.5b): si tarano in M12-07. Q53 e Q55-Q57 invariate (Q56: più tipi di drop riempiono prima la borsa del bottino);
+  foto di layout 1600x900/1280x720 non fatta; kit con spada e scudo già indossati da confermare. Q26 **chiusa**.
+- **Ambiguità risolte da R-03** (`DECISIONS_LOG.md`): Borsa rinforzata = ricetta del Falegname (la fonte dice "progetto"); "pietra grezza del Minatore" = minerale di grado 1; Deposito pieno = l'aiutante attende e riparte;
+  un contratto di grado uguale o inferiore non si consuma; `second_thought` e F-51 eliminati (non spostati a M13).
+- **Pulizia a mano (non fatta)**: worktree `C:\Users\Davide\Desktop\AI\wt-*`, `RS-M10-02`, `rs-M10-05`, `RSI-worktrees\*` e `.claude/worktrees/agent-*`; poi `git worktree prune` e cancellare i branch `task/*` mergiati.
+
+## Ripartenza precedente (fine M11, 2026-11-08)
 - **Stato**: **M11 Guida in gioco completata**, tag `m11-done` (lo mette e lo pusha l'Orchestratore). Hash: R-02 `4097d40`, M11-01 `ce3d07c`, M11-02 `0cbf41b`,
   Q49 `6c8ad78`, M11-03 `d9e7eac` (+ allineamento tabelle `7042376`), M11-04 `4d766d1`, M11-05 `e6f9e66`, M11-06 `47dbfc5`; M11-07 = commit di chiusura.
   `run_checks` su main: 1958 test verdi, dati (fixture e veri), righe per file e riferimenti vietati OK.
@@ -26,7 +42,7 @@ Se la sessione si interrompe, si riparte da qui.
 - **Deviazioni di M11**: `guide_book.gd` e `item_index_m10.gd` extra per il limite di 400 righe; rotta `help` + `guide`; titoli di gruppo dell'indice come costanti in `guide_nav.gd`;
   Altare senza pagina propria nel "?"; etichette italiane in `GuideIndex`; nomi delle valute dei dati diversi da `NOMI.md` (`currency_flux` "Sabbia del mutamento", `currency_crown` "Essenza del Rift");
   con la borsa piena si perdono ~0,38 progetti/h in un seme.
-- **Riferimenti vecchi ancora presenti (verificati con Grep su main)**: `data/shop/shop.json` (`_doc`: "second_thought (M11)", ora M13) e `tests/data/test_stat_registry_coverage.gd` riga 34
+- **Riferimenti vecchi ancora presenti (verificati con Grep su main; da R-03 si allineano nel primo sotto-punto di M12-01)**: `data/shop/shop.json` (`_doc`: "second_thought (M11)", ora M13) e `tests/data/test_stat_registry_coverage.gd` riga 34
   (`FORMULA_MILESTONES`: "F-50": "M10", "F-51": "M11", ora M12/M13): da allineare al primo task di M12.
 - **Pulizia a mano (non fatta)**: worktree `C:\Users\Davide\Desktop\AI\wt-*`, `RS-M10-02`, `rs-M10-05`, `RSI-worktrees\*` e `.claude/worktrees/agent-*`; poi `git worktree prune` e cancellare i branch `task/*` mergiati.
 - **Prove manuali consigliate**: Guida dalla sidebar (indice, ricerca, collegamenti, indietro); "?" in ogni pagina; tooltip con "Si ottiene da / Serve a"; layout 1600x900 e 1280x720; poi quelle di M10.

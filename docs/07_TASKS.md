@@ -1459,11 +1459,153 @@ Ordine: M11-01 ∥ M11-02 (file diversi) → M11-03 → M11-04 → M11-05 → M1
 - **Ruolo** REV · **Stima** S · **Parallelizzabile** no · **Dipendenze** M11-06
 - **Descrizione** Merge, checklist di `06_ROADMAP.md` (M11 "Uscita"), layout a 1600×900 e 1280×720, tag `m11-done`, report di milestone. Il push lo fa l'Orchestratore.
 
-## M12-M14 (dopo M11)
+## Riforma 2 (R-03) e M12
 
-- M12 · Fratture come mappe: task da definire a fine M11 (`01_GDD.md` §17 da rivedere; nota ereditata N11). I task si chiameranno M12-xx.
-- M13 · Azioni in parallelo: corsia secondaria, dati, UI, test, integrazione (`01_GDD.md` §18, F-51; nota ereditata N12; i progetti non girano nella corsia secondaria). I task si chiameranno M13-xx.
+### R-03 · Riforma 2 nei documenti canonici
+- **Ruolo** REV · **Stima** M · **Dipendenze** M11-07 · **Fatto** (2026-11-08)
+- **Descrizione** `RIFORMA_2.md` riportata in `NOMI.md`, `OPEN_QUESTIONS.md` (Q58-Q61, Q26 chiusa), `DECISIONS_LOG.md` (W1-W7, scelte R-03), `00_VISION.md`, `01_GDD.md`,
+  `02_FORMULAS.md` (F-100…F-108), `03_ARCHITECTURE.md`, `04_DATA_SCHEMA.md` (§20), `05_INTERFACES.md` (§5.20-§5.22, §7.w, save v4), `06_ROADMAP.md`, questo file, `STATUS.md`, `CLAUDE.md`.
+  Da qui `RIFORMA_2.md` serve solo come storico: i task leggono i documenti canonici.
+
+## M12 · Riforma 2 (Deposito, aiutanti, maestria per risorsa, Incisore, nomi)
+
+Regole comuni dei brief di M12: i valori di design si leggono **sempre** dalla sezione indicata (mai riscritti nei brief); i numeri non presenti nella fonte sono valori di
+partenza "da tarare" (Q58-Q61, `OPEN_QUESTIONS.md`), che M12-07 può cambiare nei dati. Salvataggi precedenti: `format_version` 4, i v1/v2/v3 sono "versione non supportata" (nessuna
+migrazione). Gli **id restano** (Q52) tranne gli oggetti nuovi (`NOMI.md`, sezione Riforma 2). Le corsie parallele non esistono più. I task M12-01…M12-05 toccano file comuni
+(`core/data/**`, `event_bus.gd`, `reasons.gd`, `game_session.gd`): **vanno in sequenza**. Test di accettazione generali: `RIFORMA_2.md` §10 riportato nelle singole accettazioni.
+
+### M12-01 · Deposito unico e borse
+- **Ruolo** CORE · **Stima** L · **Parallelizzabile** no (primo) · **Dipendenze** R-03
+- **Ownership** `systems/deposit/**` (nuovo), `systems/bank/**`, `systems/armory/armory.gd` (solo capienza, `can_add`, segnali), `systems/shop/shop.gd` (via `cost_formula`/formule),
+  `core/session/game_session.gd` e `session_participants.gd` (modulo `deposit`, registrazione degli occupanti), `core/autoload/event_bus.gd` (righe `deposit_changed`, `bags_changed`;
+  tolti `bank_capacity_changed`, `armory_capacity_changed`) con `tests/core/autoload/test_event_bus.gd`, `core/common/reasons.gd`, `core/save/save_migrator.gd` (`CURRENT_VERSION` 4),
+  `core/data/**` (categoria `bag`, `ItemDef.bag_slots`, validatore di `deposit.*`, via `shop_entry_def.cost_formula` e delle formule di `cost`, categorie shop), `data/config/balance.json`
+  (tolte `bank`, `armory`; aggiunta `deposit`), `data/config/stats.json` (tolte `bank_slots`, `armory_slots`), `data/shop/shop.json` (tolte `bank_slot`, `armory_slot`),
+  `tools/validate_data.gd` se serve, `tests/systems/{deposit,bank,armory,shop}/**`, `tests/core/{data,save,session}/**`, `tests/integration/**` (rinomina `test_save_v3.gd` → `test_save_v4.gd`),
+  `tests/data/**`, `tests/fixtures/data/**` e **le sole righe di `ui/**` che ascoltano `bank_capacity_changed`/`armory_capacity_changed` o leggono `bank.capacity()`/`armory.capacity()`** (si
+  passano a `deposit_changed` e `deposit.capacity()` senza cambiare l'aspetto; il resto della UI è M12-06).
+- **Leggere** `01_GDD.md` §7, §21; `02_FORMULAS.md` F-100, §8.6b, §9, §11; `04_DATA_SCHEMA.md` §3, §5, §9, §20; `05_INTERFACES.md` §1 (Reasons), §3, §5.3, §5.5, §5.11, §5.17, §5.20, §6.
+- **Descrizione**
+  1. **Allineamento dei riferimenti vecchi (primo sotto-punto, prima di tutto il resto)**: (a) `data/shop/shop.json` `_doc`: il testo "Senza second_thought (M11)" è un riferimento
+     numerato vecchio e la voce non esiste più (corsie tolte, W3): riscrivere in "Senza voci per le corsie (sostituite dagli aiutanti, M12) e senza gli spazi del Deposito (borse, M12)"; (b)
+     `tests/data/test_stat_registry_coverage.gd` riga ~34, `FORMULA_MILESTONES`: `"F-50": "M10"` → `"M13"` (Fratture come mappe); `"F-51": "M11"` si **toglie** (F-51 eliminata con le corsie,
+     era "M11"; i riferimenti M12/M13 vecchi non valgono più dalla rinumerazione di R-03); stessa pulizia in `tests/data/test_config_files.gd` riga ~161 (`LATER_MILESTONE_STATS` senza `parallel_lanes`,
+     `fracture_duration_pct` resta M13) e `M1_STATS` senza `bank_slots`; (c) un grep finale di `second_thought`, `parallel_lanes`, `lane_unavailable`/`skill_in_other_lane` in `data/` e `tests/` non
+     lascia riferimenti vecchi (`LANE_UNAVAILABLE` resta solo per le corsie diverse da MAIN).
+  2. `Deposit` (5.20): capienza F-100, occupanti registrati da `bank` e `armory` in `_create_systems()`, slot borsa, `bags_changed`/`deposit_changed`, salvataggio `deposit`.
+  3. `Bank.equip_bag/unequip_bag` con i rifiuti di 5.20 (`deposit_not_empty`, `not_a_bag`, `bag_slot_occupied`); `Bank.add` e `Armory.add/can_add/create` usano `deposit.has_room`; tolti `Armory.capacity()`
+     e `Bank.capacity()` calcolata da stat; `sort_stacks` con le categorie `bag` e `contract`.
+  4. Tolte le stat `bank_slots`/`armory_slots` e le voci `bank_slot`/`armory_slot` dello shop; `Shop.price` solo in oro; `cost.formula` rifiutata dal validatore.
+  5. `format_version` 4 (un save v3 è `version_unsupported`); `GameSession` crea `deposit` subito dopo `wallet`; `SessionSnapshot` invariato.
+  6. I dati veri non hanno ancora borse (arrivano in M12-05): i controlli che le richiedono sui dati veri sono `pending("M12-05")`; le fixture hanno 2 borse.
+- **Accettazione** capienza con gli esempi di F-100 (compresi i due casi di `unequip_bag`); `deposit_not_empty` senza cambiamenti di stato; Bank e Armory condividono lo spazio
+  (un pezzo occupa una casella come un tipo di oggetto; l'ultimo posto occupato dalla Bank blocca un pezzo e viceversa); `deposit_changed` solo se `used` o `capacity` cambiano; save v4 round-trip con le
+  borse; v3 rifiutato; nessun riferimento a `bank_slots`, `armory_slots`, `bank_capacity_changed`, `armory_capacity_changed` nel codice e nei test; la UI si apre e i test della UI sono verdi; copertura delle stat verde.
+- **Test** `tests/systems/deposit/test_deposit.gd`, `tests/systems/bank/test_bank_bags.gd`, `tests/systems/armory/test_armory_shared_capacity.gd`, `tests/integration/test_save_v4.gd`, `tests/core/data/test_deposit_keys.gd`.
+
+### M12-02 · Aiutanti
+- **Ruolo** CORE · **Stima** L · **Parallelizzabile** no · **Dipendenze** M12-01
+- **Ownership** `systems/helpers/**` (nuovo), `systems/actions/gathering_resolver.gd` (parametro `helper_grade`), `systems/skills/skills_system.gd` (solo `add_xp` con `share_pct`), `systems/mastery/**`
+  (solo `add_for_action` con `share_pct`), `core/modifiers/modifier_context.gd` e `modifier_service.gd` (`excluded_sources`, `for_helper`) con `tests/core/modifiers/**`, `core/session/game_session.gd`
+  (`helpers`, `_PHASE_HELPERS`), `core/autoload/event_bus.gd` (righe `helper_*`) con il suo test, `core/common/reasons.gd`, `core/data/**` (`HelperGradeDef`, categoria `contract`, `ItemDef` campi, `GameData.helper_grades/helper_grade/contract_for`,
+  validatore di `helper.*` e dei contratti), `data/config/balance.json` (`helper`), `tests/systems/helpers/**`, `tests/core/offline/**` (solo aggiunte), `tests/fixtures/data/**`.
+- **Leggere** `01_GDD.md` §4.1; `02_FORMULAS.md` F-101, F-102, §9 (`helper.*`); `04_DATA_SCHEMA.md` §3 (regole di `helper`), §5 (`contract`); `05_INTERFACES.md` §1, §3 (helper_*), §5.2 (ModifierContext), §5.3, §5.21.
+- **Descrizione** Implementare `HelperSystem` come in 5.21: `hire`, `set_action`, `stop`, `advance` (ciclo con intervallo F-101 fissato all'inizio, `GatheringResolver.resolve(..., helper_grade)` con
+  profilo aiutante: contesto senza l'attrezzo, XP e maestria in quota F-102, stessi tiri del giocatore), attesa per Deposito pieno con `helper_blocked`, salvataggio `helpers`, fase `_PHASE_HELPERS`. L'aiutante lavora
+  in parallelo a qualunque cosa faccia il giocatore e nel motore offline (nessuna formula duplicata). `ModifierContext.for_helper` e `excluded_sources` (la `total` li rispetta).
+- **Accettazione** esempi di F-101 e F-102 come test; l'aiutante produce mentre il combattimento è attivo; offline: dopo N ore l'aiutante ha eseguito il numero atteso di cicli; Deposito pieno → attesa e ripresa
+  senza perdere progresso; contratto di grado inferiore o uguale rifiutato senza consumarsi; un contratto superiore sostituisce l'aiutante; save v4 round-trip; l'attrezzo del giocatore non influisce sull'aiutante
+  (test con un attrezzo +9); l'invariante `3 × helper.xp_pct / (100 × min interval_mult) ≤ 1` è un test dei dati.
+- **Test** `tests/systems/helpers/test_helper_system.gd`, `test_helper_math.gd`, `test_helper_offline.gd`, `tests/core/modifiers/test_excluded_sources.gd`, `tests/data/test_balance_invariants.gd`.
+
+### M12-03 · Maestria per risorsa
+- **Ruolo** CORE · **Stima** L · **Parallelizzabile** no · **Dipendenze** M12-02
+- **Ownership** `systems/mastery/**`, `systems/actions/gathering_resolver.gd` (sottoprodotto), `core/data/**` (`MilestoneDef`, `ActionDef.milestones`, validatore dei traguardi, divieto di `mastery_bonuses` per le skill di
+  raccolta, regola degli alberi diversi), `core/autoload/event_bus.gd` (riga `mastery_milestone_reached`), `data/config/balance.json` (`mastery.milestones`), `tests/systems/mastery/**`, `tests/systems/actions/**` (solo aggiunte),
+  `tests/data/**` (solo regole nuove), `tests/fixtures/data/**`.
+- **Leggere** `01_GDD.md` §6.4; `02_FORMULAS.md` F-103, F-108, §8.8b; `04_DATA_SCHEMA.md` §3, §4 (`mastery_bonuses`), §6 (`milestones`), §7, §20; `05_INTERFACES.md` §3, §5.7, §5.8.
+- **Descrizione** Traguardi 25/50/99 per azione di raccolta: sottoprodotto nel `GatheringResolver` (terzo tiro, F-103), sorgente `mastery_item:<action>` dal traguardo 50 (al posto di F-11 per la raccolta),
+  sorgente `mastery_trade:<skill>` (F-108) ricostruita a ogni `mastery_level_up` che attraversa il 99, `milestones_reached/milestone_active`, segnale `mastery_milestone_reached`. F-11 resta per l'artigianato.
+  Validatore: 3 traguardi per ogni azione di raccolta nell'ordine 25/50/99, `at` uguale a `mastery.milestones.*`, sottoprodotto `material`, `mastery_bonuses` vietato per `gathering`, alberi dei tre mestieri non identici.
+- **Accettazione** esempi di F-103 e F-108; il sottoprodotto esce con chance 100 e mai con chance 0; ordine dei tiri doppio → Frammento → sottoprodotto; il bonus 50 vale solo per la propria risorsa; i bonus 99 si sommano
+  tra le risorse; l'aiutante ottiene gli stessi traguardi; il segnale non parte in `from_save`; i dati veri restano `pending("M12-05")` dove servono i traguardi.
+- **Test** `tests/systems/mastery/test_mastery_milestones.gd`, `tests/systems/actions/test_gathering_milestones.gd`, `tests/data/test_milestone_schema.gd`.
+
+### M12-04 · Incisore: azioni a drop, cristallizzare, rune a gradi, tabelle di drop
+- **Ruolo** CORE · **Stima** L · **Parallelizzabile** no · **Dipendenze** M12-03
+- **Ownership** `systems/actions/engraver_resolver.gd` (nuovo), `systems/actions/action_runner.gd` e `action_outcome.gd` (dispatch per `kind`, campo `failed`), `systems/combat/**` (solo il tiro delle
+  `loot_tables` all'uccisione e per i Monoliti, 5.22), `core/data/**` (`ActionDef.kind`, `LootTableDef`, `data/combat/loot_tables.json` come file obbligatorio, `loot_tables` su aree/mostri/Monoliti, `infusion.grade/family`,
+  regole delle ricette dell'Incisore e delle rune a 5 gradi, `engraver.*` e `rune.*`), `data/config/balance.json` (`engraver`, `rune`), `core/common/reasons.gd` (se manca qualcosa), `tools/validate_data.gd`,
+  `tests/systems/actions/**`, `tests/systems/combat/**` (solo aggiunte), `tests/data/**`, `tests/fixtures/data/**`.
+- **Leggere** `01_GDD.md` §10.6, §11, §26; `02_FORMULAS.md` F-104…F-107, §8.5b, §8.7, §9; `04_DATA_SCHEMA.md` §5 (rune), §6 (`kind`), §8, §8b, §20; `05_INTERFACES.md` §5.8, §5.10 (morte del mostro), §5.22.
+- **Descrizione** `EngraverResolver` (F-104, un tiro per ciclo, perdita parziale, XP proporzionale), smistamento per `kind` in `ActionRunner`, tabelle di drop (ordine alla morte come in 5.22, per aree, mostri e
+  Monoliti, F-32 per voce), rune a gradi nei dati (F-106/F-107 validati), nessun cambiamento all'API dell'Altare. Il tiro delle tabelle non cambia la sequenza dei tiri dei mostri senza tabelle (i test di determinismo
+  esistenti restano verdi).
+- **Accettazione** esempi di F-104 (probabilità, perdita e XP del fallimento), F-105, F-106, F-107 come test; con le tabelle a chance 100 l'oggetto entra sempre nella borsa del bottino e con 0 mai;
+  il Monolito usa solo le proprie tabelle; il validatore rifiuta una `fuse_*` con quantità ≠ `engraver.merge_ratio`, una `upgrade_*` con quantità ≠ `rune.upgrade_ratio`, una runa di grado ≥ 2 con valori ≠ grado I × `grade_mult`,
+  una tabella orfana e una tabella con oggetto `equipment`; i dati veri restano `pending("M12-05")`.
+- **Test** `tests/systems/actions/test_engraver_resolver.gd`, `tests/systems/combat/test_loot_tables.gd`, `tests/data/test_engraver_recipes.gd`, `tests/data/test_rune_grades.gd`, `tests/data/test_loot_tables_schema.gd`.
+
+### M12-05 · Contenuti: borse, contratti, sottoprodotti, alberi, ricette dell'Incisore, tabelle di drop, nomi
+- **Ruolo** DATA · **Stima** L · **Parallelizzabile** no · **Dipendenze** M12-04
+- **Ownership** `data/**` (nuovi `data/items/bags.json`, `contracts.json`, `data/combat/loot_tables.json`; modificati `materials.json`, `stones.json`, `currencies.json`, `infusions.json`, `misc.json` per `rift_dust`/`rune_slab`,
+  `data/actions/{forestry,quarrying,angling,woodwright,riftbinding}.json`, `data/mastery/{forestry,quarrying,angling}.json`, `data/combat/{areas,monsters,rift_stones}.json` (solo `loot_tables`),
+  `data/skills/skills.json` (nome Incisore; niente `mastery_bonuses` per la raccolta), `data/config/balance.json` (solo valori di partenza di `helper`, `engraver`, `rune`, `mastery.milestones` già definiti), icone segnaposto
+  in `assets/icons/items/**`), `tests/data/**` (nomi di `NOMI.md`, conteggi), i conteggi nei test esistenti rotti dai nuovi contenuti.
+- **Leggere** `NOMI.md` (sezione Riforma 2 e pietre/rune/valute); `02_FORMULAS.md` §8.1, §8.5b, §8.6b, §8.7, §8.8b; `04_DATA_SCHEMA.md` §5, §6, §7, §8b, §20; `01_GDD.md` §6.4, §7, §11.
+- **Descrizione** Scrivere i contenuti con i valori delle tabelle citate (mai ricopiati nel brief): 5 borse (id `bag_*`, ricette del Falegname per tela e rinforzata), 12 contratti, 24 sottoprodotti (nomi originali a una parola) con
+  `milestones` sulle 24 azioni di raccolta, 3 alberi di nodi diversi (nomi e testi originali), `rift_dust` e `rune_slab`, ricette dell'Incisore complete (Lastra, 8 Fondere, 3 Cristallizzare, 9 Incidere, 36 Potenziare), 45 rune
+  (9 famiglie × 5 gradi, valori F-107), nomi nuovi di pietre, valute, mestiere, Monoliti (`rift_stones.json`: solo `name`/`description`) e tutte le descrizioni, tabelle di drop per area/mostro/Monolito
+  (valori di partenza di §8.5b), eliminando le ricette di Legatura precedenti (`bind_*`). Tutti i `pending("M12-05")` di M12-01…M12-04 diventano test attivi.
+- **Accettazione** `tools/validate_data.gd` verde su dati veri e fixture; nomi di `NOMI.md` presenti (test), nessun nome vecchio ("Legatura del Rift", "Scintilla del Rift", "Sabbia del mutamento", "Essenza del Rift", "Cuore di",
+  "Pietra del Rift" come bersaglio) nei dati; ogni oggetto nuovo ha una fonte (drop, ricetta o tabella) e un uso (Guida: `items_without_source/use` solo con eccezioni dichiarate); i tre alberi di raccolta non sono identici e
+  rispettano il costo totale di `04_DATA_SCHEMA.md` §7; ogni azione di raccolta ha 3 traguardi.
+- **Test** `tests/data/test_m12_content.gd`, `test_names_m12.gd`, `test_loot_tables_content.gd`.
+
+### M12-06 · UI: Deposito a schede con slot borsa, riga Aiutante, pagina Incisore, Guida aggiornata
+- **Ruolo** UI · **Stima** L · **Parallelizzabile** sì, con M12-07 (file diversi) · **Dipendenze** M12-05
+- **Ownership** `ui/pages/bank/**`, `ui/pages/skill/{skill_page,helper_row}.*`, `ui/pages/equipment/**` e `ui/pages/armory/**` (solo contatore e vista condivisa), `ui/screens/main/{top_bar,sidebar}.*`, `ui/pages/shop/**` (bottega
+  "deposito" tolta), `ui/pages/combat/**` (testi "Monolito del Rift"), `ui/theme/**` e i file di testi centralizzati, `ui/components/toast/**` (toast dei traguardi), `data/guide/**` (pagine nuove e correzioni),
+  `core/guide/**` (tabelle `bags`, `helper_grades`, `engraver_recipes`, `mastery_milestones:<skill>`, fonti da `loot_tables`), `ui/pages/guide/**`, `tests/ui/**`, `tests/core/guide/**`.
+- **Leggere** `01_GDD.md` §4.1, §6.4, §7, §11, §27; `05_INTERFACES.md` §5.19, §7.w; `04_DATA_SCHEMA.md` §19; `NOMI.md`.
+- **Descrizione** `DepositTabs` e `BagSlotsBar` (slot borsa da `deposit.bag_slots`, caselle vuote visibili, rifiuti con testo), `HelperRow` nei tre mestieri di raccolta, sezioni dell'Incisore nella `SkillPage` con probabilità e perdita di
+  Cristallizzare, pannello oggetto (borse, contratti), TopBar su `deposit_changed`, shop senza spazi, testi "Monolito"/"Incisore" ovunque, toast dei traguardi, Guida: pagine a mano nuove (Deposito e borse, Aiutanti,
+  Maestria per risorsa, Incisore, Monoliti del Rift) con segnaposto (nessun numero a mano) e "?" nelle pagine nuove. Nessuno stato di gioco nella UI.
+- **Accettazione** una sola capienza nelle due schede (stessi pezzi nella pagina Equipaggiamento); un nodo `BagSlot_<i>` per ogni slot borsa (`deposit.bag_slots`); metti/togli borsa con il rifiuto `deposit_not_empty` mostrato; `HelperRow` mostra
+  "Aiutante: <grado> — lavora: <risorsa> [Cambia] [Ferma]" e l'attesa per Deposito pieno; nessuna stringa vecchia visibile (test); Guida valida (`validate_data`, test della Guida); layout 1600×900 e 1280×720 (test sulle
+  dimensioni minime come in M11).
+- **Test** `tests/ui/test_deposit_page.gd`, `test_bag_slots_bar.gd`, `test_helper_row.gd`, `test_engraver_sections.gd`, `tests/core/guide/test_guide_m12.gd`, `tests/ui/test_no_old_names.gd`.
+
+### M12-07 · Bilanciamento con `sim`: aiutanti, Incisore, drop di Schegge e Cristalli, progetti (Q49)
+- **Ruolo** COMBAT · **Stima** M · **Parallelizzabile** sì, con M12-06 · **Dipendenze** M12-05
+- **Ownership** `tools/sim_combat.gd`, `tools/sim_progress.gd`, `data/combat/loot_tables.json` e `data/config/balance.json` (solo i valori di M12), `docs/02_FORMULAS.md` (solo i valori e gli esempi dei numeri cambiati, come
+  da regola di quel file), `tests/tools/**` e i test di esempio rotti dai valori cambiati.
+- **Leggere** `02_FORMULAS.md` F-100…F-104, §8.5b, §9; `05_INTERFACES.md` (strumento `sim_combat`: opzioni `helpers`, `engraver`, `deposit`); `OPEN_QUESTIONS.md` Q49, Q56, Q58-Q61.
+- **Descrizione** Misurare con 8 h e più semi: (a) **aiutanti**: l'XP di mestiere all'ora con tre aiutanti Maestro mentre si combatte non supera quella del lavorare di persona su un solo mestiere (F-102);
+  (b) **Incisore**: Polvere, Schegge, Pietre e Cristalli per ora e tempo medio per un Cristallo/una runa V, perché non siano né immediati né irraggiungibili (obiettivo: la prima Pietra perfetta e il primo Cristallo
+  entro la prima sessione di gioco di qualche ora; Runa V un traguardo di decine di ore); (c) **perdita di oggetti** con la borsa del bottino a 12 caselle (Q56); (d) **progetti** (Q49): ~1 progetto/ora ancora valido con le
+  nuove tabelle; (e) velocità di riempimento del Deposito con la capienza base e con le borse. Ritarare solo i valori di partenza di M12 e riportare le misure in `06_ROADMAP.md`/report.
+- **Accettazione** invariante di (a) rispettata con margine; (b)-(e) entro i criteri scritti nel report; esempi di F-100…F-104 aggiornati se un valore cambia; tutti i test verdi.
+- **Test** `tests/tools/test_sim_m12_options.gd`, `tests/data/test_balance_invariants.gd` (aggiornato).
+
+### M12-08 · Test di M12
+- **Ruolo** QA · **Stima** M · **Parallelizzabile** no · **Dipendenze** M12-06, M12-07
+- **Ownership** `tests/integration/**`, `tests/ui/**`, `tests/data/**` (solo aggiunte).
+- **Leggere** `RELEASE_CHECKLIST_MVP.md` §2; l'accettazione di M12-01…M12-07 in questo file; `RIFORMA_2.md` §10 (storico).
+- **Descrizione** Test di flusso: partita nuova (slot borsa vuoti, capienza base), mettere/togliere una borsa con oggetti e pezzi, Bank e Armory sullo stesso spazio, aiutante assunto da un contratto che lavora durante il
+  combattimento e offline, Deposito pieno → attesa → ripresa, traguardi 25/50/99 di una risorsa, bonus del mestiere, Fondere, Cristallizzare (seme fisso), Incidere e Potenziare fino al grado V, rune negli incavi
+  dell'Altare con effetto di grado, drop dalle tabelle, save v4 round-trip e rifiuto del v3, conservazione degli oggetti (nessun oggetto creato o perso per errore), copertura delle stat in modalità rigida.
+- **Accettazione** `run_checks.ps1` verde; ogni punto di accettazione di M12 ha almeno un test.
+
+### M12-09 · Integrazione di M12
+- **Ruolo** REV · **Stima** S · **Dipendenze** M12-08
+- **Descrizione** Merge, checklist di `06_ROADMAP.md` (M12 "Uscita"), `docs/RELEASE_CHECKLIST_MVP.md` aggiornata, tag `m12-done`, report di milestone. Il push lo fa l'Orchestratore.
+
+## M13-M14 (dopo M12)
+
+- M13 · Fratture come mappe: task da definire a fine M12 (`01_GDD.md` §17 da rivedere; nota ereditata N11). I task si chiameranno M13-xx.
 - M14+ · Seconda classe, boss, dungeon: da definire.
+- Le **corsie parallele** (ex M13, `01_GDD.md` §18, F-51, nota N12) sono **eliminate**: le sostituiscono gli aiutanti di M12.
 
 ## Note ereditate dai task superati
 
@@ -1497,8 +1639,8 @@ Ordine: M11-01 ∥ M11-02 (file diversi) → M11-03 → M11-04 → M11-05 → M1
 - **N9 (da M3-09)** I toast dei livelli si accumulano sopra le finestre: con il banner del livello decidere livello di
   disegno e limite dei toast (ownership estesa a `ui/components/toast/**`).
 - **N10 (da M1-19)** Modalità rigida di `test_stat_registry_coverage.gd`: nessuna stat in `pending`; `CLOSED_FORMULAS` e
-  `FORMULA_MILESTONES` restano la mappa formula → milestone; le stat di M12/M13 entrano con i loro task.
-- **N11 (da M7-01 vecchio)** Se `FractureSystem.SAVE_KEY` è `fractures`, rinominare la chiave finta di `ProbeSession`.
-- **N12 (da M1-10/M8-01 vecchio)** Il runner ha già `LANE_ORDER` e `_lanes`; da sbloccare `start`, `from_save`,
+  `FORMULA_MILESTONES` restano la mappa formula → milestone (da R-03: F-50 → M13, F-51 eliminata; nessuna stat nuova in M12: `bank_slots`/`armory_slots`/`parallel_lanes` tolte); la stat di M13 (`fracture_duration_pct`) entra con il suo task.
+- **N11 (da M7-01 vecchio; ora M13)** Se `FractureSystem.SAVE_KEY` è `fractures`, rinominare la chiave finta di `ProbeSession`.
+- **N12 — SUPERATA da R-03 (corsie parallele eliminate, W3; storico)**. Il runner ha già `LANE_ORDER` e `_lanes`; da sbloccare `start`, `from_save`,
   `current_interval_ms`, `lanes_available`; `ActionMath.secondary_interval_ms` (F-51) è già testato; aggiungere
   `skill_in_other_lane`; lo stop del combattimento resta solo per la corsia main.

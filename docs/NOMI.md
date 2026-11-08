@@ -17,7 +17,7 @@ visibili; gli **id restano** (Q52). Regole generali:
 | `forging` | Forgiatura | Fabbro |
 | `hearthcraft` | Focolare | Cuoco |
 | `woodwright` | Intaglio | Falegname |
-| `riftbinding` | Legatura del Rift | Legatura del Rift |
+| `riftbinding` | Legatura del Rift | **Incisore** (R-03, W7: ex "Legatura del Rift", sostituito) |
 | classe `rift_blade` | Lama del Rift | Spadaccino |
 
 ## Gradi dei materiali (1 → 8)
@@ -88,21 +88,54 @@ Cambiano: Sete di brace → **Sete di sangue**; Brace vitale → **Linfa vitale*
 spaccaossa**; Respiro di brace → **Seconda forza**.
 
 ## Pietre, valute, rune, oggetti speciali
-- Pietre (Scheggia / Pietra / Cuore): famiglia `ember` → **di furia**, `eye` → **di precisione**, `shade` →
-  **d'ombra**, `root` → **di roccia** (es. "Cuore di furia").
-- Valute (rare, esotiche): `currency_spark` **Scintilla del Rift** (comune → magico), `currency_flux` **Sabbia del
-  mutamento** (ritira gli affissi), `currency_crown` **Essenza del Rift** (magico → raro). Allineato ai dati (Q55, P-04).
+(Le righe sui nomi di pietre, valute e rune sono **sostituite dalla Riforma 2**, vedi la sezione in fondo: restano
+qui come storico.)
+- ~~Pietre (Scheggia / Pietra / Cuore): famiglia `ember` → di furia, `eye` → di precisione, `shade` → d'ombra, `root` →
+  di roccia (es. "Cuore di furia")~~ → sostituito da R-03: famiglie **di forza / di precisione / di agilità / di tempra**,
+  gradi **Scheggia → Pietra → Pietra perfetta**.
+- ~~Valute: `currency_spark` Scintilla del Rift, `currency_flux` Sabbia del mutamento, `currency_crown` Essenza del
+  Rift~~ → sostituiti da R-03: **Cristallo del risveglio**, **Cristallo del mutamento**, **Cristallo dell'ascesa**
+  (id invariati; `spark` → risveglio, `flux` → mutamento, `crown` → ascesa).
 - Rune (ex Infusioni, P-03): **Runa della rapidità**, **Runa dell'abbondanza**, **Runa della sapienza**, **Runa della
   precisione**, **Runa della pelle di pietra**, **Runa della pazienza**, **Runa del banchetto**, **Runa del senso del
-  Rift**, **Runa del baluardo** (stessi id di prima).
+  Rift**, **Runa del baluardo** (stessi id di prima); da R-03 ogni runa ha 5 gradi ("Runa della rapidità I" … "V").
 - Incavi (ex Prese dell'Altare, P-03): i 5 incavi dell'Altare del Rift; i castoni dei pezzi dell'Armeria restano "castoni".
 - Nota P-03: gli id nei dati (`infusion`, `socket`, `inf_*`...) restano invariati; cambiano solo i testi.
 - `rift_shard` Frammento del Rift (resta); `warding_seal` **Sigillo di protezione**.
 
 ## Shop e UI
-Casella della bank → **Spazio nel deposito**; Casella dell'Armeria → **Spazio nell'armeria**; Razioni da campo I-III,
-Raccolta automatica del bottino, Tasca della borsa restano; spariscono gli attrezzi del novizio. "Bank" → **Deposito**
-ovunque nella UI.
+~~Casella della bank → Spazio nel deposito; Casella dell'Armeria → Spazio nell'armeria~~ (**tolte da R-03**: sostituite
+dalle **borse**); Razioni da campo I-III, Raccolta automatica del bottino, Tasca della borsa restano; spariscono gli
+attrezzi del novizio. "Bank" → **Deposito** ovunque nella UI.
 
 ## Restano come sono
 Affissi (Affilato, Pesante, Preciso…), nodi della maestria, nomi degli incavi dell'Altare.
+
+## Riforma 2 (M12, W7, R-03; fonte `RIFORMA_2.md` §7)
+
+Criteri (metodo, mai nomi): il nome dice cosa fa; la grandezza dice quanto vale; una famiglia, una parola. Gli **id non
+cambiano** (Q52) tranne gli oggetti nuovi (borse, contratti, polvere, lastra, sottoprodotti). **Sostituiscono** i nomi
+precedenti di pietre, valute, mestiere `riftbinding` e Pietre del Rift (bersagli).
+
+| Cosa | Id | Nome | Sostituisce |
+|---|---|---|---|
+| Mestiere | `riftbinding` | **Incisore** | Legatura del Rift |
+| Drop grezzo | `rift_dust` (nuovo) | **Polvere del Rift** | — |
+| Valuta comune → magico | `currency_spark` | **Cristallo del risveglio** | Scintilla del Rift |
+| Valuta magico → raro | `currency_crown` | **Cristallo dell'ascesa** | Essenza del Rift |
+| Valuta che ritira gli affissi | `currency_flux` | **Cristallo del mutamento** | Sabbia del mutamento |
+| Famiglia delle pietre (danno) | `ember` | **di forza** | di furia |
+| Famiglia delle pietre (precisione) | `eye` | **di precisione** | di precisione |
+| Famiglia delle pietre (schivata) | `shade` | **di agilità** | d'ombra |
+| Famiglia delle pietre (armatura) | `root` | **di tempra** | di roccia |
+| Gradi delle pietre | `stone_<famiglia>_chip` / `_stone` / `_heart` | **Scheggia → Pietra → Pietra perfetta** (es. "Pietra perfetta di forza") | Scheggia / Pietra / Cuore |
+| Base delle rune | `rune_slab` (nuovo) | **Lastra runica** | — |
+| Gradi delle rune | `<runa>` (I), `<runa>_2`…`_5` | "Runa della rapidità I" … "V" | — |
+| Bersagli speciali nelle aree | (id invariati) | **Monoliti del Rift** | Pietre del Rift (bersagli) |
+| Aiutanti: gradi | `contract_<skill>_<grado>` (nuovi; gradi `apprentice`, `journeyman`, `expert`, `master`) | **Apprendista, Garzone, Esperto, Maestro** (es. "Contratto: Garzone boscaiolo") | — |
+| Borse | `bag_*` (nuove) | **Borsa di tela, Borsa di cuoio, Borsa rinforzata, Borsa del viandante, Borsa runica** | Spazio nel deposito / nell'armeria |
+
+Sottoprodotti della maestria (traguardo 25): nomi originali semplici, es. Resina (Betulla), Pepita (Rame), Squama
+(Trota); gli altri li propone il task DATA (M12-05) nello stesso stile (una parola, dice cosa è).
+Note: il termine "Pietra" resta solo per le pietre dei castoni; i Monoliti sono i bersagli speciali; "Frammento del Rift"
+(`rift_shard`) resta com'è.
