@@ -8,7 +8,7 @@ const REQUIRED_PAGES: Array[StringName] = [
 	&"guide_first_steps", &"guide_bank_shop", &"guide_character_level", &"guide_setups", &"guide_triangle",
 	&"guide_traits", &"guide_abilities", &"guide_food", &"guide_death", &"guide_packs", &"guide_rarity",
 	&"guide_refining", &"guide_sockets", &"guide_currencies", &"guide_salvage", &"guide_rift_stones",
-	&"guide_blueprints", &"guide_mastery", &"guide_tools", &"guide_altar", &"guide_offline"]
+	&"guide_blueprints", &"guide_stones_runes", &"guide_mastery", &"guide_tools", &"guide_altar", &"guide_offline"]
 ## Game pages whose "?" must lead to a guide page (GDD §27).
 const GAME_ROUTES: Array[String] = ["combat", "equipment", "armory", "character", "altar", "rift", "bank", "shop"]
 const MAX_WORDS: int = 160

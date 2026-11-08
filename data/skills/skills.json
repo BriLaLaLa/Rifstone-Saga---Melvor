@@ -52,7 +52,7 @@
      ]},
     {"id": "riftbinding", "name": "Legatura del Rift", "category": "artisan", "order": 7, "icon": "res://assets/icons/skills/riftbinding.svg",
      "color": "#9a5ce0",
-     "description": "Lega i frammenti del Rift in infusioni da incastonare nell'Altare del Rift.",
+     "description": "Lega i frammenti del Rift in rune da incastonare nell'Altare del Rift.",
      "has_mastery": true,
      "mastery_bonuses": [
        {"every_levels": 10, "modifiers": [{"stat": "preservation_chance", "value": 1.5}]},
