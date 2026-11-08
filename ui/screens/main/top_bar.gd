@@ -1,8 +1,8 @@
 class_name TopBar
 extends PanelContainer
-## Top bar of the main screen (docs/03_ARCHITECTURE.md §11): gold, bank slots used / capacity, slot name, menu.
+## Top bar of the main screen (docs/03_ARCHITECTURE.md §11): gold, Deposit boxes used / capacity (`deposit_changed`), slot name, menu.
 ##
-## Every value is read from the session (`wallet.get_gold`, `bank.used`/`capacity`, `player_name`, `slot`) and
+## Every value is read from the session (`wallet.get_gold`, `deposit.used`/`capacity`, `player_name`, `slot`) and
 ## redrawn on `gold_changed` and `deposit_changed`. The menu button emits `menu_requested`; the main screen
 ## ends the session. It keeps no game state: only the session reference and its nodes.
 

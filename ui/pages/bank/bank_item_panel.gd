@@ -14,6 +14,8 @@ signal sell_requested(item_id: StringName, qty: int)
 signal food_requested(item_id: StringName)
 signal infusion_socket_requested(item_id: StringName)
 signal stone_socket_requested(item_id: StringName, uid: int)
+signal bag_requested(item_id: StringName)
+signal hire_requested(item_id: StringName)
 signal close_requested
 
 const COUNT_TEXT: String = "Quantità: %s"
@@ -23,6 +25,8 @@ const LOCKED_TEXT: String = "Bloccato: non si vende."
 const UNLOCKED_TEXT: String = "Non bloccato."
 const FOOD_TEXT: String = "Usa come cibo"
 const FOOD_ACTIVE_TEXT: String = "Cibo scelto"
+const BAG_TEXT: String = "Metti nello slot"
+const HIRE_TEXT: String = "Assumi"
 const SELL_TEXT: String = "Vendi"
 const SELL_ALL_BUT_ONE_TEXT: String = "Tutti tranne 1"
 const SELL_ALL_TEXT: String = "Tutti"
@@ -46,6 +50,8 @@ var _session: GameSession = null
 @onready var _lock_button: Button = %LockButton
 @onready var _close_box: HBoxContainer = %CloseBox
 @onready var _food_button: Button = %FoodButton
+var _bag_button: Button = null
+var _hire_button: Button = null
 @onready var _socket_box: BankSocketBox = %SocketBox
 @onready var _sell_section: VBoxContainer = %SellSection
 @onready var _sell_slider: HSlider = %SellSlider
@@ -67,6 +73,8 @@ func _ready() -> void:
 	_lock_button.pressed.connect(_on_lock_button_pressed)
 	_food_button.text = FOOD_TEXT
 	_food_button.pressed.connect(_on_food_button_pressed)
+	_bag_button = _new_action_button(BAG_TEXT, "BagButton", func() -> void: bag_requested.emit(_item_id))
+	_hire_button = _new_action_button(HIRE_TEXT, "HireButton", func() -> void: hire_requested.emit(_item_id))
 	_socket_box.infusion_requested.connect(func(id: StringName) -> void: infusion_socket_requested.emit(id))
 	_socket_box.stone_requested.connect(func(id: StringName, uid: int) -> void: stone_socket_requested.emit(id, uid))
 	_sell_button.text = SELL_TEXT
@@ -122,6 +130,8 @@ func clear() -> void:
 	_lock_button.text = LOCK_TEXT
 	_sell_section.visible = false
 	_food_button.visible = false
+	_bag_button.visible = false
+	_hire_button.visible = false
 	_socket_box.visible = false
 	visible = false
 
@@ -148,6 +158,8 @@ func _refresh_actions(item: ItemDef) -> void:
 	var chosen: bool = _session.equipment.get_food() == item.id
 	_food_button.text = FOOD_ACTIVE_TEXT if chosen else FOOD_TEXT
 	_food_button.disabled = chosen
+	_bag_button.visible = item.is_bag()
+	_hire_button.visible = item.is_contract()
 
 
 func _on_food_button_pressed() -> void:
@@ -205,3 +217,16 @@ func _on_sell_but_one_pressed() -> void:
 func _on_sell_all_pressed() -> void:
 	if _session != null:
 		_request_sell(_session.bank.get_count(_item_id))
+
+
+## An action button next to "Usa come cibo" (created here to keep the scene as it is); hidden until needed.
+func _new_action_button(text: String, node_name: String, on_pressed: Callable) -> Button:
+	var button: Button = Button.new()
+	button.name = node_name
+	button.text = text
+	button.focus_mode = Control.FOCUS_NONE
+	button.visible = false
+	button.pressed.connect(on_pressed)
+	_food_button.get_parent().add_child(button)
+	_food_button.get_parent().move_child(button, _food_button.get_index() + 1)
+	return button

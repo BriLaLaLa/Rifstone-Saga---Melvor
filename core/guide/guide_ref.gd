@@ -14,6 +14,10 @@ const KIND_REFINE: StringName = &"refine"
 const KIND_SOCKET: StringName = &"socket"
 const KIND_ALTAR: StringName = &"altar"
 const KIND_FOOD: StringName = &"food"
+const KIND_LOOT_TABLE: StringName = &"loot_table"
+const KIND_MILESTONE: StringName = &"milestone"
+const KIND_BAG: StringName = &"bag"
+const KIND_CONTRACT: StringName = &"contract"
 
 var kind: StringName = &""
 ## Canonical id of the linked page (GuideIndex.entry), &"" when the entry links to no page.

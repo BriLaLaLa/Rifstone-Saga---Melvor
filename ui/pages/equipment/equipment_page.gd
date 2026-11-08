@@ -14,7 +14,7 @@ extends Page
 
 const INVENTORY_TITLE_TEXT: String = "Inventario"
 const STATS_TITLE_TEXT: String = "Statistiche"
-const FULL_TEXT: String = "Armeria piena"
+const FULL_TEXT: String = "Deposito pieno"
 const HINT_TEXT: String = "Trascina un pezzo sullo slot. Tasto destro: equipaggia (una spada va nella seconda mano se è libera), " \
 		+ "oppure Rimuovi su uno slot pieno. Clic: seleziona."
 const FILTER_TEXT: String = "Filtro"

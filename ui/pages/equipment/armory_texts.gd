@@ -16,8 +16,8 @@ const RARITY_NAMES: Dictionary[StringName, String] = {
 const LOWER_IS_BETTER: Array[StringName] = [&"skill_interval_pct", &"attack_interval_pct"]
 ## Titles of the tabs of the Forge bench, in tab order: refine, sockets, currencies.
 const BENCH_TAB_TITLES: Array[String] = ["Raffina", "Castoni", "Valute"]
-const CAPACITY_TEXT: String = "Pezzi: %s / %s"
-const CAPACITY_WORN_TEXT: String = "Pezzi: %s / %s (+%s indossati)"
+const CAPACITY_TEXT: String = "Deposito: %s / %s"
+const CAPACITY_WORN_TEXT: String = "Deposito: %s / %s (+%s indossati)"
 const UPGRADE_TEXT: String = "+%d"
 const AFFIX_GRADE_TEXT: String = "grado %d"
 const LEVEL_TEXT: String = "Livello oggetto %d"
@@ -37,7 +37,7 @@ const WEAPON_SLOT: StringName = &"weapon"
 const OFFHAND_SLOT: StringName = &"offhand"
 
 
-## "Pezzi: used / capacity", plus "(+N indossati)" when some pieces are worn (they do not use the capacity).
+## "Deposito: used / capacity", plus "(+N indossati)" when some pieces are worn (they do not use the capacity).
 static func capacity_text(used: int, capacity: int, worn: int) -> String:
 	if worn > 0:
 		return CAPACITY_WORN_TEXT % [NumberFormat.format_int(used), NumberFormat.format_int(capacity),

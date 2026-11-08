@@ -22,6 +22,7 @@ const MASTERY_PANEL_SCENE: PackedScene = preload("res://ui/pages/mastery/mastery
 const BLUEPRINT_SECTION_SCENE: PackedScene = preload("res://ui/pages/skill/blueprint_section.tscn")
 const TOOL_PANEL_SCENE: PackedScene = preload("res://ui/pages/skill/tool_upgrade_panel.tscn")
 const TOOL_SKILLS: Array[StringName] = [&"forestry", &"quarrying", &"angling"]
+const HELPER_ROW_SCENE: PackedScene = preload("res://ui/pages/skill/helper_row.tscn")
 const LOG_CATEGORY: String = "ui"
 const LANE_ACTION_KEY: String = "action"
 const LEVEL_TEXT: String = "Livello %s"
@@ -47,6 +48,12 @@ var _mastery_panel: MasteryPanel = null
 var _blueprints: BlueprintSection = null
 var _tool_panel: ToolUpgradePanel = null
 var _bench: ForgeBench = null
+var _helper_row: HelperRow = null
+## The helper events carry 2 or 3 arguments the page does not need: one stored Callable each (to disconnect them).
+var _helper_event_3: Callable = _on_helper_event.unbind(3)
+var _helper_event_2: Callable = _on_helper_event.unbind(2)
+## Flow container of each Engraver section (presentation), by section id.
+var _section_flows: Dictionary[StringName, HFlowContainer] = {}
 
 @onready var _skill_icon: TextureRect = %SkillIcon
 @onready var _name_label: Label = %NameLabel
@@ -80,8 +87,8 @@ func bind(session: GameSession) -> void:
 	_skill_icon.modulate = skill.color
 	_name_label.text = skill.name
 	_mastery_button.visible = skill.has_mastery
-	_build_cards()
 	_build_extras()
+	_build_cards()
 	var events: GameEvents = _session.events
 	events.xp_gained.connect(_on_events_xp_gained)
 	events.level_up.connect(_on_events_level_up)
@@ -89,6 +96,10 @@ func bind(session: GameSession) -> void:
 	events.action_stopped.connect(_on_events_action_stopped)
 	events.mastery_xp_gained.connect(_on_events_mastery_xp_gained)
 	events.modifiers_changed.connect(_on_events_modifiers_changed)
+	if _helper_row != null:
+		events.helper_changed.connect(_helper_event_3)
+		events.helper_completed.connect(_helper_event_3)
+		events.helper_blocked.connect(_helper_event_2)
 	if _has_recipe_cards() or _blueprints != null or _tool_panel != null:
 		events.bank_changed.connect(_on_events_bank_changed)
 		events.armory_changed.connect(_on_events_extras_changed)
@@ -114,6 +125,9 @@ func unbind() -> void:
 			[events.armory_changed, _on_events_extras_changed],
 			[events.blueprint_crafted, _on_events_extras_changed],
 			[events.gold_changed, _on_events_extras_changed],
+			[events.helper_changed, _helper_event_3],
+			[events.helper_completed, _helper_event_3],
+			[events.helper_blocked, _helper_event_2],
 		]:
 			var event: Signal = connection[0]
 			var handler: Callable = connection[1]
@@ -121,6 +135,8 @@ func unbind() -> void:
 				event.disconnect(handler)
 	if _bench != null and is_instance_valid(_bench):
 		_bench.unbind()
+	if _helper_row != null and is_instance_valid(_helper_row):
+		_helper_row.unbind()
 	if _mastery_panel != null and is_instance_valid(_mastery_panel):
 		_mastery_panel.close_window()
 	_session = null
@@ -128,6 +144,7 @@ func unbind() -> void:
 	_blueprints = null
 	_tool_panel = null
 	_bench = null
+	_helper_row = null
 
 
 func _process(_delta: float) -> void:
@@ -154,10 +171,17 @@ func _build_cards() -> void:
 			continue  # started from the BlueprintSection, not from a card
 		var scene: PackedScene = RECIPE_CARD_SCENE if not action.inputs.is_empty() else CARD_SCENE
 		var action_card: ActionCard = scene.instantiate() as ActionCard
-		_card_list.add_child(action_card)
+		_card_parent(action).add_child(action_card)
 		action_card.setup(action, _session.data)
 		action_card.toggle_requested.connect(_on_card_toggle_requested)
 		_cards[action.id] = action_card
+
+
+## Where the card of `action` goes: the card list, or for the Engraver the flow of its section (inside `Extras`).
+func _card_parent(action: ActionDef) -> Container:
+	if _skill.id != EngraverSections.SKILL:
+		return _card_list
+	return EngraverSections.flow_for(_extras, _section_flows, action)
 
 
 func _redraw() -> void:
@@ -277,6 +301,8 @@ func _build_extras() -> void:
 	_blueprints = null
 	_tool_panel = null
 	_bench = null
+	_helper_row = null
+	_section_flows.clear()
 	if _skill.id == BlueprintCraft.SKILL:
 		_blueprints = BLUEPRINT_SECTION_SCENE.instantiate() as BlueprintSection
 		_extras.add_child(_blueprints)
@@ -291,9 +317,44 @@ func _build_extras() -> void:
 		_extras.add_child(_tool_panel)
 		_tool_panel.setup(_skill.id)
 		_tool_panel.upgrade_requested.connect(_on_tool_upgrade_requested)
+		_helper_row = HELPER_ROW_SCENE.instantiate() as HelperRow
+		_extras.add_child(_helper_row)
+		_helper_row.setup(_skill.id)
+		_helper_row.change_requested.connect(_on_helper_change_requested)
+		_helper_row.stop_requested.connect(_on_helper_stop_requested)
+		_helper_row.hire_requested.connect(_on_helper_hire_requested)
+
+
+func _on_helper_change_requested(skill_id: StringName, action_id: StringName) -> void:
+	if _session != null:
+		_show_helper_result(_session.helpers.set_action(skill_id, action_id))
+
+
+func _on_helper_stop_requested(skill_id: StringName) -> void:
+	if _session != null:
+		_session.helpers.stop(skill_id)
+		_hide_refusal()
+
+
+func _on_helper_hire_requested(contract_item_id: StringName) -> void:
+	if _session != null:
+		_show_helper_result(_session.helpers.hire(contract_item_id))
+
+
+func _show_helper_result(result: CommandResult) -> void:
+	if result.ok:
+		_hide_refusal()
+	else:
+		_show_refusal_text(HelperTexts.refused(result.reason))
+
+
+func _on_helper_event() -> void:
+	_redraw_extras()
 
 
 func _redraw_extras() -> void:
+	if _helper_row != null:
+		_helper_row.redraw(_session)
 	if _blueprints != null:
 		_blueprints.redraw(_session)
 	if _tool_panel != null:

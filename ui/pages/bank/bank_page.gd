@@ -40,6 +40,9 @@ const STACK_ITEM_KEY: String = "item"
 const STACK_COUNT_KEY: String = "count"
 const STACK_LOCKED_KEY: String = "locked"
 const CELL_NAME: String = "Cell%d"
+const OCCUPIED_CELL_NAME: String = "OccupiedCell%d"
+const EMPTY_CELL_NAME: String = "EmptyCell%d"
+const OCCUPIED_TOOLTIP: String = "Casella usata da un pezzo dell'Armeria."
 ## Drag data of a cell: {DRAG_KIND_KEY: DRAG_KIND, DRAG_ITEM_KEY: item id}.
 const DRAG_KIND_KEY: String = "kind"
 const DRAG_KIND: StringName = &"bank_stack"
@@ -61,6 +64,8 @@ var _hovered_cell: ItemSlotView = null
 @onready var _empty_label: Label = %EmptyLabel
 @onready var _grid: HFlowContainer = %Grid
 @onready var _item_panel: BankItemPanel = %ItemPanel
+@onready var _bag_bar: BagSlotsBar = %BagSlotsBar
+@onready var _tabs: DepositTabs = %DepositTabs
 
 
 func _ready() -> void:
@@ -88,6 +93,10 @@ func _ready() -> void:
 	_item_panel.infusion_socket_requested.connect(_on_item_panel_infusion_socket_requested)
 	_item_panel.stone_socket_requested.connect(_on_item_panel_stone_socket_requested)
 	_item_panel.close_requested.connect(_on_item_panel_close_requested)
+	_item_panel.bag_requested.connect(_on_item_panel_bag_requested)
+	_item_panel.hire_requested.connect(_on_item_panel_hire_requested)
+	_bag_bar.equip_requested.connect(_on_bag_equip_requested)
+	_bag_bar.unequip_requested.connect(_on_bag_unequip_requested)
 	_grid.set_drag_forwarding(Callable(), _can_drop_on_grid, _drop_on_grid)
 
 
@@ -98,6 +107,7 @@ func bind(session: GameSession) -> void:
 	HelpButton.attach(_title_label.get_parent(), session.data, &"bank")
 	_session.events.bank_changed.connect(_on_events_bank_changed)
 	_session.events.deposit_changed.connect(_on_events_deposit_changed)
+	_session.events.bags_changed.connect(_on_events_bags_changed)
 	_session.events.equipment_changed.connect(_on_events_equipment_changed)
 	_session.events.food_changed.connect(_on_events_food_changed)
 	_redraw()
@@ -107,14 +117,12 @@ func bind(session: GameSession) -> void:
 func unbind() -> void:
 	if _session != null and is_instance_valid(_session):
 		var events: GameEvents = _session.events
-		if events.bank_changed.is_connected(_on_events_bank_changed):
-			events.bank_changed.disconnect(_on_events_bank_changed)
-		if events.deposit_changed.is_connected(_on_events_deposit_changed):
-			events.deposit_changed.disconnect(_on_events_deposit_changed)
-		if events.equipment_changed.is_connected(_on_events_equipment_changed):
-			events.equipment_changed.disconnect(_on_events_equipment_changed)
-		if events.food_changed.is_connected(_on_events_food_changed):
-			events.food_changed.disconnect(_on_events_food_changed)
+		for connection: Array in [[events.bank_changed, _on_events_bank_changed],
+				[events.deposit_changed, _on_events_deposit_changed], [events.bags_changed, _on_events_bags_changed],
+				[events.equipment_changed, _on_events_equipment_changed], [events.food_changed, _on_events_food_changed]]:
+			var event: Signal = connection[0]
+			if event.is_connected(connection[1]):
+				event.disconnect(connection[1])
 	_session = null
 	if _item_panel != null:
 		_item_panel.clear()
@@ -129,29 +137,42 @@ func _redraw() -> void:
 		return
 	_redraw_cells()
 	_redraw_counter()
+	_bag_bar.redraw(_session)
+	_tabs.redraw(_session)
 	if _item_panel.item_id() != &"":
 		_item_panel.show_item(_session, _item_panel.item_id())
 	_refresh_hovered_tooltip()
 
 
-## One cell per stack that matches the search, in the bank's order, then (with no search) one empty cell per free
-## slot up to the capacity: existing cells are reused, extra ones removed.
+## One cell per stack that matches the search, in the bank's order, then (with no search) up to the capacity one
+## `OccupiedCell` per box the Armory pieces use and one `EmptyCell` per free box: existing cells are reused, extra ones
+## removed. Placeholders hold no data (they are decorative drop targets).
 func _redraw_cells() -> void:
 	var stacks: Array[Dictionary] = _shown_stacks()
-	var empty_slots: int = _session.deposit.free_slots() \
-			if _search_edit.text.strip_edges().is_empty() else 0
-	var total: int = stacks.size() + empty_slots
+	var searching: bool = not _search_edit.text.strip_edges().is_empty()
+	var occupied: int = 0 if searching else maxi(0, _session.deposit.used() - stacks.size())
+	var empty_slots: int = 0 if searching else _session.deposit.free_slots()
+	var total: int = stacks.size() + occupied + empty_slots
 	var cells: Array[Node] = _grid.get_children()
 	for index: int in range(total, cells.size()):
 		_grid.remove_child(cells[index])
 		cells[index].queue_free()
 	for index: int in total:
 		var cell: ItemSlotView = cells[index] as ItemSlotView if index < cells.size() else _new_cell(index)
+		cell.modulate = Color.WHITE
+		cell.tooltip_text = ""
 		if index < stacks.size():
 			var stack: Dictionary = stacks[index]
+			cell.name = CELL_NAME % index
 			cell.set_item(_session.data.item(stack[STACK_ITEM_KEY]), stack[STACK_COUNT_KEY], stack[STACK_LOCKED_KEY])
 		else:
 			cell.clear()
+			if index < stacks.size() + occupied:
+				cell.name = OCCUPIED_CELL_NAME % index
+				cell.modulate = UiStyle.DEPOSIT_OCCUPIED_MODULATE
+				cell.tooltip_text = OCCUPIED_TOOLTIP
+			else:
+				cell.name = EMPTY_CELL_NAME % index
 	_empty_label.text = EMPTY_TEXT if _session.bank.used() == 0 else NO_MATCH_TEXT
 	_empty_label.visible = stacks.is_empty()
 
@@ -346,3 +367,32 @@ func _on_events_equipment_changed(_slot_id: StringName, _uid: int) -> void:
 
 func _on_events_food_changed(_item_id: StringName) -> void:
 	_redraw()
+
+
+func _on_events_bags_changed() -> void:
+	_redraw()
+
+
+## "Metti nello slot" on a bag: the first free bag slot.
+func _on_item_panel_bag_requested(item_id: StringName) -> void:
+	if _session != null:
+		var slot: int = _session.deposit.bags().find(&"")
+		if slot >= 0:
+			_on_bag_equip_requested(slot, item_id)
+		else:
+			_show_text(CommandResult.fail(Reasons.BAG_SLOT_OCCUPIED), func(_r: StringName) -> String: return BagTexts.NO_FREE_SLOT_TEXT)
+
+
+func _on_bag_equip_requested(slot_index: int, item_id: StringName) -> void:
+	if _session != null:
+		_show_text(_session.bank.equip_bag(slot_index, item_id), BagTexts.refused)
+
+
+func _on_bag_unequip_requested(slot_index: int) -> void:
+	if _session != null:
+		_show_text(_session.bank.unequip_bag(slot_index), BagTexts.refused)
+
+
+func _on_item_panel_hire_requested(item_id: StringName) -> void:
+	if _session != null:
+		_show_text(_session.helpers.hire(item_id), HelperTexts.refused)

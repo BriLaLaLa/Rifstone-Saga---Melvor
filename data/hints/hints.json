@@ -10,7 +10,7 @@
     {
       "id": "bank_full",
       "title": "Deposito pieno",
-      "text": "Un oggetto nuovo non trova posto e l'azione si è fermata, senza perdere nulla. Vendi qualcosa o compra spazio nel deposito allo shop.",
+      "text": "Un oggetto nuovo non trova posto e l'azione si è fermata, senza perdere nulla. Vendi qualcosa oppure metti una borsa in uno slot del Deposito per avere più caselle.",
       "trigger": "bank_full"
     },
     {

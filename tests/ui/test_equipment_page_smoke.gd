@@ -46,7 +46,7 @@ func test_the_doll_has_the_12_slots_all_empty_at_start() -> void:
 	assert_eq(_label("%ClassLabel").text, _session.character.class_def().name)
 	assert_string_contains(_label("%SetupLabel").text, "Mani nude")
 	assert_eq(_label("%EmptyLabel").text, "L'Armeria è vuota: forgia o compra dei pezzi.")
-	assert_eq(_label("%CapacityLabel").text, "Pezzi: 0 / %s" % NumberFormat.format_int(_session.deposit.capacity()))
+	assert_eq(_label("%CapacityLabel").text, "Deposito: 0 / %s" % NumberFormat.format_int(_session.deposit.capacity()))
 	assert_false(_panel().visible)
 
 
@@ -85,7 +85,7 @@ func test_the_inventory_lists_only_the_pieces_not_worn_with_the_rarity_color() -
 	assert_eq(_cell_uids(), [common, rare], "a worn piece leaves the inventory (redraw on equipment_changed)")
 	assert_eq(_view(&"head").uid(), magic)
 	assert_eq(_label("%CapacityLabel").text,
-			"Pezzi: 2 / %s (+1 indossati)" % NumberFormat.format_int(_session.deposit.capacity()))
+			"Deposito: 2 / %s (+1 indossati)" % NumberFormat.format_int(_session.deposit.capacity()))
 	assert_true(_session.armory.set_locked(common, true).ok)
 	assert_true(_cell(common).find_child("LockMarker", true, false).visible, "redraw on armory_changed")
 
@@ -120,7 +120,7 @@ func test_a_full_armory_is_marked() -> void:
 	while _session.armory.can_add(1):
 		TestFactory.give_piece(_session, HELM)
 	assert_true(_label("%FullLabel").visible)
-	assert_eq(_label("%FullLabel").text, "Armeria piena")
+	assert_eq(_label("%FullLabel").text, "Deposito pieno")
 
 
 # --- Drag and drop -----------------------------------------------------------------------------------------------

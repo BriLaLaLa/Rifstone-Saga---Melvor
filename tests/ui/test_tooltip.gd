@@ -88,7 +88,7 @@ func test_show_item_without_count_has_no_quantity() -> void:
 	_show_item(&"rift_shard", 0)
 	assert_eq(_lines(_tooltip.title_text()), PackedStringArray(["Frammento del Rift", "Varie"]))
 	assert_eq(_lines(_tooltip.body_text()), PackedStringArray([
-		"Non vendibile", "Si ottiene da: Mostro di prova A, Mostro di prova B, Pietra di prova", "Serve a: Raffinazione"]))
+		"Non vendibile", "Si ottiene da: Mostro di prova A, Mostro di prova B, Pietra di prova e altro", "Serve a: Raffinazione"]))
 
 
 func test_show_item_null_hides_and_reports() -> void:

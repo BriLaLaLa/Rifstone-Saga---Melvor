@@ -11,7 +11,7 @@ const SECTIONS: PackedStringArray = ["first_steps", "character", "loot", "crafts
 const PAGE_FIELDS: PackedStringArray = ["id", "section", "title", "order", "blocks", "help_for", "allow_digits"]
 const BLOCK_TYPES: PackedStringArray = ["text", "heading", "table", "links"]
 ## Generated tables a `table` block may use: GuideTables.ids() (single definition) plus the families
-## `actions:<skill>`, `area_monsters:<area>`, `monster_drops:<monster>` for an existing skill, area or monster.
+## `actions:<skill>`, `area_monsters:<area>`, `monster_drops:<monster>`, `mastery_milestones:<skill>` for an existing skill, area or monster.
 ## Game pages the "?" can open (PageHost routes, plus `skill:<id>` for an existing skill).
 const ROUTES: PackedStringArray = ["bank", "shop", "equipment", "armory", "character", "combat", "rift", "altar", "settings"]
 const SKILL_ROUTE_PREFIX: String = "skill:"
@@ -174,6 +174,8 @@ class _Context extends RefCounted:
 			return areas.has(StringName(source.trim_prefix(GuideTables.PREFIX_AREA_MONSTERS)))
 		if source.begins_with(GuideTables.PREFIX_MONSTER_DROPS):
 			return monsters.has(StringName(source.trim_prefix(GuideTables.PREFIX_MONSTER_DROPS)))
+		if source.begins_with(GuideTables.PREFIX_MILESTONES):
+			return skills.has(StringName(source.trim_prefix(GuideTables.PREFIX_MILESTONES)))
 		return GuideTables.ids().has(source)
 
 	func has_target(kind: String, id: String) -> bool:
