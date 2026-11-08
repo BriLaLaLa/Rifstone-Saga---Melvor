@@ -1,0 +1,48 @@
+{
+  "pages": [
+    {"id": "guide_character_level", "section": "character", "title": "Livello del personaggio", "order": 1,
+     "help_for": ["character"],
+     "blocks": [
+       {"type": "text", "text": "Il livello del personaggio sale solo uccidendo mostri e arriva fino a {balance:character_curve.max_level|int}. Dal livello dipendono punti ferita, precisione, evasione e danno base; il resto viene da equipaggiamento, assetto, tratti e Altare."},
+       {"type": "text", "text": "Il livello apre anche le aree, i pezzi più forti e gli slot di tratti e abilità. I mestieri hanno livelli separati."}
+     ]},
+    {"id": "guide_setups", "section": "character", "title": "Assetti", "order": 2,
+     "blocks": [
+       {"type": "text", "text": "L'assetto dipende da ciò che impugni: spadone a due mani, spada e scudo, due spade, oppure mani nude. Non si sceglie a parte e non cambia a metà incontro."},
+       {"type": "text", "text": "Lo spadone è lento e pesante. Spada e scudo è difensivo e con lo scudo puoi parare i colpi ({stat:block_chance}). Due spade colpiscono più spesso, a mani alterne. Ogni assetto ha le sue abilità."}
+     ]},
+    {"id": "guide_triangle", "section": "character", "title": "Triangolo", "order": 3,
+     "blocks": [
+       {"type": "text", "text": "Esistono tre stili: Lama, Mira e Arcano. La Lama batte l'Arcano, l'Arcano batte la Mira, la Mira batte la Lama."},
+       {"type": "text", "text": "Chi attacca in vantaggio fa più danno, chi è in svantaggio ne fa meno, e il difensore in vantaggio riduce un po' i colpi. Uno Spadaccino usa la Lama: i mostri arcani sono prede facili, gli arcieri sono i più pericolosi."}
+     ]},
+    {"id": "guide_traits", "section": "character", "title": "Tratti", "order": 4,
+     "blocks": [
+       {"type": "text", "text": "I tratti sono regole speciali del combattimento, come {link:trait:chain_cleave|Fendente a catena}. Ognuno si sblocca a un livello del personaggio; ne equipaggi pochi, in slot che si aprono salendo di livello."},
+       {"type": "text", "text": "Si cambiano liberamente tra un incontro e l'altro, mai durante. Alcuni valgono solo con certi assetti."},
+       {"type": "table", "source": "traits"}
+     ]},
+    {"id": "guide_abilities", "section": "character", "title": "Abilità", "order": 5,
+     "blocks": [
+       {"type": "text", "text": "Le abilità, come {link:ability:whirl|Mulinello}, partono da sole quando la ricarica finisce e c'è un bersaglio. Hanno pochi slot, aperti dal livello. Un'abilità che non appartiene all'assetto attuale resta equipaggiata ma spenta."},
+       {"type": "table", "source": "abilities"}
+     ]},
+    {"id": "guide_food", "section": "character", "title": "Cibo e Razioni", "order": 6,
+     "blocks": [
+       {"type": "text", "text": "Il cibo scelto si mangia direttamente dal Deposito: il pulsante Mangia cura subito, con un bonus da {stat:food_healing_pct}. Un esempio è {link:item:seared_brookfin|il pesce alla brace}."},
+       {"type": "text", "text": "Le Razioni da campo ({stat:auto_eat_tier}) mangiano da sole quando i punti ferita scendono sotto una soglia; la prima è già tua. Senza cibo il combattimento continua, ma si rischia di morire: la pagina ti avvisa."}
+     ]},
+    {"id": "guide_death", "section": "character", "title": "Morte", "order": 7,
+     "blocks": [
+       {"type": "text", "text": "Se i punti ferita arrivano a zero il combattimento si ferma e il contenuto della borsa del bottino va perso. Equipaggiamento, Armeria e Deposito restano al sicuro; i punti ferita tornano al massimo."},
+       {"type": "text", "text": "La borsa ha {balance:combat.loot_bag_base_slots|int} caselle base ({stat:loot_bag_slots} ne aggiunge). Svuotala spesso, oppure prendi la Raccolta automatica ({stat:auto_loot}) allo shop."}
+     ]},
+    {"id": "guide_packs", "section": "character", "title": "Gruppi e bersaglio", "order": 8,
+     "help_for": ["combat"],
+     "blocks": [
+       {"type": "text", "text": "Ogni area propone gruppi di mostri, fino a {balance:combat.max_pack_size|int} per incontro. Finiti i nemici, dopo {balance:combat.respawn_ms|sec} secondi ne arriva un altro gruppo."},
+       {"type": "text", "text": "Tutti i nemici vivi ti attaccano. Tu colpisci di norma il primo della fila; alcune abilità colpiscono tutti i nemici o i primi della fila, e un tratto può cambiare il bersaglio. Entrare in un'area richiede un livello minimo."},
+       {"type": "links", "targets": ["area:redrock_plains", "monster:plains_boar"]}
+     ]}
+  ]
+}

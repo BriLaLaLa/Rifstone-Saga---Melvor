@@ -1,0 +1,10 @@
+{
+  "pages": [
+    {"id": "guide_altar", "section": "altar", "title": "Altare del Rift", "order": 1,
+     "help_for": ["rift", "altar"],
+     "blocks": [
+       {"type": "text", "text": "L'Altare ha cinque prese, che si aprono salendo di livello nella {link:skill:riftbinding|Legatura del Rift}. In ogni presa metti un'infusione: ne attiva gli effetti finché resta lì."},
+       {"type": "text", "text": "L'infusione incastonata esce dal Deposito. Toglierla la distrugge; sostituirla ne distrugge una. Una stessa infusione può stare in più prese, tranne quelle uniche."}
+     ]}
+  ]
+}

@@ -1,0 +1,4 @@
+{
+  "no_source": ["ashlead_ring", "ashlead_amulet", "duskcobalt_ring", "duskcobalt_amulet", "palecinnabar_ring", "palecinnabar_amulet", "riftite_ring", "riftite_amulet"],
+  "no_use": ["raider_bandage", "redrock_flint", "hollow_arrowhead", "whisper_resin", "witch_charm", "mine_dust", "colossus_shard", "threshold_ash"]
+}
