@@ -23,6 +23,7 @@ signal mastery_xp_gained(skill_id: StringName, action_id: StringName, amount: in
 signal mastery_level_up(skill_id: StringName, action_id: StringName, new_level: int)
 signal mastery_pool_changed(skill_id: StringName, pool_xp: int)
 signal mastery_node_purchased(skill_id: StringName, node_id: StringName)
+signal mastery_milestone_reached(skill_id: StringName, action_id: StringName, at: int)  # M12: 25/50/99 of a gathering action
 
 # Character
 signal character_xp_gained(amount: int)

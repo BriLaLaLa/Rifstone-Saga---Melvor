@@ -18,6 +18,7 @@ var icon: String = ""
 var inputs: Array[ItemQty] = []
 var outputs: Array[ItemQty] = []
 var single: bool = false  # M10: single-cycle action (04 §6); false when absent
+var milestones: Array[MilestoneDef] = []  # M12: gathering actions only (F-103), in the order 25/50/99
 
 
 static func from_dict(d: Dictionary, file_skill_id: StringName = &"") -> ActionDef:
@@ -39,6 +40,12 @@ static func from_dict(d: Dictionary, file_skill_id: StringName = &"") -> ActionD
 	def.outputs = _item_list(r, "outputs")
 	if r.has("single"):
 		def.single = r.flag("single")
+	if r.has("milestones"):
+		for entry: Dictionary in r.dict_list("milestones"):
+			var milestone: MilestoneDef = MilestoneDef.from_dict(entry, def.id, file_skill_id)
+			r.absorb(milestone != null)
+			if milestone != null:
+				def.milestones.append(milestone)
 	return def if r.ok else null
 
 
@@ -55,3 +62,11 @@ static func _item_list(r: DefReader, key: String) -> Array[ItemQty]:
 		if item != null:
 			result.append(item)
 	return result
+
+
+## The milestone of the given type (M12), or null if the action has none.
+func milestone_of(type: StringName) -> MilestoneDef:
+	for milestone: MilestoneDef in milestones:
+		if milestone.type == type:
+			return milestone
+	return null

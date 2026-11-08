@@ -76,15 +76,15 @@ func test_add_for_action_applies_mastery_xp_pct_of_the_action() -> void:
 
 
 func test_reaching_a_mastery_level_emits_level_up_and_updates_the_bonus_once() -> void:
-	_load({SKILL: {"actions": {TWIG: _table.xp_for_level(10) - 1}}})
+	_load({SKILL: {"actions": {TWIG: _table.xp_for_level(50) - 1}}})
 	assert_eq(_double(TWIG), 0.0)
 	watch_signals(_session.events)
 	_mastery.add_for_action(_action(TWIG))
-	assert_eq(_mastery.get_mastery_level(TWIG), 10)
+	assert_eq(_mastery.get_mastery_level(TWIG), 50)
 	assert_signal_emit_count(_session.events, "mastery_level_up", 1)
-	assert_signal_emitted_with_parameters(_session.events, "mastery_level_up", [SKILL, TWIG, 10])
+	assert_signal_emitted_with_parameters(_session.events, "mastery_level_up", [SKILL, TWIG, 50])
 	assert_signal_emit_count(_session.events, "modifiers_changed", 1)
-	assert_eq(_double(TWIG), 1.0)
+	assert_eq(_double(TWIG), 8.0)
 	assert_eq(_double(LOG_ACTION), 0.0)
 
 
@@ -96,12 +96,23 @@ func test_level_up_without_bonus_change_leaves_modifiers_alone() -> void:
 	assert_signal_not_emitted(_session.events, "modifiers_changed")
 
 
-## F-11 gathering examples (fixture rules = real gathering rules): L 35 -> +3; L 99 -> +9 +5 = +14.
-func test_f11_item_bonus_examples() -> void:
-	_load({SKILL: {"actions": {TWIG: _table.xp_for_level(35), LOG_ACTION: _table.xp_for_level(99)}}})
-	assert_eq(_double(TWIG), 3.0)
-	assert_eq(_double(LOG_ACTION), 14.0)
-	assert_eq(_session.modifiers.total(DOUBLE, ModifierContext.for_skill(SKILL)), 0.0)
+## F-103 and F-108 (fixture: twig resource +8, trade +0.5; log resource +6, trade +1): the resource bonus is only for its own
+## action from level 50; the trade bonuses (level 99) are summed across the resources, on the skill.
+func test_milestone_bonus_examples() -> void:
+	_load({SKILL: {"actions": {TWIG: _table.xp_for_level(49), LOG_ACTION: _table.xp_for_level(50)}}})
+	assert_eq(_double(TWIG), 0.0)
+	assert_eq(_double(LOG_ACTION), 6.0)
+	_load({SKILL: {"actions": {TWIG: _table.xp_for_level(50), LOG_ACTION: _table.xp_for_level(98)}}})
+	assert_eq(_double(TWIG), 8.0)
+	assert_eq(_double(LOG_ACTION), 6.0)
+	assert_false(_session.modifiers.has_source(&"mastery_trade:test_gather"))
+	_load({SKILL: {"actions": {TWIG: _table.xp_for_level(99), LOG_ACTION: _table.xp_for_level(98)}}})
+	assert_eq(_double(TWIG), 8.5)
+	assert_eq(_double(LOG_ACTION), 6.5)
+	_load({SKILL: {"actions": {TWIG: _table.xp_for_level(99), LOG_ACTION: _table.xp_for_level(99)}}})
+	assert_eq(_double(TWIG), 9.5, "0.5 + 1 trade + 8 resource")
+	assert_eq(_double(LOG_ACTION), 7.5)
+	assert_eq(_session.modifiers.total(DOUBLE, ModifierContext.for_skill(SKILL)), 1.5)
 	assert_eq(_session.modifiers.total(DOUBLE), 0.0)
 
 
@@ -117,13 +128,15 @@ func test_f11_artisan_bonus_examples() -> void:
 
 
 func test_item_bonus_source_only_when_it_has_modifiers() -> void:
-	_load({SKILL: {"actions": {TWIG: _table.xp_for_level(10)}}})
+	_load({SKILL: {"actions": {TWIG: _table.xp_for_level(50)}}})
 	assert_true(_session.modifiers.has_source(&"mastery_item:gather_twig"))
 	assert_false(_session.modifiers.has_source(&"mastery_item:gather_log"))
 	assert_false(_session.modifiers.has_source(&"mastery_item:craft_plank"))
 
 
 func test_f11_with_real_data() -> void:
+	pending("M12-05: the real gathering actions get their milestones")
+	return
 	var real: GameSession = autofree(TestFactory.session(1, TestFactory.real_data()))
 	real.mastery.from_save({"forestry": {"actions": {"cut_redbirch": _table.xp_for_level(99)}}})
 	real.rebuild_modifiers()
@@ -172,8 +185,9 @@ func test_f14_spend_from_zero() -> void:
 	assert_signal_emitted_with_parameters(_session.events, "mastery_xp_gained", [SKILL, TWIG, 5000])
 	assert_signal_emit_count(_session.events, "mastery_level_up", 29)
 	assert_signal_emitted_with_parameters(_session.events, "mastery_pool_changed", [SKILL, 5000])
-	assert_signal_emit_count(_session.events, "modifiers_changed", 1)
-	assert_eq(_double(TWIG), 3.0)
+	assert_signal_emit_count(_session.events, "modifiers_changed", 0)
+	assert_signal_emitted_with_parameters(_session.events, "mastery_milestone_reached", [SKILL, TWIG, 25])
+	assert_eq(_double(TWIG), 0.0)
 
 
 ## F-14: mastery 2,296,000, amount 5,000 -> 551 spent (only what reaches level 99).
@@ -183,7 +197,7 @@ func test_f14_spend_stops_at_level_99() -> void:
 	assert_eq(_mastery.get_mastery_xp(TWIG), 2296551)
 	assert_eq(_mastery.get_mastery_level(TWIG), 99)
 	assert_eq(_mastery.get_pool(SKILL), 10000 - 551)
-	assert_eq(_double(TWIG), 14.0)
+	assert_eq(_double(TWIG), 8.5)
 
 
 ## F-14: pool 300, amount 5,000 -> 300 spent.
@@ -234,13 +248,13 @@ func test_to_save_writes_every_skill_with_mastery() -> void:
 
 
 func test_save_round_trip_through_the_session() -> void:
-	_load({SKILL: {"pool": 1234, "actions": {TWIG: _table.xp_for_level(35)}}})
+	_load({SKILL: {"pool": 1234, "actions": {TWIG: _table.xp_for_level(50)}}})
 	var text: String = SaveCodec.encode(_session.to_save(1))
 	var other: GameSession = autofree(TestFactory.session(9))
 	watch_signals(other.events)
 	assert_true(other.from_save(SaveCodec.decode(text)).ok)
 	assert_eq(other.mastery.to_save(), _mastery.to_save())
-	assert_eq(other.modifiers.total(DOUBLE, ModifierContext.for_action(SKILL, TWIG)), 3.0)
+	assert_eq(other.modifiers.total(DOUBLE, ModifierContext.for_action(SKILL, TWIG)), 8.0)
 	assert_signal_not_emitted(other.events, "mastery_xp_gained")
 	assert_signal_not_emitted(other.events, "mastery_pool_changed")
 

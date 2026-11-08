@@ -21,6 +21,8 @@ const REQUIRED_BALANCE_KEYS: PackedStringArray = [
 	"gathering.rift_shard_base_chance_pct",
 	"deposit.base_slots", "deposit.bag_slots",
 	"helper.xp_pct", "helper.mastery_pct", "helper.grades",
+	"mastery.milestones.byproduct_at", "mastery.milestones.resource_at", "mastery.milestones.trade_at",
+	"mastery.milestones.byproduct_chance_pct",
 	"combat.acc_level_offset", "combat.acc_bonus_offset", "combat.maxhit_level_offset", "combat.maxhit_bonus_offset",
 	"combat.min_hit_ratio", "combat.hit_chance_min", "combat.hit_chance_max",
 	"combat.triangle.advantage_damage_mult", "combat.triangle.disadvantage_damage_mult",
@@ -94,6 +96,9 @@ static func validate(raw: Dictionary, errors: PackedStringArray) -> void:
 	_validate_balance_refs(v, _files(raw, "balance"))
 	DataValidatorItems.validate_actions(v, _files(raw, "actions"))
 	v.validate_mastery(_files(raw, "mastery"))
+	var milestones_active: bool = DataValidatorMilestones.is_active(v, _files(raw, "actions"))
+	DataValidatorMilestones.validate_skills(v, _files(raw, "skills"), milestones_active)
+	DataValidatorMilestones.validate_trees(v, _files(raw, "mastery"), milestones_active)
 	DataValidatorClasses.validate_areas(v, _files(raw, "areas"))
 	DataValidatorClasses.validate_monsters(v, _files(raw, "monsters"))
 	DataValidatorClasses.validate_classes(v, _files(raw, "classes"))
@@ -201,6 +206,7 @@ static func _validate_balance(v: DataValidatorRules, files: Dictionary[String, D
 		DataValidatorClasses.validate_balance(v, balance)
 		DataValidatorLoot.validate_balance(v, balance)
 		DataValidatorHelper.validate_balance(v, balance)
+		DataValidatorMilestones.validate_balance(v, balance)
 		DataValidatorHints.validate_balance(v, balance)
 		DataValidatorM10Balance.validate_balance(v, balance)
 

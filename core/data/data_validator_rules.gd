@@ -31,6 +31,7 @@ var max_character_level: float = NO_LIMIT  # character_curve.max_level
 var max_pack_size: float = NO_LIMIT  # combat.max_pack_size
 var min_action_interval_ms: float = 0.0
 var helper_grade_ids: PackedStringArray = []  # helper.grades ids (M12), collected with the balance before the items
+var milestone_thresholds: Array[int] = []  # mastery.milestones byproduct_at, resource_at, trade_at (M12), when valid
 var min_attack_interval_ms: float = 0.0
 
 var _file: String = ""

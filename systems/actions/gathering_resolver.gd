@@ -3,10 +3,11 @@ extends RefCounted
 ## One completed cycle of a gathering action (docs/01_GDD.md §4):
 ## 1. products: base quantities, all doubled when the `double_item_chance` roll succeeds (F-06);
 ## 2. rift shard roll (F-07): `gathering.rift_shard_base_chance_pct + T(rift_shard_chance)`, total limited to 0..100;
+## 2b. (M12, F-103) byproduct roll of the mastery milestone 25, after the shard (never doubled);
 ## 3. everything goes to the bank; when the new items do not all find a slot the cycle does not count:
 ##    nothing is added, no xp, no mastery, outcome `bank_full`;
 ## 4. skill xp (F-02) and mastery (F-10, F-12) through their systems.
-## Every roll goes through `session.rng`, always in this order (double, then shard), so runs are reproducible.
+## Every roll goes through `session.rng`, always in this order (double, shard, byproduct), so runs are reproducible.
 
 const DOUBLE_STAT: StringName = &"double_item_chance"
 const SHARD_STAT: StringName = &"rift_shard_chance"
@@ -15,6 +16,7 @@ const HELPER_XP_KEY: String = "helper.xp_pct"
 const HELPER_MASTERY_KEY: String = "helper.mastery_pct"
 const SHARD_ITEM: StringName = &"rift_shard"
 const SHARD_QTY: int = 1
+const BYPRODUCT_QTY: int = 1  # F-103: never doubled
 ## F-06: a successful double roll multiplies every product by this factor.
 const DOUBLE_FACTOR: int = 2
 
@@ -34,6 +36,9 @@ static func resolve(session: GameSession, action: ActionDef, helper_grade: Strin
 	outcome.shard = session.rng.roll_pct(_shard_chance(session, ctx))
 	if outcome.shard:
 		produced[SHARD_ITEM] = produced.get(SHARD_ITEM, 0) + SHARD_QTY
+	var byproduct: StringName = _byproduct(session, action)
+	if byproduct != &"":
+		produced[byproduct] = produced.get(byproduct, 0) + BYPRODUCT_QTY
 	if not _fits(session.bank, produced):
 		outcome.reason = Reasons.BANK_FULL
 		return outcome
@@ -47,6 +52,17 @@ static func resolve(session: GameSession, action: ActionDef, helper_grade: Strin
 	outcome.mastery_xp = session.mastery.add_for_action(action, mastery_share)
 	outcome.ok = true
 	return outcome
+
+
+# F-103: the byproduct of the 25 milestone (third roll, after double and shard) when the action reached it; else "".
+# The roll happens only if the milestone is active, with `mastery.milestones.byproduct_chance_pct`.
+static func _byproduct(session: GameSession, action: ActionDef) -> StringName:
+	var milestone: MilestoneDef = action.milestone_of(MilestoneDef.TYPE_BYPRODUCT)
+	var at: int = int(session.data.balance_value(MasteryMilestones.BYPRODUCT_AT_KEY))
+	if milestone == null or not session.mastery.milestone_active(action.id, at):
+		return &""
+	var chance: float = float(session.data.balance_value(MasteryMilestones.BYPRODUCT_CHANCE_KEY))
+	return milestone.item if session.rng.roll_pct(chance) else &""
 
 
 # F-07 for gathering: base chance from balance.json plus the stat total, limited to 0..100 percent.

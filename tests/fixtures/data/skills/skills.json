@@ -3,11 +3,7 @@
   "skills": [
     {"id": "test_gather", "name": "Raccolta di prova", "category": "gathering", "order": 1,
      "icon": "res://assets/icons/skills/test_gather.png", "color": "#7fbf6a",
-     "description": "Skill di raccolta per i test.", "has_mastery": true,
-     "mastery_bonuses": [
-       {"every_levels": 10, "modifiers": [{"stat": "double_item_chance", "value": 1}]},
-       {"at_level": 99, "modifiers": [{"stat": "double_item_chance", "value": 5}]}
-     ]},
+     "description": "Skill di raccolta per i test.", "has_mastery": true},
     {"id": "test_gather_b", "name": "Seconda raccolta di prova", "category": "gathering", "order": 2,
      "icon": "res://assets/icons/skills/test_gather_b.png", "color": "#8f8f8f",
      "description": "Seconda skill di raccolta per i test.", "has_mastery": true},
