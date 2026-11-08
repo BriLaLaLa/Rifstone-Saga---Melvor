@@ -1,0 +1,16 @@
+{
+  "pages": [
+    {"id": "guide_mastery", "section": "crafts", "title": "Maestria", "order": 1,
+     "help_for": ["skill:forestry", "skill:quarrying", "skill:angling", "skill:forging", "skill:hearthcraft", "skill:woodwright", "skill:riftbinding"],
+     "blocks": [
+       {"type": "text", "text": "Ogni azione dei mestieri ha una propria maestria, che sale ripetendola. Dà bonus a quell'azione, per esempio {stat:double_item_chance}."},
+       {"type": "text", "text": "Una quota di ogni guadagno ({balance:mastery.pool_share_pct|pct}) finisce nel pool del mestiere. Il pool si spende per alzare la maestria di un'azione oppure per comprare i nodi dell'albero: bonus permanenti per tutto il mestiere. Ti avvisiamo quando è pieno oltre {balance:mastery.pool_warning_pct|pct}."},
+       {"type": "links", "targets": ["skill:forestry", "skill:quarrying", "skill:angling", "skill:forging", "skill:hearthcraft", "skill:woodwright", "skill:riftbinding", "stat:mastery_xp_pct"]}
+     ]},
+    {"id": "guide_tools", "section": "crafts", "title": "Attrezzi", "order": 2,
+     "blocks": [
+       {"type": "text", "text": "Accetta, Piccone e Canna da pesca sono attrezzi unici, uno per mestiere di raccolta: li hai dall'inizio e non si tolgono né si vendono."},
+       {"type": "text", "text": "Si raffinano senza rischio da zero a nove: ogni passo costa oro e componenti del grado (piastre del Fabbro e manici del Falegname) e chiede un livello minimo del mestiere. Ogni passo accelera il lavoro ({stat:skill_interval_pct}); ai passi alti arrivano piccoli bonus di raccolta."}
+     ]}
+  ]
+}

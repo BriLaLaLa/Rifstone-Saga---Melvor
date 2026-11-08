@@ -1,0 +1,20 @@
+{
+  "pages": [
+    {"id": "guide_first_steps", "section": "first_steps", "title": "Primi passi", "order": 1,
+     "help_for": ["combat"],
+     "blocks": [
+       {"type": "text", "text": "Sei uno Spadaccino delle {link:area:redrock_plains|Pianure di Roccarossa}. Hai già un equipaggiamento di base, un po' di cibo e tre attrezzi: tutto pronto per la prima ora."},
+       {"type": "heading", "text": "La prima ora"},
+       {"type": "text", "text": "Apri Combattimento, scegli un'area e avvia: gli incontri si susseguono da soli. Scegli il cibo da mangiare: con le Razioni da campo si mangia in automatico. Raccogli il bottino dalla borsa e portalo nel Deposito. Dall'Armeria equipaggia i pezzi migliori che trovi. Intanto i mestieri lavorano per te: legna, minerali, pesce, ricette."},
+       {"type": "text", "text": "Il gioco prosegue anche a gioco chiuso, fino a {balance:offline.cap_ms|ore} ore."},
+       {"type": "links", "targets": ["page:guide_packs", "page:guide_food", "page:guide_rarity", "page:guide_mastery", "page:guide_offline"]}
+     ]},
+    {"id": "guide_bank_shop", "section": "first_steps", "title": "Deposito e shop", "order": 2,
+     "help_for": ["bank", "shop"],
+     "blocks": [
+       {"type": "text", "text": "Il Deposito contiene materiali, cibo, pietre, valute e infusioni, un tipo per casella. Le caselle sono limitate e puoi comprarne altre allo shop; anche l'Armeria ha caselle acquistabili."},
+       {"type": "text", "text": "Lo shop vende, per oro, caselle, Razioni da campo e la Raccolta automatica del bottino. Gli acquisti sono permanenti. Parti con {balance:start.gold|int} monete: l'oro arriva dai mostri e dalle vendite."},
+       {"type": "links", "targets": ["stat:bank_slots", "stat:auto_loot", "stat:auto_eat_tier"]}
+     ]}
+  ]
+}
