@@ -40,7 +40,8 @@ func bind(session: GameSession) -> void:
 	_session = session
 	_session.events.gold_changed.connect(_on_events_gold_changed)
 	_session.events.bank_capacity_changed.connect(_on_events_bank_capacity_changed)
-	_slot_label.text = SLOT_TEXT % [_session.player_name, _session.slot]
+	_session.events.player_renamed.connect(_on_events_player_renamed)
+	_redraw_slot()
 	_redraw_gold()
 	_redraw_bank()
 
@@ -54,11 +55,21 @@ func unbind() -> void:
 			_session.events.gold_changed.disconnect(_on_events_gold_changed)
 		if _session.events.bank_capacity_changed.is_connected(_on_events_bank_capacity_changed):
 			_session.events.bank_capacity_changed.disconnect(_on_events_bank_capacity_changed)
+		if _session.events.player_renamed.is_connected(_on_events_player_renamed):
+			_session.events.player_renamed.disconnect(_on_events_player_renamed)
 	_session = null
 
 
 func _exit_tree() -> void:
 	unbind()
+
+
+func _redraw_slot() -> void:
+	_slot_label.text = SLOT_TEXT % [_session.player_name, _session.slot]
+
+
+func _on_events_player_renamed(_new_name: String) -> void:
+	_redraw_slot()
 
 
 func _redraw_gold() -> void:

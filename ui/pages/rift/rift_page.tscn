@@ -63,6 +63,15 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 6
 
+[node name="RunesPanel" type="PanelContainer" parent="Margin/Scroll/Content"]
+layout_mode = 2
+theme_type_variation = &"HudPanel"
+
+[node name="RunesBox" type="VBoxContainer" parent="Margin/Scroll/Content/RunesPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
+
 [node name="SummaryPanel" type="PanelContainer" parent="Margin/Scroll/Content"]
 layout_mode = 2
 theme_type_variation = &"HudPanel"

@@ -20,6 +20,7 @@ var _removing: int = -1
 @onready var _sockets: VBoxContainer = %Sockets
 @onready var _picker: PanelContainer = %Picker
 @onready var _picker_box: VBoxContainer = %PickerBox
+@onready var _runes_box: VBoxContainer = %RunesBox
 @onready var _summary_title: Label = %SummaryTitle
 @onready var _summary_text: RichTextLabel = %SummaryText
 
@@ -73,6 +74,7 @@ func _redraw() -> void:
 	for i: int in _session.rift.socket_total():
 		_sockets.add_child(_build_row(i))
 	_redraw_picker()
+	_redraw_runes()
 	var lines: PackedStringArray = RiftTexts.summary_lines(_session)
 	_summary_text.text = "\n".join(lines) if not lines.is_empty() else RiftTexts.SUMMARY_NONE_TEXT
 
@@ -180,6 +182,49 @@ func _redraw_picker() -> void:
 	cancel.focus_mode = Control.FOCUS_NONE
 	cancel.pressed.connect(_on_pick_cancelled)
 	_picker_box.add_child(cancel)
+
+
+## The runes of the bank with their effect (item description) and the link to the Riftbinding page that crafts them.
+func _redraw_runes() -> void:
+	for child: Node in _runes_box.get_children():
+		_runes_box.remove_child(child)
+		child.queue_free()
+	var title := Label.new()
+	title.theme_type_variation = &"HeaderLabel"
+	title.text = RiftTexts.RUNES_TITLE_TEXT
+	_runes_box.add_child(title)
+	var owned: Array[Dictionary] = RiftTexts.owned(_session, &"infusion")
+	if owned.is_empty():
+		var none := Label.new()
+		none.name = "NoRunes"
+		none.text = RiftTexts.NO_INFUSIONS_TEXT
+		none.theme_type_variation = &"MutedLabel"
+		_runes_box.add_child(none)
+	for entry: Dictionary in owned:
+		var def: ItemDef = entry["item"] as ItemDef
+		var line := Label.new()
+		line.name = "Rune_%s" % def.id
+		line.text = "%s\n%s" % [RiftTexts.RUNE_LINE_TEXT % [def.name, NumberFormat.format_int(int(entry["count"]))],
+				def.description]
+		line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_runes_box.add_child(line)
+	var craft := Button.new()
+	craft.name = "CraftRunesButton"
+	craft.text = RiftTexts.CRAFT_RUNES_TEXT
+	craft.focus_mode = Control.FOCUS_NONE
+	craft.custom_minimum_size.y = UiStyle.MENU_BUTTON_HEIGHT
+	craft.pressed.connect(_on_craft_runes_pressed)
+	_runes_box.add_child(craft)
+
+
+## Opens the Riftbinding skill page through the host (route `skill:riftbinding`).
+func _on_craft_runes_pressed() -> void:
+	var node: Node = get_parent()
+	while node != null and not node is PageHost:
+		node = node.get_parent()
+	if node != null:
+		(node as PageHost).show_page(StringName("%s%s%s" % [PageHost.ROUTE_SKILL, PageHost.ROUTE_SEPARATOR,
+				RiftAltar.SKILL]))
 
 
 # --- Commands ---------------------------------------------------------------------------------------------------
