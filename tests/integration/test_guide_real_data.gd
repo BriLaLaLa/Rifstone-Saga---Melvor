@@ -3,7 +3,7 @@ extends GutTest
 ## placeholder, no hand-written number, every table source builds, every "?" opens an existing page, the Guide keeps no
 ## game state. Complements tests/core/guide (fixtures), tests/data/test_guide_texts.gd and tests/ui/{guide,help}.
 
-const TABLE_PREFIXES: PackedStringArray = ["actions:", "area_monsters:", "monster_drops:"]
+const TABLE_PREFIXES: PackedStringArray = ["actions:", "area_monsters:", "monster_drops:", "mastery_milestones:"]
 const PAGE_KINDS: PackedStringArray = ["page", "item", "monster", "area", "skill", "stat", "trait", "ability"]
 
 var _session: GameSession
