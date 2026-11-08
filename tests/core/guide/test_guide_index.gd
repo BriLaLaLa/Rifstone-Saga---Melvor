@@ -144,11 +144,17 @@ func test_summary_line() -> void:
 
 
 func test_items_without_source_and_use_list_orphans() -> void:
-	var orphans: Array[StringName] = _real_index.items_without_source()
-	for id: StringName in orphans:
-		assert_true(_real_index.sources_of(id).is_empty())
-	for id: StringName in _real_index.items_without_use():
-		assert_true(_real_index.uses_of(id).is_empty())
+	# Real data: every orphan is covered by a declared exception, so both lists are empty.
+	assert_eq(_real_index.items_without_source().size(), 0, str(_real_index.items_without_source()))
+	assert_eq(_real_index.items_without_use().size(), 0, str(_real_index.items_without_use()))
+	# Fixtures have orphans (and no exceptions): the lists match exactly the items without source/use.
+	var no_source: Array[StringName] = _fixture_index.items_without_source()
+	var no_use: Array[StringName] = _fixture_index.items_without_use()
+	assert_gt(no_source.size(), 0, "fixtures have items without a source")
+	assert_gt(no_use.size(), 0, "fixtures have items without a use")
+	for item: ItemDef in _fixture.items():
+		assert_eq(no_source.has(item.id), _fixture_index.sources_of(item.id).is_empty(), "source of %s" % item.id)
+		assert_eq(no_use.has(item.id), _fixture_index.uses_of(item.id).is_empty(), "use of %s" % item.id)
 
 
 func test_exceptions_are_excluded() -> void:
