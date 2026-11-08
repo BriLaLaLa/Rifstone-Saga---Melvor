@@ -117,7 +117,7 @@ func test_killing_the_stone_pays_xp_shards_and_the_stone_drops() -> void:
 		bases.append(inst.base_id)
 		assert_eq(inst.ilvl, 8, "F-85: the highest combat level among the monsters of the area (redrock_raider)")
 		assert_eq(inst.upgrade, 0)
-	bases.sort()
+	bases.sort_custom(func(a: StringName, b: StringName) -> bool: return String(a) < String(b))  # StringName < is not alphabetical
 	assert_eq(bases, [&"emberbronze_amulet", &"emberbronze_ring"] as Array[StringName], "one of each, once")
 	var blueprints: int = int(bag.get(&"bp_ashlead_gauntlets", 0)) + s.bank.get_count(&"bp_ashlead_gauntlets")
 	assert_eq(blueprints, 1, "the blueprint of the stone reaches the loot bag or the bank, never the Armory")
