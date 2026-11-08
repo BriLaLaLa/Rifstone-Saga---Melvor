@@ -114,7 +114,7 @@ func test_item_infusion_example() -> void:
 
 func test_item_infusion_unique_defaults_to_false_and_reads_true() -> void:
 	var base: String = """{"id": "inf_x", "name": "X", "category": "infusion", "value": 0, "sort_order": 1,
-		"icon": "", "description": "", "infusion": {"modifiers": [{"stat": "bank_slots", "value": 1}]%s}}"""
+		"icon": "", "description": "", "infusion": {"modifiers": [{"stat": "skill_interval_pct", "value": 1}]%s}}"""
 	assert_false(ItemDef.from_dict(_parse(base % "")).infusion_unique)
 	assert_true(ItemDef.from_dict(_parse(base % ", \"unique\": true")).infusion_unique)
 
@@ -245,38 +245,33 @@ func test_monster_bad_gold_is_null() -> void:
 	assert_push_error(1)
 
 
-# --- §9 shop ---------------------------------------------------------------------------------------------------
-
-func test_shop_bank_slot_example() -> void:
+func test_shop_pocket_example() -> void:
 	var entry: ShopEntryDef = ShopEntryDef.from_dict(_parse("""
-		{"id": "bank_slot", "name": "Casella della bank", "category": "bank", "vendor": "deposito",
-		 "description": "Una casella in più nella bank.",
-		 "cost": {"formula": "bank_slot"}, "max_purchases": 150,
-		 "requires": {}, "effect": {"modifiers": [{"stat": "bank_slots", "value": 1}]}}"""))
+		{"id": "loot_pocket", "name": "Tasca della borsa", "category": "combat", "vendor": "bottegaia",
+		 "description": "Quattro posti in più nella borsa del bottino.",
+		 "cost": {"gold": 5000}, "max_purchases": 3,
+		 "requires": {}, "effect": {"modifiers": [{"stat": "loot_bag_slots", "value": 4}]}}"""))
 	assert_not_null(entry)
-	assert_eq(entry.id, &"bank_slot")
-	assert_eq(entry.name, "Casella della bank")
-	assert_eq(entry.description, "Una casella in più nella bank.")
-	assert_eq(entry.category, &"bank")
-	assert_eq(entry.cost_gold, 0)
-	assert_eq(entry.cost_formula, &"bank_slot")
-	assert_eq(entry.max_purchases, 150)
+	assert_eq(entry.id, &"loot_pocket")
+	assert_eq(entry.category, &"combat")
+	assert_eq(entry.cost_gold, 5000)
+	assert_eq(entry.max_purchases, 3)
 	assert_eq(entry.req_entries.size(), 0)
 	assert_eq(entry.req_skills.size(), 0)
 	assert_eq(entry.req_total_level, 0)
 	assert_eq(entry.req_character, 0, "no requirement")
 	assert_eq(entry.effect_modifiers.size(), 1)
-	_assert_modifier(entry.effect_modifiers[0], &"bank_slots", 1.0, &"global", &"")
+	_assert_modifier(entry.effect_modifiers[0], &"loot_bag_slots", 4.0, &"global", &"")
 	assert_null(entry.effect_item)
 
 
-func test_shop_armory_slot_formula() -> void:
-	var entry: ShopEntryDef = ShopEntryDef.from_dict(_parse("""
-		{"id": "armory_slot", "name": "Casella dell'Armeria", "category": "bank", "vendor": "deposito", "description": "Una casella in più.",
+func test_shop_cost_formula_is_no_longer_read() -> void:
+	assert_null(ShopEntryDef.from_dict(_parse("""
+		{"id": "armory_slot", "name": "X", "category": "bank", "vendor": "bottegaia", "description": "",
 		 "cost": {"formula": "armory_slot"}, "max_purchases": 60, "requires": {},
-		 "effect": {"modifiers": [{"stat": "armory_slots", "value": 1}]}}"""))
-	assert_not_null(entry)
-	assert_eq(entry.cost_formula, &"armory_slot")
+		 "effect": {"modifiers": [{"stat": "loot_bag_slots", "value": 1}]}}""")))
+	assert_push_error("needs 'gold'")
+
 
 
 func test_shop_auto_eat_example() -> void:
@@ -290,7 +285,6 @@ func test_shop_auto_eat_example() -> void:
 	assert_eq(entry.category, &"combat")
 	assert_eq(entry.cost_gold, 25000)
 	assert_eq(typeof(entry.cost_gold), TYPE_INT)
-	assert_eq(entry.cost_formula, &"")
 	assert_eq(entry.max_purchases, 1)
 	assert_eq(entry.req_entries, [&"auto_eat_1"] as Array[StringName])
 	assert_eq(entry.req_skills.size(), 0)
@@ -322,11 +316,11 @@ func test_shop_total_level_requirement() -> void:
 	assert_eq(entry.req_total_level, 120)
 
 
-func test_shop_cost_without_gold_or_formula_is_null() -> void:
+func test_shop_cost_without_gold_is_null() -> void:
 	assert_null(ShopEntryDef.from_dict(_parse("""
 		{"id": "e", "name": "E", "category": "combat", "vendor": "bottegaia", "description": "", "cost": {},
 		 "max_purchases": 1, "requires": {}, "effect": {"modifiers": []}}""")))
-	assert_push_error("needs 'gold' or 'formula'")
+	assert_push_error("needs 'gold'")
 
 
 func test_shop_effect_without_modifiers_or_item_is_null() -> void:

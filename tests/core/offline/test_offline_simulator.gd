@@ -15,7 +15,6 @@ const HOUR_MS: int = 3600000
 const CAP_MS: int = 43200000
 const CHUNK_MS: int = 60000
 const HERO: StringName = &"test:hero"
-const ROOMY: StringName = &"test:room"
 
 var _progress: Array[Vector2i] = []
 var _completed: Array[OfflineSummary] = []
@@ -172,7 +171,7 @@ func _drop_data() -> GameData:
 func test_filtered_drops_are_counted_as_dismantled_and_pieces_as_stored() -> void:
 	var s: GameSession = _session(SEED, _drop_data())
 	s.modifiers.set_source(HERO, [Modifier.make(&"power_bonus", 5000.0), Modifier.make(&"max_hp_flat", 100000.0)])
-	s.modifiers.set_source(ROOMY, [Modifier.make(&"armory_slots", 500.0), Modifier.make(&"bank_slots", 100.0)])
+	TestFactory.make_roomy(s)
 	assert_true(s.armory.set_filter(&"weapon", &"magic", 1).ok)
 	var kit_used: int = s.armory.used()  # the unworn pieces of the starting kit
 	assert_true(s.combat.start(AREA).ok)
@@ -189,14 +188,9 @@ func test_filtered_drops_are_counted_as_dismantled_and_pieces_as_stored() -> voi
 func test_full_armory_and_full_bank_report_bank_rejected() -> void:
 	var s: GameSession = _session(SEED, _drop_data())
 	s.modifiers.set_source(HERO, [Modifier.make(&"power_bonus", 5000.0), Modifier.make(&"max_hp_flat", 100000.0)])
-	for i: int in s.armory.capacity() - s.armory.used():  # the starting kit already takes a place
+	while s.armory.can_add(1):  # the shared Deposit fills with pieces (the starting kit already takes a place)
 		TestFactory.give_piece(s, RING)
-	for item: ItemDef in s.data.items():
-		if s.bank.used() >= s.bank.capacity():
-			break
-		if item.category == &"material" and item.id != INGOT and item.id != &"rift_shard":
-			s.bank.add(item.id, 1)
-	assert_eq(s.bank.used(), s.bank.capacity())
+	assert_eq(s.deposit.free_slots(), 0, "Deposit full")
 	assert_true(s.combat.start(AREA).ok)
 	var summary: OfflineSummary = await _run(s, 10 * 60000)
 	assert_gt(summary.pieces_dismantled, 0)
@@ -210,7 +204,7 @@ func test_full_armory_and_full_bank_report_bank_rejected() -> void:
 
 func test_twelve_hours_of_combat_is_simulated_and_timed() -> void:
 	var s: GameSession = _geared()
-	s.modifiers.set_source(ROOMY, [Modifier.make(&"armory_slots", 500.0), Modifier.make(&"bank_slots", 100.0)])
+	TestFactory.make_roomy(s)
 	assert_true(s.combat.start(AREA).ok)
 	var started_us: int = Time.get_ticks_usec()
 	var summary: OfflineSummary = await _run(s, CAP_MS, true)

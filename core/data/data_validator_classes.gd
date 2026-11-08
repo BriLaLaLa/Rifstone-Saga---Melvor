@@ -207,6 +207,12 @@ static func validate_balance(v: DataValidatorRules, balance: Dictionary) -> void
 	var combat: Variant = DataValidator.lookup(balance, "combat")
 	if combat is Dictionary and DataValidatorRules.is_number((combat as Dictionary).get("max_pack_size")):
 		v.integer(combat as Dictionary, "max_pack_size", 1, DataValidator.PACK_SIZE_MAX, "combat")
+	var deposit: Variant = DataValidator.lookup(balance, "deposit")
+	if deposit is Dictionary:
+		if DataValidatorRules.is_number((deposit as Dictionary).get("base_slots")):
+			v.integer(deposit as Dictionary, "base_slots", 1, DataValidatorRules.NO_LIMIT, "deposit")
+		if DataValidatorRules.is_number((deposit as Dictionary).get("bag_slots")):
+			v.integer(deposit as Dictionary, "bag_slots", 1, DataValidator.DEPOSIT_BAG_SLOTS_MAX, "deposit")
 	DataValidatorTraits.validate_balance(v, balance)
 	var counts: Variant = DataValidator.lookup(balance, "rarity.affix_count")
 	for rarity: String in ["magic", "rare"]:

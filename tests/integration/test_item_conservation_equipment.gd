@@ -56,7 +56,7 @@ func test_equipping_moves_one_piece_and_each_piece_exists_once() -> void:
 
 func test_equip_with_full_armory_is_refused_when_pieces_return_without_room() -> void:
 	_session = TestFactory.session_no_kit(SEED, _data_with_armory_slots(4))
-	assert_eq(_session.armory.capacity(), 4)
+	assert_eq(_session.deposit.capacity(), 4)
 	var sword: int = TestFactory.give_piece(_session, SWORD)
 	var shield: int = TestFactory.give_piece(_session, SHIELD)
 	assert_true(_session.equipment.equip(sword).ok)
@@ -71,7 +71,7 @@ func test_equip_with_full_armory_is_refused_when_pieces_return_without_room() ->
 	assert_eq(_pieces_world(_session), before, "nothing changed")
 	assert_true(_session.armory.remove(filler).ok)
 	assert_true(_session.equipment.equip(great).ok, "room for the piece that returns beyond the one worn")
-	assert_true(_session.armory.used() <= _session.armory.capacity())
+	assert_true(_session.armory.used() <= _session.deposit.capacity())
 
 
 func test_save_with_two_handed_weapon_and_offhand_keeps_the_invariants() -> void:
@@ -117,7 +117,7 @@ func _pieces_world(session: GameSession) -> Dictionary:
 func _data_with_armory_slots(armory_slots: int) -> GameData:
 	DirAccess.make_dir_recursive_absolute(_tmp_config)
 	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_ROOT.path_join("balance.json")))
-	(balance["armory"] as Dictionary)["base_slots"] = armory_slots
+	(balance["deposit"] as Dictionary)["base_slots"] = armory_slots
 	_write(_tmp_config.path_join("balance.json"), JSON.stringify(balance))
 	_write(_tmp_config.path_join("stats.json"), FileAccess.get_file_as_string(CONFIG_ROOT.path_join("stats.json")))
 	var data: GameData = GameData.load_from_dirs(CONTENT_ROOT, _tmp_config)

@@ -32,13 +32,13 @@ signal traits_changed()
 
 # Bank, wallet, equipment, modifiers
 signal bank_changed(item_id: StringName, new_count: int, delta: int)
-signal bank_capacity_changed(used: int, capacity: int)
 signal bank_rejected(item_id: StringName, qty: int)
 signal gold_changed(new_amount: int, delta: int)
 signal equipment_changed(slot_id: StringName, uid: int)
 signal food_changed(item_id: StringName)
 signal armory_changed(uid: int, change: StringName)
-signal armory_capacity_changed(used: int, capacity: int)
+signal deposit_changed(used: int, capacity: int)  # M12: boxes used (Bank + Armory) or capacity (bags) changed
+signal bags_changed()  # M12: a bag slot changed
 signal armory_rejected(base_id: StringName, qty: int)
 signal item_upgraded(uid: int, success: bool, new_level: int)  # M7
 signal item_salvaged(uid: int, base_id: StringName, auto: bool)  # M7: auto = by the Armory filter

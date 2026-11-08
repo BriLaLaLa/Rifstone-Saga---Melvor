@@ -1,5 +1,5 @@
 extends GutTest
-## Armory: F-82 capacity, create/add, uid never reused, worn, lock, remove, signals, save round trip.
+## Armory: shared capacity (F-100), create/add, uid never reused, worn, lock, remove, signals, save round trip.
 ## Fixture pieces: test_blade, test_helm, test_helm_high. Tests that need a tiny Armory use a copy of the config.
 
 const FIXTURE_ROOT: String = "res://tests/fixtures/data"
@@ -16,7 +16,7 @@ var _armory: Armory = null
 func before_all() -> void:
 	DirAccess.make_dir_recursive_absolute(_tmp_config)
 	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_ROOT.path_join("balance.json")))
-	(balance["armory"] as Dictionary)["base_slots"] = SMALL_SLOTS
+	(balance["deposit"] as Dictionary)["base_slots"] = SMALL_SLOTS
 	_write(_tmp_config.path_join("balance.json"), JSON.stringify(balance))
 	_write(_tmp_config.path_join("stats.json"), FileAccess.get_file_as_string(CONFIG_ROOT.path_join("stats.json")))
 	_small_data = GameData.load_from_dirs(FIXTURE_ROOT, _tmp_config)
@@ -41,28 +41,24 @@ func _write(path: String, text: String) -> void:
 
 func test_new_game_is_empty_with_base_capacity() -> void:
 	assert_eq(_armory.used(), 0)
-	assert_eq(_armory.capacity(), SMALL_SLOTS)
+	assert_eq(_session.deposit.capacity(), SMALL_SLOTS)
 	assert_eq(_armory.instances().size(), 0)
 
 
-func test_f82_base_capacity_is_forty() -> void:
+func test_capacity_is_the_shared_deposit_capacity() -> void:
 	var real: GameSession = autofree(TestFactory.session(1, TestFactory.real_data()))
-	assert_eq(real.armory.capacity(), 40)
-	real.modifiers.set_source(&"test:slots", [Modifier.make(&"armory_slots", 10.0)])
-	assert_eq(real.armory.capacity(), 50, "10 bought slots")
+	assert_eq(real.deposit.capacity(), 60, "F-100 base, shared with the bank")
+	assert_false(real.armory.has_method("capacity"), "the Armory has no capacity of its own")
 
 
-func test_capacity_uses_armory_slots() -> void:
-	watch_signals(_session.events)
-	_session.modifiers.set_source(&"test:slots", [Modifier.make(&"armory_slots", 2.7)])
-	assert_eq(_armory.capacity(), SMALL_SLOTS + 2, "rounded down")
-	assert_signal_emitted_with_parameters(_session.events, "armory_capacity_changed", [0, SMALL_SLOTS + 2])
-	TestFactory.give_piece(_session, &"test_blade")
-	TestFactory.give_piece(_session, &"test_helm")
-	TestFactory.give_piece(_session, &"test_helm_high")
-	TestFactory.give_piece(_session, &"test_blade")
-	assert_true(_armory.can_add(1), "bought slots make room")
-	assert_false(_armory.can_add(2))
+func test_a_bag_in_a_slot_makes_room_for_pieces() -> void:
+	for i: int in SMALL_SLOTS:
+		TestFactory.give_piece(_session, &"test_blade")
+	assert_false(_armory.can_add(1))
+	_session.deposit.from_save({"bags": ["test_bag_small", "", "", "", "", ""]})
+	assert_true(_armory.can_add(1), "the bag adds boxes")
+	assert_true(_armory.can_add(6))
+	assert_false(_armory.can_add(7))
 
 
 func test_create_assigns_increasing_uids_from_one() -> void:
@@ -135,7 +131,7 @@ func test_worn_pieces_do_not_count_for_capacity() -> void:
 	assert_eq(_armory.used(), SMALL_SLOTS - 1)
 	assert_true(_armory.can_add(1))
 	assert_signal_emitted_with_parameters(_session.events, "armory_changed", [uids[0], &"updated"])
-	assert_signal_emitted_with_parameters(_session.events, "armory_capacity_changed", [SMALL_SLOTS - 1, SMALL_SLOTS])
+	assert_signal_emitted_with_parameters(_session.events, "deposit_changed", [SMALL_SLOTS - 1, SMALL_SLOTS])
 	_armory.set_worn(uids[0], false)
 	assert_eq(_armory.used(), SMALL_SLOTS)
 
@@ -147,7 +143,7 @@ func test_quiet_set_worn_emits_nothing() -> void:
 	assert_true(_armory.is_worn(uid))
 	assert_eq(_armory.used(), 0)
 	assert_signal_not_emitted(_session.events, "armory_changed")
-	assert_signal_not_emitted(_session.events, "armory_capacity_changed")
+	assert_signal_not_emitted(_session.events, "deposit_changed")
 
 
 func test_remove_rules_and_uid_not_reused() -> void:
@@ -179,7 +175,7 @@ func test_add_signals() -> void:
 	watch_signals(_session.events)
 	var uid: int = TestFactory.give_piece(_session, &"test_blade")
 	assert_signal_emitted_with_parameters(_session.events, "armory_changed", [uid, &"added"])
-	assert_signal_emitted_with_parameters(_session.events, "armory_capacity_changed", [1, SMALL_SLOTS])
+	assert_signal_emitted_with_parameters(_session.events, "deposit_changed", [1, SMALL_SLOTS])
 
 
 func test_save_round_trip_keeps_uids_and_never_reuses_them() -> void:

@@ -1,5 +1,5 @@
 extends GutTest
-## Integration, save format v3 (M10): a v1 or v2 save is refused and left alone; slots A and B are independent also for the
+## Integration, save format v4 (M12): a v1, v2 or v3 save is refused and left alone; slots A and B are independent also for the
 ## Armory, the worn pieces and the character; the tolerant load of the Armory/character/equipment modules; the header
 ## total_level includes the character level.
 ##
@@ -44,9 +44,9 @@ func after_each() -> void:
 
 # --- version ----------------------------------------------------------------------------------------------------
 
-func test_format_version_is_3() -> void:
-	assert_eq(SaveMigrator.CURRENT_VERSION, 3)
-	assert_eq(int(_session().to_save(NOW_MS)["format_version"]), 3)
+func test_format_version_is_4() -> void:
+	assert_eq(SaveMigrator.CURRENT_VERSION, 4)
+	assert_eq(int(_session().to_save(NOW_MS)["format_version"]), 4)
 
 
 func test_v1_file_is_refused_and_left_untouched() -> void:
@@ -71,11 +71,11 @@ func test_session_refuses_a_v1_dictionary_without_changing_state() -> void:
 	assert_eq(session.wallet.get_gold(), gold, "nothing changed")
 
 
-func test_new_game_over_a_v1_slot_writes_v3() -> void:
+func test_new_game_over_a_v1_slot_writes_v4() -> void:
 	_write_raw_v1()
 	assert_true(_game.new_game(SLOT_A, "Nuova").ok, "a new game overwrites the old slot")
 	_game.end_session(true)
-	assert_eq(int(SaveCodec.decode(_slot_text(SLOT_A))["format_version"]), 3)
+	assert_eq(int(SaveCodec.decode(_slot_text(SLOT_A))["format_version"]), 4)
 	assert_true((await _game.continue_game(SLOT_A)).ok)
 
 
@@ -296,3 +296,42 @@ func test_v2_file_is_refused_and_left_untouched() -> void:
 	assert_eq(_slot_text(SLOT_A), before, "the v2 file is not rewritten")
 	assert_eq(SaveService.read_slot_info(SLOT_A).state, &"unsupported")
 	assert_eq(_session().from_save(v2).reason, Reasons.VERSION_UNSUPPORTED)
+
+
+# A v3 save (before the Deposit) is refused as well, and left untouched.
+func test_v3_file_is_refused_and_left_untouched() -> void:
+	DirAccess.make_dir_recursive_absolute(_test_dir)
+	var v3: Dictionary = _v1_save()
+	v3["format_version"] = 3
+	var file: FileAccess = FileAccess.open(SaveService.slot_path(SLOT_A), FileAccess.WRITE)
+	file.store_string(SaveCodec.encode(v3))
+	file.close()
+	var before: String = _slot_text(SLOT_A)
+	var result: CommandResult = await _game.continue_game(SLOT_A)
+	assert_false(result.ok)
+	assert_eq(result.reason, Reasons.VERSION_UNSUPPORTED)
+	assert_eq(_slot_text(SLOT_A), before, "the v3 file is not rewritten")
+	assert_eq(SaveService.read_slot_info(SLOT_A).state, &"unsupported")
+	assert_eq(_session().from_save(v3).reason, Reasons.VERSION_UNSUPPORTED)
+
+
+# The bag slots, the bank and the Armory come back identical, with the same free boxes (F-100).
+func test_v4_round_trip_keeps_the_bags_and_the_capacity() -> void:
+	var source: GameSession = autofree(TestFactory.session(11))
+	TestFactory.give(source, &"test_bag_small", 1)
+	TestFactory.give(source, &"test_bag_large", 1)
+	assert_true(source.bank.equip_bag(0, &"test_bag_small").ok)
+	assert_true(source.bank.equip_bag(2, &"test_bag_large").ok)
+	TestFactory.give(source, &"test_log", 5)
+	var saved: Dictionary = source.to_save(NOW_MS)
+	assert_eq(int(saved["format_version"]), 4)
+	assert_eq((saved["modules"] as Dictionary)["deposit"], {"bags": ["test_bag_small", "", "test_bag_large", "", "", ""]})
+	var copy: GameSession = autofree(TestFactory.session(12))
+	var decoded: Dictionary = SaveCodec.decode(SaveCodec.encode(saved))
+	assert_true(copy.from_save(SaveMigrator.migrate(decoded)).ok)
+	assert_eq(copy.deposit.bags(), source.deposit.bags())
+	assert_eq(copy.deposit.capacity(), source.deposit.capacity())
+	assert_eq(copy.deposit.capacity(), 60 + 6 + 10)
+	assert_eq(copy.deposit.used(), source.deposit.used())
+	assert_eq(copy.bank.get_count(&"test_log"), 5)
+	assert_eq(copy.bank.get_count(&"test_bag_small"), 0, "a bag in a slot is not in the bank")

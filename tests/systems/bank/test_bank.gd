@@ -1,8 +1,8 @@
 extends GutTest
-## Bank: slots and capacity (F-16), add/remove with their signals, bank full, locks, order, sort, save round trip.
+## Bank: boxes and the shared capacity (F-100), add/remove with their signals, bank full, locks, order, sort, save round trip.
 ##
-## Fixture items: 8 types, fewer than bank.base_slots. Tests that need a full bank or start items use a copy of
-## res://data/config written under user:// with a small `bank.base_slots` and some `start.items`.
+## Fixture items: 8 types, fewer than deposit.base_slots. Tests that need a full bank or start items use a copy of
+## res://data/config written under user:// with a small `deposit.base_slots` and some `start.items`.
 
 const FIXTURE_ROOT: String = "res://tests/fixtures/data"
 const CONFIG_ROOT: String = "res://data/config"
@@ -18,7 +18,7 @@ var _session: GameSession = null
 func before_all() -> void:
 	DirAccess.make_dir_recursive_absolute(_tmp_config)
 	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_ROOT.path_join("balance.json")))
-	(balance["bank"] as Dictionary)["base_slots"] = SMALL_BASE_SLOTS
+	(balance["deposit"] as Dictionary)["base_slots"] = SMALL_BASE_SLOTS
 	(balance["start"] as Dictionary)["items"] = START_ITEMS + [{"item": "seared_brookfin", "qty": 1}]  # the kit food, removed by clear_kit
 	_write(_tmp_config.path_join("balance.json"), JSON.stringify(balance))
 	_write(_tmp_config.path_join("stats.json"), FileAccess.get_file_as_string(CONFIG_ROOT.path_join("stats.json")))
@@ -56,7 +56,7 @@ func _write(path: String, text: String) -> void:
 
 func test_new_game_is_empty_with_base_capacity() -> void:
 	assert_eq(_session.bank.used(), 0)
-	assert_eq(_session.bank.capacity(), int(_session.data.balance_value("bank.base_slots")))
+	assert_eq(_session.bank.capacity(), int(_session.data.balance_value("deposit.base_slots")))
 	assert_eq(_session.bank.stacks(), [] as Array[Dictionary])
 
 
@@ -70,25 +70,21 @@ func test_new_game_applies_start_items() -> void:
 	assert_eq(session.bank.get_count(&"test_log"), 3)
 
 
-func test_capacity_uses_bank_slots() -> void:
-	# F-16: 3 purchased slots -> 24 + 3 = 27.
-	assert_eq(_session.bank.capacity(), 24)
+func test_capacity_is_the_deposit_one_and_grows_with_a_bag() -> void:
+	assert_eq(_session.bank.capacity(), 60)
+	assert_eq(_session.bank.capacity(), _session.deposit.capacity())
 	TestFactory.give(_session, &"test_log", 1)
+	TestFactory.give(_session, &"test_bag_small", 1)
 	watch_signals(_session.events)
-	_session.modifiers.set_source(&"shop:bank_slot", [Modifier.make(&"bank_slots", 3.0)] as Array[Modifier])
-	assert_eq(_session.bank.capacity(), 27)
-	assert_signal_emitted_with_parameters(_session.events, "bank_capacity_changed", [1, 27])
+	assert_true(_session.bank.equip_bag(0, &"test_bag_small").ok)
+	assert_eq(_session.bank.capacity(), 66)
+	assert_signal_emitted_with_parameters(_session.events, "deposit_changed", [1, 66])
 
 
-func test_capacity_rounds_bank_slots_down() -> void:
-	_session.modifiers.set_source(&"shop:bank_slot", [Modifier.make(&"bank_slots", 2.9)] as Array[Modifier])
-	assert_eq(_session.bank.capacity(), 26)
-
-
-func test_modifiers_change_without_capacity_change_emits_nothing() -> void:
+func test_modifier_changes_do_not_touch_the_deposit() -> void:
 	watch_signals(_session.events)
 	_session.modifiers.set_source(&"other", [Modifier.make(&"skill_xp_pct", 5.0)] as Array[Modifier])
-	assert_signal_not_emitted(_session.events, "bank_capacity_changed")
+	assert_signal_not_emitted(_session.events, "deposit_changed")
 
 
 func test_add_new_item_takes_a_slot_and_emits() -> void:
@@ -98,7 +94,7 @@ func test_add_new_item_takes_a_slot_and_emits() -> void:
 	assert_eq(_session.bank.get_count(&"test_log"), 7)
 	assert_eq(_session.bank.used(), 1)
 	assert_signal_emitted_with_parameters(_session.events, "bank_changed", [&"test_log", 7, 7])
-	assert_signal_emitted_with_parameters(_session.events, "bank_capacity_changed", [1, 24])
+	assert_signal_emitted_with_parameters(_session.events, "deposit_changed", [1, 60])
 
 
 func test_add_existing_item_keeps_slots_and_emits_its_delta() -> void:
@@ -108,7 +104,7 @@ func test_add_existing_item_keeps_slots_and_emits_its_delta() -> void:
 	assert_eq(_session.bank.get_count(&"test_log"), 12)
 	assert_eq(_session.bank.used(), 1)
 	assert_signal_emitted_with_parameters(_session.events, "bank_changed", [&"test_log", 12, 5])
-	assert_signal_not_emitted(_session.events, "bank_capacity_changed")
+	assert_signal_not_emitted(_session.events, "deposit_changed")
 
 
 func test_add_unknown_item_fails() -> void:
@@ -151,10 +147,12 @@ func test_can_add() -> void:
 	assert_true(_session.bank.can_add(&"test_plank"))
 
 
-func test_bought_slot_makes_room_in_a_full_bank() -> void:
+func test_a_bag_in_a_slot_makes_room_in_a_full_bank() -> void:
 	var session: GameSession = _small()
-	session.modifiers.set_source(&"shop:bank_slot", [Modifier.make(&"bank_slots", 1.0)] as Array[Modifier])
+	assert_false(session.bank.can_add(&"test_plank"))
+	session.deposit.from_save({"bags": ["test_bag_small", "", "", "", "", ""]})
 	assert_true(session.bank.add(&"test_plank", 2).ok)
+	assert_eq(session.bank.capacity(), SMALL_BASE_SLOTS + 6)
 
 
 func test_has() -> void:
@@ -171,7 +169,7 @@ func test_remove_part_emits_negative_delta() -> void:
 	assert_eq(_session.bank.get_count(&"test_log"), 6)
 	assert_eq(_session.bank.used(), 1)
 	assert_signal_emitted_with_parameters(_session.events, "bank_changed", [&"test_log", 6, -4])
-	assert_signal_not_emitted(_session.events, "bank_capacity_changed")
+	assert_signal_not_emitted(_session.events, "deposit_changed")
 
 
 func test_zero_quantity_frees_the_slot() -> void:
@@ -184,7 +182,7 @@ func test_zero_quantity_frees_the_slot() -> void:
 	assert_eq(_ids(_session.bank), [&"test_twig"] as Array[StringName])
 	assert_false(_session.bank.is_locked(&"test_log"))
 	assert_signal_emitted_with_parameters(_session.events, "bank_changed", [&"test_log", 0, -3])
-	assert_signal_emitted_with_parameters(_session.events, "bank_capacity_changed", [1, 24])
+	assert_signal_emitted_with_parameters(_session.events, "deposit_changed", [1, 60])
 
 
 func test_remove_failures_change_nothing() -> void:

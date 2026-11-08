@@ -1,7 +1,7 @@
 extends GutTest
 ## BankPage (M1-18) with a TestFactory session (never Game.session, never a real slot): one ItemSlotView per stack of
 ## `bank.stacks()` in the bank's order, quantities from the last read, cells freed at 0, counter "used / capacity",
-## redraw on bank_changed / bank_capacity_changed, everything disconnected by unbind and when the page is freed.
+## redraw on bank_changed / deposit_changed, everything disconnected by unbind and when the page is freed.
 ## M2-04: search by name, "Ordina" (sort_stacks), item panel with lock / unlock (set_locked), drag and drop with real
 ## mouse events (move_stack; a refused move moves nothing and shows its reason), order kept by the save, compact counts
 ## that never widen a cell, tooltip of the hovered cell reread on bank_changed, layout constants from UiStyle.BANK_*.
@@ -10,9 +10,8 @@ const SCENE: PackedScene = preload("res://ui/pages/bank/bank_page.tscn")
 const TWIG := &"test_twig"
 const LOG := &"test_log"
 const PLANK := &"test_plank"
-const BANK_SLOTS_STAT := &"bank_slots"
 ## Every bank event a page may connect to.
-const OBSERVED: Array[StringName] = [&"bank_changed", &"bank_capacity_changed", &"bank_rejected", &"modifiers_changed"]
+const OBSERVED: Array[StringName] = [&"bank_changed", &"deposit_changed", &"bank_rejected", &"modifiers_changed"]
 
 var _session: GameSession
 var _page: BankPage
@@ -38,7 +37,7 @@ func test_empty_bank() -> void:
 	assert_eq(_cells().size(), 0)
 	assert_true(_label("%EmptyLabel").visible)
 	assert_eq(_label("%TitleLabel").text, "Deposito")
-	assert_eq(_label("%SlotsLabel").text, "Caselle: 0 / %s" % NumberFormat.format_int(_session.bank.capacity()))
+	assert_eq(_label("%SlotsLabel").text, "Caselle: 0 / %s" % NumberFormat.format_int(_session.deposit.capacity()))
 	assert_false(_label("%FullLabel").visible)
 
 
@@ -51,7 +50,7 @@ func test_cells_follow_the_order_of_stacks() -> void:
 	assert_eq(_shown_ids(), [LOG, TWIG, PLANK] as Array[StringName], "insertion order, not data order")
 	assert_eq(_count_text(0), "1.250")
 	assert_false(_label("%EmptyLabel").visible)
-	assert_eq(_label("%SlotsLabel").text, "Caselle: 3 / %s" % NumberFormat.format_int(_session.bank.capacity()))
+	assert_eq(_label("%SlotsLabel").text, "Caselle: 3 / %s" % NumberFormat.format_int(_session.deposit.capacity()))
 
 
 func test_bank_changed_rereads_the_bank() -> void:
@@ -66,7 +65,7 @@ func test_bank_changed_rereads_the_bank() -> void:
 	assert_eq(_shown_ids(), [TWIG, LOG] as Array[StringName])
 	assert_true(_session.bank.remove(TWIG, 1).ok)
 	assert_eq(_count_text(0), "4")
-	assert_eq(_label("%SlotsLabel").text, "Caselle: 2 / %s" % NumberFormat.format_int(_session.bank.capacity()))
+	assert_eq(_label("%SlotsLabel").text, "Caselle: 2 / %s" % NumberFormat.format_int(_session.deposit.capacity()))
 
 
 func test_stack_at_zero_frees_its_cell() -> void:
@@ -76,7 +75,7 @@ func test_stack_at_zero_frees_its_cell() -> void:
 	assert_true(_session.bank.remove(TWIG, 3).ok)
 	assert_eq(_shown_ids(), [LOG] as Array[StringName], "the next stack moves up")
 	assert_eq(_count_text(0), "2")
-	assert_eq(_label("%SlotsLabel").text, "Caselle: 1 / %s" % NumberFormat.format_int(_session.bank.capacity()))
+	assert_eq(_label("%SlotsLabel").text, "Caselle: 1 / %s" % NumberFormat.format_int(_session.deposit.capacity()))
 	assert_true(_session.bank.remove(LOG, 2).ok)
 	assert_eq(_cells().size(), 0)
 	assert_true(_label("%EmptyLabel").visible)
@@ -97,10 +96,10 @@ func test_lock_and_move_are_read_from_the_bank() -> void:
 
 func test_counter_follows_the_capacity() -> void:
 	_open()
-	var mods: Array[Modifier] = [Modifier.make(BANK_SLOTS_STAT, 6.0, &"global", &"")]
-	_session.modifiers.set_source(&"test", mods)
-	assert_eq(_label("%SlotsLabel").text, "Caselle: 0 / %s" % NumberFormat.format_int(_session.bank.capacity()))
-	assert_eq(_session.bank.capacity(), 30, "F-16: 24 + 6")
+	TestFactory.give(_session, &"test_bag_small", 1)
+	assert_true(_session.bank.equip_bag(0, &"test_bag_small").ok)
+	assert_eq(_label("%SlotsLabel").text, "Caselle: 0 / %s" % NumberFormat.format_int(_session.deposit.capacity()))
+	assert_eq(_session.deposit.capacity(), 66, "F-100: 60 + 6")
 
 
 func test_unbind_disconnects_everything() -> void:
@@ -108,7 +107,7 @@ func test_unbind_disconnects_everything() -> void:
 	_open()
 	var bound: Dictionary[StringName, int] = _counts()
 	assert_eq(bound[&"bank_changed"], baseline[&"bank_changed"] + 1)
-	assert_eq(bound[&"bank_capacity_changed"], baseline[&"bank_capacity_changed"] + 1)
+	assert_eq(bound[&"deposit_changed"], baseline[&"deposit_changed"] + 1)
 	assert_eq(bound[&"bank_rejected"], baseline[&"bank_rejected"])
 	assert_eq(bound[&"modifiers_changed"], baseline[&"modifiers_changed"])
 	_page.unbind()
@@ -133,7 +132,7 @@ func test_real_data_bank() -> void:
 	assert_eq(_cells().size(), _session.bank.used(), "start items of the real data")
 	_assert_cells_match_stacks()
 	assert_eq(_label("%SlotsLabel").text, "Caselle: %s / %s" % [
-		NumberFormat.format_int(_session.bank.used()), NumberFormat.format_int(_session.bank.capacity())])
+		NumberFormat.format_int(_session.deposit.used()), NumberFormat.format_int(_session.deposit.capacity())])
 
 
 func test_layout_constants_and_long_counts() -> void:
@@ -167,7 +166,7 @@ func test_search_filters_by_name() -> void:
 	assert_eq(_cells().size(), 0, "the filter stays on after a bank change")
 	_search("")
 	assert_eq(_shown_ids(), [TWIG, LOG, PLANK] as Array[StringName])
-	assert_eq(_label("%SlotsLabel").text, "Caselle: 3 / %s" % NumberFormat.format_int(_session.bank.capacity()))
+	assert_eq(_label("%SlotsLabel").text, "Caselle: 3 / %s" % NumberFormat.format_int(_session.deposit.capacity()))
 
 
 func test_sort_button_sorts_the_bank() -> void:

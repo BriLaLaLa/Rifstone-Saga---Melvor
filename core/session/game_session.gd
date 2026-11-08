@@ -24,6 +24,7 @@ var events: GameEvents
 var rng: RngService
 var modifiers: ModifierService
 var wallet: Wallet
+var deposit: Deposit
 var bank: Bank
 var skills: SkillsSystem
 var mastery: MasterySystem
@@ -133,6 +134,8 @@ func total_level() -> int:
 func _create_systems() -> void:
 	wallet = Wallet.new(self)
 	_join(Wallet.SAVE_KEY, wallet.new_game, wallet.to_save, wallet.from_save)
+	deposit = Deposit.new(self)
+	_join(Deposit.SAVE_KEY, deposit.new_game, deposit.to_save, deposit.from_save)
 	bank = Bank.new(self)
 	_join(Bank.SAVE_KEY, bank.new_game, bank.to_save, bank.from_save)
 	skills = SkillsSystem.new(self)

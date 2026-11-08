@@ -221,28 +221,31 @@ func test_monster_has_at_most_8_drops() -> void:
 func test_shop_category_must_be_known() -> void:
 	var raw: Dictionary = V.fixture_raw()
 	_shop(raw, 0)["category"] = "lanes"
-	_expect(raw, [SHOP, "shop entry 'bank_slot'", "field 'category' must be one of"])
+	_expect(raw, [SHOP, "shop entry 'test_pocket'", "field 'category' must be one of"])
 
 
-func test_shop_cost_needs_exactly_one_of_gold_and_formula() -> void:
+func test_shop_cost_formula_is_refused() -> void:
 	var raw: Dictionary = V.fixture_raw()
-	_shop(raw, 0)["cost"] = {"formula": "bank_slot", "gold": 10}
-	_shop(raw, 1)["cost"] = {}
-	_expect(raw, [SHOP, "shop entry 'bank_slot'", "field 'cost' needs exactly one of 'gold' and 'formula'"])
-	_expect(raw, [SHOP, "shop entry 'test_upgrade_1'", "field 'cost' needs exactly one of 'gold' and 'formula'"])
+	_shop(raw, 0)["cost"] = {"formula": "bank_slot"}
+	_expect(raw, [SHOP, "shop entry 'test_pocket'", "unknown field 'cost.formula'"])
+	_expect(raw, [SHOP, "shop entry 'test_pocket'", "field 'cost.gold'"])
 
 
-func test_shop_armory_slot_formula_is_valid() -> void:
+func test_shop_cost_gold_with_a_formula_is_still_refused() -> void:
 	var raw: Dictionary = V.fixture_raw()
-	_shop(raw, 0)["cost"] = {"formula": "armory_slot"}
-	assert_eq(V.validate(raw), PackedStringArray())
+	_shop(raw, 0)["cost"] = {"formula": "armory_slot", "gold": 10}
+	_expect(raw, [SHOP, "shop entry 'test_pocket'", "unknown field 'cost.formula'"])
+
+
+func test_shop_vendor_deposito_is_refused() -> void:
+	var raw: Dictionary = V.fixture_raw()
+	_shop(raw, 0)["vendor"] = "deposito"
+	_expect(raw, [SHOP, "shop entry 'test_pocket'", "field 'vendor' must be one of"])
 
 
 func test_shop_cost_values_are_checked() -> void:
 	var raw: Dictionary = V.fixture_raw()
-	_shop(raw, 0)["cost"] = {"formula": "bank_slot_v2"}
 	_shop(raw, 1)["cost"] = {"gold": 0}
-	_expect(raw, [SHOP, "shop entry 'bank_slot'", "field 'cost.formula' must be one of"])
 	_expect(raw, [SHOP, "shop entry 'test_upgrade_1'", "field 'cost.gold' must be >= 1"])
 
 

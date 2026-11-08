@@ -19,7 +19,7 @@ const REQUIRED_BALANCE_KEYS: PackedStringArray = [
 	"mastery.base_factor", "mastery.per_level", "mastery.ratio_weight", "mastery.pool_share_pct",
 	"mastery.pool_cap_per_item", "mastery.pool_warning_pct", "action.min_interval_ms",
 	"gathering.rift_shard_base_chance_pct",
-	"bank.base_slots", "bank.slot_cost_base", "bank.slot_cost_growth", "bank.slot_cost_cap",
+	"deposit.base_slots", "deposit.bag_slots",
 	"combat.acc_level_offset", "combat.acc_bonus_offset", "combat.maxhit_level_offset", "combat.maxhit_bonus_offset",
 	"combat.min_hit_ratio", "combat.hit_chance_min", "combat.hit_chance_max",
 	"combat.triangle.advantage_damage_mult", "combat.triangle.disadvantage_damage_mult",
@@ -30,7 +30,6 @@ const REQUIRED_BALANCE_KEYS: PackedStringArray = [
 	"combat.respawn_ms", "combat.loot_bag_base_slots",
 	"character_curve.base", "character_curve.growth", "character_curve.linear", "character_curve.max_level",
 	"character_curve.xp_cap", "character.start_class",
-	"armory.base_slots", "armory.slot_cost_base", "armory.slot_cost_growth", "armory.slot_cost_cap",
 	"rarity.affix_count.magic", "rarity.affix_count.rare",
 	"rarity.drop.magic_pct", "rarity.drop.rare_pct", "rarity.rift_stone.magic_pct", "rarity.rift_stone.rare_pct",
 	"rift.sockets", "offline.cap_ms", "offline.min_ms",
@@ -57,6 +56,7 @@ const BALANCE_OBJECT_KEYS: PackedStringArray = ["salvage.shards_by_rarity", "soc
 const AFFIX_COUNT_KEYS: PackedStringArray = ["rarity.affix_count.magic", "rarity.affix_count.rare"]
 const AFFIX_COUNT_MAX: int = 6
 const PACK_SIZE_MAX: int = 6  # format limit of combat.max_pack_size
+const DEPOSIT_BAG_SLOTS_MAX: int = 12  # format limit of deposit.bag_slots (docs/04_DATA_SCHEMA.md §3)
 const START_ITEM_FORBIDDEN_CATEGORIES: PackedStringArray = ["equipment", "tool"]  # they live in the Armory only
 ## Sections made of one file (the others are folders, possibly empty).
 const SINGLE_FILE_SECTIONS: PackedStringArray = ["balance", "stats", "skills", "areas", "monsters", "shop", "affixes",

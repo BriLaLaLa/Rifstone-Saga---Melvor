@@ -215,7 +215,8 @@ static func measure(data: Object, area: Object, scope: String, opts: Dictionary)
 		for i: int in range(area.packs.size()):
 			if i != index:
 				area.packs[i].weight = 0
-	_set_modifier(session, &"sim:armory", &"armory_slots", 10000.0)  # keep every drop: they are counted at the end
+	# Keep every drop (they are counted at the end): a negative occupant gives the Deposit room for 10000 more boxes.
+	session.deposit.register_occupant(&"sim:room", func() -> int: return -10000)
 	var worn_uids: Array[int] = []
 	for inst: Object in session.armory.instances():
 		worn_uids.append(int(inst.uid))

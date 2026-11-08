@@ -4,7 +4,7 @@ extends Page
 ## bank's order, the counter "used / capacity", a search by name, the "Ordina" button and the item panel.
 ##
 ## Every redraw reads the session: the stacks from `bank.stacks()`, the counter from `bank.used()` and
-## `bank.capacity()`, the item panel from the bank. It redraws on `bank_changed` and `bank_capacity_changed`; the
+## `deposit.capacity()`, the item panel from the bank. It redraws on `bank_changed` and `deposit_changed`; the
 ## quantity a cell draws is the one of its last `set_item` (presentation copy of ItemSlotView, never read back).
 ## Player actions are bank commands: a click on a cell opens the item panel (lock / unlock = `set_locked`); dragging
 ## a cell onto another moves it to that cell's index (`move_stack`), onto the grid outside the cells to the last
@@ -97,7 +97,7 @@ func bind(session: GameSession) -> void:
 	_session = session
 	HelpButton.attach(_title_label.get_parent(), session.data, &"bank")
 	_session.events.bank_changed.connect(_on_events_bank_changed)
-	_session.events.bank_capacity_changed.connect(_on_events_bank_capacity_changed)
+	_session.events.deposit_changed.connect(_on_events_deposit_changed)
 	_session.events.equipment_changed.connect(_on_events_equipment_changed)
 	_session.events.food_changed.connect(_on_events_food_changed)
 	_redraw()
@@ -109,8 +109,8 @@ func unbind() -> void:
 		var events: GameEvents = _session.events
 		if events.bank_changed.is_connected(_on_events_bank_changed):
 			events.bank_changed.disconnect(_on_events_bank_changed)
-		if events.bank_capacity_changed.is_connected(_on_events_bank_capacity_changed):
-			events.bank_capacity_changed.disconnect(_on_events_bank_capacity_changed)
+		if events.deposit_changed.is_connected(_on_events_deposit_changed):
+			events.deposit_changed.disconnect(_on_events_deposit_changed)
 		if events.equipment_changed.is_connected(_on_events_equipment_changed):
 			events.equipment_changed.disconnect(_on_events_equipment_changed)
 		if events.food_changed.is_connected(_on_events_food_changed):
@@ -138,7 +138,7 @@ func _redraw() -> void:
 ## slot up to the capacity: existing cells are reused, extra ones removed.
 func _redraw_cells() -> void:
 	var stacks: Array[Dictionary] = _shown_stacks()
-	var empty_slots: int = maxi(0, _session.bank.capacity() - _session.bank.used()) \
+	var empty_slots: int = _session.deposit.free_slots() \
 			if _search_edit.text.strip_edges().is_empty() else 0
 	var total: int = stacks.size() + empty_slots
 	var cells: Array[Node] = _grid.get_children()
@@ -183,8 +183,8 @@ func _new_cell(index: int) -> ItemSlotView:
 
 
 func _redraw_counter() -> void:
-	var used: int = _session.bank.used()
-	var capacity: int = _session.bank.capacity()
+	var used: int = _session.deposit.used()
+	var capacity: int = _session.deposit.capacity()
 	_slots_label.text = SLOTS_TEXT % [NumberFormat.format_int(used), NumberFormat.format_int(capacity)]
 	_full_label.visible = used >= capacity
 
@@ -336,7 +336,7 @@ func _on_events_bank_changed(_item_id: StringName, _new_count: int, _delta: int)
 	_redraw()
 
 
-func _on_events_bank_capacity_changed(_used: int, _capacity: int) -> void:
+func _on_events_deposit_changed(_used: int, _capacity: int) -> void:
 	_redraw()
 
 

@@ -117,12 +117,14 @@ func test_save_and_load_are_identical_with_worn_pieces() -> void:
 
 func test_full_armory_refuses_the_start_and_waits_at_the_end_without_losing_anything() -> void:
 	_session.free()
-	_session = _new_session(_data_with_armory_slots(2))
+	_session = _new_session(TestFactory.real_data())
+	var room: Array[int] = TestFactory.make_roomy(_session)
 	for i: int in 3:
 		_stock(SWORD)
 	_craft(SWORD)
 	_craft(SWORD)
 	assert_eq(_session.armory.used(), 2)
+	_seal(room, 0)
 	assert_false(_session.armory.can_add(1), "the Armory is full")
 	var before: Dictionary = _world()
 	var refused: CommandResult = _session.actions.start_blueprint(_bp(SWORD))
@@ -133,6 +135,7 @@ func test_full_armory_refuses_the_start_and_waits_at_the_end_without_losing_anyt
 	assert_true(_session.armory.remove(first.uid).ok)
 	assert_true(_session.actions.start_blueprint(_bp(SWORD)).ok)
 	var duration: int = int(_session.actions.blueprint_state()["duration_ms"])
+	_seal(room, 1)  # the craft consumed materials: exactly one box is free again
 	var filler: int = _session.armory.create(SWORD, &"common", 1)
 	assert_gt(filler, 0, "the free place was taken meanwhile")
 	_session.advance(duration)
@@ -274,7 +277,7 @@ func _count_rare(forging_level: int, rarity_pct: float) -> int:
 func _data_with_armory_slots(slots: int) -> GameData:
 	DirAccess.make_dir_recursive_absolute(_tmp_config)
 	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_ROOT.path_join("balance.json")))
-	(balance["armory"] as Dictionary)["base_slots"] = slots
+	(balance["deposit"] as Dictionary)["base_slots"] = slots
 	_write(_tmp_config.path_join("balance.json"), JSON.stringify(balance))
 	_write(_tmp_config.path_join("stats.json"), FileAccess.get_file_as_string(CONFIG_ROOT.path_join("stats.json")))
 	var data: GameData = GameData.load_from_dirs(CONTENT_ROOT, _tmp_config)
@@ -290,3 +293,9 @@ func _write(path: String, text: String) -> void:
 
 func _on_action_stopped(_lane: StringName, _skill_id: StringName, reason: StringName) -> void:
 	_stops.append(reason)
+
+
+# Sets the extra room so that exactly `free` boxes of the shared Deposit are free.
+func _seal(room: Array[int], free: int) -> void:
+	room[0] = 0
+	room[0] = _session.deposit.used() - _session.deposit.capacity() + free

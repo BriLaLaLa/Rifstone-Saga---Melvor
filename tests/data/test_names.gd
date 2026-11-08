@@ -74,7 +74,7 @@ const FIXED: Dictionary = {
 	"inf_stoneskin": "Runa della pelle di pietra", "inf_deep_roots": "Runa della pazienza",
 	"inf_hearthfire": "Runa del banchetto", "inf_riftsense": "Runa del senso del Rift",
 	"inf_bulwark": "Runa del baluardo",
-	"bank_slot": "Spazio nel deposito", "armory_slot": "Spazio nell'armeria", "auto_eat_1": "Razioni da campo I",
+	"auto_eat_1": "Razioni da campo I",
 	"auto_eat_2": "Razioni da campo II", "auto_eat_3": "Razioni da campo III",
 	"auto_loot": "Raccolta automatica del bottino", "loot_pocket": "Tasca della borsa",
 	"unique_hatchet": "Accetta", "unique_pick": "Piccone", "unique_rod": "Canna da pesca",

@@ -2,7 +2,7 @@ class_name ShopEntryDef
 extends RefCounted
 ## An entry of data/shop/shop.json (docs/04_DATA_SCHEMA.md §9).
 ##
-## `cost` has `gold` (-> `cost_gold`, else 0) or `formula` (-> `cost_formula`, else &""); `effect` has `modifiers`
+## `cost` has `gold` (-> `cost_gold`; M12: the price is always gold, no formulas); `effect` has `modifiers`
 ## (-> `effect_modifiers`, else empty) or `item` (-> `effect_item`, else null). Having neither is a conversion error;
 ## having both is left to DataValidator (M1-04). `requires` is required (it may be `{}`); its `entries`, `skills`,
 ## `character` (character level) and `total_level` are optional (empty / 0). Effect modifiers without `scope` are global.
@@ -14,7 +14,6 @@ var description: String = ""
 var category: StringName = &""
 var vendor: StringName = &""  # stall of the shop page (P-04): one of DataValidatorItems.SHOP_VENDORS
 var cost_gold: int = 0
-var cost_formula: StringName = &""  # &"", &"bank_slot" (F-17) or &"armory_slot" (F-82)
 var max_purchases: int = 0
 var req_entries: Array[StringName] = []
 var req_skills: Dictionary[StringName, int] = {}
@@ -46,10 +45,8 @@ static func from_dict(d: Dictionary) -> ShopEntryDef:
 static func _read_cost(def: ShopEntryDef, cost: DefReader, parent: DefReader) -> void:
 	if cost.has("gold"):
 		def.cost_gold = cost.integer("gold")
-	if cost.has("formula"):
-		def.cost_formula = cost.id("formula")
-	if not cost.has("gold") and not cost.has("formula"):
-		cost.fail("needs 'gold' or 'formula'")
+	if not cost.has("gold"):
+		cost.fail("needs 'gold' (M12: no cost formulas)")
 	parent.absorb(cost.ok)
 
 

@@ -43,7 +43,7 @@ func _session(data: GameData, seed_value: int = SEED, hero: bool = true, tank: b
 		s.modifiers.set_source(HERO, [Modifier.make(&"power_bonus", 5000.0), Modifier.make(&"max_hp_flat", 100000.0)])
 	elif tank:
 		s.modifiers.set_source(TANK, [Modifier.make(&"max_hp_flat", 1000.0)])
-	s.modifiers.set_source(&"test:room", [Modifier.make(&"armory_slots", 100.0)])
+	TestFactory.make_roomy(s)
 	_encounters = []
 	_appeared = []
 	_kills_at_appearance = -1

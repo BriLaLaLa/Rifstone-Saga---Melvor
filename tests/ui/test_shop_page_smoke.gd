@@ -5,7 +5,7 @@ extends GutTest
 
 const SCENE: PackedScene = preload("res://ui/pages/shop/shop_page.tscn")
 const OBSERVED: Array[StringName] = [&"shop_purchased", &"item_sold", &"gold_changed", &"bank_changed", &"level_up",
-		&"character_level_up", &"armory_capacity_changed"]
+		&"character_level_up", &"deposit_changed"]
 
 var _session: GameSession
 var _page: ShopPage
@@ -133,12 +133,10 @@ func _buy(entry_id: StringName) -> Button:
 
 
 
-func test_armory_slot_is_in_the_category_of_the_bank_slot() -> void:
+func test_no_slot_entries_in_the_shop() -> void:
 	var shop: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/shop/shop.json"))
-	var categories: Dictionary = {}
 	for entry: Dictionary in shop["entries"]:
-		categories[entry["id"]] = entry["category"]
-	assert_eq(categories["armory_slot"], categories["bank_slot"])
+		assert_ne(entry["category"], "bank", "M12: the Deposit grows with bags, not with purchases")
 
 
 func test_vendors_are_listed_and_empty_ones_say_coming_soon() -> void:
@@ -147,7 +145,7 @@ func test_vendors_are_listed_and_empty_ones_say_coming_soon() -> void:
 		assert_not_null(_page.find_child("Section_%s" % vendor, true, false), vendor)
 	var armorer: Node = _page.find_child("Section_armaiolo", true, false)
 	assert_eq((armorer.find_child("ComingSoon", true, false) as Label).text, "In arrivo")
-	assert_null(_page.find_child("Section_deposito", true, false).find_child("ComingSoon", true, false))
+	assert_null(_page.find_child("Section_deposito", true, false), "M12: no Deposito stall")
 
 
 func test_every_real_shop_entry_has_a_vendor() -> void:

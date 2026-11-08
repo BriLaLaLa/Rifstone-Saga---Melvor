@@ -50,7 +50,7 @@ static func capacity_label_text(session: GameSession) -> String:
 	var worn: int = 0
 	for slot: StringName in Equipment.SLOTS:
 		worn += 1 if session.equipment.get_uid(slot) != 0 else 0
-	return ArmoryTexts.capacity_text(session.armory.used(), session.armory.capacity(), worn)
+	return ArmoryTexts.capacity_text(session.deposit.used(), session.deposit.capacity(), worn)
 
 
 ## Lights the slots of `doll` that accept the dragged piece `data` (a `PieceDrag` payload from the inventory).

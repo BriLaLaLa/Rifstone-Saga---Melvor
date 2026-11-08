@@ -4,7 +4,7 @@ extends GutTest
 
 func test_reasons_values_match_their_names() -> void:
 	var constants: Dictionary = (Reasons as Script).get_script_constant_map()
-	assert_eq(constants.size(), 44, "closed list of docs/05_INTERFACES.md §1")
+	assert_eq(constants.size(), 47, "closed list of docs/05_INTERFACES.md §1")
 	for constant_name: String in constants:
 		var value: Variant = constants[constant_name]
 		assert_typeof(value, TYPE_STRING_NAME, constant_name)

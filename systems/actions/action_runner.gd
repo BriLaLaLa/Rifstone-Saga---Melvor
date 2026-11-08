@@ -209,7 +209,7 @@ func current_interval_ms(action_id: StringName, _lane: StringName = MAIN) -> int
 	return _interval_for(action)
 
 
-## 1 in the MVP: the secondary lane (`parallel_lanes`, F-51) arrives with M8.
+## 1: there are no parallel lanes any more (replaced by the helpers, M12).
 func lanes_available() -> int:
 	return 1
 

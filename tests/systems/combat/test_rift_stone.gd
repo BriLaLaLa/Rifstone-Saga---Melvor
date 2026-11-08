@@ -209,7 +209,7 @@ func test_stone_pieces_use_the_stone_rarity_and_the_area_item_level() -> void:
 	data.rift_stone_for_area(AREA).drops = [drop] as Array[DropEntry]
 	var s: GameSession = _session(data)
 	_hero(s)
-	s.modifiers.set_source(&"test:cap", [Modifier.make(&"armory_slots", 500.0)])
+	TestFactory.make_roomy(s)
 	for i: int in 300:
 		s.combat.from_save(_stone_save(1, 100060, 0))
 		var guard: int = 0

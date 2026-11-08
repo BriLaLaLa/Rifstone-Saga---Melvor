@@ -15,7 +15,7 @@ const PLATE: StringName = &"emberbronze_plate"
 const SHARD: StringName = &"rift_shard"
 const SEAL: StringName = &"warding_seal"
 const HERO: StringName = &"test:hero"
-const ROOMY: StringName = &"test:room"
+var _room: Array[int] = []
 const DOWNGRADE_FROM: int = 4
 const MAX_LEVEL: int = 9
 # F-86 table (docs/02_FORMULAS.md): gold per grade, ingots, shards for N -> N+1.
@@ -49,7 +49,7 @@ func _drop_data() -> GameData:
 func _hero_session(data: GameData, seed_value: int = SEED) -> GameSession:
 	var s: GameSession = autofree(TestFactory.session_no_kit(seed_value, data))
 	s.modifiers.set_source(HERO, [Modifier.make(&"power_bonus", 5000.0), Modifier.make(&"max_hp_flat", 100000.0)])
-	s.modifiers.set_source(ROOMY, [Modifier.make(&"armory_slots", 500.0), Modifier.make(&"bank_slots", 100.0)])
+	_room = TestFactory.make_roomy(s)
 	_added = []
 	_auto_salvaged = []
 	_kills = 0
@@ -109,18 +109,13 @@ func test_every_drop_is_either_in_the_armory_or_salvaged_by_the_filter() -> void
 
 func test_full_armory_salvages_the_drop_and_the_bank_full_is_never_silent() -> void:
 	var s: GameSession = _hero_session(_drop_data())
-	# Take the room away: capacity 40 filled by commons, bank slots filled so the yield cannot be stored.
-	s.modifiers.set_source(ROOMY, [])
-	var cap: int = s.armory.capacity()
+	# Take the room away: the shared Deposit is filled by commons, so the yield cannot be stored either.
+	_room[0] = 0
+	var cap: int = s.deposit.capacity()
 	for i: int in cap:
 		TestFactory.give_piece(s, RING)
 	assert_eq(s.armory.used(), cap)
-	for item: ItemDef in s.data.items():
-		if s.bank.used() >= s.bank.capacity():
-			break
-		if item.category == &"material" and item.id != INGOT and item.id != SHARD:
-			s.bank.add(item.id, 1)
-	assert_eq(s.bank.used(), s.bank.capacity(), "bank full")
+	assert_eq(s.deposit.free_slots(), 0, "Deposit full")
 	var pieces_before: int = s.armory.used()
 	_added = []
 	_fight_until_kills(s, 8)

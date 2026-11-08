@@ -100,12 +100,14 @@ func test_unique_tool_cannot_be_salvaged() -> void:
 func test_full_bank_blocks_the_salvage() -> void:
 	var uid: int = _piece(GREATSWORD, &"magic")
 	for def: ItemDef in _data.items():
-		if _session.bank.used() >= _session.bank.capacity():
+		if _session.deposit.free_slots() <= 1:
 			break
 		if not Bank.PIECE_CATEGORIES.has(def.category) and def.category != &"blueprint" and def.id != SHARD \
 				and def.id != PLATE:
 			_session.bank.add(def.id, 1)
-	assert_eq(_session.bank.used(), _session.bank.capacity(), "bank full of other items")
+	var spare: int = _session.deposit.free_slots()  # what is left after the real items: take it with a filler
+	_session.deposit.register_occupant(&"test_filler", func() -> int: return spare)
+	assert_eq(_session.deposit.free_slots(), 0, "deposit full")
 	var result: CommandResult = _session.armory.salvage(uid)
 	assert_false(result.ok)
 	assert_eq(result.reason, Reasons.BANK_FULL)

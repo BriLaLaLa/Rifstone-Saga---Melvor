@@ -26,7 +26,7 @@ var _session: GameSession = null
 func before_all() -> void:
 	DirAccess.make_dir_recursive_absolute(_tmp_config)
 	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_ROOT.path_join("balance.json")))
-	(balance["bank"] as Dictionary)["base_slots"] = 1
+	(balance["deposit"] as Dictionary)["base_slots"] = 1
 	(balance["start"] as Dictionary)["items"] = [{"item": String(LOG_ITEM), "qty": 1}, {"item": "seared_brookfin", "qty": 1}]  # the kit food, removed by clear_kit
 	_write(_tmp_config.path_join("balance.json"), JSON.stringify(balance))
 	_write(_tmp_config.path_join("stats.json"), FileAccess.get_file_as_string(CONFIG_ROOT.path_join("stats.json")))
@@ -157,15 +157,16 @@ func test_full_bank_accepts_products_already_present() -> void:
 ## Two new items (product and shard) need two free slots: with one free slot the cycle does not count.
 func test_new_items_need_one_slot_each() -> void:
 	var session: GameSession = _small()
-	session.modifiers.set_source(&"test", [Modifier.make(SHARD_STAT, 100.0), Modifier.make(&"bank_slots", 1.0)]
-			as Array[Modifier])
-	assert_eq(session.bank.capacity() - session.bank.used(), 1)
+	session.deposit.from_save({"bags": ["test_bag_small", "", "", "", "", ""]})  # capacity 1 + 6, one item in the bank
+	session.modifiers.set_source(&"test", [Modifier.make(SHARD_STAT, 100.0)] as Array[Modifier])
+	var filler: Array[int] = [5]
+	session.deposit.register_occupant(&"test_filler", func() -> int: return filler[0])
+	assert_eq(session.deposit.free_slots(), 1)
 	var outcome: ActionOutcome = GatheringResolver.resolve(session, _action(TWIG, session))
 	assert_false(outcome.ok)
 	assert_eq(outcome.reason, Reasons.BANK_FULL)
 	assert_eq(session.bank.used(), 1)
-	session.modifiers.set_source(&"test", [Modifier.make(SHARD_STAT, 100.0), Modifier.make(&"bank_slots", 2.0)]
-			as Array[Modifier])
+	filler[0] = 4
 	assert_true(GatheringResolver.resolve(session, _action(TWIG, session)).ok)
 	assert_eq(session.bank.used(), 3)
 

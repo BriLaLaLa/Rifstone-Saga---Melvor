@@ -5,7 +5,7 @@ extends GutTest
 const SHARD: StringName = &"rift_shard"
 const CONFIG_ROOT: String = "res://data/config"
 const PreRun := preload("res://tests/helpers/gut_pre_run.gd")
-const SMALL_SLOTS: int = 2
+const SMALL_SLOTS: int = 8  # deposit.base_slots of the small data
 
 var _tmp_config: String = PreRun.test_dir("test_armory_filter").path_join("config")
 var _small_data: GameData = null
@@ -16,7 +16,7 @@ var _session: GameSession = null
 func before_all() -> void:
 	DirAccess.make_dir_recursive_absolute(_tmp_config)
 	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_ROOT.path_join("balance.json")))
-	(balance["armory"] as Dictionary)["base_slots"] = SMALL_SLOTS
+	(balance["deposit"] as Dictionary)["base_slots"] = SMALL_SLOTS
 	_write(_tmp_config.path_join("balance.json"), JSON.stringify(balance))
 	_write(_tmp_config.path_join("stats.json"), FileAccess.get_file_as_string(CONFIG_ROOT.path_join("stats.json")))
 	_small_data = GameData.load_from_dirs(TestFactory.REAL_CONTENT_ROOT, _tmp_config)
@@ -107,17 +107,24 @@ func test_drop_under_the_filter_is_salvaged_at_once() -> void:
 
 func test_drop_with_a_full_armory_is_salvaged() -> void:
 	var session: GameSession = _empty(autofree(TestFactory.session(22, _small_data)))
-	for i: int in SMALL_SLOTS:
+	# The Deposit is shared: the yield only fits in stacks the bank already holds, so they are there before it fills up.
+	var comps: Dictionary[StringName, int] = Salvage.components(&"stormzinc_cuirass", session.data)
+	for item_id: StringName in comps:
+		TestFactory.give(session, item_id, 1)
+	TestFactory.give(session, SHARD, 1)
+	var filled: int = 0
+	while session.armory.can_add(1):
 		assert_gt(session.armory.add(_inst(&"emberbronze_sword", &"common")), 0)
+		filled += 1
+	assert_gt(filled, 0)
 	watch_signals(session.events)
 	var uid: int = session.armory.add_drop(_inst(&"stormzinc_cuirass", &"rare"))
 	assert_eq(uid, 0)
-	assert_eq(session.armory.used(), SMALL_SLOTS, "still full")
-	var comps: Dictionary[StringName, int] = Salvage.components(&"stormzinc_cuirass", session.data)
+	assert_eq(session.armory.used(), filled, "still full")
 	for item_id: StringName in comps:
-		assert_eq(session.bank.get_count(item_id), comps[item_id])
-	assert_eq(session.bank.get_count(SHARD), 9, "rare 3 x grade 3")
-	assert_signal_emitted_with_parameters(session.events, "item_salvaged", [SMALL_SLOTS + 1, &"stormzinc_cuirass", true])
+		assert_eq(session.bank.get_count(item_id), comps[item_id] + 1)
+	assert_eq(session.bank.get_count(SHARD), 10, "1 + rare 3 x grade 3")
+	assert_signal_emitted_with_parameters(session.events, "item_salvaged", [filled + 1, &"stormzinc_cuirass", true])
 	assert_signal_not_emitted(session.events, "armory_rejected")
 
 

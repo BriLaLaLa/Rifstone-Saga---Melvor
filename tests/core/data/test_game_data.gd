@@ -74,7 +74,7 @@ func test_xp_tables_come_from_the_curves() -> void:
 
 func test_stats_registry_is_built() -> void:
 	assert_true(_data.stats.has(&"skill_interval_pct"))
-	assert_eq(_data.stats.ids().size(), 25)
+	assert_eq(_data.stats.ids().size(), 23)
 
 
 func test_item_lookup() -> void:
@@ -82,7 +82,7 @@ func test_item_lookup() -> void:
 	assert_eq(item.food_heal, 20)
 	assert_true(_data.has_item(&"rift_shard"))
 	assert_false(_data.has_item(&"ghost_item"))
-	assert_eq(_data.items().size(), 48)
+	assert_eq(_data.items().size(), 50)
 
 
 func test_unknown_ids_are_null_with_error() -> void:
@@ -107,7 +107,7 @@ func test_has_area_and_has_monster_do_not_log_errors() -> void:
 func test_lists_are_copies() -> void:
 	_data.items().clear()
 	_data.skills().clear()
-	assert_eq(_data.items().size(), 48)
+	assert_eq(_data.items().size(), 50)
 	assert_eq(_data.skills().size(), 4)
 
 
@@ -183,9 +183,8 @@ func test_areas_and_monsters() -> void:
 
 func test_shop_entries_in_file_order() -> void:
 	assert_eq(_ids(_data.shop_entries()),
-			[&"bank_slot", &"test_upgrade_1", &"test_upgrade_2", &"test_buy_hatchet",
+			[&"test_pocket", &"test_upgrade_1", &"test_upgrade_2", &"test_buy_hatchet",
 					&"test_buy_log", &"auto_eat_1"] as Array[StringName])
-	assert_eq(_data.shop_entry(&"bank_slot").cost_formula, &"bank_slot")
 	assert_eq(_data.shop_entry(&"test_buy_hatchet").effect_item.item_id, &"test_blade")
 
 
@@ -233,7 +232,7 @@ func test_item_kind_and_grade() -> void:
 
 func test_shop_character_requirement() -> void:
 	assert_eq(_data.shop_entry(&"test_upgrade_2").req_character, 20)
-	assert_eq(_data.shop_entry(&"bank_slot").req_character, 0)
+	assert_eq(_data.shop_entry(&"test_pocket").req_character, 0)
 
 # --- invalid data ------------------------------------------------------------------------------------------------
 

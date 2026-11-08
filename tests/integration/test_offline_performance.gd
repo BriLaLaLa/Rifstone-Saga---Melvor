@@ -10,7 +10,6 @@ const SWORD: StringName = &"emberbronze_sword"
 const CAP_MS: int = 43200000
 const LIMIT_MS: int = 10000
 const HERO: StringName = &"test:hero"
-const ROOMY: StringName = &"test:room"
 const GROUP_SIZE: int = 6
 
 
@@ -32,7 +31,7 @@ func _session(power: float, hp: float, dr: float) -> GameSession:
 	assert_true(s.equipment.equip(TestFactory.give_piece(s, SWORD)).ok)
 	s.modifiers.set_source(HERO, [Modifier.make(&"power_bonus", power), Modifier.make(&"max_hp_flat", hp),
 			Modifier.make(&"damage_reduction", dr), Modifier.make(&"evasion_bonus", dr * 1000.0)])
-	s.modifiers.set_source(ROOMY, [Modifier.make(&"armory_slots", 500.0), Modifier.make(&"bank_slots", 100.0)])
+	TestFactory.make_roomy(s)
 	return s
 
 

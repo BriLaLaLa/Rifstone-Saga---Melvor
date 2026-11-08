@@ -299,7 +299,7 @@ func test_affix_unknown_field_is_an_error() -> void:
 # --- balance.json (M4 keys) --------------------------------------------------------------------------------------
 
 func test_reform_keys_are_required() -> void:
-	for key: String in ["character_curve.base", "character.start_class", "armory.slot_cost_cap",
+	for key: String in ["character_curve.base", "character.start_class", "deposit.bag_slots",
 			"combat.kill_xp_mult", "rarity.affix_count.rare", "combat.dual_wield.interval_mult",
 			"combat.max_pack_size", "combat.hp_per_level"]:
 		assert_true(DataValidator.REQUIRED_BALANCE_KEYS.has(key), key)
@@ -311,9 +311,9 @@ func test_reform_keys_are_required() -> void:
 
 func test_missing_reform_key_is_an_error() -> void:
 	var raw: Dictionary = V.fixture_raw()
-	(_balance(raw)["armory"] as Dictionary).erase("base_slots")
+	(_balance(raw)["deposit"] as Dictionary).erase("base_slots")
 	_balance(raw).erase("character")
-	_expect(raw, ["balance.json", "missing key 'armory.base_slots'"])
+	_expect(raw, ["balance.json", "missing key 'deposit.base_slots'"])
 	_expect(raw, ["balance.json", "missing key 'character.start_class'"])
 
 
