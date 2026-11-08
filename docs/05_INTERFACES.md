@@ -1663,7 +1663,7 @@ static func build() -> Theme                       # tema da UiStyle; riftstone_
 # Variante WindowPanel opaca (UiStyle.BG_WINDOW_OPAQUE): la usano GameWindow (maestria), menu e SlotSelect; nessuna
 # scena ridefinisce lo sfondo dei pannelli con un override locale.
 
-class_name NumberFormat extends RefCounted         # ui/theme/number_format.gd, solo statiche; unica definizione dei formati
+class_name NumberFormat extends RefCounted         # core/common/number_format.gd, solo statiche; unica definizione dei formati
 static func format_int(value: int) -> String                       # "1.250"
 static func format_number(value: float) -> String                  # "1.250,5" (al massimo due decimali)
 static func format_seconds(ms: int) -> String                      # "3,0 s", "2,7 s", "0,25 s": da uno a due decimali

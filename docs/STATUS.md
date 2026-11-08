@@ -6,12 +6,12 @@ Se la sessione si interrompe, si riparte da qui.
 - **P-02 Scheda pezzo, Banco del fabbro, slot Cibo (2026-11-08, merge 55730ff)**: scheda del pezzo, Banco del fabbro nella pagina Fabbro, slot Cibo nella bambola, drag reale (fix a `EquipmentInventory.rebuild_grid`).
 - P-02 aperto: layout non verificato a schermo; manca l'icona `food.svg`; il tipo del pezzo mostra il nome dello slot.
 - P-02 nessun cambio di dati.
-- **P-03 Rinomina, Rune e Incavi (2026-11-08)**: IN_PROGRESS. Contratto in `05_INTERFACES.md` (`player_renamed`, `PlayerName.rename`, ForgeBench, FoodSlotView).
-- P-03: nomi di gioco Infusioni -> Rune, Prese -> Incavi in `NOMI.md` e nei documenti (id invariati); decisione in `DECISIONS_LOG.md`.
-- P-03: da fare testi nei dati, TopBar che ascolta `player_renamed` (chiude l'aperto di P-01).
+- **P-03 Rinomina, Rune e Incavi (2026-11-08)**: fatto (merge dati `598d8a3`, UI `15bc0cf`). Rune/Incavi in dati, UI, Guida e NOMI.md (id invariati); pagina Guida "Pietre e Rune", Altare con stato degli incavi e elenco rune del Deposito con link a Legatura.
+- P-03: tabelle Tratti/Abilità della Guida da `LoadoutDescribe` (ora `core/guide/`, `NumberFormat` spostato in `core/common/`); descrizioni dei dati senza cifre; `player_renamed` aggiorna la TopBar (chiude l'aperto di P-01).
+- P-03 aperto: Q55 valute (flux/crown) invariata; layout 1600x900/1280x720, popup del cibo con mouse vero e icona `food.svg` non verificati; il test dedicato rinomina-pagina->barra passa da `PlayerName.rename`, non dal clic.
 - **P-01 Pagina Personaggio (2026-11-08, dopo m11-done)**: nome del personaggio in grande con Rinomina (`PlayerName.rename`, limiti `player_name` di `balance.json`, salvataggio dello slot), sotto "Spadaccino · Livello N"; tolta la sezione Assetto; tratti e abilità in un riquadro a due schede.
 - Descrizioni di tratti e abilità generate da effetti, parametri e ricarica (`ui/pages/character/loadout_describe.gd`, il campo `description` dei dati non si mostra più); stat `damage_reduction` ora si chiama "Armatura" (solo testo in `stats.json`).
-- Aperto: la barra in alto mostra il nome vecchio fino al prossimo caricamento (nessun segnale di rinomina); le tabelle Tratti/Abilità della Guida usano ancora il campo `description`.
+- Aperto di P-01 chiuso da P-03 (`player_renamed`).
 
 ## Ripartenza (aggiornata il 2026-11-08, fine M11)
 - **Stato**: **M11 Guida in gioco completata**, tag `m11-done` (lo mette e lo pusha l'Orchestratore). Hash: R-02 `4097d40`, M11-01 `ce3d07c`, M11-02 `0cbf41b`,
