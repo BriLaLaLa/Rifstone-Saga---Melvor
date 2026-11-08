@@ -68,6 +68,7 @@ func _ready() -> void:
 func bind(session: GameSession) -> void:
 	unbind()
 	_session = session
+	HelpButton.attach(_title_label.get_parent(), session.data, &"shop")
 	var events: GameEvents = _session.events
 	events.shop_purchased.connect(_on_shop_purchased)
 	events.item_sold.connect(_on_item_sold)

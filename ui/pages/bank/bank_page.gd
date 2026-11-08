@@ -95,6 +95,7 @@ func _ready() -> void:
 func bind(session: GameSession) -> void:
 	unbind()
 	_session = session
+	HelpButton.attach(_title_label.get_parent(), session.data, &"bank")
 	_session.events.bank_changed.connect(_on_events_bank_changed)
 	_session.events.bank_capacity_changed.connect(_on_events_bank_capacity_changed)
 	_session.events.equipment_changed.connect(_on_events_equipment_changed)
