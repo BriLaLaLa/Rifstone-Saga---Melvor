@@ -98,6 +98,7 @@ static func validate(raw: Dictionary, errors: PackedStringArray) -> void:
 	DataValidatorClasses.validate_affixes(v, _files(raw, "affixes"))
 	DataValidatorStones.validate(v, _files(raw, "rift_stones"), _files(raw, "areas"))
 	DataValidatorHints.validate(v, _files(raw, "hints"))
+	DataValidatorGuide.validate(v, raw)
 	DataValidatorItems.validate_shop(v, _files(raw, "shop"))
 	errors.append_array(v.errors)
 

@@ -1,0 +1,20 @@
+{
+  "pages": [
+    {"id": "test_guide_start", "section": "first_steps", "title": "Pagina di prova", "order": 2,
+     "help_for": ["combat", "skill:test_gather"],
+     "blocks": [
+       {"type": "heading", "text": "Il limite offline"},
+       {"type": "text", "text": "Il gioco prosegue fino a {balance:offline.cap_ms|ore} ore, con un minimo di {balance:offline.min_ms|min} minuti."},
+       {"type": "text", "text": "La stat {stat:skill_xp_pct} ({stat:skill_xp_pct|desc}) va da {stat:skill_xp_pct|min} a {stat:skill_xp_pct|max}."},
+       {"type": "text", "text": "Raccogli un {link:item:test_twig|rametto} nell'area {link:area:test_area|di prova}."},
+       {"type": "table", "source": "affix_tiers"},
+       {"type": "links", "targets": ["item:test_twig", "monster:test_monster_a", "page:test_guide_second"]}
+     ]},
+    {"id": "test_guide_second", "section": "first_steps", "title": "Seconda pagina", "order": 1, "allow_digits": true,
+     "blocks": [
+       {"type": "text", "text": "Al livello 1 inizia l'avventura, vedi {link:page:test_guide_start|la pagina di prova}."}
+     ]},
+    {"id": "test_guide_offline", "section": "offline", "title": "Offline di prova", "order": 1,
+     "blocks": [{"type": "text", "text": "Solo testo."}]}
+  ]
+}
