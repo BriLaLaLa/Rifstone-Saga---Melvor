@@ -3,7 +3,27 @@
 Aggiornato dall'Orchestratore (unico che modifica questo file). Stati: TODO / IN_PROGRESS / REVIEW / DONE / BLOCKED.
 Se la sessione si interrompe, si riparte da qui.
 
-## Ripartenza (aggiornata il 2026-11-08, fine M10 e R-02 fatta)
+## Ripartenza (aggiornata il 2026-11-08, fine M11)
+- **Stato**: **M11 Guida in gioco completata**, tag `m11-done` (lo mette e lo pusha l'Orchestratore). Hash: R-02 `4097d40`, M11-01 `ce3d07c`, M11-02 `0cbf41b`,
+  Q49 `6c8ad78`, M11-03 `d9e7eac` (+ allineamento tabelle `7042376`), M11-04 `4d766d1`, M11-05 `e6f9e66`, M11-06 `47dbfc5`; M11-07 = commit di chiusura.
+  `run_checks` su main: 1958 test verdi, dati (fixture e veri), righe per file e riferimenti vietati OK.
+- **Prossimo passo**: **M12 Fratture come mappe** (`01_GDD.md` §17 da rivedere a inizio milestone; task da definire), sessione nuova da questo file. Poi M13 corsie parallele, M14+ il resto.
+- **Da tarare / aperto**: Q53 invariata; Q55-Q57 nuove (`OPEN_QUESTIONS.md`); foto di layout 1600x900 e 1280x720 non fatta (`tools/ui_shots` vuota, solo test sulle dimensioni minime);
+  Q26, Q27-Q43, Q47 invariate; kit con spada e scudo già indossati da confermare.
+- **Deviazioni di M11**: `guide_book.gd` e `item_index_m10.gd` extra per il limite di 400 righe; rotta `help` + `guide`; titoli di gruppo dell'indice come costanti in `guide_nav.gd`;
+  Altare senza pagina propria nel "?"; etichette italiane in `GuideIndex`; nomi delle valute dei dati diversi da `NOMI.md` (`currency_flux` "Sabbia del mutamento", `currency_crown` "Essenza del Rift");
+  con la borsa piena si perdono ~0,38 progetti/h in un seme.
+- **Riferimenti vecchi ancora presenti (verificati con Grep su main)**: `data/shop/shop.json` (`_doc`: "second_thought (M11)", ora M13) e `tests/data/test_stat_registry_coverage.gd` riga 34
+  (`FORMULA_MILESTONES`: "F-50": "M10", "F-51": "M11", ora M12/M13): da allineare al primo task di M12.
+- **Pulizia a mano (non fatta)**: worktree `C:\Users\Davide\Desktop\AI\wt-*`, `RS-M10-02`, `rs-M10-05`, `RSI-worktrees\*` e `.claude/worktrees/agent-*`; poi `git worktree prune` e cancellare i branch `task/*` mergiati.
+- **Prove manuali consigliate**: Guida dalla sidebar (indice, ricerca, collegamenti, indietro); "?" in ogni pagina; tooltip con "Si ottiene da / Serve a"; layout 1600x900 e 1280x720; poi quelle di M10.
+
+### Report di milestone M11
+Guida in gioco: indice "da dove viene / a cosa serve" e tabelle generate dai dati (`core/guide/`), testi a mano in `data/guide/` con segnaposto risolti da `balance.json` e `stats.json`
+e validatore, pagina Guida con ricerca e storico, pulsanti "?" in 7 pagine, righe dei tooltip, test di integrazione e copertura. Q49 chiusa: ~1 progetto/h, nessuna ritaratura.
+Non verificato: foto di layout e prove manuali. Nessun cambio di formule o di bilanciamento.
+
+## Ripartenza precedente (fine M10, R-02 fatta, 2026-11-08)
 - **R-02 DONE** (2026-11-08): Guida in gioco (M11, decisioni G1-G2) riportata nei documenti canonici (`01_GDD.md` §27, `04_DATA_SCHEMA.md` §19, `05_INTERFACES.md` §5.19 e §7.y, `06_ROADMAP.md`, `07_TASKS.md` M11-01…M11-07); milestone rinumerate: M11 Guida, M12 Fratture come mappe, M13 corsie parallele, M14+ il resto. `GUIDA.md` superato, non si legge più.
 - **R-02 DONE** (2026-11-08): Guida in gioco (M11, decisioni G1-G2) riportata nei documenti canonici (`01_GDD.md` §27, `04_DATA_SCHEMA.md` §19, `05_INTERFACES.md` §5.19 e §7.y, `06_ROADMAP.md`, `07_TASKS.md` M11-01…M11-07); milestone rinumerate: M11 Guida, M12 Fratture come mappe, M13 corsie parallele, M14+ il resto. `GUIDA.md` superato, non si legge più.
 - **Stato**: **M10 completata**, tag `m10-done` su `main`. R-01 `4f990db`. Merge: M10-01 `7b1a226`, M10-02 `285e2de`, M10-03 `4a098cb`,

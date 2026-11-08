@@ -130,8 +130,15 @@ non vincolanti come le formule). `combat.kill_xp_mult` = 0,11; XP delle Miniere 
 ## M11: Guida in gioco (dopo l'MVP, prima delle mappe)
 Pagina "Guida" generata dai dati (indice "da dove viene / a cosa serve", testi a mano in `data/guide/`, segnaposto verso
 `balance.json` e `stats.json`), pulsanti "?" nelle pagine, righe "Si ottiene da / Serve a" nei tooltip (`01_GDD.md` §27, decisioni G1-G2).
-- **Uscita**: la Guida si apre dalla sidebar con ricerca e collegamenti; ogni oggetto, mostro, area, mestiere, stat, tratto e abilità ha la sua
-  pagina; nessun segnaposto non risolto né numero scritto a mano nei testi; ogni pagina del gioco ha il suo "?"; layout 1600x900 e 1280x720.
+- **Uscita** (verificata in M11-07, 2026-11-08):
+  - [x] La Guida si apre dalla sidebar, con ricerca (`GuideNav.search`) e collegamenti (rotta `help` + `guide`; `test_guide_page.gd`).
+  - [x] Ogni oggetto, mostro, area, mestiere, stat, tratto e abilità ha la sua pagina (`GuideTables.page_ids`, test in `tests/core/guide/`).
+  - [x] Nessun segnaposto non risolto né numero scritto a mano nei testi (validatore di `data/guide/` e `test_guide_text.gd`; `validate_data` verde).
+  - [x] Ogni pagina del gioco ha il suo "?" (`HelpButton` in Deposito, Personaggio, Combattimento, Equipaggiamento, Altare, Shop, Skill; `test_help_buttons.gd`); l'Altare non ha una pagina propria nel "?".
+  - [x] Righe "Si ottiene da / Serve a" nei tooltip (M11-05).
+  - [ ] Layout 1600x900 e 1280x720: verificato solo con test sulle dimensioni minime (`test_layout_fits_the_minimum_window`); foto di layout non fatta (`tools/ui_shots` vuota).
+  - [ ] Prove manuali in gioco (Guida, ricerca, "?" in ogni pagina, tooltip): non fatte, a carico dell'utente.
+  - Suite su main: 1958 test verdi, dati, righe per file e riferimenti vietati OK.
 - **Task** M11-01…M11-07 (`07_TASKS.md`); tag `m11-done`.
 
 ## M12: Fratture come mappe (dopo la Guida)

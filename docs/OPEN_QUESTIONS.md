@@ -88,6 +88,14 @@ I documenti sono già scritti con questi default (R-01). Valgono finché l'utent
 | Q53 | Valori di partenza della riforma **non presenti nelle fonti** (da tarare con `sim_combat`/`sim_gear_economy` in M10-07 o dopo la prova): quantità di piastre/impugnature/telai e del componente raro per progetto (02 §8.2: 4-10 piastre, 0-2 componenti di legno, 3 rari); `blueprint.xp_mult` 1,5; `rare_base_pct` 10 e `rare_per_forging_level` 0,5 (F-91); `chosen_affix_tier` 2 (F-92); `per_level` del Fabbro 0,4 (F-93); tabella F-94 (livelli minimi dei passi tranne +4 = 25, componenti, oro, `interval_base_pct` 5, `interval_per_level_pct` 2, `upgrade_extras`); `component_ratio` 0,4 (invariato); piastra = 2 lingotti; un'area di grado `g` lascia progetti di grado `g` e `g+1`; un solo componente raro per grado | come scritto in `02_FORMULAS.md` §5c e §8.2 | F-90…F-95, M10-04, M10-07 |
 | Q54 | B1: come rallentare il livello del personaggio (da ~50 → 95 in una notte offline a: livello 99 in 250-350 h; da 50 a 60 in una notte; massimo +12 livelli dopo il 50 in una notte) | **Tarato in M10-07**: `combat.kill_xp_mult` = 0,11 e XP delle Miniere Crepate a 0,8 × (4 × PV) (moltiplica l'XP per uccisione, F-28), da tarare con `tools/sim_combat.gd` (anche offline) in M10-07; in alternativa o in aggiunta si può cambiare `character_curve` (F-71). Conseguenza: gli esempi di F-28 e i test cambiano insieme al valore | F-28, F-71, M10-07, Q41 |
 
+## Guida in gioco (M11)
+
+| # | Domanda | Default proposto | Dove impatta |
+|---|---|---|---|
+| Q55 | I nomi delle valute nei dati differiscono da `NOMI.md` (`currency_flux` "Sabbia del mutamento", `currency_crown` "Essenza del Rift"; `NOMI.md` li ha scambiati) | Restano i nomi dei dati (la descrizione combacia con l'effetto); correggere `NOMI.md` | M10-05, `data/items/currencies.json`, Guida |
+| Q56 | Con la borsa piena i progetti dai mostri si perdono (~0,38 progetti/h in un seme, Q49) | Accettato: la perdita è visibile in `sim_combat` (`bp lost/h`); nessuna modifica | Q49, M10-02 |
+| Q57 | I titoli di gruppo dell'indice della Guida sono costanti in `guide_nav.gd`, non in dati | Restano costanti di presentazione (come Q42); spostarli in `data/guide/` se serviranno traduzioni o modifiche frequenti | M11-04 |
+
 ## Chiuse
 
 | # | Domanda | Decisione | Data |
