@@ -1,10 +1,9 @@
 extends GutTest
-## M8-05: Altar of the Rift page, sockets of the piece panel, Rift currencies, "Incastona" of the bank item panel and the
+## M8-05: Altar of the Rift page, sockets of the Forge bench (P-02), Rift currencies, "Incastona" of the bank item panel and the
 ## sidebar entry. Fixture content (test_infusion, test_stone, test_currency*, test_blade) with the real config plus the
 ## `sockets` section of docs/02_FORMULAS.md F-89 (the real balance.json has none yet, as in test_sockets.gd).
 
 const RIFT_SCENE: PackedScene = preload("res://ui/pages/rift/rift_page.tscn")
-const EQUIP_SCENE: PackedScene = preload("res://ui/pages/equipment/equipment_page.tscn")
 const BANK_SCENE: PackedScene = preload("res://ui/pages/bank/bank_page.tscn")
 const INF: StringName = &"test_infusion"
 const STONE: StringName = &"test_stone"
@@ -149,12 +148,14 @@ func test_sidebar_and_host_have_the_altar_route() -> void:
 	assert_true(pages.has(&"rift"))
 
 
-# --- Piece panel: sockets and currencies -----------------------------------------------------------------------
+# --- Forge bench: sockets and currencies -----------------------------------------------------------------------
 
 func _select_piece(rarity: StringName) -> int:
 	var uid: int = TestFactory.give_piece(_session, BLADE, rarity)
-	_open(EQUIP_SCENE, &"equipment")
-	_page._select(uid)
+	_page = ForgeBench.new()
+	add_child(_page)
+	_page.bind(_session)
+	_page.select(uid)
 	return uid
 
 
@@ -197,7 +198,7 @@ func test_stone_without_free_socket_refusal_is_shown() -> void:
 	TestFactory.give(_session, STONE, 2)
 	var uid: int = _select_piece(&"magic")
 	_session.armory.socket_stone(uid, STONE)
-	_page._on_panel_armory_command(_session.armory.socket_stone.bind(uid, STONE))
+	_page._on_stone_requested(STONE)
 	var message: Label = _page.find_child("MessageLabel", true, false) as Label
 	assert_true(message.visible)
 	assert_eq(message.text, SocketTexts.refused(Reasons.SOCKET_OCCUPIED))
@@ -284,15 +285,15 @@ func test_bank_stone_without_pieces_and_plain_item_has_no_section() -> void:
 	assert_false((panel.find_child("SocketBox", true, false) as Control).visible)
 
 
-# --- M9-00: piece panel tabs ---------------------------------------------------------------------------------------
+# --- Forge bench tabs ---------------------------------------------------------------------------------------
 
-func test_piece_panel_has_tabs_with_texts_of_armory() -> void:
+func test_forge_bench_has_tabs_with_texts_of_armory() -> void:
 	_select_piece(&"magic")
 	var tabs: TabContainer = _page.find_child("Tabs", true, false) as TabContainer
 	assert_not_null(tabs)
-	assert_eq(tabs.get_tab_count(), ArmoryTexts.PIECE_TAB_TITLES.size())
+	assert_eq(tabs.get_tab_count(), ArmoryTexts.BENCH_TAB_TITLES.size())
 	for i: int in tabs.get_tab_count():
-		assert_eq(tabs.get_tab_title(i), ArmoryTexts.PIECE_TAB_TITLES[i])
+		assert_eq(tabs.get_tab_title(i), ArmoryTexts.BENCH_TAB_TITLES[i])
 	assert_eq(tabs.current_tab, 0)
 	tabs.current_tab = 1
 	assert_eq(tabs.get_current_tab_control(), _page.find_child("SocketBox", true, false).get_parent())

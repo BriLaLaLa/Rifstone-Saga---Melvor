@@ -17,7 +17,6 @@ const STATS_TITLE_TEXT: String = "Statistiche"
 const FULL_TEXT: String = "Armeria piena"
 const HINT_TEXT: String = "Trascina un pezzo sullo slot. Tasto destro: equipaggia (una spada va nella seconda mano se è libera), " \
 		+ "oppure Rimuovi su uno slot pieno. Clic: seleziona."
-const CLEAR_FOOD_TEXT: String = "Togli"
 const FILTER_TEXT: String = "Filtro"
 const FILTER_ALL: StringName = EquipmentInventory.FILTER_ALL
 const SECTION_SEPARATION: int = 12
@@ -48,8 +47,6 @@ var _filter_open: bool = false
 @onready var _message_label: Label = %MessageLabel
 @onready var _stats_title: Label = %StatsTitle
 @onready var _stats_text: RichTextLabel = %StatsText
-@onready var _food_label: Label = %FoodLabel
-@onready var _clear_food_button: Button = %ClearFoodButton
 @onready var _panel: PiecePanel = %PiecePanel
 @onready var _filter_toggle: Button = %FilterToggle
 @onready var _filter_panel: FilterPanel = %FilterPanel
@@ -67,8 +64,6 @@ func _ready() -> void:
 	_full_label.text = FULL_TEXT
 	_full_label.add_theme_color_override("font_color", UiStyle.BAD)
 	_message_label.add_theme_color_override("font_color", UiStyle.BAD)
-	_clear_food_button.text = CLEAR_FOOD_TEXT
-	_clear_food_button.pressed.connect(_on_clear_food_pressed)
 	_slot_option.item_selected.connect(_on_slot_filter_selected)
 	_rarity_option.item_selected.connect(_on_rarity_filter_selected)
 	_scroll.unequip_dropped.connect(_on_unequip_requested)
@@ -79,9 +74,7 @@ func _ready() -> void:
 	_panel.lock_requested.connect(_on_panel_lock_requested)
 	_panel.sell_requested.connect(_on_panel_sell_requested)
 	_panel.close_requested.connect(_on_panel_close_requested)
-	_panel.refine_requested.connect(_on_panel_refine_requested)
 	_panel.salvage_requested.connect(_on_panel_salvage_requested)
-	_panel.armory_command_requested.connect(_on_panel_armory_command)
 	_filter_toggle.text = FILTER_TEXT
 	_filter_toggle.toggled.connect(_on_filter_toggled)
 	_filter_panel.rule_changed.connect(_on_filter_rule_changed)
@@ -95,7 +88,6 @@ func bind(session: GameSession) -> void:
 	var events: GameEvents = _session.events
 	for sig: Signal in _signals(events):
 		sig.connect(_redraw_from_event)
-	_session.events.item_upgraded.connect(_on_item_upgraded)
 	_session.events.item_salvaged.connect(_on_item_salvaged)
 	_build_filters()
 	_doll.build(func(slot: StringName) -> String: return EquipmentStatsText.doll_text(slot, _session.data))
@@ -105,6 +97,9 @@ func bind(session: GameSession) -> void:
 		view.piece_dropped.connect(_on_slot_dropped)
 		view.hover_started.connect(_on_slot_hover_started)
 		view.hover_ended.connect(_hide_tooltip)
+	_doll.food_slot().open_requested.connect(_on_food_open_requested)
+	_doll.food_slot().food_chosen.connect(_on_food_chosen)
+	_doll.food_slot().clear_requested.connect(_on_clear_food_pressed)
 	_redraw()
 
 
@@ -115,8 +110,6 @@ func unbind() -> void:
 			if sig.is_connected(_redraw_from_event):
 				sig.disconnect(_redraw_from_event)
 		var events: GameEvents = _session.events
-		if events.item_upgraded.is_connected(_on_item_upgraded):
-			events.item_upgraded.disconnect(_on_item_upgraded)
 		if events.item_salvaged.is_connected(_on_item_salvaged):
 			events.item_salvaged.disconnect(_on_item_salvaged)
 	_hide_tooltip()
@@ -190,7 +183,8 @@ func _redraw() -> void:
 		"unequip_dropped": _on_unequip_requested, "hover_started": _on_cell_hover_started,
 		"hover_ended": _hide_tooltip})
 	EquipmentSide.redraw_doll(_session, _doll, _class_label, _setup_label)
-	EquipmentSide.redraw_side(_session, _stats_text, _food_label, _clear_food_button)
+	EquipmentSide.redraw_side(_session, _stats_text)
+	EquipmentSide.redraw_food(_session, _doll.food_slot())
 	if _selected_uid != 0 and not _panel.show_piece(_session, _selected_uid):
 		_selected_uid = 0
 	_apply_filter_view()
@@ -304,11 +298,7 @@ func _on_clear_food_pressed() -> void:
 	_send(func() -> CommandResult: return _session.equipment.set_food(&""))
 
 
-# --- Refine, salvage, automatic filter --------------------------------------------------------------------------
-
-func _on_panel_refine_requested(uid: int, use_seal: bool) -> void:
-	_send(func() -> CommandResult: return _session.armory.upgrade(uid, use_seal))
-
+# --- Salvage, automatic filter ----------------------------------------------------------------------------------
 
 func _on_panel_salvage_requested(uid: int) -> void:
 	_send(func() -> CommandResult: return _session.armory.salvage(uid))
@@ -336,10 +326,6 @@ func _apply_filter_view() -> void:
 		_filter_panel.refresh(_session)
 
 
-func _on_item_upgraded(uid: int, success: bool, new_level: int) -> void:
-	_notify(EquipmentMessages.upgraded_text(_session, uid, success, new_level), success)
-
-
 func _on_item_salvaged(_uid: int, base_id: StringName, auto: bool) -> void:
 	_notify(EquipmentMessages.salvaged_text(_session, base_id, auto), true)
 
@@ -350,6 +336,12 @@ func _notify(text: String, good: bool) -> void:
 	_message_label.visible = true
 
 
-## A socket or currency command built by the panel: sent as it is, the refusal is worded by `SocketTexts`.
-func _on_panel_armory_command(command: Callable) -> void:
-	_send(command, SocketTexts.refused)
+# --- Food slot ----------------------------------------------------------------------------------------------------
+
+func _on_food_open_requested() -> void:
+	if _session != null:
+		_doll.food_slot().open_menu(EquipmentSide.food_choices(_session))
+
+
+func _on_food_chosen(item_id: StringName) -> void:
+	_send(func() -> CommandResult: return _session.equipment.set_food(item_id))

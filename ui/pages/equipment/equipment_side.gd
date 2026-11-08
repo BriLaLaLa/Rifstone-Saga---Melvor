@@ -5,8 +5,6 @@ extends RefCounted
 
 const LEVEL_TEXT: String = "Livello %s  ·  Assetto: %s"
 const UNARMED_TEXT: String = "Mani nude"
-const NO_FOOD_TEXT: String = "Nessun cibo scelto"
-const FOOD_TEXT: String = "Cibo: %s (nel deposito: %s)"
 
 
 ## Class and setup labels and the 12 slots of `doll`.
@@ -25,14 +23,26 @@ static func redraw_doll(session: GameSession, doll: EquipmentDoll, class_label: 
 			view.show_piece(inst, base)
 
 
-## Totals, food line and the state of the "Togli" button.
-static func redraw_side(session: GameSession, stats: RichTextLabel, food_label: Label, clear_button: Button) -> void:
+## Totals of the stats column.
+static func redraw_side(session: GameSession, stats: RichTextLabel) -> void:
 	stats.text = EquipmentStatsText.totals(session)
+
+
+## The Cibo slot: the chosen food and its count in the Bank (the same Bank stack, nothing is duplicated).
+static func redraw_food(session: GameSession, slot: FoodSlotView) -> void:
 	var food_id: StringName = session.equipment.get_food()
 	var food: ItemDef = session.data.item(food_id) if food_id != &"" else null
-	clear_button.disabled = food == null
-	food_label.text = NO_FOOD_TEXT if food == null else FOOD_TEXT % [food.name,
-			NumberFormat.format_int(session.bank.get_count(food_id))]
+	slot.show_food(food, session.bank.get_count(food_id) if food != null else 0)
+
+
+## The foods the player can choose: [{"item": ItemDef, "count": int}] of the Bank stacks that are food.
+static func food_choices(session: GameSession) -> Array[Dictionary]:
+	var choices: Array[Dictionary] = []
+	for stack: Dictionary in session.bank.stacks():
+		var item: ItemDef = session.data.item(stack["item"] as StringName)
+		if item != null and item.is_food():
+			choices.append({"item": item, "count": stack["count"]})
+	return choices
 
 
 ## Text of the capacity label: pieces in the armory, capacity and worn pieces.

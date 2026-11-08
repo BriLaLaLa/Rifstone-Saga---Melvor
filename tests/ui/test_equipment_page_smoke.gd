@@ -275,7 +275,6 @@ func test_left_click_selects_and_the_panel_shows_the_piece() -> void:
 	assert_eq((_panel().find_child("NameLabel", true, false) as Label).text, _session.data.item(BLADE).name)
 	assert_eq((_panel().find_child("NameLabel", true, false) as Label).get_theme_color("font_color"),
 			UiStyle.RARITY_RARE)
-	assert_string_contains((_panel().find_child("SubtitleLabel", true, false) as Label).text, "Raro")
 	assert_eq(_session.equipment.get_uid(&"weapon"), 0, "a click only selects")
 	_click(_cell(rare), MOUSE_BUTTON_RIGHT)
 	_click(_view(&"weapon"), MOUSE_BUTTON_LEFT)
@@ -294,8 +293,6 @@ func test_panel_buttons_equip_in_hand_and_second_hand() -> void:
 	_click(_cell(second), MOUSE_BUTTON_LEFT)
 	_button("OffhandButton").pressed.emit()
 	assert_eq(_session.equipment.get_uid(&"offhand"), second)
-	assert_false(_button("RefineButton").disabled)
-	assert_eq(_button("RefineButton").text, "Raffina")
 
 
 func test_lock_and_sell_through_the_panel() -> void:
@@ -422,15 +419,22 @@ func test_setup_source_is_shown_as_text() -> void:
 	assert_eq(EquipmentStatsText.source_name(StringName("setup:%s" % setup.id), _session), expected)
 
 
-func test_food_row_shows_the_choice_and_clears_it() -> void:
+func test_food_slot_shows_the_choice_the_deposit_count_and_clears_it() -> void:
 	TestFactory.give(_session, RATION, 3)
 	_open()
-	assert_eq(_label("%FoodLabel").text, "Nessun cibo scelto")
-	assert_true((_page.get_node("%ClearFoodButton") as Button).disabled)
-	assert_true(_session.equipment.set_food(RATION).ok)
-	assert_eq(_label("%FoodLabel").text, "Cibo: %s (nel deposito: 3)" % _session.data.item(RATION).name)
-	(_page.get_node("%ClearFoodButton") as Button).pressed.emit()
+	var slot: FoodSlotView = (_page.get_node("%Doll") as EquipmentDoll).food_slot()
+	assert_eq((slot.find_child("CountLabel", true, false) as Label).text, FoodSlotView.NONE_TEXT)
+	assert_true(slot.clear_button().disabled)
+	slot.open_requested.emit()
+	assert_eq(slot.menu().item_count, 1, "one food in the Bank")
+	slot.menu().id_pressed.emit(0)
+	assert_eq(_session.equipment.get_food(), RATION)
+	assert_eq((slot.find_child("CountLabel", true, false) as Label).text, "×3 nel deposito")
+	assert_eq((slot.find_child("SlotLabel", true, false) as Label).text, _session.data.item(RATION).name)
+	slot.clear_button().pressed.emit()
 	assert_eq(_session.equipment.get_food(), &"")
+	assert_eq(_session.bank.get_count(RATION), 3, "Togli leaves the food in the Bank")
+	assert_eq((slot.find_child("CountLabel", true, false) as Label).text, FoodSlotView.NONE_TEXT)
 
 
 func test_setup_follows_the_worn_weapons() -> void:

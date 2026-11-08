@@ -34,18 +34,15 @@ func test_numbers_per_card_are_capped_and_the_oldest_are_dropped() -> void:
 	assert_between(CombatTexts.MAX_HIT_NUMBERS, 3, 4)
 
 
-func test_refine_and_salvage_buttons_come_before_the_detail_lines() -> void:
+func test_card_has_salvage_but_refine_moved_to_the_forge_bench() -> void:
 	var uid: int = _piece()
 	_open_equipment()
 	_page._select(uid)
 	var panel: PiecePanel = _page.get_node("%PiecePanel") as PiecePanel
-	var content: Node = panel.get_child(0)
-	var lines_index: int = panel.find_child("Tabs", true, false).get_index()
-	for button_name: String in ["RefineButton", "SalvageButton"]:
-		var button: Button = panel.find_child(button_name, true, false) as Button
-		assert_true(button.is_visible_in_tree(), button_name)
-		assert_lt(button.get_parent().get_index(), lines_index, button_name + " above the lines")
-	assert_not_null(content)
+	assert_true((panel.find_child("SalvageButton", true, false) as Button).is_visible_in_tree())
+	assert_null(panel.find_child("RefineButton", true, false))
+	assert_null(panel.find_child("RefineBox", true, false))
+	assert_null(panel.find_child("CurrencyBox", true, false))
 
 
 func test_unworn_piece_says_slot_not_a_state() -> void:
@@ -53,7 +50,8 @@ func test_unworn_piece_says_slot_not_a_state() -> void:
 	_open_equipment()
 	_page._select(uid)
 	var sub: Label = _page.get_node("%PiecePanel").find_child("SubtitleLabel", true, false) as Label
-	assert_string_contains(sub.text, "Slot: ")
+	assert_string_contains(sub.text, "Livello oggetto")
+	assert_string_contains(sub.text, "+0")
 	var state: Label = _page.get_node("%PiecePanel").find_child("StateLabel", true, false) as Label
 	assert_false(state.text.contains("In mano"))
 	_session.equipment.equip(uid)

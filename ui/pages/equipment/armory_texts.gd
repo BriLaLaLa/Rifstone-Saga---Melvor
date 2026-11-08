@@ -14,18 +14,19 @@ const RARITY_NAMES: Dictionary[StringName, String] = {
 }
 ## Stats where a lower value is the better one (shown green when they go down); the registry has no polarity.
 const LOWER_IS_BETTER: Array[StringName] = [&"skill_interval_pct", &"attack_interval_pct"]
-## Titles of the piece panel tabs, in tab order: details, sockets, currencies.
-const PIECE_TAB_TITLES: Array[String] = ["Dettagli", "Castoni", "Valute"]
+## Titles of the tabs of the Forge bench, in tab order: refine, sockets, currencies.
+const BENCH_TAB_TITLES: Array[String] = ["Raffina", "Castoni", "Valute"]
 const CAPACITY_TEXT: String = "Pezzi: %s / %s"
 const CAPACITY_WORN_TEXT: String = "Pezzi: %s / %s (+%s indossati)"
 const UPGRADE_TEXT: String = "+%d"
 const AFFIX_GRADE_TEXT: String = "grado %d"
 const LEVEL_TEXT: String = "Livello oggetto %d"
 const SUBTITLE_TEXT: String = "%s  ·  %s  ·  Slot: %s"
+const CARD_SUBTITLE_TEXT: String = "%s  ·  %s  ·  %s"
 const REQUIREMENTS_TITLE: String = "Requisiti"
 const WEAPON_TITLE: String = "Arma"
 const AFFIXES_TITLE: String = "Affissi"
-const MODIFIERS_TITLE: String = "Modificatori"
+const MODIFIERS_TITLE: String = "Statistiche"
 const COMPARISON_TITLE: String = "Rispetto a %s"
 const NO_DIFFERENCE_TEXT: String = "Nessuna differenza."
 const INTERVAL_TEXT: String = "intervallo d'attacco (s)"
@@ -65,6 +66,27 @@ static func subtitle(inst: ItemInstance, base: ItemDef, data: GameData) -> Strin
 			EquipmentStatsText.slot_text(base.equip.slot, data)]
 
 
+## Item card line (docs/UI_GDR.md): "Slot  ·  Livello oggetto N  ·  +N".
+static func card_subtitle(inst: ItemInstance, base: ItemDef, data: GameData) -> String:
+	return CARD_SUBTITLE_TEXT % [EquipmentStatsText.slot_text(base.equip.slot, data), LEVEL_TEXT % inst.ilvl,
+			UPGRADE_TEXT % inst.upgrade]
+
+
+## BBCode lines of the top block of the item card: requirements (red if unmet), weapon and stats (no affixes, no
+## comparison).
+static func card_top_lines(session: GameSession, uid: int) -> PackedStringArray:
+	return detail_lines(session, uid, false, false)
+
+
+## BBCode lines of the affix block of the item card.
+static func card_affix_lines(session: GameSession, uid: int) -> PackedStringArray:
+	var inst: ItemInstance = session.armory.get_instance(uid)
+	var lines: PackedStringArray = PackedStringArray()
+	if inst != null:
+		_append_section(lines, AFFIXES_TITLE, affix_lines(inst, session.data))
+	return lines
+
+
 ## One BBCode line per rolled affix: "<affix name> <value> (grado N)". An affix missing from the data is skipped
 ## (and logged): the panel never invents names.
 static func affix_lines(inst: ItemInstance, data: GameData) -> PackedStringArray:
@@ -98,7 +120,8 @@ static func tooltip_text(session: GameSession, uid: int) -> String:
 
 
 ## Requirements (red if unmet), weapon, affixes, modifiers, and the comparison with the piece worn in the same slot.
-static func detail_lines(session: GameSession, uid: int) -> PackedStringArray:
+static func detail_lines(session: GameSession, uid: int, with_affixes: bool = true,
+		with_comparison: bool = true) -> PackedStringArray:
 	var lines: PackedStringArray = PackedStringArray()
 	var inst: ItemInstance = session.armory.get_instance(uid)
 	var base: ItemDef = session.data.item(inst.base_id) if inst != null else null
@@ -108,10 +131,12 @@ static func detail_lines(session: GameSession, uid: int) -> PackedStringArray:
 	_append_requirements(lines, base.equip, session)
 	if base.equip.weapon != null:
 		_append_section(lines, WEAPON_TITLE, PackedStringArray([ItemTooltipLines.weapon_line(base.equip.weapon)]))
-	_append_section(lines, AFFIXES_TITLE, affix_lines(inst, data))
+	if with_affixes:
+		_append_section(lines, AFFIXES_TITLE, affix_lines(inst, data))
 	var mods: Array[Modifier] = session.armory.instance_modifiers(uid)
 	_append_section(lines, MODIFIERS_TITLE, ItemTooltipLines.modifier_lines(mods, data))
-	_append_comparison(lines, session, uid, base, mods)
+	if with_comparison:
+		_append_comparison(lines, session, uid, base, mods)
 	return lines
 
 

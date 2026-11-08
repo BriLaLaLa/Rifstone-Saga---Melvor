@@ -46,6 +46,7 @@ var _cards: Dictionary[StringName, ActionCard] = {}
 var _mastery_panel: MasteryPanel = null
 var _blueprints: BlueprintSection = null
 var _tool_panel: ToolUpgradePanel = null
+var _bench: ForgeBench = null
 
 @onready var _skill_icon: TextureRect = %SkillIcon
 @onready var _name_label: Label = %NameLabel
@@ -118,12 +119,15 @@ func unbind() -> void:
 			var handler: Callable = connection[1]
 			if event.is_connected(handler):
 				event.disconnect(handler)
+	if _bench != null and is_instance_valid(_bench):
+		_bench.unbind()
 	if _mastery_panel != null and is_instance_valid(_mastery_panel):
 		_mastery_panel.close_window()
 	_session = null
 	_skill = null
 	_blueprints = null
 	_tool_panel = null
+	_bench = null
 
 
 func _process(_delta: float) -> void:
@@ -272,12 +276,16 @@ func _build_extras() -> void:
 		child.queue_free()
 	_blueprints = null
 	_tool_panel = null
+	_bench = null
 	if _skill.id == BlueprintCraft.SKILL:
 		_blueprints = BLUEPRINT_SECTION_SCENE.instantiate() as BlueprintSection
 		_extras.add_child(_blueprints)
 		_blueprints.setup(_session.data)
 		_blueprints.start_requested.connect(_on_blueprint_start_requested)
 		_blueprints.stop_requested.connect(_on_blueprint_stop_requested)
+		_bench = ForgeBench.new()
+		_extras.add_child(_bench)
+		_bench.bind(_session)
 	elif TOOL_SKILLS.has(_skill.id):
 		_tool_panel = TOOL_PANEL_SCENE.instantiate() as ToolUpgradePanel
 		_extras.add_child(_tool_panel)
