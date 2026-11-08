@@ -31,6 +31,7 @@ func setup_item(item: ItemDef, count: int, data: GameData) -> void:
 	title += "\n[font_size=%d][color=#%s]%s[/color][/font_size][/center]" % [
 		UiStyle.TOOLTIP_SUBTITLE_FONT_SIZE, UiStyle.TEXT_2.to_html(false), ItemTooltipLines.subtitle(item, count)]
 	var lines: PackedStringArray = ItemTooltipLines.body(item, data)
+	lines.append_array(ItemTooltipLines.guide_lines(item, data))
 	var footer: String = ""
 	if not item.description.is_empty():
 		footer = "[font_size=%d][color=#%s][i]%s[/i][/color][/font_size]" % [UiStyle.TOOLTIP_FOOTER_FONT_SIZE,

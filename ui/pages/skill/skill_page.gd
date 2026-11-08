@@ -73,6 +73,7 @@ func bind(session: GameSession) -> void:
 		Log.warn(LOG_CATEGORY, "skill page '%s': unknown skill" % page_id)
 		return
 	_session = session
+	HelpButton.attach(_name_label.get_parent(), session.data, page_id)
 	_skill = skill
 	_skill_icon.texture = ItemSlotView.icon_of(skill.icon)
 	_skill_icon.modulate = skill.color

@@ -106,6 +106,9 @@ static func _append_stat(lines: PackedStringArray, session: GameSession, stat: S
 	var total: String = ItemTooltipLines.format_stat(format, session.modifiers.total(stat, ctx))
 	lines.append("%s  %s" % [ItemTooltipLines.escape(info["name"] as String),
 			COLOR_TAG % [UiStyle.GOLD_LIGHT.to_html(false), total]])
+	var description: String = str(info.get("description", ""))
+	if not description.is_empty():
+		lines.append(COLOR_TAG % [UiStyle.TEXT_2.to_html(false), SOURCE_INDENT + ItemTooltipLines.escape(description)])
 	for source: Dictionary in sources:
 		var line: String = "%s%s  %s" % [SOURCE_INDENT,
 				ItemTooltipLines.escape(source_name(source["source"], session)),

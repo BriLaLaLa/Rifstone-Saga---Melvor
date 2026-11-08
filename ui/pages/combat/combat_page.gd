@@ -75,6 +75,7 @@ func _ready() -> void:
 func bind(session: GameSession) -> void:
 	unbind()
 	_session = session
+	HelpButton.attach(_area_label.get_parent(), session.data, &"combat")
 	_yield = CombatYield.new(_session.play_time_ms)
 	var events: GameEvents = _session.events
 	var resync: Callable = _redraw_all

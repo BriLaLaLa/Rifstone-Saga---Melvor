@@ -12,6 +12,8 @@ const NO_CLASS_TEXT: String = "Classe non disponibile"
 const MARGIN: int = 16
 const SECTION_SEPARATION: int = 12
 const SETUP_ROW_NAME: String = "Setup_%s"
+## Key of CombatTexts.STAT_NAME_SOURCES for each line of `final_stat_lines`; damage (empty) has no stat, so no tooltip.
+const STAT_LINE_KEYS: Array[StringName] = [&"accuracy", &"evasion", &"", &"max_hp"]
 
 var _session: GameSession = null
 
@@ -40,6 +42,7 @@ func _ready() -> void:
 func bind(session: GameSession) -> void:
 	unbind()
 	_session = session
+	HelpButton.attach(_class_label.get_parent(), session.data, &"character")
 	var events: GameEvents = _session.events
 	events.character_xp_gained.connect(_on_character_xp_gained)
 	events.character_level_up.connect(_on_character_level_up)
@@ -143,9 +146,20 @@ func _refresh_stats() -> void:
 	while _stats_list.get_child_count() < lines.size():
 		var line := Label.new()
 		line.name = "Stat%d" % _stats_list.get_child_count()
+		line.mouse_filter = Control.MOUSE_FILTER_STOP
+		line.mouse_entered.connect(_on_stat_hover.bind(_stats_list.get_child_count()))
+		line.mouse_exited.connect(Tooltips.hide_tooltip)
 		_stats_list.add_child(line)
 	for i: int in lines.size():
 		(_stats_list.get_child(i) as Label).text = lines[i]
+
+
+## Name and description of the stat of line `index`, from the stat registry (`stats.json`).
+func _on_stat_hover(index: int) -> void:
+	if _session == null or index >= STAT_LINE_KEYS.size() or STAT_LINE_KEYS[index].is_empty():
+		return
+	var info: Dictionary = _session.data.stats.info(CombatTexts.STAT_NAME_SOURCES[STAT_LINE_KEYS[index]])
+	Tooltips.show_text(str(info.get("name", "")), str(info.get("description", "")), get_global_mouse_position())
 
 
 ## Signals after which the loadout panel is redrawn: the choice itself, level, setup and the combat state (a choice

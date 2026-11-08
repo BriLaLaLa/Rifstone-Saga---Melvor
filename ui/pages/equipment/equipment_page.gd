@@ -91,6 +91,7 @@ func _ready() -> void:
 func bind(session: GameSession) -> void:
 	unbind()
 	_session = session
+	HelpButton.attach(_inventory_title.get_parent(), session.data, &"equipment")
 	var events: GameEvents = _session.events
 	for sig: Signal in _signals(events):
 		sig.connect(_redraw_from_event)

@@ -35,6 +35,7 @@ func _ready() -> void:
 func bind(session: GameSession) -> void:
 	unbind()
 	_session = session
+	HelpButton.attach(_title_label.get_parent(), session.data, &"rift", _title_label)
 	_picking = -1
 	_removing = -1
 	_message_label.visible = false
