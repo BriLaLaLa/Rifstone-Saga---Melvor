@@ -9,18 +9,18 @@
      ]},
     {"id": "guide_refining", "section": "loot", "title": "Raffinazione", "order": 2,
      "blocks": [
-       {"type": "text", "text": "Dall'Armeria puoi raffinare armi e armature, da zero fino a nove. Ogni passo costa oro, lingotti del grado del pezzo e, più in alto, frammenti del Rift; la riuscita cala a ogni passo."},
+       {"type": "text", "text": "Dal Banco del fabbro, nella pagina {link:skill:forging|Fabbro}, puoi raffinare armi e armature, da zero fino a nove. Ogni passo costa oro, lingotti del grado del pezzo e, più in alto, frammenti del Rift; la riuscita cala a ogni passo."},
        {"type": "text", "text": "Se fallisci perdi i materiali e, dal passo {balance:upgrade.downgrade_from|int} in poi, il pezzo scende di un livello. Non si distrugge mai. Il {link:item:warding_seal|Sigillo di protezione} evita la discesa. Il livello da Fabbro aiuta ({stat:upgrade_success_pct})."},
        {"type": "table", "source": "refine_costs"}
      ]},
     {"id": "guide_sockets", "section": "loot", "title": "Castoni e pietre", "order": 3,
      "blocks": [
-       {"type": "text", "text": "Alcuni pezzi hanno castoni, in base a rarità e raffinazione. Vi incastoni pietre come {link:item:stone_ember_chip|la Scheggia di furia}, che danno bonus fissi."},
+       {"type": "text", "text": "Alcuni pezzi hanno castoni, in base a rarità e raffinazione. Dal Banco del fabbro vi incastoni pietre come {link:item:stone_ember_chip|la Scheggia di furia}, che danno bonus fissi. Vedi anche Pietre e Rune."},
        {"type": "text", "text": "Le pietre vengono dalle Pietre del Rift e dalla Legatura del Rift. Una pietra tolta dal castone si distrugge. Gli attrezzi non hanno castoni."}
      ]},
     {"id": "guide_currencies", "section": "loot", "title": "Valute", "order": 4,
      "blocks": [
-       {"type": "text", "text": "Le valute del Rift si producono con la Legatura del Rift e cambiano la rarità di un pezzo."},
+       {"type": "text", "text": "Le valute del Rift si producono con la {link:skill:riftbinding|Legatura del Rift} e si usano dal Banco del fabbro della pagina Fabbro: cambiano la rarità di un pezzo."},
        {"type": "text", "text": "{link:item:currency_spark|La Scintilla del Rift} rende magico un pezzo comune. {link:item:currency_crown|L'Essenza del Rift} rende raro un pezzo magico. {link:item:currency_flux|La Sabbia del mutamento} ritira gli affissi senza toccare la rarità."},
        {"type": "text", "text": "L'oro è un'altra cosa: serve per lo shop e la raffinazione."}
      ]},
@@ -38,6 +38,11 @@
      "blocks": [
        {"type": "text", "text": "Un progetto è un oggetto raro che indica un pezzo da forgiare e il suo grado. Lo trovi come drop dei mostri e delle Pietre del Rift."},
        {"type": "text", "text": "Si avvia dalla pagina del Fabbro: servono il livello del grado, i materiali e un componente raro dei mostri dell'area. Dura molti minuti (da {balance:blueprint.duration_base_min|int} minuti in su), dà molta esperienza, non ha maestria e si ferma da sola alla fine. Il pezzo esce almeno magico."}
+     ]},
+    {"id": "guide_stones_runes", "section": "loot", "title": "Pietre e Rune", "order": 8,
+     "blocks": [
+       {"type": "text", "text": "Pietre e rune vengono dai mostri, dalle Pietre del Rift e dalla {link:skill:riftbinding|Legatura del Rift}, che le crea dai frammenti e dai materiali."},
+       {"type": "text", "text": "Le pietre si incastonano nei castoni dei pezzi, dal Banco del fabbro della pagina Fabbro; una pietra tolta si distrugge. Le rune non vanno sui pezzi: si mettono negli Incavi dell'Altare del Rift e danno i loro effetti finché restano lì. Toglierle dall'Altare le distrugge."}
      ]}
   ]
 }
