@@ -50,6 +50,7 @@ var _affixes: Dictionary[StringName, AffixDef] = {}
 var _affix_list: Array[AffixDef] = []
 var _hints: Dictionary[StringName, HintDef] = {}
 var _hint_list: Array[HintDef] = []
+var _guide: GuideBook = GuideBook.new()  # M11
 var _blueprint_list: Array[ItemDef] = []
 var _blueprint_by_base: Dictionary[StringName, ItemDef] = {}
 var _unique_tools: Dictionary[StringName, ItemDef] = {}  # slot -> unique tool (M10)
@@ -66,6 +67,7 @@ static func load_from_dirs(content_root: String = "res://data", config_root: Str
 	for section: String in CONTENT_DIRS:
 		raw[section] = data._read_files(JsonLoader.list_json_files(content_root.path_join(CONTENT_DIRS[section]),
 				data.errors))
+	raw["guide"] = data._read_files(DataValidatorGuide.list_files(content_root, data.errors))  # M11, optional
 	DataValidator.validate(raw, data.errors)
 	if data.errors.is_empty():
 		data._build(raw)
@@ -268,6 +270,17 @@ func hints() -> Array[HintDef]:
 	return _hint_list.duplicate()
 
 
+## M11: the hand-written Guide pages by section, order and id.
+func guide_pages() -> Array[GuidePageDef]: return _guide.list.duplicate()
+
+
+func guide_page(id: StringName) -> GuidePageDef: return _find(_guide.by_id, id, "guide page") as GuidePageDef
+
+
+## {"no_source": Array[StringName], "no_use": Array[StringName]} (empty lists without data/guide/exceptions.json).
+func guide_exceptions() -> Dictionary: return _guide.exceptions.duplicate(true)
+
+
 # {path: top-level object} of the files that load as objects; the others are reported in `errors`.
 func _read_files(paths: PackedStringArray) -> Dictionary:
 	var files: Dictionary = {}
@@ -330,7 +343,7 @@ func _build(raw: Dictionary) -> void:
 	for path: String in raw["hints"]:
 		for d: Dictionary in _list(raw["hints"][path], "hints"):
 			_add(HintDef.from_dict(d), _hints, _hint_list, path, "hint", d)
-	_index_m10_items()
+	ItemIndexM10.build(_item_list, _blueprint_list, _blueprint_by_base, _unique_tools)
 	_skill_list.sort_custom(func(a: SkillDef, b: SkillDef) -> bool: return a.order < b.order)
 	_area_list.sort_custom(func(a: AreaDef, b: AreaDef) -> bool: return a.order < b.order)
 	_class_list.sort_custom(func(a: ClassDef, b: ClassDef) -> bool: return a.order < b.order)
@@ -338,22 +351,9 @@ func _build(raw: Dictionary) -> void:
 	for def: ActionDef in _action_list:
 		if def.icon.is_empty() and not def.outputs.is_empty():
 			def.icon = _items[def.outputs[0].item_id].icon
+	_guide.build(raw.get("guide", {}) as Dictionary, self)
 	if not errors.is_empty():
 		_clear()
-
-
-# M10: the blueprints (by grade, then sort_order) with their index by base, and the unique tools by slot.
-func _index_m10_items() -> void:
-	for def: ItemDef in _item_list:
-		if def.is_blueprint():
-			_blueprint_list.append(def)
-			_blueprint_by_base[def.blueprint.base_id] = def
-		elif def.category == &"tool" and def.equip != null and def.equip.unique:
-			_unique_tools[def.equip.slot] = def
-	_blueprint_list.sort_custom(func(a: ItemDef, b: ItemDef) -> bool:
-		if a.blueprint.grade != b.blueprint.grade:
-			return a.blueprint.grade < b.blueprint.grade
-		return a.sort_order < b.sort_order)
 
 
 func _curve(key: String) -> XpTable:
@@ -385,9 +385,9 @@ static func _action_before(a: ActionDef, b: ActionDef) -> bool:
 # With a Def that could not be built the data is not valid: nothing stays half-loaded.
 func _clear() -> void:
 	for table: Dictionary in [_items, _skills, _actions, _nodes, _areas, _monsters, _stones, _stone_by_area, _shop, _classes,
-			_blueprint_by_base, _unique_tools,
-			_affixes, _hints]:
+			_blueprint_by_base, _unique_tools, _affixes, _hints]:
 		table.clear()
+	_guide.clear()
 	for list: Array in [_item_list, _skill_list, _action_list, _node_list, _area_list, _shop_list, _class_list,
 			_affix_list, _hint_list, _blueprint_list]:
 		list.clear()
