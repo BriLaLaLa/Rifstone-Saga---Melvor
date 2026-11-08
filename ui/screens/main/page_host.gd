@@ -12,6 +12,9 @@ signal page_changed(page_id: StringName)
 const LOG_CATEGORY: String = "ui"
 const ROUTE_SEPARATOR: String = ":"
 const ROUTE_SKILL := &"skill"
+const ROUTE_GUIDE := &"guide"
+## Alias of the guide route: `help:<entry>` opens the Guide on that entry (the "?" buttons, M11-05).
+const ROUTE_HELP := &"help"
 ## Route table: route -> page scene. A route that is not here is not available yet (the sidebar shows "In arrivo").
 const ROUTES: Dictionary[StringName, String] = {
 	ROUTE_SKILL: "res://ui/pages/skill/skill_page.tscn",
@@ -21,6 +24,8 @@ const ROUTES: Dictionary[StringName, String] = {
 	&"character": "res://ui/pages/character/character_page.tscn",
 	&"combat": "res://ui/pages/combat/combat_page.tscn",
 	&"rift": "res://ui/pages/rift/rift_page.tscn",
+	ROUTE_GUIDE: "res://ui/pages/guide/guide_page.tscn",
+	ROUTE_HELP: "res://ui/pages/guide/guide_page.tscn",
 }
 ## Skill categories drawn by the skill page (combat skills belong to the combat page).
 const SKILL_PAGE_CATEGORIES: Array[StringName] = [&"gathering", &"artisan"]
@@ -45,6 +50,10 @@ func show_page(page_id: StringName) -> void:
 		return
 	if _page != null and _page.page_id == page_id:
 		return
+	# A live Guide opens the requested entry itself (keeps its history) instead of being rebuilt.
+	if _page is GuidePage and is_guide_route(page_id) and String(page_id).contains(ROUTE_SEPARATOR):
+		(_page as GuidePage).open_page(StringName(String(page_id).substr(String(route_of(page_id)).length() + 1)))
+		return
 	_clear_page()
 	var scene: PackedScene = load(ROUTES[route_of(page_id)]) as PackedScene
 	var page: Page = scene.instantiate() as Page
@@ -63,6 +72,8 @@ func show_page(page_id: StringName) -> void:
 func has_page(page_id: StringName) -> bool:
 	if _session == null or not ROUTES.has(route_of(page_id)):
 		return false
+	if is_guide_route(page_id):
+		return true  # `guide` / `help` accept an entry id after the route (which has ":" itself)
 	if route_of(page_id) != ROUTE_SKILL:
 		return not String(page_id).contains(ROUTE_SEPARATOR)
 	var skill_id: StringName = argument_of(page_id)
@@ -76,6 +87,11 @@ func has_page(page_id: StringName) -> bool:
 ## Id of the page shown now; `&""` if none.
 func current_page_id() -> StringName:
 	return _page.page_id if _page != null else &""
+
+
+## True for `guide`, `help` and `guide:<entry>` / `help:<entry>`.
+static func is_guide_route(page_id: StringName) -> bool:
+	return route_of(page_id) == ROUTE_GUIDE or route_of(page_id) == ROUTE_HELP
 
 
 ## Route of a page id: the part before ":" (`&"skill:forestry"` -> `&"skill"`).
