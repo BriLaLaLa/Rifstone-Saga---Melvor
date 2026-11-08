@@ -6,6 +6,9 @@
                {"weight": 1, "monsters": ["test_monster_a", "test_monster_b"]}]},
     {"id": "test_stone_area", "name": "Area della Pietra", "order": 2, "description": "Area con una Pietra del Rift.",
      "requirements": {},
-     "packs": [{"weight": 1, "monsters": ["test_monster_a"]}]}
+     "packs": [{"weight": 1, "monsters": ["test_monster_a"]}]},
+    {"id": "test_loot_area", "name": "Area del bottino", "order": 3, "description": "Area con tabelle di drop.",
+     "requirements": {}, "loot_tables": ["test_area_loot"],
+     "packs": [{"weight": 1, "monsters": ["test_loot_monster"]}]}
   ]
 }

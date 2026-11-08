@@ -4,7 +4,7 @@ extends RefCounted
 ## docs/04_DATA_SCHEMA.md §16, F-87), written with the toolkit of DataValidatorRules.
 
 const STONE_FIELDS: PackedStringArray = ["id", "name", "description", "icon", "area", "hp", "xp", "pulse_damage",
-	"pulse_ms", "summon_pack", "shards", "drops"]
+	"pulse_ms", "summon_pack", "shards", "drops", "loot_tables"]
 const ICON_DIR: String = "res://assets/icons/monsters/"
 
 

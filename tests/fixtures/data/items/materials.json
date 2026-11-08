@@ -23,6 +23,9 @@
     {"id": "palecinnabar_ingot", "name": "Lingotto di prova 6", "category": "material", "icon": "res://assets/icons/items/palecinnabar_ingot.svg", "value": 6, "sort_order": 160, "description": "Lingotto del grado 6 per i test."},
     {"id": "emberheart_ingot", "name": "Lingotto di prova 7", "category": "material", "icon": "res://assets/icons/items/emberheart_ingot.svg", "value": 7, "sort_order": 170, "description": "Lingotto del grado 7 per i test."},
     {"id": "riftite_ingot", "name": "Lingotto di prova 8", "category": "material", "icon": "res://assets/icons/items/riftite_ingot.svg", "value": 8, "sort_order": 180, "description": "Lingotto del grado 8 per i test."},
-    {"id": "warding_seal", "name": "Sigillo di prova", "category": "material", "icon": "res://assets/icons/items/warding_seal.svg", "value": 0, "sort_order": 950, "description": "Sigillo di salvaguardia (upgrade.seal_item di balance.json) per i test."}
+    {"id": "warding_seal", "name": "Sigillo di prova", "category": "material", "icon": "res://assets/icons/items/warding_seal.svg", "value": 0, "sort_order": 950, "description": "Sigillo di salvaguardia (upgrade.seal_item di balance.json) per i test."},
+    {"id": "rift_dust", "name": "Polvere del Rift", "category": "material",
+     "icon": "res://assets/icons/items/test_twig.png", "value": 1, "sort_order": 900,
+     "description": "Polvere di prova per i cristalli."}
   ]
 }

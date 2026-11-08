@@ -3,6 +3,26 @@
     {"id": "test_infusion", "name": "Infusione di prova", "category": "infusion",
      "icon": "res://assets/icons/items/test_infusion.png", "value": 0, "sort_order": 10,
      "description": "Azioni un poco più rapide.",
-     "infusion": {"modifiers": [{"stat": "skill_interval_pct", "value": -3}], "unique": true}}
+     "infusion": {"modifiers": [{"stat": "skill_interval_pct", "value": -3}], "unique": true}},
+    {"id": "inf_test", "name": "Runa di prova", "category": "infusion",
+     "icon": "res://assets/icons/items/test_infusion.png", "value": 0, "sort_order": 900,
+     "description": "Azioni un poco più rapide.",
+     "infusion": {"modifiers": [{"stat": "skill_interval_pct", "value": -3}], "grade": 1, "family": "inf_test"}},
+    {"id": "inf_test_2", "name": "Runa di prova II", "category": "infusion",
+     "icon": "res://assets/icons/items/test_infusion.png", "value": 0, "sort_order": 901,
+     "description": "Azioni più rapide.",
+     "infusion": {"modifiers": [{"stat": "skill_interval_pct", "value": -6}], "grade": 2, "family": "inf_test"}},
+    {"id": "inf_test_3", "name": "Runa di prova III", "category": "infusion",
+     "icon": "res://assets/icons/items/test_infusion.png", "value": 0, "sort_order": 902,
+     "description": "Azioni più rapide.",
+     "infusion": {"modifiers": [{"stat": "skill_interval_pct", "value": -9}], "grade": 3, "family": "inf_test"}},
+    {"id": "inf_test_4", "name": "Runa di prova IV", "category": "infusion",
+     "icon": "res://assets/icons/items/test_infusion.png", "value": 0, "sort_order": 903,
+     "description": "Azioni più rapide.",
+     "infusion": {"modifiers": [{"stat": "skill_interval_pct", "value": -12}], "grade": 4, "family": "inf_test"}},
+    {"id": "inf_test_5", "name": "Runa di prova V", "category": "infusion",
+     "icon": "res://assets/icons/items/test_infusion.png", "value": 0, "sort_order": 904,
+     "description": "Azioni molto più rapide.",
+     "infusion": {"modifiers": [{"stat": "skill_interval_pct", "value": -15}], "grade": 5, "family": "inf_test"}}
   ]
 }

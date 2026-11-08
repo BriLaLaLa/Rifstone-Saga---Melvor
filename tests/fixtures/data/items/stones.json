@@ -7,6 +7,10 @@
     {"id": "test_stone_b", "name": "Seconda pietra di prova", "category": "stone",
      "icon": "res://assets/icons/items/test_stone_b.png", "value": 0, "sort_order": 20,
      "description": "Un altra pietra per i test.",
-     "stone": {"modifiers": [{"stat": "accuracy_bonus", "value": 3}]}}
+     "stone": {"modifiers": [{"stat": "accuracy_bonus", "value": 3}]}},
+    {"id": "test_chip", "name": "Scheggia di prova", "category": "stone",
+     "icon": "res://assets/icons/items/test_stone.png", "value": 0, "sort_order": 900,
+     "description": "Una scheggia da fondere, per i test.",
+     "stone": {"modifiers": [{"stat": "power_bonus", "value": 1}]}}
   ]
 }

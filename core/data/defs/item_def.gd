@@ -26,6 +26,8 @@ var blueprint: BlueprintInfo = null  # M10: null unless category `blueprint`
 var bag_slots: int = 0  # M12: `bag.slots` of a category `bag` item (F-100); 0 otherwise
 var contract_skill: StringName = &""  # M12: `contract.skill` of a category `contract` item (a gathering skill)
 var contract_grade: StringName = &""  # M12: `contract.grade` (an id of helper.grades)
+var infusion_grade: int = 1  # M12: `infusion.grade` 1..5 (F-107), 1 when absent
+var infusion_family: StringName = &""  # M12: `infusion.family` (the id of the grade I rune); the own id when absent
 
 
 static func from_dict(d: Dictionary) -> ItemDef:
@@ -51,6 +53,9 @@ static func from_dict(d: Dictionary) -> ItemDef:
 		def.infusion_modifiers = infusion.modifiers("modifiers")
 		if infusion.has("unique"):
 			def.infusion_unique = infusion.flag("unique")
+		if infusion.has("grade"):
+			def.infusion_grade = infusion.integer("grade")
+		def.infusion_family = infusion.id("family") if infusion.has("family") else def.id
 		r.absorb(infusion.ok)
 	if r.has("stone") and r.is_dict("stone"):
 		var stone := DefReader.new(r.dict("stone"), r.context() + " stone")

@@ -11,6 +11,10 @@
     {"id": "test_currency_reroll", "name": "Valuta di prova (ritiro)", "category": "currency",
      "icon": "res://assets/icons/items/test_currency_reroll.png", "value": 0, "sort_order": 30,
      "description": "Ritira gli affissi, per i test.",
-     "currency": {"effect": "reroll"}}
+     "currency": {"effect": "reroll"}},
+    {"id": "test_crystal", "name": "Cristallo di prova", "category": "currency",
+     "icon": "res://assets/icons/items/test_currency.png", "value": 0, "sort_order": 900,
+     "description": "Si cristallizza dalla polvere, per i test.",
+     "currency": {"effect": "to_magic"}}
   ]
 }

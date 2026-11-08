@@ -13,6 +13,7 @@ var requirements: Dictionary[StringName, int] = {}
 var rift_stone_chance_pct: float = -1.0
 var packs: Array[PackDef] = []
 var monster_ids: Array[StringName] = []
+var loot_tables: Array[StringName] = []  # M12: ids of data/combat/loot_tables.json, rolled by every monster of the area
 
 
 static func from_dict(d: Dictionary) -> AreaDef:
@@ -26,6 +27,8 @@ static func from_dict(d: Dictionary) -> AreaDef:
 	def.requirements = r.level_map("requirements")
 	if r.has("rift_stone_chance_pct"):
 		def.rift_stone_chance_pct = r.number("rift_stone_chance_pct")
+	if r.has("loot_tables"):
+		def.loot_tables = r.id_list("loot_tables")
 	for entry: Dictionary in r.dict_list("packs"):
 		var pack: PackDef = PackDef.from_dict(entry)
 		r.absorb(pack != null)

@@ -52,6 +52,7 @@ var _hints: Dictionary[StringName, HintDef] = {}
 var _hint_list: Array[HintDef] = []
 var _guide: GuideBook = GuideBook.new()  # M11
 var _helper: HelperIndex = HelperIndex.new()  # M12
+var _loot: LootIndex = LootIndex.new()  # M12
 var _blueprint_list: Array[ItemDef] = []
 var _blueprint_by_base: Dictionary[StringName, ItemDef] = {}
 var _unique_tools: Dictionary[StringName, ItemDef] = {}  # slot -> unique tool (M10)
@@ -69,6 +70,7 @@ static func load_from_dirs(content_root: String = "res://data", config_root: Str
 		raw[section] = data._read_files(JsonLoader.list_json_files(content_root.path_join(CONTENT_DIRS[section]),
 				data.errors))
 	raw["guide"] = data._read_files(DataValidatorGuide.list_files(content_root, data.errors))  # M11, optional
+	raw["loot_tables"] = data._read_files(LootIndex.files(content_root))
 	DataValidator.validate(raw, data.errors)
 	if data.errors.is_empty():
 		data._build(raw)
@@ -270,6 +272,14 @@ func helper_grade(id: StringName) -> HelperGradeDef: return _find(_helper.by_id,
 func contract_for(skill_id: StringName, grade_id: StringName) -> ItemDef: return _helper.contract_for(skill_id, grade_id)
 
 
+## M12: a loot table by id; null and an error if unknown.
+func loot_table(id: StringName) -> LootTableDef: return _find(_loot.by_id, id, "loot table") as LootTableDef
+
+
+## M12: every loot table, in file order (empty without data/combat/loot_tables.json).
+func loot_tables() -> Array[LootTableDef]: return _loot.list.duplicate()
+
+
 ## M11: the hand-written Guide pages by section, order and id.
 func guide_pages() -> Array[GuidePageDef]: return _guide.list.duplicate()
 
@@ -303,52 +313,53 @@ func _find(table: Dictionary, id: StringName, kind: String) -> RefCounted:
 func _build(raw: Dictionary) -> void:
 	_balance = (raw["balance"] as Dictionary).values()[0] as Dictionary
 	stats = StatRegistry.from_array((raw["stats"] as Dictionary).values()[0]["stats"] as Array, errors)
-	_xp_table = _curve("xp_curve")
-	_mastery_table = _curve("mastery_curve")
-	_character_table = _curve("character_curve")
+	_xp_table = DataBuildUtil.curve(_balance, "xp_curve")
+	_mastery_table = DataBuildUtil.curve(_balance, "mastery_curve")
+	_character_table = DataBuildUtil.curve(_balance, "character_curve")
 	for path: String in raw["skills"]:
-		for d: Dictionary in _list(raw["skills"][path], "skills"):
+		for d: Dictionary in DataBuildUtil.list(raw["skills"][path], "skills"):
 			_add(SkillDef.from_dict(d), _skills, _skill_list, path, "skill", d)
 	for path: String in raw["items"]:
-		for d: Dictionary in _list(raw["items"][path], "items"):
+		for d: Dictionary in DataBuildUtil.list(raw["items"][path], "items"):
 			_add(ItemDef.from_dict(d), _items, _item_list, path, "item", d)
 	for path: String in raw["actions"]:
 		var skill_id := StringName(raw["actions"][path]["skill"] as String)
-		for d: Dictionary in _list(raw["actions"][path], "actions"):
+		for d: Dictionary in DataBuildUtil.list(raw["actions"][path], "actions"):
 			_add(ActionDef.from_dict(d, skill_id), _actions, _action_list, path, "action", d)
 	for path: String in raw["mastery"]:
 		var skill_id := StringName(raw["mastery"][path]["skill"] as String)
-		for d: Dictionary in _list(raw["mastery"][path], "nodes"):
+		for d: Dictionary in DataBuildUtil.list(raw["mastery"][path], "nodes"):
 			_add(MasteryNodeDef.from_dict(d, skill_id), _nodes, _node_list, path, "mastery node", d)
 	for path: String in raw["areas"]:
-		for d: Dictionary in _list(raw["areas"][path], "areas"):
+		for d: Dictionary in DataBuildUtil.list(raw["areas"][path], "areas"):
 			_add(AreaDef.from_dict(d), _areas, _area_list, path, "area", d)
 	for path: String in raw["classes"]:
 		_add(ClassDef.from_dict(raw["classes"][path] as Dictionary), _classes, _class_list, path, "class",
 				raw["classes"][path] as Dictionary)
 	for path: String in raw["affixes"]:
-		for d: Dictionary in _list(raw["affixes"][path], "affixes"):
+		for d: Dictionary in DataBuildUtil.list(raw["affixes"][path], "affixes"):
 			_add(AffixDef.from_dict(d), _affixes, _affix_list, path, "affix", d)
 	for path: String in raw["monsters"]:
-		for d: Dictionary in _list(raw["monsters"][path], "monsters"):
+		for d: Dictionary in DataBuildUtil.list(raw["monsters"][path], "monsters"):
 			_add(MonsterDef.from_dict(d), _monsters, [], path, "monster", d)
 	for path: String in raw["rift_stones"]:
-		for d: Dictionary in _list(raw["rift_stones"][path], "rift_stones"):
+		for d: Dictionary in DataBuildUtil.list(raw["rift_stones"][path], "rift_stones"):
 			_add(RiftStoneDef.from_dict(d), _stones, [], path, "rift stone", d)
 			if _stones.has(StringName(d["id"] as String)):
 				_stone_by_area[StringName(d["area"] as String)] = _stones[StringName(d["id"] as String)]
 	for path: String in raw["shop"]:
-		for d: Dictionary in _list(raw["shop"][path], "entries"):
+		for d: Dictionary in DataBuildUtil.list(raw["shop"][path], "entries"):
 			_add(ShopEntryDef.from_dict(d), _shop, _shop_list, path, "shop entry", d)
 	for path: String in raw["hints"]:
-		for d: Dictionary in _list(raw["hints"][path], "hints"):
+		for d: Dictionary in DataBuildUtil.list(raw["hints"][path], "hints"):
 			_add(HintDef.from_dict(d), _hints, _hint_list, path, "hint", d)
 	ItemIndexM10.build(_item_list, _blueprint_list, _blueprint_by_base, _unique_tools)
 	_helper.build(_balance, _item_list)
+	_loot.build(raw["loot_tables"] as Dictionary, errors)
 	_skill_list.sort_custom(func(a: SkillDef, b: SkillDef) -> bool: return a.order < b.order)
 	_area_list.sort_custom(func(a: AreaDef, b: AreaDef) -> bool: return a.order < b.order)
 	_class_list.sort_custom(func(a: ClassDef, b: ClassDef) -> bool: return a.order < b.order)
-	_action_list.sort_custom(_action_before)
+	_action_list.sort_custom(DataBuildUtil.action_before)
 	for def: ActionDef in _action_list:
 		if def.icon.is_empty() and not def.outputs.is_empty():
 			def.icon = _items[def.outputs[0].item_id].icon
@@ -357,15 +368,6 @@ func _build(raw: Dictionary) -> void:
 		_clear()
 
 
-func _curve(key: String) -> XpTable:
-	var c: Dictionary = _balance[key] as Dictionary
-	return XpTable.from_params(float(c["base"]), float(c["growth"]), float(c["linear"]), int(c["max_level"]))
-
-
-static func _list(content: Variant, key: String) -> Array[Dictionary]:
-	var result: Array[Dictionary] = []
-	result.assign((content as Dictionary)[key] as Array)
-	return result
 
 
 # Registers a built Def by id; a null Def (from_dict already logged why) becomes an error with file and id.
@@ -377,11 +379,6 @@ func _add(def: RefCounted, table: Dictionary, list: Array, path: String, kind: S
 	list.append(def)
 
 
-static func _action_before(a: ActionDef, b: ActionDef) -> bool:
-	if a.level != b.level:
-		return a.level < b.level
-	return String(a.id) < String(b.id)
-
 
 # With a Def that could not be built the data is not valid: nothing stays half-loaded.
 func _clear() -> void:
@@ -390,6 +387,7 @@ func _clear() -> void:
 		table.clear()
 	_guide.clear()
 	_helper.clear()
+	_loot.clear()
 	for list: Array in [_item_list, _skill_list, _action_list, _node_list, _area_list, _shop_list, _class_list,
 			_affix_list, _hint_list, _blueprint_list]:
 		list.clear()

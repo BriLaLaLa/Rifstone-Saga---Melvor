@@ -29,7 +29,7 @@ const OFFHAND_SLOT_KINDS: PackedStringArray = ["shield"]  # kinds of slot offhan
 const RIFT_SHARD_ID: StringName = &"rift_shard"
 const RIFT_SHARD_CATEGORY: String = "misc"
 const ACTION_FIELDS: PackedStringArray = ["id", "name", "level", "interval_ms", "xp", "mastery", "inputs",
-	"outputs", "icon", "single", "milestones"]
+	"outputs", "icon", "single", "milestones", "kind"]
 const SHOP_CATEGORIES: PackedStringArray = ["bank", "combat", "tools", "materials"]  # M8 adds "lanes"
 ## Vendors (stalls) the shop page groups the entries under; the page lists them in this order (P-04).
 const SHOP_VENDORS: PackedStringArray = ["bottegaia", "fabbro", "armaiolo", "mercante_armature"]  # M12: "deposito" has no entries
@@ -72,7 +72,8 @@ static func _item(v: DataValidatorRules, e: Dictionary, file_category: String) -
 		v.integer(e["food"] as Dictionary, "heal", 1, DataValidatorRules.NO_LIMIT, "food")
 	if _sub_object(v, e, "infusion", category == "infusion"):
 		var infusion: Dictionary = e["infusion"] as Dictionary
-		v.keys(infusion, ["modifiers", "unique"], "infusion")
+		v.keys(infusion, ["modifiers", "unique", "grade", "family"], "infusion")
+		DataValidatorEngraver.infusion_fields(v, infusion)
 		v.modifiers(infusion, "modifiers", "infusion")
 		if infusion.get("modifiers") is Array and (infusion["modifiers"] as Array).is_empty():
 			v.fail("field 'infusion.modifiers' needs at least 1 entries (an infusion without effect is decorative)")
@@ -191,6 +192,7 @@ static func validate_actions(v: DataValidatorRules, files: Dictionary[String, Di
 			v.item_qty_list(e, "outputs", 0 if single else 1)
 			DataValidatorM10.recipe_outputs(v, e)
 			DataValidatorMilestones.action(v, e, skill, category, milestones_active)
+			DataValidatorEngraver.action(v, e, skill)
 
 
 static func validate_shop(v: DataValidatorRules, files: Dictionary[String, Dictionary]) -> void:

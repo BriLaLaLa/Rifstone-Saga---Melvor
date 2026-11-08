@@ -21,6 +21,8 @@ const REQUIRED_BALANCE_KEYS: PackedStringArray = [
 	"gathering.rift_shard_base_chance_pct",
 	"deposit.base_slots", "deposit.bag_slots",
 	"helper.xp_pct", "helper.mastery_pct", "helper.grades",
+	"engraver.crystal_chance_min_pct", "engraver.crystal_chance_max_pct", "engraver.crystal_fail_loss_pct",
+	"engraver.merge_ratio", "rune.upgrade_ratio", "rune.grade_mult",
 	"mastery.milestones.byproduct_at", "mastery.milestones.resource_at", "mastery.milestones.trade_at",
 	"mastery.milestones.byproduct_chance_pct",
 	"combat.acc_level_offset", "combat.acc_bonus_offset", "combat.maxhit_level_offset", "combat.maxhit_bonus_offset",
@@ -48,7 +50,7 @@ const REQUIRED_BALANCE_KEYS: PackedStringArray = [
 const BALANCE_LIST_KEYS: PackedStringArray = [
 	"start.items", "combat.auto_eat_tiers", "rift.sockets", "traits.slot_levels", "abilities.slot_levels", "rarity.affix_count.magic", "rarity.affix_count.rare",
 	"upgrade.levels", "upgrade.ingot_items", "tool_upgrade.levels",
-	"helper.grades",
+	"helper.grades", "rune.grade_mult",
 ]
 const BALANCE_STYLE_KEYS: PackedStringArray = [
 	"combat.triangle.beats.blade", "combat.triangle.beats.arcana", "combat.triangle.beats.marksmanship",
@@ -96,6 +98,7 @@ static func validate(raw: Dictionary, errors: PackedStringArray) -> void:
 	_validate_balance_refs(v, _files(raw, "balance"))
 	DataValidatorItems.validate_actions(v, _files(raw, "actions"))
 	v.validate_mastery(_files(raw, "mastery"))
+	DataValidatorEngraver.validate_runes(v, _files(raw, "items"))
 	var milestones_active: bool = DataValidatorMilestones.is_active(v, _files(raw, "actions"))
 	DataValidatorMilestones.validate_skills(v, _files(raw, "skills"), milestones_active)
 	DataValidatorMilestones.validate_trees(v, _files(raw, "mastery"), milestones_active)
@@ -104,6 +107,8 @@ static func validate(raw: Dictionary, errors: PackedStringArray) -> void:
 	DataValidatorClasses.validate_classes(v, _files(raw, "classes"))
 	DataValidatorClasses.validate_affixes(v, _files(raw, "affixes"))
 	DataValidatorStones.validate(v, _files(raw, "rift_stones"), _files(raw, "areas"))
+	DataValidatorLootTables.validate(v, _files(raw, "loot_tables"), [[_files(raw, "areas"), "areas", "area"],
+			[_files(raw, "monsters"), "monsters", "monster"], [_files(raw, "rift_stones"), "rift_stones", "rift stone"]])
 	DataValidatorHints.validate(v, _files(raw, "hints"))
 	DataValidatorGuide.validate(v, raw)
 	DataValidatorItems.validate_shop(v, _files(raw, "shop"))
@@ -206,6 +211,7 @@ static func _validate_balance(v: DataValidatorRules, files: Dictionary[String, D
 		DataValidatorClasses.validate_balance(v, balance)
 		DataValidatorLoot.validate_balance(v, balance)
 		DataValidatorHelper.validate_balance(v, balance)
+		DataValidatorEngraver.validate_balance(v, balance)
 		DataValidatorMilestones.validate_balance(v, balance)
 		DataValidatorHints.validate_balance(v, balance)
 		DataValidatorM10Balance.validate_balance(v, balance)

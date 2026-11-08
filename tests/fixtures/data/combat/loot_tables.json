@@ -1,0 +1,12 @@
+{
+  "tables": [
+    {"id": "test_area_loot", "entries": [
+      {"item": "rift_dust", "chance_pct": 100, "qty": [2, 2]},
+      {"item": "test_chip", "chance_pct": 0.01, "qty": [1, 1]}]},
+    {"id": "test_monster_loot", "entries": [
+      {"item": "test_crystal", "chance_pct": 100, "qty": [1, 1]}]},
+    {"id": "test_stone_loot", "entries": [
+      {"item": "test_stone", "chance_pct": 100, "qty": [1, 1]},
+      {"item": "test_chip", "chance_pct": 0.01, "qty": [1, 1]}]}
+  ]
+}

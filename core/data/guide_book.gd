@@ -18,7 +18,7 @@ func build(files: Dictionary, data: GameData) -> void:
 			for key: String in DataValidatorGuide.EXCEPTION_KEYS:
 				exceptions[key] = (content.get(key, []) as Array).map(func(id: String) -> StringName: return StringName(id))
 			continue
-		for d: Dictionary in GameData._list(content, "pages"):
+		for d: Dictionary in DataBuildUtil.list(content, "pages"):
 			data._add(GuidePageDef.from_dict(d), by_id, list, path, "guide page", d)
 	list.sort_custom(_before)
 	if data.errors.is_empty():

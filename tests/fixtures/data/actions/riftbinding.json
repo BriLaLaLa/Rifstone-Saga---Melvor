@@ -1,0 +1,12 @@
+{
+  "skill": "riftbinding",
+  "actions": [
+    {"id": "crystallize_test", "name": "Cristallizzare (prova)", "level": 1, "interval_ms": 3000, "xp": 160,
+     "mastery": true, "kind": "crystallize",
+     "inputs": [{"item": "rift_dust", "qty": 50}], "outputs": [{"item": "test_crystal", "qty": 1}]},
+    {"id": "fuse_test_stone", "name": "Fondere (prova)", "level": 1, "interval_ms": 3000, "xp": 20,
+     "mastery": true, "inputs": [{"item": "test_chip", "qty": 3}], "outputs": [{"item": "test_stone", "qty": 1}]},
+    {"id": "upgrade_inf_test_2", "name": "Potenziare (prova)", "level": 1, "interval_ms": 3000, "xp": 40,
+     "mastery": true, "inputs": [{"item": "inf_test", "qty": 3}], "outputs": [{"item": "inf_test_2", "qty": 1}]}
+  ]
+}

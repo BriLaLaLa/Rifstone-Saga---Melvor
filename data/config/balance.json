@@ -65,6 +65,16 @@
       {"id": "master", "interval_mult": 1.5}
     ]
   },
+  "engraver": {
+    "crystal_chance_min_pct": 40,
+    "crystal_chance_max_pct": 90,
+    "crystal_fail_loss_pct": 50,
+    "merge_ratio": 3
+  },
+  "rune": {
+    "upgrade_ratio": 3,
+    "grade_mult": [1, 2, 3, 4, 5]
+  },
   "combat": {
     "acc_level_offset": 8,
     "acc_bonus_offset": 50,

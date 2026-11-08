@@ -12,6 +12,11 @@
      "accuracy_bonus": 5, "power_bonus": 3, "evasion_bonus": 4, "damage_reduction": 10,
      "gold": [5, 12], "rift_shard_chance": 1,
      "drops": [{"item": "test_twig", "chance_pct": 50, "qty": [1, 3]},
-               {"item": "test_ration", "chance_pct": 10, "qty": [1, 1]}]}
+               {"item": "test_ration", "chance_pct": 10, "qty": [1, 1]}]},
+    {"id": "test_loot_monster", "name": "Mostro del bottino", "icon": "res://assets/icons/monsters/plains_boar.svg",
+     "description": "Lascia le tabelle di prova.", "hp": 20, "xp": 10, "style": "blade", "attack_interval_ms": 2800,
+     "attack_level": 1, "power_level": 1, "defence_level": 1,
+     "accuracy_bonus": 0, "power_bonus": 0, "evasion_bonus": 0, "damage_reduction": 0,
+     "gold": [1, 1], "rift_shard_chance": 0, "drops": [], "loot_tables": ["test_monster_loot"]}
   ]
 }
