@@ -122,7 +122,7 @@ non vincolanti come le formule). `combat.kill_xp_mult` = 0,11; XP delle Miniere 
 - **Pezzi dai mostri** (attesi/h, area intera al livello medio): Pianure 2,9 (T1, un pezzo ogni 21 min); Bosco 2,7 (T2-T3, 22 min);
   Miniere 2,8 (T4-T5, 21 min); Soglia 2,7 (T6-T8, 22 min; T7-T8 da soli ogni 33 min). Obiettivo 20-40 min per pezzo del grado dell'area
   (con il solo grado intero del livello medio: 21 / 42 / 39 / 57 min). Probabilità dei pezzi della Soglia ritoccate (3 -> 2,5 / 4 -> 6 / 4 -> 5 %).
-- **Progetti dai mostri**: 0,8 / 0,7 / 0,8 / 0,7 per ora (obiettivo ~1/h con le Pietre: Q49).
+- **Progetti dai mostri**: 0,8 / 0,7 / 0,8 / 0,7 per ora (obiettivo ~1/h con le Pietre: Q49). Verifica Q49 (8 h, `sim_combat loot=1`, colonne `bp/h`): Pianure 1,13 / Bosco 0,88 / Miniere 0,75 (media di 6 semi al liv. 50: 1,0) / Soglia 1,38 per ora, Pietre incluse: obiettivo rispettato, nessuna ritaratura.
 - Uccisioni/h: 208 / 110 / 83 / 62; morti 0; cibo 188 / 292 / 327 / 361 pezzi/h.
 
 

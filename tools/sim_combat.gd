@@ -73,8 +73,8 @@ static func report(data: Object, opts: Dictionary) -> PackedStringArray:
 	lines.append("| area | scope | grade | level | tier | deaths/h | kills/h | xp/h | gold/h | food/h |")
 	lines.append("|---|---|---|---|---|---|---|---|---|---|")
 	var loot_lines: PackedStringArray = PackedStringArray()
-	loot_lines.append("| area | scope | pieces/h | magic/h | rare/h | stones/h | stone kills/h | stone deaths/h | stone ttk s | stone hp lost % |")
-	loot_lines.append("|---|---|---|---|---|---|---|---|---|---|")
+	loot_lines.append("| area | scope | pieces/h | magic/h | rare/h | stones/h | stone kills/h | stone deaths/h | stone ttk s | stone hp lost % | bp/h | bp lost/h |")
+	loot_lines.append("|---|---|---|---|---|---|---|---|---|---|---|---|")
 	for area: Object in data.call("areas"):
 		if str(opts["area"]) != "all" and str(opts["area"]) != str(area.id):
 			continue
@@ -84,10 +84,11 @@ static func report(data: Object, opts: Dictionary) -> PackedStringArray:
 				area.id, scope, row["grade"], row["level"], row["tier"], _per_hour(row["deaths"], row),
 				_per_hour(row["kills"], row), _per_hour(row["xp"], row), _per_hour(row["gold"], row),
 				_per_hour(row["food"], row)])
-			loot_lines.append("| %s | %s | %s | %s | %s | %s | %s | %s | %.1f | %.1f |" % [
+			loot_lines.append("| %s | %s | %s | %s | %s | %s | %s | %s | %.1f | %.1f | %s | %s |" % [
 				area.id, scope, _per_hour(row["pieces"], row), _per_hour(row["magic"], row, 2),
 				_per_hour(row["rare"], row, 2), _per_hour(row["stones"], row, 2), _per_hour(row["stone_kills"], row, 2),
-				_per_hour(row["stone_deaths"], row, 2), row["stone_ttk"], row["stone_loss"]])
+				_per_hour(row["stone_deaths"], row, 2), row["stone_ttk"], row["stone_loss"],
+				_per_hour(row["bps"], row, 2), _per_hour(row["bp_lost"], row, 2)])
 	if str(opts["loot"]) == "1":
 		lines.append("")
 		lines.append_array(loot_lines)
@@ -218,7 +219,10 @@ static func measure(data: Object, area: Object, scope: String, opts: Dictionary)
 	var worn_uids: Array[int] = []
 	for inst: Object in session.armory.instances():
 		worn_uids.append(int(inst.uid))
-	var tally: Dictionary = {"stones": 0, "stone_kills": 0, "stone_deaths": 0, "in_stone": false}
+	var tally: Dictionary = {"stones": 0, "stone_kills": 0, "stone_deaths": 0, "in_stone": false, "bp_lost": 0}
+	session.events.loot_lost.connect(func(id: StringName, q: int) -> void:
+		if str(id).begins_with("bp_"):
+			tally["bp_lost"] += q)
 	session.events.rift_stone_appeared.connect(func(_id: StringName) -> void: tally["stones"] += 1)
 	session.events.encounter_started.connect(func(ids: Array[StringName]) -> void:
 		tally["in_stone"] = false
@@ -251,6 +255,10 @@ static func measure(data: Object, area: Object, scope: String, opts: Dictionary)
 	for inst: Object in session.armory.instances():
 		if not worn_uids.has(int(inst.uid)):
 			pieces[str(inst.rarity)] += 1
+	var bps: int = int(tally["bp_lost"])
+	for entry: Dictionary in engine.loot.items():
+		if str(entry["item"]).begins_with("bp_"):
+			bps += int(entry["qty"])
 	var kills: int = 0
 	var kill_xp: int = 0
 	var counts: Dictionary = engine.total_kills()
@@ -263,7 +271,7 @@ static func measure(data: Object, area: Object, scope: String, opts: Dictionary)
 		"food": food_start - session.bank.get_count(food_id),
 		"pieces": int(pieces["common"]) + int(pieces["magic"]) + int(pieces["rare"]), "magic": pieces["magic"],
 		"rare": pieces["rare"], "stones": tally["stones"], "stone_kills": tally["stone_kills"],
-		"stone_deaths": tally["stone_deaths"],
+		"stone_deaths": tally["stone_deaths"], "bps": bps, "bp_lost": tally["bp_lost"],
 		"stone_ttk": stone_fight[0], "stone_loss": stone_fight[1],
 	}
 	session.free()  # the session is a Node outside any tree: free it, no orphans
