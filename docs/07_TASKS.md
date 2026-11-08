@@ -1258,7 +1258,7 @@ Regole comuni a M4 (oltre a quelle in testa al file):
 ## M8 · Legatura del Rift
 
 - M8-01 · Altare del Rift (CORE; M7-08; `systems/rift/rift_altar.gd`, note ereditate N3).
-- M8-02 · Contenuto: Legatura, infusioni, nodi della maestria dell'artigianato (DATA; M7-08; note ereditate N4).
+- M8-02 · Contenuto: Legatura, rune, nodi della maestria dell'artigianato (DATA; M7-08; note ereditate N4).
 - M8-03 · Castoni F-89, pietre e valute del Rift (CORE; M8-01; `systems/armory/**` con `sockets.gd`, categorie `stone`/`currency` nel validatore).
 - M8-04 · Contenuto: pietre e valute (DATA; M8-03; `data/items/stones.json`, `currencies.json`, `riftbinding.json`).
 - M8-05 · Pagine dell'Altare e dei castoni (UI; M8-01, M8-03; `ui/pages/rift/**`, `ui/pages/armory/**`, pulsante Incastona di `bank_item_panel.gd`).
@@ -1354,13 +1354,13 @@ quelli v1/v2 sono "versione non supportata". Gli **id restano** (Q52): cambiano 
 
 ### M10-05 · Nomi nuovi in tutti i dati e nei testi UI
 - **Ruolo** DATA · **Stima** M · **Parallelizzabile** no · **Dipendenze** M10-04
-- **Ownership** `name` e `description` in `data/**` (skill, classe, aree, mostri, oggetti, tratti e abilità cambiati, infusioni, pietre, valute, shop, suggerimenti),
+- **Ownership** `name` e `description` in `data/**` (skill, classe, aree, mostri, oggetti, tratti e abilità cambiati, rune, pietre, valute, shop, suggerimenti),
   `data/hints/hints.json` (testi; il primo suggerimento punta al combattimento, B4), testi fissi dei contenitori di testo della UI (`UiStyle`, `CombatTexts`, `ArmoryTexts`,
   `ItemTooltipLines`, …) solo per sostituire "Bank" con "Deposito" e i nomi di skill/classe scritti a mano, `tests/data/**` e i test UI che confrontano testi.
 - **Leggere** `NOMI.md` (intero: è la fonte dei nomi), `04_DATA_SCHEMA.md` §18.
 - **Descrizione** Applicare `NOMI.md` a ogni `name`/`description`; gli **id non cambiano** (Q52). Nessun "Bank" nella UI (resta l'id e il nome del modulo). Un test dei dati
   controlla i nomi di `NOMI.md` (skill, classe, gradi di metallo/legno/pesce, modelli di equipaggiamento per grado, attrezzi, aree, mostri, drop, tratti/abilità cambiati, pietre,
-  valute, infusioni, shop).
+  valute, rune, shop).
 - **Accettazione** ogni nome della tabella di `NOMI.md` è nei dati; `grep` di "Bank" nei testi visibili non trova nulla; nessun nome da Melvor, Metin2, Path of Exile.
 - **Test** `tests/data/test_names.gd`.
 
@@ -1475,7 +1475,7 @@ Ordine: M11-01 ∥ M11-02 (file diversi) → M11-03 → M11-04 → M11-05 → M1
 - **N2 (da M3-03)** `Equipment._combat_active()` oggi legge `_session.get(&"combat")` in modo dinamico: con il campo
   tipizzato `var combat: CombatEngine` diventa `_session.combat != null and _session.combat.in_encounter()` (ownership
   di M5-03 estesa a quella funzione). Il cibo scelto può essere a quantità 0 (caso `no_food`).
-- **N3 (da M5-01 vecchio)** Altare: prese per livello di Legatura, incastona, togli (distrugge), `unique`, sorgenti
+- **N3 (da M5-01 vecchio)** Altare: incavi per livello di Legatura, incastona, togli (distrugge), `unique`, sorgenti
   `rift_socket:<i>` (`01_GDD.md` §11, §8.7).
 - **N4 (da M2-02/M3-04)** `test_data_validity.gd` ha già `FORESTRY_NODES`, `_nodes_by_skill`, `_assert_node_like` e il
   controllo del totale 55-65% su ogni file di `data/mastery/` (Q26). Id delle azioni di artigianato per i nodi:

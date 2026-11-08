@@ -236,6 +236,7 @@ func hide_tooltip() -> void
 | `food_changed` | `item_id: StringName` | Equipment | M4: cibo scelto (`&""` = nessuno) |
 | `character_xp_gained` | `amount: int` | CharacterSystem | M4: ogni guadagno > 0 |
 | `character_level_up` | `new_level: int` | CharacterSystem | M4: un evento per livello |
+| `player_renamed` | `new_name: String` | PlayerName | P-03: emesso da `PlayerName.rename` quando il nome cambia davvero; la TopBar lo ascolta e aggiorna l'etichetta |
 | `traits_changed` | — | Loadout | M6: tratti o abilità equipaggiati cambiati |
 | `armory_changed` | `uid: int, change: StringName` | Armory | M4: `change` = `&"added"`, `&"removed"`, `&"updated"` (blocco, raffinazione, indossato) |
 | `armory_capacity_changed` | `used: int, capacity: int` | Armory | M4 |
@@ -377,7 +378,7 @@ Def (`res://core/data/defs/`, tutte `RefCounted`, campi in sola lettura per conv
   `MasteryNodeDef.from_dict(d: Dictionary, file_skill_id: StringName = &"") -> MasteryNodeDef`: lo `skill` sta a livello
   di file e lo passa `GameData`; vuoto → errore e `null`.
 - Modificatori creati solo con `Modifier.from_dict`. Scope di default: `skill:<skill>` per i nodi della maestria, `global`
-  per equip, infusioni ed effetti dello shop. In `MasteryBonusRule` lo `scope` dei dati è ignorato e i modificatori sono
+  per equip, rune ed effetti dello shop. In `MasteryBonusRule` lo `scope` dei dati è ignorato e i modificatori sono
   globali segnaposto: lo scope `action:<id>` (e il moltiplicatore di F-11) lo applica `MasterySystem`.
 - `ActionDef.icon` resta `""` se manca: il default dello schema (icona del primo output) lo calcola `GameData`.
 - `DefReader` (`def_reader.gd`) è un helper interno dei `from_dict` di `core/data/defs/`, non API per gli altri moduli.
@@ -1041,7 +1042,7 @@ func socket_total() -> int                     # numero di voci in rift.sockets
 func is_unlocked(index: int) -> bool
 func get_socket(index: int) -> StringName      # &"" se vuota
 func socket(index: int, item_id: StringName) -> CommandResult   # socket_locked, socket_occupied, not_equippable, not_enough_items, requirement_not_met (unique)
-func clear_socket(index: int) -> CommandResult  # slot_empty; distrugge l'infusione
+func clear_socket(index: int) -> CommandResult  # slot_empty; distrugge la runa
 func rebuild_modifiers() -> void               # sorgenti rift_socket:<i>
 ```
 
@@ -1798,3 +1799,20 @@ Ogni test libera la sessione con `autofree()` (GUT) o `session.free()`.
 Opzioni aggiunte in M7-07, oltre a quelle di M5-06: `loot=0|1` (con 1 stampa anche le tabelle di M7: pezzi/ora per rarità,
 Pietre del Rift, scontro con la Pietra e costo atteso della raffinazione) e `loadout=none|auto` (con `auto` riempie gli slot
 aperti di tratti e abilità con i primi sbloccati consentiti dall'assetto; default `none`). `scope=easiest` include le Pietre.
+
+### 7.z UI di P-01/P-02 (pagina Personaggio, Banco del fabbro, slot Cibo)
+```gdscript
+# core/session/player_name.gd (P-01/P-03): rinomina del personaggio dello slot corrente
+static func rename(session: GameSession, new_name: String) -> CommandResult   # invalid_name (nome dopo strip fuori da
+                                  # `player_name.min_length`..`max_length` di balance.json); salva lo slot; emette `player_renamed`
+class_name ForgeBench extends VBoxContainer       # ui/pages/skill/forge_bench.gd (P-02): sezione "Banco del fabbro" della pagina Fabbro
+func bind(session: GameSession) -> void           # collega gli eventi; comandi: armory.upgrade, socket_stone, clear_socket, use_currency
+func unbind() -> void
+func select(uid: int) -> void                     # sceglie il pezzo (indossato o in Armeria)
+func selected_uid() -> int
+class_name FoodSlotView extends PanelContainer    # ui/pages/equipment/food_slot_view.gd (P-02): slot "Cibo" della bambola; solo presentazione
+signal food_chosen(item_id: StringName); signal clear_requested; signal open_requested
+func show_food(food: ItemDef, count: int) -> void # count = quantita' nel deposito (il cibo non esce dalla bank)
+func open_menu(foods: Array[Dictionary]) -> void
+func food_id() -> StringName; func menu() -> PopupMenu; func clear_button() -> Button
+```

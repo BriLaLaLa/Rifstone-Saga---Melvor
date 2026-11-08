@@ -29,7 +29,7 @@ si legge "bank" (il modulo e gli id restano `bank`).
 **Regole**
 - Ci sono 4 slot (`slots.count`). Ogni slot è una partita indipendente: **tutto** lo stato del giocatore (skill,
   maestria, personaggio e classe, tratti e abilità equipaggiati, Armeria e filtro, bank, oro, equipaggiamento, cibo
-  scelto, azione in corso, combattimento in corso, acquisti dello shop, prese dell'Altare, suggerimenti visti, fratture)
+  scelto, azione in corso, combattimento in corso, acquisti dello shop, incavi dell'Altare, suggerimenti visti, fratture)
   sta nel file dello slot. Nessuno stato di gioco è fuori.
 - All'avvio si apre il **menu principale**: Nuova partita, Continua, Impostazioni, Esci. Fino alla scelta di uno slot
   non esiste una sessione e **nessun file viene scritto** (l'unico file scrivibile prima è `user://settings.cfg`).
@@ -49,7 +49,7 @@ capienza base; oro `start.gold`; oggetti iniziali `start.items` (materiali e cib
 senza affissi) e i tre attrezzi unici a +0 di `start.tools`, che sono già indossati; l'Armeria ha il filtro "tieni
 tutto"; spada e scudo sono indossati (assetto spada e scudo), lo spadone resta nell'Armeria; il bank contiene 20 pesci
 cotti di grado 1 (`start.items`) e il cibo scelto è quello; acquisti dello shop di `start.purchases` (le Razioni da campo I, B2/Q12,
-già possedute); nessuna azione in corso; prese dell'Altare vuote; seme casuale nuovo.
+già possedute); nessuna azione in corso; incavi dell'Altare vuoti; seme casuale nuovo.
 
 **Stati**: `MENU` (nessuna sessione) → `LOADING` → `OFFLINE_SIM` (se serve) → `PLAYING` → (`SAVING_AND_EXIT`) → `MENU`.
 
@@ -89,7 +89,7 @@ reali (computer in sospensione con il gioco aperto) sono trattate come offline a
 - L'esperienza è un intero cumulativo per skill. Il livello si ricava dall'XP con la tabella `F-01` (livelli 1-99).
   L'XP continua a crescere oltre il 99 fino a `xp_curve.xp_cap`, ma il livello resta 99.
 - L'XP guadagnata passa sempre da `skill_xp_pct` (F-02).
-- Salire di livello sblocca azioni, ricette, aree, prese dell'Altare, equipaggiamento (requisiti nei dati).
+- Salire di livello sblocca azioni, ricette, aree, incavi dell'Altare, equipaggiamento (requisiti nei dati).
 - Ogni salita di livello emette `level_up` (anche più livelli in un colpo: un evento per livello).
 
 **Stati**: per skill solo `xp`. Livello e progresso sono derivati, mai salvati.
@@ -137,7 +137,7 @@ l'intervallo si ricalcola a ogni avvio di ciclo).
   4. XP e maestria come nella raccolta.
 - Il frammento del Rift (F-07) **non** si tenta nelle azioni di artigianato.
 - **Dalla riforma (R2) nessuna ricetta produce equipaggiamento in serie**: le ricette ripetibili producono solo
-  oggetti di bank (lingotti, **componenti**, cibo, infusioni, pietre, valute). Le ricette di armi, armature, scudi e
+  oggetti di bank (lingotti, **componenti**, cibo, rune, pietre, valute). Le ricette di armi, armature, scudi e
   attrezzi a gradi sono eliminate con le loro maestrie per azione.
 - **Fabbro** (`forging`): minerale → lingotto; 2 lingotti → **piastra** (componente di grado, ricette in `02_FORMULAS.md` §8.2); inoltre le
   azioni a ciclo unico dei progetti (§5.1). **Falegname** (`woodwright`): legno → **impugnatura**, **telaio dello
@@ -209,8 +209,8 @@ comprato (`node_owned`); spesa che porterebbe la maestria oltre il 99 (si spende
 ## 7. Bank
 
 **Regole**
-- La bank è l'**unico** contenitore degli oggetti impilabili posseduti (materiali, cibo, infusioni, pietre, valute;
-  esclusi la borsa del bottino e le prese dell'Altare). Equipaggiamenti e attrezzi **non** entrano nella bank: sono
+- La bank è l'**unico** contenitore degli oggetti impilabili posseduti (materiali, cibo, rune, pietre, valute;
+  esclusi la borsa del bottino e gli incavi dell'Altare). Equipaggiamenti e attrezzi **non** entrano nella bank: sono
   istanze dell'Armeria (§21); `add` di un oggetto `equipment`/`tool` è rifiutata (`not_stackable`). Ogni tipo di oggetto occupa **una** casella, con quantità illimitata (intero a 64 bit).
 - Capienza = `bank.base_slots` (24) + somma della stat `bank_slots` (caselle comprate nello shop, F-17).
 - Aggiungere un oggetto già presente non occupa caselle; aggiungerne uno nuovo richiede una casella libera, altrimenti
@@ -221,7 +221,7 @@ comprato (`node_owned`); spesa che porterebbe la maestria oltre il 99 (si spende
 - Ordine: quello di inserimento; il giocatore può spostare le caselle (trascinamento) o usare "Ordina" (per categoria,
   poi per `sort_order` dell'oggetto).
 - Dal pannello dell'oggetto: vendi (quantità con cursore, "tutti tranne 1", "tutti"), blocca, scegli come cibo,
-  incastona (infusioni, M8). Si equipaggia dall'Armeria (§21).
+  incastona (rune, M8). Si equipaggia dall'Armeria (§21).
 
 **Casi limite**: capienza che scende sotto le caselle usate (non può succedere nell'MVP: le caselle comprate non si
 perdono); oggetto sconosciuto in un salvataggio (scartato al caricamento, con avviso nel log); quantità ≤ 0 (rifiutata).
@@ -374,15 +374,15 @@ area) e stampa uccisioni/ora, morti, oro/ora, XP/ora, cibo consumato. Si usa a o
   in quantità dalle Pietre del Rift (§24) e dallo smantellamento (§25). Servono anche alla raffinazione da +6 (§23).
 - La Legatura produce anche le pietre da incastonare e le valute del Rift (§26).
 - **Legatura del Rift** è una skill di artigianato (con maestria): le ricette consumano frammenti e materiali e
-  producono **infusioni** (oggetti di tipo `infusion`, ognuna con una lista di modificatori).
-- **Altare del Rift**: 5 prese, sbloccate ai livelli di Legatura `rift.sockets[].level` (1, 20, 40, 60, 80).
-  Incastonare un'infusione la toglie dalla bank (1 pezzo) e attiva i suoi modificatori (sorgente `rift_socket:<i>`).
-- Togliere un'infusione dalla presa la **distrugge** (scelta di design: le infusioni sono un consumo). Rimpiazzarla
+  producono **rune** (oggetti di tipo `infusion`, ognuna con una lista di modificatori).
+- **Altare del Rift**: 5 incavi, sbloccati ai livelli di Legatura `rift.sockets[].level` (1, 20, 40, 60, 80).
+  Incastonare una runa la toglie dalla bank (1 pezzo) e attiva i suoi modificatori (sorgente `rift_socket:<i>`).
+- Togliere una runa dall'incavo la **distrugge** (scelta di design: le rune sono un consumo). Rimpiazzarla
   richiede prima di toglierla (conferma nella UI).
-- Una stessa infusione può stare in più prese (i modificatori si sommano), salvo il campo `unique: true`.
+- Una stessa runa può stare in più incavi (i modificatori si sommano), salvo il campo `unique: true`.
 
-**Casi limite**: presa non sbloccata (`socket_locked`); presa occupata (`socket_occupied`); oggetto non infusione
-(`not_equippable`); infusione unica già incastonata (`requirement_not_met`).
+**Casi limite**: incavo non sbloccato (`socket_locked`); incavo occupato (`socket_occupied`); oggetto non runa
+(`not_equippable`); runa unica già incastonata (`requirement_not_met`).
 
 ## 12. Progressione offline
 
@@ -431,7 +431,7 @@ sviluppo.
 **Regole**
 - Esiste **un solo** sistema di modificatori. Un modificatore è `{stat, value, scope}`; lo scope è `global`,
   `skill:<id>` o `action:<id>`. Le sorgenti sono: equipaggiamento (pezzo base × raffinazione + affissi + castoni),
-  assetto, tratti, buff delle abilità (temporanei), maestria per oggetto, nodi della maestria, shop, prese dell'Altare,
+  assetto, tratti, buff delle abilità (temporanei), maestria per oggetto, nodi della maestria, shop, incavi dell'Altare,
   fratture (M12).
 - Il valore finale di una stat in un contesto è la **somma** dei modificatori applicabili, limitata da `min`/`max`
   della stat (F-05). Ogni formula dice come usa la stat.
@@ -591,7 +591,7 @@ incastonare (M8), gioielli (rarità F-84).
 Castoni sui pezzi (F-89, da rarità e raffinazione); pietre incastonabili (categoria `stone`, con modificatori) da Pietre
 del Rift e Legatura; tre valute (categoria `currency`, prodotte dalla Legatura): comune → magico, magico → raro (aggiunge
 affissi fino al numero del raro), ritiro degli affissi (stessa rarità, F-85 di nuovo). Una pietra tolta da un castone si
-distrugge (come le infusioni, Q8).
+distrugge (come le rune, Q8).
 
 ## 27. Guida in gioco (M11)
 
@@ -615,7 +615,7 @@ Decisioni G1-G2 (`DECISIONS_LOG.md`): la wiki sta **dentro il gioco** (pagina "G
 | Mestieri | una pagina per mestiere: cosa fa, tabella delle azioni (livello, XP, durata, ingredienti, prodotto), maestria e nodi, attrezzo e raffinazione | testo breve a mano + tabelle dai dati |
 | Oggetti | descrizione, valore, **Si ottiene da** (mostri con area e %, ricette, shop, Pietre, smantellamento, kit iniziale), **Serve a** (ricette, progetti, raffinazione, castoni, Altare, cibo) | tutto dai dati |
 | Mostri e aree | area: livello richiesto, gruppi, mostri; mostro: statistiche, stile, intervallo, drop con % | tutto dai dati |
-| Altare del Rift | prese, livelli di sblocco, infusioni con effetto | dai dati + testo breve |
+| Altare del Rift | incavi, livelli di sblocco, rune con effetto | dai dati + testo breve |
 | Statistiche | glossario: nome, descrizione, limiti (da `stats.json`) | dai dati |
 | Offline | come funziona, limite di ore, cosa prosegue e cosa no | testo a mano con segnaposto |
 

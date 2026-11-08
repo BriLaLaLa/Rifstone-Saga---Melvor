@@ -87,13 +87,16 @@ Raffica di lame.
 Cambiano: Sete di brace → **Sete di sangue**; Brace vitale → **Linfa vitale**; Maglio del Rift → **Colpo
 spaccaossa**; Respiro di brace → **Seconda forza**.
 
-## Pietre, valute, infusioni, oggetti speciali
+## Pietre, valute, rune, oggetti speciali
 - Pietre (Scheggia / Pietra / Cuore): famiglia `ember` → **di furia**, `eye` → **di precisione**, `shade` →
   **d'ombra**, `root` → **di roccia** (es. "Cuore di furia").
 - Valute (rare, esotiche): `currency_spark` **Scintilla del Rift** (comune → magico), `currency_flux` **Essenza del
   Rift** (magico → raro), `currency_crown` **Sabbia del mutamento** (ritira gli affissi).
-- Infusioni: Infusione **della rapidità**, **dell'abbondanza**, **della sapienza**, **della precisione**, **della
-  pelle di pietra**, **della pazienza**, **del banchetto**, **del senso del Rift**, **del baluardo**.
+- Rune (ex Infusioni, P-03): **Runa della rapidità**, **Runa dell'abbondanza**, **Runa della sapienza**, **Runa della
+  precisione**, **Runa della pelle di pietra**, **Runa della pazienza**, **Runa del banchetto**, **Runa del senso del
+  Rift**, **Runa del baluardo** (stessi id di prima).
+- Incavi (ex Prese dell'Altare, P-03): i 5 incavi dell'Altare del Rift; i castoni dei pezzi dell'Armeria restano "castoni".
+- Nota P-03: gli id nei dati (`infusion`, `socket`, `inf_*`...) restano invariati; cambiano solo i testi.
 - `rift_shard` Frammento del Rift (resta); `warding_seal` **Sigillo di protezione**.
 
 ## Shop e UI
@@ -102,4 +105,4 @@ Raccolta automatica del bottino, Tasca della borsa restano; spariscono gli attre
 ovunque nella UI.
 
 ## Restano come sono
-Affissi (Affilato, Pesante, Preciso…), nodi della maestria, nomi delle prese dell'Altare.
+Affissi (Affilato, Pesante, Preciso…), nodi della maestria, nomi degli incavi dell'Altare.

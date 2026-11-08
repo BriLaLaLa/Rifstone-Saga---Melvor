@@ -3,6 +3,12 @@
 Aggiornato dall'Orchestratore (unico che modifica questo file). Stati: TODO / IN_PROGRESS / REVIEW / DONE / BLOCKED.
 Se la sessione si interrompe, si riparte da qui.
 
+- **P-02 Scheda pezzo, Banco del fabbro, slot Cibo (2026-11-08, merge 55730ff)**: scheda del pezzo, Banco del fabbro nella pagina Fabbro, slot Cibo nella bambola, drag reale (fix a `EquipmentInventory.rebuild_grid`).
+- P-02 aperto: layout non verificato a schermo; manca l'icona `food.svg`; il tipo del pezzo mostra il nome dello slot.
+- P-02 nessun cambio di dati.
+- **P-03 Rinomina, Rune e Incavi (2026-11-08)**: IN_PROGRESS. Contratto in `05_INTERFACES.md` (`player_renamed`, `PlayerName.rename`, ForgeBench, FoodSlotView).
+- P-03: nomi di gioco Infusioni -> Rune, Prese -> Incavi in `NOMI.md` e nei documenti (id invariati); decisione in `DECISIONS_LOG.md`.
+- P-03: da fare testi nei dati, TopBar che ascolta `player_renamed` (chiude l'aperto di P-01).
 - **P-01 Pagina Personaggio (2026-11-08, dopo m11-done)**: nome del personaggio in grande con Rinomina (`PlayerName.rename`, limiti `player_name` di `balance.json`, salvataggio dello slot), sotto "Spadaccino · Livello N"; tolta la sezione Assetto; tratti e abilità in un riquadro a due schede.
 - Descrizioni di tratti e abilità generate da effetti, parametri e ricarica (`ui/pages/character/loadout_describe.gd`, il campo `description` dei dati non si mostra più); stat `damage_reduction` ora si chiama "Armatura" (solo testo in `stats.json`).
 - Aperto: la barra in alto mostra il nome vecchio fino al prossimo caricamento (nessun segnale di rinomina); le tabelle Tratti/Abilità della Guida usano ancora il campo `description`.

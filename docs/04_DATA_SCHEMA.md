@@ -180,7 +180,7 @@ ognuno `{"items": [...]}`. Campi comuni:
 | `weapon` | object | obbligatorio con `slot: weapon`, vietato per gli altri: `style` (`blade`/`marksmanship`/`arcana`), `attack_interval_ms` (≥ 800), `two_handed` (bool; `true` se e solo se `kind: greatsword`) |
 
 `food`: `{"heal": int ≥ 1}`. `infusion`: `{"modifiers": [...], "unique": bool}` (default `false`); `modifiers` ha almeno
-1 modificatore (un'infusione senza effetto sarebbe decorativa).
+1 modificatore (una runa senza effetto sarebbe decorativa).
 
 Esempi:
 ```json
@@ -210,7 +210,7 @@ Esempi:
  "icon": "res://assets/icons/items/seared_brookfin.png", "description": "Cura 20 punti vita.", "food": {"heal": 20}}
 ```
 ```json
-{"id": "inf_swift_hands", "name": "Infusione delle mani rapide", "category": "infusion", "value": 0, "sort_order": 10,
+{"id": "inf_swift_hands", "name": "Runa delle mani rapide", "category": "infusion", "value": 0, "sort_order": 10,
  "icon": "res://assets/icons/items/inf_swift_hands.png", "description": "Tutte le azioni sono un poco più rapide.",
  "infusion": {"modifiers": [{"stat": "skill_interval_pct", "value": -3}], "unique": false}}
 ```
@@ -501,7 +501,7 @@ Classi: `AffixDef`, `AffixTier`. Nell'MVP ogni slot d'equipaggiamento ha almeno 
 
 Categorie di oggetti `stone` (`{"stone": {"modifiers": [...]}}`, almeno 1 modificatore) e `currency`
 (`{"currency": {"effect": "to_magic" | "to_rare" | "reroll"}}`) nei file `stones.json` e `currencies.json`;
-`balance.json`: `sockets`. Ricette di `riftbinding.json` per infusioni, pietre e valute.
+`balance.json`: `sockets`. Ricette di `riftbinding.json` per rune, pietre e valute.
 
 ## 18. Aggiunte di M10 (riforma del bottino e dei nomi)
 
