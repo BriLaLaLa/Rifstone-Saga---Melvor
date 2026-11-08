@@ -4,10 +4,10 @@ extends RefCounted
 ## (docs/04_DATA_SCHEMA.md §8), classes (§14) and affixes (§15), written with the toolkit of DataValidatorRules.
 
 const AREA_FIELDS: PackedStringArray = ["id", "name", "description", "order", "requirements", "packs",
-		"rift_stone_chance_pct"]
+		"rift_stone_chance_pct", "loot_tables"]
 const MONSTER_FIELDS: PackedStringArray = ["id", "name", "description", "icon", "hp", "xp", "style",
 	"attack_interval_ms", "attack_level", "power_level", "defence_level", "accuracy_bonus", "power_bonus",
-	"evasion_bonus", "damage_reduction", "gold", "rift_shard_chance", "drops", "sprite"]
+	"evasion_bonus", "damage_reduction", "gold", "rift_shard_chance", "drops", "sprite", "loot_tables"]
 const MONSTER_ICON_DIR: String = "res://assets/icons/monsters/"
 const CLASS_ICON_DIR: String = "res://assets/icons/classes/"
 const SPRITE_STATES: PackedStringArray = ["idle", "attack", "hit", "death"]  # reserved, no use yet (M6-00a)

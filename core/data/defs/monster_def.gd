@@ -24,6 +24,7 @@ var gold_min: int = 0
 var gold_max: int = 0
 var rift_shard_chance: float = 0.0
 var drops: Array[DropEntry] = []
+var loot_tables: Array[StringName] = []  # M12: ids of data/combat/loot_tables.json, rolled after the drops
 
 
 static func from_dict(d: Dictionary) -> MonsterDef:
@@ -50,6 +51,8 @@ static func from_dict(d: Dictionary) -> MonsterDef:
 	def.gold_min = gold.x
 	def.gold_max = gold.y
 	def.rift_shard_chance = r.number("rift_shard_chance")
+	if r.has("loot_tables"):
+		def.loot_tables = r.id_list("loot_tables")
 	for entry: Dictionary in r.dict_list("drops"):
 		var drop: DropEntry = DropEntry.from_dict(entry)
 		r.absorb(drop != null)

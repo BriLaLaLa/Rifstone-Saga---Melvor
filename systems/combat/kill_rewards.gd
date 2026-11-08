@@ -15,12 +15,16 @@ static func base_xp(session: GameSession, xp: int) -> int:
 	return floori(float(xp) * float(session.data.balance_value("combat.kill_xp_mult")) + EPSILON)
 
 
-static func grant(session: GameSession, loot: LootBag, def: MonsterDef) -> void:
+## `area_id` is the area of the fight: its loot tables are rolled after the own drops, then those of the monster (M12, 05 §5.22).
+static func grant(session: GameSession, loot: LootBag, def: MonsterDef, area_id: StringName = &"") -> void:
 	session.character.add_xp(base_xp(session, def.xp))
 	var gold_pct: float = session.modifiers.total(&"gold_drop_pct")
 	var rolled: int = session.rng.randi_range(def.gold_min, def.gold_max)
 	session.wallet.add_gold(int(floor(float(rolled) * (1.0 + gold_pct / 100.0) + EPSILON)))
 	roll_drops(session, loot, def.drops, ItemRoller.SOURCE_MONSTER, monster_ilvl(def))
+	if area_id != &"":
+		roll_tables(session, loot, session.data.area(area_id).loot_tables, ItemRoller.SOURCE_MONSTER, monster_ilvl(def))
+	roll_tables(session, loot, def.loot_tables, ItemRoller.SOURCE_MONSTER, monster_ilvl(def))
 	var shard_pct: float = def.rift_shard_chance + session.modifiers.total(&"rift_shard_chance")
 	if session.rng.roll_pct(shard_pct):
 		loot.add(SHARD_ITEM, 1)
@@ -52,3 +56,11 @@ static func roll_piece(session: GameSession, base: ItemDef, source: StringName, 
 ## Reviewer in the M7-03 report).
 static func monster_ilvl(def: MonsterDef) -> int:
 	return maxi(def.attack_level, maxi(def.power_level, def.defence_level))
+
+
+## M12: the entries of the loot tables `table_ids`, in order, each rolled like a drop (F-32): a probability roll, then a
+## quantity roll. Tables hold no equipment, so the items go to the loot bag. No table, no roll.
+static func roll_tables(session: GameSession, loot: LootBag, table_ids: Array[StringName], source: StringName, ilvl: int
+) -> void:
+	for table_id: StringName in table_ids:
+		roll_drops(session, loot, session.data.loot_table(table_id).entries, source, ilvl)

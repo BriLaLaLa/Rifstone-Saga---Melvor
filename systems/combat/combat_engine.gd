@@ -304,7 +304,7 @@ func _kill(index: int, enemy: Encounter.Enemy) -> void:
 	if enemy.is_stone():
 		_stone.reward(loot, _area_id)
 	else:
-		KillRewards.grant(_session, loot, enemy.def)
+		KillRewards.grant(_session, loot, enemy.def, _area_id)
 		_kills[enemy.def.id] = _kills.get(enemy.def.id, 0) + 1
 		_stone.on_kill(_area_id)
 	_session.events.monster_killed.emit(index, enemy.def.id)

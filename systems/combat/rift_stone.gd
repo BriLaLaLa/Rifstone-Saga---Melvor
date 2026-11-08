@@ -70,6 +70,7 @@ func reward(loot: LootBag, area_id: StringName) -> void:
 	_session.character.add_xp(KillRewards.base_xp(_session, def.xp))
 	loot.add(SHARD_ITEM, _session.rng.randi_range(def.shards_min, def.shards_max))
 	KillRewards.roll_drops(_session, loot, def.drops, ItemRoller.SOURCE_RIFT_STONE, _area_ilvl(area_id))
+	KillRewards.roll_tables(_session, loot, def.loot_tables, ItemRoller.SOURCE_RIFT_STONE, _area_ilvl(area_id))
 
 
 func reset() -> void:

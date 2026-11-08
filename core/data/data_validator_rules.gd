@@ -32,6 +32,9 @@ var max_pack_size: float = NO_LIMIT  # combat.max_pack_size
 var min_action_interval_ms: float = 0.0
 var helper_grade_ids: PackedStringArray = []  # helper.grades ids (M12), collected with the balance before the items
 var milestone_thresholds: Array[int] = []  # mastery.milestones byproduct_at, resource_at, trade_at (M12), when valid
+var merge_ratio: int = 0  # engraver.merge_ratio (M12), when valid
+var upgrade_ratio: int = 0  # rune.upgrade_ratio (M12), when valid
+var grade_mult: Array[float] = []  # rune.grade_mult (M12), when valid
 var min_attack_interval_ms: float = 0.0
 
 var _file: String = ""

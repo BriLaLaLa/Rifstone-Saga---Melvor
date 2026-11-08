@@ -19,6 +19,7 @@ const MAIN: StringName = &"main"
 const SECONDARY: StringName = &"secondary"
 const LOG_CATEGORY: String = "actions"
 const MIN_INTERVAL_KEY: String = "action.min_interval_ms"
+const CRYSTALLIZE_KIND: StringName = &"crystallize"  # M12: ActionDef.kind resolved by EngraverResolver (F-104)
 const INTERVAL_STAT: StringName = &"skill_interval_pct"
 const SAVE_LANES_KEY: String = "lanes"
 const SAVE_SKILL_KEY: String = "skill"
@@ -275,7 +276,9 @@ func _advance_blueprint(lane_id: StringName, lane: _Lane, delta_ms: int) -> void
 # replaced/stopped by a listener of the signals).
 func _complete_cycle(lane_id: StringName, lane: _Lane) -> bool:
 	var outcome: ActionOutcome
-	if lane.action.is_artisan():
+	if lane.action.kind == CRYSTALLIZE_KIND:
+		outcome = EngraverResolver.resolve(_session, lane.action)
+	elif lane.action.is_artisan():
 		outcome = ArtisanResolver.resolve(_session, lane.action)
 	else:
 		outcome = GatheringResolver.resolve(_session, lane.action)

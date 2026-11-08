@@ -19,6 +19,7 @@ var summon_pack: int = -1
 var shards_min: int = 0
 var shards_max: int = 0
 var drops: Array[DropEntry] = []
+var loot_tables: Array[StringName] = []  # M12: ids of data/combat/loot_tables.json, rolled after the drops
 
 
 static func from_dict(d: Dictionary) -> RiftStoneDef:
@@ -41,6 +42,8 @@ static func from_dict(d: Dictionary) -> RiftStoneDef:
 	var shards: Vector2i = r.int_pair("shards")
 	def.shards_min = shards.x
 	def.shards_max = shards.y
+	if r.has("loot_tables"):
+		def.loot_tables = r.id_list("loot_tables")
 	for entry: Dictionary in r.dict_list("drops"):
 		var drop: DropEntry = DropEntry.from_dict(entry)
 		r.absorb(drop != null)
