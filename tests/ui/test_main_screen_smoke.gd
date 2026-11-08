@@ -31,7 +31,7 @@ func test_scene_instantiates_with_injected_session() -> void:
 	assert_eq(_page_host().current_page_id(), &"skill:test_gather", "first skill with a page")
 	assert_eq(_label(_top_bar(), "%GoldLabel").text, NumberFormat.format_int(_session.wallet.get_gold()))
 	assert_eq(_label(_top_bar(), "%BankLabel").text, "%s / %s" % [
-		NumberFormat.format_int(_session.bank.used()), NumberFormat.format_int(_session.bank.capacity())])
+		NumberFormat.format_int(_session.deposit.used()), NumberFormat.format_int(_session.deposit.capacity())])
 	assert_true(_label(_top_bar(), "%SlotLabel").text.contains("Slot %d" % _session.slot))
 	assert_not_null(_screen.find_child("ToastManager", true, false), "the toasts live in the screen")
 
@@ -67,7 +67,7 @@ func test_changing_page_disconnects_the_old_page() -> void:
 	for signal_name: StringName in skill_page_signals:
 		on_skill[signal_name] = _count(signal_name)
 	# Events connected by the BankPage (M1-18), each exactly once.
-	var bank_page_signals: Array[StringName] = [&"bank_changed", &"bank_capacity_changed"]
+	var bank_page_signals: Array[StringName] = [&"bank_changed", &"deposit_changed"]
 	var bank_on_skill: Dictionary[StringName, int] = {}
 	for signal_name: StringName in bank_page_signals:
 		bank_on_skill[signal_name] = _count(signal_name)
@@ -122,7 +122,7 @@ func test_top_bar_follows_gold_and_bank() -> void:
 	assert_eq(_label(_top_bar(), "%GoldLabel").text, NumberFormat.format_int(_session.wallet.get_gold()))
 	TestFactory.give(_session, &"test_twig", 3)
 	assert_eq(_label(_top_bar(), "%BankLabel").text, "%s / %s" % [
-		NumberFormat.format_int(_session.bank.used()), NumberFormat.format_int(_session.bank.capacity())])
+		NumberFormat.format_int(_session.deposit.used()), NumberFormat.format_int(_session.deposit.capacity())])
 
 
 func test_session_ended_disconnects_everything() -> void:
@@ -163,7 +163,7 @@ func _open(session: GameSession) -> void:
 	_events = session.events
 	_menu_calls = 0
 	_baseline.clear()
-	for signal_name: StringName in [&"level_up", &"gold_changed", &"bank_capacity_changed", &"bank_changed",
+	for signal_name: StringName in [&"level_up", &"gold_changed", &"deposit_changed", &"bank_changed",
 			&"session_ended", &"notification_requested", &"action_stopped"]:
 		_baseline[signal_name] = _count(signal_name)
 	_screen = SCENE.instantiate() as MainScreen

@@ -20,7 +20,7 @@ func test_resolve_balance_formats() -> void:
 	assert_eq(GuideText.resolve("{balance:offline.min_ms|min}", _data), "1")
 	var respawn: float = float(_data.balance_value("combat.respawn_ms"))
 	assert_eq(GuideText.resolve("{balance:combat.respawn_ms|sec}", _data), GuideText.format_number(respawn / 1000.0))
-	assert_eq(GuideText.resolve("{balance:bank.base_slots|int}", _data), str(int(_data.balance_value("bank.base_slots"))))
+	assert_eq(GuideText.resolve("{balance:deposit.base_slots|int}", _data), str(int(_data.balance_value("deposit.base_slots"))))
 	var pct: float = float(_data.balance_value("rarity.drop.magic_pct"))
 	assert_eq(GuideText.resolve("{balance:rarity.drop.magic_pct|pct}", _data), GuideText.format_number(pct) + "%")
 

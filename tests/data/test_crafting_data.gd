@@ -281,15 +281,9 @@ func test_unique_tools_follow_8_4_and_f94() -> void:
 
 func test_shop_follows_8_6() -> void:
 	var shop: Dictionary = _by_id("shop", "entries")
-	assert_eq(shop.size(), 7)
-	assert_false(shop.has("second_thought"))
-	assert_eq(shop["bank_slot"]["cost"], {"formula": "bank_slot"})
-	assert_eq(shop["bank_slot"]["max_purchases"], 150.0)
-	assert_eq(shop["bank_slot"]["effect"]["modifiers"], [{"stat": "bank_slots", "value": 1.0}])
-	assert_eq(shop["armory_slot"]["cost"], {"formula": "armory_slot"})
-	assert_eq(shop["armory_slot"]["max_purchases"], 60.0)
-	assert_eq(shop["armory_slot"]["requires"], {})
-	assert_eq(shop["armory_slot"]["effect"]["modifiers"], [{"stat": "armory_slots", "value": 1.0}])
+	assert_eq(shop.size(), 5)
+	assert_false(shop.has("bank_slot"))
+	assert_false(shop.has("armory_slot"))
 	var gold: Array[Array] = [
 		["auto_eat_1", 2000, 1, "auto_eat_tier", 1], ["auto_eat_2", 25000, 1, "auto_eat_tier", 1],
 		["auto_eat_3", 250000, 1, "auto_eat_tier", 1], ["auto_loot", 50000, 1, "auto_loot", 1],

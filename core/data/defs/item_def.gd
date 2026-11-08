@@ -23,6 +23,7 @@ var infusion_unique: bool = false
 var stone_modifiers: Array[Modifier] = []
 var currency_effect: StringName = &""
 var blueprint: BlueprintInfo = null  # M10: null unless category `blueprint`
+var bag_slots: int = 0  # M12: `bag.slots` of a category `bag` item (F-100); 0 otherwise
 
 
 static func from_dict(d: Dictionary) -> ItemDef:
@@ -60,6 +61,10 @@ static func from_dict(d: Dictionary) -> ItemDef:
 	if r.has("blueprint") and r.is_dict("blueprint"):
 		def.blueprint = BlueprintInfo.from_dict(r.dict("blueprint"))
 		r.absorb(def.blueprint != null)
+	if r.has("bag") and r.is_dict("bag"):
+		var bag := DefReader.new(r.dict("bag"), r.context() + " bag")
+		def.bag_slots = bag.integer("slots")
+		r.absorb(bag.ok)
 	return def if r.ok else null
 
 

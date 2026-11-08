@@ -11,7 +11,7 @@ func test_make_sets_fields() -> void:
 
 
 func test_make_defaults_to_global() -> void:
-	var mod: Modifier = Modifier.make(&"bank_slots", 10.0)
+	var mod: Modifier = Modifier.make(&"test_flat_stat", 10.0)
 	assert_eq(mod.scope_kind, &"global")
 	assert_eq(mod.scope_id, &"")
 
@@ -33,7 +33,7 @@ func test_from_dict_action_scope() -> void:
 
 
 func test_from_dict_without_scope_is_global() -> void:
-	var mod: Modifier = Modifier.from_dict({"stat": "bank_slots", "value": 4})
+	var mod: Modifier = Modifier.from_dict({"stat": "test_flat_stat", "value": 4})
 	assert_eq(mod.scope_kind, &"global")
 	assert_eq(mod.scope_id, &"")
 

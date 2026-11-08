@@ -14,7 +14,7 @@
      "blocks": [
        {"type": "text", "text": "Il Deposito contiene materiali, cibo, pietre, valute e rune, un tipo per casella. Le caselle sono limitate e puoi comprarne altre allo shop; anche l'Armeria ha caselle acquistabili."},
        {"type": "text", "text": "Lo shop vende, per oro, caselle, Razioni da campo e la Raccolta automatica del bottino. Gli acquisti sono permanenti. Parti con {balance:start.gold|int} monete: l'oro arriva dai mostri e dalle vendite."},
-       {"type": "links", "targets": ["stat:bank_slots", "stat:auto_loot", "stat:auto_eat_tier"]}
+       {"type": "links", "targets": ["stat:auto_loot", "stat:auto_eat_tier"]}
      ]}
   ]
 }

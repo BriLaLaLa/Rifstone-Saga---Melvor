@@ -8,9 +8,12 @@ extends RefCounted
 const FIXTURE_CONTENT_ROOT: String = "res://tests/fixtures/data"
 const CONFIG_ROOT: String = "res://data/config"
 const REAL_CONTENT_ROOT: String = "res://data"
+const ROOMY_SLOTS: int = 2000
+const PreRun := preload("res://tests/helpers/gut_pre_run.gd")
 
 static var _fixture_data: GameData = null
 static var _real_data: GameData = null
+static var _deposit_data: Dictionary[String, GameData] = {}
 
 
 ## Fixture content (res://tests/fixtures/data) with the real configuration (res://data/config).
@@ -120,3 +123,44 @@ static func give_piece(
 		push_error("TestFactory.give_piece(%s) failed: no uid" % base_id)
 	assert(uid > 0, "TestFactory.give_piece failed")
 	return uid
+
+
+## GameData of `content_root` with a copy of the real configuration where `deposit.base_slots` is `base_slots` (M12: the
+## capacity no longer comes from a stat, so tests that need a roomy or a tiny Deposit load other data). The copy is
+## written under user:// only while loading and removed at once; results are cached per (root, base_slots).
+static func data_with_deposit(content_root: String, base_slots: int) -> GameData:
+	var key: String = "%s#%d" % [content_root, base_slots]
+	if _deposit_data.has(key):
+		return _deposit_data[key]
+	var dir: String = PreRun.test_dir("factory_deposit_%d" % base_slots)
+	DirAccess.make_dir_recursive_absolute(dir)
+	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_ROOT.path_join("balance.json")))
+	(balance["deposit"] as Dictionary)["base_slots"] = base_slots
+	_write(dir.path_join("balance.json"), JSON.stringify(balance))
+	_write(dir.path_join("stats.json"), FileAccess.get_file_as_string(CONFIG_ROOT.path_join("stats.json")))
+	var data: GameData = GameData.load_from_dirs(content_root, dir)
+	assert(data.is_valid(), "data with %d deposit slots is not valid: %s" % [base_slots, "\n".join(data.errors)])
+	DirAccess.remove_absolute(dir.path_join("balance.json"))
+	DirAccess.remove_absolute(dir.path_join("stats.json"))
+	DirAccess.remove_absolute(dir)
+	_deposit_data[key] = data
+	return data
+
+
+## A Deposit big enough for any test that fills it on purpose (`ROOMY_SLOTS` base slots).
+static func roomy_data(content_root: String = FIXTURE_CONTENT_ROOT) -> GameData:
+	return data_with_deposit(content_root, ROOMY_SLOTS)
+
+
+static func _write(path: String, text: String) -> void:
+	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
+	file.store_string(text)
+	file.close()
+
+
+## Gives the Deposit room for ROOMY_SLOTS more boxes (a negative occupant), for tests that keep every drop. Once per
+## session. Returns the one-element array holding the extra room: set it to [0] to take the room away.
+static func make_roomy(session: GameSession) -> Array[int]:
+	var room: Array[int] = [ROOMY_SLOTS]
+	session.deposit.register_occupant(&"test:roomy", func() -> int: return -room[0])
+	return room

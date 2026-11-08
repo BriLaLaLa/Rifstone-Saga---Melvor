@@ -28,10 +28,9 @@ const CLOSED_FORMULAS: Array[String] = [
 # The stats whose effect M1 delivers: they must be covered by the closed formulas above.
 const M1_STATS: Array[StringName] = [
 	&"skill_interval_pct", &"skill_xp_pct", &"mastery_xp_pct", &"double_item_chance", &"rift_shard_chance",
-	&"bank_slots",
 ]
 # Formula -> milestone that implements it (for the pending messages).
-const FORMULA_MILESTONES: Dictionary[String, String] = {"F-50": "M10", "F-51": "M11"}
+const FORMULA_MILESTONES: Dictionary[String, String] = {"F-50": "M13"}
 
 var _registry: StatRegistry = null
 var _sources: Dictionary[String, String] = {}
@@ -165,10 +164,10 @@ func test_every_stat_has_its_test() -> void:
 
 func test_the_check_finds_a_missing_function() -> void:
 	# Guard for the checker itself: an existing file with a missing function and a missing file are both rejected.
-	assert_true(_reference_exists("tests/systems/bank/test_bank.gd::test_capacity_uses_bank_slots"))
-	assert_false(_reference_exists("tests/systems/bank/test_bank.gd::test_does_not_exist"))
-	assert_false(_reference_exists("tests/systems/nothing/test_nothing.gd::test_capacity_uses_bank_slots"))
-	assert_false(_reference_exists("tests/systems/bank/test_bank.gd::test_capacity_uses_bank"), "whole name only")
+	assert_true(_reference_exists("tests/systems/bank/test_bank_bags.gd::test_unequip_bag_rejections"))
+	assert_false(_reference_exists("tests/systems/bank/test_bank_bags.gd::test_does_not_exist"))
+	assert_false(_reference_exists("tests/systems/nothing/test_nothing.gd::test_unequip_bag_rejections"))
+	assert_false(_reference_exists("tests/systems/bank/test_bank_bags.gd::test_unequip_bag"), "whole name only")
 
 
 # True when `path::function` names an existing file under res:// that declares `func function(`.

@@ -143,7 +143,7 @@ func clear_drag_targets() -> void:
 
 ## The events that make the page read the session again.
 func _signals(events: GameEvents) -> Array[Signal]:
-	return [events.armory_changed, events.armory_capacity_changed, events.equipment_changed,
+	return [events.armory_changed, events.deposit_changed, events.equipment_changed,
 			events.character_level_up, events.modifiers_changed, events.food_changed, events.bank_changed,
 			events.item_upgraded, events.item_salvaged]
 
@@ -176,7 +176,7 @@ func _redraw() -> void:
 	if _session == null:
 		return
 	_capacity_label.text = EquipmentSide.capacity_label_text(_session)
-	_full_label.visible = _session.armory.used() >= _session.armory.capacity()
+	_full_label.visible = _session.deposit.used() >= _session.deposit.capacity()
 	_hide_tooltip()
 	EquipmentInventory.rebuild_grid(_session, _grid, _empty_label, _slot_filter, _rarity_filter, _selected_uid, {
 		"pressed": _on_cell_pressed, "right_clicked": _on_cell_right_clicked,

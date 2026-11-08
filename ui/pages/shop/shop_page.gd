@@ -78,7 +78,7 @@ func bind(session: GameSession) -> void:
 	events.bank_changed.connect(_on_bank_changed)
 	events.level_up.connect(_on_level_up)
 	events.character_level_up.connect(_on_character_level_up)
-	events.armory_capacity_changed.connect(_on_armory_capacity_changed)
+	events.deposit_changed.connect(_on_deposit_changed)
 	_build_rows()
 	_refresh()
 
@@ -99,8 +99,8 @@ func unbind() -> void:
 			events.level_up.disconnect(_on_level_up)
 		if events.character_level_up.is_connected(_on_character_level_up):
 			events.character_level_up.disconnect(_on_character_level_up)
-		if events.armory_capacity_changed.is_connected(_on_armory_capacity_changed):
-			events.armory_capacity_changed.disconnect(_on_armory_capacity_changed)
+		if events.deposit_changed.is_connected(_on_deposit_changed):
+			events.deposit_changed.disconnect(_on_deposit_changed)
 	_session = null
 
 
@@ -271,5 +271,5 @@ func _on_character_level_up(_new_level: int) -> void:
 	_refresh()
 
 
-func _on_armory_capacity_changed(_used: int, _capacity: int) -> void:
+func _on_deposit_changed(_used: int, _capacity: int) -> void:
 	_refresh()

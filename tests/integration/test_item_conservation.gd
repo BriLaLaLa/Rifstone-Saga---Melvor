@@ -5,7 +5,7 @@ extends GutTest
 ## (the initial bank is `start.items` of balance.json); the bank_changed deltas tell the same story.
 ##
 ## Randomness (F-06 double, F-07 shard) comes from fixed seeds; a test-only modifier source raises the chances so
-## that both rolls actually happen. The bank-full case uses a copy of the real config with `bank.base_slots` = 1,
+## that both rolls actually happen. The bank-full case uses a copy of the real config with `deposit.base_slots` = 1,
 ## written under PreRun.test_dir() (not a save slot) and removed afterwards.
 
 const SEED: int = 424242
@@ -109,7 +109,7 @@ func test_switching_actions_keeps_conservation() -> void:
 
 func test_bank_full_cycle_adds_nothing() -> void:
 	_session = _watched_session(_data_with_slots(1))
-	assert_eq(_session.bank.capacity(), 1, "bank.base_slots = 1")
+	assert_eq(_session.bank.capacity(), 1, "deposit.base_slots = 1")
 	# A shard needs a second slot: the first cycle that rolls one does not count and stops the lane.
 	var mods: Array[Modifier] = [Modifier.make(&"rift_shard_chance", SHARD_CHANCE)]
 	_session.modifiers.set_source(BOOST_SOURCE, mods)
@@ -279,12 +279,10 @@ func _bank_counts(session: GameSession) -> Dictionary[StringName, int]:
 
 
 # Real content with a config copy where the bank has `slots` base slots.
-func _data_with_slots(slots: int, armory_slots: int = -1) -> GameData:
+func _data_with_slots(slots: int) -> GameData:
 	DirAccess.make_dir_recursive_absolute(_tmp_config)
 	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_ROOT.path_join("balance.json")))
-	(balance["bank"] as Dictionary)["base_slots"] = slots
-	if armory_slots >= 0:
-		(balance["armory"] as Dictionary)["base_slots"] = armory_slots
+	(balance["deposit"] as Dictionary)["base_slots"] = slots
 	_write(_tmp_config.path_join("balance.json"), JSON.stringify(balance))
 	_write(_tmp_config.path_join("stats.json"), FileAccess.get_file_as_string(CONFIG_ROOT.path_join("stats.json")))
 	var data: GameData = GameData.load_from_dirs(CONTENT_ROOT, _tmp_config)

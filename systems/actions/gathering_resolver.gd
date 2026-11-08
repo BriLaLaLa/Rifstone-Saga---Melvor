@@ -54,4 +54,4 @@ static func _fits(bank: Bank, items: Dictionary[StringName, int]) -> bool:
 			return false
 		if bank.get_count(item_id) == 0:
 			new_items += 1
-	return new_items <= bank.capacity() - bank.used()
+	return new_items <= bank.free_boxes()

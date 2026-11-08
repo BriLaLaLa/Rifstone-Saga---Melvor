@@ -142,7 +142,7 @@ func test_unknown_top_level_field_is_an_error() -> void:
 # --- balance.json ------------------------------------------------------------------------------------------------
 
 func test_required_balance_keys_are_all_in_the_real_file() -> void:
-	assert_eq(DataValidator.REQUIRED_BALANCE_KEYS.size(), 96)  # M10: 4 rarity.craft keys out, 11 in
+	assert_eq(DataValidator.REQUIRED_BALANCE_KEYS.size(), 90)  # M12: bank.* and armory.* (8) out, deposit.* (2) in
 	for key: String in DataValidator.REQUIRED_BALANCE_KEYS:
 		assert_not_null(DataValidator.lookup(file_of(fixture_raw(), "balance", BALANCE), key), key)
 
@@ -155,8 +155,8 @@ func test_missing_balance_key_is_an_error() -> void:
 
 func test_unknown_balance_key_is_an_error() -> void:
 	var raw: Dictionary = fixture_raw()
-	(file_of(raw, "balance", BALANCE)["bank"] as Dictionary)["slot_cost_grwth"] = 1.0
-	_expect(raw, [BALANCE, "unknown key 'bank.slot_cost_grwth'"])
+	(file_of(raw, "balance", BALANCE)["deposit"] as Dictionary)["base_slotz"] = 1.0
+	_expect(raw, [BALANCE, "unknown key 'deposit.base_slotz'"])
 
 
 func test_balance_number_key_must_be_a_number() -> void:

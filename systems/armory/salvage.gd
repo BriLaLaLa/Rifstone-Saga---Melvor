@@ -50,7 +50,7 @@ static func fits(paid_items: Dictionary[StringName, int], bank: Bank) -> bool:
 	for item_id: StringName in paid_items:
 		if bank.get_count(item_id) == 0:
 			new_stacks += 1
-	return new_stacks <= bank.capacity() - bank.used()
+	return new_stacks <= bank.free_boxes()
 
 
 ## Adds `paid` to the bank. Bank.add reports a full bank with bank_rejected, so a lost yield is never silent.

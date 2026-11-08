@@ -2,7 +2,7 @@ class_name Shop
 extends RefCounted
 ## The shop (docs/01_GDD.md §8): buying entries of data/shop/shop.json and selling items for gold.
 ##
-## Prices are fixed (`cost_gold`) or the F-17 bank slot formula; modifier effects are worth `value x purchases`
+## Prices are fixed gold amounts (`cost_gold`, M12: no formulas); modifier effects are worth `value x purchases`
 ## (F-19) under the source `shop:<entry_id>`; item effects go to the bank. Selling is F-18.
 ## `shop_purchased(entry_id, count)` and `item_sold(item_id, qty, gold)` are emitted after the state changed.
 ## `new_game` and `from_save` set the state without signals.
@@ -11,16 +11,8 @@ const SAVE_KEY: StringName = &"shop"
 const LOG_CATEGORY: String = "shop"
 const SOURCE_PREFIX: String = "shop:"
 const PURCHASES_KEY: String = "purchases"
-const FORMULA_BANK_SLOT: StringName = &"bank_slot"
-const FORMULA_ARMORY_SLOT: StringName = &"armory_slot"
-const ARMORY_COST_BASE_KEY: String = "armory.slot_cost_base"
-const ARMORY_COST_GROWTH_KEY: String = "armory.slot_cost_growth"
-const ARMORY_COST_CAP_KEY: String = "armory.slot_cost_cap"
 const PIECE_RARITY: StringName = &"common"
 const PIECE_ILVL: int = 1
-const SLOT_COST_BASE_KEY: String = "bank.slot_cost_base"
-const SLOT_COST_GROWTH_KEY: String = "bank.slot_cost_growth"
-const SLOT_COST_CAP_KEY: String = "bank.slot_cost_cap"
 
 var _data: GameData
 var _events: GameEvents
@@ -54,15 +46,11 @@ func purchase_count(entry_id: StringName) -> int:
 	return _purchases.get(entry_id, 0)
 
 
-## Gold price of the next purchase: F-17 for the bank slot formula, else the fixed cost. 0 for an unknown entry.
+## Gold price of the next purchase (the fixed cost). 0 for an unknown entry.
 func price(entry_id: StringName) -> int:
 	if not _entries.has(entry_id):
 		return 0
 	var entry: ShopEntryDef = _entries[entry_id]
-	if entry.cost_formula == FORMULA_BANK_SLOT:
-		return _slot_price(purchase_count(entry_id))
-	if entry.cost_formula == FORMULA_ARMORY_SLOT:
-		return _armory_slot_price(purchase_count(entry_id))
 	return entry.cost_gold
 
 
@@ -205,14 +193,6 @@ func from_save(d: Dictionary) -> void:
 		_purchases[entry_id] = count
 
 
-# F-17: min(cap, floor(base x growth^n)).
-func _slot_price(bought: int) -> int:
-	var base: float = float(_data.balance_value(SLOT_COST_BASE_KEY))
-	var growth: float = float(_data.balance_value(SLOT_COST_GROWTH_KEY))
-	var cap: int = int(_data.balance_value(SLOT_COST_CAP_KEY))
-	return mini(cap, floori(base * pow(growth, bought)))
-
-
 func _requirements_met(entry: ShopEntryDef) -> bool:
 	for required: StringName in entry.req_entries:
 		if purchase_count(required) < 1:
@@ -248,14 +228,6 @@ static func _as_positive_int(v: Variant) -> Variant:
 	if v is int and int(v) > 0:
 		return int(v)
 	return null
-
-
-# F-82: min(cap, floor(base x growth^n)).
-func _armory_slot_price(bought: int) -> int:
-	var base: float = float(_data.balance_value(ARMORY_COST_BASE_KEY))
-	var growth: float = float(_data.balance_value(ARMORY_COST_GROWTH_KEY))
-	var cap: int = int(_data.balance_value(ARMORY_COST_CAP_KEY))
-	return mini(cap, floori(base * pow(growth, bought)))
 
 
 # True when the item effect is a unique piece (equipment or tool): it goes to the Armory, not to the bank.

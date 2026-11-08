@@ -2,14 +2,14 @@ class_name Armory
 extends RefCounted
 ## The Armory (docs/01_GDD.md §21): the only container of unique pieces (equipment and tools), as ItemInstance.
 ##
-## Capacity is F-82: `armory.base_slots + floor(T(armory_slots, global))`; only the pieces that are not worn count.
+## The capacity is the Deposit's (F-100), shared with the Bank; only the pieces that are not worn count (`used`).
 ## `uid` values start from 1, grow and are never reused (`next_uid` is saved). Getters return copies. Signals go to the
-## session EventBus after the state changed. `new_game` and `from_save` set the state without signals.
+## session EventBus after the state changed (`deposit_changed` through `Deposit.notify_changed`). `new_game` and
+## `from_save` set the state without signals.
 
 const SAVE_KEY: StringName = &"armory"
+const OCCUPANT_ID: StringName = &"armory"
 const LOG_CATEGORY: String = "armory"
-const BASE_SLOTS_KEY: String = "armory.base_slots"
-const CAPACITY_STAT: StringName = &"armory_slots"
 const CHANGE_ADDED: StringName = &"added"
 const CHANGE_REMOVED: StringName = &"removed"
 const CHANGE_UPDATED: StringName = &"updated"
@@ -20,15 +20,13 @@ var _modifiers: ModifierService
 var _rng: RngService
 var _bank: Bank
 var _wallet: Wallet
-var _base_slots: int = 0
 # uid -> instance, in insertion order (Dictionary keeps it).
 var _items: Dictionary[int, ItemInstance] = {}
 var _worn: Dictionary[int, bool] = {}
 var _next_uid: int = 1
 var _filter: ArmoryFilter
 var _skills: SkillsSystem
-# Capacity last announced, to emit armory_capacity_changed when the modifiers change it.
-var _known_capacity: int = 0
+var _deposit: Deposit
 
 
 func _init(session: GameSession) -> void:
@@ -40,15 +38,9 @@ func _init(session: GameSession) -> void:
 	_bank = session.bank
 	_wallet = session.wallet
 	_skills = session.skills
-	_base_slots = int(_data.balance_value(BASE_SLOTS_KEY))
+	_deposit = session.deposit
+	_deposit.register_occupant(OCCUPANT_ID, used)
 	_filter = ArmoryFilter.new((_data.balance_value(Upgrade.INGOT_ITEMS_KEY) as Array).size())
-	_known_capacity = capacity()
-	_events.modifiers_changed.connect(_on_modifiers_changed)
-
-
-## F-82.
-func capacity() -> int:
-	return _base_slots + floori(_modifiers.total(CAPACITY_STAT))
 
 
 ## Pieces that are not worn.
@@ -57,7 +49,7 @@ func used() -> int:
 
 
 func can_add(count: int = 1) -> bool:
-	return count >= 0 and used() + count <= capacity()
+	return count >= 0 and _deposit.has_room(count)
 
 
 ## Takes a copy of `inst`, assigns the next uid and returns it. 0 (and armory_rejected) when the Armory is full,
@@ -73,7 +65,7 @@ func add(inst: ItemInstance) -> int:
 	_next_uid += 1
 	_items[stored.uid] = stored
 	_events.armory_changed.emit(stored.uid, CHANGE_ADDED)
-	_emit_capacity()
+	_deposit.notify_changed()
 	return stored.uid
 
 
@@ -116,10 +108,10 @@ func set_worn(uid: int, worn: bool, quiet: bool = false) -> void:
 	else:
 		_worn.erase(uid)
 	if quiet:
-		_known_capacity = capacity()
+		_deposit.sync_known()
 		return
 	_events.armory_changed.emit(uid, CHANGE_UPDATED)
-	_emit_capacity()
+	_deposit.notify_changed()
 
 
 ## unknown_id, item_unique (a unique tool has no lock).
@@ -146,7 +138,7 @@ func remove(uid: int) -> CommandResult:
 		return CommandResult.fail(Reasons.ITEM_EQUIPPED)
 	_items.erase(uid)
 	_events.armory_changed.emit(uid, CHANGE_REMOVED)
-	_emit_capacity()
+	_deposit.notify_changed()
 	return CommandResult.success()
 
 
@@ -268,7 +260,7 @@ func salvage(uid: int) -> CommandResult:
 		return CommandResult.fail(Reasons.BANK_FULL)
 	_items.erase(uid)
 	_events.armory_changed.emit(uid, CHANGE_REMOVED)
-	_emit_capacity()
+	_deposit.notify_changed()
 	Salvage.pay(paid, _bank)
 	_events.item_salvaged.emit(uid, inst.base_id, false)
 	return CommandResult.success()
@@ -320,7 +312,7 @@ func new_game() -> void:
 		inst.uid = _next_uid
 		_next_uid += 1
 		_items[inst.uid] = inst
-	_known_capacity = capacity()
+	_deposit.sync_known()
 
 
 func _is_unique(uid: int) -> bool:
@@ -353,7 +345,7 @@ func from_save(d: Dictionary) -> void:
 	var saved_next: Variant = d.get("next_uid")
 	var next: int = int(saved_next) if (saved_next is int or saved_next is float) else 1
 	_next_uid = maxi(next, highest + 1)
-	_known_capacity = capacity()
+	_deposit.sync_known()
 
 
 func _load_entry(entry: Variant) -> void:
@@ -384,13 +376,3 @@ func _clear() -> void:
 func _is_piece_base(base_id: StringName) -> bool:
 	return _data.has_item(base_id) and _data.item(base_id).category in Bank.PIECE_CATEGORIES \
 			and _data.item(base_id).equip != null
-
-
-func _emit_capacity() -> void:
-	_known_capacity = capacity()
-	_events.armory_capacity_changed.emit(used(), _known_capacity)
-
-
-func _on_modifiers_changed() -> void:
-	if capacity() != _known_capacity:
-		_emit_capacity()

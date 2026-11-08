@@ -14,7 +14,7 @@ const HATCHET := &"unique_hatchet"  # the unique tool of the fixtures (M10): onl
 const RATION := &"test_ration"
 const DR := &"damage_reduction"
 const OBSERVED: Array[StringName] = [
-	&"armory_changed", &"armory_capacity_changed", &"equipment_changed", &"character_level_up",
+	&"armory_changed", &"deposit_changed", &"equipment_changed", &"character_level_up",
 	&"modifiers_changed", &"food_changed", &"bank_changed",
 ]
 
@@ -46,7 +46,7 @@ func test_the_doll_has_the_12_slots_all_empty_at_start() -> void:
 	assert_eq(_label("%ClassLabel").text, _session.character.class_def().name)
 	assert_string_contains(_label("%SetupLabel").text, "Mani nude")
 	assert_eq(_label("%EmptyLabel").text, "L'Armeria è vuota: forgia o compra dei pezzi.")
-	assert_eq(_label("%CapacityLabel").text, "Pezzi: 0 / %s" % NumberFormat.format_int(_session.armory.capacity()))
+	assert_eq(_label("%CapacityLabel").text, "Pezzi: 0 / %s" % NumberFormat.format_int(_session.deposit.capacity()))
 	assert_false(_panel().visible)
 
 
@@ -85,7 +85,7 @@ func test_the_inventory_lists_only_the_pieces_not_worn_with_the_rarity_color() -
 	assert_eq(_cell_uids(), [common, rare], "a worn piece leaves the inventory (redraw on equipment_changed)")
 	assert_eq(_view(&"head").uid(), magic)
 	assert_eq(_label("%CapacityLabel").text,
-			"Pezzi: 2 / %s (+1 indossati)" % NumberFormat.format_int(_session.armory.capacity()))
+			"Pezzi: 2 / %s (+1 indossati)" % NumberFormat.format_int(_session.deposit.capacity()))
 	assert_true(_session.armory.set_locked(common, true).ok)
 	assert_true(_cell(common).find_child("LockMarker", true, false).visible, "redraw on armory_changed")
 

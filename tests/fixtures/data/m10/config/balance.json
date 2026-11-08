@@ -46,11 +46,9 @@
   "gathering": {
     "rift_shard_base_chance_pct": 0.5
   },
-  "bank": {
-    "base_slots": 24,
-    "slot_cost_base": 400,
-    "slot_cost_growth": 1.09,
-    "slot_cost_cap": 2000000
+  "deposit": {
+    "base_slots": 60,
+    "bag_slots": 6
   },
   "combat": {
     "acc_level_offset": 8,
@@ -115,12 +113,6 @@
   },
   "abilities": {
     "slot_levels": [1, 1, 30]
-  },
-  "armory": {
-    "base_slots": 40,
-    "slot_cost_base": 1000,
-    "slot_cost_growth": 1.12,
-    "slot_cost_cap": 2000000
   },
   "rarity": {
     "drop": {"magic_pct": 20, "rare_pct": 3},

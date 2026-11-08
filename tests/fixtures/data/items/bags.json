@@ -1,0 +1,10 @@
+{
+  "items": [
+    {"id": "test_bag_small", "name": "Borsa di prova piccola", "category": "bag",
+     "icon": "res://assets/icons/items/test_bag_small.png", "value": 0, "sort_order": 10,
+     "description": "Una borsa di prova che aggiunge 6 caselle.", "bag": {"slots": 6}},
+    {"id": "test_bag_large", "name": "Borsa di prova grande", "category": "bag",
+     "icon": "res://assets/icons/items/test_bag_large.png", "value": 0, "sort_order": 20,
+     "description": "Una borsa di prova che aggiunge 10 caselle.", "bag": {"slots": 10}}
+  ]
+}

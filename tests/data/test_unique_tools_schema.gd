@@ -150,7 +150,7 @@ func test_recipes_do_not_produce_tools() -> void:
 
 func test_shop_has_no_tools_category() -> void:
 	var raw: Dictionary = m10_raw()
-	entry_of(raw, "shop", "shop.json", "entries", 1)["category"] = "tools"
+	entry_of(raw, "shop", "shop.json", "entries", 0)["category"] = "tools"
 	expect_error(raw, ["shop.json", "shop entry 'test_upgrade_1'", "category 'tools' no longer exists"])
 
 

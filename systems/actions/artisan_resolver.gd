@@ -75,4 +75,4 @@ static func _fits(session: GameSession, consumed: Dictionary[StringName, int],
 			return false
 		if session.bank.get_count(item_id) - consumed.get(item_id, 0) == 0:
 			slots_delta += 1
-	return slots_delta <= session.bank.capacity() - session.bank.used()
+	return slots_delta <= session.bank.free_boxes()

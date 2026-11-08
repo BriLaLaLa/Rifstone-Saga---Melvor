@@ -3,7 +3,7 @@ extends PanelContainer
 ## Top bar of the main screen (docs/03_ARCHITECTURE.md §11): gold, bank slots used / capacity, slot name, menu.
 ##
 ## Every value is read from the session (`wallet.get_gold`, `bank.used`/`capacity`, `player_name`, `slot`) and
-## redrawn on `gold_changed` and `bank_capacity_changed`. The menu button emits `menu_requested`; the main screen
+## redrawn on `gold_changed` and `deposit_changed`. The menu button emits `menu_requested`; the main screen
 ## ends the session. It keeps no game state: only the session reference and its nodes.
 
 signal menu_requested
@@ -39,7 +39,7 @@ func bind(session: GameSession) -> void:
 	unbind()
 	_session = session
 	_session.events.gold_changed.connect(_on_events_gold_changed)
-	_session.events.bank_capacity_changed.connect(_on_events_bank_capacity_changed)
+	_session.events.deposit_changed.connect(_on_events_deposit_changed)
 	_session.events.player_renamed.connect(_on_events_player_renamed)
 	_redraw_slot()
 	_redraw_gold()
@@ -53,8 +53,8 @@ func unbind() -> void:
 	if is_instance_valid(_session):
 		if _session.events.gold_changed.is_connected(_on_events_gold_changed):
 			_session.events.gold_changed.disconnect(_on_events_gold_changed)
-		if _session.events.bank_capacity_changed.is_connected(_on_events_bank_capacity_changed):
-			_session.events.bank_capacity_changed.disconnect(_on_events_bank_capacity_changed)
+		if _session.events.deposit_changed.is_connected(_on_events_deposit_changed):
+			_session.events.deposit_changed.disconnect(_on_events_deposit_changed)
 		if _session.events.player_renamed.is_connected(_on_events_player_renamed):
 			_session.events.player_renamed.disconnect(_on_events_player_renamed)
 	_session = null
@@ -77,15 +77,15 @@ func _redraw_gold() -> void:
 
 
 func _redraw_bank() -> void:
-	_bank_label.text = BANK_TEXT % [NumberFormat.format_int(_session.bank.used()),
-			NumberFormat.format_int(_session.bank.capacity())]
+	_bank_label.text = BANK_TEXT % [NumberFormat.format_int(_session.deposit.used()),
+			NumberFormat.format_int(_session.deposit.capacity())]
 
 
 func _on_events_gold_changed(_new_amount: int, _delta: int) -> void:
 	_redraw_gold()
 
 
-func _on_events_bank_capacity_changed(_used: int, _capacity: int) -> void:
+func _on_events_deposit_changed(_used: int, _capacity: int) -> void:
 	_redraw_bank()
 
 

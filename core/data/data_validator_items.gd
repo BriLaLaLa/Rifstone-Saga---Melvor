@@ -5,12 +5,12 @@ extends RefCounted
 
 const ACTION_SKILL_CATEGORIES: PackedStringArray = ["gathering", "artisan"]
 const ITEM_FIELDS: PackedStringArray = ["id", "name", "description", "category", "icon", "value", "sort_order",
-	"equip", "food", "infusion", "stone", "currency", "blueprint"]
+	"equip", "food", "infusion", "stone", "currency", "blueprint", "bag"]
 const ITEM_ICON_DIR: String = "res://assets/icons/items/"
 ## Item file name (without `.json`) -> the category of its items.
 const ITEM_FILE_CATEGORIES: Dictionary[String, String] = {
 	"materials": "material", "components": "component", "blueprints": "blueprint", "equipment": "equipment", "tools": "tool", "food": "food", "infusions": "infusion",
-	"misc": "misc", "stones": "stone", "currencies": "currency",
+	"misc": "misc", "stones": "stone", "currencies": "currency", "bags": "bag",
 }
 const CURRENCY_EFFECTS: PackedStringArray = ["to_magic", "to_rare", "reroll"]
 const EQUIP_CATEGORIES: PackedStringArray = ["equipment", "tool"]
@@ -22,6 +22,7 @@ const TOOL_SLOT_PREFIX: String = "tool_"
 const WEAPON_SLOT: String = "weapon"
 const OFFHAND_SLOT: String = "offhand"
 const GRADE_MAX: int = 8
+const BAG_SLOTS_MAX: int = 100  # bag.slots 1..100 (docs/04_DATA_SCHEMA.md §5)
 const TWO_HANDED_KIND: String = "greatsword"
 const WEAPON_KINDS: PackedStringArray = ["greatsword", "sword"]  # kinds of slot weapon
 const OFFHAND_SLOT_KINDS: PackedStringArray = ["shield"]  # kinds of slot offhand (a sword stays in slot weapon)
@@ -30,9 +31,8 @@ const RIFT_SHARD_CATEGORY: String = "misc"
 const ACTION_FIELDS: PackedStringArray = ["id", "name", "level", "interval_ms", "xp", "mastery", "inputs",
 	"outputs", "icon", "single"]
 const SHOP_CATEGORIES: PackedStringArray = ["bank", "combat", "tools", "materials"]  # M8 adds "lanes"
-const SHOP_FORMULAS: PackedStringArray = ["bank_slot", "armory_slot"]
 ## Vendors (stalls) the shop page groups the entries under; the page lists them in this order (P-04).
-const SHOP_VENDORS: PackedStringArray = ["bottegaia", "fabbro", "deposito", "armaiolo", "mercante_armature"]
+const SHOP_VENDORS: PackedStringArray = ["bottegaia", "fabbro", "armaiolo", "mercante_armature"]  # M12: "deposito" has no entries
 const SHOP_FIELDS: PackedStringArray = ["id", "name", "description", "category", "vendor", "cost", "max_purchases",
 	"requires", "effect"]
 
@@ -85,6 +85,11 @@ static func _item(v: DataValidatorRules, e: Dictionary, file_category: String) -
 			v.fail("field 'stone.modifiers' needs at least 1 entries (a stone without effect is decorative)")
 	if _sub_object(v, e, "blueprint", category == "blueprint"):
 		DataValidatorM10.blueprint(v, e)
+	if _sub_object(v, e, "bag", category == "bag"):
+		v.keys(e["bag"] as Dictionary, ["slots"], "bag")
+		v.integer(e["bag"] as Dictionary, "slots", 1, BAG_SLOTS_MAX, "bag")
+		if DataValidatorRules.is_int(e.get("value")) and int(e["value"]) != 0:
+			v.fail("a bag must have value 0 (it cannot be sold)")
 	if _sub_object(v, e, "currency", category == "currency"):
 		var currency: Dictionary = e["currency"] as Dictionary
 		v.keys(currency, ["effect"], "currency")
@@ -195,11 +200,10 @@ static func validate_shop(v: DataValidatorRules, files: Dictionary[String, Dicti
 			v.one_of(e, "vendor", SHOP_VENDORS)
 			DataValidatorM10.shop_entry(v, e)
 			v.integer(e, "max_purchases", 0)
-			var cost: Dictionary = _one_of_two(v, e, "cost", "gold", "formula")
-			if cost.has("gold"):
+			var cost: Dictionary = v.object(e, "cost")
+			v.keys(cost, ["gold"], "cost")  # M12: the price is always gold (no cost.formula)
+			if e.get("cost") is Dictionary:
 				v.integer(cost, "gold", 1, DataValidatorRules.NO_LIMIT, "cost")
-			elif cost.has("formula"):
-				v.one_of(cost, "formula", SHOP_FORMULAS, "cost")
 			var req: Dictionary = v.object(e, "requires")
 			v.keys(req, ["entries", "skills", "total_level", "character"], "requires")
 			if req.has("entries"):

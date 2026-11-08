@@ -2,18 +2,18 @@ extends GutTest
 ## StatRegistry: building from the parsed stats array, errors on malformed entries, info and clamp_total.
 
 const STATS_PATH: String = "res://data/config/stats.json"
-const MVP_STAT_COUNT: int = 25
+const MVP_STAT_COUNT: int = 23
 
 
 func test_from_array_registers_valid_stats() -> void:
 	var errors: PackedStringArray = []
 	var registry: StatRegistry = StatRegistry.from_array([_stat("skill_interval_pct", -80, 100),
-		_stat("bank_slots", 0, 10000)], errors)
+		_stat("test_flat_stat", 0, 10000)], errors)
 	assert_eq(errors.size(), 0, str(errors))
 	assert_true(registry.has(&"skill_interval_pct"))
-	assert_true(registry.has(&"bank_slots"))
+	assert_true(registry.has(&"test_flat_stat"))
 	assert_false(registry.has(&"unknown_stat"))
-	assert_eq(registry.ids(), [&"skill_interval_pct", &"bank_slots"] as Array[StringName])
+	assert_eq(registry.ids(), [&"skill_interval_pct", &"test_flat_stat"] as Array[StringName])
 
 
 func test_info_returns_all_fields() -> void:

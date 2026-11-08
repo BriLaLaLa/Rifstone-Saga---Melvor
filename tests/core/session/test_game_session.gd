@@ -5,7 +5,7 @@ extends GutTest
 ## registration used by `_create_systems`.
 
 const NOW_MS: int = 1793603600000
-const SOURCE_STAT: StringName = &"bank_slots"
+const SOURCE_STAT: StringName = &"loot_bag_slots"
 const SESSION_SOURCE: String = "res://core/session/game_session.gd"
 const MAX_SESSION_LINES: int = 200
 

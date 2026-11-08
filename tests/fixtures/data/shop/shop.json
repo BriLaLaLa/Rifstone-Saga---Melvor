@@ -1,19 +1,19 @@
 {
   "entries": [
     {
-      "id": "bank_slot",
-      "name": "Casella della bank",
-      "category": "bank", "vendor": "deposito",
-      "description": "Una casella in più.",
+      "id": "test_pocket",
+      "name": "Tasca di prova",
+      "category": "combat", "vendor": "bottegaia",
+      "description": "Una tasca in più.",
       "cost": {
-        "formula": "bank_slot"
+        "gold": 100
       },
       "max_purchases": 150,
       "requires": {},
       "effect": {
         "modifiers": [
           {
-            "stat": "bank_slots",
+            "stat": "loot_bag_slots",
             "value": 1
           }
         ]
@@ -22,7 +22,7 @@
     {
       "id": "test_upgrade_1",
       "name": "Miglioria di prova I",
-      "category": "bank", "vendor": "deposito",
+      "category": "bank", "vendor": "bottegaia",
       "description": "Primo livello.",
       "cost": {
         "gold": 1000
@@ -41,7 +41,7 @@
     {
       "id": "test_upgrade_2",
       "name": "Miglioria di prova II",
-      "category": "bank", "vendor": "deposito",
+      "category": "bank", "vendor": "bottegaia",
       "description": "Secondo livello.",
       "cost": {
         "gold": 5000

@@ -26,7 +26,7 @@ var _session: GameSession = null
 func before_all() -> void:
 	DirAccess.make_dir_recursive_absolute(_tmp_config)
 	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_ROOT.path_join("balance.json")))
-	(balance["armory"] as Dictionary)["base_slots"] = SMALL_ARMORY_SLOTS
+	(balance["deposit"] as Dictionary)["base_slots"] = SMALL_ARMORY_SLOTS
 	_write(_tmp_config.path_join("balance.json"), JSON.stringify(balance))
 	_write(_tmp_config.path_join("stats.json"), FileAccess.get_file_as_string(CONFIG_ROOT.path_join("stats.json")))
 	_small_data = GameData.load_from_dirs(FIXTURE_ROOT, _tmp_config)
@@ -147,9 +147,9 @@ func test_swap_in_full_armory_works() -> void:
 	TestFactory.set_character_level(_session, 10)
 	_session.equipment.equip(low)
 	_fill_armory()
-	assert_eq(_session.armory.used(), _session.armory.capacity(), "Armory must be full")
+	assert_eq(_session.armory.used(), _session.deposit.capacity(), "Armory must be full")
 	assert_true(_session.equipment.equip(high).ok, "the piece worn leaves a place for the one that returns")
-	assert_eq(_session.armory.used(), _session.armory.capacity())
+	assert_eq(_session.armory.used(), _session.deposit.capacity())
 
 
 func test_two_handed_weapon_returns_offhand() -> void:
@@ -206,7 +206,7 @@ func test_two_handed_with_full_armory_needs_room_for_both_pieces() -> void:
 	_session.equipment.equip(shield)
 	var great: int = _piece(GREAT)
 	_fill_armory()
-	assert_eq(_session.armory.used(), _session.armory.capacity(), "Armory must be full")
+	assert_eq(_session.armory.used(), _session.deposit.capacity(), "Armory must be full")
 	watch_signals(_session.events)
 	var before: float = _session.modifiers.total(&"power_bonus")
 	assert_eq(_session.equipment.equip(great).reason, Reasons.ARMORY_FULL, "two pieces would return for one place")

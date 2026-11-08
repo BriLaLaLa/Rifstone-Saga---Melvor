@@ -45,10 +45,8 @@ const EXPECTED_BALANCE: Dictionary = {
 	"mastery.pool_warning_pct": 95.0,
 	"action.min_interval_ms": 250.0,
 	"gathering.rift_shard_base_chance_pct": 0.5,
-	"bank.base_slots": 24.0,
-	"bank.slot_cost_base": 400.0,
-	"bank.slot_cost_growth": 1.09,
-	"bank.slot_cost_cap": 2000000.0,
+	"deposit.base_slots": 60.0,
+	"deposit.bag_slots": 6.0,
 	"combat.acc_level_offset": 8.0,
 	"combat.acc_bonus_offset": 50.0,
 	"combat.maxhit_level_offset": 10.0,
@@ -92,10 +90,6 @@ const EXPECTED_BALANCE: Dictionary = {
 	"abilities.slot_levels.0": 1.0,
 	"abilities.slot_levels.1": 1.0,
 	"abilities.slot_levels.2": 30.0,
-	"armory.base_slots": 40.0,
-	"armory.slot_cost_base": 1000.0,
-	"armory.slot_cost_growth": 1.12,
-	"armory.slot_cost_cap": 2000000.0,
 	"blueprint.duration_base_min": 10.0,
 	"blueprint.duration_per_grade_min": 7.0,
 	"blueprint.xp_mult": 1.5,
@@ -135,7 +129,6 @@ const EXPECTED_STATS: Dictionary = {
 	"double_item_chance": [0.0, 100.0, "F-06"],
 	"preservation_chance": [0.0, 80.0, "F-08"],
 	"rift_shard_chance": [0.0, 100.0, "F-07"],
-	"bank_slots": [0.0, 10000.0, "F-16"],
 	"accuracy_bonus": [-1000.0, 100000.0, "F-20"],
 	"accuracy_pct": [-90.0, 1000.0, "F-20"],
 	"power_bonus": [-1000.0, 100000.0, "F-22"],
@@ -150,7 +143,6 @@ const EXPECTED_STATS: Dictionary = {
 	"loot_bag_slots": [0.0, 100.0, "F-33"],
 	"auto_loot": [0.0, 1.0, "10.6"],
 	"auto_eat_tier": [0.0, 3.0, "F-30"],
-	"armory_slots": [0.0, 10000.0, "F-82"],
 	"item_rarity_pct": [0.0, 1000.0, "F-84"],
 	"block_chance": [0.0, 50.0, "F-75"],
 	"upgrade_success_pct": [0.0, 300.0, "F-86"],
@@ -158,7 +150,7 @@ const EXPECTED_STATS: Dictionary = {
 
 const STAT_FIELDS: Array[String] = ["id", "name", "format", "min", "max", "description", "formula", "test"]
 const STAT_FORMATS: Array[String] = ["pct", "flat", "flag"]
-const LATER_MILESTONE_STATS: Array[String] = ["fracture_duration_pct", "parallel_lanes"]
+const LATER_MILESTONE_STATS: Array[String] = ["fracture_duration_pct"]
 const LATER_MILESTONE_BALANCE_KEYS: Array[String] = [
 	"fractures", "parallel",
 ]
@@ -253,7 +245,7 @@ func test_balance_has_no_later_milestone_sections() -> void:
 
 func test_stats_has_exactly_24_stats() -> void:
 	var stats: Array = _stats()
-	assert_eq(stats.size(), 25, "stats.json lists the 24 stats of M1-M6 and upgrade_success_pct (M7)")
+	assert_eq(stats.size(), 23, "stats.json lists the 25 stats of M1-M7 minus bank_slots and armory_slots (M12)")
 	var ids: Array[String] = []
 	for entry: Variant in stats:
 		if entry is Dictionary:
