@@ -82,7 +82,6 @@ I documenti sono già scritti con questi default (R-01). Valgono finché l'utent
 | # | Domanda | Default proposto | Dove impatta |
 |---|---|---|---|
 | Q48 | Durata del craft di un progetto | 10 min al grado 1, +7 min per grado: 10, 17, 24, 31, 38, 45, 52, **59** min (la fonte dice "60 al grado 8": con +7 per grado il grado 8 dà 59; vale la regola +7) | F-90, `balance.json` `blueprint.duration_*` |
-| Q49 | Frequenza dei progetti | circa 1 progetto all'ora nell'area del proprio livello; 1 su 3 Pietre del Rift | M10-04, F-84 |
 | Q50 | Livello del Fabbro per scegliere un affisso | 50 | F-92, `blueprint.choose_affix_level` |
 | Q51 | Kit iniziale | spada, spadone, scudo comuni di grado 1 + 3 attrezzi a +0 + 20 pesci cotti di grado 1; spada e scudo indossati, cibo scelto (assunzione di R-01, da confermare) | `start.*`, `01_GDD.md` §1.1 |
 | Q52 | Gli id interni cambiano con i nomi? | No: cambiano solo i nomi visibili (`name`, `description`); gli id restano | M10-05 |
@@ -96,3 +95,4 @@ I documenti sono già scritti con questi default (R-01). Valgono finché l'utent
 | Q6 | Munizioni per Mira e rune/consumabili per Arcano? | Niente munizioni né rune; la classe dell'MVP usa solo spade (D6); archi e bastoni tornano con le loro classi | 2026-11-03 (`VISIONE_V2.md` §8) |
 | Q9 | Stance con bonus nascosti? | La stance è tolta: tutta l'XP va al personaggio (D3, F-28) | 2026-11-03 |
 | Q10 | Attacchi speciali o abilità delle armi? | Sì: abilità attive automatiche della classe, 2 per assetto (`01_GDD.md` §20.2, M6) | 2026-11-03 |
+| Q49 | Frequenza dei progetti (in 8 h offline nelle Miniere liv. 50 nessun progetto) | Verificata, nessuna ritaratura dei dati: ~1 progetto/h (mostri + 1 Pietra su 3) in tutte le aree; lo zero osservato era varianza (probabilità < 0,5% con il valore atteso). `sim_combat` riporta ora `bp/h` e `bp lost/h` | 2026-11-08 |
