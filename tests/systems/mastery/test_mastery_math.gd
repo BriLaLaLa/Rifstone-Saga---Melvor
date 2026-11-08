@@ -74,11 +74,11 @@ func test_rule_multiplier_without_threshold_is_zero() -> void:
 	assert_eq(MasteryMath.rule_multiplier(_rule(0, 0), 99), 0)
 
 
-## F-11 gathering examples with the real forestry rules: L 35 -> +3; L 99 -> +9 +5 = +14.
-func test_f11_gathering_examples_with_real_rules() -> void:
+## M12: the gathering trades have no F-11 rules any more (milestones of F-103 and F-108 instead).
+func test_gathering_skills_have_no_f11_rules() -> void:
 	var rules: Array[MasteryBonusRule] = TestFactory.real_data().skill(GATHERING_SKILL).mastery_bonuses
-	assert_eq(_bonus(rules, 35), {&"double_item_chance": 3.0})
-	assert_eq(_bonus(rules, 99), {&"double_item_chance": 14.0})
+	assert_true(rules.is_empty())
+	assert_eq(_bonus(rules, 99), {})
 
 
 ## F-11 artisan examples with the real forging rules: L 50 -> +7.5 preservation; L 99 -> +13.5 and -5% interval.

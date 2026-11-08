@@ -16,7 +16,7 @@
     {
       "id": "first_shard",
       "title": "Un frammento del Rift",
-      "text": "Hai trovato un frammento del Rift. Serve alla raffinazione dei pezzi dal +6 e alla Legatura del Rift: conservalo.",
+      "text": "Hai trovato un frammento del Rift. Serve alla raffinazione dei pezzi dal +6 e all'Incisore: conservalo.",
       "trigger": "first_shard"
     },
     {

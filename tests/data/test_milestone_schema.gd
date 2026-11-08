@@ -1,7 +1,7 @@
 extends GutTest
 ## Validator rules of the mastery milestones (docs/04_DATA_SCHEMA.md §3, §4, §6; F-103, F-108): the balance section, the
 ## 3 `milestones` of every gathering action in the order 25/50/99, no `mastery_bonuses` for gathering skills, different
-## trees. One broken thing per test, in a copy of the fixture data. The real data have no milestones yet (M12-05).
+## trees. One broken thing per test, in a copy of the fixture data. The real data are checked too.
 
 const V: GDScript = preload("res://tests/core/data/test_data_validator.gd")
 const ACTIONS: String = "test_gather.json"
@@ -31,11 +31,23 @@ func test_fixtures_are_valid() -> void:
 	assert_eq(V.validate(V.fixture_raw()), PackedStringArray())
 
 
-func test_real_data_without_milestones_is_valid_until_m12_05() -> void:
+
+func test_all_24_real_gathering_actions_have_the_3_milestones() -> void:
 	var data: GameData = TestFactory.real_data()
 	assert_true(data.is_valid())
-	assert_eq(data.action(&"cut_redbirch").milestones.size(), 0)
-	pending("M12-05: all 24 real gathering actions have the 3 milestones")
+	var count: int = 0
+	for skill: StringName in [&"forestry", &"quarrying", &"angling"]:
+		for action: ActionDef in data.actions_for_skill(skill):
+			count += 1
+			assert_eq(action.milestones.size(), 3, action.id)
+			assert_eq([action.milestones[0].at, action.milestones[1].at, action.milestones[2].at], [25, 50, 99], action.id)
+	assert_eq(count, 24)
+
+
+func test_a_gathering_action_without_milestones_is_refused() -> void:
+	var r: Dictionary = V.fixture_raw()
+	_twig(r).erase("milestones")
+	_expect(r, [ACTIONS, "gather_twig", "missing field 'milestones'"])
 
 
 func test_milestones_are_parsed() -> void:

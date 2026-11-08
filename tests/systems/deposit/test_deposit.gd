@@ -43,9 +43,7 @@ func test_six_runic_bags_example() -> void:
 	for item: ItemDef in TestFactory.real_data().items():
 		if item.category == &"bag" and item.bag_slots == 24:
 			runic.append(item.id)
-	if runic.is_empty():
-		pending("M12-05: the real runic bag (+24) arrives with the content task: 60 + 6 x 24 = 204")
-		return
+	assert_eq(runic, [&"bag_runic"] as Array[StringName])
 	var real: GameSession = autofree(TestFactory.session(3, TestFactory.real_data()))
 	TestFactory.give(real, runic[0], 6)
 	for slot: int in 6:

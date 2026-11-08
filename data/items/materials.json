@@ -1,5 +1,5 @@
 {
-  "_doc": "Materiali (02_FORMULAS.md §8.1, colonna Valore). Legni del Boscaiolo T1-T8: sort_order 10-80; minerali del Minatore T1-T8: 110-180; pesci crudi del Pescatore T1-T8: 210-280; lingotti del Fabbro e materiali di drop. Le impugnature, i telai e i manici sono in components.json (M10).",
+  "_doc": "Materiali (02_FORMULAS.md §8.1, colonna Valore). Legni del Boscaiolo T1-T8: sort_order 10-80; minerali del Minatore T1-T8: 110-180; pesci crudi del Pescatore T1-T8: 210-280; lingotti del Fabbro e materiali di drop. Le impugnature, i telai e i manici sono in components.json (M10). Da M12: Polvere del Rift, Lastra runica e i 24 sottoprodotti della maestria (traguardo 25, 02_FORMULAS.md §8.8b).",
   "items": [
     {"id":"redbirch_log","name":"Legno di betulla","category":"material","icon":"res://assets/icons/items/redbirch_log.svg","value":1,"sort_order":10,"description":"Legno chiaro venato di rosso, comune nelle Pianure di Roccarossa."},
     {"id":"ashpine_log","name":"Legno di pino","category":"material","icon":"res://assets/icons/items/ashpine_log.svg","value":3,"sort_order":20,"description":"Grigio come la cenere: cresce dove la brace ha già bruciato tutto."},
@@ -49,6 +49,32 @@
     {"id":"knight_plate","name":"Placca del caduto","category":"material","icon":"res://assets/icons/items/knight_plate.svg","value":78,"sort_order":920,"description":"Frammento d'armatura inciso con il sigillo della soglia."},
     {"id":"colossus_shard","name":"Scheggia di colosso","category":"material","icon":"res://assets/icons/items/colossus_shard.svg","value":110,"sort_order":930,"description":"Cristallo viola grande come un pugno, caldo di Rift."},
     {"id":"threshold_ash","name":"Cenere della Soglia","category":"material","icon":"res://assets/icons/items/threshold_ash.svg","value":55,"sort_order":940,"description":"Cenere fine che non si posa mai sul terreno."},
-    {"id":"warding_seal","name":"Sigillo di protezione","category":"material","icon":"res://assets/icons/items/warding_seal.svg","value":0,"sort_order":950,"description":"Disco di cera rossa con un sigillo del Rift: protegge un pezzo da un tentativo di raffinazione fallito."}
+    {"id":"warding_seal","name":"Sigillo di protezione","category":"material","icon":"res://assets/icons/items/warding_seal.svg","value":0,"sort_order":950,"description":"Disco di cera rossa con un sigillo del Rift: protegge un pezzo da un tentativo di raffinazione fallito."},
+    {"id":"rift_dust","name":"Polvere del Rift","category":"material","icon":"res://assets/icons/items/rift_dust.svg","value":1,"sort_order":960,"description":"Cade dai mostri e dai Monoliti del Rift: l'Incisore la cristallizza in Cristalli."},
+    {"id":"rune_slab","name":"Lastra runica","category":"material","icon":"res://assets/icons/items/rune_slab.svg","value":0,"sort_order":970,"description":"Una lastra di roccia levigata, pronta per essere incisa con una runa."},
+    {"id":"birch_resin","name":"Resina","category":"material","icon":"res://assets/icons/items/birch_resin.svg","value":4,"sort_order":1001,"description":"Goccia ambrata che cola dalla corteccia della betulla."},
+    {"id":"pine_cone","name":"Pigna","category":"material","icon":"res://assets/icons/items/pine_cone.svg","value":0,"sort_order":1002,"description":"Chiusa e resinosa, cade dal pino quando il vento cambia."},
+    {"id":"oak_acorn","name":"Ghianda","category":"material","icon":"res://assets/icons/items/oak_acorn.svg","value":0,"sort_order":1003,"description":"Dura e lucida: la quercia ne fa pochissime."},
+    {"id":"elm_samara","name":"Samara","category":"material","icon":"res://assets/icons/items/elm_samara.svg","value":0,"sort_order":1004,"description":"Un seme alato dell'olmo, leggero come un sospiro."},
+    {"id":"yew_berry","name":"Bacca","category":"material","icon":"res://assets/icons/items/yew_berry.svg","value":0,"sort_order":1005,"description":"Rossa e velenosa, nascosta tra gli aghi del tasso."},
+    {"id":"ebony_knot","name":"Nodo","category":"material","icon":"res://assets/icons/items/ebony_knot.svg","value":0,"sort_order":1006,"description":"Un nodo nero e levigato, durissimo da scalfire."},
+    {"id":"ember_coal","name":"Brace","category":"material","icon":"res://assets/icons/items/ember_coal.svg","value":0,"sort_order":1007,"description":"Un tizzone che non si spegne, staccato dal legno ardente."},
+    {"id":"rift_bark","name":"Corteccia","category":"material","icon":"res://assets/icons/items/rift_bark.svg","value":0,"sort_order":1008,"description":"Un lembo di corteccia venato di viola, ancora tiepido."},
+    {"id":"copper_nugget","name":"Pepita","category":"material","icon":"res://assets/icons/items/copper_nugget.svg","value":4,"sort_order":1011,"description":"Un grumo di rame puro, rosso e pesante."},
+    {"id":"iron_slag","name":"Scoria","category":"material","icon":"res://assets/icons/items/iron_slag.svg","value":0,"sort_order":1012,"description":"Residuo vetroso della roccia di ferro, ricco di venature."},
+    {"id":"dark_iron_clod","name":"Zolla","category":"material","icon":"res://assets/icons/items/dark_iron_clod.svg","value":0,"sort_order":1013,"description":"Un blocco compatto di ferro scuro, freddo al tatto."},
+    {"id":"black_iron_graphite","name":"Grafite","category":"material","icon":"res://assets/icons/items/black_iron_graphite.svg","value":0,"sort_order":1014,"description":"Polvere nera e untuosa, lascia il segno su tutto."},
+    {"id":"silver_flake","name":"Lamella","category":"material","icon":"res://assets/icons/items/silver_flake.svg","value":0,"sort_order":1015,"description":"Una lamina sottile d'argento runico, quasi trasparente."},
+    {"id":"obsidian_geode","name":"Geoda","category":"material","icon":"res://assets/icons/items/obsidian_geode.svg","value":0,"sort_order":1016,"description":"Una pietra cava: dentro luccicano cristalli neri."},
+    {"id":"astrite_glow","name":"Bagliore","category":"material","icon":"res://assets/icons/items/astrite_glow.svg","value":0,"sort_order":1017,"description":"Un frammento che emette una luce propria, debole e calda."},
+    {"id":"riftite_vein","name":"Vena","category":"material","icon":"res://assets/icons/items/riftite_vein.svg","value":0,"sort_order":1018,"description":"Una vena di riftite estratta intera, vibra piano."},
+    {"id":"trout_scale","name":"Squama","category":"material","icon":"res://assets/icons/items/trout_scale.svg","value":4,"sort_order":1021,"description":"Una scaglia argentea, sottile come un'unghia."},
+    {"id":"perch_gill","name":"Branchia","category":"material","icon":"res://assets/icons/items/perch_gill.svg","value":0,"sort_order":1022,"description":"Un arco di branchia grigia, ancora umido."},
+    {"id":"carp_bone","name":"Lisca","category":"material","icon":"res://assets/icons/items/carp_bone.svg","value":0,"sort_order":1023,"description":"Una lisca lunga e flessibile, buona per cucire."},
+    {"id":"pike_fin","name":"Pinna","category":"material","icon":"res://assets/icons/items/pike_fin.svg","value":0,"sort_order":1024,"description":"Una pinna rigida e dentellata."},
+    {"id":"eel_roe","name":"Ovaia","category":"material","icon":"res://assets/icons/items/eel_roe.svg","value":0,"sort_order":1025,"description":"Uova minuscole, scure e lucide."},
+    {"id":"sturgeon_caviar","name":"Caviale","category":"material","icon":"res://assets/icons/items/sturgeon_caviar.svg","value":0,"sort_order":1026,"description":"Perle nere e salate, un lusso delle acque fredde."},
+    {"id":"lantern_lure","name":"Esca","category":"material","icon":"res://assets/icons/items/lantern_lure.svg","value":0,"sort_order":1027,"description":"L'organo luminoso del pesce lanterna, brilla nell'acqua."},
+    {"id":"leviathan_pearl","name":"Perla","category":"material","icon":"res://assets/icons/items/leviathan_pearl.svg","value":0,"sort_order":1028,"description":"Una perla viola, nata nelle pozze del Rift."}
   ]
 }

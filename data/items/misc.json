@@ -1,8 +1,8 @@
 {
-  "_doc": "Oggetti vari. rift_shard è obbligatorio (F-07, Legatura del Rift); value 0 = non vendibile (proposta M1-12).",
+  "_doc": "Oggetti vari. rift_shard è obbligatorio (F-07, Incisore); value 0 = non vendibile (proposta M1-12).",
   "items": [
     {"id": "rift_shard", "name": "Frammento del Rift", "category": "misc",
      "icon": "res://assets/icons/items/rift_shard.svg", "value": 0, "sort_order": 10,
-     "description": "Una scheggia caduta dalle Pietre del Rift, ancora calda al tatto."}
+     "description": "Una scheggia caduta dai Monoliti del Rift, ancora calda al tatto."}
   ]
 }

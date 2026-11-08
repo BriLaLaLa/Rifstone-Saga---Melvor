@@ -49,6 +49,8 @@
     {"id": "carve_riftspruce_shieldcore", "name": "Intagliare anima dello scudo di legno del Rift", "level": 90, "interval_ms": 2000, "xp": 261,
      "mastery": true, "inputs": [{"item": "riftspruce_log", "qty": 2}], "outputs": [{"item": "riftspruce_shieldcore", "qty": 1}]},
     {"id": "carve_riftspruce_handle", "name": "Intagliare manico di legno del Rift", "level": 90, "interval_ms": 1600, "xp": 116,
-     "mastery": true, "inputs": [{"item": "riftspruce_log", "qty": 1}], "outputs": [{"item": "riftspruce_handle", "qty": 1}]}
+     "mastery": true, "inputs": [{"item": "riftspruce_log", "qty": 1}], "outputs": [{"item": "riftspruce_handle", "qty": 1}]},
+    {"id":"sew_bag_canvas","name":"Cucire borsa di tela","level":1,"interval_ms":2500,"xp":12,"mastery":true,"inputs":[{"item":"redbirch_log","qty":10},{"item":"raider_bandage","qty":3}],"outputs":[{"item":"bag_canvas","qty":1}]},
+    {"id":"sew_bag_reinforced","name":"Cucire borsa rinforzata","level":45,"interval_ms":4000,"xp":70,"mastery":true,"inputs":[{"item":"shardcedar_log","qty":15},{"item":"birch_resin","qty":3},{"item":"copper_nugget","qty":3},{"item":"trout_scale","qty":3}],"outputs":[{"item":"bag_reinforced","qty":1}]}
   ]
 }

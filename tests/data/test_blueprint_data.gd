@@ -73,10 +73,14 @@ func test_components_follow_8_2() -> void:
 		assert_eq(recipe.outputs[0].item_id, plate.id)
 
 
-func test_woodwright_recipes_make_components() -> void:
+func test_woodwright_recipes_make_components_and_the_two_bags() -> void:
+	var bags: int = 0
 	for action: ActionDef in _data.actions_for_skill(&"woodwright"):
-		assert_eq(_data.item(action.outputs[0].item_id).category, &"component", action.id)
-	assert_eq(_data.actions_for_skill(&"woodwright").size(), 24)
+		var category: StringName = _data.item(action.outputs[0].item_id).category
+		bags += 1 if category == &"bag" else 0
+		assert_true(category == &"component" or category == &"bag", action.id)
+	assert_eq(bags, 2, "M12: Borsa di tela and Borsa rinforzata")
+	assert_eq(_data.actions_for_skill(&"woodwright").size(), 26)
 
 
 func test_tool_upgrade_items_are_the_components_of_the_grades() -> void:
@@ -253,6 +257,16 @@ func test_every_blueprint_and_every_drop_material_has_a_source() -> void:
 			dropped[drop.item_id] = true
 	for bp: ItemDef in _data.blueprints():
 		assert_true(dropped.has(bp.id), "%s has no source" % bp.id)
+	# M12: the raw materials of the loot tables and the byproducts of the milestones are sources of their own
+	for table: LootTableDef in _data.loot_tables():
+		for entry: DropEntry in table.entries:
+			dropped[entry.item_id] = true
+	for skill: SkillDef in _data.skills():
+		for action: ActionDef in _data.actions_for_skill(skill.id):
+			for output: ItemQty in action.outputs:
+				dropped[output.item_id] = true
+			for milestone: MilestoneDef in action.milestones:
+				dropped[milestone.item] = true
 	for item: ItemDef in _data.items():
 		if item.category == &"material" and item.sort_order >= 700:
 			assert_true(dropped.has(item.id), "%s is an orphan" % item.id)

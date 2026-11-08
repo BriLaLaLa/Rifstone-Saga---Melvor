@@ -117,9 +117,24 @@ func test_new_game_clears_the_sources() -> void:
 	assert_false(_session.modifiers.has_source(TRADE))
 
 
-## The real data are still without milestones (M12-05): no crash, no bonus for the gathering skills.
+## F-108 on the real Boscaiolo (trade bonus -0.5 per resource at 99, resource bonus -8 on its own action only).
 func test_real_data_milestones() -> void:
-	pending("M12-05: the real gathering actions get their milestones (Boscaiolo: 3 resources at 99 -> -1.5, 8 -> -4.0)")
+	var real: GameSession = autofree(TestFactory.session_no_kit(1, TestFactory.real_data()))
+	var ids: Array[StringName] = [&"cut_redbirch", &"cut_ashpine", &"cut_thornalder", &"cut_duskelm", &"cut_shardcedar",
+			&"cut_veilcypress", &"cut_emberlarch", &"cut_riftspruce"]
+	var actions: Dictionary = {}
+	for index: int in 3:
+		actions[ids[index]] = _table.xp_for_level(99)
+	real.mastery.from_save({"forestry": {"pool": 0, "actions": actions}})
+	real.rebuild_modifiers()
+	var interval: StringName = &"skill_interval_pct"
+	assert_eq(real.modifiers.total(interval, ModifierContext.for_action(&"forestry", &"cut_veilcypress")), -1.5, "3 resources")
+	for id: StringName in ids:
+		actions[id] = _table.xp_for_level(99)
+	real.mastery.from_save({"forestry": {"pool": 0, "actions": actions}})
+	real.rebuild_modifiers()
+	assert_eq(real.modifiers.total(interval, ModifierContext.for_action(&"forestry", &"cut_veilcypress")), -12.0,
+			"8 resources: -4.0 of the trade and -8 of its own resource")
 
 
 func _double(action_id: StringName) -> float:

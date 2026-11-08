@@ -1,6 +1,6 @@
 extends "res://tests/data/engraver_data_base.gd"
 ## Validator rules of data/combat/loot_tables.json and of the `loot_tables` references (docs/04_DATA_SCHEMA.md §8b):
-## entries, item categories (no equipment), orphan tables, unknown references, the optional file. Fixture tables:
+## entries, item categories (no equipment), orphan tables, unknown references, the mandatory file. Fixture tables:
 ## test_area_loot (area), test_monster_loot (monster), test_stone_loot (stone).
 
 const FILE: String = "loot_tables.json"
@@ -22,11 +22,16 @@ func test_fixtures_are_valid() -> void:
 	assert_eq(V.validate(raw()), PackedStringArray())
 
 
-func test_real_data_has_no_tables_until_m12_05() -> void:
+func test_real_data_has_the_tables() -> void:
 	var data: GameData = TestFactory.real_data()
-	assert_true(data.is_valid(), "the file is optional until the contents exist")
-	assert_eq(data.loot_tables().size(), 0)
-	pending("M12-05: data/combat/loot_tables.json with the tables of the areas, the monsters and the Monoliti (obbligatorio)")
+	assert_true(data.is_valid())
+	assert_eq(data.loot_tables().size(), 8, "4 areas and 4 Monoliti (test_loot_tables_content.gd)")
+
+
+func test_the_file_is_mandatory() -> void:
+	var r: Dictionary = raw()
+	r["loot_tables"] = {}
+	expect(r, ["section 'loot_tables'", "expected one file, got 0"])
 
 
 func test_an_item_must_exist() -> void:

@@ -9,15 +9,12 @@ const CONFIG_ROOT: String = "res://data/config"
 const SKILLS: Array[Array] = [
 	["forestry", "Boscaiolo", "gathering"], ["quarrying", "Minatore", "gathering"],
 	["angling", "Pescatore", "gathering"], ["forging", "Fabbro", "artisan"], ["hearthcraft", "Cuoco", "artisan"],
-	["woodwright", "Falegname", "artisan"], ["riftbinding", "Legatura del Rift", "artisan"],
+	["woodwright", "Falegname", "artisan"], ["riftbinding", "Incisore", "artisan"],
 ]
 ## Ids that the reform removed (D3, Q37): combat skills, bows and staves.
 const REMOVED_SKILLS: PackedStringArray = ["blade", "marksmanship", "arcana", "vitality", "guard"]
 const REMOVED_ITEM_SUFFIXES: PackedStringArray = ["_blade", "_bow", "_staff"]
-## F-11 rules as [every_levels or at_level key, level, stat, value].
-const GATHERING_BONUSES: Array[Array] = [
-	["every_levels", 10, "double_item_chance", 1.0], ["at_level", 99, "double_item_chance", 5.0],
-]
+## F-11 rules as [every_levels or at_level key, level, stat, value] (artisan only: the gathering trades use the milestones).
 const ARTISAN_BONUSES: Array[Array] = [
 	["every_levels", 10, "preservation_chance", 1.5], ["at_level", 99, "skill_interval_pct", -5.0],
 ]
@@ -38,6 +35,13 @@ const FORESTRY_NODES: Array[Array] = [
 	["forestry_n6_master", 20.0, ["forestry_n4_rift_bark", "forestry_n5_patience"],
 			[["skill_interval_pct", -5.0], ["double_item_chance", 5.0]]],
 ]
+## 02_FORMULAS.md §8.8b, the modifiers of the nodes n1..n6 of the other gathering trades (costs and requires as forestry).
+const TRADE_NODE_MODS: Dictionary = {
+	"quarrying": [[["double_item_chance", 2.0]], [["rift_shard_chance", 0.25]], [["mastery_xp_pct", 4.0]],
+		[["double_item_chance", 4.0]], [["skill_xp_pct", 5.0]], [["double_item_chance", 6.0], ["rift_shard_chance", 0.25]]],
+	"angling": [[["skill_xp_pct", 3.0]], [["skill_interval_pct", -3.0]], [["rift_shard_chance", 0.25]],
+		[["skill_xp_pct", 5.0]], [["double_item_chance", 3.0]], [["skill_interval_pct", -5.0], ["rift_shard_chance", 0.5]]],
+}
 ## §8.8: "the other skills with mastery follow the same schema (6 nodes, total 55-65%)".
 const NODE_TOTAL_MIN_PCT: float = 55.0
 const NODE_TOTAL_MAX_PCT: float = 65.0
@@ -135,7 +139,9 @@ func test_no_removed_ids_in_items_and_actions() -> void:
 
 func test_mastery_bonuses_follow_f11() -> void:
 	for e: Dictionary in _entries("skills", "skills"):
-		var expected: Array[Array] = GATHERING_BONUSES if e["category"] == "gathering" else ARTISAN_BONUSES
+		var expected: Array[Array] = []
+		if e["category"] != "gathering":
+			expected = ARTISAN_BONUSES
 		var rules: Array = e.get("mastery_bonuses", [])
 		assert_eq(rules.size(), expected.size(), "rules of %s" % e["id"])
 		for index: int in mini(rules.size(), expected.size()):
@@ -240,7 +246,7 @@ func test_forestry_nodes_follow_8_8() -> void:
 		_assert_node_like(nodes[index] as Dictionary, FORESTRY_NODES[index], "forestry", nodes)
 
 
-func test_quarrying_and_angling_nodes_follow_the_forestry_schema() -> void:
+func test_quarrying_and_angling_nodes_follow_8_8b() -> void:
 	var by_skill: Dictionary = _nodes_by_skill()
 	for skill: String in ["quarrying", "angling"]:
 		var nodes: Array = by_skill.get(skill, [])
@@ -248,10 +254,12 @@ func test_quarrying_and_angling_nodes_follow_the_forestry_schema() -> void:
 		for index: int in mini(nodes.size(), FORESTRY_NODES.size()):
 			var prefix: String = "%s_n%d_" % [skill, index + 1]
 			assert_true((nodes[index]["id"] as String).begins_with(prefix), "%s starts with %s" % [nodes[index]["id"], prefix])
-			_assert_node_like(nodes[index] as Dictionary, FORESTRY_NODES[index], skill, nodes)
+			var want: Array = FORESTRY_NODES[index].duplicate()
+			want[3] = (TRADE_NODE_MODS[skill] as Array)[index]
+			_assert_node_like(nodes[index] as Dictionary, want, skill, nodes)
 
 
-# `node` has the cost, the requires (same positions in the n1..n6 order) and the modifiers of the forestry row `want`,
+# `node` has the cost, the requires (same positions in the n1..n6 order) and the modifiers of the row `want`,
 # every modifier scoped to `skill:<skill>`.
 func _assert_node_like(node: Dictionary, want: Array, skill: String, nodes: Array) -> void:
 	var at: String = node["id"] as String
@@ -281,18 +289,6 @@ func test_mastery_node_costs_total_55_to_65_pct() -> void:
 		assert_between(total, NODE_TOTAL_MIN_PCT, NODE_TOTAL_MAX_PCT, "total cost_pct of %s" % skill)
 
 
-## 02_FORMULAS.md §8.7: [level, infusion id, shards, other item, other qty, stat, value, unique, xp, interval_ms].
-const INFUSIONS: Array[Array] = [
-	[1, "inf_swift_hands", 5, "redbirch_log", 10, "skill_interval_pct", -3.0, false, 40, 4000],
-	[15, "inf_bountiful", 8, "ashlead_ore", 10, "double_item_chance", 2.0, false, 70, 4000],
-	[25, "inf_scholar", 12, "seared_redscale", 10, "skill_xp_pct", 6.0, false, 110, 4500],
-	[35, "inf_keen_edge", 16, "duskcobalt_ingot", 5, "accuracy_pct", 4.0, false, 150, 4500],
-	[45, "inf_stoneskin", 20, "glimmerite_ingot", 5, "damage_reduction", 2.0, false, 200, 5000],
-	[55, "inf_deep_roots", 25, "shardcedar_log", 20, "mastery_xp_pct", 10.0, false, 260, 5000],
-	[65, "inf_hearthfire", 30, "seared_mist_barbel", 20, "food_healing_pct", 10.0, false, 330, 5500],
-	[75, "inf_riftsense", 40, "emberheart_ore", 10, "rift_shard_chance", 0.5, true, 420, 5500],
-	[85, "inf_bulwark", 50, "riftite_ingot", 5, "max_hp_flat", 60.0, false, 520, 6000],
-]
 const ARTISAN_NODE_SKILLS: PackedStringArray = ["forging", "hearthcraft", "woodwright", "riftbinding"]
 ## Artisan trees: forestry shape with `preservation_chance` in place of `double_item_chance` / `rift_shard_chance`.
 const ARTISAN_NODES: Array[Array] = [
@@ -305,41 +301,6 @@ const ARTISAN_NODES: Array[Array] = [
 ]
 
 
-func test_infusion_items_and_riftbinding_actions_follow_8_7() -> void:
-	var items: Dictionary = _by_id("items", "items")
-	var actions: Dictionary = _by_id("actions", "actions")
-	var infusion_count: int = 0
-	for id: Variant in items:
-		if items[id]["category"] == "infusion":
-			infusion_count += 1
-	assert_eq(infusion_count, INFUSIONS.size(), "number of infusion items")
-	for row: Array in INFUSIONS:
-		var id: String = row[1]
-		assert_true(items.has(id), "item %s" % id)
-		if items.has(id):
-			var inf: Dictionary = items[id]["infusion"] as Dictionary
-			assert_eq((inf["modifiers"] as Array).size(), 1, "%s modifiers" % id)
-			assert_eq(inf["modifiers"][0]["stat"], row[5], "%s stat" % id)
-			assert_almost_eq(float(inf["modifiers"][0]["value"]), float(row[6]), 0.0001, "%s value" % id)
-			assert_eq(inf.get("unique", false), row[7], "%s unique" % id)
-		var action: Dictionary = {}
-		for a: Dictionary in actions.values():
-			if (a["outputs"] as Array).size() == 1 and a["outputs"][0]["item"] == id:
-				action = a
-		assert_false(action.is_empty(), "action producing %s" % id)
-		if action.is_empty():
-			continue
-		assert_eq(int(action["level"]), row[0], "%s level" % id)
-		assert_eq(int(action["xp"]), row[8], "%s xp" % id)
-		assert_eq(int(action["interval_ms"]), row[9], "%s interval" % id)
-		assert_eq(int(action["outputs"][0]["qty"]), 1, "%s output qty" % id)
-		var inputs: Array = action["inputs"] as Array
-		assert_eq(inputs.size(), 2, "%s inputs" % id)
-		assert_eq([inputs[0]["item"], int(inputs[0]["qty"])], ["rift_shard", row[2]], "%s shards" % id)
-		assert_eq([inputs[1]["item"], int(inputs[1]["qty"])], [row[3], row[4]], "%s other ingredient" % id)
-		assert_true(items.has(row[3]), "ingredient %s exists" % row[3])
-
-
 func test_riftbinding_actions_all_produce_infusions_stones_or_currencies() -> void:
 	var items: Dictionary = _by_id("items", "items")
 	for path: Variant in _raw["actions"]:
@@ -347,7 +308,7 @@ func test_riftbinding_actions_all_produce_infusions_stones_or_currencies() -> vo
 		if content["skill"] == "riftbinding":
 			for e: Dictionary in content["actions"]:
 				assert_true(
-						["infusion", "stone", "currency"].has(items[e["outputs"][0]["item"]]["category"]), "output of %s" % e["id"])
+						["infusion", "stone", "currency", "material"].has(items[e["outputs"][0]["item"]]["category"]), "output of %s" % e["id"])
 
 
 func test_artisan_mastery_nodes_follow_the_artisan_schema() -> void:
@@ -375,7 +336,7 @@ func test_artisan_mastery_nodes_follow_the_artisan_schema() -> void:
 				assert_eq(m.get("scope", "skill:%s" % skill), "skill:%s" % skill, "%s scope" % at)
 		var own: int = 0
 		for a: Dictionary in actions:
-			if (a["id"] as String).begins_with(["smelt_", "forge_", "cook_", "carve_", "bind_"][ARTISAN_NODE_SKILLS.find(skill)]):
+			if (a["id"] as String).begins_with(["smelt_", "forge_", "cook_", "carve_", "engrave_"][ARTISAN_NODE_SKILLS.find(skill)]):
 				own += 1
 		assert_gt(own, 0, "%s has actions with the expected id prefix" % skill)
 
@@ -385,7 +346,7 @@ const STONE_COUNT: int = 12
 const CURRENCY_EFFECTS: Dictionary = {"currency_spark": "to_magic", "currency_flux": "reroll", "currency_crown": "to_rare"}
 
 
-func test_stones_have_modifiers_and_a_riftbinding_recipe() -> void:
+func test_stones_have_modifiers_and_the_recipes_of_the_engraver() -> void:
 	var items: Dictionary = _by_id("items", "items")
 	var actions: Array[Dictionary] = _entries("actions", "actions")
 	var stones: int = 0
@@ -399,8 +360,8 @@ func test_stones_have_modifiers_and_a_riftbinding_recipe() -> void:
 		for a: Dictionary in actions:
 			if not (a["outputs"] as Array).is_empty() and a["outputs"][0]["item"] == id:
 				recipes += 1
-				assert_eq(a["inputs"][0]["item"], "rift_shard", "%s needs shards" % id)
-		assert_eq(recipes, 1, "recipes of %s" % id)
+		# M12: the chips fall from the monsters, the stones and the perfect stones are fused (F-105)
+		assert_eq(recipes, 0 if (id as String).ends_with("_chip") else 1, "recipes of %s" % id)
 	assert_eq(stones, STONE_COUNT, "number of stones")
 
 

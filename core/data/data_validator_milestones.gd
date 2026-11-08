@@ -3,8 +3,6 @@ extends RefCounted
 ## Mastery milestone rules of DataValidator (internal, M12; docs/04_DATA_SCHEMA.md §3, §4, §6, F-103, F-108): the
 ## `mastery.milestones` balance section, the 3 `milestones` of every gathering action (25/50/99), `mastery_bonuses`
 ## forbidden for gathering skills and the mastery trees of the gathering trades not being identical.
-## Transition (M12-05 brings the contents): the rules that need milestones in the data (required on every gathering
-## action, no `mastery_bonuses` on gathering skills, different trees) apply as soon as one gathering action has `milestones`.
 
 const BALANCE_KEYS: PackedStringArray = ["byproduct_at", "resource_at", "trade_at"]
 const TYPES: PackedStringArray = ["byproduct", "resource", "trade"]
@@ -30,27 +28,14 @@ static func validate_balance(v: DataValidatorRules, balance: Dictionary) -> void
 		v.number(milestones, "byproduct_chance_pct", 0.0, 100.0, "mastery.milestones")
 
 
-## True when at least one gathering action of the data has `milestones` (the M12 rules are then enforced).
-static func is_active(v: DataValidatorRules, action_files: Dictionary[String, Dictionary]) -> bool:
-	for path: String in action_files:
-		var skill: Dictionary = v.skills.get(StringName(str(action_files[path].get("skill", ""))), {})
-		if str(skill.get("category", "")) != GATHERING or not action_files[path].get("actions") is Array:
-			continue
-		for e: Variant in action_files[path]["actions"]:
-			if e is Dictionary and (e as Dictionary).has("milestones"):
-				return true
-	return false
-
-
 ## The `milestones` of one action entry (`v` is already positioned on the entry).
-static func action(v: DataValidatorRules, e: Dictionary, skill: String, category: String, active: bool) -> void:
+static func action(v: DataValidatorRules, e: Dictionary, skill: String, category: String) -> void:
 	if category != GATHERING:
 		if e.has("milestones"):
 			v.fail("field 'milestones' is allowed only for gathering actions")
 		return
 	if not e.has("milestones"):
-		if active:
-			v.fail("missing field 'milestones' (gathering actions need the 3 mastery milestones)")
+		v.fail("missing field 'milestones' (gathering actions need the 3 mastery milestones)")
 		return
 	var list: Array[Dictionary] = v.object_list(e, "milestones")
 	if list.size() != TYPES.size():
@@ -94,10 +79,8 @@ static func _byproduct(v: DataValidatorRules, m: Dictionary, prefix: String) -> 
 			v.fail("field '%s.item': '%s' is not a material (category '%s')" % [prefix, m["item"], category])
 
 
-## `mastery_bonuses` are not allowed for gathering skills once the milestones are in the data.
-static func validate_skills(v: DataValidatorRules, skill_files: Dictionary[String, Dictionary], active: bool) -> void:
-	if not active:
-		return
+## `mastery_bonuses` are not allowed for gathering skills.
+static func validate_skills(v: DataValidatorRules, skill_files: Dictionary[String, Dictionary]) -> void:
 	for path: String in skill_files:
 		v.at_file(path)
 		var list: Array[Dictionary] = v.object_list(skill_files[path], "skills")
@@ -109,9 +92,7 @@ static func validate_skills(v: DataValidatorRules, skill_files: Dictionary[Strin
 
 
 ## The trees of any two gathering trades differ in at least 3 nodes (by position; a node is its set of stat:value pairs).
-static func validate_trees(v: DataValidatorRules, mastery_files: Dictionary[String, Dictionary], active: bool) -> void:
-	if not active:
-		return
+static func validate_trees(v: DataValidatorRules, mastery_files: Dictionary[String, Dictionary]) -> void:
 	var trees: Dictionary[String, Array] = {}
 	var files_of: Dictionary[String, String] = {}
 	for path: String in mastery_files:

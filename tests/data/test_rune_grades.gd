@@ -39,11 +39,23 @@ func test_f107_examples_with_the_fixture_family() -> void:
 		assert_eq(rune.infusion_modifiers[0].value, base * float(mult[grade - 1]), "grade %d" % grade)
 
 
-func test_f107_examples_of_the_game_runes_arrive_with_m12_05() -> void:
+func test_f107_examples_of_the_game_runes() -> void:
 	var data: GameData = TestFactory.real_data()
 	assert_eq(data.item(&"inf_swift_hands").infusion_modifiers[0].value, -3.0, "grade I is the same as before")
 	assert_eq(data.item(&"inf_swift_hands").infusion_grade, 1)
-	pending("M12-05: Rapidita III -9, Baluardo V +300, Senso del Rift II +1.0 and 45 runes (9 families x 5 grades)")
+	assert_eq(data.item(&"inf_swift_hands_3").infusion_modifiers[0].value, -9.0, "Rapidità III")
+	assert_eq(data.item(&"inf_bulwark_5").infusion_modifiers[0].value, 300.0, "Baluardo V")
+	assert_eq(data.item(&"inf_riftsense_2").infusion_modifiers[0].value, 1.0, "Senso del Rift II")
+	var runes: int = 0
+	var families: Dictionary = {}
+	for item: ItemDef in data.items():
+		if item.is_infusion():
+			runes += 1
+			families[item.infusion_family] = int(families.get(item.infusion_family, 0)) + 1
+	assert_eq(runes, 45, "9 families x 5 grades")
+	assert_eq(families.size(), 9)
+	for family: Variant in families:
+		assert_eq(families[family], 5, str(family))
 
 
 func test_fixtures_are_valid() -> void:

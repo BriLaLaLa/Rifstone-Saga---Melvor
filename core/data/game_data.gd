@@ -16,7 +16,7 @@ const CONTENT_FILES: Dictionary[String, String] = {
 	"skills": "skills/skills.json", "areas": "combat/areas.json", "monsters": "combat/monsters.json",
 	"shop": "shop/shop.json", "affixes": "affixes/affixes.json",
 	"rift_stones": "combat/rift_stones.json",
-	"hints": "hints/hints.json",
+	"hints": "hints/hints.json", "loot_tables": LootIndex.FILE,  # M12: mandatory
 }
 const CONTENT_DIRS: Dictionary[String, String] = {
 	"items": "items", "actions": "actions", "mastery": "mastery", "classes": "classes",
@@ -70,7 +70,6 @@ static func load_from_dirs(content_root: String = "res://data", config_root: Str
 		raw[section] = data._read_files(JsonLoader.list_json_files(content_root.path_join(CONTENT_DIRS[section]),
 				data.errors))
 	raw["guide"] = data._read_files(DataValidatorGuide.list_files(content_root, data.errors))  # M11, optional
-	raw["loot_tables"] = data._read_files(LootIndex.files(content_root))
 	DataValidator.validate(raw, data.errors)
 	if data.errors.is_empty():
 		data._build(raw)

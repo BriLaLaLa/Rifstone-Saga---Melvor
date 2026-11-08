@@ -66,7 +66,7 @@ const DEPOSIT_BAG_SLOTS_MAX: int = 12  # format limit of deposit.bag_slots (docs
 const START_ITEM_FORBIDDEN_CATEGORIES: PackedStringArray = ["equipment", "tool"]  # they live in the Armory only
 ## Sections made of one file (the others are folders, possibly empty).
 const SINGLE_FILE_SECTIONS: PackedStringArray = ["balance", "stats", "skills", "areas", "monsters", "shop", "affixes",
-	"rift_stones", "hints"]
+	"rift_stones", "hints", "loot_tables"]
 const SKILL_CATEGORIES: PackedStringArray = ["gathering", "artisan"]
 const STAT_FIELDS: PackedStringArray = ["id", "name", "format", "min", "max", "description", "formula", "test"]
 const STAT_FORMULA_PATTERN: String = "^(F-[0-9]{2}|[0-9]+(\\.[0-9]+)*)$"
@@ -99,9 +99,8 @@ static func validate(raw: Dictionary, errors: PackedStringArray) -> void:
 	DataValidatorItems.validate_actions(v, _files(raw, "actions"))
 	v.validate_mastery(_files(raw, "mastery"))
 	DataValidatorEngraver.validate_runes(v, _files(raw, "items"))
-	var milestones_active: bool = DataValidatorMilestones.is_active(v, _files(raw, "actions"))
-	DataValidatorMilestones.validate_skills(v, _files(raw, "skills"), milestones_active)
-	DataValidatorMilestones.validate_trees(v, _files(raw, "mastery"), milestones_active)
+	DataValidatorMilestones.validate_skills(v, _files(raw, "skills"))
+	DataValidatorMilestones.validate_trees(v, _files(raw, "mastery"))
 	DataValidatorClasses.validate_areas(v, _files(raw, "areas"))
 	DataValidatorClasses.validate_monsters(v, _files(raw, "monsters"))
 	DataValidatorClasses.validate_classes(v, _files(raw, "classes"))

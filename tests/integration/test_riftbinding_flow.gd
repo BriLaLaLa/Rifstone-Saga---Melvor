@@ -1,13 +1,12 @@
 extends GutTest
 ## Integration, Riftbinding and the Altar of the Rift (M8, GDD §11, §26, F-03, 02_FORMULAS §8.7) on the real data.
-## Shards and materials in the bank -> bind_* action -> infusion / stone / currency in the bank with skill and mastery
-## XP; the Altar unlocks sockets by level, holds infusions and their modifiers reach the real formulas.
+## Drops and materials in the bank -> Engraver action (M12: slab, fuse_*, crystallize_*, engrave_*, upgrade_*) -> rune / stone /
+## Crystal / slab in the bank with skill and mastery XP; the Altar unlocks sockets by level, holds infusions and their modifiers reach the real formulas.
 ## Fixed seeds; the sessions are freed; no real slot is touched.
 
 const SEED: int = 80601
 const NOW_MS: int = 1793603600000
 const SKILL: StringName = &"riftbinding"
-const SHARD: StringName = &"rift_shard"
 const FORESTRY: StringName = &"forestry"
 const MIN_INTERVAL_KEY: String = "action.min_interval_ms"
 const TICK_MS: int = 100
@@ -34,11 +33,12 @@ func _items_of(category: StringName) -> Array[ItemDef]:
 	return out
 
 
-# Gives the inputs of `action_id` for `cycles` cycles and runs them through the real runner.
-func _bind(action_id: StringName, cycles: int = 1) -> void:
+# Gives the inputs of `action_id` for `cycles` cycles (times `spare`: a Crystal can fail, F-104) and runs them through the
+# real runner until the output is there.
+func _bind(action_id: StringName, cycles: int = 1, spare: int = 1) -> void:
 	var action: ActionDef = _s.data.action(action_id)
 	for input: ItemQty in action.inputs:
-		TestFactory.give(_s, input.item_id, input.qty * cycles)
+		TestFactory.give(_s, input.item_id, input.qty * cycles * spare)
 	var started: CommandResult = _s.actions.start(SKILL, action_id)
 	assert_true(started.ok, "start %s: %s" % [action_id, started.reason])
 	var out: StringName = action.outputs[0].item_id
@@ -51,44 +51,49 @@ func _bind(action_id: StringName, cycles: int = 1) -> void:
 	assert_eq(_s.bank.get_count(out), goal, "%s done within the guard" % action_id)
 
 
-func test_every_bind_recipe_yields_its_item_with_xp_and_mastery() -> void:
+func test_every_engraver_recipe_yields_its_item_with_xp_and_mastery() -> void:
 	var actions: Array[ActionDef] = _s.data.actions_for_skill(SKILL)
-	assert_gt(actions.size(), 20, "infusions + stones + currencies")
+	assert_eq(actions.size(), 57, "slab + 8 fuse + 3 crystallize + 9 engrave + 36 upgrade")
 	var categories: Dictionary[StringName, int] = {}
 	for action: ActionDef in actions:
 		_s.free()
 		_s = TestFactory.session_no_kit(SEED, TestFactory.real_data())
 		TestFactory.set_level(_s, SKILL, action.level)
 		var xp_start: int = _s.skills.get_xp(SKILL)
-		_bind(action.id)
+		var crystallize: bool = action.kind == &"crystallize"
+		_bind(action.id, 1, 40 if crystallize else 1)
 		var out: ItemDef = _s.data.item(action.outputs[0].item_id)
 		categories[out.category] = int(categories.get(out.category, 0)) + 1
-		assert_true(out.category in [&"infusion", &"stone", &"currency"], "%s: output is %s" % [action.id, out.category])
+		assert_true(out.category in [&"infusion", &"stone", &"currency", &"material"], "%s: output is %s" % [action.id, out.category])
 		for input: ItemQty in action.inputs:
-			assert_eq(_s.bank.get_count(input.item_id), 0, "%s: %s consumed" % [action.id, input.item_id])
+			var left: int = _s.bank.get_count(input.item_id)
+			if crystallize:
+				assert_lt(left, input.qty * 40, "%s: some %s consumed" % [action.id, input.item_id])
+			else:
+				assert_eq(left, 0, "%s: %s consumed" % [action.id, input.item_id])
 		assert_gt(_s.skills.get_xp(SKILL), xp_start, "%s: skill XP earned" % action.id)
 		assert_gt(_s.mastery.get_mastery_xp(action.id), 0, "%s: mastery XP earned" % action.id)
-	assert_eq(categories.size(), 3, "the three families are produced")
+	assert_eq(categories.size(), 4, "runes, stones, Crystals and the slab are produced")
 
 
-func test_bind_below_the_level_is_refused_and_nothing_is_spent() -> void:
-	var action: ActionDef = _s.data.action(&"bind_keen_edge")
+func test_engrave_below_the_level_is_refused_and_nothing_is_spent() -> void:
+	var action: ActionDef = _s.data.action(&"engrave_keen_edge")
 	for input: ItemQty in action.inputs:
 		TestFactory.give(_s, input.item_id, input.qty)
 	var result: CommandResult = _s.actions.start(SKILL, action.id)
 	assert_false(result.ok, "level %d needed" % action.level)
-	assert_eq(_s.bank.get_count(SHARD), action.inputs[0].qty)
+	assert_eq(_s.bank.get_count(action.inputs[0].item_id), action.inputs[0].qty)
 
 
-func test_bind_without_materials_does_not_produce() -> void:
-	var action: ActionDef = _s.data.action(&"bind_swift_hands")
-	TestFactory.give(_s, SHARD, action.inputs[0].qty)  # shards but no logs
+func test_engrave_without_materials_does_not_produce() -> void:
+	var action: ActionDef = _s.data.action(&"engrave_swift_hands")
+	TestFactory.give(_s, &"rune_slab", action.inputs[0].qty)  # the slab but no boar tusks
 	var started: CommandResult = _s.actions.start(SKILL, action.id)
 	if started.ok:
 		for i: int in 200:
 			_s.advance(TICK_MS)
 	assert_eq(_s.bank.get_count(action.outputs[0].item_id), 0, "no infusion without the second ingredient")
-	assert_eq(_s.bank.get_count(SHARD), action.inputs[0].qty, "shards untouched")
+	assert_eq(_s.bank.get_count(&"rune_slab"), action.inputs[0].qty, "slab untouched")
 
 
 func test_sockets_unlock_at_the_balance_levels() -> void:
@@ -167,7 +172,7 @@ func test_every_infusion_effect_reaches_its_formula() -> void:
 	var forest: ModifierContext = ModifierContext.for_skill(FORESTRY)
 	var forest_action: ActionDef = _s.data.actions_for_skill(FORESTRY)[0]
 	var infusions: Array[ItemDef] = _items_of(&"infusion")
-	assert_eq(infusions.size(), 9)
+	assert_eq(infusions.size(), 45, "9 families x 5 grades")
 	for def: ItemDef in infusions:
 		_s.rift.clear_socket(0)
 		TestFactory.give(_s, def.id, 1)

@@ -169,7 +169,6 @@ static func _kind(v: DataValidatorRules, equip: Dictionary, slot: String) -> Str
 
 
 static func validate_actions(v: DataValidatorRules, files: Dictionary[String, Dictionary]) -> void:
-	var milestones_active: bool = DataValidatorMilestones.is_active(v, files)
 	var seen: Dictionary[StringName, bool] = {}
 	for path: String in files:
 		v.at_file(path)
@@ -191,7 +190,7 @@ static func validate_actions(v: DataValidatorRules, files: Dictionary[String, Di
 				v.fail("gathering actions must have no inputs")
 			v.item_qty_list(e, "outputs", 0 if single else 1)
 			DataValidatorM10.recipe_outputs(v, e)
-			DataValidatorMilestones.action(v, e, skill, category, milestones_active)
+			DataValidatorMilestones.action(v, e, skill, category)
 			DataValidatorEngraver.action(v, e, skill)
 
 

@@ -6,7 +6,7 @@ const ACTIONS: String = "riftbinding.json"
 const ITEMS_RUNES: String = "infusions.json"
 
 
-## The fixture data as `raw`, with the optional loot table file already in it.
+## The fixture data as `raw`, with the loot table file in it.
 func raw() -> Dictionary:
 	return V.fixture_raw()
 

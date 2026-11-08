@@ -13,9 +13,53 @@ func test_fixtures_are_valid_and_parsed() -> void:
 	assert_eq(float(data.action(&"upgrade_inf_test_2").inputs[0].qty), data.balance_value("rune.upgrade_ratio"))
 
 
-func test_real_data_recipes_arrive_with_m12_05() -> void:
-	assert_true(TestFactory.real_data().is_valid())
-	pending("M12-05: the real Engraver recipes (slab, fuse_*, crystallize_*, engrave_*, upgrade_*) replace bind_*")
+func test_real_recipes_of_the_engraver_follow_8_7() -> void:
+	var data: GameData = TestFactory.real_data()
+	assert_true(data.is_valid())
+	var by_prefix: Dictionary = {}
+	for a: ActionDef in data.actions_for_skill(&"riftbinding"):
+		assert_false(String(a.id).begins_with("bind_"), "the old binding recipes are gone: %s" % a.id)
+		var prefix: String = String(a.id).get_slice("_", 0)
+		by_prefix[prefix] = int(by_prefix.get(prefix, 0)) + 1
+	assert_eq(by_prefix, {"make": 1, "fuse": 8, "crystallize": 3, "engrave": 9, "upgrade": 36})
+	var slab: ActionDef = data.action(&"make_rune_slab")
+	assert_eq([slab.level, slab.interval_ms, slab.xp], [1, 3000, 6])
+	assert_eq([slab.inputs[0].item_id, slab.inputs[0].qty, slab.inputs[1].item_id, slab.inputs[1].qty],
+			[&"emberbronze_ore", 2, &"rift_shard", 1])
+	assert_eq(slab.outputs[0].item_id, &"rune_slab")
+
+
+func test_real_crystallize_fuse_and_engrave_recipes() -> void:
+	var data: GameData = TestFactory.real_data()
+	var crystals: Array = [[&"crystallize_spark", 5, 10, 25, 3000, &"currency_spark"],
+			[&"crystallize_flux", 25, 25, 80, 4000, &"currency_flux"], [&"crystallize_crown", 45, 50, 160, 5000, &"currency_crown"]]
+	for row: Array in crystals:
+		var a: ActionDef = data.action(row[0] as StringName)
+		assert_eq(a.kind, &"crystallize")
+		assert_eq([a.level, a.inputs[0].item_id, a.inputs[0].qty, a.xp, a.interval_ms, a.outputs[0].item_id, a.outputs[0].qty, a.mastery],
+				[row[1], &"rift_dust", row[2], row[3], row[4], row[5], 1, true], str(row[0]))
+	for family: String in ["ember", "eye", "shade", "root"]:
+		var stone: ActionDef = data.action(StringName("fuse_%s_stone" % family))
+		assert_eq([stone.level, stone.xp, stone.interval_ms, stone.inputs[0].item_id, stone.inputs[0].qty, stone.outputs[0].item_id],
+				[10, 20, 3000, StringName("stone_%s_chip" % family), 3, StringName("stone_%s_stone" % family)])
+		var heart: ActionDef = data.action(StringName("fuse_%s_heart" % family))
+		assert_eq([heart.level, heart.xp, heart.interval_ms, heart.inputs[0].item_id, heart.inputs[0].qty, heart.outputs[0].item_id],
+				[40, 60, 4000, StringName("stone_%s_stone" % family), 3, StringName("stone_%s_heart" % family)])
+	var engrave: ActionDef = data.action(&"engrave_stoneskin")
+	assert_eq([engrave.level, engrave.xp, engrave.interval_ms], [45, 200, 5000])
+	assert_eq([engrave.inputs[0].item_id, engrave.inputs[0].qty, engrave.inputs[1].item_id, engrave.inputs[1].qty, engrave.outputs[0].item_id],
+			[&"rune_slab", 1, &"troll_moss", 3, &"inf_stoneskin"])
+
+
+func test_real_upgrade_recipes_follow_f106() -> void:
+	var data: GameData = TestFactory.real_data()
+	var swift: ActionDef = data.action(&"upgrade_swift_hands_3")
+	assert_eq([swift.level, swift.xp, swift.interval_ms, swift.inputs[0].item_id, swift.inputs[0].qty, swift.outputs[0].item_id],
+			[11, 120, 4000, &"inf_swift_hands_2", 3, &"inf_swift_hands_3"], "level I + 5 x (N), XP x grade")
+	assert_eq(data.action(&"upgrade_bulwark_5").level, 99, "capped at 99")
+	assert_eq(data.action(&"upgrade_bulwark_2").inputs[0].item_id, &"inf_bulwark", "grade II is made from grade I")
+	for a: ActionDef in data.actions_for_skill(&"riftbinding"):
+		assert_false(String(a.id).ends_with("_6"), "grade V has no upgrade: %s" % a.id)
 
 
 func test_balance_values_are_the_formula_values() -> void:
