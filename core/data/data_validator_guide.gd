@@ -10,10 +10,8 @@ const EXCEPTIONS_FILE: String = "exceptions.json"
 const SECTIONS: PackedStringArray = ["first_steps", "character", "loot", "crafts", "altar", "offline"]
 const PAGE_FIELDS: PackedStringArray = ["id", "section", "title", "order", "blocks", "help_for", "allow_digits"]
 const BLOCK_TYPES: PackedStringArray = ["text", "heading", "table", "links"]
-## Generated tables a `table` block may use; `actions:<skill>` is accepted for an existing skill. Keep equal to
-## GuideTables.ids() (05_INTERFACES.md §5.19).
-const TABLE_SOURCES: PackedStringArray = ["affix_tiers", "refine_costs", "traits", "abilities"]
-const TABLE_ACTIONS_PREFIX: String = "actions:"
+## Generated tables a `table` block may use: GuideTables.ids() (single definition) plus the families
+## `actions:<skill>`, `area_monsters:<area>`, `monster_drops:<monster>` for an existing skill, area or monster.
 ## Game pages the "?" can open (PageHost routes, plus `skill:<id>` for an existing skill).
 const ROUTES: PackedStringArray = ["bank", "shop", "equipment", "armory", "character", "combat", "rift", "altar", "settings"]
 const SKILL_ROUTE_PREFIX: String = "skill:"
@@ -170,9 +168,13 @@ class _Context extends RefCounted:
 		return ROUTES.has(route)
 
 	func is_table(source: String) -> bool:
-		if source.begins_with(TABLE_ACTIONS_PREFIX):
-			return skills.has(StringName(source.substr(TABLE_ACTIONS_PREFIX.length())))
-		return TABLE_SOURCES.has(source)
+		if source.begins_with(GuideTables.PREFIX_ACTIONS):
+			return skills.has(StringName(source.trim_prefix(GuideTables.PREFIX_ACTIONS)))
+		if source.begins_with(GuideTables.PREFIX_AREA_MONSTERS):
+			return areas.has(StringName(source.trim_prefix(GuideTables.PREFIX_AREA_MONSTERS)))
+		if source.begins_with(GuideTables.PREFIX_MONSTER_DROPS):
+			return monsters.has(StringName(source.trim_prefix(GuideTables.PREFIX_MONSTER_DROPS)))
+		return GuideTables.ids().has(source)
 
 	func has_target(kind: String, id: String) -> bool:
 		var key := StringName(id)

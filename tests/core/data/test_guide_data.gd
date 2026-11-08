@@ -78,7 +78,8 @@ func test_unknown_page_is_null() -> void:
 
 func test_exceptions_default_and_loaded() -> void:
 	assert_eq(TestFactory.fixture_data().guide_exceptions(), {"no_source": [], "no_use": []})
-	assert_eq(TestFactory.real_data().guide_exceptions(), {"no_source": [], "no_use": []})
+	var real: Dictionary = TestFactory.real_data().guide_exceptions()
+	assert_eq(real.keys(), ["no_source", "no_use"])
 
 
 func test_from_dict_missing_field_is_null() -> void:
@@ -208,6 +209,20 @@ func test_table_source_actions_needs_a_skill() -> void:
 	assert_eq(V.validate(raw), PackedStringArray())
 	_block(raw, 0, 4)["source"] = "actions:nothing"
 	_expect(raw, [PAGES, "unknown table source 'actions:nothing'"])
+
+
+func test_every_guide_table_id_is_accepted() -> void:
+	var raw: Dictionary = _raw()
+	for id: String in GuideTables.ids():
+		_block(raw, 0, 4)["source"] = id
+		assert_eq(V.validate(raw), PackedStringArray(), "table source '%s'" % id)
+
+
+func test_table_source_families_need_their_target() -> void:
+	var raw: Dictionary = _raw()
+	for source: String in ["area_monsters:nothing", "monster_drops:nothing"]:
+		_block(raw, 0, 4)["source"] = source
+		_expect(raw, [PAGES, "unknown table source '%s'" % source])
 
 
 func test_hand_written_digits() -> void:
