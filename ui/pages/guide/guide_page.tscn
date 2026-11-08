@@ -1,0 +1,97 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/pages/guide/guide_page.gd" id="1_page"]
+
+[node name="GuidePage" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_page")
+
+[node name="Margin" type="MarginContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Content" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+
+[node name="Header" type="PanelContainer" parent="Margin/Content"]
+layout_mode = 2
+theme_type_variation = &"HudPanel"
+
+[node name="Row" type="HBoxContainer" parent="Margin/Content/Header"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="BackButton" type="Button" parent="Margin/Content/Header/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+disabled = true
+text = "Indietro"
+
+[node name="TitleLabel" type="Label" parent="Margin/Content/Header/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"TitleLabel"
+text = "Guida"
+
+[node name="MessageLabel" type="Label" parent="Margin/Content/Header/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+clip_text = true
+
+[node name="SearchEdit" type="LineEdit" parent="Margin/Content/Header/Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+placeholder_text = "Cerca per nome"
+clear_button_enabled = true
+
+[node name="Split" type="HBoxContainer" parent="Margin/Content"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="Nav" type="PanelContainer" parent="Margin/Content/Split"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+theme_type_variation = &"HudPanel"
+
+[node name="IndexTree" type="Tree" parent="Margin/Content/Split/Nav"]
+unique_name_in_owner = true
+layout_mode = 2
+hide_root = true
+
+[node name="ResultsList" type="ItemList" parent="Margin/Content/Split/Nav"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="Reader" type="PanelContainer" parent="Margin/Content/Split"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"HudPanel"
+
+[node name="ContentView" type="ScrollContainer" parent="Margin/Content/Split/Reader"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="Body" type="VBoxContainer" parent="Margin/Content/Split/Reader/ContentView"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
