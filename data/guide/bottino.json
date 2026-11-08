@@ -15,7 +15,7 @@
      ]},
     {"id": "guide_sockets", "section": "loot", "title": "Castoni e pietre", "order": 3,
      "blocks": [
-       {"type": "text", "text": "Alcuni pezzi hanno castoni, in base a rarità e raffinazione. Dal Banco del fabbro vi incastoni pietre come {link:item:stone_ember_chip|la Scheggia di furia}, che danno bonus fissi. Vedi anche Pietre e Rune."},
+       {"type": "text", "text": "Alcuni pezzi hanno castoni, in base a rarità e raffinazione. Dal Banco del fabbro vi incastoni pietre come {link:item:stone_ember_chip|la Scheggia di forza}, che danno bonus fissi. Vedi anche Pietre e Rune."},
        {"type": "text", "text": "Le pietre cadono dai mostri e dai Monoliti del Rift, e l'{link:skill:riftbinding|Incisore} le fonde in gradi più alti. Una pietra tolta dal castone si distrugge. Gli attrezzi non hanno castoni."}
      ]},
     {"id": "guide_currencies", "section": "loot", "title": "Valute", "order": 4,
@@ -32,7 +32,7 @@
     {"id": "guide_rift_stones", "section": "loot", "title": "Monoliti del Rift", "order": 6,
      "blocks": [
        {"type": "text", "text": "Dopo un'uccisione c'è una probabilità ({balance:rift_stone.chance_pct|pct}) che il prossimo incontro sia il Monolito del Rift dell'area, con garanzia dopo {balance:rift_stone.pity_kills|int} uccisioni."},
-       {"type": "text", "text": "La Pietra ha molti punti ferita, non attacca ma emette impulsi di danno, e a volte evoca un gruppo. In cambio dà frammenti, materiali, pietre, progetti e pezzi di rarità migliore."}
+       {"type": "text", "text": "Il Monolito ha molti punti ferita, non attacca ma emette impulsi di danno, e a volte evoca un gruppo. In cambio dà frammenti, materiali, pietre, progetti e pezzi di rarità migliore."}
      ]},
     {"id": "guide_blueprints", "section": "loot", "title": "Progetti", "order": 7,
      "blocks": [

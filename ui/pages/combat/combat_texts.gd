@@ -11,7 +11,7 @@ const STATE_TEXTS: Dictionary[StringName, String] = {
 	CombatEngine.STATE_IDLE: "In attesa",
 	CombatEngine.STATE_ENCOUNTER: "In combattimento",
 	CombatEngine.STATE_BETWEEN: "Il prossimo gruppo sta arrivando",
-	CombatEngine.STATE_RIFTSTONE: "Pietra del Rift",
+	CombatEngine.STATE_RIFTSTONE: "Monolito del Rift",
 }
 const STATE_TEXT_DEFAULT: String = "In attesa"
 const NO_AREA_TEXT: String = "Scegli un'area per combattere."

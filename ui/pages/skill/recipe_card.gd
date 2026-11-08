@@ -18,6 +18,8 @@ var _data: GameData = null
 var _ingredient_labels: Dictionary[StringName, Label] = {}
 var _needed: Dictionary[StringName, int] = {}
 var _item_names: Dictionary[StringName, String] = {}
+var _chance_label: Label = null
+var _loss_label: Label = null
 
 @onready var _ingredients: VBoxContainer = %Ingredients
 @onready var _preservation_name: Label = %PreservationName
@@ -54,6 +56,13 @@ func setup(action: ActionDef, data: GameData) -> void:
 		row.add_child(label)
 		_ingredient_labels[item_id] = label
 		_item_names[item_id] = item.name
+		if action.skill_id == EngraverSections.SKILL:
+			var source: String = EngraverSections.source_text(item_id, data)
+			if not source.is_empty():
+				_add_muted_line("Source%s" % String(item_id).to_pascal_case(), source)
+	if action.kind == &"crystallize":
+		_chance_label = _add_muted_line("ChanceLabel", "")
+		_loss_label = _add_muted_line("LossLabel", "")
 
 
 ## Reads level, interval, mastery, owned ingredients, chances and the start state from `session`.
@@ -74,5 +83,23 @@ func redraw(session: GameSession) -> void:
 	_double_value.text = CHANCE_TEXT % NumberFormat.format_number(
 			session.modifiers.total(ArtisanResolver.DOUBLE_STAT, ctx))
 	var running: bool = session.actions.get_lane().get(LANE_ACTION_KEY, &"") == _action.id
-	if not running and not ArtisanResolver.can_start(session, _action).ok:
+	if _chance_label != null:
+		_chance_label.text = EngraverSections.chance_text(session, _action)
+		_loss_label.text = EngraverSections.loss_text(session, _action)
+	var can_start: CommandResult = ArtisanResolver.can_start(session, _action)
+	if _action.kind == &"crystallize":
+		can_start = EngraverResolver.can_start(session, _action)
+	if not running and not can_start.ok:
 		_toggle_button.disabled = true
+
+
+## A muted wrapped line under the ingredients (source of an ingredient, chance and loss of a crystallization).
+func _add_muted_line(node_name: String, text: String) -> Label:
+	var line: Label = Label.new()
+	line.name = node_name
+	line.text = text
+	line.theme_type_variation = &"MutedLabel"
+	line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+
+	_ingredients.add_child(line)
+	return line

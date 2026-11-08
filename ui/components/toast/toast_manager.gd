@@ -34,6 +34,7 @@ const STOP_TEXTS: Dictionary[StringName, String] = {
 	Reasons.PLAYER_DIED: "sei stato sconfitto",
 }
 const STOP_TEXT_DEFAULT := "interrotta"
+const MILESTONE_TEXT: String = "Traguardo di maestria: %s (%s)"
 
 ## Event bus to listen to; null = the `EventBus` autoload.
 var events: GameEvents = null
@@ -41,6 +42,8 @@ var events: GameEvents = null
 var time_source: Callable = Time.get_ticks_msec
 ## `(id: StringName) -> String`, display name of an item or skill.
 var name_resolver: Callable = _default_name
+## `(action_id: StringName) -> String`, name of the resource of a gathering action (for the mastery milestones).
+var action_resolver: Callable = _default_name
 
 var _stack: VBoxContainer
 var _bound_events: GameEvents = null
@@ -76,6 +79,8 @@ func _enter_tree() -> void:
 	_bound_events.level_up.connect(_on_events_level_up)
 	_bound_events.action_stopped.connect(_on_events_action_stopped)
 	_bound_events.session_ended.connect(_on_events_session_ended)
+	_bound_events.mastery_milestone_reached.connect(_on_events_milestone_reached)
+	_bound_events.helper_blocked.connect(_on_events_helper_blocked)
 
 
 func _exit_tree() -> void:
@@ -87,6 +92,8 @@ func _exit_tree() -> void:
 	_bound_events.level_up.disconnect(_on_events_level_up)
 	_bound_events.action_stopped.disconnect(_on_events_action_stopped)
 	_bound_events.session_ended.disconnect(_on_events_session_ended)
+	_bound_events.mastery_milestone_reached.disconnect(_on_events_milestone_reached)
+	_bound_events.helper_blocked.disconnect(_on_events_helper_blocked)
 	_bound_events = null
 
 
@@ -149,7 +156,20 @@ func _on_toast_dismissed(toast: Toast) -> void:
 
 
 func _on_events_notification_requested(text: String, kind: StringName) -> void:
+	if text == HelperSystem.BLOCKED_TEXT:
+		return  # replaced by the toast of `helper_blocked`, which names the trade
 	push(text, kind)
+
+
+## "Traguardo di maestria: <risorsa> (25/50/99)".
+func _on_events_milestone_reached(_skill_id: StringName, action_id: StringName, at: int) -> void:
+	push(MILESTONE_TEXT % [action_resolver.call(action_id) as String, NumberFormat.format_int(at)], KIND_SUCCESS)
+
+
+## "L'aiutante del <mestiere> è fermo: Deposito pieno" when it stops.
+func _on_events_helper_blocked(skill_id: StringName, blocked: bool) -> void:
+	if blocked:
+		push(HelperTexts.BLOCKED_TOAST_TEXT % _display_name(skill_id), KIND_WARNING)
 
 
 func _on_events_bank_changed(item_id: StringName, _new_count: int, delta: int) -> void:

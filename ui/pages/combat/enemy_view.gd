@@ -4,7 +4,7 @@ extends RefCounted
 ## The state of `combat.get_state()` keeps the id of the Stone in `enemies[i]["monster"]`; the name and the icon are
 ## resolved here with `GameData.rift_stone` (05 §5.10). Pure functions over the data, no state.
 
-const STONE_TAG_TEXT: String = "Pietra del Rift"
+const STONE_TAG_TEXT: String = "Monolito del Rift"
 const STONE_INFO_TEXT: String = "Impulso ogni %s s · %s danni a impulso"
 
 

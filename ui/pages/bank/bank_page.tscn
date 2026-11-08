@@ -1,7 +1,9 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://ui/pages/bank/bank_page.gd" id="1_page"]
 [ext_resource type="PackedScene" path="res://ui/pages/bank/bank_item_panel.tscn" id="2_panel"]
+[ext_resource type="PackedScene" path="res://ui/pages/bank/bag_slots_bar.tscn" id="3_bar"]
+[ext_resource type="PackedScene" path="res://ui/pages/bank/deposit_tabs.tscn" id="4_tabs"]
 
 [node name="BankPage" type="Control"]
 layout_mode = 3
@@ -66,33 +68,41 @@ size_flags_horizontal = 10
 size_flags_vertical = 4
 theme_type_variation = &"HeaderLabel"
 
+[node name="BagSlotsBar" parent="Margin/Content" instance=ExtResource("3_bar")]
+unique_name_in_owner = true
+layout_mode = 2
+
 [node name="MessageLabel" type="Label" parent="Margin/Content"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 autowrap_mode = 3
 
-[node name="Main" type="HBoxContainer" parent="Margin/Content"]
+[node name="DepositTabs" parent="Margin/Content" instance=ExtResource("4_tabs")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Main" type="HBoxContainer" parent="Margin/Content/DepositTabs"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="Body" type="PanelContainer" parent="Margin/Content/Main"]
+[node name="Body" type="PanelContainer" parent="Margin/Content/DepositTabs/Main"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"HudPanel"
 
-[node name="Scroll" type="ScrollContainer" parent="Margin/Content/Main/Body"]
+[node name="Scroll" type="ScrollContainer" parent="Margin/Content/DepositTabs/Main/Body"]
 layout_mode = 2
 horizontal_scroll_mode = 0
 
-[node name="Grid" type="HFlowContainer" parent="Margin/Content/Main/Body/Scroll"]
+[node name="Grid" type="HFlowContainer" parent="Margin/Content/DepositTabs/Main/Body/Scroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="EmptyLabel" type="Label" parent="Margin/Content/Main/Body"]
+[node name="EmptyLabel" type="Label" parent="Margin/Content/DepositTabs/Main/Body"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
@@ -101,7 +111,7 @@ size_flags_vertical = 4
 mouse_filter = 2
 theme_type_variation = &"MutedLabel"
 
-[node name="ItemPanel" parent="Margin/Content/Main" instance=ExtResource("2_panel")]
+[node name="ItemPanel" parent="Margin/Content/DepositTabs/Main" instance=ExtResource("2_panel")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2

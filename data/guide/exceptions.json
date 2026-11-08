@@ -1,20 +1,12 @@
 {
-  "_doc": "Eccezioni dichiarate della Guida (M11, M12): oggetti senza fonte o senza uso che l'indice non vede ancora (drop delle tabelle, sottoprodotti, borse, contratti). Da togliere quando M12-06 li aggiunge all'indice.",
+  "_doc": "Eccezioni dichiarate della Guida (M11, M12): oggetti senza fonte o senza uso che l'indice non vede. Le fonti da tabelle di drop e sottoprodotti e gli usi di borse e contratti sono ora nell'indice (M12-06).",
   "no_source": [
-    "ashlead_ring", "ashlead_amulet", "duskcobalt_ring", "duskcobalt_amulet", "palecinnabar_ring", "palecinnabar_amulet", "riftite_ring", "riftite_amulet", 
-    "rift_dust", "stone_ember_chip", "stone_eye_chip", "stone_shade_chip", "stone_root_chip", "bag_leather", "bag_wayfarer", "bag_runic", 
-    "contract_forestry_apprentice", "contract_forestry_journeyman", "contract_forestry_expert", "contract_forestry_master", "contract_quarrying_apprentice", "contract_quarrying_journeyman", "contract_quarrying_expert", "contract_quarrying_master", 
-    "contract_angling_apprentice", "contract_angling_journeyman", "contract_angling_expert", "contract_angling_master", "birch_resin", "pine_cone", "oak_acorn", "elm_samara", 
-    "yew_berry", "ebony_knot", "ember_coal", "rift_bark", "copper_nugget", "iron_slag", "dark_iron_clod", "black_iron_graphite", 
-    "silver_flake", "obsidian_geode", "astrite_glow", "riftite_vein", "trout_scale", "perch_gill", "carp_bone", "pike_fin", 
-    "eel_roe", "sturgeon_caviar", "lantern_lure", "leviathan_pearl"
+    "ashlead_ring", "ashlead_amulet", "duskcobalt_ring", "duskcobalt_amulet", "palecinnabar_ring", "palecinnabar_amulet", "riftite_ring", "riftite_amulet"
   ],
   "no_use": [
-    "redrock_flint", "whisper_resin", "witch_charm", "mine_dust", "colossus_shard", "threshold_ash", "bag_canvas", "bag_leather", 
-    "bag_reinforced", "bag_wayfarer", "bag_runic", "contract_forestry_apprentice", "contract_forestry_journeyman", "contract_forestry_expert", "contract_forestry_master", "contract_quarrying_apprentice", 
-    "contract_quarrying_journeyman", "contract_quarrying_expert", "contract_quarrying_master", "contract_angling_apprentice", "contract_angling_journeyman", "contract_angling_expert", "contract_angling_master", "pine_cone", 
-    "oak_acorn", "elm_samara", "yew_berry", "ebony_knot", "ember_coal", "rift_bark", "iron_slag", "dark_iron_clod", 
-    "black_iron_graphite", "silver_flake", "obsidian_geode", "astrite_glow", "riftite_vein", "perch_gill", "carp_bone", "pike_fin", 
-    "eel_roe", "sturgeon_caviar", "lantern_lure", "leviathan_pearl"
+    "redrock_flint", "whisper_resin", "witch_charm", "mine_dust", "colossus_shard", "threshold_ash",
+    "pine_cone", "oak_acorn", "elm_samara", "yew_berry", "ebony_knot", "ember_coal", "rift_bark", "iron_slag",
+    "dark_iron_clod", "black_iron_graphite", "silver_flake", "obsidian_geode", "astrite_glow", "riftite_vein",
+    "perch_gill", "carp_bone", "pike_fin", "eel_roe", "sturgeon_caviar", "lantern_lure", "leviathan_pearl"
   ]
 }

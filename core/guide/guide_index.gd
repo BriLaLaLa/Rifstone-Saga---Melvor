@@ -16,6 +16,11 @@ const LABEL_REFINE: String = "Raffinazione"
 const LABEL_SOCKET: String = "Castone"
 const LABEL_ALTAR: String = "Altare del Rift"
 const LABEL_FOOD: String = "Cibo"
+const LABEL_MILESTONE: String = "Traguardo di maestria"
+const LABEL_BAG: String = "Slot borsa del Deposito"
+const LABEL_CONTRACT: String = "Assumi un aiutante"
+const PAGE_DEPOSIT: StringName = &"guide_deposit"
+const PAGE_HELPERS: StringName = &"guide_helpers"
 
 var _data: GameData = null
 var _sources: Dictionary[StringName, Array] = {}
@@ -135,6 +140,10 @@ func _build_sources() -> void:
 			for output: ItemQty in action.outputs:
 				_add(_sources, output.item_id, GuideRef.make(GuideRef.KIND_RECIPE, entry(&"skill", skill.id),
 						action.name, "%s, livello %d" % [skill.name, action.level]))
+			for milestone: MilestoneDef in action.milestones:
+				if milestone.type == MilestoneDef.TYPE_BYPRODUCT:
+					_add(_sources, milestone.item, GuideRef.make(GuideRef.KIND_MILESTONE, entry(&"skill", skill.id),
+							LABEL_MILESTONE, "%s, maestria %d" % [action.name, milestone.at]))
 	for def: ItemDef in _data.items():
 		if def.is_equippable():
 			_add_equipment_sources(def)
@@ -148,6 +157,10 @@ func _build_sources() -> void:
 func _add_monster_sources(area: AreaDef, monster: MonsterDef) -> void:
 	if monster == null:
 		return
+	for table_id: StringName in area.loot_tables:
+		_add_table_sources(table_id, entry(&"monster", monster.id), monster.name, area)
+	for table_id: StringName in monster.loot_tables:
+		_add_table_sources(table_id, entry(&"monster", monster.id), monster.name, area)
 	for drop: DropEntry in monster.drops:
 		_add(_sources, drop.item_id, GuideRef.make(GuideRef.KIND_MONSTER, entry(&"monster", monster.id), monster.name,
 				"%s, %s%%" % [area.name, num(drop.chance_pct)]))
@@ -158,11 +171,23 @@ func _add_monster_sources(area: AreaDef, monster: MonsterDef) -> void:
 
 func _add_stone_sources(area: AreaDef, stone: RiftStoneDef) -> void:
 	var target: StringName = entry(&"area", area.id)
+	for table_id: StringName in stone.loot_tables:
+		_add_table_sources(table_id, target, stone.name, area)
 	for drop: DropEntry in stone.drops:
 		_add(_sources, drop.item_id, GuideRef.make(GuideRef.KIND_RIFT_STONE, target, stone.name,
 				"%s, %s%%" % [area.name, num(drop.chance_pct)]))
 	if stone.shards_max > 0:
 		_add(_sources, SHARD_ITEM, GuideRef.make(GuideRef.KIND_RIFT_STONE, target, stone.name, area.name))
+
+
+## The entries of a loot table, attributed to the monster (or Monolith) that rolls it.
+func _add_table_sources(table_id: StringName, target: StringName, label: String, area: AreaDef) -> void:
+	for table: LootTableDef in _data.loot_tables():
+		if table.id != table_id:
+			continue
+		for drop: DropEntry in table.entries:
+			_add(_sources, drop.item_id, GuideRef.make(GuideRef.KIND_LOOT_TABLE, target, label,
+					"%s, %s%%" % [area.name, num(drop.chance_pct)]))
 
 
 ## Equipment: forged from its blueprint; components of that blueprint come back from salvage (F-95).
@@ -237,6 +262,11 @@ func _add_refine_uses() -> void:
 
 
 func _add_item_kind_uses(def: ItemDef) -> void:
+	if def.is_bag():
+		_add(_uses, def.id, GuideRef.make(GuideRef.KIND_BAG, entry(&"page", PAGE_DEPOSIT), LABEL_BAG,
+				"+%d caselle" % def.bag_slots))
+	if def.is_contract():
+		_add(_uses, def.id, GuideRef.make(GuideRef.KIND_CONTRACT, entry(&"page", PAGE_HELPERS), LABEL_CONTRACT))
 	if def.is_currency():
 		_add(_uses, def.id, GuideRef.make(GuideRef.KIND_REFINE, &"", LABEL_REFINE))
 	if def.is_stone():

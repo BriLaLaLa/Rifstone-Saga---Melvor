@@ -21,6 +21,8 @@ const CATEGORY_NAMES: Dictionary[StringName, String] = {
 	&"food": "Cibo",
 	&"infusion": "Runa",
 	&"misc": "Varie",
+	&"bag": "Borsa",
+	&"contract": "Contratto",
 }
 ## Italian name of each weapon style (docs/OPEN_QUESTIONS.md Q42): styles are not skills any more.
 const STYLE_NAMES: Dictionary[StringName, String] = {

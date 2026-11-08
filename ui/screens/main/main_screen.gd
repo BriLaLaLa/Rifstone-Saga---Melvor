@@ -56,6 +56,7 @@ func _bind(target: GameSession) -> void:
 	_toasts.name = "ToastManager"
 	_toasts.events = _session.events
 	_toasts.name_resolver = _display_name
+	_toasts.action_resolver = _resource_name
 	_toast_layer.add_child(_toasts)
 	_top_bar.bind(_session)
 	_page_host.setup(_session)
@@ -152,3 +153,14 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"ui_cancel") and (_hint_card == null or _hint_card.current_hint() == &""):
 		_open_settings()
 		get_viewport().set_input_as_handled()
+
+
+## Name of the resource of a gathering action (its first product), for the toasts of the mastery milestones.
+func _resource_name(action_id: StringName) -> String:
+	if _session == null:
+		return String(action_id)
+	for skill: SkillDef in _session.data.skills():
+		for action: ActionDef in _session.data.actions_for_skill(skill.id):
+			if action.id == action_id and not action.outputs.is_empty() and _session.data.has_item(action.outputs[0].item_id):
+				return _session.data.item(action.outputs[0].item_id).name
+	return String(action_id)

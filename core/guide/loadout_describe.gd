@@ -127,3 +127,8 @@ static func _stat_name(stat: StringName, data: GameData) -> String:
 
 static func _pct(value: float) -> String:
 	return NumberFormat.format_number(value)
+
+
+## "Stat +N, Stat +N%" for a list of modifiers (labels from the stat registry).
+static func modifiers_text(modifiers: Array[Modifier], data: GameData) -> String:
+	return LIST_SEPARATOR.join(_modifier_texts(modifiers, data))

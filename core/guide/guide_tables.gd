@@ -3,15 +3,19 @@ extends RefCounted
 ## Tables of the Guide generated from the data (docs/05_INTERFACES.md §5.19): rows of text, the first one is the header.
 ## Every number is read from GameData at the moment of the call; nothing is copied.
 ##
-## Sources: the fixed `ids()` plus the families `actions:<skill>`, `area_monsters:<area>`, `monster_drops:<monster>`.
+## Sources: the fixed `ids()` plus the families `actions:<skill>`, `area_monsters:<area>`, `monster_drops:<monster>`,
+## `mastery_milestones:<skill>` (a gathering skill).
 
 const LOG_CATEGORY: String = "guide"
 const MS_PER_SEC: float = 1000.0
 const FIXED_IDS: Array[String] = ["affix_tiers", "refine_costs", "tool_upgrades", "traits", "abilities", "stats",
+	"bags", "helper_grades", "engraver_recipes",
 	"infusions"]
 const PREFIX_ACTIONS: String = "actions:"
 const PREFIX_AREA_MONSTERS: String = "area_monsters:"
 const PREFIX_MONSTER_DROPS: String = "monster_drops:"
+const PREFIX_MILESTONES: String = "mastery_milestones:"
+const ENGRAVER_SKILL: StringName = &"riftbinding"
 
 
 ## Declared fixed sources (the `<family>:<id>` ones are listed in the header comment).
@@ -36,6 +40,12 @@ static func build(source: String, data: GameData) -> Array[Array]:
 			rows = _stats(data)
 		"infusions":
 			rows = _infusions(data)
+		"bags":
+			rows = _bags(data)
+		"helper_grades":
+			rows = _helper_grades(data)
+		"engraver_recipes":
+			rows = _engraver_recipes(data)
 		_:
 			rows = _family(source, data)
 	if rows.is_empty():
@@ -77,6 +87,8 @@ static func _family(source: String, data: GameData) -> Array[Array]:
 		return _area_monsters(StringName(source.trim_prefix(PREFIX_AREA_MONSTERS)), data)
 	if source.begins_with(PREFIX_MONSTER_DROPS):
 		return _monster_drops(StringName(source.trim_prefix(PREFIX_MONSTER_DROPS)), data)
+	if source.begins_with(PREFIX_MILESTONES):
+		return _milestones(StringName(source.trim_prefix(PREFIX_MILESTONES)), data)
 	return []
 
 
@@ -199,4 +211,57 @@ static func _monster_drops(monster_id: StringName, data: GameData) -> Array[Arra
 	for drop: DropEntry in data.monster(monster_id).drops:
 		var qty: String = _n(drop.qty_min) if drop.qty_min == drop.qty_max else "%d - %d" % [drop.qty_min, drop.qty_max]
 		rows.append([_item_name(drop.item_id, data), _n(drop.chance_pct), qty])
+	return rows
+
+
+static func _bags(data: GameData) -> Array[Array]:
+	var rows: Array[Array] = [["Borsa", "Caselle aggiunte"]]
+	for item: ItemDef in data.items():
+		if item.is_bag():
+			rows.append([item.name, str(item.bag_slots)])
+	return rows
+
+
+## Helper grades in the order of the data: the helper takes `interval_mult` times the player's interval (F-101).
+static func _helper_grades(data: GameData) -> Array[Array]:
+	var rows: Array[Array] = [["Grado", "Durata rispetto a te"]]
+	for grade: HelperGradeDef in data.helper_grades():
+		rows.append([HelperGradeNames.name_of(grade.id), "x%s" % _n(grade.interval_mult)])
+	return rows
+
+
+## Recipes of the Engraver. The success chance of a crystallization goes from the minimum (level 1) to the maximum (F-104).
+static func _engraver_recipes(data: GameData) -> Array[Array]:
+	var rows: Array[Array] = []
+	if data.actions_for_skill(ENGRAVER_SKILL).is_empty():
+		return rows
+	rows.append(["Ricetta", "Livello", "Ingredienti", "Prodotto", "Probabilità (%)"])
+	var low: float = float(data.balance_value("engraver.crystal_chance_min_pct"))
+	var high: float = float(data.balance_value("engraver.crystal_chance_max_pct"))
+	for action: ActionDef in data.actions_for_skill(ENGRAVER_SKILL):
+		var chance: String = "%s - %s" % [_n(low), _n(high)] if action.kind == &"crystallize" else "-"
+		rows.append([action.name, str(action.level), _qty_list(action.inputs, data), _qty_list(action.outputs, data), chance])
+	return rows
+
+
+## The three milestones of every action of a gathering skill: by-product, resource bonus and trade bonus.
+static func _milestones(skill_id: StringName, data: GameData) -> Array[Array]:
+	var rows: Array[Array] = []
+	var found: bool = false
+	for skill: SkillDef in data.skills():
+		found = found or (skill.id == skill_id and skill.category == &"gathering")
+	if not found:
+		return rows
+	var at: Dictionary = data.balance_value("mastery.milestones") as Dictionary
+	rows.append(["Risorsa", "Maestria %s" % _n(float(at["byproduct_at"])), "Maestria %s" % _n(float(at["resource_at"])),
+			"Maestria %s" % _n(float(at["trade_at"]))])
+	for action: ActionDef in data.actions_for_skill(skill_id):
+		var cells: Array = [action.name, "", "", ""]
+		for index: int in action.milestones.size():
+			var milestone: MilestoneDef = action.milestones[index]
+			if milestone.type == MilestoneDef.TYPE_BYPRODUCT:
+				cells[index + 1] = _item_name(milestone.item, data)
+			else:
+				cells[index + 1] = LoadoutDescribe.modifiers_text(milestone.modifiers, data)
+		rows.append(cells)
 	return rows

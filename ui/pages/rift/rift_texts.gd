@@ -14,10 +14,10 @@ const CONFIRM_REMOVE_TEXT: String = "Distruggi"
 const CANCEL_TEXT: String = "Annulla"
 const REMOVE_WARNING_TEXT: String = "Togliere la runa la distrugge."
 const PICK_TITLE_TEXT: String = "Scegli una runa dal deposito per l'incavo %d"
-const NO_INFUSIONS_TEXT: String = "Non possiedi rune: si creano con la Legatura del Rift."
+const NO_INFUSIONS_TEXT: String = "Non possiedi rune: si incidono con l'Incisore."
 const RUNES_TITLE_TEXT: String = "Rune nel deposito"
 const RUNE_LINE_TEXT: String = "%s  x%s"
-const CRAFT_RUNES_TEXT: String = "Crea con Legatura del Rift"
+const CRAFT_RUNES_TEXT: String = "Incidi con l'Incisore"
 const SUMMARY_TITLE_TEXT: String = "Bonus attivi"
 const SUMMARY_NONE_TEXT: String = "Nessun bonus attivo."
 const SOCKETED_TEXT: String = "Runa incastonata: %s."
@@ -25,7 +25,7 @@ const REMOVED_TEXT: String = "Runa distrutta: %s."
 const NO_FREE_SOCKET_TEXT: String = "Nessun incavo libero: libera un incavo all'Altare del Rift."
 const UNIQUE_TEXT: String = "unica"
 const REFUSED_TEXTS: Dictionary[StringName, String] = {
-	Reasons.SOCKET_LOCKED: "L'incavo è ancora bloccato: sali di livello nella Legatura del Rift.",
+	Reasons.SOCKET_LOCKED: "L'incavo è ancora bloccato: sali di livello come Incisore.",
 	Reasons.SOCKET_OCCUPIED: "L'incavo è già occupato: togli prima la runa (viene distrutta).",
 	Reasons.NOT_EQUIPPABLE: "Questo oggetto non si può incastonare.",
 	Reasons.REQUIREMENT_NOT_MET: "Questa runa è unica ed è già incastonata.",

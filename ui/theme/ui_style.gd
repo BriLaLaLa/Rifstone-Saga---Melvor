@@ -77,6 +77,12 @@ const BANK_CELL_SIZE := Vector2(48, 48)
 const BANK_PANEL_WIDTH: int = 320
 const BANK_PANEL_ICON_SIZE := Vector2(64, 64)
 const BANK_SEARCH_WIDTH: int = 260
+const BAG_SLOT_SIZE := Vector2(168, 44)
+const BAG_BAR_SEPARATION: int = 8
+const DEPOSIT_OCCUPIED_MODULATE := Color(1, 1, 1, 0.45)
+const HELPER_ROW_SEPARATION: int = 12
+const HELPER_BAR_WIDTH: int = 160
+const ENGRAVER_SECTION_SEPARATION: int = 8
 ## Armory page: outer margin, grid spacing, cell size, rarity border width, piece panel width and icon, filter width.
 const ARMORY_MARGIN: int = 16
 const ARMORY_SECTION_SEPARATION: int = 12

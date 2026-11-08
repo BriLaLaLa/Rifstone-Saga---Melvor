@@ -1,0 +1,44 @@
+{
+  "pages": [
+    {"id": "guide_deposit", "section": "first_steps", "title": "Deposito e borse", "order": 2,
+     "help_for": ["bank"],
+     "blocks": [
+       {"type": "text", "text": "Il Deposito contiene materiali, cibo, pietre, valute, rune e anche i pezzi dell'Armeria non indossati: le due schede dividono la stessa capienza. Ogni tipo di oggetto occupa una casella; ogni pezzo dell'Armeria ne occupa una."},
+       {"type": "text", "text": "Parti con {balance:deposit.base_slots|int} caselle. Si aggiungono con le borse: hai {balance:deposit.bag_slots|int} slot borsa in cima alla pagina e in ognuno metti una borsa. La borsa nello slot non occupa caselle, ma finché è nel Deposito sì."},
+       {"type": "text", "text": "Togliere una borsa si può solo se le caselle restanti bastano ancora: libera prima lo spazio. Le borse si trovano come bottino o si costruiscono con il Falegname."},
+       {"type": "table", "source": "bags"},
+       {"type": "links", "targets": ["item:bag_canvas", "item:bag_reinforced", "skill:woodwright", "page:guide_bank_shop"]}
+     ]},
+    {"id": "guide_helpers", "section": "crafts", "title": "Aiutanti", "order": 3,
+    
+     "blocks": [
+       {"type": "text", "text": "Ogni mestiere di raccolta può avere un aiutante: un solo aiutante per mestiere. Lo assumi con un contratto, che trovi come bottino. Lavora su una risorsa che scegli tu, anche mentre combatti o fai altro, e anche a gioco chiuso."},
+       {"type": "text", "text": "L'aiutante impiega più tempo di te per ogni ciclo, tanto meno quanto più è alto il grado, e guadagna una parte dell'esperienza e della maestria: {balance:helper.xp_pct|pct} dell'esperienza e {balance:helper.mastery_pct|pct} della maestria. Un contratto di grado più alto sostituisce l'aiutante; uno di grado uguale o più basso non si consuma."},
+       {"type": "text", "text": "Se il Deposito è pieno l'aiutante si ferma e aspetta: libera spazio e riparte da solo, senza perdere il ciclo in corso."},
+       {"type": "table", "source": "helper_grades"},
+       {"type": "links", "targets": ["skill:forestry", "skill:quarrying", "skill:angling", "page:guide_deposit"]}
+     ]},
+    {"id": "guide_resource_mastery", "section": "crafts", "title": "Maestria per risorsa", "order": 4,
+    
+     "blocks": [
+       {"type": "text", "text": "Nei mestieri di raccolta ogni risorsa ha tre traguardi di maestria. Al primo ottieni, con una piccola probabilità ({balance:mastery.milestones.byproduct_chance_pct|pct}), un sottoprodotto in più ogni volta che raccogli. Al secondo la risorsa migliora. Al terzo il mestiere intero migliora."},
+       {"type": "text", "text": "I traguardi sono alla maestria {balance:mastery.milestones.byproduct_at|int}, {balance:mastery.milestones.resource_at|int} e {balance:mastery.milestones.trade_at|int}; scattano anche per le risorse raccolte dall'aiutante. Il pool e i nodi dell'albero restano per mestiere."},
+       {"type": "heading", "text": "Boscaiolo"},
+       {"type": "table", "source": "mastery_milestones:forestry"},
+       {"type": "heading", "text": "Minatore"},
+       {"type": "table", "source": "mastery_milestones:quarrying"},
+       {"type": "heading", "text": "Pescatore"},
+       {"type": "table", "source": "mastery_milestones:angling"},
+       {"type": "links", "targets": ["page:guide_mastery", "page:guide_helpers"]}
+     ]},
+    {"id": "guide_engraver", "section": "crafts", "title": "Incisore", "order": 5,
+     "help_for": ["skill:riftbinding"],
+     "blocks": [
+       {"type": "text", "text": "L'{link:skill:riftbinding|Incisore} lavora i drop del Rift: non crea nulla dal nulla. La {link:item:rift_dust|Polvere del Rift} cade dai mostri e dai Monoliti; con la Polvere si cristallizzano le valute."},
+       {"type": "text", "text": "Cristallizzare può fallire: la probabilità sale con il livello da {balance:engraver.crystal_chance_min_pct|pct} a {balance:engraver.crystal_chance_max_pct|pct}. In caso di fallimento perdi {balance:engraver.crystal_fail_loss_pct|pct} della Polvere impiegata e ottieni solo una parte dell'esperienza."},
+       {"type": "text", "text": "L'Incisore prepara anche la Lastra runica, fonde le pietre in gradi più alti ({balance:engraver.merge_ratio|int} pietre dello stesso grado per il grado successivo), incide le rune e le potenzia ({balance:rune.upgrade_ratio|int} rune dello stesso grado per il grado successivo)."},
+       {"type": "table", "source": "engraver_recipes"},
+       {"type": "links", "targets": ["page:guide_currencies", "page:guide_stones_runes", "page:guide_altar", "page:guide_mastery"]}
+     ]}
+  ]
+}
