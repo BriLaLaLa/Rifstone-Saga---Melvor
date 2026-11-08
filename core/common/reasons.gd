@@ -50,4 +50,7 @@ const UPGRADE_MAX := &"upgrade_max"  # M7: the piece is already at the highest r
 const ITEM_UNIQUE := &"item_unique"  # M10: a unique tool cannot be sold, salvaged or taken off
 const NOT_A_TOOL := &"not_a_tool"  # M10: the piece is not a unique tool (tool refinement, F-94)
 const INVALID_CHOICE := &"invalid_choice"  # M10: chosen affix not allowed or Forging level too low (F-92)
+const NOT_A_CONTRACT := &"not_a_contract"  # M12: the item is not of category contract
+const NO_HELPER := &"no_helper"  # M12: the trade has no helper
+const HELPER_NOT_BETTER := &"helper_not_better"  # M12: the contract does not beat the current helper grade (not consumed)
 const BLUEPRINT_DONE := &"blueprint_done"  # M10: stop reason of a finished blueprint craft (action_stopped)

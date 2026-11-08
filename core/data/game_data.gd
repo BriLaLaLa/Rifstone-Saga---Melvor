@@ -51,6 +51,7 @@ var _affix_list: Array[AffixDef] = []
 var _hints: Dictionary[StringName, HintDef] = {}
 var _hint_list: Array[HintDef] = []
 var _guide: GuideBook = GuideBook.new()  # M11
+var _helper: HelperIndex = HelperIndex.new()  # M12
 var _blueprint_list: Array[ItemDef] = []
 var _blueprint_by_base: Dictionary[StringName, ItemDef] = {}
 var _unique_tools: Dictionary[StringName, ItemDef] = {}  # slot -> unique tool (M10)
@@ -129,12 +130,10 @@ func affixes_for_slot(slot: StringName) -> Array[AffixDef]:
 	return result
 
 
-func item(id: StringName) -> ItemDef:
-	return _find(_items, id, "item") as ItemDef
+func item(id: StringName) -> ItemDef: return _find(_items, id, "item") as ItemDef
 
 
-func has_item(id: StringName) -> bool:
-	return _items.has(id)
+func has_item(id: StringName) -> bool: return _items.has(id)
 
 
 ## Every item, in load order (files in alphabetical order, then file order).
@@ -157,8 +156,7 @@ func unique_tool(slot: StringName) -> ItemDef:
 	return _find(_unique_tools, slot, "unique tool slot") as ItemDef
 
 
-func skill(id: StringName) -> SkillDef:
-	return _find(_skills, id, "skill") as SkillDef
+func skill(id: StringName) -> SkillDef: return _find(_skills, id, "skill") as SkillDef
 
 
 ## Every skill, by `order`.
@@ -178,8 +176,7 @@ func skills_by_category(category: StringName) -> Array[SkillDef]:
 	return result
 
 
-func action(id: StringName) -> ActionDef:
-	return _find(_actions, id, "action") as ActionDef
+func action(id: StringName) -> ActionDef: return _find(_actions, id, "action") as ActionDef
 
 
 ## The actions of a skill, by `level` then id; an unknown skill is an error.
@@ -202,8 +199,7 @@ func mastery_actions_for_skill(skill_id: StringName) -> Array[ActionDef]:
 	return result
 
 
-func mastery_node(id: StringName) -> MasteryNodeDef:
-	return _find(_nodes, id, "mastery node") as MasteryNodeDef
+func mastery_node(id: StringName) -> MasteryNodeDef: return _find(_nodes, id, "mastery node") as MasteryNodeDef
 
 
 ## The mastery nodes of a skill, in file order; an unknown skill is an error.
@@ -217,8 +213,7 @@ func mastery_nodes(skill_id: StringName) -> Array[MasteryNodeDef]:
 	return result
 
 
-func area(id: StringName) -> AreaDef:
-	return _find(_areas, id, "area") as AreaDef
+func area(id: StringName) -> AreaDef: return _find(_areas, id, "area") as AreaDef
 
 
 ## Every area, by `order`.
@@ -226,25 +221,20 @@ func areas() -> Array[AreaDef]:
 	return _area_list.duplicate()
 
 
-func monster(id: StringName) -> MonsterDef:
-	return _find(_monsters, id, "monster") as MonsterDef
+func monster(id: StringName) -> MonsterDef: return _find(_monsters, id, "monster") as MonsterDef
 
 
 ## Existence checks without `push_error` (docs/05_INTERFACES.md §4).
-func has_area(id: StringName) -> bool:
-	return _areas.has(id)
+func has_area(id: StringName) -> bool: return _areas.has(id)
 
 
-func has_monster(id: StringName) -> bool:
-	return _monsters.has(id)
+func has_monster(id: StringName) -> bool: return _monsters.has(id)
 
 
-func has_rift_stone(id: StringName) -> bool:
-	return _stones.has(id)
+func has_rift_stone(id: StringName) -> bool: return _stones.has(id)
 
 
-func rift_stone(id: StringName) -> RiftStoneDef:
-	return _find(_stones, id, "rift stone") as RiftStoneDef
+func rift_stone(id: StringName) -> RiftStoneDef: return _find(_stones, id, "rift stone") as RiftStoneDef
 
 
 ## The Rift Stone of an area (F-87), null (no error) when the area has none: no stone ever appears there.
@@ -252,8 +242,7 @@ func rift_stone_for_area(area_id: StringName) -> RiftStoneDef:
 	return _stone_by_area.get(area_id) as RiftStoneDef
 
 
-func shop_entry(id: StringName) -> ShopEntryDef:
-	return _find(_shop, id, "shop entry") as ShopEntryDef
+func shop_entry(id: StringName) -> ShopEntryDef: return _find(_shop, id, "shop entry") as ShopEntryDef
 
 
 ## Every shop entry, in file order.
@@ -261,13 +250,24 @@ func shop_entries() -> Array[ShopEntryDef]:
 	return _shop_list.duplicate()
 
 
-func hint(id: StringName) -> HintDef:
-	return _find(_hints, id, "hint") as HintDef
+func hint(id: StringName) -> HintDef: return _find(_hints, id, "hint") as HintDef
 
 
 ## Every hint, in file order.
 func hints() -> Array[HintDef]:
 	return _hint_list.duplicate()
+
+
+## M12: the helper grades of `helper.grades`, in order of grade (apprentice first).
+func helper_grades() -> Array[HelperGradeDef]: return _helper.grades.duplicate()
+
+
+## M12: a helper grade by id; null and an error if unknown.
+func helper_grade(id: StringName) -> HelperGradeDef: return _find(_helper.by_id, id, "helper grade") as HelperGradeDef
+
+
+## M12: the contract item of a gathering skill and a grade; null (no error) when there is none.
+func contract_for(skill_id: StringName, grade_id: StringName) -> ItemDef: return _helper.contract_for(skill_id, grade_id)
 
 
 ## M11: the hand-written Guide pages by section, order and id.
@@ -344,6 +344,7 @@ func _build(raw: Dictionary) -> void:
 		for d: Dictionary in _list(raw["hints"][path], "hints"):
 			_add(HintDef.from_dict(d), _hints, _hint_list, path, "hint", d)
 	ItemIndexM10.build(_item_list, _blueprint_list, _blueprint_by_base, _unique_tools)
+	_helper.build(_balance, _item_list)
 	_skill_list.sort_custom(func(a: SkillDef, b: SkillDef) -> bool: return a.order < b.order)
 	_area_list.sort_custom(func(a: AreaDef, b: AreaDef) -> bool: return a.order < b.order)
 	_class_list.sort_custom(func(a: ClassDef, b: ClassDef) -> bool: return a.order < b.order)
@@ -388,6 +389,7 @@ func _clear() -> void:
 			_blueprint_by_base, _unique_tools, _affixes, _hints]:
 		table.clear()
 	_guide.clear()
+	_helper.clear()
 	for list: Array in [_item_list, _skill_list, _action_list, _node_list, _area_list, _shop_list, _class_list,
 			_affix_list, _hint_list, _blueprint_list]:
 		list.clear()

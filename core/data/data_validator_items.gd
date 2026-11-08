@@ -5,12 +5,12 @@ extends RefCounted
 
 const ACTION_SKILL_CATEGORIES: PackedStringArray = ["gathering", "artisan"]
 const ITEM_FIELDS: PackedStringArray = ["id", "name", "description", "category", "icon", "value", "sort_order",
-	"equip", "food", "infusion", "stone", "currency", "blueprint", "bag"]
+	"equip", "food", "infusion", "stone", "currency", "blueprint", "bag", "contract"]
 const ITEM_ICON_DIR: String = "res://assets/icons/items/"
 ## Item file name (without `.json`) -> the category of its items.
 const ITEM_FILE_CATEGORIES: Dictionary[String, String] = {
 	"materials": "material", "components": "component", "blueprints": "blueprint", "equipment": "equipment", "tools": "tool", "food": "food", "infusions": "infusion",
-	"misc": "misc", "stones": "stone", "currencies": "currency", "bags": "bag",
+	"misc": "misc", "stones": "stone", "currencies": "currency", "bags": "bag", "contracts": "contract",
 }
 const CURRENCY_EFFECTS: PackedStringArray = ["to_magic", "to_rare", "reroll"]
 const EQUIP_CATEGORIES: PackedStringArray = ["equipment", "tool"]
@@ -49,6 +49,7 @@ static func validate_items(v: DataValidatorRules, files: Dictionary[String, Dict
 			v.entry("item", index, list[index], seen, ITEM_FIELDS)
 			_item(v, list[index], ITEM_FILE_CATEGORIES.get(stem, ""))
 	v.at_file("section 'items'" if files.is_empty() else (files.keys()[0] as String).get_base_dir())
+	DataValidatorHelper.validate_contract_set(v)
 	if not v.items.has(RIFT_SHARD_ID):
 		v.fail("required item '%s' (category %s) is missing" % [RIFT_SHARD_ID, RIFT_SHARD_CATEGORY])
 	elif v.items[RIFT_SHARD_ID].get("category") != RIFT_SHARD_CATEGORY:
@@ -90,6 +91,8 @@ static func _item(v: DataValidatorRules, e: Dictionary, file_category: String) -
 		v.integer(e["bag"] as Dictionary, "slots", 1, BAG_SLOTS_MAX, "bag")
 		if DataValidatorRules.is_int(e.get("value")) and int(e["value"]) != 0:
 			v.fail("a bag must have value 0 (it cannot be sold)")
+	if _sub_object(v, e, "contract", category == "contract"):
+		DataValidatorHelper.contract(v, e)
 	if _sub_object(v, e, "currency", category == "currency"):
 		var currency: Dictionary = e["currency"] as Dictionary
 		v.keys(currency, ["effect"], "currency")

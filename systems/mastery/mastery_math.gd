@@ -23,6 +23,11 @@ static func mastery_xp(interval_ms: int, item_level: int, skill_ratio: float, ma
 	return maxi(1, floori(seconds * per_second * (100.0 + mastery_xp_pct) / 100.0))
 
 
+## F-102 (M12): the helper's part of a mastery xp: round(mxp × share_pct / 100).
+static func helper_share(mastery_xp: int, share_pct: float) -> int:
+	return roundi(float(mastery_xp) * share_pct / 100.0)
+
+
 ## F-12: round(mxp × share_pct / 100).
 static func pool_gain(mastery_xp: int, share_pct: float) -> int:
 	return roundi(float(mastery_xp) * share_pct / 100.0)
