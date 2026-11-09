@@ -11,6 +11,7 @@ extends SceneTree
 ##   rarity=common|magic|rare   rarity of the opened Card (default magic)
 ##   setup=sword_shield|greatsword|dual, slice=<s> seconds per step (default 5), cap=<min> abort after (default 90)
 ##   root=<res path>     content root (default res://data)
+##   material=plate|leather|cloth   worn armour and shield (default leather: bosses and Monoliths also strike with Barrier)
 ## Nothing is written. Output goes through print_rich/printerr (bare print is forbidden).
 
 const GAME_DATA_PATH: String = "res://core/data/game_data.gd"
@@ -18,7 +19,7 @@ const COMBAT_TOOL: String = "res://tools/sim_combat.gd"
 const CONFIG_ROOT: String = "res://data/config"
 const DEFAULTS: Dictionary = {
 	"grade": "all", "seeds": "1,2,3", "delta": "0", "rarity": "magic", "setup": "sword_shield", "slice": "5",
-	"cap": "90", "root": "res://data",
+	"cap": "90", "root": "res://data", "material": "leather",
 }
 
 
@@ -54,12 +55,12 @@ func run(args: PackedStringArray) -> int:
 static func report(data: Object, opts: Dictionary) -> PackedStringArray:
 	var lines: PackedStringArray = PackedStringArray()
 	lines.append("| grade | level | seed | outcome | boss at | min | deaths | cards (grade:rarity) | pieces | dust | xp |")
-	lines.append("|---|---|---|---|---|---|---|---|---|---|---|---|")
+	lines.append("|---|---|---|---|---|---|---|---|---|---|---|---|---|")
 	var grades: Array = data.call("balance_value", "fracture.grades")
 	var summary: PackedStringArray = PackedStringArray()
 	summary.append("")
-	summary.append("| grade | level | won | mean min | cards>=grade / fracture | cards / fracture | pieces | dust | xp/h |")
-	summary.append("|---|---|---|---|---|---|---|---|---|")
+	summary.append("| grade | level | won | mean min | won min | cards>=grade / fracture | cards / fracture | pieces | dust | xp/h |")
+	summary.append("|---|---|---|---|---|---|---|---|---|---|")
 	for g: int in range(1, grades.size() + 1):
 		if str(opts["grade"]) != "all" and int(opts["grade"]) != g:
 			continue
@@ -79,6 +80,7 @@ static func _summary(g: int, level: int, rows: Array[Dictionary]) -> String:
 	var n: float = rows.size()
 	var won: int = 0
 	var ms: float = 0.0
+	var won_ms: float = 0.0
 	var good: int = 0
 	var cards: int = 0
 	var pieces: int = 0
@@ -87,12 +89,13 @@ static func _summary(g: int, level: int, rows: Array[Dictionary]) -> String:
 	for row: Dictionary in rows:
 		won += 1 if row["outcome"] == "won" else 0
 		ms += row["ms"]
+		won_ms += row["ms"] if row["outcome"] == "won" else 0.0
 		good += int(row["cards_ge"])
 		cards += int(row["cards"])
 		pieces += int(row["pieces"])
 		dust += int(row["dust"])
 		xp += int(row["xp"])
-	return "| %d | %d | %d/%d | %.1f | %.2f | %.2f | %.1f | %.0f | %.0f |" % [g, level, won, rows.size(), ms / n / 60000.0,
+	return "| %d | %d | %d/%d | %.1f | %.1f | %.2f | %.2f | %.1f | %.0f | %.0f |" % [g, level, won, rows.size(), ms / n / 60000.0, won_ms / maxf(float(won), 1.0) / 60000.0,
 		good / n, cards / n, pieces / n, dust / n, xp / maxf(ms / 3600000.0, 0.001)]
 
 
@@ -102,7 +105,7 @@ static func measure(data: Object, grade: int, level: int, seed_value: int, opts:
 	var session: Object = tool.call("_new_session", data, seed_value)
 	var xp_before: int = tool.call("_set_level", session, level)
 	var set_grade: int = tool.call("auto_grade", data, level)
-	tool.call("_equip_set", session, set_grade, StringName(str(opts["setup"])))
+	tool.call("_equip_set", session, set_grade, StringName(str(opts["setup"])), StringName(str(opts["material"])))
 	tool.call("_fill_loadout", session, data)
 	var food_id: StringName = tool.call("food_for_grade", data, set_grade)
 	session.bank.add(food_id, 1000000)

@@ -22,9 +22,10 @@ func test_crack_golem_at_grade_3() -> void:
 	assert_eq(golem.attack_level, 46)
 	assert_eq(golem.power_level, 46)
 	assert_eq(golem.defence_level, 46)
-	assert_eq(golem.hp, 416, "320 x 1.30")
+	var row: FractureGradeDef = _data.fracture_grade(3)
+	assert_eq(golem.hp, int(round(float(_data.monster(&"crack_golem").hp) * row.hp_mult)), "hp x the hp_mult of the row")
 	assert_eq(golem.damage_mult, 1.16)
-	assert_eq(golem.xp, int(round(1024.0 * 1.4)))
+	assert_eq(golem.xp, int(round(float(_data.monster(&"crack_golem").xp) * row.reward_mult)))
 	assert_eq(golem.id, &"crack_golem", "the id of the data")
 
 
@@ -46,7 +47,7 @@ func test_vein_witch_level_63_and_wraith_unchanged_at_grade_4() -> void:
 	assert_eq(_scaled(&"vein_witch", 3).attack_level, 63)
 	var wraith: ScaledMonsterDef = _scaled(&"shard_wraith", 4)
 	assert_eq(wraith.attack_level, 65)
-	assert_eq(wraith.hp, 700)
+	assert_eq(wraith.hp, int(round(float(_data.monster(&"shard_wraith").hp) * _data.fracture_grade(4).hp_mult)))
 	assert_eq(wraith.damage_mult, 1.0)
 
 

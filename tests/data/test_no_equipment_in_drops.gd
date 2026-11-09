@@ -69,7 +69,7 @@ func test_rift_dust_is_8_percent_times_one_in_the_area_tables() -> void:
 
 
 func test_loot_pool_keys_of_f121() -> void:
-	assert_eq(float(_data.balance_value("loot.equipment.chance_pct")), 2.5)
+	assert_eq(float(_data.balance_value("loot.equipment.chance_pct")), 2.9)
 	assert_eq(int(_data.balance_value("loot.equipment.level_ahead")), 5)
 	assert_eq(int(_data.balance_value("loot.equipment.level_window")), 15)
 	var kinds: Dictionary = _data.balance_value("loot.equipment.kind_weights") as Dictionary

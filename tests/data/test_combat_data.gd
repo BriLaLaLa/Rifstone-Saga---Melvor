@@ -1,20 +1,21 @@
 extends GutTest
 ## Areas, monsters and packs of the real data (02_FORMULAS.md §8.5; 04_DATA_SCHEMA.md §8). The table below is the oracle.
+## M14-10: hp, gold and xp of the three upper areas are retuned by the sim (kills per hour close across the areas, STATUS.md); the rest follows §8.5.
 
 ## [id, area, L, hp, style, interval, acc, pot, eva, dr, gold min, gold max, shard %, xp].
 const MONSTERS: Array[Array] = [
 	["plains_boar", "redrock_plains", 1, 20, "blade", 2800, 0, 0, 0, 0, 1, 4, 0.5, 80],
 	["ember_rat", "redrock_plains", 4, 32, "arcana", 2400, 5, 4, 5, 0, 2, 6, 0.5, 128],
 	["redrock_raider", "redrock_plains", 8, 50, "marksmanship", 2600, 10, 8, 8, 2, 4, 10, 0.75, 200],
-	["whisper_wolf", "whisper_wood", 16, 110, "blade", 2600, 20, 15, 18, 4, 8, 18, 1.0, 440],
-	["moss_troll", "whisper_wood", 22, 160, "arcana", 3000, 25, 22, 30, 8, 12, 25, 1.0, 640],
-	["hollow_archer", "whisper_wood", 30, 210, "marksmanship", 2400, 30, 18, 20, 5, 15, 30, 1.0, 840],
-	["crack_golem", "cracked_mines", 38, 320, "blade", 3200, 45, 35, 50, 12, 25, 50, 1.5, 1024],
-	["deep_crawler", "cracked_mines", 46, 400, "marksmanship", 2200, 50, 30, 35, 8, 30, 60, 1.5, 1280],
-	["vein_witch", "cracked_mines", 55, 520, "arcana", 2800, 55, 40, 40, 10, 40, 80, 1.5, 1664],
-	["shard_wraith", "rift_threshold", 65, 700, "arcana", 2600, 70, 55, 60, 15, 60, 120, 2.0, 2800],
-	["rift_knight", "rift_threshold", 78, 950, "blade", 2400, 85, 65, 80, 20, 90, 170, 2.5, 3800],
-	["riftborn_colossus", "rift_threshold", 92, 1300, "marksmanship", 3400, 100, 80, 110, 25, 150, 300, 3.0, 5200],
+	["whisper_wolf", "whisper_wood", 16, 81, "blade", 2600, 20, 15, 18, 4, 6, 13, 1.0, 324],
+	["moss_troll", "whisper_wood", 22, 118, "arcana", 3000, 25, 22, 30, 8, 9, 18, 1.0, 472],
+	["hollow_archer", "whisper_wood", 30, 155, "marksmanship", 2400, 30, 18, 20, 5, 11, 22, 1.0, 620],
+	["crack_golem", "cracked_mines", 38, 198, "blade", 3200, 45, 35, 50, 12, 16, 31, 1.5, 633],
+	["deep_crawler", "cracked_mines", 46, 248, "marksmanship", 2200, 50, 30, 35, 8, 19, 37, 1.5, 793],
+	["vein_witch", "cracked_mines", 55, 322, "arcana", 2800, 55, 40, 40, 10, 25, 50, 1.5, 1030],
+	["shard_wraith", "rift_threshold", 65, 287, "arcana", 2600, 70, 55, 60, 15, 25, 49, 2.0, 1148],
+	["rift_knight", "rift_threshold", 78, 390, "blade", 2400, 85, 65, 80, 20, 37, 70, 2.5, 1560],
+	["riftborn_colossus", "rift_threshold", 92, 533, "marksmanship", 3400, 100, 80, 110, 25, 61, 123, 3.0, 2132],
 ]
 ## [area id, requirement, max pack size].
 const AREAS: Array[Array] = [
