@@ -8,6 +8,7 @@ extends GutTest
 
 const SEED: int = 5150
 const OTHER_SEED: int = 9
+const SEED_BETWEEN: int = 3   # a seed where the unboosted character wins the first group (M13-06 changed the drops, hence the draws)
 const NOW_MS: int = 1793603600000
 const AREA: StringName = &"redrock_plains"
 const SWORD: StringName = &"emberbronze_sword"
@@ -252,7 +253,7 @@ func test_save_load_in_the_middle_of_a_fight_is_identical_and_continues_identica
 
 
 func test_state_between_encounters_survives_a_save() -> void:
-	var a: GameSession = _geared(SEED)
+	var a: GameSession = _geared(SEED_BETWEEN)
 	a.modifiers.set_source(BOOST, [] as Array[Modifier])   # test sources are not in the save
 	a.combat.start(AREA)
 	var guard: int = 0
