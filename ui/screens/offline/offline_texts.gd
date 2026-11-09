@@ -17,6 +17,9 @@ const SECTION_ITEMS := "OGGETTI"
 const SECTION_COMBAT := "COMBATTIMENTO"
 const SECTION_ARMORY := "ARMERIA"
 const SECTION_STOPS := "INTERRUZIONI"
+const SECTION_FRACTURES := "FRATTURE"
+const FRACTURE_LINE := "Frattura di grado %d %s: %d gruppi superati"
+const FRACTURE_LOOT_SEPARATOR := ", "
 
 const CHARACTER_NAME := "Personaggio"
 const XP_LINE := "%s: +%s XP"
@@ -65,6 +68,16 @@ static func duration(ms: int) -> String:
 	if minutes > 0:
 		return "%d min %d s" % [minutes, seconds]
 	return "%d s" % seconds
+
+
+## One line per Fracture that ended while away (`OfflineSummary.fractures`): "Frattura di grado 3 vinta: 30 gruppi superati, 1 Carta".
+static func fracture_line(entry: Dictionary) -> String:
+	var outcome: StringName = entry.get("outcome", &"") as StringName
+	var line: String = FRACTURE_LINE % [int(entry.get("grade", 0)), FractureTexts.outcome_text(outcome), int(entry.get("groups", 0))]
+	var loot: String = FractureTexts.bag_text({"stacks": 0, "pieces": int(entry.get("pieces", 0)), "cards": int(entry.get("cards", 0))})
+	if outcome == &"won" and loot != "":
+		line += FRACTURE_LOOT_SEPARATOR + loot
+	return line
 
 
 static func reason_text(reason: StringName) -> String:

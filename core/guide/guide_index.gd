@@ -21,6 +21,9 @@ const LABEL_BAG: String = "Slot borsa del Deposito"
 const LABEL_CONTRACT: String = "Assumi un aiutante"
 const PAGE_DEPOSIT: StringName = &"guide_deposit"
 const PAGE_HELPERS: StringName = &"guide_helpers"
+const PAGE_FRACTURES: StringName = &"guide_fractures"
+const LABEL_FRACTURE_SOURCE: String = "Mostri e boss delle Fratture"
+const LABEL_FRACTURE_OPEN: String = "Apri una Frattura"
 
 var _data: GameData = null
 var _sources: Dictionary[StringName, Array] = {}
@@ -152,6 +155,9 @@ func _build_sources() -> void:
 			var detail: String = "%s oro" % num(entry_def.cost_gold) if entry_def.cost_gold > 0 else ""
 			_add(_sources, entry_def.effect_item.item_id, GuideRef.make(GuideRef.KIND_SHOP, &"", entry_def.name, detail))
 	_add_starter_kit_sources()
+	for def: ItemDef in _data.items():
+		if def.is_map():
+			_add_card_source(def)
 
 
 func _add_monster_sources(area: AreaDef, monster: MonsterDef) -> void:
@@ -201,6 +207,15 @@ func _add_equipment_sources(def: ItemDef) -> void:
 		if floori(input.qty * ratio + 1e-9) > 0:
 			_add(_sources, input.item_id, GuideRef.make(GuideRef.KIND_SALVAGE, entry(&"item", def.id), def.name,
 					LABEL_SALVAGE))
+
+
+## A Card also falls inside the Fractures (F-113): from a run of its own grade or of up to `delta` grades below.
+func _add_card_source(def: ItemDef) -> void:
+	var deltas: Variant = _data.balance_value("fracture.card_drop.monster_delta")
+	var span: int = maxi((deltas as Array).size() - 1, 0) if deltas is Array else 0
+	var low: int = maxi(1, def.map_grade - span)
+	var detail: String = "Frattura di grado %d" % low if low == def.map_grade else "Frattura di grado %d-%d" % [low, def.map_grade]
+	_add(_sources, def.id, GuideRef.make(GuideRef.KIND_FRACTURE, entry(&"page", PAGE_FRACTURES), LABEL_FRACTURE_SOURCE, detail))
 
 
 func _add_starter_kit_sources() -> void:
@@ -265,6 +280,8 @@ func _add_item_kind_uses(def: ItemDef) -> void:
 	if def.is_bag():
 		_add(_uses, def.id, GuideRef.make(GuideRef.KIND_BAG, entry(&"page", PAGE_DEPOSIT), LABEL_BAG,
 				"+%d caselle" % def.bag_slots))
+	if def.is_map():
+		_add(_uses, def.id, GuideRef.make(GuideRef.KIND_FRACTURE, entry(&"page", PAGE_FRACTURES), LABEL_FRACTURE_OPEN))
 	if def.is_contract():
 		_add(_uses, def.id, GuideRef.make(GuideRef.KIND_CONTRACT, entry(&"page", PAGE_HELPERS), LABEL_CONTRACT))
 	if def.is_currency():

@@ -68,6 +68,7 @@ func _redraw() -> void:
 	_section(OfflineTexts.SECTION_PROGRESS, _progress_lines())
 	_section(OfflineTexts.SECTION_ITEMS, _item_lines())
 	_section(OfflineTexts.SECTION_COMBAT, _combat_lines())
+	_section(OfflineTexts.SECTION_FRACTURES, _fracture_lines())
 	_section(OfflineTexts.SECTION_ARMORY, _armory_lines())
 	_section(OfflineTexts.SECTION_STOPS, _stop_lines(), UiStyle.OFFLINE_WARNING_COLOR)
 
@@ -121,6 +122,13 @@ func _combat_lines() -> PackedStringArray:
 		lines.append(OfflineTexts.DEATHS_LINE % NumberFormat.format_int(_summary.deaths))
 	if _summary.food_eaten > 0:
 		lines.append(OfflineTexts.FOOD_LINE % NumberFormat.format_int(_summary.food_eaten))
+	return lines
+
+
+func _fracture_lines() -> PackedStringArray:
+	var lines: PackedStringArray = PackedStringArray()
+	for entry: Dictionary in _summary.fractures:
+		lines.append(OfflineTexts.fracture_line(entry))
 	return lines
 
 

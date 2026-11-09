@@ -15,6 +15,9 @@ var _yield_values: Dictionary[StringName, Label] = {}
 var _log_open: bool = false
 ## Presentation: whether MessageLabel shows the no-food warning (B2).
 var _food_warning: bool = false
+## Presentation: the state line without the Fracture boss part, and the link to the Fractures page.
+var _state_base: String = ""
+var _fracture_link: Button = null
 
 @onready var _margin: MarginContainer = %Margin
 @onready var _main: VBoxContainer = %Main
@@ -59,10 +62,11 @@ func _ready() -> void:
 	_yield_title.text = CombatTexts.YIELD_TITLE
 	_eat_button.text = CombatTexts.EAT_TEXT
 	_stop_button.text = CombatTexts.STOP_TEXT
+	_fracture_link = CombatFracture.add_link(_stop_button.get_parent())
 	_collect_button.text = CombatTexts.COLLECT_TEXT
 	_message_label.add_theme_color_override("font_color", UiStyle.BAD)
 	_message_label.visible = false
-	_build_yield_grid()
+	_yield_values = CombatYield.build_grid(_yield_grid)
 	_eat_button.pressed.connect(_on_eat_pressed)
 	_stop_button.pressed.connect(_on_stop_pressed)
 	_collect_button.pressed.connect(_on_collect_pressed)
@@ -84,6 +88,8 @@ func bind(session: GameSession) -> void:
 	_connect(events.combat_stopped, _on_combat_stopped)
 	_connect(events.encounter_started, resync.unbind(1))
 	_connect(events.encounter_cleared, resync)
+	_connect(events.fracture_boss_started, resync.unbind(1))
+	_connect(events.fracture_finished, resync.unbind(5))
 	_connect(events.player_hp_changed, resync.unbind(2))
 	_connect(events.monster_hp_changed, resync.unbind(3))
 	_connect(events.monster_killed, _on_monster_killed)
@@ -130,6 +136,8 @@ func _process(_delta: float) -> void:
 		var state: Dictionary = _session.combat.get_state()
 		_player.tick(state)
 		_zone.refresh(_session, state)
+		if CombatFracture.is_in(state):  # the ability timer and the shield move between events
+			_state_label.text = CombatFracture.state_text(state["fracture"], _state_base, _session.data)
 		_redraw_yield()
 
 
@@ -172,12 +180,20 @@ func _redraw_all() -> void:
 		return
 	var state: Dictionary = _session.combat.get_state()
 	var running: bool = state["state"] != CombatEngine.STATE_IDLE
-	var area: AreaDef = _session.data.area(state["area"]) if running else null
+	var in_fracture: bool = CombatFracture.is_in(state)
+	var area: AreaDef = _session.data.area(state["area"]) if running and state["area"] != &"" else null
 	_area_label.text = area.name if area != null else CombatTexts.NO_AREA_TEXT
 	var state_text: String = CombatTexts.STATE_TEXTS.get(state["state"], CombatTexts.STATE_TEXT_DEFAULT)
 	var enemy_count: int = (state["enemies"] as Array).size()
-	_state_label.text = CombatTexts.HEADER_ENEMIES_TEXT % [state_text, CombatTexts.group_size_text(enemy_count)] \
+	_state_base = CombatTexts.HEADER_ENEMIES_TEXT % [state_text, CombatTexts.group_size_text(enemy_count)] \
 			if enemy_count > 0 else state_text
+	_state_label.text = _state_base
+	_area_choice_label.visible = not in_fracture
+	_area_option.visible = not in_fracture
+	_fracture_link.visible = in_fracture
+	if in_fracture:
+		_area_label.text = CombatFracture.header_text(_session, state["fracture"])
+		_state_label.text = CombatFracture.state_text(state["fracture"], _state_base, _session.data)
 	_stop_button.disabled = not running
 	_eat_button.disabled = not running
 	_redraw_food()
@@ -204,28 +220,9 @@ func _redraw_food() -> void:
 
 # --- Bottom row -----------------------------------------------------------------------------------------------
 
-func _build_yield_grid() -> void:
-	for kind: StringName in CombatTexts.YIELD_LABELS:
-		var box := VBoxContainer.new()
-		box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var value := Label.new()
-		value.add_theme_font_override("font", UiStyle.font_bold())
-		value.add_theme_font_size_override("font_size", UiStyle.COMBAT_YIELD_FONT_SIZE)
-		box.add_child(value)
-		var caption := Label.new()
-		caption.text = CombatTexts.YIELD_LABELS[kind]
-		caption.theme_type_variation = &"MutedLabel"
-		box.add_child(caption)
-		_yield_grid.add_child(box)
-		_yield_values[kind] = value
-
-
 func _redraw_yield() -> void:
 	var now: int = _session.play_time_ms
-	_yield_values[CombatYield.KILLS].text = NumberFormat.format_int(_yield.per_hour(CombatYield.KILLS, now))
-	_yield_values[CombatYield.XP].text = NumberFormat.format_int(_yield.per_hour(CombatYield.XP, now))
-	_yield_values[CombatYield.GOLD].text = NumberFormat.format_int(_yield.per_hour(CombatYield.GOLD, now))
-	_yield_values[CombatYield.DAMAGE].text = NumberFormat.format_int(_yield.per_second(CombatYield.DAMAGE, now))
+	_yield.redraw_values(_yield_values, now)
 	_yield_window.text = CombatTexts.yield_window_text(_yield.window_ms(now))
 
 

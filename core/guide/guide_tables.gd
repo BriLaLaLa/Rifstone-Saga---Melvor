@@ -10,7 +10,7 @@ const LOG_CATEGORY: String = "guide"
 const MS_PER_SEC: float = 1000.0
 const FIXED_IDS: Array[String] = ["affix_tiers", "refine_costs", "tool_upgrades", "traits", "abilities", "stats",
 	"bags", "helper_grades", "engraver_recipes",
-	"infusions"]
+	"infusions", "fracture_grades", "map_mods", "bosses"]
 const PREFIX_ACTIONS: String = "actions:"
 const PREFIX_AREA_MONSTERS: String = "area_monsters:"
 const PREFIX_MONSTER_DROPS: String = "monster_drops:"
@@ -44,6 +44,12 @@ static func build(source: String, data: GameData) -> Array[Array]:
 			rows = _bags(data)
 		"helper_grades":
 			rows = _helper_grades(data)
+		"fracture_grades":
+			rows = GuideFractureTables.grades(data)
+		"map_mods":
+			rows = GuideFractureTables.mods(data)
+		"bosses":
+			rows = GuideFractureTables.bosses(data)
 		"engraver_recipes":
 			rows = _engraver_recipes(data)
 		_:
