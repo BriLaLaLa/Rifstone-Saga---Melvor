@@ -11,16 +11,14 @@ extends SceneTree
 ##   setup=sword_shield|greatsword|dual   weapon assembly (default sword_shield)
 ##   level=auto|<n>       character level, kept fixed during the run (auto = mean attack level of the area's monsters)
 ##   tier=auto|<n>        field rations tier (auto = the shop tiers whose requirement the level meets)
-##   food=<n>             pieces of food in the bank at the start (default 1000000)
-##   slice=<s>            seconds simulated between level pins (default 30)
+##   food=<n>, slice=<s>  pieces of food at the start (default 1000000), seconds between level pins (default 30)
 ##   loadout=none|auto    auto fills the open trait and ability slots with the first unlocked ones the assembly allows (default none)
 ##   loot=0|1             1 adds the M7 tables: pieces by rarity, Rift Stones and the expected cost of refinement (default 0)
+##   material=plate|leather|cloth   material of the worn armour and shield (default plate: the highest Armour)
 ##   helpers|engraver|deposit=0|1, collect=<min>   M12-07 measurements (tools/sim_m12.gd)
 ##   root=<res path>      content root (default res://data), config root is res://data/config
-## Nothing is written: no save slot is touched. Numbers come from the data; the arguments only choose the scenario.
-## GameData and the sessions use the Log autoload, which does not exist while this `-s` script is compiled: they
-## are reached through paths and dynamic calls, as in tools/validate_data.gd.
-## Output goes through print_rich/printerr, like the other tools (bare print is forbidden).
+## Nothing is written. GameData and the sessions use the Log autoload, which does not exist while this `-s` script is
+## compiled: they are reached through paths and dynamic calls. Output goes through print_rich/printerr.
 
 const GAME_DATA_PATH: String = "res://core/data/game_data.gd"
 const SESSION_PATH: String = "res://core/session/game_session.gd"
@@ -32,7 +30,7 @@ const ARMOR_SLOTS: Array[StringName] = [&"body", &"legs", &"head", &"feet", &"ha
 const DEFAULTS: Dictionary = {
 	"area": "all", "scope": "both", "hours": "1", "seed": "1234", "grade": "auto", "setup": "sword_shield",
 	"level": "auto", "tier": "auto", "food": "1000000", "slice": "30", "root": "res://data", "loot": "0",
-	"loadout": "none", "helpers": "0", "engraver": "0", "deposit": "0", "collect": "10",
+	"loadout": "none", "material": "plate", "helpers": "0", "engraver": "0", "deposit": "0", "collect": "10",
 }
 
 
@@ -76,8 +74,8 @@ static func report(data: Object, opts: Dictionary) -> PackedStringArray:
 	lines.append("| area | scope | grade | level | tier | deaths/h | kills/h | xp/h | gold/h | food/h |")
 	lines.append("|---|---|---|---|---|---|---|---|---|---|")
 	var loot_lines: PackedStringArray = PackedStringArray()
-	loot_lines.append("| area | scope | pieces/h | magic/h | rare/h | stones/h | stone kills/h | stone deaths/h | stone ttk s | stone hp lost % | bp/h | bp lost/h |")
-	loot_lines.append("|---|---|---|---|---|---|---|---|---|---|---|---|")
+	loot_lines.append("| area | scope | pieces/h | magic/h | rare/h | stones/h | stone kills/h | stone deaths/h | stone ttk s | stone hp lost % | bp/h | bp lost/h | dust/h |")
+	loot_lines.append("|---|---|---|---|---|---|---|---|---|---|---|---|---|")
 	for area: Object in data.call("areas"):
 		if str(opts["area"]) != "all" and str(opts["area"]) != str(area.id):
 			continue
@@ -87,11 +85,11 @@ static func report(data: Object, opts: Dictionary) -> PackedStringArray:
 				area.id, scope, row["grade"], row["level"], row["tier"], _per_hour(row["deaths"], row),
 				_per_hour(row["kills"], row), _per_hour(row["xp"], row), _per_hour(row["gold"], row),
 				_per_hour(row["food"], row)])
-			loot_lines.append("| %s | %s | %s | %s | %s | %s | %s | %s | %.1f | %.1f | %s | %s |" % [
+			loot_lines.append("| %s | %s | %s | %s | %s | %s | %s | %s | %.1f | %.1f | %s | %s | %s |" % [
 				area.id, scope, _per_hour(row["pieces"], row), _per_hour(row["magic"], row, 2),
 				_per_hour(row["rare"], row, 2), _per_hour(row["stones"], row, 2), _per_hour(row["stone_kills"], row, 2),
 				_per_hour(row["stone_deaths"], row, 2), row["stone_ttk"], row["stone_loss"],
-				_per_hour(row["bps"], row, 2), _per_hour(row["bp_lost"], row, 2)])
+				_per_hour(row["bps"], row, 2), _per_hour(row["bp_lost"], row, 2), _per_hour(row["dust"], row)])
 	if str(opts["loot"]) == "1":
 		lines.append("")
 		lines.append_array(loot_lines)
@@ -201,7 +199,7 @@ static func measure(data: Object, area: Object, scope: String, opts: Dictionary)
 	var tier: int = auto_tier(data, level) if opts["tier"] == "auto" else int(opts["tier"])
 	var session: Object = _new_session(data, int(opts["seed"]))
 	var xp_before: int = _set_level(session, level)
-	_equip_set(session, grade, StringName(str(opts["setup"])))
+	_equip_set(session, grade, StringName(str(opts["setup"])), StringName(str(opts["material"])))
 	if opts["loadout"] == "auto":
 		_fill_loadout(session, data)
 	var food_id: StringName = food_for_grade(data, grade)
@@ -255,14 +253,17 @@ static func measure(data: Object, area: Object, scope: String, opts: Dictionary)
 		_pin_level(session, xp_before)
 	for i: int in range(area.packs.size()):
 		area.packs[i].weight = saved_weights[i]
-	var pieces: Dictionary = {"common": 0, "magic": 0, "rare": 0}
+	var pieces: Dictionary = {"common": 0, "magic": 0, "rare": 0, "masterwork": 0, "legendary": 0}
 	for inst: Object in session.armory.instances():
 		if not worn_uids.has(int(inst.uid)):
 			pieces[str(inst.rarity)] += 1
 	var bps: int = int(tally["bp_lost"])
+	var dust: int = session.bank.get_count(&"rift_dust")
 	for entry: Dictionary in engine.loot.items():
 		if str(entry["item"]).begins_with("bp_"):
 			bps += int(entry["qty"])
+		elif str(entry["item"]) == "rift_dust":
+			dust += int(entry["qty"])
 	var kills: int = 0
 	var kill_xp: int = 0
 	var counts: Dictionary = engine.total_kills()
@@ -273,10 +274,10 @@ static func measure(data: Object, area: Object, scope: String, opts: Dictionary)
 		"grade": grade, "level": level, "tier": tier, "ms": elapsed, "deaths": engine.deaths(),
 		"kills": kills, "xp": kill_xp, "gold": session.wallet.get_gold() - gold_start,
 		"food": food_start - session.bank.get_count(food_id),
-		"pieces": int(pieces["common"]) + int(pieces["magic"]) + int(pieces["rare"]), "magic": pieces["magic"],
+		"pieces": int(pieces["common"]) + int(pieces["magic"]) + int(pieces["rare"]), "magic": pieces["magic"], "legendary": pieces["legendary"],
 		"rare": pieces["rare"], "stones": tally["stones"], "stone_kills": tally["stone_kills"],
 		"stone_deaths": tally["stone_deaths"], "bps": bps, "bp_lost": tally["bp_lost"],
-		"stone_ttk": stone_fight[0], "stone_loss": stone_fight[1],
+		"stone_ttk": stone_fight[0], "stone_loss": stone_fight[1], "dust": dust,
 	}
 	session.free()  # the session is a Node outside any tree: free it, no orphans
 	return row
@@ -336,10 +337,12 @@ static func _pin_level(session: Object, pinned_xp: int) -> void:
 	session.events.modifiers_changed.emit()
 
 
-static func _equip_set(session: Object, grade: int, setup: StringName) -> void:
+static func _equip_set(session: Object, grade: int, setup: StringName, material: StringName = &"plate") -> void:
 	var by_slot: Dictionary = {}
 	for item: Object in session.data.call("items"):
-		if item.category == &"equipment" and item.equip != null and item.equip.grade == grade:
+		if item.category == &"equipment" and item.equip != null and item.equip.grade == grade \
+				and not item.equip.masterwork and item.equip.legendary == null \
+				and (item.equip.material == &"" or item.equip.material == material):
 			var key: String = "%s/%s" % [item.equip.slot, item.equip.kind]
 			by_slot[key] = item.id
 	var worn: Array[StringName] = []

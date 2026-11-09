@@ -82,12 +82,14 @@ static func _area_index(reqs: Array[int], level: int) -> int:
 	return best
 
 
-## Expected drops per hour of each area (no noise): kills/h measured at the mean level of the area, split over the monsters
-## by pack weight, times chance and mean quantity of each entry. Pieces and projects are listed by grade.
+## Expected drops per hour of each area (no noise, F-121): kills/h measured at the mean level of the area, split over the
+## monsters by pack weight, times the percentages of `EquipmentPool.table` for the `L_m` of each monster. Pieces and projects
+## are listed by piece grade (`g`).
 static func drops_report(sim: GDScript, data: Object, opts: Dictionary) -> PackedStringArray:
 	var out: PackedStringArray = PackedStringArray()
-	out.append("| area | kills/h | pieces/h by grade | projects/h by grade | min between pieces of the area grade | projects/h |")
+	out.append("| area | kills/h | pieces/h | pieces/h by grade | projects/h | minutes between pieces |")
 	out.append("|---|---|---|---|---|---|")
+	var pool: GDScript = load("res://core/data/equipment_pool.gd") as GDScript
 	for area: Object in data.call("areas"):
 		var row: Dictionary = sim.call("measure", data, area, "all", opts)
 		var share: Dictionary = {}
@@ -98,23 +100,21 @@ static func drops_report(sim: GDScript, data: Object, opts: Dictionary) -> Packe
 				total += float(pack.weight)
 		var kills_h: float = float(row["kills"]) * HOUR_MS / maxf(1.0, float(row["ms"]))
 		var pieces: Dictionary = {}
-		var projects: Dictionary = {}
+		var all_pieces: float = 0.0
+		var all_projects: float = 0.0
 		for monster_id: Variant in share:
 			var per_hour: float = kills_h * float(share[monster_id]) / total
-			for drop: Object in data.call("monster", monster_id).drops:
-				var item: Object = data.call("item", drop.item_id)
-				var n: float = per_hour * float(drop.chance_pct) / 100.0 * (float(drop.qty_min) + float(drop.qty_max)) / 2.0
+			var table: Dictionary = pool.call("table", int(pool.call("monster_level", data.call("monster", monster_id))), data)
+			for item_id: Variant in table:
+				var item: Object = data.call("item", item_id)
+				var n: float = per_hour * float(table[item_id]) / 100.0
 				if item.equip != null:
 					pieces[int(item.equip.grade)] = float(pieces.get(int(item.equip.grade), 0.0)) + n
-				elif item.blueprint != null:
-					projects[int(item.blueprint.grade)] = float(projects.get(int(item.blueprint.grade), 0.0)) + n
-		var area_grade: int = int(sim.call("auto_grade", data, int(sim.call("auto_level", data, area))))
-		var own: float = float(pieces.get(area_grade, 0.0))
-		var all_projects: float = 0.0
-		for grade: Variant in projects:
-			all_projects += float(projects[grade])
-		out.append("| %s | %.0f | %s | %s | %.0f | %.2f |" % [area.id, kills_h, _fmt(pieces), _fmt(projects),
-			60.0 / own if own > 0.0 else -1.0, all_projects])
+					all_pieces += n
+				else:
+					all_projects += n
+		out.append("| %s | %.0f | %.2f | %s | %.2f | %.0f |" % [area.id, kills_h, all_pieces, _fmt(pieces), all_projects,
+			60.0 / all_pieces if all_pieces > 0.0 else -1.0])
 	return out
 
 
@@ -123,5 +123,5 @@ static func _fmt(by_grade: Dictionary) -> String:
 	keys.sort()
 	var parts: PackedStringArray = PackedStringArray()
 	for k: Variant in keys:
-		parts.append("T%d:%.2f" % [int(k), float(by_grade[k])])
+		parts.append("G%d:%.2f" % [int(k), float(by_grade[k])])
 	return " ".join(parts)

@@ -351,7 +351,7 @@ func _legendary_piece(row: Array, n: int) -> Dictionary:
 	for key: String in ["slot", "kind", "grade", "material", "requirements", "modifiers", "weapon"]:
 		if equip.has(key):
 			ordered[key] = equip[key]
-	ordered["legendary"] = {"source": {"type": "boss", "id": "%s%d" % [B, int(row[4])], "chance_pct": 0.8}, "effects": [row[5]]}
+	ordered["legendary"] = {"source": {"type": "boss", "id": "%s%d" % [B, int(row[4])], "chance_pct": 0.6}, "effects": [row[5]]}
 	var id: String = "leg_%s_%d" % [slot, n]
 	return _item(id, row[3], _icon_for(slot, material if material != "" else "plate", "legendary", id), 5 * int(base["value"]),
 			1700 + floori(float(SLOT_ORDER[slot]) / 10.0) + n, row[6], ordered)

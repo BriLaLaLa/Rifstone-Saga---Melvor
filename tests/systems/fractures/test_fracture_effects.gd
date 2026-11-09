@@ -35,12 +35,13 @@ func _run(mods: Array, grade: int = 1) -> FractureRun:
 # --- risks --------------------------------------------------------------------------------------------------------
 
 func test_monster_hp_pct_is_applied_after_f110_with_round() -> void:
-	# sturdy: risk 20-60, step 5 -> +40: 320 x 1.30 = 416, x 1.40 = 582 (real data golem at grade 3)
+	# sturdy: risk 20-60, step 5 -> +40: the hp of F-110 (round) times 1.40 (round), real data golem at grade 3
 	var real: GameData = TestFactory.real_data()
 	var effects: Array[Dictionary] = _effects([["sturdy", 5]])
 	assert_eq(FractureScaler.total(effects, &"monster_hp_pct"), 40.0)
 	var golem: ScaledMonsterDef = FractureScaler.scale_monster(real.monster(&"crack_golem"), 3, effects, real) as ScaledMonsterDef
-	assert_eq(golem.hp, 582)
+	var grade_hp: int = int(round(float(real.monster(&"crack_golem").hp) * real.fracture_grade(3).hp_mult))
+	assert_eq(golem.hp, int(round(float(grade_hp) * 1.4)))
 
 
 func test_monster_damage_pct_floors_with_a_minimum_of_one() -> void:

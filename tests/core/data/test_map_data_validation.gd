@@ -64,7 +64,7 @@ func test_game_data_accessors() -> void:
 	assert_eq(data.boss_for_grade(3).ability.monsters, [&"test_monster_a"] as Array[StringName])
 	assert_eq(data.fracture_grade(1).areas, [&"cracked_mines"] as Array[StringName])
 	assert_eq(data.fracture_grade(4).areas, [&"rift_threshold"] as Array[StringName])
-	assert_eq(data.fracture_grade(10).reward_mult, 3.5)
+	assert_gte(data.fracture_grade(10).reward_mult, 3.5, "the last grade pays at least the first-design 3.5 (M14-10 tuned it up with the hp)")
 	assert_eq(data.fracture_grade(7).piece_grade, 8)
 
 

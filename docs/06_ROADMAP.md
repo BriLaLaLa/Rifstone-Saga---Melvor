@@ -201,6 +201,35 @@ rarità **Capolavoro** (solo progetti, costo alto) e **Leggendario** (≥ 39: 3 
 Guida a scoperta senza "Si ottiene da"; maestria con prossimo bonus su ogni carta; ritocchi UI; tutti i test verdi.
 **Task** R-05 → M14-01…M14-11 (`07_TASKS.md`); tag `m14-alpha`. Domande Q66-Q77 (`OPEN_QUESTIONS.md`).
 
+### Misure di M14-10 (sim sui dati veri, seme 1234; `tools/sim_m14.gd`, `sim_combat.gd`, `sim_fracture.gd`, `sim_progress.gd`)
+Personaggio del livello dell'area, set forgiato del grado (spada e scudo, Piastre; per le Fratture Cuoio), 48 ore simulate per area. Test in `tests/balance/` (ogni riga è un test con tolleranza).
+
+| Obiettivo (ALPHA.md §10) | Pianure | Bosco | Miniere | Soglia | Esito |
+|---|---|---|---|---|---|
+| Uccisioni/ora (sim) | 334 | 245 | 238 | 250 | ok (prima 332 / 195 / 163 / 118) |
+| Pezzi ogni 30 min (obiettivo 3-5) | 4,7 | 3,7 | 3,6 | 3,6 | ok (da dati: 4,8 / 3,6 / 3,5 / 3,6) |
+| Magici ogni 30 min (≈ 1) | 0,97 | 0,72 | 0,83 | 0,94 | ok (da dati 1,2 / 0,9 / 0,9 / 0,9) |
+| Ore per un raro (obiettivo 2-3) | 1,9 (da dati 2,1) | 2,8 | 2,5 | 2,8 | ok |
+| Progetti/ora (≈ 1) | 1,56 (da dati 1,3) | 0,83 | 1,00 | 0,90 | ok |
+| Polvere del Rift/ora (Q71, era ≈ 150) | 58 | 66 | 95 | 109 | ok (Monoliti compresi) |
+| Morti/ora nell'area del livello | 0 | 0 | 0 | 0 | ok |
+
+| Riduzione (F-117), set completo con scudo | Livello 1 | Livello 50 | Livello 90 |
+|---|---|---|---|
+| Piastre: Armatura | 12 → 15,4% | 404 → 52,9% | 724 → 54,7% |
+| Tessuto runico: Barriera | 12 → 15,4% | 404 → 52,9% | 724 → 54,7% |
+| Cuoio: Armatura / Barriera | 9,6% / 5,7% | 40,1% / 30,8% | 41,9% / 32,5% |
+Obiettivo 15-55% rispettato dalla stat principale del materiale; nessun set raggiunge il tetto 75.
+
+| Frattura (livello consigliato, Cuoio, 10 seed) | G1 | G2 | G3 | G4 | G5 | G6 | G7 | G8 | G9 | G10 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Vinte | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | 9/10 | 8/10 | 9/10 | 10/10 | 8/10 |
+| Minuti delle vinte (obiettivo 15-30) | 16,9 | 17,2 | 19,9 | 17,8 | 17,2 | 23,0 | 20,0 | 18,9 | 21,4 | 19,1 |
+| Ore per un leggendario di boss (obiettivo 15-30) | 17,5 | 17,8 | 20,2 | 18,3 | 17,8 | 25,7 | 25,5 | 21,5 | 21,7 | 24,4 |
+(Prima della taratura le Fratture duravano 6-13 minuti e i gradi 9-10 morivano al primo gruppo.) Leggendari: 3 per boss × 0,6% a vittoria, più 9 (attrezzi e pezzi) dai Monoliti a 0,3%.
+
+B1: livello 99 in **319,6 ore** (obiettivo 250-350; prima della taratura 175), 12 ore offline dal 50: **+12** livelli (limite 12).
+
 ## M15+: Seconda classe, dungeon, altri boss (dopo l'Alpha)
 Seconda classe con le sue armi (es. arco o bastone, con i suoi progetti e componenti del Falegname), supporti delle abilità,
 altri boss, dungeon a ondate, oggetti unici, elementi e resistenze.

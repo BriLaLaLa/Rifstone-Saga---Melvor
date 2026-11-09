@@ -16,15 +16,15 @@ func test_candidate_grades_examples() -> void:
 
 
 func test_example_percentage_of_a_leather_body_grade_9_at_level_46() -> void:
-	# 2.5 x (1/10) x (1/4) x (1/3) = 0.0208%
-	assert_almost_eq(EquipmentPool.chance_of(&"body_leather_9", 46, _data), 0.020833, 0.0001)
+	# chance_pct x (1/10) x (1/4) x (1/3) = 0.0208% at 2.5 (the value of the data may be tuned, M14-10)
+	assert_almost_eq(EquipmentPool.chance_of(&"body_leather_9", 46, _data), _piece_pct() / 120.0, 0.0001)
 	assert_eq(EquipmentPool.chance_of(&"body_leather_9", 92, _data), 0.0, "grade 9 is not a candidate at level 92")
 
 
 func test_jewels_and_weapons_have_no_material_division() -> void:
-	# a ring of grade 9: 2.5 x (1/10) x (1/4) = 0.0625%
+	# a ring of grade 9: chance_pct x (1/10) x (1/4)
 	var ring: StringName = _find(&"ring", 9)
-	assert_almost_eq(EquipmentPool.chance_of(ring, 46, _data), 0.0625, 0.0001)
+	assert_almost_eq(EquipmentPool.chance_of(ring, 46, _data), _piece_pct() / 40.0, 0.0001)
 
 
 func test_percentages_of_a_level_add_up_to_the_chance() -> void:
@@ -36,8 +36,8 @@ func test_percentages_of_a_level_add_up_to_the_chance() -> void:
 			blueprints += table[id]
 		else:
 			pieces += table[id]
-	assert_almost_eq(pieces, 2.5, 0.0001, "loot.equipment.chance_pct")
-	assert_almost_eq(blueprints, 0.4, 0.0001, "loot.blueprint.chance_pct")
+	assert_almost_eq(pieces, _piece_pct(), 0.0001, "loot.equipment.chance_pct")
+	assert_almost_eq(blueprints, float(_data.balance_value("loot.blueprint.chance_pct")), 0.0001, "loot.blueprint.chance_pct")
 
 
 func test_the_pool_never_gives_masterworks_legendaries_or_tools() -> void:
@@ -63,7 +63,7 @@ func test_roll_returns_a_base_of_the_right_grade_and_is_deterministic() -> void:
 	var total: int = 0
 	for id: StringName in counts:
 		total += int(counts[id])
-	assert_between(total, 50, 160, "about 2.5% of 4000 = 100")
+	assert_between(total, 50, 160, "about chance_pct of 4000 = 100")
 	var a := RngService.new(9)
 	var b := RngService.new(9)
 	for i: int in 200:
@@ -76,7 +76,7 @@ func test_order_of_the_rolls_is_chance_then_type_then_material_then_grade() -> v
 	var ref := RngService.new(123)
 	for i: int in 300:
 		var id: StringName = EquipmentDrop.roll(46, chance_data, rng)
-		if not ref.roll_pct(2.5):
+		if not ref.roll_pct(_piece_pct()):
 			assert_eq(id, &"")
 			continue
 		var kinds: Array[StringName] = EquipmentPool.kinds(chance_data)
@@ -103,7 +103,7 @@ func test_blueprints_cover_eight_types_and_never_rings_or_necklaces() -> void:
 			seen += 1
 			var grade: int = _data.item(_data.item(id).blueprint.base_id).equip.grade
 			assert_between(grade, 8, 11)
-	assert_between(seen, 40, 130, "0.4% of 20000 = 80")
+	assert_between(seen, 40, 130, "about 0.4% of 20000 = 80")
 
 
 func test_kill_rewards_use_the_pool_and_give_no_piece_from_the_drops() -> void:
@@ -117,7 +117,7 @@ func test_kill_rewards_use_the_pool_and_give_no_piece_from_the_drops() -> void:
 	var bag := LootBag.new(s)
 	for i: int in 3000:
 		KillRewards.grant(s, bag, monster)
-	assert_gt(s.armory.instances().size(), before, "pieces came out of the pool (2.5% of 3000 kills)")
+	assert_gt(s.armory.instances().size(), before, "pieces came out of the pool (chance_pct of 3000 kills)")
 	for inst: ItemInstance in s.armory.instances():
 		assert_true(_data.is_equipment_pool_base(inst.base_id), "only pool bases")
 		assert_false(inst.rarity == &"masterwork" or inst.rarity == &"legendary")
@@ -125,3 +125,7 @@ func test_kill_rewards_use_the_pool_and_give_no_piece_from_the_drops() -> void:
 
 func _find(kind: StringName, grade: int) -> StringName:
 	return EquipmentPool.base_for(kind, &"", grade, _data)
+
+
+func _piece_pct() -> float:
+	return float(_data.balance_value("loot.equipment.chance_pct"))

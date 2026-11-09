@@ -62,7 +62,7 @@ func test_every_legendary_has_a_valid_source_and_an_effect() -> void:
 		assert_false(item.description.is_empty(), item.id)
 		if leg.source_type == LegendaryInfo.SOURCE_BOSS:
 			assert_true(bosses.has(String(leg.source_id)), "%s: boss %s exists" % [item.id, leg.source_id])
-			assert_eq(leg.chance_pct, 0.8, "%s: boss chance (Q76)" % item.id)
+			assert_eq(leg.chance_pct, 0.6, "%s: boss chance (Q76)" % item.id)
 			assert_false(String(item.equip.slot).begins_with("tool_"), "%s: the tools come from the Monoliths" % item.id)
 		else:
 			assert_eq(leg.source_type, LegendaryInfo.SOURCE_MONOLITH, item.id)
