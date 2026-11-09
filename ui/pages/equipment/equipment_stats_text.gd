@@ -21,6 +21,7 @@ const SOURCE_SHOP_PREFIX: String = "shop:"
 const SOURCE_TEXTS: Dictionary[String, String] = {
 	"mastery_item:": "Maestria (oggetto)",
 	"mastery_node:": "Maestria (nodo)",
+	"mastery_step:": "Maestria (bonus di livello)",
 	"rift_socket:": "Altare del Rift",
 }
 const COLOR_TAG: String = "[color=#%s]%s[/color]"

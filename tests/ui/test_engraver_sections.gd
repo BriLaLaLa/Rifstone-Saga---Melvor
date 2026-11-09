@@ -68,6 +68,7 @@ func test_other_recipes_have_no_chance_line() -> void:
 
 
 func test_ingredients_say_where_they_come_from() -> void:
+	_session.discoveries.note(&"rift_dust")
 	_open()
 	var card: Node = _page.find_child("CrystallizeSpark", true, false)
 	var line: Label = card.find_child("SourceRiftDust", true, false) as Label

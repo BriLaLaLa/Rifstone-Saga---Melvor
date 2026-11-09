@@ -22,6 +22,7 @@ const START_TEXT: String = "Avvia"
 const STOP_TEXT: String = "Ferma"
 
 var _action: ActionDef = null
+var _step_row: MasteryStepRow = null
 
 @onready var _icon: TextureRect = %Icon
 @onready var _name_label: Label = %NameLabel
@@ -63,6 +64,11 @@ func setup(action: ActionDef, data: GameData) -> void:
 		label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		_products.add_child(label)
 	_mastery_bar.visible = action.mastery
+	if action.mastery:
+		_step_row = MasteryStepRow.new()
+		_step_row.name = "MasteryStepRow"
+		_mastery_bar.add_sibling(_step_row)
+		_step_row.setup(data)
 
 
 ## Reads level, interval, mastery and the running action from `session`.
@@ -81,6 +87,8 @@ func redraw(session: GameSession) -> void:
 	if _action.mastery:
 		_mastery_label.text = MASTERY_TEXT % NumberFormat.format_int(session.mastery.get_mastery_level(_action.id))
 		_mastery_bar.set_xp(session.data.mastery_table(), session.mastery.get_mastery_xp(_action.id))
+		if _step_row != null:
+			_step_row.show_info(session.mastery.step_info(_action.skill_id, _action.id))
 	else:
 		_mastery_label.text = NO_MASTERY_TEXT
 	_toggle_button.text = STOP_TEXT if running else START_TEXT

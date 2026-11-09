@@ -25,6 +25,7 @@ var _last_hit_text: String = ""
 @onready var _floaters: Control = %Floaters
 @onready var _name: Label = %NameLabel
 @onready var _level: Label = %LevelLabel
+@onready var _xp_bar: XpBar = %XpBar
 @onready var _hint: Label = %HintLabel
 @onready var _hp_title: Label = %HpTitle
 @onready var _hp_label: Label = %HpLabel
@@ -77,9 +78,22 @@ func refresh_static(session: GameSession) -> void:
 	_icon.texture = ItemSlotView.icon_of(class_def.icon) if class_def != null else null
 	_level.text = CombatTexts.LEVEL_TEXT % [session.character.get_level(), setup.name if setup != null else ""]
 	_hint.text = _triangle_hint(session)
+	refresh_xp(session)
 	_refresh_abilities(session)
 	_refresh_traits(session)
 	_refresh_gear(session)
+
+
+## Redraws the character XP bar from the model (table of the character, F-01).
+func refresh_xp(session: GameSession) -> void:
+	var table: XpTable = session.data.character_xp_table()
+	if table != null:
+		_xp_bar.set_xp(table, session.character.get_xp())
+
+
+## Text drawn on the character XP bar (tests).
+func xp_text() -> String:
+	return _xp_bar.shown_text()
 
 
 ## Moves the bars and the cooldowns from `state` (`combat.get_state()`).

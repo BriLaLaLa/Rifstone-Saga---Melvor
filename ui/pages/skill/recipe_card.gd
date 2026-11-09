@@ -16,6 +16,8 @@ const CHANCE_TEXT: String = "%s%%"
 
 var _data: GameData = null
 var _ingredient_labels: Dictionary[StringName, Label] = {}
+## The "Da: ..." line of each Engraver ingredient, filled by `redraw` (only the discovered items show their source).
+var _source_labels: Dictionary[StringName, Label] = {}
 var _needed: Dictionary[StringName, int] = {}
 var _item_names: Dictionary[StringName, String] = {}
 var _chance_label: Label = null
@@ -57,9 +59,7 @@ func setup(action: ActionDef, data: GameData) -> void:
 		_ingredient_labels[item_id] = label
 		_item_names[item_id] = item.name
 		if action.skill_id == EngraverSections.SKILL:
-			var source: String = EngraverSections.source_text(item_id, data)
-			if not source.is_empty():
-				_add_muted_line("Source%s" % String(item_id).to_pascal_case(), source)
+			_source_labels[item_id] = _add_muted_line("Source%s" % String(item_id).to_pascal_case(), "")
 	if action.kind == &"crystallize":
 		_chance_label = _add_muted_line("ChanceLabel", "")
 		_loss_label = _add_muted_line("LossLabel", "")
@@ -68,6 +68,10 @@ func setup(action: ActionDef, data: GameData) -> void:
 ## Reads level, interval, mastery, owned ingredients, chances and the start state from `session`.
 func redraw(session: GameSession) -> void:
 	super.redraw(session)
+	for item_id: StringName in _source_labels:
+		var source: String = EngraverSections.source_text(item_id, session.data, session.discoveries)
+		_source_labels[item_id].text = source
+		_source_labels[item_id].visible = not source.is_empty()
 	for item_id: StringName in _ingredient_labels:
 		var owned: int = session.bank.get_count(item_id)
 		var label: Label = _ingredient_labels[item_id]

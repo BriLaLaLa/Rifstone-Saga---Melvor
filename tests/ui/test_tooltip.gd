@@ -42,6 +42,7 @@ func test_show_item_weapon_lines() -> void:
 	assert_eq(_lines(_tooltip.body_text()), PackedStringArray([
 		"Richiede il livello 1 del personaggio",
 		"Stile Lama, un attacco ogni 2,4 s",
+		"Danno: 4 - 6",
 		"Precisione +8",
 		"Valore: 12 oro",
 		"Serve a: Smantellamento",

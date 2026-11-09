@@ -59,7 +59,7 @@ func test_info_line_reads_duration_xp_and_rare_chance() -> void:
 	var blueprint: ItemDef = _session.data.item(BP)
 	var expected: String = BlueprintTexts.INFO_LINE % [BlueprintTexts.duration(BlueprintCraft.duration_ms(blueprint, 0.0,
 			_session.data)), NumberFormat.format_int(BlueprintCraft.xp(blueprint, _session.data)),
-			BlueprintTexts.percent(ItemRoller.blueprint_rare_chance(1, 0.0, _session.data))]
+			BlueprintTexts.percent(ItemRoller.blueprint_two_affix_chance(1, 0.0, _session.data))]
 	assert_eq((_section().get_node("%InfoLabel") as Label).text, expected)
 
 

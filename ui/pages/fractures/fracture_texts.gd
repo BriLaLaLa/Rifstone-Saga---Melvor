@@ -144,3 +144,12 @@ static func toast_text(outcome: StringName, cards: int, pieces: int) -> String:
 		&"abandoned":
 			return TOAST_ABANDONED_TEXT
 	return TOAST_LOST_TEXT
+
+
+const RISK_TOTAL_TEXT: String = "Rischio %s / %s"
+
+
+## "Rischio 39 / 40": the risk points of the modifiers of `card` over the cap of its grade (F-123), both from the roller.
+static func risk_total_text(card: MapCard, data: GameData) -> String:
+	return RISK_TOTAL_TEXT % [NumberFormat.format_number(snappedf(MapCardRoller.total_risk_points(card.mods, data), 0.1)),
+			NumberFormat.format_number(snappedf(MapCardRoller.risk_cap(card.grade, data), 0.1))]

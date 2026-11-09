@@ -321,6 +321,7 @@ func _on_food_eaten(item_id: StringName, healed: int) -> void:
 
 func _on_xp_gained(amount: int) -> void:
 	_yield.record(CombatYield.XP, amount, _session.play_time_ms)
+	_player.refresh_xp(_session)
 
 
 func _on_gold_changed(_new_amount: int, delta: int) -> void:

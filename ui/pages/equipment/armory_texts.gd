@@ -10,7 +10,7 @@ extends RefCounted
 
 const LOG_CATEGORY: String = "ui"
 const RARITY_NAMES: Dictionary[StringName, String] = {
-	&"common": "Comune", &"magic": "Magico", &"rare": "Raro",
+	&"common": "Comune", &"magic": "Magico", &"rare": "Raro", &"masterwork": "Capolavoro", &"legendary": "Leggendario",
 }
 ## Stats where a lower value is the better one (shown green when they go down); the registry has no polarity.
 const LOWER_IS_BETTER: Array[StringName] = [&"skill_interval_pct", &"attack_interval_pct"]
@@ -24,6 +24,14 @@ const LEVEL_TEXT: String = "Livello oggetto %d"
 const SUBTITLE_TEXT: String = "%s  ·  %s  ·  Slot: %s"
 const REQUIREMENTS_TITLE: String = "Requisiti"
 const WEAPON_TITLE: String = "Arma"
+const ARMOR_TITLE: String = "Protezione"
+const LEGENDARY_TITLE: String = "Effetto leggendario"
+const LEGENDARY_SOURCE_TEXT: String = "Fonte: %s (%s%%)"
+const LEGENDARY_SOURCE_MONOLITH_TEXT: String = "Monolito: %s"
+const LEGENDARY_SOURCE_BOSS_TEXT: String = "Boss: %s"
+const PHYSICAL_REDUCTION_TEXT: String = "Armatura: riduce il danno fisico del %s%%"
+const ARCANE_REDUCTION_TEXT: String = "Barriera: riduce il danno arcano del %s%%"
+const REDUCTION_NOTE_TEXT: String = "Contro nemici del tuo livello."
 const AFFIXES_TITLE: String = "Affissi"
 const MODIFIERS_TITLE: String = "Statistiche"
 const COMPARISON_TITLE: String = "Rispetto a %s"
@@ -129,11 +137,13 @@ static func detail_lines(session: GameSession, uid: int, with_affixes: bool = tr
 	var data: GameData = session.data
 	_append_requirements(lines, base.equip, session)
 	if base.equip.weapon != null:
-		_append_section(lines, WEAPON_TITLE, PackedStringArray([ItemTooltipLines.weapon_line(base.equip.weapon)]))
+		_append_section(lines, WEAPON_TITLE, weapon_lines(session, inst, base))
 	if with_affixes:
 		_append_section(lines, AFFIXES_TITLE, affix_lines(inst, data))
 	var mods: Array[Modifier] = session.armory.instance_modifiers(uid)
 	_append_section(lines, MODIFIERS_TITLE, ItemTooltipLines.modifier_lines(mods, data))
+	_append_section(lines, ARMOR_TITLE, armor_lines(session, mods))
+	_append_section(lines, LEGENDARY_TITLE, legendary_lines(session, base))
 	if with_comparison:
 		_append_comparison(lines, session, uid, base, mods)
 	return lines
@@ -263,3 +273,58 @@ static func _append_interval_diff(diff: PackedStringArray, base: ItemDef, worn_b
 
 static func _colored(text: String, good: bool) -> String:
 	return COLOR_TAG % [(UiStyle.GOOD if good else UiStyle.BAD).to_html(false), text]
+
+
+## Weapon block (GDD §28.2): style and interval (F-26 over the character's modifiers), minimum-maximum damage of this
+## piece (`WeaponMath.damage_range`, rarity and refinement included) and damage per second (`WeaponMath.dps`, F-22).
+static func weapon_lines(session: GameSession, inst: ItemInstance, base: ItemDef) -> PackedStringArray:
+	var data: GameData = session.data
+	var pct: float = session.modifiers.total(&"attack_interval_pct")
+	var interval_ms: int = CombatMath.attack_interval_ms(base.equip.weapon.attack_interval_ms, pct, data)
+	var span: Vector2 = WeaponMath.damage_range(inst, data)
+	return PackedStringArray([ItemTooltipLines.weapon_line(base.equip.weapon, interval_ms),
+			ItemTooltipLines.damage_line(span.x, span.y),
+			ItemTooltipLines.dps_line(WeaponMath.dps(inst, pct, data))])
+
+
+## Protection block (GDD §28.3): the % damage reduction of the Armour and Barrier this piece gives (`ArmorMath.reduction_pct`
+## on its own `armor` / `barrier` modifiers) against an attacker of the character's level. Empty for a piece without them.
+static func armor_lines(session: GameSession, mods: Array[Modifier]) -> PackedStringArray:
+	var armor: float = 0.0
+	var barrier: float = 0.0
+	for mod: Modifier in mods:
+		if mod.stat == &"armor":
+			armor += mod.value
+		elif mod.stat == &"barrier":
+			barrier += mod.value
+	var lines: PackedStringArray = PackedStringArray()
+	var level: int = session.character.get_level()
+	if armor > 0.0:
+		lines.append(PHYSICAL_REDUCTION_TEXT % NumberFormat.format_number(snappedf(
+				ArmorMath.reduction_pct(int(armor), level, session.data), 0.1)))
+	if barrier > 0.0:
+		lines.append(ARCANE_REDUCTION_TEXT % NumberFormat.format_number(snappedf(
+				ArmorMath.reduction_pct(int(barrier), level, session.data), 0.1)))
+	if not lines.is_empty():
+		lines.append(COLOR_TAG % [UiStyle.TEXT_2.to_html(false), REDUCTION_NOTE_TEXT])
+	return lines
+
+
+## Legendary block (GDD §28.5): the effect in words (the `description` of the base, which the data write with their
+## numbers) and, once the piece is discovered, its source (boss or Monolith of the data) and the base chance.
+static func legendary_lines(session: GameSession, base: ItemDef) -> PackedStringArray:
+	var lines: PackedStringArray = PackedStringArray()
+	var info: LegendaryInfo = base.equip.legendary
+	if info == null:
+		return lines
+	lines.append(ItemTooltipLines.escape(base.description))
+	if session.discoveries.has(base.id):
+		var source_name: String = String(info.source_id)
+		if info.source_type == LegendaryInfo.SOURCE_BOSS:
+			var boss: BossDef = session.data.boss(info.source_id)
+			source_name = LEGENDARY_SOURCE_BOSS_TEXT % (boss.name if boss != null else source_name)
+		elif session.data.has_rift_stone(info.source_id):
+			source_name = LEGENDARY_SOURCE_MONOLITH_TEXT % session.data.rift_stone(info.source_id).name
+		lines.append(COLOR_TAG % [UiStyle.TEXT_2.to_html(false), LEGENDARY_SOURCE_TEXT % [
+				ItemTooltipLines.escape(source_name), GuideDrops.pct_text(info.chance_pct)]])
+	return lines

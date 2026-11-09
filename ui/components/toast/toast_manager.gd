@@ -35,6 +35,7 @@ const STOP_TEXTS: Dictionary[StringName, String] = {
 }
 const STOP_TEXT_DEFAULT := "interrotta"
 const MILESTONE_TEXT: String = "Traguardo di maestria: %s (%s)"
+const DISCOVERY_TEXT: String = "Nuovo: %s"
 
 ## Event bus to listen to; null = the `EventBus` autoload.
 var events: GameEvents = null
@@ -44,6 +45,9 @@ var time_source: Callable = Time.get_ticks_msec
 var name_resolver: Callable = _default_name
 ## `(action_id: StringName) -> String`, name of the resource of a gathering action (for the mastery milestones).
 var action_resolver: Callable = _default_name
+## `() -> bool`: whether a discovery toast may show now. By default only while the game is playing, so the starting kit of
+## `new_game` (state loading) and the offline simulation (state offline) stay silent.
+var discovery_gate: Callable = _game_is_playing
 
 var _stack: VBoxContainer
 var _bound_events: GameEvents = null
@@ -83,6 +87,7 @@ func _enter_tree() -> void:
 	_bound_events.helper_blocked.connect(_on_events_helper_blocked)
 	_bound_events.fracture_finished.connect(_on_events_fracture_finished)
 	_bound_events.card_rejected.connect(_on_events_card_rejected)
+	_bound_events.item_discovered.connect(_on_events_item_discovered)
 
 
 func _exit_tree() -> void:
@@ -98,6 +103,7 @@ func _exit_tree() -> void:
 	_bound_events.helper_blocked.disconnect(_on_events_helper_blocked)
 	_bound_events.fracture_finished.disconnect(_on_events_fracture_finished)
 	_bound_events.card_rejected.disconnect(_on_events_card_rejected)
+	_bound_events.item_discovered.disconnect(_on_events_item_discovered)
 	_bound_events = null
 
 
@@ -181,6 +187,12 @@ func _on_events_fracture_finished(outcome: StringName, _grade: int, _groups: int
 	push(FractureTexts.toast_text(outcome, cards, pieces), KIND_SUCCESS if outcome == &"won" else KIND_WARNING)
 
 
+## "Nuovo: <oggetto>" the first time an item is obtained (not for the starting kit, not offline).
+func _on_events_item_discovered(item_id: StringName) -> void:
+	if discovery_gate.is_valid() and discovery_gate.call() as bool:
+		push(DISCOVERY_TEXT % _display_name(item_id), KIND_SUCCESS)
+
+
 ## "Carta persa: Deposito pieno".
 func _on_events_card_rejected(_grade: int) -> void:
 	push(FractureTexts.TOAST_REJECTED_TEXT, KIND_WARNING)
@@ -246,6 +258,10 @@ func _now() -> int:
 
 func _display_name(id: StringName) -> String:
 	return name_resolver.call(id) as String
+
+
+static func _game_is_playing() -> bool:
+	return Game.state == Game.STATE_PLAYING
 
 
 static func _default_name(id: StringName) -> String:

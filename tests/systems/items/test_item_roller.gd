@@ -36,7 +36,6 @@ func test_masterwork_affix_count() -> void:
 	assert_almost_eq(ItemRoller.blueprint_two_affix_chance(50, 20.0, _data), 42.0, 0.0001)
 	assert_almost_eq(ItemRoller.blueprint_two_affix_chance(99, 0.0, _data), 59.5, 0.0001)
 	assert_almost_eq(ItemRoller.blueprint_two_affix_chance(99, 100.0, _data), 100.0, 0.0001)
-	assert_almost_eq(ItemRoller.blueprint_rare_chance(50, 0.0, _data), 35.0, 0.0001, "the name of M10 still answers")
 	# p_two 35: r 20 -> 2 affixes, r 50 -> 1 affix, r 99.9 -> 1 affix; the rarity is always masterwork
 	var bp: ItemDef = _blueprint(1)
 	var bp_data: GameData = BlueprintData.data()
