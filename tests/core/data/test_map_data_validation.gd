@@ -37,10 +37,10 @@ func test_fixtures_are_valid() -> void:
 	assert_eq(V.validate(V.fixture_raw()), PackedStringArray())
 
 
-func test_real_data_may_have_empty_map_files() -> void:
+func test_real_data_has_the_full_map_content() -> void:
 	var data: GameData = TestFactory.real_data()
 	assert_true(data.is_valid())
-	assert_eq(data.map_mods().size(), 0)
+	assert_eq(data.map_mods().size(), 12)  # M13-04 filled the files: empty lists are no longer allowed
 
 
 func test_game_data_accessors() -> void:
@@ -180,10 +180,13 @@ func test_four_distinct_risk_types_at_every_grade() -> void:
 	_expect(raw2, "grade 1 has 3 distinct risk types, needs at least 4")
 
 
-func test_empty_modifier_file_is_valid_on_real_data() -> void:
+func test_empty_map_files_are_errors() -> void:
 	var raw: Dictionary = V.fixture_raw()
 	V.file_of(raw, "map_mods", "map_mods.json")["mods"] = []
-	assert_eq(V.validate(raw), PackedStringArray())
+	_expect(raw, "needs at least 12 modifiers")
+	var raw2: Dictionary = V.fixture_raw()
+	V.file_of(raw2, "bosses", "bosses.json")["bosses"] = []
+	_expect(raw2, "missing the boss of grade 1")
 
 
 # --- bosses -----------------------------------------------------------------------------------------------------------

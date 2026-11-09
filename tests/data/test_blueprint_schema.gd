@@ -136,13 +136,13 @@ func test_blueprint_drops_once() -> void:
 # --- Defs and GameData ---------------------------------------------------------------------------------------------
 
 func test_game_data_loads_the_m10_fixtures() -> void:
-	var data: GameData = GameData.load_from_dirs(M10_ROOT, M10_CONFIG)
+	var data: GameData = load_m10()
 	assert_eq(data.errors, PackedStringArray())
 	assert_true(data.is_valid())
 
 
 func test_blueprints_are_sorted_by_grade_then_sort_order() -> void:
-	var data: GameData = GameData.load_from_dirs(M10_ROOT, M10_CONFIG)
+	var data: GameData = load_m10()
 	var ids: Array[StringName] = []
 	for def: ItemDef in data.blueprints():
 		ids.append(def.id)
@@ -150,20 +150,20 @@ func test_blueprints_are_sorted_by_grade_then_sort_order() -> void:
 
 
 func test_blueprint_for_base() -> void:
-	var data: GameData = GameData.load_from_dirs(M10_ROOT, M10_CONFIG)
+	var data: GameData = load_m10()
 	assert_eq(data.blueprint_for_base(&"test_blade").id, &"bp_test_blade")
 	assert_eq(data.blueprint_for_base(&"test_helm_high").id, &"bp_test_helm_high")
 
 
 func test_blueprint_for_base_without_blueprint_is_null_without_error() -> void:
-	var data: GameData = GameData.load_from_dirs(M10_ROOT, M10_CONFIG)
+	var data: GameData = load_m10()
 	assert_null(data.blueprint_for_base(&"test_helm"), "a base with no blueprint")
 	assert_null(data.blueprint_for_base(&"test_hatchet"), "tools have none")
 	assert_null(data.blueprint_for_base(&"no_such_id"))  # an unexpected push_error would fail the test
 
 
 func test_blueprint_def_fields() -> void:
-	var data: GameData = GameData.load_from_dirs(M10_ROOT, M10_CONFIG)
+	var data: GameData = load_m10()
 	var def: ItemDef = data.item(&"bp_test_greatsword")
 	assert_true(def.is_blueprint())
 	assert_false(def.is_component())
@@ -179,7 +179,7 @@ func test_blueprint_def_fields() -> void:
 
 
 func test_component_def() -> void:
-	var data: GameData = GameData.load_from_dirs(M10_ROOT, M10_CONFIG)
+	var data: GameData = load_m10()
 	var plate: ItemDef = data.item(&"test_plate_3")
 	assert_true(plate.is_component())
 	assert_false(plate.is_blueprint())

@@ -1,1 +1,209 @@
-{"mods": []}
+{
+  "_doc": "Modificatori delle Carte (F-111, 04_DATA_SCHEMA.md §11.2).",
+  "mods": [
+    {
+      "id": "sturdy",
+      "name": "Mostri robusti",
+      "description": "I mostri hanno più PV; il bottino è più abbondante.",
+      "min_grade": 1,
+      "weight": 10,
+      "risk": {
+        "type": "monster_hp_pct",
+        "min": 20,
+        "max": 60
+      },
+      "reward": {
+        "type": "loot_qty_pct",
+        "min": 5,
+        "max": 15
+      }
+    },
+    {
+      "id": "assault",
+      "name": "Assalto",
+      "description": "I mostri attaccano più in fretta; i pezzi caduti sono migliori.",
+      "min_grade": 1,
+      "weight": 10,
+      "risk": {
+        "type": "monster_speed_pct",
+        "min": 10,
+        "max": 35
+      },
+      "reward": {
+        "type": "item_rarity_pct",
+        "min": 10,
+        "max": 35
+      }
+    },
+    {
+      "id": "famine",
+      "name": "Fame",
+      "description": "Il cibo cura meno; i progetti sono più frequenti.",
+      "min_grade": 1,
+      "weight": 8,
+      "risk": {
+        "type": "food_heal_pct",
+        "min": 20,
+        "max": 60
+      },
+      "reward": {
+        "type": "blueprint_pct",
+        "min": 25,
+        "max": 75
+      }
+    },
+    {
+      "id": "brutal",
+      "name": "Brutalità",
+      "description": "I mostri colpiscono più forte; l'oro cade a profusione.",
+      "min_grade": 1,
+      "weight": 8,
+      "risk": {
+        "type": "monster_damage_pct",
+        "min": 15,
+        "max": 45
+      },
+      "reward": {
+        "type": "gold_drop_pct",
+        "min": 20,
+        "max": 60
+      }
+    },
+    {
+      "id": "hordes",
+      "name": "Orde",
+      "description": "Ogni gruppo ha più mostri; l'esperienza sale.",
+      "min_grade": 2,
+      "weight": 8,
+      "risk": {
+        "type": "pack_bonus",
+        "min": 1,
+        "max": 2
+      },
+      "reward": {
+        "type": "xp_pct",
+        "min": 10,
+        "max": 30
+      }
+    },
+    {
+      "id": "pulses",
+      "name": "Impulsi",
+      "description": "Il Rift pulsa e ti ferisce a intervalli; la Polvere abbonda.",
+      "min_grade": 2,
+      "weight": 8,
+      "risk": {
+        "type": "pulse",
+        "min": 2,
+        "max": 5
+      },
+      "reward": {
+        "type": "dust_pct",
+        "min": 20,
+        "max": 60
+      }
+    },
+    {
+      "id": "shrouded",
+      "name": "Velati",
+      "description": "I mostri sono più difficili da colpire; le Carte cadono più spesso.",
+      "min_grade": 3,
+      "weight": 6,
+      "risk": {
+        "type": "monster_defence_pct",
+        "min": 20,
+        "max": 60
+      },
+      "reward": {
+        "type": "card_chance_pct",
+        "min": 20,
+        "max": 60
+      }
+    },
+    {
+      "id": "fasting",
+      "name": "Digiuno",
+      "description": "Il cibo cura quasi nulla; l'esperienza è ricca.",
+      "min_grade": 4,
+      "weight": 6,
+      "risk": {
+        "type": "food_heal_pct",
+        "min": 50,
+        "max": 90
+      },
+      "reward": {
+        "type": "xp_pct",
+        "min": 25,
+        "max": 50
+      }
+    },
+    {
+      "id": "titans",
+      "name": "Titani del Rift",
+      "description": "I mostri diventano colossi; le Carte cadono più spesso.",
+      "min_grade": 5,
+      "weight": 6,
+      "risk": {
+        "type": "monster_hp_pct",
+        "min": 60,
+        "max": 120
+      },
+      "reward": {
+        "type": "card_chance_pct",
+        "min": 30,
+        "max": 70
+      }
+    },
+    {
+      "id": "spectral",
+      "name": "Lame spettrali",
+      "description": "I colpi dei mostri sono letali; i pezzi sono di rarità migliore.",
+      "min_grade": 5,
+      "weight": 6,
+      "risk": {
+        "type": "monster_damage_pct",
+        "min": 40,
+        "max": 90
+      },
+      "reward": {
+        "type": "item_rarity_pct",
+        "min": 30,
+        "max": 70
+      }
+    },
+    {
+      "id": "frenzy",
+      "name": "Frenesia del Rift",
+      "description": "I mostri si scatenano; il bottino cresce quasi del doppio.",
+      "min_grade": 6,
+      "weight": 6,
+      "risk": {
+        "type": "monster_speed_pct",
+        "min": 30,
+        "max": 60
+      },
+      "reward": {
+        "type": "loot_qty_pct",
+        "min": 15,
+        "max": 35
+      }
+    },
+    {
+      "id": "abyssal",
+      "name": "Tempesta dell'Abisso",
+      "description": "L'Abisso scarica impulsi feroci; i progetti piovono.",
+      "min_grade": 8,
+      "weight": 6,
+      "risk": {
+        "type": "pulse",
+        "min": 4,
+        "max": 8
+      },
+      "reward": {
+        "type": "blueprint_pct",
+        "min": 60,
+        "max": 120
+      }
+    }
+  ]
+}

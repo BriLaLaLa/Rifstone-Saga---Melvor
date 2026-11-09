@@ -228,7 +228,7 @@ func test_regular_artisan_action_still_needs_inputs() -> void:
 
 
 func test_single_action_def() -> void:
-	var data: GameData = GameData.load_from_dirs(M10_ROOT, M10_CONFIG)
+	var data: GameData = load_m10()
 	var craft: ActionDef = data.action(&"blueprint_craft")
 	assert_true(craft.single)
 	assert_true(craft.is_artisan(), "a single-cycle action belongs to the artisan side")
@@ -242,20 +242,20 @@ func test_single_action_def() -> void:
 # --- Defs and GameData ---------------------------------------------------------------------------------------------
 
 func test_unique_tool_per_slot() -> void:
-	var data: GameData = GameData.load_from_dirs(M10_ROOT, M10_CONFIG)
+	var data: GameData = load_m10()
 	assert_eq(data.unique_tool(&"tool_forestry").id, &"test_hatchet")
 	assert_eq(data.unique_tool(&"tool_quarrying").id, &"test_pickaxe")
 	assert_eq(data.unique_tool(&"tool_angling").id, &"test_rod")
 
 
 func test_unique_tool_of_an_unknown_slot_is_null_with_error() -> void:
-	var data: GameData = GameData.load_from_dirs(M10_ROOT, M10_CONFIG)
+	var data: GameData = load_m10()
 	assert_null(data.unique_tool(&"tool_cooking"))
 	assert_push_error(1)
 
 
 func test_tool_def_fields() -> void:
-	var data: GameData = GameData.load_from_dirs(M10_ROOT, M10_CONFIG)
+	var data: GameData = load_m10()
 	var rod: EquipInfo = data.item(&"test_rod").equip
 	assert_true(rod.unique)
 	assert_eq(rod.slot, &"tool_angling")
@@ -272,7 +272,7 @@ func test_tool_def_fields() -> void:
 
 
 func test_level_modifier_def() -> void:
-	var data: GameData = GameData.load_from_dirs(M10_ROOT, M10_CONFIG)
+	var data: GameData = load_m10()
 	var forging: SkillDef = data.skill(&"forging")
 	assert_eq(forging.level_modifiers.size(), 1)
 	assert_eq(forging.level_modifiers[0].stat, &"upgrade_success_pct")

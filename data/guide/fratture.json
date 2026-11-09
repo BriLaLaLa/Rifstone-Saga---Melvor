@@ -1,0 +1,10 @@
+{
+  "pages": [
+    {"id": "guide_fractures", "section": "character", "title": "Fratture", "order": 20,
+     "blocks": [
+       {"type": "text", "text": "Una Frattura è un'incursione che apri tu con una Carta, come {link:item:fracture_card_1|la Carta della Radura}. Niente si apre da solo: la Carta viene consumata e parte il primo gruppo."},
+       {"type": "text", "text": "Ogni Frattura ha {balance:fracture.groups|int} gruppi di mostri e in fondo un boss con un'abilità tutta sua: colpo pesante, scudo o evocazione. Il grado della Carta decide mostri, boss e livello consigliato."},
+       {"type": "text", "text": "Le Carte magiche e rare portano dei modificatori, ognuno con un rischio e un premio. Il bottino resta nella Borsa della Frattura e arriva al Deposito solo se vinci; se muori o abbandoni, è perso. Ciò che non entra resta in attesa: fai spazio e premi Raccogli."}
+     ]}
+  ]
+}
