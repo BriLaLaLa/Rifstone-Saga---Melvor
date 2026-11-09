@@ -112,7 +112,7 @@ func test_a_malformed_filter_rule_is_dropped_and_the_valid_one_kept() -> void:
 	var s: GameSession = _played()
 	var saved: Dictionary = s.to_save(NOW_MS)
 	var filter: Dictionary = ((saved["modules"] as Dictionary)["armory"] as Dictionary)["filter"]
-	filter["head"] = {"min_rarity": "legendary", "min_grade": 3}
+	filter["head"] = {"min_rarity": "epic", "min_grade": 3}
 	filter["body"] = {"min_rarity": "rare", "min_grade": 99}
 	var copy: GameSession = _session(OTHER_SEED)
 	assert_true(copy.from_save(SaveCodec.decode(SaveCodec.encode(saved))).ok, "a bad rule does not fail the load")

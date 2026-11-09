@@ -156,6 +156,8 @@
   "rarity": {
     "drop": {"magic_pct": 20, "rare_pct": 3},
     "rift_stone": {"magic_pct": 40, "rare_pct": 12},
+    "masterwork": {"base_mult": 1.25, "affix_count": [1, 2]},
+    "legendary": {"base_mult": 1.4},
     "affix_count": {
       "magic": [
         1,
@@ -192,7 +194,9 @@
     "rare_base_pct": 10,
     "rare_per_forging_level": 0.5,
     "choose_affix_level": 50,
-    "chosen_affix_tier": 2
+    "chosen_affix_tier": 2,
+    "cost_mult": 3,
+    "extra_rare": 2
   },
   "tool_upgrade": {
     "interval_base_pct": 5,
@@ -216,7 +220,7 @@
   "rift_stone": {"chance_pct": 0.5, "pity_kills": 300},
   "salvage": {
     "component_ratio": 0.4,
-    "shards_by_rarity": {"common": 0, "magic": 1, "rare": 3}
+    "shards_by_rarity": {"common": 0, "magic": 1, "rare": 3, "masterwork": 3, "legendary": 3}
   },
   "rift": {
     "sockets": [
@@ -237,7 +241,7 @@
       }
     ]
   },
-  "sockets": {"by_rarity": {"common": 0, "magic": 1, "rare": 2}, "bonus_at_upgrade": 7},
+  "sockets": {"by_rarity": {"common": 0, "magic": 1, "rare": 2, "masterwork": 2, "legendary": 2}, "bonus_at_upgrade": 7},
   "fracture": {
     "groups": 3, "intensity_steps": 10, "pulse_ms": 4000,
     "mod_count": {"common": [0, 0], "magic": [1, 2], "rare": [3, 4]},

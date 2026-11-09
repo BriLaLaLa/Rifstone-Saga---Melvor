@@ -67,7 +67,9 @@ func test_set_filter_and_rejections() -> void:
 	assert_eq(_session.armory.set_filter(&"wing", &"magic", 1).reason, Reasons.UNKNOWN_ID)
 	assert_eq(_session.armory.set_filter(&"weapon", &"epic", 1).reason, Reasons.UNKNOWN_ID)
 	assert_eq(_session.armory.set_filter(&"weapon", &"magic", 0).reason, Reasons.INVALID_AMOUNT)
-	assert_eq(_session.armory.set_filter(&"weapon", &"magic", 9).reason, Reasons.INVALID_AMOUNT)
+	assert_eq(_session.armory.set_filter(&"weapon", &"magic", 16).reason, Reasons.INVALID_AMOUNT, "M14: 15 piece grades")
+	assert_true(_session.armory.set_filter(&"weapon", &"legendary", 15).ok)
+	assert_true(_session.armory.set_filter(&"weapon", &"magic", 3).ok)
 	assert_eq(_session.armory.filter_rule(&"weapon"), {"min_rarity": &"magic", "min_grade": 3}, "unchanged")
 	assert_true(_session.armory.set_filter(&"weapon", &"common", 1).ok, "back to keep everything")
 	assert_eq(_session.armory.filter_rules(), {})
@@ -98,7 +100,7 @@ func test_drop_under_the_filter_is_salvaged_at_once() -> void:
 	var comps: Dictionary[StringName, int] = Salvage.components(&"duskcobalt_sword", _session.data)  # F-95: blueprint inputs x 0.4
 	for item_id: StringName in comps:
 		assert_eq(_session.bank.get_count(item_id), comps[item_id])
-	assert_eq(_session.bank.get_count(SHARD), 4, "magic 1 x grade 4")
+	assert_eq(_session.bank.get_count(SHARD), 2, "magic 1 x grade of the material 2 (piece grade 4, F-95 M14)")
 	assert_signal_emitted_with_parameters(_session.events, "item_salvaged", [1, &"duskcobalt_sword", true])
 	assert_signal_not_emitted(_session.events, "armory_changed")
 	var kept: int = _session.armory.add_drop(_inst(&"duskcobalt_sword", &"rare"))
@@ -123,7 +125,7 @@ func test_drop_with_a_full_armory_is_salvaged() -> void:
 	assert_eq(session.armory.used(), filled, "still full")
 	for item_id: StringName in comps:
 		assert_eq(session.bank.get_count(item_id), comps[item_id] + 1)
-	assert_eq(session.bank.get_count(SHARD), 10, "1 + rare 3 x grade 3")
+	assert_eq(session.bank.get_count(SHARD), 7, "1 + rare 3 x grade of the material 2 (piece grade 3, F-95 M14)")
 	assert_signal_emitted_with_parameters(session.events, "item_salvaged", [filled + 1, &"stormzinc_cuirass", true])
 	assert_signal_not_emitted(session.events, "armory_rejected")
 
@@ -155,7 +157,7 @@ func test_old_save_without_filter_keeps_everything() -> void:
 func test_invalid_filter_rules_are_dropped_with_a_warning() -> void:
 	_session.armory.from_save({"next_uid": 1, "items": [], "filter": {
 		"weapon": {"min_rarity": "magic", "min_grade": 2}, "wing": {"min_rarity": "rare", "min_grade": 1},
-		"head": {"min_rarity": "epic", "min_grade": 1}, "body": {"min_rarity": "rare", "min_grade": 12},
+		"head": {"min_rarity": "epic", "min_grade": 1}, "body": {"min_rarity": "rare", "min_grade": 16},
 		"legs": "rare", "feet": {"min_rarity": "rare", "min_grade": 1.5}}})
 	assert_eq(_session.armory.filter_rules(), {&"weapon": {"min_rarity": &"magic", "min_grade": 2}})
 	_session.armory.from_save({"next_uid": 1, "items": [], "filter": 5})

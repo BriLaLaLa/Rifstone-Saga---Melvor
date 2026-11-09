@@ -272,9 +272,9 @@ func test_stone_sub_object_is_forbidden_outside_its_category() -> void:
 
 func test_sockets_section_of_balance_is_checked_when_present() -> void:
 	var raw: Dictionary = V.fixture_raw()
-	V.file_of(raw, "balance", "balance.json")["sockets"] = {"by_rarity": {"common": 0, "magic": -1, "rare": 2}, "bonus_at_upgrade": 7}
+	V.file_of(raw, "balance", "balance.json")["sockets"] = {"by_rarity": {"common": 0, "magic": -1, "rare": 2, "masterwork": 2, "legendary": 2}, "bonus_at_upgrade": 7}
 	_expect(raw, ["sockets.by_rarity", "magic"])
-	V.file_of(raw, "balance", "balance.json")["sockets"] = {"by_rarity": {"common": 0, "magic": 1, "rare": 2}, "bonus_at_upgrade": 12}
+	V.file_of(raw, "balance", "balance.json")["sockets"] = {"by_rarity": {"common": 0, "magic": 1, "rare": 2, "masterwork": 2, "legendary": 2}, "bonus_at_upgrade": 12}
 	_expect(raw, ["sockets", "bonus_at_upgrade"])
-	V.file_of(raw, "balance", "balance.json")["sockets"] = {"by_rarity": {"common": 0, "magic": 1, "rare": 2}, "bonus_at_upgrade": 7}
+	V.file_of(raw, "balance", "balance.json")["sockets"] = {"by_rarity": {"common": 0, "magic": 1, "rare": 2, "masterwork": 2, "legendary": 2}, "bonus_at_upgrade": 7}
 	assert_eq(V.validate(raw), PackedStringArray())

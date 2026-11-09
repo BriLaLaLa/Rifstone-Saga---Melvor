@@ -4,6 +4,9 @@ extends RefCounted
 ## Fracture) and `FractureSink` (inside one) override what differs. `KillRewards` only talks to this interface.
 
 
+## F-120 `card_drop_mult`: the factor of the probability of the Card drops, set by the fight at every kill.
+var card_mult: float = 1.0
+
 ## A stack of `item_id` (false = it was lost).
 func add(_item_id: StringName, _qty: int) -> bool:
 	return true
@@ -19,8 +22,10 @@ func drop_card(_grade: int) -> void:
 	pass
 
 
-## F-111: the probability of a drop of `base` (the data value by default).
-func drop_chance(_base: ItemDef, chance_pct: float) -> float:
+## F-111: the probability of a drop of `base` (the data value, x `card_mult` for a Card, at most 100).
+func drop_chance(base: ItemDef, chance_pct: float) -> float:
+	if base.is_map() and card_mult != 1.0:
+		return minf(100.0, chance_pct * card_mult)
 	return chance_pct
 
 

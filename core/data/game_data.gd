@@ -59,7 +59,6 @@ var _blueprint_list: Array[ItemDef] = []
 var _blueprint_by_base: Dictionary[StringName, ItemDef] = {}
 var _unique_tools: Dictionary[StringName, ItemDef] = {}  # slot -> unique tool (M10)
 
-
 static func load_from_dirs(content_root: String = "res://data", config_root: String = "res://data/config") -> GameData:
 	var data := GameData.new()
 	var raw: Dictionary = {
@@ -78,8 +77,7 @@ static func load_from_dirs(content_root: String = "res://data", config_root: Str
 	return data
 
 
-func is_valid() -> bool:
-	return errors.is_empty()
+func is_valid() -> bool: return errors.is_empty()
 
 
 ## The value at a dotted path of balance.json (e.g. "combat.respawn_ms"), as parsed from JSON: numbers are float,
@@ -113,17 +111,14 @@ func mastery_table() -> XpTable: return _mastery_table
 func character_xp_table() -> XpTable: return _character_table
 
 
-func character_class(id: StringName) -> ClassDef:
-	return _find(_classes, id, "class") as ClassDef
+func character_class(id: StringName) -> ClassDef: return _find(_classes, id, "class") as ClassDef
 
 
 ## Every class, by `order`.
-func classes() -> Array[ClassDef]:
-	return _class_list.duplicate()
+func classes() -> Array[ClassDef]: return _class_list.duplicate()
 
 
-func affix(id: StringName) -> AffixDef:
-	return _find(_affixes, id, "affix") as AffixDef
+func affix(id: StringName) -> AffixDef: return _find(_affixes, id, "affix") as AffixDef
 
 
 ## The affixes that can roll on an equipment slot (`head`, `weapon`, `tool_forestry`…), in file order.
@@ -142,31 +137,41 @@ func has_item(id: StringName) -> bool: return _items.has(id)
 
 
 ## Every item, in load order (files in alphabetical order, then file order).
-func items() -> Array[ItemDef]:
-	return _item_list.duplicate()
+func items() -> Array[ItemDef]: return _item_list.duplicate()
 
 
 ## Every blueprint item (M10), by grade then `sort_order`.
-func blueprints() -> Array[ItemDef]:
-	return _blueprint_list.duplicate()
+func blueprints() -> Array[ItemDef]: return _blueprint_list.duplicate()
 
 
 ## The blueprint of an equipment base (one per base). Null, without error, when there is none (rings, amulets, tools).
-func blueprint_for_base(base_id: StringName) -> ItemDef:
-	return _blueprint_by_base.get(base_id) as ItemDef
+func blueprint_for_base(base_id: StringName) -> ItemDef: return _blueprint_by_base.get(base_id) as ItemDef
+
+
+## M14: every legendary base (`equip.legendary`), in the order of the data.
+func legendaries() -> Array[ItemDef]: return LegendaryIndex.all(_item_list)
+
+
+## M14: the legendaries whose source is the boss or the Monolith `source_id` (`source_type` &"boss" / &"monolith").
+func legendaries_from(source_type: StringName, source_id: StringName) -> Array[ItemDef]:
+	return LegendaryIndex.from_source(_item_list, source_type, source_id)
+
+
+## M14 (F-121): a base the drop pool can give: equipment that is neither a Masterwork nor a legendary.
+func is_equipment_pool_base(base_id: StringName) -> bool:
+	var equip: EquipInfo = _items[base_id].equip if _items.has(base_id) and _items[base_id].category == &"equipment" else null
+	return equip != null and not equip.masterwork and equip.legendary == null
 
 
 ## The unique tool of a `tool_*` slot (M10); null and an error when the slot has none.
-func unique_tool(slot: StringName) -> ItemDef:
-	return _find(_unique_tools, slot, "unique tool slot") as ItemDef
+func unique_tool(slot: StringName) -> ItemDef: return _find(_unique_tools, slot, "unique tool slot") as ItemDef
 
 
 func skill(id: StringName) -> SkillDef: return _find(_skills, id, "skill") as SkillDef
 
 
 ## Every skill, by `order`.
-func skills() -> Array[SkillDef]:
-	return _skill_list.duplicate()
+func skills() -> Array[SkillDef]: return _skill_list.duplicate()
 
 
 ## The skills of a category (`gathering`, `artisan`), by `order`; an unknown category is an error.
@@ -222,8 +227,7 @@ func area(id: StringName) -> AreaDef: return _find(_areas, id, "area") as AreaDe
 
 
 ## Every area, by `order`.
-func areas() -> Array[AreaDef]:
-	return _area_list.duplicate()
+func areas() -> Array[AreaDef]: return _area_list.duplicate()
 
 
 func monster(id: StringName) -> MonsterDef: return _find(_monsters, id, "monster") as MonsterDef
@@ -243,24 +247,21 @@ func rift_stone(id: StringName) -> RiftStoneDef: return _find(_stones, id, "rift
 
 
 ## The Rift Stone of an area (F-87), null (no error) when the area has none: no stone ever appears there.
-func rift_stone_for_area(area_id: StringName) -> RiftStoneDef:
-	return _stone_by_area.get(area_id) as RiftStoneDef
+func rift_stone_for_area(area_id: StringName) -> RiftStoneDef: return _stone_by_area.get(area_id) as RiftStoneDef
 
 
 func shop_entry(id: StringName) -> ShopEntryDef: return _find(_shop, id, "shop entry") as ShopEntryDef
 
 
 ## Every shop entry, in file order.
-func shop_entries() -> Array[ShopEntryDef]:
-	return _shop_list.duplicate()
+func shop_entries() -> Array[ShopEntryDef]: return _shop_list.duplicate()
 
 
 func hint(id: StringName) -> HintDef: return _find(_hints, id, "hint") as HintDef
 
 
 ## Every hint, in file order.
-func hints() -> Array[HintDef]:
-	return _hint_list.duplicate()
+func hints() -> Array[HintDef]: return _hint_list.duplicate()
 
 
 ## M12: the helper grades of `helper.grades`, in order of grade (apprentice first).
@@ -302,8 +303,7 @@ func map_mods() -> Array[MapModDef]: return _maps.mods.duplicate()
 func map_mod(id: StringName) -> MapModDef: return _maps.mods_by_id.get(id) as MapModDef
 func boss_for_grade(grade: int) -> BossDef: return _find(_maps.boss_by_grade, grade, "boss of grade") as BossDef
 func boss(id: StringName) -> BossDef: return _find(_maps.bosses_by_id, id, "boss") as BossDef
-func fracture_grade(grade: int) -> FractureGradeDef:
-	return _find(_maps.grade_by_number, grade, "fracture grade") as FractureGradeDef
+func fracture_grade(grade: int) -> FractureGradeDef: return _find(_maps.grade_by_number, grade, "fracture grade") as FractureGradeDef
 
 
 func _find(table: Dictionary, id: Variant, kind: String) -> RefCounted:

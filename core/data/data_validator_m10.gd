@@ -8,7 +8,7 @@ extends RefCounted
 ## entries and tools do not drop. The keys of balance.json that reference M10 items are required (DataValidatorM10Balance).
 
 const TOOL_STEPS: int = 9  # refinement steps +1..+9 (F-94)
-const BLUEPRINT_FIELDS: PackedStringArray = ["base", "grade", "inputs", "rare_component"]
+const BLUEPRINT_FIELDS: PackedStringArray = ["base", "grade", "inputs", "rare_component", "rare_components"]
 const BLUEPRINT_INPUT_CATEGORIES: PackedStringArray = ["component", "material"]
 const NO_BLUEPRINT_SLOTS: PackedStringArray = ["ring", "neck"]
 const TOOL_SLOTS: PackedStringArray = ["tool_forestry", "tool_quarrying", "tool_angling"]
@@ -51,14 +51,12 @@ static func blueprint(v: DataValidatorRules, e: Dictionary) -> void:
 		var item: Dictionary = v.items.get(StringName(str(inputs[index].get("item"))), {})
 		if not item.is_empty() and not BLUEPRINT_INPUT_CATEGORIES.has(str(item.get("category"))):
 			v.fail("field '%s.item': '%s' must be a component or a material" % [prefix, inputs[index]["item"]])
-	if bp.get("rare_component") is Dictionary:
-		var rare: Dictionary = bp["rare_component"] as Dictionary
-		v.item_qty(rare, "blueprint.rare_component")
-		var rare_item: Dictionary = v.items.get(StringName(str(rare.get("item"))), {})
-		if not rare_item.is_empty() and str(rare_item.get("category")) != "material":
-			v.fail("field 'blueprint.rare_component.item': '%s' must be a material" % rare["item"])
+	if bp.has("rare_components"):  # M14 (F-119): `blueprint.extra_rare` different rare materials
+		_rare_components(v, bp)
+	elif bp.get("rare_component") is Dictionary:  # TRANSITIONAL (until M14-05): the old form
+		_rare_item(v, bp["rare_component"] as Dictionary, "blueprint.rare_component")
 	else:
-		v.object(bp, "rare_component", "blueprint")
+		v.object(bp, "rare_components", "blueprint")
 
 
 static func _blueprint_base(v: DataValidatorRules, bp: Dictionary, base: Dictionary) -> void:
@@ -68,10 +66,47 @@ static func _blueprint_base(v: DataValidatorRules, bp: Dictionary, base: Diction
 		return
 	if NO_BLUEPRINT_SLOTS.has(str((equip as Dictionary).get("slot"))):
 		v.fail("field 'blueprint.base': '%s' is a ring or an amulet, they have no blueprint" % bp["base"])
-	if DataValidatorRules.is_int(bp.get("grade")) and DataValidatorRules.is_number((equip as Dictionary).get("grade")) \
-			and int(bp["grade"]) != int((equip as Dictionary)["grade"]):
-		v.fail("field 'blueprint.grade': %d differs from the grade %d of '%s'" % [int(bp["grade"]),
-				int((equip as Dictionary)["grade"]), bp["base"]])
+	var piece_grade: Variant = (equip as Dictionary).get("grade")
+	var masterwork: bool = (equip as Dictionary).get("masterwork") == true
+	if masterwork and not bp.has("rare_components"):
+		v.fail("field 'blueprint.rare_components': the blueprint of the Masterwork '%s' needs them (F-119)" % bp["base"])
+	if _is_armour(equip as Dictionary) and (equip as Dictionary).get("material") != "plate":
+		v.fail("field 'blueprint.base': '%s' is not of Plates, only Plates have a blueprint (Q75)" % bp["base"])
+	if not (DataValidatorRules.is_int(bp.get("grade")) and DataValidatorRules.is_number(piece_grade)):
+		return
+	# M14: a Masterwork's blueprint has the grade of the material of the piece grade (F-118); old bases keep their grade.
+	var expected: int = int(piece_grade)
+	if masterwork and v.grade_material.size() == DataValidatorM14.GRADE_COUNT and expected >= 1 and expected <= v.grade_material.size():
+		expected = v.grade_material[expected - 1]
+	if int(bp["grade"]) != expected:
+		v.fail("field 'blueprint.grade': %d differs from the grade %d of '%s'" % [int(bp["grade"]), expected, bp["base"]])
+
+
+# `blueprint.rare_components`: `extra_rare` entries `{item, qty}`, all different materials.
+static func _rare_components(v: DataValidatorRules, bp: Dictionary) -> void:
+	var list: Array[Dictionary] = v.object_list(bp, "rare_components", "blueprint", 1)
+	if list.size() != v.extra_rare:
+		v.fail("field 'blueprint.rare_components' needs exactly %d entries (blueprint.extra_rare), got %d" % [v.extra_rare, list.size()])
+	var seen: Dictionary[String, bool] = {}
+	for index: int in list.size():
+		_rare_item(v, list[index], "blueprint.rare_components[%d]" % index)
+		if list[index].get("item") is String:
+			if seen.has(list[index]["item"] as String):
+				v.fail("field 'blueprint.rare_components[%d].item': '%s' is repeated" % [index, list[index]["item"]])
+			seen[list[index]["item"] as String] = true
+	if bp.has("rare_component"):
+		v.fail("field 'blueprint.rare_component' cannot be given together with 'rare_components'")
+
+
+static func _rare_item(v: DataValidatorRules, rare: Dictionary, prefix: String) -> void:
+	v.item_qty(rare, prefix)
+	var rare_item: Dictionary = v.items.get(StringName(str(rare.get("item"))), {})
+	if not rare_item.is_empty() and str(rare_item.get("category")) != "material":
+		v.fail("field '%s.item': '%s' must be a material" % [prefix, rare["item"]])
+
+
+static func _is_armour(equip: Dictionary) -> bool:
+	return DataValidatorM14.ARMOUR_SLOTS.has(str(equip.get("slot"))) or equip.get("kind") == DataValidatorM14.SHIELD_KIND
 
 
 ## `unique` and `upgrade_extras` of an `equip` object (§5, M10); both belong to tools only.
@@ -120,7 +155,7 @@ static func validate_items(v: DataValidatorRules, files: Dictionary[String, Dict
 				if by_base.has(base):
 					v.fail("blueprint for base '%s' is already given by '%s'" % [base, by_base[base]])
 				by_base[base] = id
-			if category == "tool":
+			if category == "tool" and not _is_legendary(e as Dictionary):
 				tools += 1
 				_unique_tool(v, e as Dictionary, tool_slots)
 	v.at_file("section 'items'" if files.is_empty() else (files.keys()[0] as String).get_base_dir())
@@ -205,3 +240,7 @@ static func item_of(v: DataValidatorRules, d: Dictionary, key: String, prefix: S
 	if v.ref(d, key, v.items, "item", prefix):
 		return v.items[StringName(d[key] as String)]
 	return {}
+
+
+static func _is_legendary(e: Dictionary) -> bool:
+	return e.get("equip") is Dictionary and (e["equip"] as Dictionary).has("legendary")

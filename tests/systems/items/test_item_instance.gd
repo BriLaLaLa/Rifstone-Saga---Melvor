@@ -41,7 +41,7 @@ func test_rejects_unknown_base() -> void:
 
 func test_rejects_invalid_rarity() -> void:
 	var d: Dictionary = _valid()
-	d["rarity"] = "legendary"
+	d["rarity"] = "epic"
 	assert_null(ItemInstance.from_dict(d, _data))
 
 

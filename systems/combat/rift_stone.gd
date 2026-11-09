@@ -63,14 +63,17 @@ static func enemy(def: RiftStoneDef, data: GameData) -> Encounter.Enemy:
 
 ## Rewards of the killed stone of `area_id`: xp (F-28), shards in its range, drops (F-32) with the rarity of the
 ## stone (F-84) and the item level of the highest monster of the area.
-func reward(loot: LootBag, area_id: StringName) -> void:
+func reward(loot: LootSink, area_id: StringName, loot_mult: float = 1.0) -> void:
 	var def: RiftStoneDef = _session.data.rift_stone_for_area(area_id)
 	if def == null:
 		return
 	_session.character.add_xp(KillRewards.base_xp(_session, def.xp))
-	loot.add(SHARD_ITEM, _session.rng.randi_range(def.shards_min, def.shards_max))
-	KillRewards.roll_drops(_session, loot, def.drops, ItemRoller.SOURCE_RIFT_STONE, _area_ilvl(area_id))
-	KillRewards.roll_tables(_session, loot, def.loot_tables, ItemRoller.SOURCE_RIFT_STONE, _area_ilvl(area_id))
+	var sink: LootSink = ScaledSink.new(loot, loot_mult) if loot_mult != 1.0 else loot  # F-120 monolith_loot_mult
+	sink.add(SHARD_ITEM, _session.rng.randi_range(def.shards_min, def.shards_max))
+	KillRewards.roll_drops(_session, sink, def.drops, ItemRoller.SOURCE_RIFT_STONE, _area_ilvl(area_id))
+	KillRewards.roll_tables(_session, sink, def.loot_tables, ItemRoller.SOURCE_RIFT_STONE, _area_ilvl(area_id))
+	for piece: ItemInstance in LegendaryRoller.drops(LegendaryInfo.SOURCE_MONOLITH, def.id, _session.data, _session.rng):
+		loot.add_piece(piece)  # F-120: straight to the Armory (add_drop), never filtered
 
 
 func reset() -> void:

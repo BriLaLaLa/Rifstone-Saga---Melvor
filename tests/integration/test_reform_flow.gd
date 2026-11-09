@@ -13,7 +13,7 @@ const SKILL: StringName = &"forging"
 const SWORD: StringName = &"emberbronze_sword"
 const GREATSWORD: StringName = &"emberbronze_greatsword"
 const SHIELD: StringName = &"emberbronze_shield"
-const RARITIES: Array[StringName] = [&"magic", &"rare"]
+const RARITIES: Array[StringName] = [&"masterwork"]  # M14: a blueprint always makes a Masterwork (F-91)
 const CONTENT_ROOT: String = "res://data"
 const CONFIG_ROOT: String = "res://data/config"
 const RARITY_STAT: StringName = &"item_rarity_pct"
@@ -47,7 +47,7 @@ func after_all() -> void:
 	DirAccess.remove_absolute(_tmp_config)
 
 
-func test_three_blueprints_create_three_pieces_of_at_least_magic_rarity() -> void:
+func test_three_blueprints_create_three_masterworks() -> void:
 	for base: StringName in [SWORD, GREATSWORD, SHIELD]:
 		_stock(base)
 		_craft(base)
@@ -56,7 +56,7 @@ func test_three_blueprints_create_three_pieces_of_at_least_magic_rarity() -> voi
 	assert_eq(_bases(pieces), [SWORD, GREATSWORD, SHIELD] as Array[StringName], "insertion order")
 	assert_eq([pieces[0].uid, pieces[1].uid, pieces[2].uid], [1, 2, 3], "uids from 1")
 	for piece: ItemInstance in pieces:
-		assert_true(RARITIES.has(piece.rarity), "%s rarity %s: never common (F-91)" % [piece.base_id, piece.rarity])
+		assert_true(RARITIES.has(piece.rarity), "%s rarity %s: always a Masterwork (F-91)" % [piece.base_id, piece.rarity])
 		assert_eq(piece.ilvl, 1, "ilvl = level of the grade (grade 1)")
 		assert_eq(piece.upgrade, 0)
 		assert_false(piece.locked)
@@ -162,18 +162,18 @@ func test_stop_returns_blueprint_and_materials() -> void:
 	assert_eq(_session.armory.instances().size(), 0)
 
 
-func test_rarity_grows_with_the_forging_level() -> void:
+func test_two_affixes_grow_with_the_forging_level() -> void:
 	var low: int = _count_rare(1, 0.0)
 	var high: int = _count_rare(99, 0.0)
-	assert_gt(high, low, "Forging 99 gives more rare pieces than level 1 (F-91, fixed seed)")
-	assert_gt(high, SAMPLE_CYCLES / 3, "p_rare 59.5% at level 99")
+	assert_gt(high, low, "Forging 99 gives more pieces with two affixes than level 1 (F-91, fixed seed)")
+	assert_gt(high, SAMPLE_CYCLES / 3, "p_two 59.5% at level 99")
 
 
-func test_item_rarity_pct_raises_the_rarity_through_the_modifiers() -> void:
+func test_item_rarity_pct_raises_the_two_affix_chance_through_the_modifiers() -> void:
 	var base: int = _count_rare(1, 0.0)
 	var boosted: int = _count_rare(1, 500.0)
-	assert_gt(boosted, base, "item_rarity_pct +500 gives more rare pieces (F-91)")
-	assert_eq(boosted, SAMPLE_CYCLES, "p_rare is clamped to 100: all rare")
+	assert_gt(boosted, base, "item_rarity_pct +500 gives more pieces with two affixes (F-91)")
+	assert_eq(boosted, SAMPLE_CYCLES, "p_two is clamped to 100: all with two affixes")
 
 
 func test_item_rarity_pct_is_read_with_the_context_of_the_action() -> void:
@@ -242,10 +242,8 @@ func _bases(pieces: Array[ItemInstance]) -> Array[StringName]:
 func _assert_affix_rules(piece: ItemInstance) -> void:
 	var count: int = piece.affixes.size()
 	match piece.rarity:
-		&"magic":
-			assert_between(count, 1, 2, "%s magic has 1-2 affixes" % piece.base_id)
-		&"rare":
-			assert_between(count, 3, 4, "%s rare has 3-4 affixes" % piece.base_id)
+		&"masterwork":
+			assert_between(count, 1, 2, "%s masterwork has 1-2 affixes" % piece.base_id)
 	var seen: Array[StringName] = []
 	for roll: AffixRoll in piece.affixes:
 		assert_false(seen.has(roll.affix_id), "no repeated affix")
@@ -255,7 +253,7 @@ func _assert_affix_rules(piece: ItemInstance) -> void:
 
 
 # Crafts SAMPLE_CYCLES swords at the given Forging level with a fresh session and a fixed seed; returns how many are
-# rare. The Armory is emptied after each cycle.
+# with two affixes (M14). The Armory is emptied after each cycle.
 func _count_rare(forging_level: int, rarity_pct: float) -> int:
 	_session.free()
 	_session = _new_session(TestFactory.real_data())
@@ -267,7 +265,7 @@ func _count_rare(forging_level: int, rarity_pct: float) -> int:
 		_stock(SWORD)
 		_craft(SWORD)
 		for piece: ItemInstance in _session.armory.instances():
-			if piece.rarity == &"rare":
+			if piece.affixes.size() == 2:
 				rare += 1
 			assert_true(_session.armory.remove(piece.uid).ok)
 	return rare

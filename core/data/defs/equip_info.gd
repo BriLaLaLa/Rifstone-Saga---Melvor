@@ -14,6 +14,8 @@ var material: StringName = &""  # M14: &"plate" / &"leather" / &"cloth" for armo
 var weapon: WeaponInfo = null
 var unique: bool = false  # M10: unique tool (04 §5); false when absent
 var upgrade_extras: Array[ToolExtra] = []  # M10: empty when absent
+var masterwork: bool = false  # M14: a base of Masterwork (F-119), false when absent
+var legendary: LegendaryInfo = null  # M14: null unless a legendary (F-120)
 
 
 static func from_dict(d: Dictionary) -> EquipInfo:
@@ -39,4 +41,14 @@ static func from_dict(d: Dictionary) -> EquipInfo:
 			r.absorb(extra != null)
 			if extra != null:
 				def.upgrade_extras.append(extra)
+	if r.has("masterwork"):
+		def.masterwork = r.flag("masterwork")
+	if r.has("legendary") and r.is_dict("legendary"):
+		def.legendary = LegendaryInfo.from_dict(r.dict("legendary"))
+		r.absorb(def.legendary != null)
 	return def if r.ok else null
+
+
+## True for a legendary tool (slot `tool_*`, F-120): it replaces the unique tool of its slot.
+func is_legendary_tool() -> bool:
+	return legendary != null and String(slot).begins_with("tool_")

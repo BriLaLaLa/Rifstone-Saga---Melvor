@@ -159,21 +159,22 @@ func after_kill(enemy: Encounter.Enemy, encounter: Encounter) -> StringName:
 
 ## The rewards of a killed enemy: xp, gold and drops into the Fracture bag, plus the Card of F-113. A summoned enemy gives
 ## nothing. True if it counts as a kill of a monster of the data (not summoned, not the boss).
-func reward(enemy: Encounter.Enemy) -> bool:
+func reward(enemy: Encounter.Enemy, card_mult: float = 1.0) -> bool:
 	if enemy.summoned:
 		return false
+	_sink.card_mult = 1.0 if is_boss(enemy) else card_mult  # F-120 card_drop_mult: the monsters of the data, not the boss
 	KillRewards.grant(_session, _sink, enemy.def)
 	if is_boss(enemy):  # F-115: the piece and the dust, then the Card of F-113 (no `card_chance_pct` on the boss)
 		BossRewards.grant(_session, _sink, run, enemy.def)
 		_roll_card(&"boss_pct", &"boss_delta", 0.0)
 		return false
-	_roll_card(&"monster_pct", &"monster_delta", _session.fractures.effect_total(FractureScaler.REWARD_CARD))
+	_roll_card(&"monster_pct", &"monster_delta", _session.fractures.effect_total(FractureScaler.REWARD_CARD), card_mult)
 	return true
 
 
 ## F-113: `roll_pct(pct)`, then the grade offset by weight, then the rarity (F-109) and its modifiers.
-func _roll_card(chance_key: StringName, delta_key: StringName, card_chance_pct: float) -> void:
-	var pct: float = float(_session.data.balance_value("fracture.card_drop.%s" % chance_key)) * (1.0 + card_chance_pct / 100.0)
+func _roll_card(chance_key: StringName, delta_key: StringName, card_chance_pct: float, mult: float = 1.0) -> void:
+	var pct: float = minf(100.0, float(_session.data.balance_value("fracture.card_drop.%s" % chance_key)) * (1.0 + card_chance_pct / 100.0) * mult)
 	if not _session.rng.roll_pct(pct):
 		return
 	var weights: Array[int] = []

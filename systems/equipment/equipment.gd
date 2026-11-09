@@ -85,8 +85,8 @@ func equip(uid: int, slot: StringName = &"") -> CommandResult:
 	if not def.is_equippable():
 		return CommandResult.fail(Reasons.NOT_EQUIPPABLE)
 	var target: StringName = slot if slot != &"" else def.equip.slot
-	if slot_of(uid) != &"" or not _fits_slot(def, target) or _is_unique(_def_of(get_uid(target))):
-		return CommandResult.fail(Reasons.NOT_EQUIPPABLE)  # a unique tool never leaves its slot
+	if slot_of(uid) != &"" or not _fits_slot(def, target) or (_is_unique(_def_of(get_uid(target))) and not def.equip.is_legendary_tool()):
+		return CommandResult.fail(Reasons.NOT_EQUIPPABLE)  # a unique tool leaves its slot only for a legendary tool (F-120)
 	if not _session.character.meets_requirements(def.equip.requirements) or not _class_allows(def, target):
 		return CommandResult.fail(Reasons.REQUIREMENT_NOT_MET)
 	var after: Dictionary[StringName, int] = _worn.duplicate()
@@ -194,6 +194,11 @@ func base_attack_interval_ms() -> int:
 	return worn.equip.weapon.attack_interval_ms
 
 
+## M14 (F-120): the effects of the legendaries worn, in the order of `SLOTS`, each with the source `equipment:<slot>`.
+func item_effects() -> Array[ItemEffectDef]:
+	return ItemEffects.of_worn(_worn, _armory, _data)
+
+
 ## Sources `equipment:<slot>` of the worn pieces and `setup:<id>` (the session has cleared every source first).
 func rebuild_modifiers() -> void:
 	_applied_setup = &""
@@ -255,8 +260,7 @@ func _reset() -> void:
 	_applied_setup = &""
 
 
-func _is_food(item_id: StringName) -> bool:
-	return _data.has_item(item_id) and _data.item(item_id).is_food()
+func _is_food(item_id: StringName) -> bool: return _data.has_item(item_id) and _data.item(item_id).is_food()
 
 
 func _load_slot(slot: StringName, value: Variant) -> void:
@@ -301,12 +305,10 @@ func _is_two_handed(def: ItemDef) -> bool:
 	return def != null and def.equip != null and def.equip.weapon != null and def.equip.weapon.two_handed
 
 
-func _is_unique(def: ItemDef) -> bool:
-	return def != null and def.equip != null and def.equip.unique
+func _is_unique(def: ItemDef) -> bool: return def != null and def.equip != null and def.equip.unique
 
 
-func _is_shield(def: ItemDef) -> bool:
-	return def != null and def.equip != null and def.equip.kind == SHIELD_KIND
+func _is_shield(def: ItemDef) -> bool: return def != null and def.equip != null and def.equip.kind == SHIELD_KIND
 
 
 # The slot of the base, or the offhand for a one-handed weapon.

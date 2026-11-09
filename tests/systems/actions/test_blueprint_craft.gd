@@ -133,7 +133,7 @@ func test_replaced_gives_everything_back() -> void:
 	assert_eq(_session.actions.stop_reasons_log(), [Reasons.REPLACED] as Array[StringName])
 
 
-func test_completion_creates_a_magic_or_rare_piece_with_xp_and_signals() -> void:
+func test_completion_creates_a_masterwork_with_xp_and_signals() -> void:
 	_give_all()
 	TestFactory.set_level(_session, FORGING, 50)
 	var xp_before: int = _session.skills.get_xp(FORGING)
@@ -147,7 +147,8 @@ func test_completion_creates_a_magic_or_rare_piece_with_xp_and_signals() -> void
 	assert_eq(added.size(), 1)
 	var piece: ItemInstance = added[0]
 	assert_eq(piece.base_id, &"test_blade")
-	assert_true(piece.rarity == &"magic" or piece.rarity == &"rare")
+	assert_eq(piece.rarity, &"masterwork", "M14: a blueprint always makes a Masterwork (F-91)")
+	assert_between(piece.affixes.size(), 1, 2)
 	assert_eq(piece.ilvl, 1)
 	assert_eq(piece.affixes[0].affix_id, &"test_keen")
 	assert_eq(_session.skills.get_xp(FORGING) - xp_before, 3600)
@@ -239,7 +240,9 @@ func test_item_rarity_pct_comes_from_the_action_context() -> void:
 	_session.modifiers.set_source(&"test", [Modifier.make(&"item_rarity_pct", 100.0)] as Array[Modifier])
 	_session.actions.start_blueprint(BP)
 	_session.actions.advance(10 * MIN_MS)
-	assert_eq(_new_pieces()[0].rarity, &"rare", "p_rare 119.0 -> 100 at level 99 with +100%")
+	var piece: ItemInstance = _new_pieces()[0]
+	assert_eq(piece.rarity, &"masterwork")
+	assert_eq(piece.affixes.size(), 2, "p_two 119.0 -> 100 at level 99 with +100%: two affixes")
 
 
 func test_skill_interval_pct_shortens_the_work() -> void:

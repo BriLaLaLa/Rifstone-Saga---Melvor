@@ -109,6 +109,7 @@ static func validate(raw: Dictionary, errors: PackedStringArray) -> void:
 	DataValidatorFracture.validate_areas(v, _files(raw, "balance"), _files(raw, "areas"))
 	DataValidatorMaps.validate_mods(v, _files(raw, "map_mods"))
 	DataValidatorMaps.validate_bosses(v, _files(raw, "bosses"))
+	DataValidatorLegendary.validate_sources(v, _files(raw, "items"), _files(raw, "bosses"), _files(raw, "rift_stones"))
 	DataValidatorMaps.validate_card_set(v, _files(raw, "items"))
 	DataValidatorLootTables.validate(v, _files(raw, "loot_tables"), [[_files(raw, "areas"), "areas", "area"],
 			[_files(raw, "monsters"), "monsters", "monster"], [_files(raw, "rift_stones"), "rift_stones", "rift stone"],

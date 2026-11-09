@@ -67,6 +67,7 @@ static func _item(v: DataValidatorRules, e: Dictionary, file_category: String) -
 		v.fail("category '%s' does not match its file (expected '%s')" % [category, file_category])
 	if _sub_object(v, e, "equip", category in EQUIP_CATEGORIES):
 		_equip(v, e["equip"] as Dictionary, category)
+		DataValidatorLegendary.validate_equip(v, e, e["equip"] as Dictionary, category, str((e["equip"] as Dictionary).get("slot")))
 	if _sub_object(v, e, "food", category == "food"):
 		v.keys(e["food"] as Dictionary, ["heal"], "food")
 		v.integer(e["food"] as Dictionary, "heal", 1, DataValidatorRules.NO_LIMIT, "food")
@@ -112,7 +113,7 @@ static func _sub_object(v: DataValidatorRules, e: Dictionary, key: String, wante
 
 
 static func _equip(v: DataValidatorRules, equip: Dictionary, category: String) -> void:
-	v.keys(equip, ["slot", "requirements", "modifiers", "grade", "kind", "weapon", "unique", "upgrade_extras", "material"], "equip")
+	v.keys(equip, ["slot", "requirements", "modifiers", "grade", "kind", "weapon", "unique", "upgrade_extras", "material", "masterwork", "legendary"], "equip")
 	DataValidatorM10.tool_fields(v, equip, category)
 	var slot: String = ""
 	if v.one_of(equip, "slot", EQUIP_SLOTS, "equip"):

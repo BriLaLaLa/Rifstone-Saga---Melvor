@@ -15,10 +15,14 @@ const REQUIRED_KEYS: PackedStringArray = [
 	"equipment.grade_levels", "equipment.grade_material", "equipment.slot_weights", "equipment.set_budget",
 	"combat.armor.k", "combat.armor.level_offset", "combat.armor.cap_pct", "combat.armor.materials",
 	"combat.unarmed.dmg_min", "combat.unarmed.dmg_max",
+	"rarity.masterwork.base_mult", "rarity.masterwork.affix_count", "rarity.legendary.base_mult", "blueprint.cost_mult",
+	"blueprint.extra_rare",
 ]
-const SECTIONS: PackedStringArray = ["equipment", "combat.armor"]
+const SECTIONS: PackedStringArray = ["equipment", "combat.armor", "rarity.masterwork", "rarity.legendary"]
 const WEIGHT_SUM_TOLERANCE: float = 1e-6
 const CAP_PCT_MAX: float = 95.0  # format limit of combat.armor.cap_pct (F-117)
+const MULT_MAX: float = 10.0  # format limit of rarity.*.base_mult
+const RARE_COMPONENTS_MAX: int = 4  # format limit of blueprint.extra_rare
 
 
 ## True for the sections and the keys of M14 (so that DataValidator does not report them as unknown).
@@ -37,6 +41,7 @@ static func validate_balance(v: DataValidatorRules, balance: Dictionary) -> void
 		var e: Dictionary = equipment as Dictionary
 		_int_list(v, e.get("grade_levels"), "equipment.grade_levels", 1, int(v.max_character_level), true)
 		_int_list(v, e.get("grade_material"), "equipment.grade_material", 1, MATERIAL_GRADE_MAX, false)
+		v.grade_material = _ints(e.get("grade_material"))
 		_slot_weights(v, e.get("slot_weights"))
 		_set_budget(v, e.get("set_budget"))
 	var armor: Variant = DataValidator.lookup(balance, "combat.armor")
@@ -45,6 +50,7 @@ static func validate_balance(v: DataValidatorRules, balance: Dictionary) -> void
 	var unarmed: Variant = DataValidator.lookup(balance, "combat.unarmed")
 	if unarmed is Dictionary:
 		_dmg_pair(v, unarmed as Dictionary, "combat.unarmed", true)
+	_rarity_and_blueprint(v, balance)
 
 
 # GRADE_COUNT integers in [low, high], strictly increasing (levels) or non-decreasing (material grades).
@@ -140,3 +146,36 @@ static func validate_material(v: DataValidatorRules, equip: Dictionary, slot: St
 		v.one_of(equip, "material", MATERIALS, "equip")
 	elif equip.has("material"):
 		v.fail("field 'equip.material' is allowed only for armour slots and shields")
+
+
+# `rarity.masterwork`, `rarity.legendary`, `blueprint.cost_mult` and `blueprint.extra_rare` (F-119, F-120).
+static func _rarity_and_blueprint(v: DataValidatorRules, balance: Dictionary) -> void:
+	var masterwork: Variant = DataValidator.lookup(balance, "rarity.masterwork")
+	if masterwork is Dictionary:
+		var m: Dictionary = masterwork as Dictionary
+		v.keys(m, ["base_mult", "affix_count"], "rarity.masterwork")
+		if m.has("base_mult"):
+			v.number(m, "base_mult", 1.0, MULT_MAX, "rarity.masterwork")
+		if m.get("affix_count") is Array:
+			v.int_pair(m, "affix_count", 1, DataValidator.AFFIX_COUNT_MAX, true, "rarity.masterwork")
+	var legendary: Variant = DataValidator.lookup(balance, "rarity.legendary")
+	if legendary is Dictionary:
+		v.keys(legendary as Dictionary, ["base_mult"], "rarity.legendary")
+		if (legendary as Dictionary).has("base_mult"):
+			v.number(legendary as Dictionary, "base_mult", 1.0, MULT_MAX, "rarity.legendary")
+	var blueprint: Variant = DataValidator.lookup(balance, "blueprint")
+	if blueprint is Dictionary:
+		if (blueprint as Dictionary).has("cost_mult"):
+			v.integer(blueprint as Dictionary, "cost_mult", 1.0, DataValidatorRules.NO_LIMIT, "blueprint")
+		if DataValidatorRules.is_int((blueprint as Dictionary).get("extra_rare")):
+			v.integer(blueprint as Dictionary, "extra_rare", 1.0, float(RARE_COMPONENTS_MAX), "blueprint")
+			v.extra_rare = int((blueprint as Dictionary)["extra_rare"])
+
+
+static func _ints(value: Variant) -> Array[int]:
+	var result: Array[int] = []
+	if value is Array:
+		for entry: Variant in value as Array:
+			if DataValidatorRules.is_int(entry):
+				result.append(int(entry))
+	return result

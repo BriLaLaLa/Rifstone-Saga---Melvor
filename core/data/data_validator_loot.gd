@@ -5,7 +5,7 @@ extends RefCounted
 ## reported by the required-key checks of DataValidator, so these rules skip what is not the right type.
 
 const LEVEL_FIELDS: PackedStringArray = ["success_pct", "gold_per_grade", "ingots", "shards"]
-const RARITIES: PackedStringArray = ["common", "magic", "rare"]
+const RARITIES: PackedStringArray = ["common", "magic", "rare", "masterwork", "legendary"]  # M14: five rarities
 # Format limits (not design values).
 const UPGRADE_LEVELS_MAX: int = 9  # Q28: raffinazione fino a +9
 const GRADE_COUNT: int = 8  # one ingot item per grade 1..8 (DataValidatorItems.GRADE_MAX)

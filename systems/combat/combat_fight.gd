@@ -21,6 +21,7 @@ var _encounter: Encounter = Encounter.new()
 var _player_hp: int = 0
 var _player_timer_ms: int = 0
 var _hand: int = 0
+var _struck_hand: int = 0  # the hand of the last base attack (F-120 double_hit_pct)
 var _between_ms: int = 0
 var _fx: EffectSet
 var _abilities: AbilityRunner
@@ -141,6 +142,7 @@ func _resolve_instant() -> void:
 	if in_encounter() and _frac.active() and _frac.next_pulse_ms() <= 0:  # F-111 `pulse`, after the enemies
 		var pulse: Dictionary = _frac.pulse_attack(player_stats())
 		_session.events.combat_hit.emit(FractureCombat.PULSE_SOURCE, PLAYER, true, pulse["damage"], pulse["blocked"])
+		_on_block(pulse)
 		_hurt_player(FractureCombat.PULSE_SOURCE, pulse["damage"])
 
 
@@ -164,20 +166,28 @@ func _player_attack() -> void:
 	if first < 0:
 		return
 	var ctx: EffectContext = _ctx()
+	ctx.base_attack = true
 	_fx.before_attack(ctx)
 	var targets: Array[int] = [first]
 	if ctx.attack_all:
 		targets = _encounter.alive_indices()
 	var attacks: Array[Dictionary] = []
 	for index: int in targets:
-		attacks.append(Encounter.roll_attack(player_stats(_hand), _encounter.enemies[index].stats, 0.0, _session.rng,
-			_session.data, ctx.damage_mult))
+		attacks.append(_base_roll(index, ctx))
 	var setup: SetupDef = _session.equipment.setup_def()
 	var dual: bool = setup != null and setup.alternate and _session.equipment.offhand_weapon() != null
+	_struck_hand = _hand
 	_hand = 1 if _hand == 0 and dual else 0
 	_player_timer_ms = player_stats(_hand).attack_interval_ms
-	_apply_hits(targets, attacks)
+	_apply_hits(targets, attacks, ctx)
 
+
+# One roll of the base attack against the enemy at `index` with the hand that strikes: the multipliers of the effects
+# (F-81 low hp, F-120 execute) and the pierce (F-120 armor_pierce_pct).
+func _base_roll(index: int, ctx: EffectContext) -> Dictionary:
+	var enemy: Encounter.Enemy = _encounter.enemies[index]
+	var mult: float = ctx.damage_mult * _fx.damage_mult_against(ctx, enemy.hp, enemy.stats.max_hp)
+	return Encounter.roll_attack(player_stats(_hand), enemy.stats, 0.0, _session.rng, _session.data, mult, ctx.dr_mult)
 
 # F-76/F-79: after the base attack, the abilities that are due, in slot order (each hits, heals or starts a buff).
 func _use_abilities() -> void:
@@ -190,8 +200,9 @@ func _use_abilities() -> void:
 		_set_hp(mini(player_stats().max_hp, _player_hp + use.heal))
 
 
-# The outcomes of the player's rolls, in target order: hit event, hp, leech, kill.
-func _apply_hits(targets: Array[int], attacks: Array[Dictionary]) -> void:
+# The outcomes of the player's rolls, in target order: hit event, hp, leech, kill. `base` is the context of the base attack
+# (null for an ability or an extra hit): only then F-120 double_hit_pct may add a second hit on the same target.
+func _apply_hits(targets: Array[int], attacks: Array[Dictionary], base: EffectContext = null) -> void:
 	for k: int in targets.size():
 		if not in_encounter():
 			return
@@ -200,14 +211,27 @@ func _apply_hits(targets: Array[int], attacks: Array[Dictionary]) -> void:
 		if damage > 0:
 			_hurt_enemy(targets[k], damage)
 			var ctx: EffectContext = _ctx()  # leech (F-81) and the like
+			ctx.base_attack = base != null
 			_fx.hit(ctx, damage)
 			_set_hp(mini(ctx.player_max_hp, _player_hp + ctx.heal))
+			if ctx.extra_hit and in_encounter() and _encounter.enemies[targets[k]].alive():
+				_extra_hit(targets[k], base)
+
+
+# F-120 double_hit_pct: a second base hit on the same target with the hand that struck (its rolls: F-23, F-22).
+func _extra_hit(index: int, base: EffectContext) -> void:
+	var hand: int = _hand
+	_hand = _struck_hand
+	var attack: Dictionary = _base_roll(index, base)
+	_hand = hand
+	_apply_hits([index], [attack])
 
 
 func _enemy_attack(index: int, enemy: Encounter.Enemy) -> void:
 	enemy.timer_ms = enemy.stats.attack_interval_ms
 	var attack: Dictionary = Encounter.roll_enemy_attack(enemy, player_stats(), _session.rng, _session.data)
 	_session.events.combat_hit.emit(index, PLAYER, attack["hit"], attack["damage"], attack["blocked"])
+	_on_block(attack)
 	_hurt_player(index, attack["damage"])
 
 
@@ -217,17 +241,26 @@ func _boss_ability(index: int, enemy: Encounter.Enemy) -> void:
 	var attack: Dictionary = _frac.use_ability(enemy, _encounter, player_stats(), summoned)
 	if not attack.is_empty():
 		_session.events.combat_hit.emit(index, PLAYER, attack["hit"], attack["damage"], attack["blocked"])
+		_on_block(attack)
 		_hurt_player(index, attack["damage"])
 	for position: int in summoned:
 		var fresh: Encounter.Enemy = _encounter.enemies[position]
 		_session.events.monster_hp_changed.emit(position, fresh.hp, fresh.stats.max_hp)
 
 
+# F-120 block_heal_pct: the attack was blocked (F-75).
+func _on_block(attack: Dictionary) -> void:
+	if attack["blocked"]:
+		var ctx: EffectContext = _ctx()
+		_fx.block(ctx)
+		_set_hp(mini(ctx.player_max_hp, _player_hp + ctx.heal))
+
 # The player takes `damage` from the enemy at `source` (or from the pulse of a Fracture): death, reflect, auto-eat.
 func _hurt_player(source: int, damage: int) -> void:
 	if damage <= 0:
 		return
 	var me: CombatantStats = player_stats()
+	damage = _fx.damage_taken(_ctx(), damage)  # F-120 hit_cap_pct
 	_set_hp(maxi(0, _player_hp - damage))
 	if _player_hp <= 0:  # death: only the loot bag is lost (inside a Fracture, the bag of the Fracture instead)
 		if not _frac.active():
@@ -263,10 +296,17 @@ func _hurt_enemy(index: int, damage: int) -> void:
 # In a Fracture the rewards go to its bag (F-111, F-113), a summoned enemy gives none, and no stone is rolled (F-50).
 func _kill(index: int, enemy: Encounter.Enemy) -> void:
 	var counts: bool = not enemy.is_stone()  # a stone, a boss and a summoned enemy are not kills of a monster of the data
+	var kill_ctx: EffectContext = _ctx()  # F-81 on_kill_timer_cut, F-120 kill_heal_pct and card_drop_mult come first
+	_fx.kill(kill_ctx)
+	_player_timer_ms = kill_ctx.player_timer_ms
+	_set_hp(mini(kill_ctx.player_max_hp, _player_hp + kill_ctx.heal))
+	loot.card_mult = kill_ctx.card_mult
 	if enemy.is_stone():
-		_stone.reward(loot, _area_id)
+		var monolith: EffectContext = _ctx()  # F-120 monolith_loot_mult
+		_fx.monolith(monolith)
+		_stone.reward(loot, _area_id, monolith.loot_mult)
 	elif _frac.active():
-		counts = _frac.reward(enemy)
+		counts = _frac.reward(enemy, kill_ctx.card_mult)
 	else:
 		KillRewards.grant(_session, loot, enemy.def, _area_id)
 	if counts:
@@ -274,9 +314,6 @@ func _kill(index: int, enemy: Encounter.Enemy) -> void:
 	if counts and not _frac.active():
 		_stone.on_kill(_area_id)
 	_session.events.monster_killed.emit(index, enemy.def.id)
-	var ctx: EffectContext = _ctx()
-	_fx.kill(ctx)
-	_player_timer_ms = ctx.player_timer_ms
 	var verdict: StringName = _frac.after_kill(enemy, _encounter)
 	if verdict == FractureCombat.VERDICT_WON:
 		_end_fracture(&"won", Reasons.FRACTURE_WON, true)
@@ -293,6 +330,7 @@ func _ctx() -> EffectContext:
 	ctx.player_hp = _player_hp
 	ctx.player_max_hp = player_stats().max_hp
 	ctx.player_timer_ms = _player_timer_ms
+	ctx.rng = _session.rng
 	return ctx
 
 

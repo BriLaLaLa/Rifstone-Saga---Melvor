@@ -26,6 +26,23 @@
      "icon": "res://assets/icons/items/test_helm_high.png", "value": 40, "sort_order": 140,
      "description": "Richiede il livello 10 del personaggio.",
      "equip": {"slot": "head", "grade": 2, "material": "plate", "requirements": {"character": 10},
-               "modifiers": [{"stat": "armor", "value": 4}]}}
+               "modifiers": [{"stat": "armor", "value": 4}]}},
+    {"id": "test_blade_5", "name": "Spada di prova 5", "category": "equipment",
+     "icon": "res://assets/icons/items/test_blade.png", "value": 40, "sort_order": 150,
+     "description": "Spada del grado 5 (livello 20) per i test dei progetti.",
+     "equip": {"slot": "weapon", "kind": "sword", "grade": 5, "requirements": {"character": 20},
+               "modifiers": [{"stat": "accuracy_bonus", "value": 12}],
+               "weapon": {"dmg_min": 9, "dmg_max": 15, "style": "blade", "attack_interval_ms": 2400, "two_handed": false}}},
+    {"id": "mw_test_sword_8", "name": "Spada capolavoro di prova", "category": "equipment",
+     "icon": "res://assets/icons/items/test_blade.png", "value": 0, "sort_order": 800,
+     "description": "Capolavoro del grado 8 (livello 35): danno 20-34 prima del moltiplicatore.",
+     "equip": {"slot": "weapon", "kind": "sword", "grade": 8, "masterwork": true, "requirements": {"character": 35},
+               "modifiers": [{"stat": "accuracy_bonus", "value": 20}],
+               "weapon": {"dmg_min": 20, "dmg_max": 34, "style": "blade", "attack_interval_ms": 2000, "two_handed": false}}},
+    {"id": "mw_test_chest_11", "name": "Corpo capolavoro di prova", "category": "equipment",
+     "icon": "res://assets/icons/items/test_helm.png", "value": 0, "sort_order": 810,
+     "description": "Capolavoro Piastre del grado 11 (livello 50): Armatura 121 prima del moltiplicatore.",
+     "equip": {"slot": "body", "grade": 11, "material": "plate", "masterwork": true, "requirements": {"character": 50},
+               "modifiers": [{"stat": "armor", "value": 121}, {"stat": "evasion_bonus", "value": 5}]}}
   ]
 }

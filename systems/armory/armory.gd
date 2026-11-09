@@ -40,7 +40,7 @@ func _init(session: GameSession) -> void:
 	_skills = session.skills
 	_deposit = session.deposit
 	_deposit.register_occupant(OCCUPANT_ID, used)
-	_filter = ArmoryFilter.new((_data.balance_value(Upgrade.INGOT_ITEMS_KEY) as Array).size())
+	_filter = ArmoryFilter.new((_data.balance_value("equipment.grade_levels") as Array).size())  # M14: 15 piece grades
 
 
 ## Pieces that are not worn.
@@ -197,7 +197,7 @@ func use_currency(uid: int, currency_id: StringName) -> CommandResult:
 func upgrade(uid: int, use_seal: bool = false) -> CommandResult:
 	if not _items.has(uid):
 		return CommandResult.fail(Reasons.UNKNOWN_ID)
-	if _is_unique(uid):
+	if _is_unique(uid) or _is_legendary_tool(uid):  # F-120: a legendary tool has no refinement
 		return CommandResult.fail(Reasons.NOT_EQUIPPABLE)
 	var inst: ItemInstance = _items[uid]
 	var checked: CommandResult = Upgrade.check(inst, use_seal, _wallet, _bank, _data)
@@ -221,6 +221,8 @@ func upgrade(uid: int, use_seal: bool = false) -> CommandResult:
 func upgrade_tool(uid: int) -> CommandResult:
 	if not _items.has(uid):
 		return CommandResult.fail(Reasons.UNKNOWN_ID)
+	if _is_legendary_tool(uid):
+		return CommandResult.fail(Reasons.NOT_EQUIPPABLE)
 	var checked: CommandResult = ToolUpgrade.check(_items[uid], _skills, _wallet, _bank, _data)
 	if checked.ok:
 		ToolUpgrade.apply(_items[uid], _wallet, _bank, _data)
@@ -273,6 +275,8 @@ func add_drop(inst: ItemInstance) -> int:
 	if inst == null or not _is_piece_base(inst.base_id):
 		return 0
 	var equip: EquipInfo = _data.item(inst.base_id).equip
+	if inst.rarity == Rarities.LEGENDARY:  # F-120: never filtered; with the Deposit full it is lost (armory_rejected)
+		return add(inst)
 	if not _filter.rejects(equip.slot, inst.rarity, equip.grade) and can_add(1):
 		return add(inst)
 	var uid: int = _next_uid
@@ -318,6 +322,11 @@ func new_game() -> void:
 func _is_unique(uid: int) -> bool:
 	var def: ItemDef = _data.item(_items[uid].base_id) if _data.has_item(_items[uid].base_id) else null
 	return def != null and def.equip != null and def.equip.unique
+
+
+func _is_legendary_tool(uid: int) -> bool:
+	var def: ItemDef = _data.item(_items[uid].base_id) if _items.has(uid) and _data.has_item(_items[uid].base_id) else null
+	return def != null and def.equip != null and def.equip.is_legendary_tool()
 
 
 func to_save() -> Dictionary:

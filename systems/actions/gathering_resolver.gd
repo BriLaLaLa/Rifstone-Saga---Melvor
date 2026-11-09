@@ -7,7 +7,9 @@ extends RefCounted
 ## 3. everything goes to the bank; when the new items do not all find a slot the cycle does not count:
 ##    nothing is added, no xp, no mastery, outcome `bank_full`;
 ## 4. skill xp (F-02) and mastery (F-10, F-12) through their systems.
-## Every roll goes through `session.rng`, always in this order (double, shard, byproduct), so runs are reproducible.
+## 5. (M14, F-120) the `on_gather` effects of the legendary tool, only for the player: their rolls come first (grade up, bonus item),
+##    then the order above; the bonus item is added to the product (never doubled). Without such a tool nothing is drawn.
+## Every roll goes through `session.rng`, always in this order (effects, double, shard, byproduct), so runs are reproducible.
 
 const DOUBLE_STAT: StringName = &"double_item_chance"
 const SHARD_STAT: StringName = &"rift_shard_chance"
@@ -17,6 +19,7 @@ const HELPER_MASTERY_KEY: String = "helper.mastery_pct"
 const SHARD_ITEM: StringName = &"rift_shard"
 const SHARD_QTY: int = 1
 const BYPRODUCT_QTY: int = 1  # F-103: never doubled
+const BONUS_QTY: int = 1  # F-120 gather_bonus_item: never doubled
 ## F-06: a successful double roll multiplies every product by this factor.
 const DOUBLE_FACTOR: int = 2
 
@@ -29,16 +32,21 @@ static func resolve(session: GameSession, action: ActionDef, helper_grade: Strin
 	var ctx: ModifierContext = ModifierContext.for_action(action.skill_id, action.id)
 	if is_helper:
 		ctx = ModifierContext.for_helper(action.skill_id, action.id)
+	var gather: GatherContext = null if is_helper else GatherEffects.roll(session, action)  # F-120
+	var worked: ActionDef = gather.upgraded_action if gather != null and gather.grade_up else action
 	var factor: int = DOUBLE_FACTOR if session.rng.roll_pct(session.modifiers.total(DOUBLE_STAT, ctx)) else 1
 	var produced: Dictionary[StringName, int] = {}
-	for output: ItemQty in action.outputs:
+	for output: ItemQty in worked.outputs:  # the grade-up gives the product of the next resource, xp stays
 		produced[output.item_id] = produced.get(output.item_id, 0) + output.qty * factor
 	outcome.shard = session.rng.roll_pct(_shard_chance(session, ctx))
 	if outcome.shard:
 		produced[SHARD_ITEM] = produced.get(SHARD_ITEM, 0) + SHARD_QTY
-	var byproduct: StringName = _byproduct(session, action)
+	var byproduct: StringName = _byproduct(session, action, gather.byproduct_mult if gather != null else 1.0)
 	if byproduct != &"":
 		produced[byproduct] = produced.get(byproduct, 0) + BYPRODUCT_QTY
+	if gather != null:
+		for bonus: StringName in gather.bonus_items:
+			produced[bonus] = produced.get(bonus, 0) + BONUS_QTY
 	if not _fits(session.bank, produced):
 		outcome.reason = Reasons.BANK_FULL
 		return outcome
@@ -56,12 +64,12 @@ static func resolve(session: GameSession, action: ActionDef, helper_grade: Strin
 
 # F-103: the byproduct of the 25 milestone (third roll, after double and shard) when the action reached it; else "".
 # The roll happens only if the milestone is active, with `mastery.milestones.byproduct_chance_pct`.
-static func _byproduct(session: GameSession, action: ActionDef) -> StringName:
+static func _byproduct(session: GameSession, action: ActionDef, chance_mult: float = 1.0) -> StringName:
 	var milestone: MilestoneDef = action.milestone_of(MilestoneDef.TYPE_BYPRODUCT)
 	var at: int = int(session.data.balance_value(MasteryMilestones.BYPRODUCT_AT_KEY))
 	if milestone == null or not session.mastery.milestone_active(action.id, at):
 		return &""
-	var chance: float = float(session.data.balance_value(MasteryMilestones.BYPRODUCT_CHANCE_KEY))
+	var chance: float = minf(100.0, float(session.data.balance_value(MasteryMilestones.BYPRODUCT_CHANCE_KEY)) * chance_mult)  # F-120 byproduct_mult
 	return milestone.item if session.rng.roll_pct(chance) else &""
 
 
