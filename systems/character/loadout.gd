@@ -102,10 +102,16 @@ func active_traits() -> Array[TraitDef]:
 ## The equipped abilities the current setup allows, in slot order.
 func active_abilities() -> Array[AbilityDef]:
 	var result: Array[AbilityDef] = []
-	var setup_id: StringName = _session.equipment.setup()
+	var setup_id: StringName = &""
+	var setup_known: bool = false  # the setup is computed only for the first equipped ability (hot path of the combat loop)
 	for slot_index: int in mini(ability_slots(), _abilities.size()):
 		var def: AbilityDef = _ability_def(_abilities[slot_index])
-		if def != null and def.allows_setup(setup_id):
+		if def == null:
+			continue
+		if not setup_known:
+			setup_id = _session.equipment.setup()
+			setup_known = true
+		if def.allows_setup(setup_id):
 			result.append(def)
 	return result
 
@@ -211,6 +217,8 @@ func _trait_def(id: StringName) -> TraitDef:
 
 
 func _ability_def(id: StringName) -> AbilityDef:
+	if id == &"":
+		return null  # empty slot: nothing to search (hot path of the combat loop)
 	var class_def: ClassDef = _session.character.class_def()
 	if class_def != null:
 		for def: AbilityDef in class_def.abilities:

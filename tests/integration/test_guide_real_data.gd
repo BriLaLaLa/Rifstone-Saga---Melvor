@@ -120,8 +120,11 @@ func test_flow_open_search_follow_link_and_go_back() -> void:
 	var guide: GuidePage = host.find_child("Page", false, false) as GuidePage
 	assert_not_null(guide)
 	var item: ItemDef = _data.items()[0]
+	assert_eq(guide.search(item.name).has(GuideIndex.entry(&"item", item.id)), _session.discoveries.has(item.id),
+			"search never reveals an undiscovered item (GDD 27.1)")
+	_session.discoveries.note(item.id)
 	var found: Array[StringName] = guide.search(item.name)
-	assert_true(found.has(GuideIndex.entry(&"item", item.id)), "search finds an item by its name")
+	assert_true(found.has(GuideIndex.entry(&"item", item.id)), "search finds a discovered item by its name")
 	var start: StringName = guide.current_entry()
 	guide.open_entry(found[0])
 	assert_eq(guide.current_entry(), found[0])
