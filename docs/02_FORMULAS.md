@@ -758,7 +758,7 @@ dell'Incisore): per questo l'Incisore sale di livello consumando drop; la Lastra
 da tarare in M12-07. Le valute di sola uscita (`currency_*`) restano nei dati con l'effetto di prima (nomi nuovi, `NOMI.md`).
 
 **Rune** (grado I; i modificatori sono quelli di prima, F-107 li scala):
-| Livello | Runa (id) | Drop tematico (×3) | Modificatori (global) | XP | Intervallo |
+| Livello | Runa (id) | Drop tematico (quantità per runa in `riftbinding.json`, ritarata il 2026-11-09) | Modificatori (global) | XP | Intervallo |
 |---|---|---|---|---|---|
 | 1 | `inf_swift_hands` | Zanna di cinghiale (Pianure) | `skill_interval_pct −3` | 40 | 4000 |
 | 15 | `inf_bountiful` | Pelliccia di ratto (Pianure) | `double_item_chance +2` | 70 | 4000 |

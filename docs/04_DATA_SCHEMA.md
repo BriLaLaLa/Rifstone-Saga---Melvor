@@ -345,7 +345,7 @@ alberi di raccolta in cui meno di 3 nodi su 6 differiscono per l'insieme `(stat,
    "attack_level": 1, "power_level": 1, "defence_level": 1,
    "accuracy_bonus": 0, "power_bonus": 0, "evasion_bonus": 0, "damage_reduction": 0,
    "gold": [1, 4], "rift_shard_chance": 0.5, "xp": 80,
-   "drops": [{"item": "boar_tusk", "chance_pct": 25, "qty": [1, 1]}]}
+   "drops": [{"item": "boar_tusk", "chance_pct": 15, "qty": [1, 1]}]}
 ]}
 ```
 | Campo | Tipo | Vincoli |

@@ -24,7 +24,7 @@ Se la sessione si interrompe, si riparte da qui.
 - **Documenti allineati al codice (M12-09)**: `05_INTERFACES.md` (`Deposit.free_slots()` al posto di `free()` che collideva con `Object.free()`, `sync_known`, `Bank.free_boxes`, `MasteryMath.helper_share`, `KillRewards.grant(…, area_id)`,
   helper interni `HelperIndex`/`LootIndex`/`DataBuildUtil`/`MasteryMilestones`, `HelperGradeNames`; Reasons = 50), `04_DATA_SCHEMA.md` (`loot_tables.json` obbligatorio, gate dei traguardi tolto, `deposito.json`, eccezioni della Guida),
   `06_ROADMAP.md` (misure di M12-07), `OPEN_QUESTIONS.md` (Q56 accettata, Q49 confermata, misure su Q58-Q61, **Q62 nuova**).
-- **Aperti**: layout 1600x900 e 1280x720 non visto a schermo; **Q62** (Runa di grado V troppo costosa, default "lasciare", da tarare); worktree `wt-M12-*` e `.claude/worktrees/agent-*` da potare a mano
+- **Aperti**: layout 1600x900 e 1280x720 non visto a schermo; Q62 chiusa (rune ritarate, III 5-10 h, V 50-100 h); worktree `wt-M12-*` e `.claude/worktrees/agent-*` da potare a mano
   (poi `git worktree prune` e cancellare i branch `task/*` mergiati); `tests/fixtures/data/m10` non è validabile da sola (28 errori, snapshot vecchio, non usata da `run_checks.ps1`);
   `tests/data/test_stat_registry_coverage.gd` `CLOSED_FORMULAS` elenca ancora F-16 e F-82, eliminate.
 - **Valori da tarare dopo la prova** (misure in `06_ROADMAP.md` M12): ingredienti delle borse di tela e rinforzata, oro dei sottoprodotti, contratto Maestro `chance_pct` 0,01 (~1 ogni 50 h), `deposit.base_slots` 60 (pieno dopo 8-10 h senza vendere).

@@ -156,7 +156,7 @@ mestieri; l'Incisore sale di livello solo consumando drop (più la Lastra runica
 **Misure di M12-07** (`tools/sim_m12.gd`, 8 h simulate, 3 semi; valori di partenza da tarare dopo la prova, domande Q56, Q58-Q62 in `OPEN_QUESTIONS.md`):
 - Aiutanti: tre aiutanti Maestro insieme guadagnano **0,448** dell'XP/h del giocatore (invariante di F-102 ≤ 1 rispettata).
 - Incisore: Polvere ~38-79/h; Schegge 2,6-4,1/h per famiglia; Pietre 0,16-0,25/h. Primo Cristallo del risveglio dopo 0,2-0,4 h, del mutamento 0,5-1,0 h, dell'ascesa 0,8-1,7 h; prima Pietra perfetta dopo 1,9-2,9 h.
-- Rune: la Runa di grado V richiede 81 rune di grado I; farmarla costa 7,7-37 h, la Runa del baluardo V circa 93 h (Q62, default: lasciare, da tarare).
+- Rune: la Runa di grado V richiede 81 rune di grado I; dopo la taratura del 2026-11-09 (Q62 chiusa) il grado III costa 6,8-8,4 h e il grado V 61-76 h di farming nell area giusta, per tutte le famiglie.
 - Borsa del bottino: perdita ~0/h con svuotamento ogni 10 min, fino a 1-2,6/h con svuotamento ogni 4 h (Q56 accettata). Progetti dai mostri 0,9-1,0/h (Q49 confermata).
 - Deposito: la base di 60 caselle si riempie dopo 8-10 h senza vendere.
 - Dati: contratto Maestro `chance_pct` 0,01 invece di 0,005 (minimo del validatore), circa 1 ogni 50 h; i Cristalli diretti non cadono nelle Miniere; ingredienti delle borse di tela e rinforzata e valori in oro dei
