@@ -10,7 +10,7 @@ const TYPES: Array[StringName] = [&"gather_bonus_item", &"gather_grade_up_pct", 
 static func roll(session: GameSession, action: ActionDef) -> GatherContext:
 	var effects: Array[TraitEffect] = []
 	for def: ItemEffectDef in session.equipment.item_effects():
-		if TYPES.has(def.type):
+		if TYPES.has(def.type) and skill_of(def) == action.skill_id:  # the tool of the skill that is being worked
 			effects.append(EffectSet.create_typed(def.source, def.type, def.params))
 	if effects.is_empty():
 		return null
@@ -21,6 +21,11 @@ static func roll(session: GameSession, action: ActionDef) -> GatherContext:
 	for effect: TraitEffect in effects:
 		effect.on_gather(ctx)
 	return ctx
+
+
+## The skill of the tool slot an effect comes from (`equipment:tool_forestry` -> `forestry`).
+static func skill_of(def: ItemEffectDef) -> StringName:
+	return StringName(String(def.source).trim_prefix(Equipment.SOURCE_PREFIX + "tool_"))
 
 
 ## The action of the next resource of the skill of `action` (the first with a higher level); null for the last one.

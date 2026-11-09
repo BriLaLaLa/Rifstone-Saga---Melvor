@@ -1,0 +1,14 @@
+{
+  "_doc": "M14 test content: the three gathering skills whose tool slots hold the legendary tools. Appended to skills/skills.json.",
+  "skills": [
+    {"id": "forestry", "name": "Selvicoltura di prova", "category": "gathering", "order": 10,
+     "icon": "res://assets/icons/skills/test_gather.png", "color": "#7fbf6a",
+     "description": "Skill di raccolta per i test dei leggendari.", "has_mastery": true},
+    {"id": "quarrying", "name": "Estrazione di prova", "category": "gathering", "order": 11,
+     "icon": "res://assets/icons/skills/test_gather.png", "color": "#8f8f8f",
+     "description": "Skill di raccolta per i test dei leggendari.", "has_mastery": true},
+    {"id": "angling", "name": "Pesca di prova", "category": "gathering", "order": 12,
+     "icon": "res://assets/icons/skills/test_gather_b.png", "color": "#5f9fdf",
+     "description": "Skill di raccolta per i test dei leggendari.", "has_mastery": true}
+  ]
+}

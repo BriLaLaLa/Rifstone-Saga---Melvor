@@ -309,3 +309,89 @@ func _watch() -> void:
 	ev.xp_gained.connect(func(s: StringName, n: int) -> void: _log.append("xp %s %d" % [s, n]))
 	ev.blueprint_crafted.connect(func(b: StringName, u: int) -> void: _log.append("crafted %s %d" % [b, u]))
 	ev.notification_requested.connect(func(_t: String, k: StringName) -> void: _log.append("notify %s" % k))
+
+
+# --- M14: the blueprint of a Masterwork (F-119, F-90 with the grade of the material) ---------------------------------
+
+const MW_SWORD: StringName = &"bp_mw_test_sword_8"
+const MW_CHEST: StringName = &"bp_mw_test_chest_11"
+
+
+func _give_mw_sword_materials() -> void:
+	TestFactory.give(_session, &"test_plate_4", 12)
+	TestFactory.give(_session, &"test_handle_4", 3)
+	TestFactory.give(_session, &"test_log", 1)
+	TestFactory.give(_session, &"test_plank", 2)
+
+
+func test_masterwork_inputs_are_the_materials_and_the_two_rare_components() -> void:
+	var list: Array[ItemQty] = BlueprintCraft.inputs(_session.data.item(MW_SWORD))
+	var seen: Dictionary[StringName, int] = {}
+	for entry: ItemQty in list:
+		seen[entry.item_id] = entry.qty
+	assert_eq(seen, {&"test_plate_4": 12, &"test_handle_4": 3, &"test_log": 1, &"test_plank": 2} as Dictionary[StringName, int])
+	assert_eq(_session.data.item(MW_SWORD).blueprint.rare_components.size(), 2)
+
+
+func test_one_missing_rare_component_is_missing_inputs() -> void:
+	TestFactory.set_level(_session, FORGING, 30)
+	TestFactory.give(_session, MW_SWORD, 1)
+	TestFactory.give(_session, &"test_plate_4", 12)
+	TestFactory.give(_session, &"test_handle_4", 3)
+	TestFactory.give(_session, &"test_log", 1)  # the second rare component (2 planks) is missing
+	assert_eq(BlueprintCraft.can_start(_session, MW_SWORD).reason, Reasons.MISSING_INPUTS)
+	TestFactory.give(_session, &"test_plank", 1)
+	assert_eq(BlueprintCraft.can_start(_session, MW_SWORD).reason, Reasons.MISSING_INPUTS, "1 of the 2 planks")
+	TestFactory.give(_session, &"test_plank", 1)
+	assert_true(BlueprintCraft.can_start(_session, MW_SWORD).ok)
+
+
+func test_level_duration_and_xp_follow_the_grade_of_the_material() -> void:
+	var data: GameData = _session.data
+	var bp: ItemDef = data.item(MW_SWORD)  # piece grade 8, material grade 4
+	assert_eq(BlueprintCraft.required_level(bp, data), 30, "the Forging level of the material 4")
+	assert_eq(BlueprintCraft.duration_ms(bp, 0.0, data), 31 * MIN_MS, "F-90 grade 4: 31 min")
+	assert_eq(BlueprintCraft.xp(bp, data), 44640)
+	TestFactory.give(_session, MW_SWORD, 1)
+	_give_mw_sword_materials()
+	assert_eq(BlueprintCraft.can_start(_session, MW_SWORD).reason, Reasons.LEVEL_TOO_LOW)
+
+
+func test_the_craft_makes_a_masterwork_with_the_level_of_the_piece_grade() -> void:
+	TestFactory.set_level(_session, FORGING, 30)
+	TestFactory.give(_session, MW_SWORD, 1)
+	_give_mw_sword_materials()
+	assert_true(_session.actions.start_blueprint(MW_SWORD).ok)
+	for item_id: StringName in [&"test_plate_4", &"test_handle_4", &"test_log", &"test_plank", MW_SWORD]:
+		assert_eq(_session.bank.get_count(item_id), 0, "%s consumed" % item_id)
+	_session.actions.advance(31 * MIN_MS)
+	var added: Array[ItemInstance] = _new_pieces()
+	assert_eq(added.size(), 1)
+	assert_eq(added[0].base_id, &"mw_test_sword_8")
+	assert_eq(added[0].rarity, &"masterwork")
+	assert_eq(added[0].ilvl, 35, "the level of the grade 8 of the piece (equipment.grade_levels)")
+	assert_between(added[0].affixes.size(), 1, 2)
+	assert_eq(_session.armory.socket_count(added[0].uid), 2)
+
+
+func test_stop_gives_the_two_rare_components_back() -> void:
+	TestFactory.set_level(_session, FORGING, 30)
+	TestFactory.give(_session, MW_SWORD, 1)
+	_give_mw_sword_materials()
+	assert_true(_session.actions.start_blueprint(MW_SWORD).ok)
+	_session.actions.advance(MIN_MS)
+	_session.actions.stop()
+	assert_eq(_session.bank.get_count(&"test_log"), 1)
+	assert_eq(_session.bank.get_count(&"test_plank"), 2)
+	assert_eq(_session.bank.get_count(&"test_plate_4"), 12)
+	assert_eq(_new_pieces().size(), 0)
+
+
+func test_a_full_armory_waits_and_nothing_is_lost() -> void:
+	TestFactory.set_level(_session, FORGING, 30)
+	TestFactory.give(_session, MW_SWORD, 1)
+	_give_mw_sword_materials()
+	_fill_armory()
+	assert_eq(BlueprintCraft.can_start(_session, MW_SWORD).reason, Reasons.ARMORY_FULL)
+	assert_eq(_session.bank.get_count(MW_SWORD), 1, "nothing consumed by a refusal")
+	assert_eq(_session.bank.get_count(&"test_plank"), 2)

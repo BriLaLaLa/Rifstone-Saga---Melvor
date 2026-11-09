@@ -1,0 +1,19 @@
+{
+  "skill": "quarrying",
+  "actions": [
+    {"id": "quarrying_a", "name": "Prima risorsa di prova", "level": 1, "interval_ms": 3000, "xp": 10, "mastery": true,
+     "inputs": [], "outputs": [{"item": "test_twig", "qty": 1}],
+     "milestones": [
+       {"at": 25, "type": "byproduct", "item": "test_resin"},
+       {"at": 50, "type": "resource", "modifiers": [{"stat": "double_item_chance", "value": 8}]},
+       {"at": 99, "type": "trade", "modifiers": [{"stat": "double_item_chance", "value": 0.5}]}
+     ]},
+    {"id": "quarrying_b", "name": "Seconda risorsa di prova", "level": 10, "interval_ms": 3500, "xp": 20, "mastery": true,
+     "inputs": [], "outputs": [{"item": "test_log", "qty": 1}],
+     "milestones": [
+       {"at": 25, "type": "byproduct", "item": "test_sap"},
+       {"at": 50, "type": "resource", "modifiers": [{"stat": "double_item_chance", "value": 8}]},
+       {"at": 99, "type": "trade", "modifiers": [{"stat": "double_item_chance", "value": 0.5}]}
+     ]}
+  ]
+}

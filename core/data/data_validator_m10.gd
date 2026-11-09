@@ -217,7 +217,7 @@ static func shop_entry(v: DataValidatorRules, e: Dictionary) -> void:
 		v.fail("category 'tools' no longer exists (M10)")
 
 
-## A drop entry of a monster or a Rift Stone: a blueprint drops once (`qty` [1, 1]); tools do not drop.
+## A drop entry of a monster or a Rift Stone: a blueprint drops once (`qty` [1, 1]); tools, Masterworks and legendaries do not drop.
 static func drop(v: DataValidatorRules, drop_entry: Dictionary, prefix: String) -> void:
 	var item: Dictionary = v.items.get(StringName(str(drop_entry.get("item"))), {})
 	var category: String = str(item.get("category"))
@@ -229,6 +229,9 @@ static func drop(v: DataValidatorRules, drop_entry: Dictionary, prefix: String) 
 		v.fail("field '%s.item': '%s' is a tool, tools no longer drop (M10)" % [prefix, drop_entry["item"]])
 	if category == "map":
 		v.fail("field '%s.item': '%s' is a Card, Cards come only from loot tables and Fractures (M13)" % [prefix, drop_entry["item"]])
+	var equip: Variant = item.get("equip")
+	if equip is Dictionary and ((equip as Dictionary).get("masterwork") == true or (equip as Dictionary).has("legendary")):
+		v.fail("field '%s.item': '%s' is a Masterwork or a legendary, they never drop (F-84, M14)" % [prefix, drop_entry["item"]])
 
 
 static func is_true(d: Dictionary, key: String) -> bool:

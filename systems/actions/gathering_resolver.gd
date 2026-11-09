@@ -69,8 +69,13 @@ static func _byproduct(session: GameSession, action: ActionDef, chance_mult: flo
 	var at: int = int(session.data.balance_value(MasteryMilestones.BYPRODUCT_AT_KEY))
 	if milestone == null or not session.mastery.milestone_active(action.id, at):
 		return &""
-	var chance: float = minf(100.0, float(session.data.balance_value(MasteryMilestones.BYPRODUCT_CHANCE_KEY)) * chance_mult)  # F-120 byproduct_mult
+	var chance: float = byproduct_chance(session.data, chance_mult)
 	return milestone.item if session.rng.roll_pct(chance) else &""
+
+
+## F-103 chance in percent of the byproduct of the milestone 25 x `chance_mult` (F-120 `byproduct_mult`), at most 100.
+static func byproduct_chance(data: GameData, chance_mult: float = 1.0) -> float:
+	return minf(100.0, float(data.balance_value(MasteryMilestones.BYPRODUCT_CHANCE_KEY)) * chance_mult)
 
 
 # F-07 for gathering: base chance from balance.json plus the stat total, limited to 0..100 percent.

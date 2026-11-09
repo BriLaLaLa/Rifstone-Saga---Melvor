@@ -43,3 +43,25 @@ func test_engine_kill_cuts_the_base_timer() -> void:
 			break
 		EffectKit.cleanup()
 	assert_true(found, "some seed kills at the first attack")
+
+
+func test_a_hundred_percent_starts_the_next_attack_at_once() -> void:
+	var ctx := EffectContext.new()
+	ctx.player_timer_ms = 2000
+	OnKillTimerCut.new(&"equipment:hands", {"pct": 100.0}).on_kill(ctx)
+	assert_eq(ctx.player_timer_ms, 0, "F-120: timer 2000 -> 0")
+
+
+func test_engine_the_legendary_gloves_cut_the_timer_to_zero_on_a_kill() -> void:
+	for seed_value: int in range(1, 40):
+		_session = autofree(LegendaryKit.session(seed_value))
+		LegendaryKit.wear(_session, &"fx_leg_timer")
+		LegendaryKit.hero(_session)
+		var log := LegendaryKit.HitLog.new(_session.events)
+		_session.combat.from_save(EffectKit.fight([EffectKit.enemy("test_monster_a", 20, 999999),
+			EffectKit.enemy("test_monster_b", 60000, 999999)], 2400))
+		_session.combat.advance(2400)
+		if _session.combat.kills(&"test_monster_a") == 1:
+			assert_eq(log.player.size(), 2, "the kill and, at the same instant, the next attack (timer 2400 -> 0)")
+			return
+	fail_test("no seed kills at the first attack")

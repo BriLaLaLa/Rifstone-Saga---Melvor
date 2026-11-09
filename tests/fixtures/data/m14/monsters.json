@@ -1,0 +1,10 @@
+{
+  "_doc": "M14 test content: a monster that hits very hard (power_bonus 300) and never misses much, for hit_cap_pct. Merged into combat/monsters.json by tests/helpers/m14_data.gd.",
+  "monsters": [
+    {"id": "fx_brute", "name": "Bruto di prova", "icon": "res://assets/icons/monsters/plains_boar.svg",
+     "description": "Colpisce forte.", "hp": 100000, "xp": 1, "style": "blade", "attack_interval_ms": 1000,
+     "attack_level": 60, "power_level": 60, "defence_level": 1,
+     "accuracy_bonus": 5000, "power_bonus": 300, "evasion_bonus": 0, "damage_reduction": 0,
+     "gold": [0, 0], "rift_shard_chance": 0, "drops": []}
+  ]
+}
