@@ -87,6 +87,8 @@ const EXPECTED_BALANCE: Dictionary = {
 	"combat.min_attack_interval_ms": 800.0,
 	"combat.unarmed.style": "blade",
 	"combat.unarmed.attack_interval_ms": 2400.0,
+	"combat.unarmed.dmg_min": 0.0,
+	"combat.unarmed.dmg_max": 0.0,
 	"combat.dual_wield.interval_mult": 0.75,
 	"combat.max_pack_size": 6.0,
 	"combat.hp_base": 50.0,
@@ -159,7 +161,8 @@ const EXPECTED_STATS: Dictionary = {
 	"power_pct": [-90.0, 1000.0, "F-22"],
 	"evasion_bonus": [-1000.0, 100000.0, "F-21"],
 	"evasion_pct": [-90.0, 1000.0, "F-21"],
-	"damage_reduction": [0.0, 80.0, "F-25"],
+	"armor": [0.0, 100000.0, "F-117"],
+	"barrier": [0.0, 100000.0, "F-117"],
 	"attack_interval_pct": [-90.0, 200.0, "F-26"],
 	"max_hp_flat": [0.0, 100000.0, "F-27"],
 	"food_healing_pct": [0.0, 500.0, "F-29"],
@@ -216,7 +219,9 @@ func _flatten_without_loot(out: Dictionary) -> void:
 	_flatten(_load_dict(BALANCE_PATH), "", out)
 	for key: String in out.keys():
 		if key.begins_with("upgrade.") or key.begins_with("salvage.") or key.begins_with("tool_upgrade.") \
-				or key.begins_with("fracture."):  # fracture.* is covered by tests/core/data/test_map_data_validation.gd
+				or key.begins_with("fracture.") or key.begins_with("equipment.") or key.begins_with("combat.armor."):
+			# fracture.* is covered by tests/core/data/test_map_data_validation.gd, equipment.* and combat.armor.* (M14) by
+			# tests/systems/combat/test_armor_math.gd and tests/core/data/test_weapon_validation.gd
 			out.erase(key)
 
 
@@ -270,7 +275,7 @@ func test_balance_has_no_later_milestone_sections() -> void:
 
 func test_stats_has_exactly_24_stats() -> void:
 	var stats: Array = _stats()
-	assert_eq(stats.size(), 23, "stats.json lists the 25 stats of M1-M7 minus bank_slots and armory_slots (M12)")
+	assert_eq(stats.size(), 24, "stats.json lists the 25 stats of M1-M7 minus bank_slots and armory_slots (M12), plus barrier (M14)")
 	var ids: Array[String] = []
 	for entry: Variant in stats:
 		if entry is Dictionary:

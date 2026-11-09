@@ -90,7 +90,7 @@ func test_ability_kinds_set_only_their_fields() -> void:
 	assert_eq(heal.heal_pct, 20.0)
 	assert_eq(heal.power_mult, 0.0)
 	d["kind"] = "buff"
-	d["params"] = {"modifiers": [{"stat": "damage_reduction", "value": 5}], "duration_ms": 6000}
+	d["params"] = {"modifiers": [{"stat": "armor", "value": 5}], "duration_ms": 6000}
 	var buff: AbilityDef = AbilityDef.from_dict(d)
 	assert_eq(buff.duration_ms, 6000)
 	assert_eq(buff.modifiers.size(), 1)

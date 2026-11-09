@@ -42,6 +42,6 @@
      "params": {"heal_pct": 20}},
     {"id": "test_guard", "name": "Guardia di prova", "description": "Rafforza la difesa.",
      "unlock_level": 1, "setups": ["sword_shield"], "kind": "buff", "cooldown_ms": 15000,
-     "params": {"modifiers": [{"stat": "damage_reduction", "value": 5}], "duration_ms": 6000}}
+     "params": {"modifiers": [{"stat": "armor", "value": 5}], "duration_ms": 6000}}
   ]
 }

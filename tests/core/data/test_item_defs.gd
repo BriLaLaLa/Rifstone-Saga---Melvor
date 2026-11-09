@@ -48,8 +48,8 @@ func test_item_weapon_example() -> void:
 		 "icon": "res://assets/icons/items/emberbronze_blade.png", "value": 12, "sort_order": 100,
 		 "description": "Una lama corta, ancora tiepida di forgia.",
 		 "equip": {"slot": "weapon", "kind": "sword", "grade": 1, "requirements": {"character": 1},
-		           "modifiers": [{"stat": "accuracy_bonus", "value": 8}, {"stat": "power_bonus", "value": 6}],
-		           "weapon": {"style": "blade", "attack_interval_ms": 2400, "two_handed": false}}}"""))
+		           "modifiers": [{"stat": "accuracy_bonus", "value": 8}],
+		           "weapon": {"dmg_min": 4, "dmg_max": 6, "style": "blade", "attack_interval_ms": 2400, "two_handed": false}}}"""))
 	assert_not_null(item)
 	assert_eq(item.id, &"emberbronze_blade")
 	assert_eq(item.category, &"equipment")
@@ -60,10 +60,10 @@ func test_item_weapon_example() -> void:
 	assert_eq(item.equip.requirements, {&"character": 1})
 	assert_eq(item.equip.kind, &"sword")
 	assert_eq(item.equip.grade, 1)
-	assert_eq(item.equip.modifiers.size(), 2)
+	assert_eq(item.equip.modifiers.size(), 1)
 	_assert_modifier(item.equip.modifiers[0], &"accuracy_bonus", 8.0, &"global", &"")
-	_assert_modifier(item.equip.modifiers[1], &"power_bonus", 6.0, &"global", &"")
 	assert_not_null(item.equip.weapon)
+	assert_eq([item.equip.weapon.dmg_min, item.equip.weapon.dmg_max], [4, 6])
 	assert_eq(item.equip.weapon.style, &"blade")
 	assert_eq(item.equip.weapon.attack_interval_ms, 2400)
 	assert_false(item.equip.weapon.two_handed)

@@ -12,7 +12,7 @@ const TARGET_RULES: PackedStringArray = ["first", "lowest_hp", "highest_hp"]  # 
 const ABILITY_KINDS: PackedStringArray = ["strike", "cleave", "heal", "buff"]
 # Stats `stat_trade` can scale: the ones that feed a combat number (F-81 map, CombatantStats.scale_stat).
 const STAT_TRADE_STATS: PackedStringArray = ["accuracy_bonus", "accuracy_pct", "evasion_bonus", "evasion_pct",
-	"power_bonus", "power_pct", "max_hp_flat", "damage_reduction", "block_chance"]
+	"power_bonus", "power_pct", "max_hp_flat", "armor", "barrier", "block_chance"]
 const SLOT_LEVEL_KEYS: PackedStringArray = ["traits.slot_levels", "abilities.slot_levels"]
 # Format limits (not design values) of the parameters.
 const NTH_MAX: int = 20

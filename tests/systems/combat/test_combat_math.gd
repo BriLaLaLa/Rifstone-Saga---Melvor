@@ -111,3 +111,25 @@ func test_f75_block_chance_clamp() -> void:
 	assert_almost_eq(CombatMath.block_chance(15.0, _d), 15.0, 0.0001)
 	assert_almost_eq(CombatMath.block_chance(55.0, _d), 50.0, 0.0001)
 	assert_almost_eq(CombatMath.block_chance(-3.0, _d), 0.0, 0.0001)
+
+
+func test_weapon_damage() -> void:
+	# F-22 with W_max of the striking weapon: max_hit(L, W_max + power_bonus, power_pct), min by the weapon ratio.
+	var cases: Array = [
+		[1, 6.0, 4.0, 0.0, 0.0, 12, 8],  # spada grado 1 (4-6) a livello 1
+		[90, 62.0, 37.0, 0.0, 0.0, 255, 152],  # spada grado 15 (37-62) a livello 90
+		[50, 68.0, 34.0, 0.0, 0.0, 162, 81],  # spadone grado 8 (34-68) a livello 50
+		[50, 34.0, 20.0, 10.0, 10.0, 138, 81],  # spada grado 8 (20-34) con power_bonus 10 e power_pct 10
+	]
+	for c: Array in cases:
+		var mx: int = CombatMath.max_hit(c[0], float(c[1]) + float(c[3]), c[4], _d)
+		assert_eq(mx, c[5], "max %s" % [c])
+		assert_eq(CombatMath.min_hit_for(mx, c[2], c[1], _d), c[6], "min %s" % [c])
+	assert_eq(CombatMath.min_hit_for(11, 0.0, 0.0, _d), 1, "bare hands: min_hit_ratio")
+	assert_eq(CombatMath.min_hit_for(60, 0.0, 0.0, _d), 6)
+
+
+func test_f25_player_defender_examples() -> void:
+	# F-117 + F-25: roll 40, monster level 20, Armour 100 -> 25; arcane level 30, Barrier 121 -> 26.
+	assert_eq(CombatMath.damage_after_dr(40, ArmorMath.reduction_pct(100, 20, _d)), 25)
+	assert_eq(CombatMath.damage_after_dr(40, ArmorMath.reduction_pct(121, 30, _d)), 26)

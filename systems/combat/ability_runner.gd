@@ -169,7 +169,8 @@ func _roll(def: AbilityDef, attacker: CombatantStats, defender: CombatantStats) 
 	var raw: int = _session.rng.randi_range(attacker.min_hit, attacker.max_hit)
 	var scaled: int = int(floor(float(raw) * def.power_mult + CombatMath.EPSILON))
 	var relation: StringName = CombatMath.triangle(attacker.style, defender.style, data)
-	var dr: float = CombatMath.effective_dr(defender.damage_reduction, relation, data)
+	var base_dr: float = defender.reduction_against(attacker.style, attacker.level, data)
+	var dr: float = CombatMath.effective_dr(base_dr, relation, data)
 	result["damage"] = CombatMath.damage_after_dr(CombatMath.triangle_damage(scaled, relation, data), dr)
 	return result
 

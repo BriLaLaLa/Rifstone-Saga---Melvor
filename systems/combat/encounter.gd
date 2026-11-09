@@ -157,18 +157,22 @@ func target(rule: StringName) -> int:
 ## pulses (`roll_pulse`).
 static func roll_enemy_attack(enemy: Enemy, defender: CombatantStats, rng: RngService, data: GameData) -> Dictionary:
 	if enemy.is_stone():
-		return roll_pulse(enemy.pulse_damage, defender, defender.block_chance, rng)
+		return roll_pulse(enemy.pulse_damage, defender, defender.block_chance, rng, data, enemy.stats.level)
 	return roll_attack(enemy.stats, defender, defender.block_chance, rng, data)
 
 
-## F-87: the pulse of a Rift Stone never misses, is reduced by F-25 (neutral relation: the plain reduction) and can be
-## blocked (F-75, the only roll). Same result shape as `roll_attack`.
-static func roll_pulse(damage: int, defender: CombatantStats, block_chance: float, rng: RngService) -> Dictionary:
+## F-87: the pulse of a Rift Stone or a Fracture never misses, is reduced by F-25 (neutral relation: the plain
+## reduction; F-117: no style, so it counts as `combat.unarmed.style`, i.e. Armour) and can be blocked (F-75, the only
+## roll). `attacker_level` is the L_att of F-117 (-1 = the level of the defender). Same result shape as `roll_attack`.
+static func roll_pulse(damage: int, defender: CombatantStats, block_chance: float, rng: RngService, data: GameData,
+		attacker_level: int = -1) -> Dictionary:
 	var result: Dictionary = {"hit": true, "blocked": false, "damage": 0}
 	if block_chance > 0.0 and rng.roll_pct(block_chance):
 		result["blocked"] = true
 		return result
-	result["damage"] = CombatMath.damage_after_dr(damage, defender.damage_reduction)
+	var style: StringName = StringName(str(data.balance_value("combat.unarmed.style")))
+	var level: int = defender.level if attacker_level < 0 else attacker_level
+	result["damage"] = CombatMath.damage_after_dr(damage, defender.reduction_against(style, level, data))
 	return result
 
 
@@ -187,7 +191,8 @@ static func roll_attack(attacker: CombatantStats, defender: CombatantStats, bloc
 		return result
 	var raw: int = rng.randi_range(attacker.min_hit, attacker.max_hit)
 	var relation: StringName = CombatMath.triangle(attacker.style, defender.style, data)
-	var dr: float = CombatMath.effective_dr(defender.damage_reduction, relation, data)
+	var base_dr: float = defender.reduction_against(attacker.style, attacker.level, data)
+	var dr: float = CombatMath.effective_dr(base_dr, relation, data)
 	var damage: int = CombatMath.triangle_damage(raw, relation, data)
 	if damage_mult != 1.0:
 		damage = int(floor(float(damage) * damage_mult + CombatMath.EPSILON))

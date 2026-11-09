@@ -125,21 +125,21 @@ func test_target_rule_and_stat_trade() -> void:
 	_effect(raw, 0)["params"] = {"rule": "lowest_hp"}
 	assert_eq(V.validate(raw), PackedStringArray())
 	_effect(raw, 1)["type"] = "stat_trade"
-	_effect(raw, 1)["params"] = {"zero": ["evasion_pct"], "mult": {"damage_reduction": 2, "ghost": 1}}
+	_effect(raw, 1)["params"] = {"zero": ["evasion_pct"], "mult": {"armor": 2, "ghost": 1}}
 	_expect(raw, [CLASS_FILE, "traits[1].effects[0].params.mult.ghost", "not in stats.json"])
-	_effect(raw, 1)["params"] = {"zero": ["damage_reduction"], "mult": {"damage_reduction": 2}}
-	_expect(raw, [CLASS_FILE, "params.mult.damage_reduction", "also in zero"])
+	_effect(raw, 1)["params"] = {"zero": ["armor"], "mult": {"armor": 2}}
+	_expect(raw, [CLASS_FILE, "params.mult.armor", "also in zero"])
 	_effect(raw, 1)["params"] = {"zero": [], "mult": {}}
 	_expect(raw, [CLASS_FILE, "traits[1].effects[0].params", "at least one stat"])
-	_effect(raw, 1)["params"] = {"zero": ["ghost"], "mult": {"damage_reduction": 0}}
+	_effect(raw, 1)["params"] = {"zero": ["ghost"], "mult": {"armor": 0}}
 	_expect(raw, [CLASS_FILE, "params.zero", "ghost"])
-	_expect(raw, [CLASS_FILE, "params.mult.damage_reduction", "> 0"])
+	_expect(raw, [CLASS_FILE, "params.mult.armor", "> 0"])
 
 
 func test_stat_trade_valid() -> void:
 	var raw: Dictionary = V.fixture_raw()
 	_effect(raw, 1)["type"] = "stat_trade"
-	_effect(raw, 1)["params"] = {"zero": ["evasion_pct"], "mult": {"damage_reduction": 2}}
+	_effect(raw, 1)["params"] = {"zero": ["evasion_pct"], "mult": {"armor": 2}}
 	assert_eq(V.validate(raw), PackedStringArray())
 
 

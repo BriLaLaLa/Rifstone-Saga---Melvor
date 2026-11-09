@@ -170,11 +170,11 @@ func test_roll_pulse_dr_and_block() -> void:
 	var me := CombatantStats.new()
 	me.damage_reduction = 50.0
 	var rng := RngService.new(1)
-	var hit: Dictionary = Encounter.roll_pulse(7, me, 0.0, rng)
+	var hit: Dictionary = Encounter.roll_pulse(7, me, 0.0, rng, TestFactory.real_data())
 	assert_eq(hit, {"hit": true, "blocked": false, "damage": 3}, "F-25: floor(7 x 0.5), never misses")
 	me.damage_reduction = 0.0
-	assert_eq(Encounter.roll_pulse(7, me, 0.0, rng)["damage"], 7)
-	var blocked: Dictionary = Encounter.roll_pulse(7, me, 100.0, rng)
+	assert_eq(Encounter.roll_pulse(7, me, 0.0, rng, TestFactory.real_data())["damage"], 7)
+	var blocked: Dictionary = Encounter.roll_pulse(7, me, 100.0, rng, TestFactory.real_data())
 	assert_eq(blocked, {"hit": true, "blocked": true, "damage": 0}, "F-75: a block stops the pulse")
 
 

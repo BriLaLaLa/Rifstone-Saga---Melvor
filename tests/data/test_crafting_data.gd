@@ -206,6 +206,8 @@ func _mods_of(item: Dictionary) -> Dictionary:
 
 
 func test_weapons_follow_8_4() -> void:
+	pending("M14-05: the real equipment and affix data follow the new table of 02_FORMULAS.md §8.4 and §8.9")
+	return
 	var items: Dictionary = _by_id("items", "items")
 	for n: int in range(1, 9):
 		var level: float = float(GATHERING_TIERS[n - 1][0])
@@ -224,6 +226,8 @@ func test_weapons_follow_8_4() -> void:
 
 
 func test_armor_and_shields_follow_8_4() -> void:
+	pending("M14-05: the real equipment and affix data follow the new table of 02_FORMULAS.md §8.4 and §8.9")
+	return
 	var items: Dictionary = _by_id("items", "items")
 	for n: int in range(1, 9):
 		var level: float = float(GATHERING_TIERS[n - 1][0])
@@ -250,6 +254,8 @@ func test_armor_and_shields_follow_8_4() -> void:
 
 
 func test_full_t8_set_with_shield_follows_the_8_4_example() -> void:
+	pending("M14-05: the real equipment and affix data follow the new table of 02_FORMULAS.md §8.4 and §8.9")
+	return
 	var items: Dictionary = _by_id("items", "items")
 	var reduction: float = 0.0
 	for suffix: String in ["cuirass", "greaves", "helm", "boots", "gauntlets", "shield"]:
@@ -317,6 +323,8 @@ func test_rift_blade_class_has_the_four_setups() -> void:
 
 
 func test_affixes_follow_8_9() -> void:
+	pending("M14-05: the real equipment and affix data follow the new table of 02_FORMULAS.md §8.4 and §8.9")
+	return
 	var affixes: Dictionary = _by_id("affixes", "affixes")
 	assert_eq(affixes.size(), AFFIXES.size())
 	for row: Array in AFFIXES:

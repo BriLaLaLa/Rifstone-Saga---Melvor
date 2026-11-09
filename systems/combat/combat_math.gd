@@ -21,7 +21,9 @@ static func evasion_rating(level: int, bonus: float, pct: float, data: GameData)
 	return _rating(level, bonus, pct, data)
 
 
-## F-22: max_hit = floor((L + maxhit_level_offset) x (power_bonus + maxhit_bonus_offset) / maxhit_bonus_offset x (1 + power_pct / 100)).
+## F-22: max_hit = floor((L + maxhit_level_offset) x (W_max + power_bonus + maxhit_bonus_offset) / maxhit_bonus_offset x (1 + power_pct / 100)).
+## `bonus` is `W_max + power_bonus` for the player (W_max = dmg_max of the striking weapon, 0 without one), the data
+## `power_bonus` for monsters.
 static func max_hit(level: int, bonus: float, pct: float, data: GameData) -> int:
 	var level_offset: float = _num(data, "combat.maxhit_level_offset")
 	var bonus_offset: float = _num(data, "combat.maxhit_bonus_offset")
@@ -32,6 +34,14 @@ static func max_hit(level: int, bonus: float, pct: float, data: GameData) -> int
 ## F-22: min_hit = max(1, floor(max_hit x min_hit_ratio)).
 static func min_hit(max_hit: int, data: GameData) -> int:
 	return maxi(1, int(floor(float(max_hit) * _num(data, "combat.min_hit_ratio") + EPSILON)))
+
+
+## F-22: with a weapon the ratio is the one of its own range: max(1, floor(max_hit x dmg_min / dmg_max)); without one
+## (`weapon_max` <= 0) and for monsters it is `min_hit_ratio`.
+static func min_hit_for(max_hit: int, weapon_min: float, weapon_max: float, data: GameData) -> int:
+	if weapon_max <= 0.0:
+		return min_hit(max_hit, data)
+	return maxi(1, int(floor(float(max_hit) * weapon_min / weapon_max + EPSILON)))
 
 
 ## F-23: clamp(AR / (AR + ER), hit_chance_min, hit_chance_max).

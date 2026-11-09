@@ -158,7 +158,7 @@ func test_engine_heal_waits_for_missing_hp_then_fires() -> void:
 # --- buffs -------------------------------------------------------------------------------------------------------
 
 func _equip_guard(duration: int = 6000, cooldown: int = 8000) -> void:
-	_equip("t_guard", "buff", cooldown, {"modifiers": [{"stat": "damage_reduction", "value": 5}],
+	_equip("t_guard", "buff", cooldown, {"modifiers": [{"stat": "armor", "value": 5}],
 		"duration_ms": duration})
 	EffectKit.sturdy(_session)
 
@@ -171,13 +171,13 @@ func test_buff_used_at_8000_lasts_6000_ms() -> void:
 	_run(1, 1)
 	assert_eq(_session.combat.get_state()["buffs"], {&"t_guard": 6000})
 	assert_true(_session.modifiers.has_source(&"ability:t_guard"))
-	assert_eq(_session.modifiers.total(&"damage_reduction"), 5.0)
+	assert_eq(_session.modifiers.total(&"armor"), 5.0)
 	_run(5999, 1)
 	assert_eq(_session.combat.get_state()["buffs"], {&"t_guard": 1}, "active until 14000")
 	_run(1, 1)
 	assert_true(_session.combat.get_state()["buffs"].is_empty())
 	assert_false(_session.modifiers.has_source(&"ability:t_guard"))
-	assert_eq(_session.modifiers.total(&"damage_reduction"), 0.0)
+	assert_eq(_session.modifiers.total(&"armor"), 0.0)
 
 
 func test_buff_is_used_again_only_after_it_ended() -> void:
@@ -317,7 +317,7 @@ func test_full_session_save_load_rebuilds_the_buff_modifiers() -> void:
 	_session.modifiers.clear_all()
 	assert_true(_session.from_save(data).ok)
 	assert_true(_session.modifiers.has_source(&"ability:t_guard"))
-	assert_eq(_session.modifiers.total(&"damage_reduction"), 5.0)
+	assert_eq(_session.modifiers.total(&"armor"), 5.0)
 
 
 func test_idle_engine_saves_no_ability_state() -> void:
@@ -367,7 +367,7 @@ func _scenario(session: GameSession, steps: int, step_ms: int) -> Dictionary:
 func test_one_step_equals_ten_steps_with_abilities() -> void:
 	_equip("t_strike", "strike", 3000, {"power_mult": 2.0}, 0)
 	_equip("t_mend", "heal", 5000, {"heal_pct": 20}, 1)
-	_equip("t_guard", "buff", 4000, {"modifiers": [{"stat": "damage_reduction", "value": 5}],
+	_equip("t_guard", "buff", 4000, {"modifiers": [{"stat": "armor", "value": 5}],
 		"duration_ms": 2500}, 2)
 	var coarse: Dictionary = _scenario(_session, 60, 1000)
 	var other: GameSession = autofree(TestFactory.session(41))

@@ -96,7 +96,19 @@
     "min_attack_interval_ms": 800,
     "unarmed": {
       "style": "blade",
-      "attack_interval_ms": 2400
+      "attack_interval_ms": 2400,
+      "dmg_min": 0,
+      "dmg_max": 0
+    },
+    "armor": {
+      "k": 6,
+      "level_offset": 10,
+      "cap_pct": 75,
+      "materials": {
+        "plate": {"armor": 1.0, "barrier": 0, "evasion": 0.2},
+        "leather": {"armor": 0.6, "barrier": 0.4, "evasion": 1.0},
+        "cloth": {"armor": 0.3, "barrier": 1.0, "evasion": 0.4}
+      }
     },
     "dual_wield": {
       "interval_mult": 0.75
@@ -122,6 +134,12 @@
     "respawn_ms": 1500,
     "loot_bag_base_slots": 12,
     "kill_xp_mult": 0.11
+  },
+  "equipment": {
+    "grade_levels": [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90],
+    "grade_material": [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8],
+    "slot_weights": {"body": 0.30, "legs": 0.20, "head": 0.15, "offhand": 0.15, "hands": 0.10, "feet": 0.10},
+    "set_budget": {"armor": [4, 8], "evasion": [2, 1.5]}
   },
   "character_curve": {
     "base": 70,

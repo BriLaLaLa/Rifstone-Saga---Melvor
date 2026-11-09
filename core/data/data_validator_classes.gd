@@ -13,7 +13,7 @@ const CLASS_ICON_DIR: String = "res://assets/icons/classes/"
 const SPRITE_STATES: PackedStringArray = ["idle", "attack", "hit", "death"]  # reserved, no use yet (M6-00a)
 const SPRITE_DIR: String = "res://assets/"
 const MAX_DROPS: int = 8
-const DAMAGE_REDUCTION_STAT: StringName = &"damage_reduction"  # bounds monster damage_reduction (stats.json)
+const MONSTER_DR_MAX: float = 80.0  # format limit of the monster `damage_reduction` percentage (F-25; M14: no longer a stat)
 const CLASS_FIELDS: PackedStringArray = ["id", "name", "description", "icon", "order", "weapon_kinds", "offhand_kinds",
 	"setups", "traits", "abilities"]
 const SETUP_FIELDS: PackedStringArray = ["id", "name", "weapon", "offhand", "alternate", "modifiers"]
@@ -64,8 +64,6 @@ static func validate_monsters(v: DataValidatorRules, files: Dictionary[String, D
 ## The combat and loot fields shared by monsters and Fracture bosses (M13): icon, sprite, hp, xp, style, interval,
 ## levels, bonuses, damage reduction, gold, Rift shard chance and drops.
 static func combat_fields(v: DataValidatorRules, e: Dictionary) -> void:
-	var max_dr: float = float(v.stats.info(DAMAGE_REDUCTION_STAT)["max"]) if v.stats.has(DAMAGE_REDUCTION_STAT) \
-			else DataValidatorRules.NO_LIMIT
 	existing_icon(v, e, MONSTER_ICON_DIR)
 	_sprite(v, e)
 	v.integer(e, "hp", 1)
@@ -76,7 +74,7 @@ static func combat_fields(v: DataValidatorRules, e: Dictionary) -> void:
 		v.integer(e, key, 1, v.max_skill_level)
 	for key: String in ["accuracy_bonus", "power_bonus", "evasion_bonus"]:
 		v.integer(e, key, 0)
-	v.number(e, "damage_reduction", 0.0, max_dr)
+	v.number(e, "damage_reduction", 0.0, MONSTER_DR_MAX)
 	v.int_pair(e, "gold", 0, DataValidatorRules.NO_LIMIT, true)
 	v.number(e, "rift_shard_chance", 0.0, 100.0)
 	drops(v, e)

@@ -96,19 +96,21 @@ func balance_value(path: String) -> Variant:
 	return value
 
 
-## F-01 table from `xp_curve` (null when the data is not valid).
-func xp_table() -> XpTable:
-	return _xp_table
+## F-118: material grade (1..8) of a piece grade (1..15), `equipment.grade_material[g - 1]`; out of range: error, 0.
+func material_grade(piece_grade: int) -> int: return EquipmentGrades.entry(self, "equipment.grade_material", piece_grade)
 
+## F-118: character level of a piece grade (1..15), `equipment.grade_levels[g - 1]`; out of range: error, 0.
+func grade_level(piece_grade: int) -> int: return EquipmentGrades.entry(self, "equipment.grade_levels", piece_grade)
+
+
+## F-01 table from `xp_curve` (null when the data is not valid).
+func xp_table() -> XpTable: return _xp_table
 
 ## F-09 table from `mastery_curve` (null when the data is not valid).
-func mastery_table() -> XpTable:
-	return _mastery_table
-
+func mastery_table() -> XpTable: return _mastery_table
 
 ## F-71 table from `character_curve` (null when the data is not valid).
-func character_xp_table() -> XpTable:
-	return _character_table
+func character_xp_table() -> XpTable: return _character_table
 
 
 func character_class(id: StringName) -> ClassDef:

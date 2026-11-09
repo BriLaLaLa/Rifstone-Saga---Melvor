@@ -3,6 +3,7 @@ extends GutTest
 
 const BLADE: StringName = &"test_blade"
 const SHIELD: StringName = &"test_shield"
+const HEAVY_BLADE: StringName = &"test_boss_sword"
 
 var _session: GameSession = null
 
@@ -31,10 +32,10 @@ func test_player_base_from_character_level() -> void:
 
 func test_stats_follow_the_modifiers_without_a_saved_copy() -> void:
 	var before: CombatantStats = CombatantStats.for_player(_session)
-	_mods(&"test:ring", [Modifier.make(&"max_hp_flat", 20.0), Modifier.make(&"damage_reduction", 10.0)])
+	_mods(&"test:ring", [Modifier.make(&"max_hp_flat", 20.0), Modifier.make(&"armor", 10.0)])
 	var after: CombatantStats = CombatantStats.for_player(_session)
 	assert_eq(after.max_hp, before.max_hp + 20)
-	assert_eq(after.damage_reduction, 10.0)
+	assert_eq(after.armor, 10)
 
 
 func test_weapon_interval_and_pct() -> void:
@@ -44,7 +45,7 @@ func test_weapon_interval_and_pct() -> void:
 
 
 func test_dual_wield_hand_stats() -> void:
-	_session.equipment.equip(TestFactory.give_piece(_session, BLADE))
+	_session.equipment.equip(TestFactory.give_piece(_session, HEAVY_BLADE))
 	_session.equipment.equip(TestFactory.give_piece(_session, BLADE), &"offhand")
 	assert_eq(_session.equipment.setup(), &"dual_swords")
 	# F-74 example: T3 sword in the main hand, T1 sword in the offhand, ring accuracy +5.
@@ -60,12 +61,14 @@ func test_dual_wield_hand_stats() -> void:
 	assert_eq(_session.modifiers.total_without(&"power_bonus", null, without_main), 6.0)
 	var main: CombatantStats = CombatantStats.for_player(_session, 0)
 	var off: CombatantStats = CombatantStats.for_player(_session, 1)
-	# accuracy bonus 29 / 13, power bonus 18 / 6 at level 1 (F-20, F-22); the dual_swords setup adds accuracy_pct -10
+	# accuracy bonus 29 / 13, power bonus 18 / 6 at level 1 (F-20, F-22); the dual_swords setup adds accuracy_pct -10.
+	# M14: each hand strikes with the damage of its own weapon: W_max 22 (grade 5 sword, 13-22) and 6 (grade 1, 4-6).
 	assert_eq(main.accuracy, CombatMath.accuracy_rating(1, 29, -10, _session.data))
-	assert_eq(main.max_hit, CombatMath.max_hit(1, 18, 0, _session.data))
+	assert_eq(main.max_hit, CombatMath.max_hit(1, 22 + 18, 0, _session.data))
 	assert_eq(off.accuracy, CombatMath.accuracy_rating(1, 13, -10, _session.data))
-	assert_eq(off.max_hit, CombatMath.max_hit(1, 6, 0, _session.data))
-	assert_eq([main.accuracy, main.max_hit, off.accuracy, off.max_hit], [639, 15, 510, 12])
+	assert_eq(off.max_hit, CombatMath.max_hit(1, 6 + 6, 0, _session.data))
+	assert_eq([main.accuracy, main.max_hit, off.accuracy, off.max_hit], [639, 22, 510, 14])
+	assert_eq([main.min_hit, off.min_hit], [13, 9], "F-22: floor(max_hit x dmg_min/dmg_max) of the hitting weapon")
 	assert_eq(main.attack_interval_ms, 1800, "F-73: both hands share the interval")
 	assert_eq(off.attack_interval_ms, 1800)
 
