@@ -36,8 +36,8 @@
      ]},
     {"id": "guide_blueprints", "section": "loot", "title": "Progetti", "order": 7,
      "blocks": [
-       {"type": "text", "text": "Un progetto è un oggetto raro che indica un pezzo da forgiare e il suo grado. Lo trovi come drop dei mostri e dei Monoliti del Rift."},
-       {"type": "text", "text": "Si avvia dalla pagina del Fabbro: servono il livello del grado, i materiali e un componente raro dei mostri dell'area. Dura molti minuti (da {balance:blueprint.duration_base_min|int} minuti in su), dà molta esperienza, non ha maestria e si ferma da sola alla fine. Il pezzo esce almeno magico."}
+       {"type": "text", "text": "Un progetto è un oggetto raro che indica un Capolavoro da forgiare e il suo grado. Lo trovi come drop dei mostri e dei Monoliti del Rift."},
+       {"type": "text", "text": "Si avvia dalla pagina del Fabbro: servono il livello del grado, molti materiali e due componenti rari diversi dei mostri dell'area. Dura molti minuti (da {balance:blueprint.duration_base_min|int} minuti in su), dà molta esperienza, non ha maestria e si ferma da sola alla fine. Il pezzo esce sempre Capolavoro."}
      ]},
     {"id": "guide_stones_runes", "section": "loot", "title": "Pietre e Rune", "order": 8,
      "blocks": [

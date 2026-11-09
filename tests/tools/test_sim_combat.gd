@@ -43,8 +43,8 @@ func test_easiest_pack_is_the_lowest_total_hp() -> void:
 
 func test_auto_grade_follows_the_character_requirement() -> void:
 	assert_eq(Sim.auto_grade(_data, 1), 1)
-	assert_eq(Sim.auto_grade(_data, 29), 3)
-	assert_eq(Sim.auto_grade(_data, 90), 8)
+	assert_eq(Sim.auto_grade(_data, 29), 6)  # M14-05: 15 piece grades (level 29 -> grade 6, level 25)
+	assert_eq(Sim.auto_grade(_data, 90), 15)
 
 
 func test_auto_tier_counts_the_ration_purchases_the_level_allows() -> void:

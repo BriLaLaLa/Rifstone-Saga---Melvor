@@ -18,7 +18,8 @@ const REQUIRED_KEYS: PackedStringArray = [
 	"rarity.masterwork.base_mult", "rarity.masterwork.affix_count", "rarity.legendary.base_mult", "blueprint.cost_mult",
 	"blueprint.extra_rare",
 ]
-const SECTIONS: PackedStringArray = ["equipment", "combat.armor", "rarity.masterwork", "rarity.legendary"]
+const SECTIONS: PackedStringArray = ["equipment", "combat.armor", "rarity.masterwork", "rarity.legendary", "loot"]
+const LOOT_KINDS: PackedStringArray = ["sword", "greatsword", "shield", "head", "body", "legs", "feet", "hands", "ring", "neck"]
 const WEIGHT_SUM_TOLERANCE: float = 1e-6
 const CAP_PCT_MAX: float = 95.0  # format limit of combat.armor.cap_pct (F-117)
 const MULT_MAX: float = 10.0  # format limit of rarity.*.base_mult
@@ -51,6 +52,27 @@ static func validate_balance(v: DataValidatorRules, balance: Dictionary) -> void
 	if unarmed is Dictionary:
 		_dmg_pair(v, unarmed as Dictionary, "combat.unarmed", true)
 	_rarity_and_blueprint(v, balance)
+	_loot(v, balance)
+
+
+# `loot.equipment` and `loot.blueprint` (F-121, M14-05): optional (earlier fixtures have none), checked when present.
+static func _loot(v: DataValidatorRules, balance: Dictionary) -> void:
+	var loot: Variant = DataValidator.lookup(balance, "loot")
+	if not loot is Dictionary:
+		return
+	v.keys(loot as Dictionary, ["equipment", "blueprint"], "loot")
+	var equipment: Dictionary = v.object(loot as Dictionary, "equipment", "loot")
+	v.keys(equipment, ["chance_pct", "level_ahead", "level_window", "kind_weights"], "loot.equipment")
+	v.number(equipment, "chance_pct", 0.0, 100.0, "loot.equipment", true)
+	v.integer(equipment, "level_ahead", 0.0, DataValidatorRules.NO_LIMIT, "loot.equipment")
+	v.integer(equipment, "level_window", 1.0, DataValidatorRules.NO_LIMIT, "loot.equipment")
+	var weights: Dictionary = v.object(equipment, "kind_weights", "loot.equipment")
+	v.keys(weights, LOOT_KINDS, "loot.equipment.kind_weights")
+	for kind: String in LOOT_KINDS:
+		v.number(weights, kind, 0.0, DataValidatorRules.NO_LIMIT, "loot.equipment.kind_weights", true)
+	var blueprint: Dictionary = v.object(loot as Dictionary, "blueprint", "loot")
+	v.keys(blueprint, ["chance_pct"], "loot.blueprint")
+	v.number(blueprint, "chance_pct", 0.0, 100.0, "loot.blueprint", true)
 
 
 # GRADE_COUNT integers in [low, high], strictly increasing (levels) or non-decreasing (material grades).

@@ -99,8 +99,8 @@ func test_every_drop_is_either_in_the_armory_or_salvaged_by_the_filter() -> void
 		assert_true([1, 4, 8].has(inst.ilvl), "ilvl = highest combat level of the monster that dropped it (F-85): boar 1, rat 4, raider 8")
 	assert_eq(_count_by_base(RING, _auto_salvaged), 0, "the ring has no rule: never filtered")
 	assert_gt(_count_by_base(SWORD, _auto_salvaged), 0, "with 40 kills some common sword is filtered (20+3% only)")
-	# F-88 / F-95: a common sword (6 plates + 2 grips in its blueprint) pays floor(6 x 0.4) = 2 plates, 0 grips and no shard.
-	assert_eq(s.bank.get_count(PLATE), 2 * _count_by_base(SWORD, _auto_salvaged), "two T1 plates per salvaged sword (F-95)")
+	# F-88 / F-95 (M14): a piece without a blueprint (an ordinary sword) gives no components and no shard when common.
+	assert_eq(s.bank.get_count(PLATE), 0, "an ordinary sword has no blueprint: no plates (F-95)")
 	assert_eq(s.bank.get_count(SHARD), 0, "common pieces give no shards")
 	for stack: Dictionary in s.bank.stacks():
 		assert_false(String(stack["item"]).ends_with("_sword") or String(stack["item"]).ends_with("_ring"),
@@ -139,8 +139,8 @@ func test_salvage_and_the_filter_respect_lock_and_worn() -> void:
 	assert_true(s.armory.salvage(spare).ok)
 	assert_false(s.armory.has(spare), "gone for good")
 	assert_eq(s.armory.salvage(spare).reason, Reasons.UNKNOWN_ID, "it cannot be salvaged twice")
-	# magic T1 sword: 2 plates (floor(6 x 0.4), F-95) and 1 shard (magic x grade 1), no refinement.
-	assert_eq(s.bank.get_count(PLATE), 2)
+	# magic T1 sword: no plates (an ordinary sword has no blueprint, F-95 M14) and 1 shard (magic x grade 1), no refinement.
+	assert_eq(s.bank.get_count(PLATE), 0)
 	assert_eq(s.bank.get_count(SHARD), 1)
 	assert_eq(_auto_salvaged.size(), 0, "a manual salvage is not auto")
 
@@ -270,14 +270,14 @@ func test_a_refined_piece_changes_the_stats_when_worn_and_the_affixes_come_along
 	var base_hit: int = s.combat.player_stats().max_hit
 	assert_true(s.equipment.equip(sword).ok)
 	var plain_power: float = s.modifiers.total(&"accuracy_bonus") - base_power
-	assert_eq(plain_power, 8.0, "the base sword gives accuracy_bonus 8")
+	assert_eq(plain_power, 4.0, "the base sword gives accuracy_bonus 4 (F-118: 4 per grade)")
 	var plain_hit: int = s.combat.player_stats().max_hit
 	assert_gt(plain_hit, base_hit, "wearing the sword raises the maximum hit")
 	for i: int in MAX_LEVEL:
 		assert_true(s.armory.upgrade(sword).ok)
 	assert_eq(s.armory.get_instance(sword).upgrade, MAX_LEVEL)
 	var refined_power: float = s.modifiers.total(&"accuracy_bonus") - base_power
-	assert_almost_eq(refined_power, 8.0 * (1.0 + 0.1 * MAX_LEVEL), 0.001, "F-86: base modifiers x (1 + 10% per level)")
+	assert_almost_eq(refined_power, 4.0 * (1.0 + 0.1 * MAX_LEVEL), 0.001, "F-86: base modifiers x (1 + 10% per level)")
 	assert_gt(s.combat.player_stats().max_hit, plain_hit, "and the stats follow the refinement of the worn piece")
 	# The ring: every global modifier of the instance (base + affixes) reaches the totals once.
 	var totals_before: Dictionary[StringName, float] = {}

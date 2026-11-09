@@ -95,7 +95,7 @@ func test_real_stone_sources() -> void:
 func test_real_recipe_blueprint_salvage_and_kit_sources() -> void:
 	assert_not_null(_find(_real_index.sources_of(&"emberbronze_plate"), GuideRef.KIND_RECIPE, &"skill:forging"))
 	var sword: Array[GuideRef] = _real_index.sources_of(&"emberbronze_sword")
-	assert_not_null(_find(sword, GuideRef.KIND_BLUEPRINT, &"item:bp_emberbronze_sword"))
+	assert_not_null(_find(_real_index.sources_of(&"mw_sword_1"), GuideRef.KIND_BLUEPRINT, &"item:bp_mw_sword_1"))
 	assert_not_null(_find(sword, GuideRef.KIND_STARTER_KIT))
 	assert_not_null(_find(_real_index.sources_of(&"emberbronze_plate"), GuideRef.KIND_SALVAGE))
 	assert_not_null(_find(_real_index.sources_of(&"unique_hatchet"), GuideRef.KIND_STARTER_KIT))
@@ -104,11 +104,11 @@ func test_real_recipe_blueprint_salvage_and_kit_sources() -> void:
 
 func test_real_uses() -> void:
 	var plate: Array[GuideRef] = _real_index.uses_of(&"emberbronze_plate")
-	assert_not_null(_find(plate, GuideRef.KIND_BLUEPRINT, &"item:bp_emberbronze_sword"))
+	assert_not_null(_find(plate, GuideRef.KIND_BLUEPRINT, &"item:bp_mw_sword_1"))
 	assert_not_null(_find(plate, GuideRef.KIND_REFINE))
 	assert_not_null(_find(_real_index.uses_of(&"boar_tusk"), GuideRef.KIND_BLUEPRINT))
-	assert_not_null(_find(_real_index.uses_of(&"bp_emberbronze_sword"), GuideRef.KIND_BLUEPRINT,
-			&"item:emberbronze_sword"))
+	assert_not_null(_find(_real_index.uses_of(&"bp_mw_sword_1"), GuideRef.KIND_BLUEPRINT,
+			&"item:mw_sword_1"))
 	assert_not_null(_find(_real_index.uses_of(&"emberbronze_ingot"), GuideRef.KIND_RECIPE, &"skill:forging"))
 	assert_not_null(_find(_real_index.uses_of(&"emberbronze_ingot"), GuideRef.KIND_REFINE))
 	assert_not_null(_find(_real_index.uses_of(&"warding_seal"), GuideRef.KIND_REFINE))
@@ -145,7 +145,12 @@ func test_summary_line() -> void:
 
 func test_items_without_source_and_use_list_orphans() -> void:
 	# Real data: every orphan is covered by a declared exception, so both lists are empty.
-	assert_eq(_real_index.items_without_source().size(), 0, str(_real_index.items_without_source()))
+	# M14-05: pieces and blueprints get their sources from the drop pool and the legendaries (M14-08, F-121, F-124).
+	var missing: Array[StringName] = []
+	for id: StringName in _real_index.items_without_source():
+		if not [&"equipment", &"tool", &"blueprint"].has(_real.item(id).category):
+			missing.append(id)
+	assert_eq(missing.size(), 0, str(missing))
 	assert_eq(_real_index.items_without_use().size(), 0, str(_real_index.items_without_use()))
 	# Fixtures have orphans (and no exceptions): the lists match exactly the items without source/use.
 	var no_source: Array[StringName] = _fixture_index.items_without_source()

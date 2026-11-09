@@ -6,8 +6,8 @@ extends GutTest
 
 const SEED: int = 1010
 const AREA: StringName = &"redrock_plains"
-const SWORD: StringName = &"emberbronze_sword"
-const BLUEPRINT: StringName = &"bp_emberbronze_sword"
+const SWORD: StringName = &"mw_sword_1"  # M14-05: the blueprint crafts a Masterwork
+const BLUEPRINT: StringName = &"bp_mw_sword_1"
 const PLATE: StringName = &"emberbronze_plate"
 const SHARD: StringName = &"rift_shard"
 const FORGING: StringName = &"forging"
@@ -253,11 +253,11 @@ func test_dismantling_a_crafted_piece_returns_plates_and_shards_and_nothing_else
 	assert_true(s.actions.start_blueprint(BLUEPRINT).ok)
 	s.advance(int(s.actions.blueprint_state()["duration_ms"]))
 	var piece: ItemInstance = s.armory.instances()[0]
-	var shards: int = 1 if piece.rarity == &"magic" else 3
+	var shards: int = 3  # Masterwork: shards_by_rarity.masterwork
 	assert_true(s.armory.salvage(piece.uid).ok)
 	assert_false(s.armory.has(piece.uid), "gone for good")
-	assert_eq(s.bank.get_count(PLATE), 2, "floor(6 x 0.4) plates")
-	assert_eq(s.bank.get_count(&"redbirch_grip"), 0, "floor(2 x 0.4) grips")
+	assert_eq(s.bank.get_count(PLATE), 7, "floor(18 x 0.4) plates: the cost of a Masterwork blueprint is x3")
+	assert_eq(s.bank.get_count(&"redbirch_grip"), 2, "floor(6 x 0.4) grips")
 	assert_eq(s.bank.get_count(&"boar_tusk"), 0, "the rare component is never returned")
 	assert_eq(s.bank.get_count(SHARD), shards, "shards by rarity")
 

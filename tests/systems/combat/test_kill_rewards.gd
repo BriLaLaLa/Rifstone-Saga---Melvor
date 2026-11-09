@@ -47,8 +47,8 @@ func test_rarity_distribution_follows_f84() -> void:
 	for i: int in 3000:
 		var inst: ItemInstance = KillRewards.roll_piece(_session, base, ItemRoller.SOURCE_MONSTER, 10)
 		counts[inst.rarity] += 1
-	assert_between(counts[&"magic"] / 3000.0, 0.17, 0.23, "20% magic")
-	assert_between(counts[&"rare"] / 3000.0, 0.015, 0.045, "3% rare")
+	assert_between(counts[&"magic"] / 3000.0, 0.22, 0.28, "25% magic (M14: rarity.drop 25 and 5)")
+	assert_between(counts[&"rare"] / 3000.0, 0.035, 0.065, "5% rare")
 
 
 func test_item_rarity_pct_raises_the_drop_chances() -> void:
@@ -58,7 +58,7 @@ func test_item_rarity_pct_raises_the_drop_chances() -> void:
 	for i: int in 1000:
 		if KillRewards.roll_piece(_session, base, ItemRoller.SOURCE_MONSTER, 10).rarity == &"rare":
 			rare += 1
-	assert_between(rare / 1000.0, 0.28, 0.38, "+1000%% -> k 11 -> 33%% rare")
+	assert_between(rare / 1000.0, 0.49, 0.61, "+1000%% -> k 11 -> 55%% rare")
 
 
 func test_drop_below_the_filter_is_salvaged_at_once() -> void:

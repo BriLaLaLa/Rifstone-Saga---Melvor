@@ -42,8 +42,8 @@ func test_every_area_and_monolith_has_its_table() -> void:
 func test_area_tables_follow_8_5b() -> void:
 	for area_id: String in AREAS:
 		var table: String = "loot_area_" + area_id
-		assert_eq(_chance(table, "rift_dust"), 20.0, table)
-		assert_eq(_qty(table, "rift_dust"), [1, 2] as Array[int], table)
+		assert_eq(_chance(table, "rift_dust"), 8.0, table)  # M14, Q71
+		assert_eq(_qty(table, "rift_dust"), [1, 1] as Array[int], table)
 		for family: String in FAMILIES:
 			assert_eq(_chance(table, "stone_%s_chip" % family), 1.0, table)
 			assert_eq(_chance(table, "stone_%s_heart" % family), -1.0, "no perfect stone from the monsters")

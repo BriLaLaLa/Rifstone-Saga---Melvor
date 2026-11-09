@@ -1,9 +1,6 @@
 extends GutTest
-## Rings, amulets, Warding Seal and Rift Stones of the real data (02_FORMULAS.md §8.4 and F-87; 04_DATA_SCHEMA §16).
-
-const TIERS: Array[String] = ["emberbronze", "ashlead", "stormzinc", "duskcobalt", "glimmerite", "palecinnabar",
-	"emberheart", "riftite"]
-const REQUIREMENTS: Array[int] = [1, 10, 20, 30, 45, 60, 75, 90]
+## Warding Seal and Rift Stones of the real data (F-87; 04_DATA_SCHEMA §16). M14-05: rings, amulets and the drops of pieces moved
+## to test_equipment_table.gd and test_no_equipment_in_drops.gd.
 
 var _items: Dictionary = {}
 var _areas: Dictionary = {}
@@ -12,8 +9,10 @@ var _stones: Array = []
 
 
 func before_all() -> void:
-	for file: String in ["equipment", "materials", "blueprints"]:
-		for item: Dictionary in _read("res://data/items/%s.json" % file)["items"]:
+	for file: String in DirAccess.get_files_at("res://data/items"):
+		if not file.ends_with(".json"):
+			continue
+		for item: Dictionary in _read("res://data/items/%s" % file)["items"]:
 			_items[item["id"]] = item
 	for a: Dictionary in _read("res://data/combat/areas.json")["areas"]:
 		_areas[a["id"]] = a
@@ -24,28 +23,6 @@ func before_all() -> void:
 
 func _read(path: String) -> Dictionary:
 	return JSON.parse_string(FileAccess.get_file_as_string(path)) as Dictionary
-
-
-func test_rings_and_amulets_follow_table_8_4() -> void:
-	for i: int in TIERS.size():
-		var n: int = i + 1
-		var ring: Dictionary = _items["%s_ring" % TIERS[i]]["equip"]
-		assert_eq(ring["slot"], "ring")
-		assert_eq(int(ring["grade"]), n)
-		_check_mods(ring, REQUIREMENTS[i], "accuracy_bonus", 3 * n)
-		var amulet: Dictionary = _items["%s_amulet" % TIERS[i]]["equip"]
-		assert_eq(amulet["slot"], "neck")
-		assert_eq(int(amulet["grade"]), n)
-		_check_mods(amulet, REQUIREMENTS[i], "max_hp_flat", 10 * n)
-
-
-func _check_mods(equip: Dictionary, level: int, stat: String, value: int) -> void:
-	assert_eq((equip["requirements"] as Dictionary).size(), 1)
-	assert_eq(int(equip["requirements"]["character"]), level)
-	var mods: Array = equip["modifiers"]
-	assert_eq(mods.size(), 1)
-	assert_eq(mods[0]["stat"], stat)
-	assert_eq(int(mods[0]["value"]), value)
 
 
 func test_warding_seal_is_the_balance_seal() -> void:
@@ -80,25 +57,3 @@ func test_stone_numbers() -> void:
 			assert_true(_items.has(d["item"]), "%s drops unknown %s" % [s["id"], d["item"]])
 			assert_between(float(d["chance_pct"]), 1.0, 40.0)
 
-
-func test_every_equipment_drop_is_reachable_by_level() -> void:
-	# a monster drops pieces whose requirement is within its own level (ilvl, F-85): no unusable drops
-	for m: Dictionary in _monsters.values():
-		var level: int = maxi(int(m["attack_level"]), maxi(int(m["power_level"]), int(m["defence_level"])))
-		for d: Dictionary in m["drops"]:
-			var item: Dictionary = _items[d["item"]]
-			if item["category"] == "equipment":
-				assert_lte(int(item["equip"]["requirements"]["character"]), level, "%s drops %s" % [m["id"], d["item"]])
-
-
-func test_every_slot_with_drops_exists() -> void:
-	# rings and amulets drop from the Rift Stones only (M10: the monsters have no room for them, 4 entries)
-	var slots: Dictionary = {}
-	var sources: Array = _monsters.values() + _stones
-	for m: Dictionary in sources:
-		for d: Dictionary in m["drops"]:
-			if _items[d["item"]]["category"] == "equipment":
-				slots[_items[d["item"]]["equip"]["slot"]] = true
-	assert_true(slots.has("ring") and slots.has("neck"))
-	for slot: String in ["head", "body", "legs", "feet", "hands", "weapon", "offhand"]:
-		assert_true(slots.has(slot), "no piece drops for slot %s" % slot)

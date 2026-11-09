@@ -312,7 +312,10 @@ func test_real_data_has_no_serial_recipes_and_no_shop_tools() -> void:
 
 func test_real_data_has_three_unique_tools() -> void:
 	var data: GameData = GameData.load_from_dirs()
-	var tools: Array[ItemDef] = _tools(data)
+	var tools: Array[ItemDef] = []
+	for tool_item: ItemDef in _tools(data):
+		if tool_item.equip.legendary == null:  # M14: the 9 legendary tools are not unique tools (tests/data/test_legendaries.gd)
+			tools.append(tool_item)
 	assert_eq(tools.size(), 3)
 	for tool_item: ItemDef in tools:
 		assert_true(tool_item.equip.unique, tool_item.id)

@@ -19,28 +19,6 @@ const FISH: Array[String] = ["Trota", "Persico", "Carpa", "Luccio", "Anguilla", 
 	"Leviatano del Rift"]
 const COOKED: Array[String] = ["Trota alla griglia", "Persico arrosto", "Carpa affumicata", "Luccio al forno",
 	"Anguilla glassata", "Storione in crosta", "Pesce lanterna laccato", "Stufato di leviatano"]
-const MODELS: Dictionary = {
-	"sword": ["Spada corta", "Gladio", "Sciabola", "Spada lunga", "Lama runica", "Falce d'ossidiana", "Lama stellare",
-		"Lama del Rift"],
-	"greatsword": ["Spadone grezzo", "Montante", "Flamberga", "Claymore", "Spadone runico", "Spezzaferro",
-		"Mietitore d'astrite", "Giudizio del Rift"],
-	"shield": ["Rotella", "Brocchiere", "Scudo a goccia", "Scudo torre", "Pavese runico", "Egida d'ossidiana",
-		"Scudo stellare", "Bastione del Rift"],
-	"helm": ["Calotta", "Elmetto", "Barbuta", "Celata", "Elmo runico", "Elmo d'ossidiana", "Corona d'astrite",
-		"Visiera del Rift"],
-	"cuirass": ["Giaco", "Cotta di maglia", "Corazza", "Usbergo", "Corazza runica", "Corazza d'ossidiana",
-		"Armatura stellare", "Corazza del Rift"],
-	"greaves": ["Brache imbottite", "Cosciali", "Gambali di maglia", "Gambali a piastre", "Gambali runici",
-		"Gambali d'ossidiana", "Gambali stellari", "Gambali del Rift"],
-	"boots": ["Stivali di cuoio", "Stivali chiodati", "Calzari", "Schinieri", "Stivali runici", "Stivali d'ossidiana",
-		"Passi stellari", "Stivali del Rift"],
-	"gauntlets": ["Guanti di cuoio", "Guanti di maglia", "Manopole", "Guanti a piastre", "Guanti runici",
-		"Manopole d'ossidiana", "Artigli stellari", "Guanti del Rift"],
-	"ring": ["Fede di rame", "Anello di ferro", "Anello d'argento", "Anello con sigillo", "Anello runico",
-		"Anello d'ossidiana", "Anello stellare", "Anello del Rift"],
-	"amulet": ["Ciondolo", "Medaglione", "Talismano", "Amuleto", "Amuleto runico", "Amuleto d'ossidiana",
-		"Stella d'astrite", "Occhio del Rift"],
-}
 ## Fixed names by id (skills, class, areas, monsters, drops, traits, abilities, stones, currencies, infusions, shop).
 const FIXED: Dictionary = {
 	"forestry": "Boscaiolo", "quarrying": "Minatore", "angling": "Pescatore", "forging": "Fabbro",
@@ -144,14 +122,7 @@ func test_fish_grades() -> void:
 		_expect("seared_" + FISH_IDS[i], COOKED[i])
 
 
-func test_equipment_models_and_blueprints() -> void:
-	for slot: String in MODELS:
-		var models: Array = MODELS[slot]
-		for i: int in 8:
-			_expect(GRADE_IDS[i] + "_" + slot, models[i] as String)
-			var bp_id: String = "bp_%s_%s" % [GRADE_IDS[i], slot]
-			if _names.has(bp_id):
-				assert_eq(_names[bp_id], "Progetto: " + (models[i] as String), "name of %s" % bp_id)
+# M14-05: the names of the 15 grades, the Masterworks and the legendaries are checked by test_names_alpha.gd.
 
 
 func test_no_bank_in_visible_texts() -> void:

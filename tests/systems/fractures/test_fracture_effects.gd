@@ -148,7 +148,7 @@ func test_dust_pct_multiplies_only_the_rift_dust() -> void:
 
 func test_blueprint_pct_raises_the_chance_up_to_100() -> void:
 	var real: GameData = TestFactory.real_data()
-	var blueprint: ItemDef = real.item(&"bp_glimmerite_sword")
+	var blueprint: ItemDef = real.item(&"bp_mw_sword_5")
 	var sink := FractureSink.new(_s, _run([["famine", 5]]))  # reward blueprint 25-75, step 5 -> 50
 	assert_eq(sink.drop_chance(blueprint, 0.12), 0.12 * 1.5)
 	assert_eq(sink.drop_chance(blueprint, 90.0), 100.0)

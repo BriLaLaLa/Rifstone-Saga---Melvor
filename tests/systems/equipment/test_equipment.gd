@@ -280,5 +280,5 @@ func test_refining_a_worn_piece_updates_its_modifiers() -> void:
 	session.modifiers.set_source(&"test:upg", [Modifier.make(&"upgrade_success_pct", 300.0)])
 	assert_true(session.armory.upgrade(uid).ok)
 	assert_eq(session.armory.get_instance(uid).upgrade, 1)
-	assert_almost_eq(session.modifiers.total(&"accuracy_bonus"), before + 8.0 * 0.1, 0.0001, "accuracy_bonus x1.1")
+	assert_almost_eq(session.modifiers.total(&"accuracy_bonus"), before + 4.0 * 0.1, 0.0001, "accuracy_bonus x1.1")
 	assert_eq(session.armory.get_instance(unequipped_uid).upgrade, 0, "the other piece is untouched")

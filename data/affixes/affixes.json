@@ -41,7 +41,7 @@
                {"min_ilvl": 20, "min": 10, "max": 18},
                {"min_ilvl": 45, "min": 20, "max": 32},
                {"min_ilvl": 75, "min": 35, "max": 55}]},
-    {"id": "runeward", "name": "Sigillato", "stat": "barrier", "slots": ["head", "body", "legs", "feet", "hands", "offhand"], "weight": 4,
+    {"id": "runeward", "name": "Schermato", "stat": "barrier", "slots": ["head", "body", "legs", "feet", "hands", "offhand"], "weight": 4,
      "tiers": [{"min_ilvl": 1, "min": 4, "max": 8},
                {"min_ilvl": 20, "min": 10, "max": 18},
                {"min_ilvl": 45, "min": 20, "max": 32},
