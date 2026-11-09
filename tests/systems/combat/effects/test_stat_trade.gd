@@ -15,7 +15,7 @@ func after_each() -> void:
 func _stats() -> CombatantStats:
 	var s := CombatantStats.new()
 	s.evasion = 1632
-	s.damage_reduction = 12.0
+	s.armor = 12
 	s.accuracy = 1000
 	s.max_hit = 30
 	s.max_hp = 100
@@ -26,17 +26,18 @@ func test_zero_evasion() -> void:
 	var s: CombatantStats = _stats()
 	StatTrade.new(&"t", {"zero": ["evasion_bonus"], "mult": {}}).modify_stats(s, _session.data)
 	assert_eq(s.evasion, 0)
-	assert_eq(s.damage_reduction, 12.0, "the others are untouched")
+	assert_eq(s.armor, 12, "the others are untouched")
 
 
 func test_multiplier_is_limited_by_the_stat_range() -> void:
 	var s: CombatantStats = _stats()
-	var effect := StatTrade.new(&"t", {"zero": [], "mult": {"damage_reduction": 2.0}})
+	var effect := StatTrade.new(&"t", {"zero": [], "mult": {"armor": 2.0, "barrier": 2.0}})
+	s.barrier = 7
 	effect.modify_stats(s, _session.data)
-	assert_eq(s.damage_reduction, 24.0)
-	s.damage_reduction = 50.0
+	assert_eq([s.armor, s.barrier], [24, 14])
+	s.armor = 80000
 	effect.modify_stats(s, _session.data)
-	assert_eq(s.damage_reduction, 80.0, "100 limited to the 80 of stats.json")
+	assert_eq(s.armor, 100000, "160000 limited to the 100000 of stats.json")
 
 
 func test_power_scales_max_and_min_hit() -> void:

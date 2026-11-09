@@ -193,7 +193,7 @@ func pulse_attack(me: CombatantStats) -> Dictionary:
 	pulse_ms = int(_session.data.balance_value(PULSE_KEY))
 	var v: float = _session.fractures.effect_total(FractureScaler.RISK_PULSE)
 	var damage: int = maxi(1, floori(float(me.max_hp) * v / 100.0 + 1e-9))
-	return Encounter.roll_pulse(damage, me, me.block_chance, _session.rng)
+	return Encounter.roll_pulse(damage, me, me.block_chance, _session.rng, _session.data)
 
 
 ## `get_state()["fracture"]`.

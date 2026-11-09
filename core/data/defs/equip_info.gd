@@ -10,6 +10,7 @@ var requirements: Dictionary[StringName, int] = {}
 var modifiers: Array[Modifier] = []
 var kind: StringName = &""
 var grade: int = 0
+var material: StringName = &""  # M14: &"plate" / &"leather" / &"cloth" for armour and shields, &"" otherwise
 var weapon: WeaponInfo = null
 var unique: bool = false  # M10: unique tool (04 §5); false when absent
 var upgrade_extras: Array[ToolExtra] = []  # M10: empty when absent
@@ -23,6 +24,8 @@ static func from_dict(d: Dictionary) -> EquipInfo:
 	def.requirements = r.level_map("requirements")
 	def.modifiers = r.modifiers("modifiers")
 	def.grade = r.integer("grade")
+	if r.has("material"):
+		def.material = r.id("material")
 	if r.has("kind"):
 		def.kind = r.id("kind")
 	if r.has("weapon") and r.is_dict("weapon"):

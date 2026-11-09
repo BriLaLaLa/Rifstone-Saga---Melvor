@@ -19,13 +19,11 @@
           {
             "stat": "accuracy_bonus",
             "value": 8
-          },
-          {
-            "stat": "power_bonus",
-            "value": 6
           }
         ],
         "weapon": {
+          "dmg_min": 4,
+          "dmg_max": 6,
           "style": "blade",
           "attack_interval_ms": 2400,
           "two_handed": false
@@ -47,13 +45,10 @@
         "requirements": {
           "character": 1
         },
-        "modifiers": [
-          {
-            "stat": "power_bonus",
-            "value": 14
-          }
-        ],
+        "modifiers": [],
         "weapon": {
+          "dmg_min": 6,
+          "dmg_max": 12,
           "style": "blade",
           "attack_interval_ms": 3200,
           "two_handed": true
@@ -78,7 +73,8 @@
             "stat": "evasion_bonus",
             "value": 5
           }
-        ]
+        ],
+        "material": "plate"
       }
     },
     {
@@ -95,10 +91,11 @@
         "requirements": {},
         "modifiers": [
           {
-            "stat": "damage_reduction",
+            "stat": "armor",
             "value": 2
           }
-        ]
+        ],
+        "material": "plate"
       }
     },
     {
@@ -117,10 +114,11 @@
         },
         "modifiers": [
           {
-            "stat": "damage_reduction",
+            "stat": "armor",
             "value": 4
           }
-        ]
+        ],
+        "material": "plate"
       }
     },
     {
@@ -142,13 +140,11 @@
           {
             "stat": "accuracy_bonus",
             "value": 8
-          },
-          {
-            "stat": "power_bonus",
-            "value": 6
           }
         ],
         "weapon": {
+          "dmg_min": 4,
+          "dmg_max": 6,
           "style": "blade",
           "attack_interval_ms": 2400,
           "two_handed": false
@@ -174,13 +170,11 @@
           {
             "stat": "accuracy_bonus",
             "value": 9
-          },
-          {
-            "stat": "power_bonus",
-            "value": 11
           }
         ],
         "weapon": {
+          "dmg_min": 6,
+          "dmg_max": 12,
           "style": "blade",
           "attack_interval_ms": 3200,
           "two_handed": true
@@ -208,35 +202,267 @@
             "value": 4
           },
           {
-            "stat": "damage_reduction",
+            "stat": "armor",
             "value": 1
           },
           {
             "stat": "block_chance",
             "value": 5
           }
-        ]
+        ],
+        "material": "plate"
       }
     },
-    {"id": "test_boss_sword", "name": "Spada del boss di prova", "category": "equipment",
-     "icon": "res://assets/icons/items/test_blade.png", "value": 20, "sort_order": 400,
-     "description": "Base di grado 5 per i pezzi garantiti dei boss.",
-     "equip": {"slot": "weapon", "kind": "sword", "grade": 5, "requirements": {},
-               "modifiers": [{"stat": "power_bonus", "value": 6}],
-               "weapon": {"style": "blade", "attack_interval_ms": 2400, "two_handed": false}}},
-    {"id": "test_boss_greatsword", "name": "Spadone del boss di prova", "category": "equipment",
-     "icon": "res://assets/icons/items/test_blade.png", "value": 20, "sort_order": 410,
-     "description": "Base di grado 5 per i pezzi garantiti dei boss.",
-     "equip": {"slot": "weapon", "kind": "greatsword", "grade": 5, "requirements": {},
-               "modifiers": [{"stat": "power_bonus", "value": 9}],
-               "weapon": {"style": "blade", "attack_interval_ms": 3200, "two_handed": true}}},
-    {"id": "test_boss_helm", "name": "Elmo del boss di prova", "category": "equipment",
-     "icon": "res://assets/icons/items/test_helm.png", "value": 20, "sort_order": 420,
-     "description": "Base di grado 5 per i pezzi garantiti dei boss.",
-     "equip": {"slot": "head", "grade": 5, "requirements": {}, "modifiers": [{"stat": "damage_reduction", "value": 2}]}},
-    {"id": "test_boss_helm_6", "name": "Elmo alto del boss di prova", "category": "equipment",
-     "icon": "res://assets/icons/items/test_helm_high.png", "value": 30, "sort_order": 430,
-     "description": "Base di grado 6 per i pezzi garantiti dei boss.",
-     "equip": {"slot": "head", "grade": 6, "requirements": {}, "modifiers": [{"stat": "damage_reduction", "value": 3}]}}
+    {
+      "id": "test_boss_sword",
+      "name": "Spada del boss di prova",
+      "category": "equipment",
+      "icon": "res://assets/icons/items/test_blade.png",
+      "value": 20,
+      "sort_order": 400,
+      "description": "Base di grado 5 per i pezzi garantiti dei boss.",
+      "equip": {
+        "slot": "weapon",
+        "kind": "sword",
+        "grade": 5,
+        "requirements": {},
+        "modifiers": [],
+        "weapon": {
+          "dmg_min": 13,
+          "dmg_max": 22,
+          "style": "blade",
+          "attack_interval_ms": 2400,
+          "two_handed": false
+        }
+      }
+    },
+    {
+      "id": "test_boss_greatsword",
+      "name": "Spadone del boss di prova",
+      "category": "equipment",
+      "icon": "res://assets/icons/items/test_blade.png",
+      "value": 20,
+      "sort_order": 410,
+      "description": "Base di grado 5 per i pezzi garantiti dei boss.",
+      "equip": {
+        "slot": "weapon",
+        "kind": "greatsword",
+        "grade": 5,
+        "requirements": {},
+        "modifiers": [],
+        "weapon": {
+          "dmg_min": 22,
+          "dmg_max": 44,
+          "style": "blade",
+          "attack_interval_ms": 3200,
+          "two_handed": true
+        }
+      }
+    },
+    {
+      "id": "test_boss_helm",
+      "name": "Elmo del boss di prova",
+      "category": "equipment",
+      "icon": "res://assets/icons/items/test_helm.png",
+      "value": 20,
+      "sort_order": 420,
+      "description": "Base di grado 5 per i pezzi garantiti dei boss.",
+      "equip": {
+        "slot": "head",
+        "grade": 5,
+        "requirements": {},
+        "modifiers": [
+          {
+            "stat": "armor",
+            "value": 2
+          }
+        ],
+        "material": "plate"
+      }
+    },
+    {
+      "id": "test_boss_helm_6",
+      "name": "Elmo alto del boss di prova",
+      "category": "equipment",
+      "icon": "res://assets/icons/items/test_helm_high.png",
+      "value": 30,
+      "sort_order": 430,
+      "description": "Base di grado 6 per i pezzi garantiti dei boss.",
+      "equip": {
+        "slot": "head",
+        "grade": 6,
+        "requirements": {},
+        "modifiers": [
+          {
+            "stat": "armor",
+            "value": 3
+          }
+        ],
+        "material": "plate"
+      }
+    },
+    {
+      "id": "test_sword_g1",
+      "name": "test_sword_g1",
+      "category": "equipment",
+      "icon": "res://assets/icons/items/test_blade.png",
+      "value": 20,
+      "sort_order": 500,
+      "description": "Arma di prova con i numeri di F-118.",
+      "equip": {
+        "slot": "weapon",
+        "kind": "sword",
+        "grade": 1,
+        "requirements": {},
+        "modifiers": [],
+        "weapon": {
+          "dmg_min": 4,
+          "dmg_max": 6,
+          "style": "blade",
+          "attack_interval_ms": 2000,
+          "two_handed": false
+        }
+      }
+    },
+    {
+      "id": "test_sword_g8",
+      "name": "test_sword_g8",
+      "category": "equipment",
+      "icon": "res://assets/icons/items/test_blade.png",
+      "value": 20,
+      "sort_order": 510,
+      "description": "Arma di prova con i numeri di F-118.",
+      "equip": {
+        "slot": "weapon",
+        "kind": "sword",
+        "grade": 8,
+        "requirements": {},
+        "modifiers": [],
+        "weapon": {
+          "dmg_min": 20,
+          "dmg_max": 34,
+          "style": "blade",
+          "attack_interval_ms": 2000,
+          "two_handed": false
+        }
+      }
+    },
+    {
+      "id": "test_sword_g15",
+      "name": "test_sword_g15",
+      "category": "equipment",
+      "icon": "res://assets/icons/items/test_blade.png",
+      "value": 20,
+      "sort_order": 520,
+      "description": "Arma di prova con i numeri di F-118.",
+      "equip": {
+        "slot": "weapon",
+        "kind": "sword",
+        "grade": 15,
+        "requirements": {},
+        "modifiers": [],
+        "weapon": {
+          "dmg_min": 37,
+          "dmg_max": 62,
+          "style": "blade",
+          "attack_interval_ms": 2000,
+          "two_handed": false
+        }
+      }
+    },
+    {
+      "id": "test_greatsword_g1",
+      "name": "test_greatsword_g1",
+      "category": "equipment",
+      "icon": "res://assets/icons/items/test_blade.png",
+      "value": 20,
+      "sort_order": 530,
+      "description": "Arma di prova con i numeri di F-118.",
+      "equip": {
+        "slot": "weapon",
+        "kind": "greatsword",
+        "grade": 1,
+        "requirements": {},
+        "modifiers": [],
+        "weapon": {
+          "dmg_min": 6,
+          "dmg_max": 12,
+          "style": "blade",
+          "attack_interval_ms": 3200,
+          "two_handed": true
+        }
+      }
+    },
+    {
+      "id": "test_greatsword_g8",
+      "name": "test_greatsword_g8",
+      "category": "equipment",
+      "icon": "res://assets/icons/items/test_blade.png",
+      "value": 20,
+      "sort_order": 540,
+      "description": "Arma di prova con i numeri di F-118.",
+      "equip": {
+        "slot": "weapon",
+        "kind": "greatsword",
+        "grade": 8,
+        "requirements": {},
+        "modifiers": [],
+        "weapon": {
+          "dmg_min": 34,
+          "dmg_max": 68,
+          "style": "blade",
+          "attack_interval_ms": 3200,
+          "two_handed": true
+        }
+      }
+    },
+    {
+      "id": "test_greatsword_g15",
+      "name": "test_greatsword_g15",
+      "category": "equipment",
+      "icon": "res://assets/icons/items/test_blade.png",
+      "value": 20,
+      "sort_order": 550,
+      "description": "Arma di prova con i numeri di F-118.",
+      "equip": {
+        "slot": "weapon",
+        "kind": "greatsword",
+        "grade": 15,
+        "requirements": {},
+        "modifiers": [],
+        "weapon": {
+          "dmg_min": 62,
+          "dmg_max": 124,
+          "style": "blade",
+          "attack_interval_ms": 3200,
+          "two_handed": true
+        }
+      }
+    },
+    {
+      "id": "test_plate_body_11",
+      "name": "test_plate_body_11",
+      "category": "equipment",
+      "icon": "res://assets/icons/items/test_helm.png",
+      "value": 20,
+      "sort_order": 560,
+      "description": "Pezzo di prova (Piastre, grado 11).",
+      "equip": {
+        "slot": "body",
+        "grade": 11,
+        "material": "plate",
+        "requirements": {},
+        "modifiers": [
+          {
+            "stat": "armor",
+            "value": 121
+          },
+          {
+            "stat": "evasion_bonus",
+            "value": 5
+          }
+        ]
+      }
+    }
   ]
 }

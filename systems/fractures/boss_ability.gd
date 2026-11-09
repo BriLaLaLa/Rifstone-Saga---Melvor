@@ -16,7 +16,8 @@ static func heavy_strike(boss: CombatantStats, defender: CombatantStats, ability
 		return result
 	var raw: int = floori(float(boss.max_hit) * ability.mult + EPSILON)
 	var relation: StringName = CombatMath.triangle(boss.style, defender.style, data)
-	result["damage"] = CombatMath.damage_after_dr(raw, CombatMath.effective_dr(defender.damage_reduction, relation, data))
+	var base_dr: float = defender.reduction_against(boss.style, boss.level, data)
+	result["damage"] = CombatMath.damage_after_dr(raw, CombatMath.effective_dr(base_dr, relation, data))
 	return result
 
 

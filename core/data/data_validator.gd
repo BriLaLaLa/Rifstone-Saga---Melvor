@@ -69,7 +69,7 @@ const SINGLE_FILE_SECTIONS: PackedStringArray = ["balance", "stats", "skills", "
 	"rift_stones", "hints", "loot_tables", "map_mods", "bosses"]
 const SKILL_CATEGORIES: PackedStringArray = ["gathering", "artisan"]
 const STAT_FIELDS: PackedStringArray = ["id", "name", "format", "min", "max", "description", "formula", "test"]
-const STAT_FORMULA_PATTERN: String = "^(F-[0-9]{2}|[0-9]+(\\.[0-9]+)*)$"
+const STAT_FORMULA_PATTERN: String = "^(F-[0-9]{2,3}|[0-9]+(\\.[0-9]+)*)$"
 const STAT_TEST_PATTERN: String = "^[^:]+\\.gd::[A-Za-z_][A-Za-z0-9_]*$"
 const STAT_NAME_MAX_LENGTH: int = 40
 const SKILL_FIELDS: PackedStringArray = ["id", "name", "description", "category", "order", "icon", "color",
@@ -220,6 +220,7 @@ static func _validate_balance(v: DataValidatorRules, files: Dictionary[String, D
 		DataValidatorHints.validate_balance(v, balance)
 		DataValidatorM10Balance.validate_balance(v, balance)
 		DataValidatorFracture.validate_balance(v, balance)
+		DataValidatorM14.validate_balance(v, balance)
 
 
 static func _balance_value(v: DataValidatorRules, key: String, value: Variant) -> void:
@@ -247,7 +248,7 @@ static func _unknown_balance_keys(v: DataValidatorRules, node: Dictionary, prefi
 		var path: String = str(key) if prefix.is_empty() else "%s.%s" % [prefix, key]
 		if str(key) == DataValidatorRules.DOC_KEY or path in REQUIRED_BALANCE_KEYS \
 				or path in DataValidatorM10Balance.M10_REQUIRED_KEYS or path in DataValidatorM10Balance.LEGACY_KEYS \
-				or DataValidatorFracture.is_known_key(path):
+				or DataValidatorFracture.is_known_key(path) or DataValidatorM14.is_known_key(path):
 			continue
 		var is_prefix: bool = false
 		for required: String in REQUIRED_BALANCE_KEYS:

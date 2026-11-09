@@ -83,11 +83,11 @@ func test_two_handed_is_true_only_for_greatswords() -> void:
 func test_grade_is_required_and_between_1_and_8() -> void:
 	var raw: Dictionary = V.fixture_raw()
 	_equip(raw, "equipment.json", 0).erase("grade")
-	_equip(raw, "equipment.json", 1)["grade"] = 9
+	_equip(raw, "equipment.json", 1)["grade"] = 16
 	_equip(raw, "tools.json")["grade"] = 0
 	_expect(raw, ["equipment.json", "item 'test_blade'", "missing field 'equip.grade'"])
-	_expect(raw, ["equipment.json", "item 'test_greatsword'", "field 'equip.grade' must be >= 1 and <= 8"])
-	_expect(raw, ["tools.json", "item 'unique_hatchet'", "field 'equip.grade' must be >= 1 and <= 8"])
+	_expect(raw, ["equipment.json", "item 'test_greatsword'", "field 'equip.grade' must be >= 1 and <= 15"])
+	_expect(raw, ["tools.json", "item 'unique_hatchet'", "field 'equip.grade' must be >= 1 and <= 15"])
 
 
 func test_weapon_slot_needs_the_weapon_object() -> void:

@@ -23,7 +23,7 @@ const CLOSED_FORMULAS: Array[String] = [
 	"F-02", "F-03", "F-06", "F-07", "F-08", "F-10", "F-16", "F-82", "F-83",
 	"F-20", "F-21", "F-22", "F-25", "F-26", "F-27", "F-29", "F-30", "F-31", "F-33", "F-75", "10.6",
 	"F-78", "F-79", "F-80", "F-81",
-	"F-86", "F-84", "F-87", "F-85", "F-88",
+	"F-86", "F-84", "F-87", "F-85", "F-88", "F-117",  # M14-02: Armour and Barrier
 ]
 # The stats whose effect M1 delivers: they must be covered by the closed formulas above.
 const M1_STATS: Array[StringName] = [
@@ -85,7 +85,7 @@ func test_stats_of_closed_milestones_have_their_test() -> void:
 
 
 func test_combat_stat_effects_through_player_stats() -> void:
-	# The "test" in stats.json of the 9 player stats of F-20..F-22 and F-25..F-27: each one reaches the player through
+	# The "test" in stats.json of the player stats of F-20..F-22, F-25..F-27 and F-117: each one reaches the player through
 	# the modifiers (public API: modifiers -> CombatantStats) with the value of CombatMath.
 	var data: GameData = TestFactory.real_data()
 	var session: GameSession = autofree(TestFactory.session(7, data))
@@ -100,7 +100,8 @@ func test_combat_stat_effects_through_player_stats() -> void:
 		[&"power_pct", 10.0, &"max_hit", CombatMath.max_hit(1, 0.0, 10.0, data)],
 		[&"evasion_bonus", 20.0, &"evasion", CombatMath.evasion_rating(1, 20.0, 0.0, data)],
 		[&"evasion_pct", 10.0, &"evasion", CombatMath.evasion_rating(1, 0.0, 10.0, data)],
-		[&"damage_reduction", 10.0, &"damage_reduction", 10.0],
+		[&"armor", 100.0, &"armor", 100],
+		[&"barrier", 7.0, &"barrier", 7],
 		[&"attack_interval_pct", -10.0, &"attack_interval_ms", 2160],
 		[&"max_hp_flat", 20.0, &"max_hp", 80],
 	]

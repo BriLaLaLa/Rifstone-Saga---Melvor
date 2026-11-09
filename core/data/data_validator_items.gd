@@ -21,7 +21,7 @@ const EQUIP_SLOTS: PackedStringArray = [
 const TOOL_SLOT_PREFIX: String = "tool_"
 const WEAPON_SLOT: String = "weapon"
 const OFFHAND_SLOT: String = "offhand"
-const GRADE_MAX: int = 8
+const GRADE_MAX: int = 15  # M14: 15 piece grades (F-118)
 const BAG_SLOTS_MAX: int = 100  # bag.slots 1..100 (docs/04_DATA_SCHEMA.md §5)
 const TWO_HANDED_KIND: String = "greatsword"
 const WEAPON_KINDS: PackedStringArray = ["greatsword", "sword"]  # kinds of slot weapon
@@ -112,7 +112,7 @@ static func _sub_object(v: DataValidatorRules, e: Dictionary, key: String, wante
 
 
 static func _equip(v: DataValidatorRules, equip: Dictionary, category: String) -> void:
-	v.keys(equip, ["slot", "requirements", "modifiers", "grade", "kind", "weapon", "unique", "upgrade_extras"], "equip")
+	v.keys(equip, ["slot", "requirements", "modifiers", "grade", "kind", "weapon", "unique", "upgrade_extras", "material"], "equip")
 	DataValidatorM10.tool_fields(v, equip, category)
 	var slot: String = ""
 	if v.one_of(equip, "slot", EQUIP_SLOTS, "equip"):
@@ -123,6 +123,7 @@ static func _equip(v: DataValidatorRules, equip: Dictionary, category: String) -
 	v.modifiers(equip, "modifiers", "equip")
 	v.integer(equip, "grade", 1, GRADE_MAX, "equip")
 	var kind: String = _kind(v, equip, slot)
+	DataValidatorM14.validate_material(v, equip, slot, kind)
 	if equip.has("weapon") and slot != WEAPON_SLOT:
 		v.fail("field 'equip.weapon' is allowed only with slot '%s'" % WEAPON_SLOT)
 	if slot != WEAPON_SLOT:
@@ -130,7 +131,8 @@ static func _equip(v: DataValidatorRules, equip: Dictionary, category: String) -
 	var weapon: Dictionary = v.object(equip, "weapon", "equip")
 	if not equip.get("weapon") is Dictionary:
 		return
-	v.keys(weapon, ["style", "attack_interval_ms", "two_handed"], "equip.weapon")
+	v.keys(weapon, ["style", "attack_interval_ms", "two_handed", "dmg_min", "dmg_max"], "equip.weapon")
+	DataValidatorM14.validate_weapon(v, weapon)
 	v.one_of(weapon, "style", DataValidatorRules.STYLES, "equip.weapon")
 	v.integer(weapon, "attack_interval_ms", maxf(v.min_attack_interval_ms, 1), DataValidatorRules.NO_LIMIT,
 			"equip.weapon")

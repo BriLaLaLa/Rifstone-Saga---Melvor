@@ -121,13 +121,23 @@
       "test": "tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats"
     },
     {
-      "id": "damage_reduction",
+      "id": "armor",
       "name": "Armatura",
-      "format": "pct",
+      "format": "flat",
       "min": 0,
-      "max": 80,
-      "description": "Riduce in percentuale il danno subito.",
-      "formula": "F-25",
+      "max": 100000,
+      "description": "Riduce il danno fisico subito (mostri di spada e di arco), con rendimenti decrescenti.",
+      "formula": "F-117",
+      "test": "tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats"
+    },
+    {
+      "id": "barrier",
+      "name": "Barriera",
+      "format": "flat",
+      "min": 0,
+      "max": 100000,
+      "description": "Riduce il danno arcano subito, con rendimenti decrescenti.",
+      "formula": "F-117",
       "test": "tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats"
     },
     {
