@@ -151,7 +151,7 @@ func test_engrave_then_upgrade_to_grade_five_is_a_pure_conversion_of_runes() -> 
 	_new()
 	TestFactory.set_level(_s, SKILL, 30)
 	TestFactory.give(_s, &"rune_slab", 1)
-	TestFactory.give(_s, &"boar_tusk", 3)
+	TestFactory.give(_s, &"boar_tusk", 17)
 	_cycles(&"engrave_swift_hands", 1)
 	assert_eq(_s.bank.get_count(&"inf_swift_hands"), 1, "engraved from a slab and tusks")
 	assert_eq(_s.bank.get_count(&"rune_slab"), 0)
