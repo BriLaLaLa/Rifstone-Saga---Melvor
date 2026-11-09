@@ -173,6 +173,23 @@ funzionano anche offline; pagina **Fratture**, Frattura in corso in Combattiment
 offline con riepilogo; la sim dà 15-30 minuti per Frattura nel grado giusto e ~1 Carta di grado uguale o superiore per Frattura (la scala dei gradi non si interrompe); Guida aggiornata; tutti i test verdi.
 **Task** M13-01…M13-07 (`07_TASKS.md`); tag `m13-done`. Domande Q63-Q65 (`OPEN_QUESTIONS.md`).
 
+**Misure di bilanciamento (M13-06, `tools/sim_fracture.gd`: personaggio del livello consigliato, set del grado, tratti e abilità automatici, Carta magica, 6 semi; minuti medi, vittorie, Carte di grado ≥ al grado per Frattura, pezzi, Polvere, XP/h)**
+
+| grado | livello | vittorie | minuti | Carte ≥ grado | pezzi | Polvere | XP/h |
+|---|---|---|---|---|---|---|---|
+| 1 | 45 | 6/6 | 13,9 | 1,00 | 1,5 | 25 | 16645 |
+| 2 | 50 | 6/6 | 17,5 | 0,83 | 1,5 | 39 | 20125 |
+| 3 | 56 | 6/6 | 22,6 | 0,67 | 2,0 | 35 | 25760 |
+| 4 | 70 | 6/6 | 27,3 | 0,50 | 2,7 | 54 | 57072 |
+| 5 | 76 | 6/6 | 23,5 | 0,83 | 1,3 | 59 | 48140 |
+| 6 | 82 | 3/6 | 29,3 | 0,33 | 2,0 | 38 | 48593 |
+| 7 | 88 | 5/6 | 26,5 | 0,83 | 2,3 | 71 | 68841 |
+| 8 | 94 | 4/6 | 19,1 | 0,50 | 1,2 | 75 | 72984 |
+| 9 | 99 | 5/6 | 25,5 | 0,50 | 1,7 | 93 | 59334 |
+| 10 | 99 | 4/6 | 16,4 | 0,67 | 1,5 | 94 | 114193 |
+
+Le Carte per Frattura sono mediate anche sulle sconfitte (con la sconfitta la borsa si perde): per Frattura vinta sono circa 1. Dieci livelli sotto il consigliato (`delta=-10`) il grado 1 non si vince mai (0/6), i gradi 5-7 si vincono 3-4 volte su 6, i gradi 2-4 e 8-9 quasi sempre (deviazione in Q63).
+
 ## M14+: Seconda classe, dungeon, altri boss (dopo l'MVP)
 Seconda classe con le sue armi (es. arco o bastone, con i suoi progetti e componenti del Falegname), supporti delle abilità,
 altri boss, dungeon a ondate, oggetti unici, elementi e resistenze.

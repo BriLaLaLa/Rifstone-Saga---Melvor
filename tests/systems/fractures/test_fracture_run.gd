@@ -28,7 +28,7 @@ func test_create_reads_the_total_from_the_balance() -> void:
 	assert_eq(run.return_area, &"test_area")
 	assert_true(run.bag.is_empty())
 	var real_total: int = int(TestFactory.fixture_data().balance_value("fracture.groups"))
-	assert_eq(real_total, 30, "the shared balance has 30 groups")
+	assert_eq(real_total, 16, "the shared balance has 16 groups")
 
 
 func test_next_pack_counts_the_groups_and_draws_with_pick_weighted() -> void:

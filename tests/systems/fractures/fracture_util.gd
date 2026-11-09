@@ -1,6 +1,6 @@
 class_name FractureUtil
 extends RefCounted
-## Helpers of the Fracture tests (M13-02). The fixtures share the real `balance.json` (`fracture.groups` = 30), so the tests
+## Helpers of the Fracture tests (M13-02). The fixtures share the real `balance.json` (`fracture.groups` = 16), so the tests
 ## with three groups load the fixture content with a modified copy of the configuration (written under user:// only while
 ## loading, then removed) and cache it.
 
