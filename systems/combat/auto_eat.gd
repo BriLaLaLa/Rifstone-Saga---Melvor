@@ -15,6 +15,9 @@ static func eat_one(session: GameSession, hp: int, max_hp: int) -> int:
 		return hp
 	var heal_base: int = session.data.item(food_id).food_heal
 	var heal: int = int(floor(heal_base * (1.0 + session.modifiers.total(&"food_healing_pct") / 100.0) + 1e-9))
+	# F-111 `food_heal_pct` (inside a Fracture): the heal x (1 - v/100), floor, minimum 0.
+	var cut: float = 1.0 - session.fractures.effect_total(FractureScaler.RISK_FOOD) / 100.0
+	heal = maxi(0, int(floor(float(heal) * cut + 1e-9)))
 	if not session.bank.remove(food_id, 1).ok:
 		return -1
 	var new_hp: int = mini(max_hp, hp + heal)

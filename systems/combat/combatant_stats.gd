@@ -63,7 +63,18 @@ static func for_monster(monster: MonsterDef, data: GameData) -> CombatantStats:
 	result.attack_interval_ms = CombatMath.attack_interval_ms(monster.attack_interval_ms, 0.0, data)
 	result.damage_reduction = monster.damage_reduction
 	result.max_hp = monster.hp
+	if monster is ScaledMonsterDef:  # M13: a monster of a Fracture (F-110, F-111)
+		_apply_fracture_scale(result, monster as ScaledMonsterDef, data)
 	return result
+
+
+# F-110 damage, then the F-111 risks on damage, speed (F-26 with pct = -v) and evasion.
+static func _apply_fracture_scale(stats: CombatantStats, monster: ScaledMonsterDef, data: GameData) -> void:
+	var hits: Vector2i = FractureScaler.scaled_hits(stats.min_hit, stats.max_hit, monster)
+	stats.min_hit = hits.x
+	stats.max_hit = hits.y
+	stats.attack_interval_ms = CombatMath.attack_interval_ms(monster.attack_interval_ms, -monster.risk_speed_pct, data)
+	stats.evasion = int(round(float(stats.evasion) * (1.0 + monster.risk_defence_pct / 100.0)))
 
 
 ## `modify_stats` of `stat_trade` (F-81): multiplies the derived number a stat of stats.json feeds by `factor` (0 =

@@ -16,7 +16,7 @@ static func base_xp(session: GameSession, xp: int) -> int:
 
 
 ## `area_id` is the area of the fight: its loot tables are rolled after the own drops, then those of the monster (M12, 05 §5.22).
-static func grant(session: GameSession, loot: LootBag, def: MonsterDef, area_id: StringName = &"") -> void:
+static func grant(session: GameSession, loot: LootSink, def: MonsterDef, area_id: StringName = &"") -> void:
 	session.character.add_xp(base_xp(session, def.xp))
 	var gold_pct: float = session.modifiers.total(&"gold_drop_pct")
 	var rolled: int = session.rng.randi_range(def.gold_min, def.gold_max)
@@ -31,22 +31,22 @@ static func grant(session: GameSession, loot: LootBag, def: MonsterDef, area_id:
 
 
 ## F-32 / F-84. `source` is the rarity source of `ItemRoller.drop_chances`, `ilvl` the item level of the pieces.
-static func roll_drops(session: GameSession, loot: LootBag, drops: Array[DropEntry], source: StringName, ilvl: int
+static func roll_drops(session: GameSession, loot: LootSink, drops: Array[DropEntry], source: StringName, ilvl: int
 ) -> void:
 	for drop: DropEntry in drops:
-		if not session.rng.roll_pct(drop.chance_pct):
+		var base: ItemDef = session.data.item(drop.item_id)
+		if not session.rng.roll_pct(loot.drop_chance(base, drop.chance_pct)):
 			continue
 		var qty: int = session.rng.randi_range(drop.qty_min, drop.qty_max)
-		var base: ItemDef = session.data.item(drop.item_id)
-		if base.is_map():  # M13: a Card goes to the CardStore (F-109 rarity), never to the loot bag; full Deposit = card_rejected
+		if base.is_map():  # M13: a Card never goes to the loot bag (the sink decides; a full Deposit = card_rejected)
 			for _i: int in qty:
-				session.cards.create(base.map_grade, session.cards.roll_rarity())
+				loot.drop_card(base.map_grade)
 			continue
 		if base.equip == null:
-			loot.add(drop.item_id, qty)
+			loot.add(drop.item_id, loot.drop_qty(base, qty))
 			continue
 		for _i: int in qty:
-			session.armory.add_drop(roll_piece(session, base, source, ilvl))
+			loot.add_piece(roll_piece(session, base, source, ilvl))
 
 
 ## One new piece: rarity from F-84 (with `item_rarity_pct`), affixes from F-85.
@@ -64,7 +64,7 @@ static func monster_ilvl(def: MonsterDef) -> int:
 
 ## M12: the entries of the loot tables `table_ids`, in order, each rolled like a drop (F-32): a probability roll, then a
 ## quantity roll. Tables hold no equipment, so the items go to the loot bag. No table, no roll.
-static func roll_tables(session: GameSession, loot: LootBag, table_ids: Array[StringName], source: StringName, ilvl: int
+static func roll_tables(session: GameSession, loot: LootSink, table_ids: Array[StringName], source: StringName, ilvl: int
 ) -> void:
 	for table_id: StringName in table_ids:
 		roll_drops(session, loot, session.data.loot_table(table_id).entries, source, ilvl)

@@ -18,6 +18,7 @@ var _pieces_stored: int = 0
 var _pieces_dismantled: int = 0
 var _pieces_rejected: int = 0
 var _bank_rejected: Dictionary[StringName, int] = {}
+var _fractures: Array[Dictionary] = []
 var _chunk_start_ms: int = 0
 var _combat: CombatEngine
 
@@ -82,6 +83,7 @@ func run(session: GameSession, elapsed_ms: int, capped: bool, yield_frames: bool
 	summary.pieces_dismantled = _pieces_dismantled
 	summary.pieces_rejected = _pieces_rejected
 	summary.bank_rejected = _bank_rejected.duplicate()
+	summary.fractures = _fractures.duplicate(true)
 	session.events.offline_completed.emit(summary)
 	return summary
 
@@ -93,6 +95,7 @@ func _reset() -> void:
 	_pieces_dismantled = 0
 	_pieces_rejected = 0
 	_bank_rejected = {}
+	_fractures = []
 	_chunk_start_ms = 0
 
 
@@ -110,6 +113,7 @@ func _connect(events: GameEvents) -> void:
 	events.armory_rejected.connect(_on_armory_rejected)
 	events.item_salvaged.connect(_on_item_salvaged)
 	events.bank_rejected.connect(_on_bank_rejected)
+	events.fracture_finished.connect(_on_fracture_finished)
 
 
 func _disconnect(events: GameEvents) -> void:
@@ -119,6 +123,7 @@ func _disconnect(events: GameEvents) -> void:
 	events.armory_rejected.disconnect(_on_armory_rejected)
 	events.item_salvaged.disconnect(_on_item_salvaged)
 	events.bank_rejected.disconnect(_on_bank_rejected)
+	events.fracture_finished.disconnect(_on_fracture_finished)
 
 
 func _on_action_stopped(_lane: StringName, _skill_id: StringName, reason: StringName) -> void:
@@ -147,6 +152,10 @@ func _on_armory_rejected(_base_id: StringName, qty: int) -> void:
 func _on_item_salvaged(_uid: int, _base_id: StringName, auto: bool) -> void:
 	if auto:
 		_pieces_dismantled += 1
+
+
+func _on_fracture_finished(outcome: StringName, grade: int, groups: int, cards: int, pieces: int) -> void:
+	_fractures.append({"grade": grade, "outcome": outcome, "groups": groups, "cards": cards, "pieces": pieces})
 
 
 func _on_bank_rejected(item_id: StringName, qty: int) -> void:
