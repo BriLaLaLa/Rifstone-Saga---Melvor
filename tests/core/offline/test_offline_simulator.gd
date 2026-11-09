@@ -196,7 +196,7 @@ func test_full_armory_and_full_bank_report_bank_rejected() -> void:
 	assert_gt(summary.pieces_dismantled, 0)
 	assert_eq(summary.pieces_stored, 0)
 	assert_false(summary.bank_rejected.is_empty(), "yields lost to a full bank are counted, never silent")
-	assert_eq(summary.bank_rejected.get(PLATE, 0) > 0, true)
+	# M14-05: an ordinary sword gives no plates (no blueprint); the shards of the magic pieces are what the full bank rejects
 	assert_false(summary.is_empty())
 
 

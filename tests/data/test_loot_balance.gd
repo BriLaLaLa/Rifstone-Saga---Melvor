@@ -7,6 +7,7 @@ const SUCCESS: Array[int] = [95, 90, 85, 75, 65, 55, 45, 35, 25]
 const GOLD: Array[int] = [50, 100, 200, 400, 800, 1600, 3200, 6400, 12800]
 const INGOTS: Array[int] = [1, 1, 2, 2, 3, 3, 4, 4, 5]
 const SHARDS: Array[int] = [0, 0, 0, 0, 0, 5, 10, 15, 20]
+const DUST: Array[int] = [0, 0, 0, 0, 10, 20, 30, 40, 50]  # M14 (F-86, Q71)
 const INGOT_ITEMS: Array[String] = ["emberbronze_ingot", "ashlead_ingot", "stormzinc_ingot", "duskcobalt_ingot",
 	"glimmerite_ingot", "palecinnabar_ingot", "emberheart_ingot", "riftite_ingot"]
 
@@ -19,11 +20,12 @@ func test_upgrade_table() -> void:
 	assert_eq(levels.size(), 9, "+0 -> +9")
 	for n: int in levels.size():
 		var row: Dictionary = levels[n]
-		assert_eq(row.size(), 4, "row %d has only the four fields" % n)
+		assert_eq(row.size(), 5, "row %d has only the five fields (M14: dust)" % n)
 		assert_eq(int(row["success_pct"]), SUCCESS[n])
 		assert_eq(int(row["gold_per_grade"]), GOLD[n])
 		assert_eq(int(row["ingots"]), INGOTS[n])
 		assert_eq(int(row["shards"]), SHARDS[n])
+		assert_eq(int(row["dust"]), DUST[n])
 
 
 func test_upgrade_scalars() -> void:
@@ -41,4 +43,5 @@ func test_salvage_values() -> void:
 	assert_eq(float(salvage["component_ratio"]), 0.4)
 	var shards: Dictionary = salvage["shards_by_rarity"]
 	assert_eq([int(shards["common"]), int(shards["magic"]), int(shards["rare"])], [0, 1, 3])
+	assert_eq([int(shards["masterwork"]), int(shards["legendary"])], [3, 3], "M14: the default of Q-Alpha")
 	assert_eq(salvage.size(), 2, "no other key")

@@ -61,7 +61,6 @@ func test_a_masterwork_needs_the_new_form_with_two_rare_components() -> void:
 	var raw: Dictionary = _raw()
 	var bp: Dictionary = _blueprint(raw)
 	bp.erase("rare_components")
-	bp["rare_component"] = {"item": "test_log", "qty": 1}
 	_expect(raw, ["item 'bp_mw_chest'", "needs them (F-119)"])
 	var one: Dictionary = _raw()
 	_blueprint(one)["rare_components"] = [{"item": "test_log", "qty": 1}]
@@ -80,10 +79,10 @@ func test_the_two_rare_components_are_different_materials() -> void:
 	_expect(not_a_material, ["item 'bp_mw_chest'", "'test_blade' must be a material"])
 
 
-func test_both_forms_together_are_rejected() -> void:
+func test_the_legacy_single_rare_component_is_rejected() -> void:
 	var raw: Dictionary = _raw()
 	_blueprint(raw)["rare_component"] = {"item": "test_log", "qty": 1}
-	_expect(raw, ["item 'bp_mw_chest'", "cannot be given together"])
+	_expect(raw, ["item 'bp_mw_chest'", "unknown field 'blueprint.rare_component'"])
 
 
 func test_only_plates_have_a_blueprint() -> void:
@@ -99,16 +98,15 @@ func test_a_masterwork_without_its_blueprint_is_rejected() -> void:
 	_expect(raw, ["item 'mw_chest'", "no blueprint crafts it"])
 
 
-func test_the_legacy_blueprint_form_is_still_accepted_for_an_ordinary_base() -> void:
+func test_the_legacy_blueprint_form_is_rejected_for_an_ordinary_base() -> void:
 	var raw: Dictionary = V.fixture_raw()
 	raw["items"][BLUEPRINTS_PATH] = {"items": [{"id": "bp_old", "name": "Progetto", "category": "blueprint", "value": 0,
 		"sort_order": 1, "icon": "res://assets/icons/items/bp_test_blade.png", "description": "Prova.",
 		"blueprint": {"base": "test_blade", "grade": 1, "inputs": [{"item": "test_plank", "qty": 5}],
 			"rare_component": {"item": "test_log", "qty": 1}}}]}
-	assert_eq(V.validate(raw), PackedStringArray(), "TRANSITIONAL until M14-05")
-	var def: ItemDef = ItemDef.from_dict(((raw["items"][BLUEPRINTS_PATH] as Dictionary)["items"] as Array)[0] as Dictionary)
-	assert_eq(def.blueprint.rare_components.size(), 1)
-	assert_eq(def.blueprint.rare_component.item_id, &"test_log")
+	var errors: PackedStringArray = V.validate(raw)
+	assert_gt(errors.size(), 0, "M14-05 removed the transitional rule")
+	assert_true(" ".join(errors).contains("unknown field 'blueprint.rare_component'"), str(errors))
 
 
 # --- balance.json --------------------------------------------------------------------------------------------------

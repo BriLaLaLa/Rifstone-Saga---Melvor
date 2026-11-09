@@ -5,6 +5,7 @@ extends RefCounted
 ## The content is copied once per run to user:// (below PreRun.test_dir) and loaded from there.
 
 const PreRun := preload("res://tests/helpers/gut_pre_run.gd")
+const M10Base := preload("res://tests/data/m10_base.gd")
 const M10_ROOT: String = "res://tests/fixtures/data/m10"
 const M10_CONFIG: String = "res://tests/fixtures/data/m10/config"
 const LEVELS: Array[int] = [1, 10, 20, 30, 45, 60, 75, 90]
@@ -23,9 +24,19 @@ static func data() -> GameData:
 			map_file.store_string(FileAccess.get_file_as_string("res://tests/fixtures/data".path_join(file_name)))
 			map_file.close()
 		_add_smelting(root.path_join("actions/forging.json"))
+		_upgrade_blueprints(root.path_join("items/blueprints.json"))
 		_data = GameData.load_from_dirs(root, M10_CONFIG)
 		assert(_data.is_valid(), "blueprint test data is not valid: %s" % ["\n".join(_data.errors)])
 	return _data
+
+
+## M14-05: the M10 snapshot has the single `rare_component`, no longer accepted: rewritten as two rare components.
+static func _upgrade_blueprints(path: String) -> void:
+	var raw: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(path))
+	M10Base.upgrade_blueprints(raw)
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	file.store_string(JSON.stringify(raw))
+	file.close()
 
 
 static func _add_smelting(path: String) -> void:

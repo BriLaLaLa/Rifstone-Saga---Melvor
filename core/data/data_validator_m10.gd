@@ -8,7 +8,7 @@ extends RefCounted
 ## entries and tools do not drop. The keys of balance.json that reference M10 items are required (DataValidatorM10Balance).
 
 const TOOL_STEPS: int = 9  # refinement steps +1..+9 (F-94)
-const BLUEPRINT_FIELDS: PackedStringArray = ["base", "grade", "inputs", "rare_component", "rare_components"]
+const BLUEPRINT_FIELDS: PackedStringArray = ["base", "grade", "inputs", "rare_components"]
 const BLUEPRINT_INPUT_CATEGORIES: PackedStringArray = ["component", "material"]
 const NO_BLUEPRINT_SLOTS: PackedStringArray = ["ring", "neck"]
 const TOOL_SLOTS: PackedStringArray = ["tool_forestry", "tool_quarrying", "tool_angling"]
@@ -53,8 +53,6 @@ static func blueprint(v: DataValidatorRules, e: Dictionary) -> void:
 			v.fail("field '%s.item': '%s' must be a component or a material" % [prefix, inputs[index]["item"]])
 	if bp.has("rare_components"):  # M14 (F-119): `blueprint.extra_rare` different rare materials
 		_rare_components(v, bp)
-	elif bp.get("rare_component") is Dictionary:  # TRANSITIONAL (until M14-05): the old form
-		_rare_item(v, bp["rare_component"] as Dictionary, "blueprint.rare_component")
 	else:
 		v.object(bp, "rare_components", "blueprint")
 
@@ -94,8 +92,6 @@ static func _rare_components(v: DataValidatorRules, bp: Dictionary) -> void:
 			if seen.has(list[index]["item"] as String):
 				v.fail("field 'blueprint.rare_components[%d].item': '%s' is repeated" % [index, list[index]["item"]])
 			seen[list[index]["item"] as String] = true
-	if bp.has("rare_component"):
-		v.fail("field 'blueprint.rare_component' cannot be given together with 'rare_components'")
 
 
 static func _rare_item(v: DataValidatorRules, rare: Dictionary, prefix: String) -> void:

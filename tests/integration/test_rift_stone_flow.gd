@@ -34,6 +34,15 @@ func _data(certain_drops: bool = true) -> GameData:
 	if certain_drops:
 		for entry: DropEntry in data.rift_stone(STONE).drops:
 			entry.chance_pct = 100.0
+		# M14-05: the stone has no pieces or blueprints in the data any more (the pool of F-121 replaces them); this copy adds
+		# them so that the delivery rules (pieces to the Armory with the stone rarity, blueprints to the bag) stay tested.
+		for item_id: StringName in [&"emberbronze_ring", &"emberbronze_amulet", &"bp_mw_hands_2"]:
+			var extra := DropEntry.new()
+			extra.item_id = item_id
+			extra.chance_pct = 100.0
+			extra.qty_min = 1
+			extra.qty_max = 1
+			data.rift_stone(STONE).drops.append(extra)
 	return data
 
 
@@ -119,7 +128,7 @@ func test_killing_the_stone_pays_xp_shards_and_the_stone_drops() -> void:
 		assert_eq(inst.upgrade, 0)
 	bases.sort_custom(func(a: StringName, b: StringName) -> bool: return String(a) < String(b))  # StringName < is not alphabetical
 	assert_eq(bases, [&"emberbronze_amulet", &"emberbronze_ring"] as Array[StringName], "one of each, once")
-	var blueprints: int = int(bag.get(&"bp_ashlead_gauntlets", 0)) + s.bank.get_count(&"bp_ashlead_gauntlets")
+	var blueprints: int = int(bag.get(&"bp_mw_hands_2", 0)) + s.bank.get_count(&"bp_mw_hands_2")
 	assert_eq(blueprints, 1, "the blueprint of the stone reaches the loot bag or the bank, never the Armory")
 	assert_eq(s.combat.state(), CombatEngine.STATE_BETWEEN, "then the usual wait before the next group")
 

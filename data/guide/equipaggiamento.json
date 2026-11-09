@@ -1,0 +1,27 @@
+{
+  "pages": [
+    {"id": "guide_equipment", "section": "loot", "title": "Armi e armature", "order": 9,
+     "blocks": [
+       {"type": "text", "text": "Ogni arma ha un danno minimo e uno massimo e una velocità d'attacco propria: la spada è rapida e di danno medio, lo spadone è lento e colpisce forte. La scheda dell'arma mostra anche il danno al secondo."},
+       {"type": "text", "text": "Elmo, corpo, gambe, piedi, mani e scudo esistono in tre materiali. Le Piastre danno molta {stat:armor} e nessuna {stat:barrier}. Il Cuoio dà {stat:armor} media, molta Schivata e un po' di {stat:barrier}. Il Tessuto runico dà poca {stat:armor} e molta {stat:barrier}."},
+       {"type": "text", "text": "L'{stat:armor} riduce il danno fisico dei mostri a lama e a distanza; la {stat:barrier} riduce il danno arcano. Più ne hai, meno rende ogni punto, e c'è un tetto. Contro un'area di mostri arcani conviene la {stat:barrier}."},
+       {"type": "text", "text": "I pezzi hanno quindici gradi, con un livello richiesto sempre più alto. Anelli e colli non hanno materiale."}
+     ]},
+    {"id": "guide_masterwork_legendary", "section": "loot", "title": "Capolavori e leggendari", "order": 10,
+     "blocks": [
+       {"type": "text", "text": "Un Capolavoro è un pezzo con un nome proprio, più forte di ogni altro pezzo del suo grado, con pochi affissi e due castoni. Si ottiene solo forgiando un progetto dalla pagina {link:skill:forging|Fabbro}, e solo in Piastre."},
+       {"type": "text", "text": "Un leggendario non ha affissi: ha statistiche fisse e un effetto che cambia una regola del combattimento o della raccolta. Si può raffinare e incastonare come gli altri pezzi, ma il filtro dell'Armeria non lo smantella mai."},
+       {"type": "text", "text": "Se il Deposito è pieno quando ne cade uno, il leggendario si perde: libera spazio prima di sfidare un boss. Gli attrezzi leggendari prendono il posto dell'attrezzo unico, che resta nell'Armeria."}
+     ]},
+    {"id": "guide_discovery", "section": "first_steps", "title": "Scoperte", "order": 20,
+     "blocks": [
+       {"type": "text", "text": "La Guida si riempie mentre giochi. Un oggetto che non hai ancora ottenuto compare come casella bloccata; la prima volta che lo ottieni, per qualsiasi via, si sblocca per sempre."},
+       {"type": "text", "text": "La pagina di un oggetto scoperto dice da dove viene e con quale probabilità. La pagina di un mostro, di un'area o di un Monolito mostra tutto ciò che può dare, in caselle bloccate fino alla scoperta."}
+     ]},
+    {"id": "guide_mastery_step", "section": "crafts", "title": "Bonus di maestria", "order": 20,
+     "blocks": [
+       {"type": "text", "text": "Ogni azione con maestria dà bonus permanenti a intervalli regolari di livelli di maestria. Nella raccolta migliorano {stat:skill_interval_pct} e {stat:double_item_chance}; nell'artigianato {stat:preservation_chance} e {stat:skill_interval_pct}."},
+       {"type": "text", "text": "La carta dell'azione mostra il livello di maestria, i bonus attuali e il prossimo. I bonus si sommano ai traguardi del livello venticinque, cinquanta e novantanove."}
+     ]}
+  ]
+}

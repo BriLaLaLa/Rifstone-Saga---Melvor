@@ -18,11 +18,13 @@ const GATHERING_TIERS: Array[Array] = [
 	[1, 3000, 10, 1, 1], [10, 3200, 18, 1, 3], [20, 3500, 28, 1, 6], [30, 3800, 40, 1, 10],
 	[45, 4200, 58, 1, 18], [60, 4600, 80, 1, 30], [75, 5000, 108, 1, 50], [90, 5500, 145, 1, 85],
 ]
-## Armor rows: [suffix, ingots, slot, evasion per grade, damage reduction kind (0 none, 1 n, 2 ceil(n/2))].
+## Armor rows (M14, F-118): [suffix, ingots, slot, weight of the slot in the set budget].
 const ARMOR_PIECES: Array[Array] = [
-	["cuirass", 5, "body", 6, 1], ["greaves", 4, "legs", 4, 2], ["helm", 3, "head", 3, 2],
-	["boots", 2, "feet", 2, 0], ["gauntlets", 2, "hands", 2, 0],
+	["cuirass", 5, "body", 0.30], ["greaves", 4, "legs", 0.20], ["helm", 3, "head", 0.15],
+	["boots", 2, "feet", 0.10], ["gauntlets", 2, "hands", 0.10],
 ]
+## Character levels of the grades 1-8 (F-118).
+const GRADE_LEVELS: Array[int] = [1, 5, 10, 15, 20, 25, 30, 35]
 ## Tools: [suffix, skill, slot].
 const TOOL_PIECES: Array[Array] = [
 	["hatchet", "forestry", "tool_forestry"], ["pick", "quarrying", "tool_quarrying"],
@@ -31,7 +33,7 @@ const TOOL_PIECES: Array[Array] = [
 ## Weapons: [suffix, kind, interval, two handed, accuracy per grade, power per grade, ingots,
 ## recipe interval, value per ore value].
 const WEAPONS: Array[Array] = [
-	["sword", "sword", 2400, false, 8, 6, 3, 3000, 12], ["greatsword", "greatsword", 3200, true, 9, 11, 5, 3500, 20],
+	["sword", "sword", 2000, false, 4, 0, 3, 3000, 12], ["greatsword", "greatsword", 3200, true, 5, 0, 5, 3500, 20],
 ]
 ## 02_FORMULAS.md §8.9: [id, stat, slots, [[min, max] x4], weight].
 const AFFIXES: Array[Array] = [
@@ -43,7 +45,8 @@ const AFFIXES: Array[Array] = [
 	["nimble", "evasion_bonus", ["head", "body", "legs", "feet", "hands", "offhand"],
 			[[2, 4], [5, 8], [9, 14], [15, 22]], 10],
 	["evasive", "evasion_pct", ["legs", "feet"], [[1, 2], [3, 4], [5, 6], [7, 9]], 6],
-	["warded", "damage_reduction", ["head", "body", "legs", "offhand"], [[1, 1], [1, 2], [2, 3], [3, 4]], 6],
+	["warded", "armor", ["head", "body", "legs", "feet", "hands", "offhand"], [[4, 8], [10, 18], [20, 32], [35, 55]], 6],
+	["runeward", "barrier", ["head", "body", "legs", "feet", "hands", "offhand"], [[4, 8], [10, 18], [20, 32], [35, 55]], 4],
 	["hale", "max_hp_flat", ["head", "body", "legs", "feet", "neck", "ring", "offhand"],
 			[[5, 10], [11, 20], [21, 35], [36, 55]], 10],
 	["hearty", "food_healing_pct", ["head", "body", "neck"], [[2, 4], [5, 8], [9, 12], [13, 18]], 4],
@@ -206,41 +209,37 @@ func _mods_of(item: Dictionary) -> Dictionary:
 
 
 func test_weapons_follow_8_4() -> void:
-	pending("M14-05: the real equipment and affix data follow the new table of 02_FORMULAS.md §8.4 and §8.9")
-	return
 	var items: Dictionary = _by_id("items", "items")
-	for n: int in range(1, 9):
-		var level: float = float(GATHERING_TIERS[n - 1][0])
+	for n: int in range(1, 9):  # the old ids keep the grades 1-8 (tools/gen_equipment.gd)
 		for wp: Array in WEAPONS:
 			var id: String = "%s_%s" % [METALS[n - 1], wp[0]]
 			var e: Dictionary = items[id]["equip"] as Dictionary
+			var dmg_max: int = (6 + 4 * (n - 1)) if wp[1] == "sword" else (12 + 8 * (n - 1))
 			assert_eq(items[id]["category"], "equipment", id)
 			assert_eq(e["slot"], "weapon", id)
 			assert_eq(e["kind"], wp[1], "%s kind" % id)
 			assert_eq(e["grade"], float(n), "%s grade" % id)
-			assert_eq(e["requirements"], {"character": level}, "%s requirements" % id)
-			assert_eq(_mods_of(items[id]), {"accuracy_bonus": float(wp[4] * n), "power_bonus": float(wp[5] * n)},
-					"%s modifiers" % id)
-			assert_eq(e["weapon"], {"style": "blade", "attack_interval_ms": float(wp[2]), "two_handed": wp[3]},
-					"%s weapon" % id)
+			assert_eq(e["requirements"], {"character": float(GRADE_LEVELS[n - 1])}, "%s requirements" % id)
+			assert_eq(_mods_of(items[id]), {"accuracy_bonus": float(wp[4] * n)}, "%s modifiers" % id)
+			assert_eq(e["weapon"], {"dmg_min": float(roundi((0.6 if wp[1] == "sword" else 0.5) * dmg_max)), "dmg_max": float(dmg_max),
+					"style": "blade", "attack_interval_ms": float(wp[2]), "two_handed": wp[3]}, "%s weapon" % id)
 
 
 func test_armor_and_shields_follow_8_4() -> void:
-	pending("M14-05: the real equipment and affix data follow the new table of 02_FORMULAS.md §8.4 and §8.9")
-	return
 	var items: Dictionary = _by_id("items", "items")
 	for n: int in range(1, 9):
-		var level: float = float(GATHERING_TIERS[n - 1][0])
+		var level: int = GRADE_LEVELS[n - 1]
+		var set_armor: float = 4.0 + 8.0 * level
+		var set_evasion: float = roundf(2.0 + 1.5 * level)
 		for p: Array in ARMOR_PIECES:
 			var id: String = "%s_%s" % [METALS[n - 1], p[0]]
-			var want: Dictionary = {"evasion_bonus": float(p[3] * n)}
-			if p[4] == 1:
-				want["damage_reduction"] = float(n)
-			elif p[4] == 2:
-				want["damage_reduction"] = float(ceili(n / 2.0))
+			var want: Dictionary = {"armor": roundf(set_armor * p[3])}
+			if roundf(set_evasion * p[3] * 0.2) > 0.0:
+				want["evasion_bonus"] = roundf(set_evasion * p[3] * 0.2)
 			assert_eq(items[id]["equip"]["slot"], p[2], "%s slot" % id)
 			assert_eq(items[id]["equip"]["grade"], float(n), "%s grade" % id)
-			assert_eq(items[id]["equip"]["requirements"], {"character": level}, "%s requirements" % id)
+			assert_eq(items[id]["equip"]["material"], "plate", "%s material" % id)
+			assert_eq(items[id]["equip"]["requirements"], {"character": float(level)}, "%s requirements" % id)
 			assert_eq(_mods_of(items[id]), want, "%s modifiers" % id)
 			assert_false((items[id]["equip"] as Dictionary).has("weapon"), "%s weapon" % id)
 			assert_false((items[id]["equip"] as Dictionary).has("kind"), "%s kind" % id)
@@ -248,20 +247,21 @@ func test_armor_and_shields_follow_8_4() -> void:
 		assert_eq(items[shield]["equip"]["slot"], "offhand", shield)
 		assert_eq(items[shield]["equip"]["kind"], "shield", shield)
 		assert_eq(items[shield]["equip"]["grade"], float(n), "%s grade" % shield)
-		assert_eq(items[shield]["equip"]["requirements"], {"character": level}, "%s requirements" % shield)
-		assert_eq(_mods_of(items[shield]), {"evasion_bonus": float(4 * n), "damage_reduction": float(n),
-				"block_chance": float(5 + floori(10.0 * (n - 1) / 7.0))}, "%s modifiers" % shield)
+		assert_eq(items[shield]["equip"]["requirements"], {"character": float(level)}, "%s requirements" % shield)
+		var shield_want: Dictionary = {"armor": roundf(set_armor * 0.15), "block_chance": float(5 + floori(10.0 * (n - 1) / 14.0))}
+		if roundf(set_evasion * 0.15 * 0.2) > 0.0:
+			shield_want["evasion_bonus"] = roundf(set_evasion * 0.15 * 0.2)
+		assert_eq(_mods_of(items[shield]), shield_want, "%s modifiers" % shield)
 
 
 func test_full_t8_set_with_shield_follows_the_8_4_example() -> void:
-	pending("M14-05: the real equipment and affix data follow the new table of 02_FORMULAS.md §8.4 and §8.9")
-	return
+	# the Plate set of the grade 8 (level 35, A_set 284) with the shield gives about the whole budget (rounding of 6 pieces)
 	var items: Dictionary = _by_id("items", "items")
-	var reduction: float = 0.0
+	var armor: float = 0.0
 	for suffix: String in ["cuirass", "greaves", "helm", "boots", "gauntlets", "shield"]:
-		reduction += _mods_of(items["riftite_" + suffix]).get("damage_reduction", 0.0)
-	assert_eq(reduction, 24.0)
-	assert_eq(_mods_of(items["riftite_shield"])["block_chance"], 15.0)
+		armor += _mods_of(items["riftite_" + suffix]).get("armor", 0.0)
+	assert_almost_eq(armor, 284.0, 3.0)
+	assert_eq(_mods_of(items["riftite_shield"])["block_chance"], 10.0)
 
 
 func test_unique_tools_follow_8_4_and_f94() -> void:
@@ -323,8 +323,6 @@ func test_rift_blade_class_has_the_four_setups() -> void:
 
 
 func test_affixes_follow_8_9() -> void:
-	pending("M14-05: the real equipment and affix data follow the new table of 02_FORMULAS.md §8.4 and §8.9")
-	return
 	var affixes: Dictionary = _by_id("affixes", "affixes")
 	assert_eq(affixes.size(), AFFIXES.size())
 	for row: Array in AFFIXES:

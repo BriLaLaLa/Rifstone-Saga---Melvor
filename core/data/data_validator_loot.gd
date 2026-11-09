@@ -4,7 +4,7 @@ extends RefCounted
 ## (docs/04_DATA_SCHEMA.md §16): `upgrade` (F-86) and `salvage` (F-95). A missing or mistyped key is already
 ## reported by the required-key checks of DataValidator, so these rules skip what is not the right type.
 
-const LEVEL_FIELDS: PackedStringArray = ["success_pct", "gold_per_grade", "ingots", "shards"]
+const LEVEL_FIELDS: PackedStringArray = ["success_pct", "gold_per_grade", "ingots", "shards", "dust"]  # M14: dust from +5 (F-86, Q71)
 const RARITIES: PackedStringArray = ["common", "magic", "rare", "masterwork", "legendary"]  # M14: five rarities
 # Format limits (not design values).
 const UPGRADE_LEVELS_MAX: int = 9  # Q28: raffinazione fino a +9
@@ -70,6 +70,8 @@ static func _upgrade(v: DataValidatorRules, upgrade: Dictionary) -> void:
 		v.number(levels[i], "success_pct", 0.0, 100.0, prefix, true)
 		for field: String in ["gold_per_grade", "ingots", "shards"]:
 			v.integer(levels[i], field, 0.0, DataValidatorRules.NO_LIMIT, prefix)
+		if levels[i].has("dust"):  # optional: the fixtures of earlier milestones have none
+			v.integer(levels[i], "dust", 0.0, DataValidatorRules.NO_LIMIT, prefix)
 	if DataValidatorRules.is_number(upgrade.get("downgrade_from")):
 		v.integer(upgrade, "downgrade_from", 1.0, float(maxi(levels.size(), 1)), "upgrade")
 	if DataValidatorRules.is_number(upgrade.get("mod_pct_per_level")):

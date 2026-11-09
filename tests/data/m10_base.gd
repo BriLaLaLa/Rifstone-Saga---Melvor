@@ -26,6 +26,8 @@ static func m10_raw() -> Dictionary:
 	raw["map_mods"] = _read([main.path_join(GameData.CONTENT_FILES["map_mods"])], errors)
 	raw["bosses"] = _read([main.path_join(GameData.CONTENT_FILES["bosses"])], errors)
 	(raw["items"] as Dictionary)[main.path_join("items/maps.json")] = JsonLoader.load_file(main.path_join("items/maps.json"), errors)
+	for path: Variant in raw["items"] as Dictionary:
+		upgrade_blueprints((raw["items"] as Dictionary)[path] as Dictionary)
 	assert(errors.is_empty(), "M10 fixture files must load: %s" % [errors])
 	return raw
 
@@ -35,11 +37,29 @@ static func m10_raw() -> Dictionary:
 static func load_m10() -> GameData:
 	var root: String = PreRun.test_dir("m10_base")
 	_copy_tree(M10_ROOT, root)
+	var bp_path: String = root.path_join("items/blueprints.json")
+	var bp_file: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(bp_path)) as Dictionary
+	upgrade_blueprints(bp_file)
+	var bp_out := FileAccess.open(bp_path, FileAccess.WRITE)
+	bp_out.store_string(JSON.stringify(bp_file))
+	bp_out.close()
 	for file_name: String in ["maps/map_mods.json", "maps/bosses.json", "items/maps.json"]:
 		var out := FileAccess.open(root.path_join(file_name), FileAccess.WRITE)
 		out.store_string(FileAccess.get_file_as_string("res://tests/fixtures/data".path_join(file_name)))
 		out.close()
 	return GameData.load_from_dirs(root, M10_CONFIG)
+
+
+## M14-05: the M10 snapshot has blueprints with the single `rare_component` of M10; the rule that accepted it is gone, so
+## they are rewritten here (to two different rare components, Q68) as the fixture files are read-only.
+static func upgrade_blueprints(file: Dictionary) -> void:
+	for e: Variant in file.get("items", []) as Array:
+		var bp: Variant = (e as Dictionary).get("blueprint")
+		if bp is Dictionary and (bp as Dictionary).has("rare_component"):
+			var first: Dictionary = (bp as Dictionary)["rare_component"] as Dictionary
+			var second: String = "test_plank" if first["item"] != "test_plank" else "test_log"
+			(bp as Dictionary).erase("rare_component")
+			(bp as Dictionary)["rare_components"] = [first, {"item": second, "qty": 1}]
 
 
 static func _copy_tree(from: String, to: String) -> void:

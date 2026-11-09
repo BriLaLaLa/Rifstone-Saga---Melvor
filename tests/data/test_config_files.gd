@@ -133,8 +133,8 @@ const EXPECTED_BALANCE: Dictionary = {
 	"rarity.masterwork.affix_count.0": 1.0,
 	"rarity.masterwork.affix_count.1": 2.0,
 	"rarity.legendary.base_mult": 1.4,  # M14 (F-120)
-	"rarity.drop.magic_pct": 20.0,
-	"rarity.drop.rare_pct": 3.0,
+	"rarity.drop.magic_pct": 25.0,  # M14 (F-121)
+	"rarity.drop.rare_pct": 5.0,
 	"rarity.rift_stone.magic_pct": 40.0,
 	"rarity.rift_stone.rare_pct": 12.0,
 	"rift_stone.chance_pct": 0.5,
@@ -227,9 +227,10 @@ func _flatten_without_loot(out: Dictionary) -> void:
 	_flatten(_load_dict(BALANCE_PATH), "", out)
 	for key: String in out.keys():
 		if key.begins_with("upgrade.") or key.begins_with("salvage.") or key.begins_with("tool_upgrade.") \
-				or key.begins_with("fracture.") or key.begins_with("equipment.") or key.begins_with("combat.armor."):
+				or key.begins_with("fracture.") or key.begins_with("equipment.") or key.begins_with("combat.armor.") \
+				or key.begins_with("loot."):
 			# fracture.* is covered by tests/core/data/test_map_data_validation.gd, equipment.* and combat.armor.* (M14) by
-			# tests/systems/combat/test_armor_math.gd and tests/core/data/test_weapon_validation.gd
+			# tests/systems/combat/test_armor_math.gd and tests/core/data/test_weapon_validation.gd, loot.* (M14-05) by tests/data/test_loot_data.gd
 			out.erase(key)
 
 

@@ -221,11 +221,11 @@ func test_instance_modifiers_upgrade_multiplier() -> void:
 
 func test_drop_rarity() -> void:
 	var a: Vector2 = ItemRoller.drop_chances(&"monster", 0.0, _data)
-	assert_almost_eq(a.x, 20.0, 0.001)
-	assert_almost_eq(a.y, 3.0, 0.001)
+	assert_almost_eq(a.x, 25.0, 0.001)  # M14: rarity.drop 25 and 5 (F-121)
+	assert_almost_eq(a.y, 5.0, 0.001)
 	var b: Vector2 = ItemRoller.drop_chances(&"monster", 50.0, _data)  # F-84 example
-	assert_almost_eq(b.x, 30.0, 0.001)
-	assert_almost_eq(b.y, 4.5, 0.001)
+	assert_almost_eq(b.x, 37.5, 0.001)
+	assert_almost_eq(b.y, 7.5, 0.001)
 	var c: Vector2 = ItemRoller.drop_chances(&"rift_stone", 0.0, _data)
 	assert_almost_eq(c.x, 40.0, 0.001)
 	assert_almost_eq(c.y, 12.0, 0.001)

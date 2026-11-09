@@ -110,14 +110,14 @@ func test_blueprint_input_quantity_is_positive() -> void:
 
 func test_blueprint_needs_a_rare_component() -> void:
 	var raw: Dictionary = m10_raw()
-	_bp(raw).erase("rare_component")
-	expect_error(raw, [BLUEPRINTS, "item 'bp_test_blade'", "missing field 'blueprint.rare_components'"])  # M14: the new name (transitional: the old one is still accepted)
+	_bp(raw).erase("rare_components")
+	expect_error(raw, [BLUEPRINTS, "item 'bp_test_blade'", "missing field 'blueprint.rare_components'"]) 
 
 
 func test_rare_component_is_a_material() -> void:
 	var raw: Dictionary = m10_raw()
-	_bp(raw)["rare_component"] = {"item": "test_plate_1", "qty": 1}
-	expect_error(raw, [BLUEPRINTS, "item 'bp_test_blade'", "blueprint.rare_component.item': 'test_plate_1' must be a material"])
+	(_bp(raw)["rare_components"] as Array)[0] = {"item": "test_plate_1", "qty": 1}
+	expect_error(raw, [BLUEPRINTS, "item 'bp_test_blade'", "blueprint.rare_components[0].item': 'test_plate_1' must be a material"])
 
 
 func test_blueprint_is_not_sellable() -> void:
@@ -174,8 +174,9 @@ func test_blueprint_def_fields() -> void:
 	assert_eq(def.blueprint.inputs.size(), 2)
 	assert_eq(def.blueprint.inputs[0].item_id, &"test_plate_1")
 	assert_eq(def.blueprint.inputs[0].qty, 10)
-	assert_eq(def.blueprint.rare_component.item_id, &"test_log")
-	assert_eq(def.blueprint.rare_component.qty, 2)
+	assert_eq(def.blueprint.rare_components[0].item_id, &"test_log")
+	assert_eq(def.blueprint.rare_components[0].qty, 2)
+	assert_eq(def.blueprint.rare_components[1].item_id, &"test_plank")
 	assert_eq(def.value, 0)
 
 
@@ -189,5 +190,5 @@ func test_component_def() -> void:
 
 
 func test_blueprint_def_from_dict_errors() -> void:
-	assert_null(BlueprintInfo.from_dict({"base": "x", "grade": 1, "inputs": [], "rare_component": {"item": "a"}}))
+	assert_null(BlueprintInfo.from_dict({"base": "x", "grade": 1, "inputs": [], "rare_components": [{"item": "a"}]}))
 	assert_push_error(1)

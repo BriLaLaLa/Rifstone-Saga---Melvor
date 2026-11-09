@@ -9,7 +9,10 @@ const ITEM_FIELDS: PackedStringArray = ["id", "name", "description", "category",
 const ITEM_ICON_DIR: String = "res://assets/icons/items/"
 ## Item file name (without `.json`) -> the category of its items.
 const ITEM_FILE_CATEGORIES: Dictionary[String, String] = {
-	"materials": "material", "components": "component", "blueprints": "blueprint", "equipment": "equipment", "tools": "tool", "food": "food", "infusions": "infusion",
+	"materials": "material", "components": "component", "blueprints": "blueprint", "equipment": "equipment",
+	"equipment_weapons": "equipment", "equipment_jewels": "equipment", "equipment_plate": "equipment",
+	"equipment_leather": "equipment", "equipment_cloth": "equipment", "equipment_masterwork": "equipment",
+	"equipment_legendary": "equipment", "tools": "tool", "tools_legendary": "tool", "food": "food", "infusions": "infusion",
 	"misc": "misc", "stones": "stone", "currencies": "currency", "bags": "bag", "contracts": "contract", "maps": "map",
 }
 const CURRENCY_EFFECTS: PackedStringArray = ["to_magic", "to_rare", "reroll"]

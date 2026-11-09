@@ -189,6 +189,7 @@ func _give_all() -> void:
 	TestFactory.give(_session, PLATE, 5)
 	TestFactory.give(_session, HANDLE, 1)
 	TestFactory.give(_session, RARE, 1)
+	TestFactory.give(_session, &"test_plank", 1)  # M14-05: the second rare component of the M10 snapshot
 
 
 func _press(path: String) -> void:

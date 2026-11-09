@@ -9,6 +9,7 @@ const BP_HIGH: StringName = &"bp_test_helm_high"
 const PLATE: StringName = &"test_plate_1"
 const HANDLE: StringName = &"test_handle_1"
 const RARE: StringName = &"test_log"
+const RARE2: StringName = &"test_plank"  # M14-05: the second rare component the M10 snapshot gets (tests/data/m10_base.gd)
 const FORGING: StringName = &"forging"
 const MIN_MS: int = 60000
 
@@ -46,9 +47,10 @@ func test_required_level_is_the_level_of_the_grade() -> void:
 
 func test_inputs_are_the_materials_and_the_rare_component() -> void:
 	var list: Array[ItemQty] = BlueprintCraft.inputs(_session.data.item(BP))
-	assert_eq(list.size(), 3)
+	assert_eq(list.size(), 4)
 	assert_eq([list[0].item_id, list[0].qty], [PLATE, 5])
 	assert_eq([list[2].item_id, list[2].qty], [RARE, 1])
+	assert_eq([list[3].item_id, list[3].qty], [RARE2, 1])
 
 
 func test_can_start_refusals_in_order() -> void:
@@ -92,7 +94,7 @@ func test_start_consumes_everything_and_emits_action_started() -> void:
 	_give_all()
 	_watch()
 	assert_true(_session.actions.start_blueprint(BP).ok)
-	for item_id: StringName in [BP, PLATE, HANDLE, RARE]:
+	for item_id: StringName in [BP, PLATE, HANDLE, RARE, RARE2]:
 		assert_eq(_session.bank.get_count(item_id), 0, String(item_id))
 	assert_true(_session.actions.is_running())
 	assert_true(_log.has("started main forging blueprint_craft"))
@@ -118,6 +120,7 @@ func test_stop_gives_everything_back() -> void:
 	assert_eq(_session.bank.get_count(PLATE), 5)
 	assert_eq(_session.bank.get_count(HANDLE), 1)
 	assert_eq(_session.bank.get_count(RARE), 1)
+	assert_eq(_session.bank.get_count(RARE2), 1)
 	assert_eq(_new_pieces().size(), 0)
 	assert_eq(_session.actions.blueprint_state(), {})
 	assert_eq(_session.actions.stop_reasons_log(), [Reasons.STOPPED_BY_USER] as Array[StringName])
@@ -267,6 +270,7 @@ func _give_materials() -> void:
 	TestFactory.give(_session, PLATE, 5)
 	TestFactory.give(_session, HANDLE, 1)
 	TestFactory.give(_session, RARE, 1)
+	TestFactory.give(_session, RARE2, 1)
 
 
 func _give_all() -> void:
