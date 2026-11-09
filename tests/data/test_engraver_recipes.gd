@@ -48,7 +48,7 @@ func test_real_crystallize_fuse_and_engrave_recipes() -> void:
 	var engrave: ActionDef = data.action(&"engrave_stoneskin")
 	assert_eq([engrave.level, engrave.xp, engrave.interval_ms], [45, 200, 5000])
 	assert_eq([engrave.inputs[0].item_id, engrave.inputs[0].qty, engrave.inputs[1].item_id, engrave.inputs[1].qty, engrave.outputs[0].item_id],
-			[&"rune_slab", 1, &"troll_moss", 3, &"inf_stoneskin"])
+			[&"rune_slab", 1, &"troll_moss", 8, &"inf_stoneskin"])
 
 
 func test_real_upgrade_recipes_follow_f106() -> void:
