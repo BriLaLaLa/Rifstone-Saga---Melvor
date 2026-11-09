@@ -327,3 +327,7 @@ Non verificato: foto di layout e prove manuali. Nessun cambio di formule o di bi
 | M9-06 | M9 | Feedback visivo e carta dei suggerimenti | UI | DONE | merge 873886f | nota N9 |
 | M9-07 | M9 | Regressione, prestazioni, foto della UI | QA | DONE | merge da61e20, ritaratura d9559bc | nota N10 |
 | M9-08 | M9 | Rilascio dell'MVP | REV | DONE | tag m9-mvp, m9-done (locali); preset export, checklist | tag m9-mvp, m9-done |
+
+## M14 UI (branch task/m14-ui, commit 3ffd30e)
+- **M14-06 e parti UI di M14-07/08/09 DONE**: barra XP in Combattimento, "Altri nemici", etichette del triangolo, `ShopTexts`, `SubTabBar`/`SkillTabs` (Incisore: Lastre/Fondere/Cristalli/Rune; Fabbro: Lingotti/Piastre/Progetti/Banco), Riordina (`Bank.sort`, `Armory.sort` + `ArmorySort`), scheda arma (danno min-max, velocita, DPS) e armatura (riduzione %), leggendari (effetto e fonte se scoperto), `RarityColors` (viola/arancione), refine con Polvere e `Upgrade.material_grade`, alias `blueprint_rare_chance` tolto; `LockedCell`, Guida con caselle bloccate/ricerca filtrata/`drops_view`, toast "Nuovo: ..." (gate: Game.state playing), `MasteryStepRow`, etichetta `mastery_step:`, `CardRow` compatta con rischio/tetto. Test tests/ui 471 verdi, systems/items-bank-armory verdi.
+- **Non verificato a schermo** (headless, nessuno strumento foto): layout 1600x900 e 1280x720. Deviazioni: barra XP riusa `XpBar` (non `PlayerXpBar`); `LockedCell` ha `setup(data)`.
