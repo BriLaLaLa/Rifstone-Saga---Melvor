@@ -57,13 +57,19 @@ static func cost(level: int, grade: int, data: GameData) -> Dictionary:
 static func check(inst: ItemInstance, use_seal: bool, wallet: Wallet, bank: Bank, data: GameData) -> CommandResult:
 	if inst.upgrade >= max_level(data):
 		return CommandResult.fail(Reasons.UPGRADE_MAX)
-	var price: Dictionary = cost(inst.upgrade, data.item(inst.base_id).equip.grade, data)
+	var price: Dictionary = cost(inst.upgrade, material_grade(inst, data), data)
 	if wallet.get_gold() < int(price["gold"]):
 		return CommandResult.fail(Reasons.NOT_ENOUGH_GOLD)
 	if not bank.has(price["ingot"], int(price["ingots"])) or not bank.has(SHARD_ITEM, int(price["shards"])) \
 			or (seal_needed(inst, use_seal, data) and not bank.has(seal_item(data), 1)):
 		return CommandResult.fail(Reasons.NOT_ENOUGH_ITEMS)
 	return CommandResult.success()
+
+
+
+## F-86 (M14): the grade of the cost is the grade of the material of the piece (1..8), not the piece grade (1..15).
+static func material_grade(inst: ItemInstance, data: GameData) -> int:
+	return data.material_grade(data.item(inst.base_id).equip.grade)
 
 
 ## True when the Seal is consumed by a failure: asked for and the step can lose a level.
@@ -73,7 +79,7 @@ static func seal_needed(inst: ItemInstance, use_seal: bool, data: GameData) -> b
 
 ## Spends the cost of the step of `inst` (gold, ingots, shards); the checks have passed.
 static func pay(inst: ItemInstance, wallet: Wallet, bank: Bank, data: GameData) -> void:
-	var price: Dictionary = cost(inst.upgrade, data.item(inst.base_id).equip.grade, data)
+	var price: Dictionary = cost(inst.upgrade, material_grade(inst, data), data)
 	if int(price["gold"]) > 0:
 		wallet.spend(int(price["gold"]))
 	spend(bank, price["ingot"], int(price["ingots"]))

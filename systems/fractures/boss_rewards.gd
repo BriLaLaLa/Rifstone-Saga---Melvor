@@ -26,6 +26,8 @@ static func grant(session: GameSession, sink: LootSink, run: FractureRun, boss: 
 	var def: BossDef = boss if boss is BossDef else run.boss_def(data)
 	var dust: int = session.rng.randi_range(def.dust_min, def.dust_max)
 	sink.add(DUST_ITEM, dust_qty(dust, FractureScaler.total(run.effects, FractureScaler.REWARD_DUST)))
+	for piece: ItemInstance in LegendaryRoller.drops(LegendaryInfo.SOURCE_BOSS, def.id, data, session.rng):
+		sink.add_piece(piece)  # F-120: with the bag of the Fracture; lost with it on a defeat
 
 
 ## F-115: `dust x (1 + dust_pct / 100)`, rounded.
@@ -37,7 +39,7 @@ static func dust_qty(dust: int, dust_pct: float) -> int:
 static func piece_bases(class_def: ClassDef, grade: int, data: GameData) -> Array[ItemDef]:
 	var result: Array[ItemDef] = []
 	for def: ItemDef in data.items():
-		if def.category != &"equipment" or def.equip == null or def.equip.grade != grade:
+		if def.category != &"equipment" or def.equip == null or def.equip.grade != grade or not data.is_equipment_pool_base(def.id):
 			continue
 		if def.equip.slot == &"weapon" and (class_def == null or not class_def.weapon_kinds.has(def.equip.kind)):
 			continue

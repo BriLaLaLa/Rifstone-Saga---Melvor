@@ -250,8 +250,7 @@ func _add_blueprint_uses(blueprint: ItemDef) -> void:
 	var info: BlueprintInfo = blueprint.blueprint
 	var label: String = _item_name(info.base_id)
 	var inputs: Array[ItemQty] = info.inputs.duplicate()
-	if info.rare_component != null:
-		inputs.append(info.rare_component)
+	inputs.append_array(info.rare_components)  # M14: two rare components (one in the old blueprints)
 	for input: ItemQty in inputs:
 		_add(_uses, input.item_id, GuideRef.make(GuideRef.KIND_BLUEPRINT, entry(&"item", blueprint.id),
 				blueprint.name))

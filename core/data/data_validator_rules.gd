@@ -36,6 +36,8 @@ var merge_ratio: int = 0  # engraver.merge_ratio (M12), when valid
 var upgrade_ratio: int = 0  # rune.upgrade_ratio (M12), when valid
 var grade_mult: Array[float] = []  # rune.grade_mult (M12), when valid
 var min_attack_interval_ms: float = 0.0
+var grade_material: Array[int] = []  # equipment.grade_material (M14), when valid: material grade of each piece grade
+var extra_rare: int = 2  # blueprint.extra_rare (M14): how many different rare components a blueprint asks for
 
 var _file: String = ""
 var _where: String = ""

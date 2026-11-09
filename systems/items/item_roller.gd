@@ -11,12 +11,18 @@ const TOOL_SLOT_PREFIX: String = "tool_"
 const EPSILON: float = 0.000001
 
 
-## F-91 (M10): rare chance in percent (0..100) of a blueprint piece; it is never common.
-static func blueprint_rare_chance(forging_level: int, rarity_pct: float, data: GameData) -> float:
+## F-91 (M14): chance in percent (0..100) that a blueprint piece (always a Masterwork) has the maximum number of
+## affixes (2) instead of the minimum (1): `min(100, (rare_base_pct + rare_per_forging_level x L) x k)`.
+static func blueprint_two_affix_chance(forging_level: int, rarity_pct: float, data: GameData) -> float:
 	var k: float = 1.0 + rarity_pct / 100.0
 	var base: float = float(data.balance_value("blueprint.rare_base_pct"))
 	var per_level: float = float(data.balance_value("blueprint.rare_per_forging_level"))
 	return minf((base + per_level * forging_level) * k, 100.0)
+
+
+## Same value as `blueprint_two_affix_chance` (the name of M10; the UI of the Forging page still calls it).
+static func blueprint_rare_chance(forging_level: int, rarity_pct: float, data: GameData) -> float:
+	return blueprint_two_affix_chance(forging_level, rarity_pct, data)
 
 
 ## F-84: x = magic %, y = rare %. `source` is `&"monster"` (rarity.drop) or `&"rift_stone"` (rarity.rift_stone); an
@@ -54,13 +60,13 @@ static func extend_affixes(
 	base: ItemDef, rarity: StringName, ilvl: int, existing: Array[AffixRoll], data: GameData, rng: RngService
 ) -> Array[AffixRoll]:
 	var result: Array[AffixRoll] = existing.duplicate()
-	if base.equip == null or rarity == &"common":
+	if base.equip == null or rarity == Rarities.COMMON or rarity == Rarities.LEGENDARY:
 		return result
-	var range_raw: Variant = data.balance_value("rarity.affix_count.%s" % rarity)
-	if not range_raw is Array or (range_raw as Array).size() != 2:
+	var span: Vector2i = Rarities.affix_range(rarity, data)
+	if span == Vector2i.ZERO:
 		Log.error(LOG_CATEGORY, "no affix count for rarity '%s'" % rarity)
 		return result
-	var count: int = rng.randi_range(int(range_raw[0]), int(range_raw[1]))
+	var count: int = rng.randi_range(span.x, span.y)
 	_roll_more(base, ilvl, result, count - existing.size(), data, rng)
 	return result
 
@@ -104,21 +110,21 @@ static func chosen_affix_candidates(base: ItemDef, ilvl: int, data: GameData) ->
 	return result
 
 
-## F-91/F-92 (M10): new instance (uid 0) of the base of blueprint `bp`, never common, `ilvl` = level of the grade.
-## `chosen_affix` &"" = no choice. Draws on `rng`: rarity, affix count, value of the chosen affix, then the others.
+## F-91/F-92 (M14): new instance (uid 0) of the base of blueprint `bp`: always a Masterwork (F-119), `ilvl` = level of the
+## grade of the piece (`equipment.grade_levels`). `chosen_affix` &"" = no choice. Draws on `rng`: the number of affixes (one
+## randf against `blueprint_two_affix_chance`: 2 affixes or 1), the value of the chosen affix, then the others.
 ## The caller checked the choice (Forging level, allowed by the slot); an invalid one is logged and ignored.
 static func create_from_blueprint(
 	bp: ItemDef, forging_level: int, rarity_pct: float, chosen_affix: StringName, data: GameData, rng: RngService
 ) -> ItemInstance:
 	var base: ItemDef = data.item(bp.blueprint.base_id)
-	var ilvl: int = BlueprintCraft.grade_level(bp.blueprint.grade, data)
+	var ilvl: int = data.grade_level(base.equip.grade)
 	var inst := ItemInstance.new()
 	inst.base_id = base.id
 	inst.ilvl = ilvl
-	var p_rare: float = blueprint_rare_chance(forging_level, rarity_pct, data)
-	inst.rarity = &"rare" if rng.randf() * 100.0 < p_rare else &"magic"
-	var range_raw: Variant = data.balance_value("rarity.affix_count.%s" % inst.rarity)
-	var count: int = rng.randi_range(int(range_raw[0]), int(range_raw[1]))
+	inst.rarity = Rarities.MASTERWORK
+	var span: Vector2i = Rarities.affix_range(Rarities.MASTERWORK, data)
+	var count: int = span.y if rng.randf() * 100.0 < blueprint_two_affix_chance(forging_level, rarity_pct, data) else span.x
 	var picked: AffixDef = null
 	for def: AffixDef in chosen_affix_candidates(base, ilvl, data):
 		if def.id == chosen_affix:
@@ -133,13 +139,16 @@ static func create_from_blueprint(
 	return inst
 
 
-## New instance (uid 0). The rarity is given (rolled by the caller with `roll_rarity`).
+## New instance (uid 0). The rarity is given (rolled by the caller with `roll_rarity`); a Masterwork or legendary base
+## imposes its own and `rarity` is ignored (04 §21).
 static func create(
 	base: ItemDef, rarity: StringName, ilvl: int, data: GameData, rng: RngService
 ) -> ItemInstance:
 	var inst := ItemInstance.new()
 	inst.base_id = base.id
-	inst.rarity = rarity
+	var imposed: StringName = Rarities.of_base(base)
+	inst.rarity = imposed if imposed != &"" else rarity
+	rarity = inst.rarity
 	inst.ilvl = ilvl
 	inst.affixes = roll_affixes(base, rarity, ilvl, data, rng)
 	return inst
@@ -155,9 +164,11 @@ static func instance_modifiers(inst: ItemInstance, data: GameData) -> Array[Modi
 		return result
 	if base.equip.unique:
 		return ToolUpgrade.modifiers(base, inst.upgrade, data)  # F-94 instead of F-86; no affixes, no sockets
-	var factor: float = 1.0
+	if base.equip.is_legendary_tool():  # F-120: fixed modifiers, no multiplier, no refinement
+		return _tool_modifiers(base, inst, data)
+	var factor: float = Rarities.base_mult(inst.rarity, data)  # F-119/F-120, before the refinement (F-86)
 	if inst.upgrade > 0:
-		factor += float(data.balance_value("upgrade.mod_pct_per_level")) * inst.upgrade / 100.0
+		factor *= 1.0 + float(data.balance_value("upgrade.mod_pct_per_level")) * inst.upgrade / 100.0
 	for m: Modifier in base.equip.modifiers:
 		result.append(m.scaled(factor))
 	var slot: StringName = base.equip.slot
@@ -170,6 +181,15 @@ static func instance_modifiers(inst: ItemInstance, data: GameData) -> Array[Modi
 		var def: AffixDef = data.affix(roll.affix_id)
 		if def != null:
 			result.append(Modifier.make(def.stat, roll.value, scope_kind, scope_id))
+	for stone_id: StringName in Sockets.active(inst, data):
+		if data.has_item(stone_id):
+			result.append_array(data.item(stone_id).stone_modifiers)
+	return result
+
+
+# A legendary tool: its modifiers as authored (the scope is in the data) and the stones of its sockets.
+static func _tool_modifiers(base: ItemDef, inst: ItemInstance, data: GameData) -> Array[Modifier]:
+	var result: Array[Modifier] = base.equip.modifiers.duplicate()
 	for stone_id: StringName in Sockets.active(inst, data):
 		if data.has_item(stone_id):
 			result.append_array(data.item(stone_id).stone_modifiers)

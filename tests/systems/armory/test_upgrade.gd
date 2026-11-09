@@ -4,7 +4,8 @@ extends GutTest
 ## `upgrade.seal_item` is a generic existing item (SEAL), so the tests do not depend on the real `warding_seal`.
 
 const SWORD_T1: StringName = &"emberbronze_sword"
-const SWORD_T4: StringName = &"duskcobalt_sword"
+## M14 (F-86): the cost follows the grade of the MATERIAL: the real sword of piece grade 8 (until M14-05 re-grades the data) is of material 4.
+const SWORD_T4: StringName = &"riftite_sword"
 const INGOT_T1: StringName = &"emberbronze_ingot"
 const INGOT_T4: StringName = &"duskcobalt_ingot"
 const SEAL: StringName = &"redbirch_log"
@@ -100,7 +101,7 @@ func test_failed_level_downgrades_from_four() -> void:
 
 
 func test_cost_t4_sword_plus5() -> void:
-	var cost: Dictionary = Upgrade.cost(5, _data.item(SWORD_T4).equip.grade, _data)
+	var cost: Dictionary = Upgrade.cost(5, _data.material_grade(_data.item(SWORD_T4).equip.grade), _data)
 	assert_eq(int(cost["gold"]), 6400)
 	assert_eq(cost["ingot"], INGOT_T4)
 	assert_eq(int(cost["ingots"]), 3)

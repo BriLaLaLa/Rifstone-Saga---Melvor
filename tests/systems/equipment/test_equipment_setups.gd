@@ -105,11 +105,11 @@ func test_modifier_sources_follow_slots() -> void:
 	_session.equipment.equip(helm)
 	_session.equipment.equip(blade)
 	assert_true(_session.modifiers.has_source(&"equipment:head"))
-	assert_eq(_session.modifiers.total(&"damage_reduction"), 2.0)
-	assert_eq(_session.modifiers.total(&"power_bonus"), 6.0)
+	assert_eq(_session.modifiers.total(&"armor"), 2.0)
+	assert_eq(_session.modifiers.total(&"accuracy_bonus"), 8.0)
 	_session.equipment.unequip(&"head")
 	assert_false(_session.modifiers.has_source(&"equipment:head"))
-	assert_eq(_session.modifiers.total(&"damage_reduction"), 0.0)
+	assert_eq(_session.modifiers.total(&"armor"), 0.0)
 
 
 func test_swap_rebuilds_the_modifiers_once() -> void:

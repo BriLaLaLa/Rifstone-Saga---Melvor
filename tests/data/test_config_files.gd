@@ -123,10 +123,16 @@ const EXPECTED_BALANCE: Dictionary = {
 	"blueprint.rare_per_forging_level": 0.5,
 	"blueprint.choose_affix_level": 50.0,
 	"blueprint.chosen_affix_tier": 2.0,
+	"blueprint.cost_mult": 3.0,  # M14 (F-119)
+	"blueprint.extra_rare": 2.0,
 	"rarity.affix_count.magic.0": 1.0,
 	"rarity.affix_count.magic.1": 2.0,
 	"rarity.affix_count.rare.0": 3.0,
 	"rarity.affix_count.rare.1": 4.0,
+	"rarity.masterwork.base_mult": 1.25,  # M14 (F-119, F-91)
+	"rarity.masterwork.affix_count.0": 1.0,
+	"rarity.masterwork.affix_count.1": 2.0,
+	"rarity.legendary.base_mult": 1.4,  # M14 (F-120)
 	"rarity.drop.magic_pct": 20.0,
 	"rarity.drop.rare_pct": 3.0,
 	"rarity.rift_stone.magic_pct": 40.0,
@@ -141,6 +147,8 @@ const EXPECTED_BALANCE: Dictionary = {
 	"sockets.by_rarity.common": 0.0,
 	"sockets.by_rarity.magic": 1.0,
 	"sockets.by_rarity.rare": 2.0,
+	"sockets.by_rarity.masterwork": 2.0,  # M14 (F-89)
+	"sockets.by_rarity.legendary": 2.0,
 	"sockets.bonus_at_upgrade": 7.0,
 	"offline.cap_ms": 43200000.0,
 	"offline.min_ms": 60000.0,

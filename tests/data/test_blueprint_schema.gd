@@ -111,7 +111,7 @@ func test_blueprint_input_quantity_is_positive() -> void:
 func test_blueprint_needs_a_rare_component() -> void:
 	var raw: Dictionary = m10_raw()
 	_bp(raw).erase("rare_component")
-	expect_error(raw, [BLUEPRINTS, "item 'bp_test_blade'", "missing field 'blueprint.rare_component'"])
+	expect_error(raw, [BLUEPRINTS, "item 'bp_test_blade'", "missing field 'blueprint.rare_components'"])  # M14: the new name (transitional: the old one is still accepted)
 
 
 func test_rare_component_is_a_material() -> void:
@@ -146,7 +146,8 @@ func test_blueprints_are_sorted_by_grade_then_sort_order() -> void:
 	var ids: Array[StringName] = []
 	for def: ItemDef in data.blueprints():
 		ids.append(def.id)
-	assert_eq(ids, [&"bp_test_blade", &"bp_test_greatsword", &"bp_test_helm_high"] as Array[StringName])
+	assert_eq(ids, [&"bp_test_blade", &"bp_test_greatsword", &"bp_test_helm_high", &"bp_mw_test_sword_8",
+			&"bp_mw_test_chest_11"] as Array[StringName])
 
 
 func test_blueprint_for_base() -> void:

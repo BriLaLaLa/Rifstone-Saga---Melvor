@@ -25,12 +25,12 @@ func _six_pack_data() -> GameData:
 	return data
 
 
-func _session(power: float, hp: float, dr: float) -> GameSession:
+func _session(power: float, hp: float, armor: float, evasion: float) -> GameSession:
 	var s: GameSession = autofree(TestFactory.session(SEED, _six_pack_data()))
 	TestFactory.set_character_level(s, 65)
 	assert_true(s.equipment.equip(TestFactory.give_piece(s, SWORD)).ok)
 	s.modifiers.set_source(HERO, [Modifier.make(&"power_bonus", power), Modifier.make(&"max_hp_flat", hp),
-			Modifier.make(&"damage_reduction", dr), Modifier.make(&"evasion_bonus", dr * 1000.0)])
+			Modifier.make(&"armor", armor), Modifier.make(&"barrier", armor), Modifier.make(&"evasion_bonus", evasion)])
 	TestFactory.make_roomy(s)
 	return s
 
@@ -49,7 +49,7 @@ func _measure(s: GameSession, label: String) -> Dictionary:
 
 
 func test_twelve_hours_with_groups_of_six_never_dying_under_ten_seconds() -> void:
-	var r: Dictionary = await _measure(_session(100000.0, 100000.0, 80.0), "overpowered")
+	var r: Dictionary = await _measure(_session(100000.0, 100000.0, 100000.0, 80000.0), "overpowered")
 	assert_gt(r["kills"], 1000, "a real workload: thousands of monsters")
 	assert_eq(r["summary"].deaths, 0)
 	assert_eq(r["summary"].elapsed_ms, CAP_MS)
@@ -57,5 +57,5 @@ func test_twelve_hours_with_groups_of_six_never_dying_under_ten_seconds() -> voi
 
 
 func test_twelve_hours_with_groups_of_six_dying_early_under_ten_seconds() -> void:
-	var r: Dictionary = await _measure(_session(300.0, 3000.0, 30.0), "moderate hero")
+	var r: Dictionary = await _measure(_session(300.0, 3000.0, 150.0, 30000.0), "moderate hero")
 	assert_lt(r["ms"], LIMIT_MS, "12 h of groups of 6 in < 10 s")

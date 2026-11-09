@@ -3,7 +3,7 @@ extends RefCounted
 ## A unique piece (equipment or tool) with rarity, affixes and refinement (docs/05_INTERFACES.md §5.17).
 ## `uid` is 0 until the Armory assigns it.
 
-const RARITIES: Array[StringName] = [&"common", &"magic", &"rare"]
+const RARITIES: Array[StringName] = Rarities.ORDER  # M14: five rarities (common, magic, rare, masterwork, legendary)
 const LOG_CATEGORY: String = "items"
 
 var uid: int = 0
@@ -63,6 +63,9 @@ static func from_dict(d: Dictionary, data: GameData) -> ItemInstance:
 	if not rarity_raw is String or not RARITIES.has(StringName(rarity_raw)):
 		return _reject("invalid rarity '%s'" % [rarity_raw])
 	inst.rarity = StringName(rarity_raw)
+	var imposed: StringName = Rarities.of_base(base)
+	if imposed != &"" and inst.rarity != imposed:
+		return _reject("base '%s' is always %s, not %s" % [inst.base_id, imposed, inst.rarity])
 	if inst.upgrade < 0 or inst.ilvl < 1:
 		return _reject("invalid ilvl/upgrade in %s" % [d])
 	var affixes_raw: Variant = d.get("affixes")

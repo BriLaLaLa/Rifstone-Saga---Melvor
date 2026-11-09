@@ -1,0 +1,24 @@
+{
+  "_doc": "M14 test content: legendary tools (F-120), merged into items/tools.json by tests/helpers/m14_data.gd.",
+  "items": [
+    {"id": "fx_leg_hatchet", "name": "Accetta leggendaria di prova", "category": "tool", "icon": "res://assets/icons/items/unique_hatchet.svg",
+     "value": 10, "sort_order": 910, "description": "Leggendario di prova: gather_bonus_item.",
+     "equip": {"slot": "tool_forestry", "grade": 1, "requirements": {"forestry": 1},
+               "modifiers": [{"stat": "skill_interval_pct", "value": -26, "scope": "skill:forestry"},
+                             {"stat": "double_item_chance", "value": 3, "scope": "skill:forestry"}],
+               "legendary": {"source": {"type": "boss", "id": "boss_grade_5", "chance_pct": 100},
+                             "effects": [{"type": "gather_bonus_item", "items": ["test_resin"], "pct": 100}]}}},
+    {"id": "fx_leg_rod", "name": "Canna leggendaria di prova", "category": "tool", "icon": "res://assets/icons/items/unique_rod.svg",
+     "value": 10, "sort_order": 920, "description": "Leggendario di prova: gather_grade_up_pct.",
+     "equip": {"slot": "tool_angling", "grade": 1, "requirements": {"angling": 1},
+               "modifiers": [{"stat": "skill_interval_pct", "value": -28, "scope": "skill:angling"}],
+               "legendary": {"source": {"type": "monolith", "id": "test_stone", "chance_pct": 100},
+                             "effects": [{"type": "gather_grade_up_pct", "pct": 100}]}}},
+    {"id": "fx_leg_pick", "name": "Piccone leggendario di prova", "category": "tool", "icon": "res://assets/icons/items/unique_pick.svg",
+     "value": 10, "sort_order": 930, "description": "Leggendario di prova: byproduct_mult.",
+     "equip": {"slot": "tool_quarrying", "grade": 1, "requirements": {"quarrying": 20},
+               "modifiers": [{"stat": "skill_interval_pct", "value": -30, "scope": "skill:quarrying"}],
+               "legendary": {"source": {"type": "monolith", "id": "test_stone", "chance_pct": 100},
+                             "effects": [{"type": "byproduct_mult", "mult": 3}]}}}
+  ]
+}

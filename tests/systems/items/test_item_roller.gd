@@ -29,24 +29,29 @@ func test_roll_rarity() -> void:
 	assert_eq(ItemRoller.roll_rarity(chances, _FixedRng.new(0.50)), &"common")
 
 
-## F-91: p_rare = min(100, (10 + 0.5 L) x k), k = 1 + item_rarity_pct / 100.
-func test_blueprint_rarity() -> void:
-	assert_almost_eq(ItemRoller.blueprint_rare_chance(1, 0.0, _data), 10.5, 0.0001)
-	assert_almost_eq(ItemRoller.blueprint_rare_chance(50, 0.0, _data), 35.0, 0.0001)
-	assert_almost_eq(ItemRoller.blueprint_rare_chance(50, 20.0, _data), 42.0, 0.0001)
-	assert_almost_eq(ItemRoller.blueprint_rare_chance(99, 0.0, _data), 59.5, 0.0001)
-	assert_almost_eq(ItemRoller.blueprint_rare_chance(99, 100.0, _data), 100.0, 0.0001)
-	# p_rare 35: r 20 -> rare, r 50 -> magic; never common even with r 99.9
+## F-91 (M14): p_two = min(100, (10 + 0.5 L) x k), k = 1 + item_rarity_pct / 100; the piece is always a Masterwork.
+func test_masterwork_affix_count() -> void:
+	assert_almost_eq(ItemRoller.blueprint_two_affix_chance(1, 0.0, _data), 10.5, 0.0001)
+	assert_almost_eq(ItemRoller.blueprint_two_affix_chance(50, 0.0, _data), 35.0, 0.0001)
+	assert_almost_eq(ItemRoller.blueprint_two_affix_chance(50, 20.0, _data), 42.0, 0.0001)
+	assert_almost_eq(ItemRoller.blueprint_two_affix_chance(99, 0.0, _data), 59.5, 0.0001)
+	assert_almost_eq(ItemRoller.blueprint_two_affix_chance(99, 100.0, _data), 100.0, 0.0001)
+	assert_almost_eq(ItemRoller.blueprint_rare_chance(50, 0.0, _data), 35.0, 0.0001, "the name of M10 still answers")
+	# p_two 35: r 20 -> 2 affixes, r 50 -> 1 affix, r 99.9 -> 1 affix; the rarity is always masterwork
 	var bp: ItemDef = _blueprint(1)
 	var bp_data: GameData = BlueprintData.data()
-	assert_eq(ItemRoller.create_from_blueprint(bp, 50, 0.0, &"", bp_data, _FixedRng.new(0.20)).rarity, &"rare")
-	assert_eq(ItemRoller.create_from_blueprint(bp, 50, 0.0, &"", bp_data, _FixedRng.new(0.50)).rarity, &"magic")
-	assert_eq(ItemRoller.create_from_blueprint(bp, 50, 0.0, &"", bp_data, _FixedRng.new(0.999)).rarity, &"magic")
+	var two: ItemInstance = ItemRoller.create_from_blueprint(bp, 50, 0.0, &"", bp_data, _FixedRng.new(0.20))
+	assert_eq(two.rarity, &"masterwork")
+	assert_eq(two.affixes.size(), 2)
+	var one: ItemInstance = ItemRoller.create_from_blueprint(bp, 50, 0.0, &"", bp_data, _FixedRng.new(0.50))
+	assert_eq(one.rarity, &"masterwork")
+	assert_eq(one.affixes.size(), 1)
+	assert_eq(ItemRoller.create_from_blueprint(bp, 50, 0.0, &"", bp_data, _FixedRng.new(0.999)).affixes.size(), 1)
 	var inst: ItemInstance = ItemRoller.create_from_blueprint(bp, 50, 0.0, &"", bp_data, RngService.new(5))
 	assert_eq(inst.uid, 0)
 	assert_eq(inst.base_id, &"test_blade")
 	assert_eq(inst.ilvl, 1)
-	assert_gt(inst.affixes.size(), 0)
+	assert_between(inst.affixes.size(), 1, 2)
 
 
 ## F-92: the chosen affix comes first at a fixed grade min(2, unlocked), counts in the affix number.
@@ -59,15 +64,15 @@ func test_chosen_affix() -> void:
 		ids.append(def.id)
 	assert_eq(ids, [&"test_keen", &"test_mighty"] as Array[StringName])
 	assert_eq(ItemRoller.chosen_affix_candidates(bp_data.item(&"test_helm"), 1, bp_data).size(), 2)
-	var grade3: ItemDef = _blueprint(3)  # grade 3 = level 20 = ilvl 20
+	var grade5: ItemDef = _blueprint(3, &"test_blade_5")  # piece grade 5 = level 20 = ilvl 20 (the material grade is 3)
 	for seed_value: int in 30:
-		var inst: ItemInstance = ItemRoller.create_from_blueprint(grade3, 60, 0.0, &"test_keen", bp_data,
+		var inst: ItemInstance = ItemRoller.create_from_blueprint(grade5, 60, 0.0, &"test_keen", bp_data,
 				RngService.new(seed_value))
 		assert_eq(inst.ilvl, 20)
 		assert_eq(inst.affixes[0].affix_id, &"test_keen")
 		assert_eq(inst.affixes[0].tier, 2)
 		assert_between(inst.affixes[0].value, 7.0, 12.0)
-		assert_between(inst.affixes.size(), 1, 2 if inst.rarity == &"magic" else 4)
+		assert_between(inst.affixes.size(), 1, 2)
 		var seen: Array[StringName] = []
 		for roll: AffixRoll in inst.affixes:
 			assert_false(seen.has(roll.affix_id), "no duplicate of the chosen affix")
@@ -79,33 +84,31 @@ func test_chosen_affix() -> void:
 	assert_between(low.affixes[0].value, 3.0, 6.0)
 
 
-## Order of the draws: rarity, count, value of the chosen affix, then the others (choice, grade, value).
+## Order of the draws: the number of affixes (one randf), value of the chosen affix, then the others (choice, grade, value).
 func test_chosen_affix_draw_order() -> void:
 	var bp_data: GameData = BlueprintData.data()
-	var grade3: ItemDef = _blueprint(3)
+	var grade5: ItemDef = _blueprint(3, &"test_blade_5")
 	var rng := RngService.new(11)
 	var replica := RngService.new(11)
-	var got: ItemInstance = ItemRoller.create_from_blueprint(grade3, 60, 0.0, &"test_keen", bp_data, rng)
-	var rare: bool = replica.randf() * 100.0 < ItemRoller.blueprint_rare_chance(60, 0.0, bp_data)
-	var range_raw: Array = bp_data.balance_value("rarity.affix_count.%s" % ("rare" if rare else "magic"))
-	var count: int = replica.randi_range(int(range_raw[0]), int(range_raw[1]))
+	var got: ItemInstance = ItemRoller.create_from_blueprint(grade5, 60, 0.0, &"test_keen", bp_data, rng)
+	var two: bool = replica.randf() * 100.0 < ItemRoller.blueprint_two_affix_chance(60, 0.0, bp_data)
 	var tier: AffixTier = bp_data.affix(&"test_keen").tiers[1]
 	var steps: int = floori((tier.max - tier.min) / tier.step + 0.000001)
 	var value: float = snappedf(tier.min + replica.randi_range(0, steps) * tier.step, 0.000001)
-	assert_eq(got.rarity, &"rare" if rare else &"magic")
+	assert_eq(got.rarity, &"masterwork")
 	assert_almost_eq(got.affixes[0].value, value, 0.0001)
-	if count > 1:
-		assert_eq(got.affixes.size(), 2)
+	assert_eq(got.affixes.size(), 2 if two else 1)
+	if two:
 		assert_eq(got.affixes[1].affix_id, &"test_mighty")  # the only other weapon affix: one weighted pick
 
 
-## A hand-made blueprint of `grade` for the sword base (the fixture files hold only grades 1 and 2).
-func _blueprint(grade: int) -> ItemDef:
+## A hand-made blueprint of material `grade` for the base `base_id` (the fixture files hold only a few).
+func _blueprint(grade: int, base_id: StringName = &"test_blade") -> ItemDef:
 	var bp := ItemDef.new()
 	bp.id = &"bp_hand_made"
 	bp.category = &"blueprint"
 	bp.blueprint = BlueprintInfo.new()
-	bp.blueprint.base_id = &"test_blade"
+	bp.blueprint.base_id = base_id
 	bp.blueprint.grade = grade
 	return bp
 
@@ -182,12 +185,12 @@ func test_instance_modifiers() -> void:
 	inst.base_id = &"test_blade"
 	inst.affixes.append(AffixRoll.make(&"test_keen", 2, 9.0))
 	var mods: Array[Modifier] = ItemRoller.instance_modifiers(inst, _data)
-	assert_eq(mods.size(), 3)
+	assert_eq(mods.size(), 2, "M14: a weapon has no power_bonus, its damage is dmg_min-dmg_max")
 	assert_eq(mods[0].stat, &"accuracy_bonus")
 	assert_eq(mods[0].value, 8.0)
-	assert_eq(mods[2].stat, &"accuracy_bonus")
-	assert_eq(mods[2].value, 9.0)
-	assert_eq(mods[2].scope_kind, Modifier.SCOPE_GLOBAL)
+	assert_eq(mods[1].stat, &"accuracy_bonus")
+	assert_eq(mods[1].value, 9.0)
+	assert_eq(mods[1].scope_kind, Modifier.SCOPE_GLOBAL)
 
 
 func test_tool_affix_scope() -> void:
@@ -207,14 +210,13 @@ func test_instance_modifiers_upgrade_multiplier() -> void:
 	inst.upgrade = 3
 	inst.affixes.append(AffixRoll.make(&"test_keen", 2, 9.0))
 	var mods: Array[Modifier] = ItemRoller.instance_modifiers(inst, _data)
-	assert_eq(mods.size(), 3)
+	assert_eq(mods.size(), 2)
 	assert_almost_eq(mods[0].value, 8.0 * 1.3, 0.0001, "accuracy_bonus x1.3")
-	assert_almost_eq(mods[1].value, 6.0 * 1.3, 0.0001, "power_bonus x1.3")
-	assert_eq(mods[2].value, 9.0, "the affix keeps its value")
+	assert_eq(mods[1].value, 9.0, "the affix keeps its value")
 	inst.upgrade = 0
 	assert_eq(ItemRoller.instance_modifiers(inst, _data)[0].value, 8.0, "+0 leaves the base")
 	inst.upgrade = 9
-	assert_almost_eq(ItemRoller.instance_modifiers(inst, _data)[1].value, 6.0 * 1.9, 0.0001, "+9 -> x1.9")
+	assert_almost_eq(ItemRoller.instance_modifiers(inst, _data)[0].value, 8.0 * 1.9, 0.0001, "+9 -> x1.9")
 
 
 func test_drop_rarity() -> void:

@@ -297,7 +297,10 @@ static func stone_estimate(data: Object, area: Object, session: Object) -> Array
 	var dps: float = float(math.call("hit_chance", me.accuracy, stone.stats.evasion, data)) * avg / (me.attack_interval_ms / 1000.0)
 	var ttk: float = float(def.hp) / maxf(dps, 0.001)
 	var back: StringName = math.call("triangle", stone.stats.style, me.style, data)
-	var pulse: int = int(math.call("damage_after_dr", def.pulse_damage, math.call("effective_dr", me.damage_reduction, back, data)))
+	# M14: the player reduces with Armour (the pulse is neutral style, F-117), L_att = power_level of the stone.
+	var neutral: StringName = StringName(str(data.call("balance_value", "combat.unarmed.style")))
+	var my_dr: float = float(me.call("reduction_against", neutral, stone.stats.level, data))
+	var pulse: int = int(math.call("damage_after_dr", def.pulse_damage, math.call("effective_dr", my_dr, back, data)))
 	return [ttk, ttk / (def.pulse_ms / 1000.0) * pulse * 100.0 / me.max_hp]
 
 

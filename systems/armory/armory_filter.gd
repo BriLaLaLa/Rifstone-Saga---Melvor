@@ -4,7 +4,7 @@ extends RefCounted
 ## A slot without a rule keeps everything. State of the Armory (saved with it); Armory applies it to the drops.
 
 const LOG_CATEGORY: String = "armory"
-const RARITY_ORDER: Array[StringName] = [&"common", &"magic", &"rare"]
+const RARITY_ORDER: Array[StringName] = Rarities.ORDER  # M14: five levels; a legendary is never filtered
 const MIN_GRADE: int = 1
 const KEY_RARITY: String = "min_rarity"
 const KEY_GRADE: String = "min_grade"
@@ -45,7 +45,7 @@ func set_rule(slot: StringName, min_rarity: StringName, min_grade: int) -> Comma
 
 ## True when a piece of `slot` with this rarity and grade is under the rule of the slot.
 func rejects(slot: StringName, rarity: StringName, grade: int) -> bool:
-	if not _rules.has(slot):
+	if rarity == Rarities.LEGENDARY or not _rules.has(slot):
 		return false
 	var r: Dictionary = _rules[slot]
 	return RARITY_ORDER.find(rarity) < RARITY_ORDER.find(r[KEY_RARITY]) or grade < int(r[KEY_GRADE])

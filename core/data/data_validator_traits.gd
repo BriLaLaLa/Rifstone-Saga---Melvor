@@ -101,6 +101,11 @@ static func _ability(v: DataValidatorRules, e: Dictionary, index: int, setup_ids
 			v.integer(params, "duration_ms", BUFF_MIN_DURATION_MS, DataValidatorRules.NO_LIMIT, at)
 
 
+## One effect `{"type", "params"}` of F-81 (also used by the effects of the legendaries, DataValidatorLegendary).
+static func validate_effect(v: DataValidatorRules, effect: Dictionary, prefix: String) -> void:
+	_effect(v, effect, prefix)
+
+
 # One effect: its type must be one of F-81 and its params exactly those of the table, in range.
 static func _effect(v: DataValidatorRules, effect: Dictionary, prefix: String) -> void:
 	v.keys(effect, EFFECT_FIELDS, prefix)

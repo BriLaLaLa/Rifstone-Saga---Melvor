@@ -41,10 +41,10 @@ static func xp(blueprint: ItemDef, data: GameData) -> int:
 	return floori(float(data.balance_value("blueprint.xp_mult")) * _duration_min(blueprint, data) * xp_min + EPSILON)
 
 
-## Materials of the craft: the `inputs` of the blueprint plus its rare component (the blueprint itself excluded).
+## Materials of the craft: the `inputs` of the blueprint plus its rare components (the blueprint itself excluded).
 static func inputs(blueprint: ItemDef) -> Array[ItemQty]:
 	var result: Array[ItemQty] = blueprint.blueprint.inputs.duplicate()
-	result.append(blueprint.blueprint.rare_component)
+	result.append_array(blueprint.blueprint.rare_components)
 	return result
 
 
@@ -70,7 +70,7 @@ static func can_start(session: GameSession, blueprint_id: StringName, chosen_aff
 	return CommandResult.success()
 
 
-## Creates the piece (F-91/F-92 with the current Forging level and `item_rarity_pct`) and puts it in the Armory.
+## Creates the Masterwork (F-91/F-92 with the current Forging level and `item_rarity_pct`) and puts it in the Armory.
 ## Returns its uid, 0 (no rolls made) when the Armory is full.
 static func finish(session: GameSession, blueprint_id: StringName, chosen_affix: StringName) -> int:
 	if not session.armory.can_add(1):
@@ -109,7 +109,7 @@ static func _choice_allowed(bp: ItemDef, affix_id: StringName, level: int, data:
 	if level < int(data.balance_value("blueprint.choose_affix_level")):
 		return false
 	var base: ItemDef = data.item(bp.blueprint.base_id)
-	for def: AffixDef in ItemRoller.chosen_affix_candidates(base, required_level(bp, data), data):
+	for def: AffixDef in ItemRoller.chosen_affix_candidates(base, data.grade_level(base.equip.grade), data):
 		if def.id == affix_id:
 			return true
 	return false

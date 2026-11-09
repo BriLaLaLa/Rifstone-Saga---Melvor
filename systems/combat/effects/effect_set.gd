@@ -18,10 +18,15 @@ func _init(session: GameSession) -> void:
 	_session = session
 
 
-## The effect of a trait entry, null (logged) for an unknown type. A new type is one line here.
+## The effect of a trait entry, null (logged) for an unknown type. A new type is one line in `create_typed`.
 static func create(trait_id: StringName, def: TraitEffectDef) -> TraitEffect:
-	var p: Dictionary = def.params
-	match def.type:
+	return create_typed(trait_id, def.type, def.params)
+
+
+## The effect `type` with `p` (a trait effect or, M14, an effect of a legendary; `owner` is the trait id or the source
+## `equipment:<slot>`).
+static func create_typed(trait_id: StringName, type: StringName, p: Dictionary) -> TraitEffect:
+	match type:
 		&"every_nth_attack_all":
 			return EveryNthAttackAll.new(trait_id, p)
 		&"on_kill_timer_cut":
@@ -38,7 +43,31 @@ static func create(trait_id: StringName, def: TraitEffectDef) -> TraitEffect:
 			return LeechPct.new(trait_id, p)
 		&"opening_strike":
 			return OpeningStrike.new(trait_id, p)
-	Log.error(LOG_CATEGORY, "trait '%s': unknown effect type '%s'" % [trait_id, def.type])
+		&"block_heal_pct":
+			return BlockHealPct.new(trait_id, p)
+		&"kill_heal_pct":
+			return KillHealPct.new(trait_id, p)
+		&"armor_pierce_pct":
+			return ArmorPiercePct.new(trait_id, p)
+		&"hit_cap_pct":
+			return HitCapPct.new(trait_id, p)
+		&"stat_convert":
+			return StatConvert.new(trait_id, p)
+		&"double_hit_pct":
+			return DoubleHitPct.new(trait_id, p)
+		&"execute_mult":
+			return ExecuteMult.new(trait_id, p)
+		&"monolith_loot_mult":
+			return MonolithLootMult.new(trait_id, p)
+		&"card_drop_mult":
+			return CardDropMult.new(trait_id, p)
+		&"gather_bonus_item":
+			return GatherBonusItem.new(trait_id, p)
+		&"gather_grade_up_pct":
+			return GatherGradeUpPct.new(trait_id, p)
+		&"byproduct_mult":
+			return ByproductMult.new(trait_id, p)
+	Log.error(LOG_CATEGORY, "'%s': unknown effect type '%s'" % [trait_id, type])
 	return null
 
 
@@ -90,6 +119,37 @@ func hit(ctx: EffectContext, damage: int) -> void:
 	for effect: TraitEffect in effects():
 		effect.on_hit(ctx, damage)
 	_flush(ctx)
+
+
+## F-120 `on_block`.
+func block(ctx: EffectContext) -> void:
+	for effect: TraitEffect in effects():
+		effect.on_block(ctx)
+	_flush(ctx)
+
+
+## F-120 `on_monolith`.
+func monolith(ctx: EffectContext) -> void:
+	for effect: TraitEffect in effects():
+		effect.on_monolith(ctx)
+	_flush(ctx)
+
+
+## F-120 `hit_cap_pct`: the damage the player takes after the caps.
+func damage_taken(ctx: EffectContext, damage: int) -> int:
+	for effect: TraitEffect in effects():
+		damage = effect.cap_damage(ctx, damage)
+	_flush(ctx)
+	return damage
+
+
+## F-120 `execute_mult`: the product of the factors of the effects against a target with these hp.
+func damage_mult_against(ctx: EffectContext, target_hp: int, target_max_hp: int) -> float:
+	var mult: float = 1.0
+	for effect: TraitEffect in effects():
+		mult *= effect.damage_mult_against(ctx, target_hp, target_max_hp)
+	_flush(ctx)
+	return mult
 
 
 func kill(ctx: EffectContext) -> void:
@@ -158,6 +218,10 @@ func _rebuild() -> void:
 				effect.from_save(_states[def.id])
 				kept[def.id] = _states[def.id]
 			_effects.append(effect)
+	for item_effect: ItemEffectDef in _session.equipment.item_effects():  # M14: the legendaries worn (F-120)
+		var worn_effect: TraitEffect = create_typed(item_effect.source, item_effect.type, item_effect.params)
+		if worn_effect != null:
+			_effects.append(worn_effect)
 	_states = kept
 	_dirty = false
 

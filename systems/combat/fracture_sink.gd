@@ -41,7 +41,7 @@ func drop_card(grade: int) -> void:
 ## F-111 `blueprint_pct`: the probability of a blueprint x (1 + v/100), at most 100.
 func drop_chance(base: ItemDef, chance_pct: float) -> float:
 	if not base.is_blueprint():
-		return chance_pct
+		return super.drop_chance(base, chance_pct)
 	return minf(100.0, chance_pct * (1.0 + FractureScaler.total(_run.effects, FractureScaler.REWARD_BLUEPRINT) / 100.0))
 
 

@@ -180,8 +180,9 @@ static func roll_pulse(damage: int, defender: CombatantStats, block_chance: floa
 ## (F-75), damage in [min_hit, max_hit] (F-22), then triangle and reduction without rolls (F-24, F-25).
 ## Returns {"hit", "blocked", "damage"}; a miss or a block does 0 damage and consumes no later roll.
 ## `damage_mult` (F-81 `low_hp_damage_mult`) multiplies the damage after the triangle, floored, before the reduction.
+## `dr_mult` (F-120 `armor_pierce_pct`) multiplies the reduction of the defender (F-25, after the triangle).
 static func roll_attack(attacker: CombatantStats, defender: CombatantStats, block_chance: float,
-		rng: RngService, data: GameData, damage_mult: float = 1.0) -> Dictionary:
+		rng: RngService, data: GameData, damage_mult: float = 1.0, dr_mult: float = 1.0) -> Dictionary:
 	var result: Dictionary = {"hit": false, "blocked": false, "damage": 0}
 	if rng.randf() >= CombatMath.hit_chance(attacker.accuracy, defender.evasion, data):
 		return result
@@ -192,7 +193,7 @@ static func roll_attack(attacker: CombatantStats, defender: CombatantStats, bloc
 	var raw: int = rng.randi_range(attacker.min_hit, attacker.max_hit)
 	var relation: StringName = CombatMath.triangle(attacker.style, defender.style, data)
 	var base_dr: float = defender.reduction_against(attacker.style, attacker.level, data)
-	var dr: float = CombatMath.effective_dr(base_dr, relation, data)
+	var dr: float = CombatMath.effective_dr(base_dr, relation, data) * dr_mult
 	var damage: int = CombatMath.triangle_damage(raw, relation, data)
 	if damage_mult != 1.0:
 		damage = int(floor(float(damage) * damage_mult + CombatMath.EPSILON))

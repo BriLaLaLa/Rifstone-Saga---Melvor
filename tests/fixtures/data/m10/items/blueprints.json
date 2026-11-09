@@ -16,6 +16,18 @@
      "description": "Lo schema dell'elmo alto di prova.",
      "blueprint": {"base": "test_helm_high", "grade": 2,
                    "inputs": [{"item": "test_plate_2", "qty": 6}],
-                   "rare_component": {"item": "test_log", "qty": 1}}}
+                   "rare_component": {"item": "test_log", "qty": 1}}},
+    {"id": "bp_mw_test_sword_8", "name": "Progetto: Spada capolavoro di prova", "category": "blueprint", "value": 0,
+     "sort_order": 40, "icon": "res://assets/icons/items/bp_test_blade.png",
+     "description": "Lo schema del Capolavoro: spada del grado 8, materiale 4.",
+     "blueprint": {"base": "mw_test_sword_8", "grade": 4,
+                   "inputs": [{"item": "test_plate_4", "qty": 12}, {"item": "test_handle_4", "qty": 3}],
+                   "rare_components": [{"item": "test_log", "qty": 1}, {"item": "test_plank", "qty": 2}]}},
+    {"id": "bp_mw_test_chest_11", "name": "Progetto: Corpo capolavoro di prova", "category": "blueprint", "value": 0,
+     "sort_order": 50, "icon": "res://assets/icons/items/bp_test_helm_high.png",
+     "description": "Lo schema del Capolavoro: corpo Piastre del grado 11, materiale 6.",
+     "blueprint": {"base": "mw_test_chest_11", "grade": 6,
+                   "inputs": [{"item": "test_plate_6", "qty": 12}],
+                   "rare_components": [{"item": "test_log", "qty": 1}, {"item": "test_twig", "qty": 1}]}}
   ]
 }

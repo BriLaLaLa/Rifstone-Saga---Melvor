@@ -39,6 +39,31 @@ func on_damaged(_ctx: EffectContext, _damage: int) -> void:
 	pass
 
 
+## F-120 `on_block`: the player blocked an attack (F-75): may set `heal`.
+func on_block(_ctx: EffectContext) -> void:
+	pass
+
+
+## F-120 `on_monolith`: a Rift Monolith was killed: may multiply `loot_mult`.
+func on_monolith(_ctx: EffectContext) -> void:
+	pass
+
+
+## F-120 `on_gather`: a gathering cycle of the player succeeded (never of a helper): fills the outputs of `ctx`.
+func on_gather(_ctx: GatherContext) -> void:
+	pass
+
+
+## F-120 `on_damaged` before the damage is taken: the damage the player really takes (`damage` > 0, after F-25).
+func cap_damage(_ctx: EffectContext, damage: int) -> int:
+	return damage
+
+
+## F-120 `on_before_attack` for one target: the factor of the damage of the base attack against a target with these hp.
+func damage_mult_against(_ctx: EffectContext, _target_hp: int, _target_max_hp: int) -> float:
+	return 1.0
+
+
 ## `on_low_hp`: true if the player is in a state where F-30 (auto-eat) must not run.
 func blocks_auto_eat(_ctx: EffectContext) -> bool:
 	return false

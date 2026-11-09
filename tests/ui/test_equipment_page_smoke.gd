@@ -12,7 +12,7 @@ const HELM := &"test_helm"
 const HELM_HIGH := &"test_helm_high"
 const HATCHET := &"unique_hatchet"  # the unique tool of the fixtures (M10): only the kit can wear it
 const RATION := &"test_ration"
-const DR := &"damage_reduction"
+const DR := &"armor"
 const OBSERVED: Array[StringName] = [
 	&"armory_changed", &"deposit_changed", &"equipment_changed", &"character_level_up",
 	&"modifiers_changed", &"food_changed", &"bank_changed",
@@ -382,12 +382,14 @@ func test_the_comparison_marks_worse_values_red_and_a_shorter_interval_green() -
 	var sword: int = TestFactory.give_piece(_session, BLADE)
 	assert_true(_session.equipment.equip(greatsword).ok)
 	var text: String = ArmoryTexts.tooltip_text(_session, sword)
-	assert_string_contains(text, "[color=#%s]" % UiStyle.BAD.to_html(false))
 	assert_string_contains(text, "-0,8 intervallo d'attacco (s)")
 	assert_true(text.contains("[color=#%s]-0,8" % UiStyle.GOOD.to_html(false)))
 	assert_string_contains(text, "Assetto: Spadone → Spada")
 	assert_true(ArmoryTexts.is_improvement(&"attack_interval_pct", -5.0))
 	assert_false(ArmoryTexts.is_improvement(&"power_bonus", -5.0))
+	# M14: the weapon has no power_bonus; the red (worse) value is seen the other way round: the sword is worn, the greatsword has no accuracy.
+	assert_true(_session.equipment.equip(sword).ok)
+	assert_string_contains(ArmoryTexts.tooltip_text(_session, greatsword), "[color=#%s]" % UiStyle.BAD.to_html(false))
 
 
 func test_stats_show_the_final_values_and_the_summary_keeps_the_sources() -> void:

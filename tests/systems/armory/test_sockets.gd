@@ -16,7 +16,7 @@ var _data: GameData = null
 func before_all() -> void:
 	DirAccess.make_dir_recursive_absolute(_tmp_config)
 	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_ROOT.path_join("balance.json")))
-	balance["sockets"] = {"by_rarity": {"common": 0, "magic": 1, "rare": 2}, "bonus_at_upgrade": 7}
+	balance["sockets"] = {"by_rarity": {"common": 0, "magic": 1, "rare": 2, "masterwork": 2, "legendary": 2}, "bonus_at_upgrade": 7}
 	_write(_tmp_config.path_join("balance.json"), JSON.stringify(balance))
 	_write(_tmp_config.path_join("stats.json"), FileAccess.get_file_as_string(CONFIG_ROOT.path_join("stats.json")))
 	_data = GameData.load_from_dirs(TestFactory.FIXTURE_CONTENT_ROOT, _tmp_config)
@@ -59,6 +59,8 @@ func test_f89_examples() -> void:
 	assert_eq(Sockets.count(&"rare", 7, _data), 3, "rare +7")
 	assert_eq(Sockets.count(&"common", 9, _data), 1, "common +9")
 	assert_eq(Sockets.count(&"magic", 6, _data), 1, "magic +6")
+	assert_eq(Sockets.count(&"masterwork", 0, _data), 2, "M14: Masterwork 2 sockets")
+	assert_eq(Sockets.count(&"legendary", 7, _data), 3, "M14: legendary 2 sockets, +1 at +7")
 
 
 func test_f89_table() -> void:

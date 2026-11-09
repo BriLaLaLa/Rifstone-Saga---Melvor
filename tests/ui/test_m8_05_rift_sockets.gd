@@ -23,7 +23,7 @@ var _page: Node = null
 func before_all() -> void:
 	DirAccess.make_dir_recursive_absolute(_tmp_config)
 	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_ROOT.path_join("balance.json")))
-	balance["sockets"] = {"by_rarity": {"common": 0, "magic": 1, "rare": 2}, "bonus_at_upgrade": 7}
+	balance["sockets"] = {"by_rarity": {"common": 0, "magic": 1, "rare": 2, "masterwork": 2, "legendary": 2}, "bonus_at_upgrade": 7}
 	_write(_tmp_config.path_join("balance.json"), JSON.stringify(balance))
 	_write(_tmp_config.path_join("stats.json"), FileAccess.get_file_as_string(CONFIG_ROOT.path_join("stats.json")))
 	_data = GameData.load_from_dirs(TestFactory.FIXTURE_CONTENT_ROOT, _tmp_config)

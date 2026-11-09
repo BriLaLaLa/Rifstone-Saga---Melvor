@@ -3,7 +3,8 @@ extends RefCounted
 ## F-95 salvage rules (docs/02_FORMULAS.md, docs/01_GDD.md §25): pure functions over the `salvage` section of
 ## balance.json and the blueprints. No state: `Armory.salvage` and `Armory.add_drop` destroy the piece and pay the yield.
 ## The yield of a piece is the components of the blueprint of its base (never the rare component) times
-## `salvage.component_ratio`, plus Rift shards by rarity.
+## `salvage.component_ratio`, plus Rift shards by rarity. M14: the grade is that of the material (`GameData.material_grade`);
+## a Masterwork pays on its (x3) blueprint inputs, a legendary has no blueprint (shards only).
 
 const RATIO_KEY: String = "salvage.component_ratio"
 const SHARDS_KEY: String = "salvage.shards_by_rarity"
@@ -15,7 +16,7 @@ static func component_amount(qty: int, data: GameData) -> int:
 	return floori(qty * float(data.balance_value(RATIO_KEY)) + EPSILON)
 
 
-## F-95: shards_by_rarity[rarity] x grade + upgrade.
+## F-95: shards_by_rarity[rarity] x grade + upgrade; `grade` is the grade of the material (1..8, M14).
 static func shards(grade: int, rarity: StringName, upgrade: int, data: GameData) -> int:
 	var by_rarity: Dictionary = data.balance_value(SHARDS_KEY) as Dictionary
 	return int(by_rarity.get(String(rarity), 0)) * grade + upgrade
@@ -38,7 +39,7 @@ static func components(base_id: StringName, data: GameData) -> Dictionary[String
 ## Bank items paid for `inst`: components of its blueprint and Rift shards, only the positive quantities.
 static func paid(inst: ItemInstance, data: GameData) -> Dictionary[StringName, int]:
 	var result: Dictionary[StringName, int] = components(inst.base_id, data)
-	var amount: int = shards(data.item(inst.base_id).equip.grade, inst.rarity, inst.upgrade, data)
+	var amount: int = shards(data.material_grade(data.item(inst.base_id).equip.grade), inst.rarity, inst.upgrade, data)
 	if amount > 0:
 		result[Upgrade.SHARD_ITEM] = amount
 	return result

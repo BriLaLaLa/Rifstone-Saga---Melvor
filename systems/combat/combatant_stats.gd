@@ -127,6 +127,49 @@ func reduction_against(attacker_style: StringName, attacker_level: int, data: Ga
 	return ArmorMath.reduction_pct(barrier if attacker_style == ARCANE_STYLE else armor, attacker_level, data)
 
 
+## F-120 `stat_convert`: the derived number a stat of stats.json feeds (same map as `scale_stat`); 0 for another stat.
+func stat_value(stat: StringName) -> float:
+	match stat:
+		&"accuracy_bonus", &"accuracy_pct":
+			return float(accuracy)
+		&"evasion_bonus", &"evasion_pct":
+			return float(evasion)
+		&"power_bonus", &"power_pct":
+			return float(max_hit)
+		&"max_hp_flat":
+			return float(max_hp)
+		&"armor":
+			return float(armor)
+		&"barrier":
+			return float(barrier)
+		&"block_chance":
+			return block_chance
+	return 0.0
+
+
+## F-120 `stat_convert`: adds `delta` to the number of `stat` (floored for the integers), then the limits of stats.json.
+func add_to_stat(stat: StringName, delta: float, data: GameData) -> void:
+	var value: float = stat_value(stat) + delta
+	match stat:
+		&"accuracy_bonus", &"accuracy_pct":
+			accuracy = _scaled(1, value)
+		&"evasion_bonus", &"evasion_pct":
+			evasion = _scaled(1, value)
+		&"power_bonus", &"power_pct":
+			max_hit = maxi(1, _scaled(1, value))
+			min_hit = CombatMath.min_hit_for(max_hit, weapon_min, weapon_max, data)
+		&"max_hp_flat":
+			max_hp = maxi(1, _scaled(1, value))
+		&"armor":
+			armor = _scaled(1, data.stats.clamp_total(stat, value))
+		&"barrier":
+			barrier = _scaled(1, data.stats.clamp_total(stat, value))
+		&"block_chance":
+			block_chance = data.stats.clamp_total(stat, value)
+		_:
+			Log.warn("combat", "stat_convert: '%s' does not feed any combat number" % stat)
+
+
 static func _scaled(value: int, factor: float) -> int:
 	return int(floor(float(value) * factor + CombatMath.EPSILON))
 

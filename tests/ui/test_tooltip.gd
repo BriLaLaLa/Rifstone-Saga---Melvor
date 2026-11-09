@@ -43,7 +43,6 @@ func test_show_item_weapon_lines() -> void:
 		"Richiede il livello 1 del personaggio",
 		"Stile Lama, un attacco ogni 2,4 s",
 		"Precisione +8",
-		"Potenza +6",
 		"Valore: 12 oro",
 		"Si ottiene da: Lama di prova",  # Guide lines (M11-05), from the fixture guide index
 		"Serve a: Smantellamento",
@@ -171,7 +170,7 @@ func _process_frames(count: int) -> void:
 
 
 func test_modifiers_of_the_same_stat_are_summed_in_one_line() -> void:
-	var mods: Array[Modifier] = [Modifier.make(&"power_bonus", 2.0), Modifier.make(&"damage_reduction", 3.0),
+	var mods: Array[Modifier] = [Modifier.make(&"power_bonus", 2.0), Modifier.make(&"armor", 3.0),
 			Modifier.make(&"power_bonus", 5.0)]
 	var lines: PackedStringArray = ItemTooltipLines.modifier_lines(mods, _data)
 	assert_eq(lines.size(), 2, "one line per stat")
