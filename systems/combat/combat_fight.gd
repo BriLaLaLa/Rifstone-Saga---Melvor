@@ -100,6 +100,7 @@ func _next_timer() -> int:
 	if _state == STATE_BETWEEN:
 		return _between_ms
 	var next: int = mini(mini(_player_timer_ms, _frac.next_pulse_ms()), _abilities.next_ms(_player_hp, player_stats().max_hp))
+	next = mini(next, _frac.next_boss_ms())
 	for enemy: Encounter.Enemy in _encounter.enemies:
 		if enemy.alive():
 			next = mini(next, enemy.timer_ms)
@@ -135,6 +136,8 @@ func _resolve_instant() -> void:
 		var enemy: Encounter.Enemy = _encounter.enemies[i]
 		if enemy.alive() and enemy.timer_ms <= 0:
 			_enemy_attack(i, enemy)
+		if in_encounter() and _frac.ability_due(enemy):  # F-112: right after the base attack of the boss
+			_boss_ability(i, enemy)
 	if in_encounter() and _frac.active() and _frac.next_pulse_ms() <= 0:  # F-111 `pulse`, after the enemies
 		var pulse: Dictionary = _frac.pulse_attack(player_stats())
 		_session.events.combat_hit.emit(FractureCombat.PULSE_SOURCE, PLAYER, true, pulse["damage"], pulse["blocked"])
@@ -208,6 +211,18 @@ func _enemy_attack(index: int, enemy: Encounter.Enemy) -> void:
 	_hurt_player(index, attack["damage"])
 
 
+# F-112: the ability of the boss at `index`. A heavy strike hits like an attack; a summon announces the new positions.
+func _boss_ability(index: int, enemy: Encounter.Enemy) -> void:
+	var summoned: Array[int] = []
+	var attack: Dictionary = _frac.use_ability(enemy, _encounter, player_stats(), summoned)
+	if not attack.is_empty():
+		_session.events.combat_hit.emit(index, PLAYER, attack["hit"], attack["damage"], attack["blocked"])
+		_hurt_player(index, attack["damage"])
+	for position: int in summoned:
+		var fresh: Encounter.Enemy = _encounter.enemies[position]
+		_session.events.monster_hp_changed.emit(position, fresh.hp, fresh.stats.max_hp)
+
+
 # The player takes `damage` from the enemy at `source` (or from the pulse of a Fracture): death, reflect, auto-eat.
 func _hurt_player(source: int, damage: int) -> void:
 	if damage <= 0:
@@ -238,7 +253,7 @@ func _hurt_player(source: int, damage: int) -> void:
 
 func _hurt_enemy(index: int, damage: int) -> void:
 	var enemy: Encounter.Enemy = _encounter.enemies[index]
-	enemy.hp = maxi(0, enemy.hp - damage)
+	enemy.hp = maxi(0, enemy.hp - _frac.absorb(enemy, damage))  # the shield of a boss takes it first (F-112)
 	_session.events.monster_hp_changed.emit(index, enemy.hp, enemy.stats.max_hp)
 	if enemy.hp == 0:
 		_kill(index, enemy)

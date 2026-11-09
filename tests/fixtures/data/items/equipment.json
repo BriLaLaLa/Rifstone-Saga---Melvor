@@ -217,6 +217,26 @@
           }
         ]
       }
-    }
+    },
+    {"id": "test_boss_sword", "name": "Spada del boss di prova", "category": "equipment",
+     "icon": "res://assets/icons/items/test_blade.png", "value": 20, "sort_order": 400,
+     "description": "Base di grado 5 per i pezzi garantiti dei boss.",
+     "equip": {"slot": "weapon", "kind": "sword", "grade": 5, "requirements": {},
+               "modifiers": [{"stat": "power_bonus", "value": 6}],
+               "weapon": {"style": "blade", "attack_interval_ms": 2400, "two_handed": false}}},
+    {"id": "test_boss_greatsword", "name": "Spadone del boss di prova", "category": "equipment",
+     "icon": "res://assets/icons/items/test_blade.png", "value": 20, "sort_order": 410,
+     "description": "Base di grado 5 per i pezzi garantiti dei boss.",
+     "equip": {"slot": "weapon", "kind": "greatsword", "grade": 5, "requirements": {},
+               "modifiers": [{"stat": "power_bonus", "value": 9}],
+               "weapon": {"style": "blade", "attack_interval_ms": 3200, "two_handed": true}}},
+    {"id": "test_boss_helm", "name": "Elmo del boss di prova", "category": "equipment",
+     "icon": "res://assets/icons/items/test_helm.png", "value": 20, "sort_order": 420,
+     "description": "Base di grado 5 per i pezzi garantiti dei boss.",
+     "equip": {"slot": "head", "grade": 5, "requirements": {}, "modifiers": [{"stat": "damage_reduction", "value": 2}]}},
+    {"id": "test_boss_helm_6", "name": "Elmo alto del boss di prova", "category": "equipment",
+     "icon": "res://assets/icons/items/test_helm_high.png", "value": 30, "sort_order": 430,
+     "description": "Base di grado 6 per i pezzi garantiti dei boss.",
+     "equip": {"slot": "head", "grade": 6, "requirements": {}, "modifiers": [{"stat": "damage_reduction", "value": 3}]}}
   ]
 }
