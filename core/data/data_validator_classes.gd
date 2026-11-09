@@ -53,28 +53,33 @@ static func _pack(v: DataValidatorRules, pack: Dictionary, prefix: String) -> vo
 
 static func validate_monsters(v: DataValidatorRules, files: Dictionary[String, Dictionary]) -> void:
 	var seen: Dictionary[StringName, bool] = {}
-	var max_dr: float = float(v.stats.info(DAMAGE_REDUCTION_STAT)["max"]) if v.stats.has(DAMAGE_REDUCTION_STAT) \
-			else DataValidatorRules.NO_LIMIT
 	for path: String in files:
 		v.at_file(path)
 		var list: Array[Dictionary] = DataValidator.entries(v, files[path], "monsters")
 		for index: int in list.size():
-			var e: Dictionary = list[index]
-			v.entry("monster", index, e, seen, MONSTER_FIELDS)
-			existing_icon(v, e, MONSTER_ICON_DIR)
-			_sprite(v, e)
-			v.integer(e, "hp", 1)
-			v.integer(e, "xp", 0)
-			v.one_of(e, "style", DataValidatorRules.STYLES)
-			v.integer(e, "attack_interval_ms", maxf(v.min_attack_interval_ms, 1))
-			for key: String in ["attack_level", "power_level", "defence_level"]:
-				v.integer(e, key, 1, v.max_skill_level)
-			for key: String in ["accuracy_bonus", "power_bonus", "evasion_bonus"]:
-				v.integer(e, key, 0)
-			v.number(e, "damage_reduction", 0.0, max_dr)
-			v.int_pair(e, "gold", 0, DataValidatorRules.NO_LIMIT, true)
-			v.number(e, "rift_shard_chance", 0.0, 100.0)
-			drops(v, e)
+			v.entry("monster", index, list[index], seen, MONSTER_FIELDS)
+			combat_fields(v, list[index])
+
+
+## The combat and loot fields shared by monsters and Fracture bosses (M13): icon, sprite, hp, xp, style, interval,
+## levels, bonuses, damage reduction, gold, Rift shard chance and drops.
+static func combat_fields(v: DataValidatorRules, e: Dictionary) -> void:
+	var max_dr: float = float(v.stats.info(DAMAGE_REDUCTION_STAT)["max"]) if v.stats.has(DAMAGE_REDUCTION_STAT) \
+			else DataValidatorRules.NO_LIMIT
+	existing_icon(v, e, MONSTER_ICON_DIR)
+	_sprite(v, e)
+	v.integer(e, "hp", 1)
+	v.integer(e, "xp", 0)
+	v.one_of(e, "style", DataValidatorRules.STYLES)
+	v.integer(e, "attack_interval_ms", maxf(v.min_attack_interval_ms, 1))
+	for key: String in ["attack_level", "power_level", "defence_level"]:
+		v.integer(e, key, 1, v.max_skill_level)
+	for key: String in ["accuracy_bonus", "power_bonus", "evasion_bonus"]:
+		v.integer(e, key, 0)
+	v.number(e, "damage_reduction", 0.0, max_dr)
+	v.int_pair(e, "gold", 0, DataValidatorRules.NO_LIMIT, true)
+	v.number(e, "rift_shard_chance", 0.0, 100.0)
+	drops(v, e)
 
 
 static func drops(v: DataValidatorRules, monster: Dictionary) -> void:

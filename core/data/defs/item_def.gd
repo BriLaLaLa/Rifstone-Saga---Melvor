@@ -28,6 +28,7 @@ var contract_skill: StringName = &""  # M12: `contract.skill` of a category `con
 var contract_grade: StringName = &""  # M12: `contract.grade` (an id of helper.grades)
 var infusion_grade: int = 1  # M12: `infusion.grade` 1..5 (F-107), 1 when absent
 var infusion_family: StringName = &""  # M12: `infusion.family` (the id of the grade I rune); the own id when absent
+var map_grade: int = 0  # M13: `map.grade` 1..10 of a category `map` item (a Fracture Card base); 0 otherwise
 
 
 static func from_dict(d: Dictionary) -> ItemDef:
@@ -77,6 +78,10 @@ static func from_dict(d: Dictionary) -> ItemDef:
 		def.contract_skill = contract.id("skill")
 		def.contract_grade = contract.id("grade")
 		r.absorb(contract.ok)
+	if r.has("map") and r.is_dict("map"):
+		var map := DefReader.new(r.dict("map"), r.context() + " map")
+		def.map_grade = map.integer("grade")
+		r.absorb(map.ok)
 	return def if r.ok else null
 
 
@@ -110,6 +115,10 @@ func is_bag() -> bool:
 
 func is_contract() -> bool:
 	return category == &"contract" and contract_skill != &""
+
+
+func is_map() -> bool:
+	return category == &"map" and map_grade > 0
 
 
 func is_component() -> bool:

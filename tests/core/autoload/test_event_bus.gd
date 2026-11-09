@@ -67,9 +67,17 @@ const EXPECTED: Dictionary = {
 	"save_failed": [["slot", I, ""], ["reason", SN, ""]],
 	"notification_requested": [["text", TYPE_STRING, ""], ["kind", SN, ""]],
 	"hint_triggered": [["hint_id", SN, ""]],
+	"fracture_opened": [["grade", I, ""]],
+	"fracture_group_cleared": [["index", I, ""], ["total", I, ""]],
+	"fracture_boss_started": [["boss_id", SN, ""]],
+	"fracture_finished": [["outcome", SN, ""], ["grade", I, ""], ["groups", I, ""], ["cards", I, ""], ["pieces", I, ""]],
+	"fracture_bag_changed": [["stacks", I, ""], ["pieces", I, ""], ["cards", I, ""]],
+	"fracture_loot_lost": [["stacks", I, ""], ["pieces", I, ""], ["cards", I, ""]],
+	"card_changed": [["uid", I, ""], ["change", SN, ""]],
+	"card_rejected": [["grade", I, ""]],
 }
 
-const LATER_MILESTONE_SIGNALS: PackedStringArray = ["fracture_opened", "fracture_closed"]
+const REMOVED_SIGNALS: PackedStringArray = ["fracture_closed"]  # the timed Fracture is gone (R-04)
 
 var _events: GameEvents
 
@@ -103,8 +111,8 @@ func test_each_signal_has_the_contract_arguments() -> void:
 			_assert_arg(signal_name, args[i] as Dictionary, expected_args[i] as Array)
 
 
-func test_milestone_m6_m7_signals_are_not_declared_yet() -> void:
-	for signal_name: String in LATER_MILESTONE_SIGNALS:
+func test_removed_signals_are_not_declared() -> void:
+	for signal_name: String in REMOVED_SIGNALS:
 		assert_false(_events.has_signal(signal_name), signal_name)
 
 

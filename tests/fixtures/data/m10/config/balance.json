@@ -220,6 +220,25 @@
     ]
   },
   "sockets": {"by_rarity": {"common": 0, "magic": 1, "rare": 2}, "bonus_at_upgrade": 7},
+  "fracture": {
+    "groups": 3, "intensity_steps": 10, "pulse_ms": 4000,
+    "mod_count": {"common": [0, 0], "magic": [1, 2], "rare": [3, 4]},
+    "card_rarity": {"magic_pct": 25, "rare_pct": 6},
+    "card_drop": {"monster_pct": 0.4, "boss_pct": 70, "monster_delta": [70, 27, 3], "boss_delta": [20, 70, 10]},
+    "salvage": {"dust_per_grade": 5, "rarity_mult": {"common": 1, "magic": 1.5, "rare": 2}},
+    "grades": [
+      {"areas": ["test_area"], "level_bonus": 0, "hp_mult": 1.0, "damage_mult": 1.0, "reward_mult": 1.0, "piece_grade": 5, "recommended_level": 45},
+      {"areas": ["test_area"], "level_bonus": 4, "hp_mult": 1.15, "damage_mult": 1.08, "reward_mult": 1.2, "piece_grade": 5, "recommended_level": 50},
+      {"areas": ["test_area"], "level_bonus": 8, "hp_mult": 1.3, "damage_mult": 1.16, "reward_mult": 1.4, "piece_grade": 6, "recommended_level": 56},
+      {"areas": ["test_stone_area"], "level_bonus": 0, "hp_mult": 1.0, "damage_mult": 1.0, "reward_mult": 1.6, "piece_grade": 6, "recommended_level": 70},
+      {"areas": ["test_stone_area"], "level_bonus": 3, "hp_mult": 1.15, "damage_mult": 1.08, "reward_mult": 1.8, "piece_grade": 7, "recommended_level": 76},
+      {"areas": ["test_stone_area"], "level_bonus": 6, "hp_mult": 1.3, "damage_mult": 1.16, "reward_mult": 2.0, "piece_grade": 7, "recommended_level": 82},
+      {"areas": ["test_stone_area"], "level_bonus": 7, "hp_mult": 1.5, "damage_mult": 1.25, "reward_mult": 2.3, "piece_grade": 8, "recommended_level": 88},
+      {"areas": ["test_stone_area"], "level_bonus": 7, "hp_mult": 1.75, "damage_mult": 1.35, "reward_mult": 2.6, "piece_grade": 8, "recommended_level": 94},
+      {"areas": ["test_stone_area"], "level_bonus": 7, "hp_mult": 2.05, "damage_mult": 1.5, "reward_mult": 3.0, "piece_grade": 8, "recommended_level": 99},
+      {"areas": ["test_stone_area"], "level_bonus": 7, "hp_mult": 2.4, "damage_mult": 1.7, "reward_mult": 3.5, "piece_grade": 8, "recommended_level": 99}
+    ]
+  },
   "offline": {
     "cap_ms": 43200000,
     "min_ms": 60000,

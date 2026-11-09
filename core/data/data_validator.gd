@@ -63,10 +63,10 @@ const AFFIX_COUNT_KEYS: PackedStringArray = ["rarity.affix_count.magic", "rarity
 const AFFIX_COUNT_MAX: int = 6
 const PACK_SIZE_MAX: int = 6  # format limit of combat.max_pack_size
 const DEPOSIT_BAG_SLOTS_MAX: int = 12  # format limit of deposit.bag_slots (docs/04_DATA_SCHEMA.md §3)
-const START_ITEM_FORBIDDEN_CATEGORIES: PackedStringArray = ["equipment", "tool"]  # they live in the Armory only
+const START_ITEM_FORBIDDEN_CATEGORIES: PackedStringArray = ["equipment", "tool", "map"]  # they live in the Armory only
 ## Sections made of one file (the others are folders, possibly empty).
 const SINGLE_FILE_SECTIONS: PackedStringArray = ["balance", "stats", "skills", "areas", "monsters", "shop", "affixes",
-	"rift_stones", "hints", "loot_tables"]
+	"rift_stones", "hints", "loot_tables", "map_mods", "bosses"]
 const SKILL_CATEGORIES: PackedStringArray = ["gathering", "artisan"]
 const STAT_FIELDS: PackedStringArray = ["id", "name", "format", "min", "max", "description", "formula", "test"]
 const STAT_FORMULA_PATTERN: String = "^(F-[0-9]{2}|[0-9]+(\\.[0-9]+)*)$"
@@ -106,8 +106,13 @@ static func validate(raw: Dictionary, errors: PackedStringArray) -> void:
 	DataValidatorClasses.validate_classes(v, _files(raw, "classes"))
 	DataValidatorClasses.validate_affixes(v, _files(raw, "affixes"))
 	DataValidatorStones.validate(v, _files(raw, "rift_stones"), _files(raw, "areas"))
+	DataValidatorFracture.validate_areas(v, _files(raw, "balance"), _files(raw, "areas"))
+	DataValidatorMaps.validate_mods(v, _files(raw, "map_mods"))
+	DataValidatorMaps.validate_bosses(v, _files(raw, "bosses"))
+	DataValidatorMaps.validate_card_set(v, _files(raw, "items"))
 	DataValidatorLootTables.validate(v, _files(raw, "loot_tables"), [[_files(raw, "areas"), "areas", "area"],
-			[_files(raw, "monsters"), "monsters", "monster"], [_files(raw, "rift_stones"), "rift_stones", "rift stone"]])
+			[_files(raw, "monsters"), "monsters", "monster"], [_files(raw, "rift_stones"), "rift_stones", "rift stone"],
+			[_files(raw, "bosses"), "bosses", "boss"]])
 	DataValidatorHints.validate(v, _files(raw, "hints"))
 	DataValidatorGuide.validate(v, raw)
 	DataValidatorItems.validate_shop(v, _files(raw, "shop"))
@@ -214,6 +219,7 @@ static func _validate_balance(v: DataValidatorRules, files: Dictionary[String, D
 		DataValidatorMilestones.validate_balance(v, balance)
 		DataValidatorHints.validate_balance(v, balance)
 		DataValidatorM10Balance.validate_balance(v, balance)
+		DataValidatorFracture.validate_balance(v, balance)
 
 
 static func _balance_value(v: DataValidatorRules, key: String, value: Variant) -> void:
@@ -240,7 +246,8 @@ static func _unknown_balance_keys(v: DataValidatorRules, node: Dictionary, prefi
 	for key: Variant in node:
 		var path: String = str(key) if prefix.is_empty() else "%s.%s" % [prefix, key]
 		if str(key) == DataValidatorRules.DOC_KEY or path in REQUIRED_BALANCE_KEYS \
-				or path in DataValidatorM10Balance.M10_REQUIRED_KEYS or path in DataValidatorM10Balance.LEGACY_KEYS:
+				or path in DataValidatorM10Balance.M10_REQUIRED_KEYS or path in DataValidatorM10Balance.LEGACY_KEYS \
+				or DataValidatorFracture.is_known_key(path):
 			continue
 		var is_prefix: bool = false
 		for required: String in REQUIRED_BALANCE_KEYS:

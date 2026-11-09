@@ -1,0 +1,28 @@
+{
+  "mods": [
+    {"id": "sturdy", "name": "Mostri robusti", "description": "Mostri con più PV; più quantità.", "min_grade": 1, "weight": 10,
+     "risk": {"type": "monster_hp_pct", "min": 20, "max": 60}, "reward": {"type": "loot_qty_pct", "min": 5, "max": 15}},
+    {"id": "assault", "name": "Assalto", "description": "Mostri più rapidi; più rarità.", "min_grade": 1, "weight": 10,
+     "risk": {"type": "monster_speed_pct", "min": 10, "max": 35}, "reward": {"type": "item_rarity_pct", "min": 10, "max": 35}},
+    {"id": "famine", "name": "Fame", "description": "Il cibo cura meno; più progetti.", "min_grade": 1, "weight": 8,
+     "risk": {"type": "food_heal_pct", "min": 20, "max": 60}, "reward": {"type": "blueprint_pct", "min": 25, "max": 75}},
+    {"id": "brutal", "name": "Brutalità", "description": "Mostri più forti; più oro.", "min_grade": 1, "weight": 8,
+     "risk": {"type": "monster_damage_pct", "min": 15, "max": 45}, "reward": {"type": "gold_drop_pct", "min": 20, "max": 60}},
+    {"id": "hordes", "name": "Orde", "description": "Gruppi più numerosi; più XP.", "min_grade": 2, "weight": 8,
+     "risk": {"type": "pack_bonus", "min": 1, "max": 2}, "reward": {"type": "xp_pct", "min": 10, "max": 30}},
+    {"id": "pulses", "name": "Impulsi", "description": "Danno periodico; più Polvere del Rift.", "min_grade": 2, "weight": 8,
+     "risk": {"type": "pulse", "min": 2, "max": 5}, "reward": {"type": "dust_pct", "min": 20, "max": 60}},
+    {"id": "shrouded", "name": "Velati", "description": "Mostri che schivano di più; più Carte.", "min_grade": 3, "weight": 6,
+     "risk": {"type": "monster_defence_pct", "min": 20, "max": 60}, "reward": {"type": "card_chance_pct", "min": 20, "max": 60}},
+    {"id": "fasting", "name": "Digiuno", "description": "Il cibo cura molto meno; molta più XP.", "min_grade": 4, "weight": 6,
+     "risk": {"type": "food_heal_pct", "min": 50, "max": 90}, "reward": {"type": "xp_pct", "min": 25, "max": 50}},
+    {"id": "titans", "name": "Titani del Rift", "description": "Mostri enormi; più Carte.", "min_grade": 5, "weight": 6,
+     "risk": {"type": "monster_hp_pct", "min": 60, "max": 120}, "reward": {"type": "card_chance_pct", "min": 30, "max": 70}},
+    {"id": "spectral", "name": "Lame spettrali", "description": "Mostri molto più forti; molta più rarità.", "min_grade": 5, "weight": 6,
+     "risk": {"type": "monster_damage_pct", "min": 40, "max": 90}, "reward": {"type": "item_rarity_pct", "min": 30, "max": 70}},
+    {"id": "frenzy", "name": "Frenesia del Rift", "description": "Mostri molto rapidi; molta più quantità.", "min_grade": 6, "weight": 6,
+     "risk": {"type": "monster_speed_pct", "min": 30, "max": 60}, "reward": {"type": "loot_qty_pct", "min": 15, "max": 35}},
+    {"id": "abyssal", "name": "Tempesta dell'Abisso", "description": "Impulsi forti; moltissimi progetti.", "min_grade": 8, "weight": 6,
+     "risk": {"type": "pulse", "min": 4, "max": 8}, "reward": {"type": "blueprint_pct", "min": 60, "max": 120}}
+  ]
+}

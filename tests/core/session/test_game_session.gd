@@ -7,7 +7,7 @@ extends GutTest
 const NOW_MS: int = 1793603600000
 const SOURCE_STAT: StringName = &"loot_bag_slots"
 const SESSION_SOURCE: String = "res://core/session/game_session.gd"
-const MAX_SESSION_LINES: int = 200
+const MAX_SESSION_LINES: int = 210  # M13-01: + the CardStore (4 lines)
 
 
 ## Fake SaveParticipant with an advance and a modifier source; every call is written to a shared log.
@@ -140,10 +140,10 @@ func test_advance_follows_fixed_order_whatever_the_join_order() -> void:
 	var session: ProbeSession = _probe()
 	session.add_fake(&"duels", session.phase_combat())
 	session.add_fake(&"lanes", session.phase_actions())
-	session.add_fake(&"fractures", session.phase_fractures())
+	session.add_fake(&"first", session.phase_fractures())
 	session.advance(100)
 	session.advance(40)
-	assert_eq(session.calls, ["fractures:100", "lanes:100", "duels:100", "fractures:40", "lanes:40", "duels:40"])
+	assert_eq(session.calls, ["first:100", "lanes:100", "duels:100", "first:40", "lanes:40", "duels:40"])
 	assert_eq(session.play_time_ms, 140)
 
 
@@ -277,7 +277,7 @@ func test_snapshot_reads_registered_systems() -> void:
 	assert_eq(snapshot.food_eaten, 0)
 
 
-func test_game_session_file_stays_within_200_lines() -> void:
+func test_game_session_file_stays_within_its_line_limit() -> void:
 	var text: String = FileAccess.get_file_as_string(SESSION_SOURCE)
 	assert_gt(text.length(), 0)
 	assert_lte(text.count("\n"), MAX_SESSION_LINES)

@@ -28,10 +28,14 @@ var loot_tables: Array[StringName] = []  # M12: ids of data/combat/loot_tables.j
 
 
 static func from_dict(d: Dictionary) -> MonsterDef:
-	var r := DefReader.new(d, "monster")
-	var def := MonsterDef.new()
+	return read_into(MonsterDef.new(), d, "monster")
+
+
+## Fills `def` (a MonsterDef or a subclass such as BossDef) from `d`; `kind` names it in the messages.
+static func read_into(def: MonsterDef, d: Dictionary, kind: String) -> MonsterDef:
+	var r := DefReader.new(d, kind)
 	def.id = r.id("id")
-	r.set_context("monster '%s'" % def.id)
+	r.set_context("%s '%s'" % [kind, def.id])
 	def.name = r.text("name")
 	def.description = r.text("description")
 	def.icon = r.text("icon")

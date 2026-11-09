@@ -38,6 +38,10 @@ static func roll_drops(session: GameSession, loot: LootBag, drops: Array[DropEnt
 			continue
 		var qty: int = session.rng.randi_range(drop.qty_min, drop.qty_max)
 		var base: ItemDef = session.data.item(drop.item_id)
+		if base.is_map():  # M13: a Card goes to the CardStore (F-109 rarity), never to the loot bag; full Deposit = card_rejected
+			for _i: int in qty:
+				session.cards.create(base.map_grade, session.cards.roll_rarity())
+			continue
 		if base.equip == null:
 			loot.add(drop.item_id, qty)
 			continue

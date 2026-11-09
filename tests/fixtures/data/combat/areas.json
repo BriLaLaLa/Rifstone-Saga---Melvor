@@ -9,6 +9,13 @@
      "packs": [{"weight": 1, "monsters": ["test_monster_a"]}]},
     {"id": "test_loot_area", "name": "Area del bottino", "order": 3, "description": "Area con tabelle di drop.",
      "requirements": {}, "loot_tables": ["test_area_loot"],
-     "packs": [{"weight": 1, "monsters": ["test_loot_monster"]}]}
+     "packs": [{"weight": 1, "monsters": ["test_loot_monster"]}]},
+    {"id": "cracked_mines", "name": "Miniere di prova", "order": 4, "description": "Area dei gradi 1-3 delle Fratture, per i test.",
+     "requirements": {},
+     "packs": [{"weight": 3, "monsters": ["test_monster_a"]},
+               {"weight": 1, "monsters": ["test_monster_a", "test_monster_b"]}]},
+    {"id": "rift_threshold", "name": "Soglia di prova", "order": 5, "description": "Area dei gradi 4-10 delle Fratture, per i test.",
+     "requirements": {},
+     "packs": [{"weight": 1, "monsters": ["test_monster_b"]}]}
   ]
 }

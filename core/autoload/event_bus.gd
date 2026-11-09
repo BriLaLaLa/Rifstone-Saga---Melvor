@@ -4,7 +4,6 @@ extends Node
 ##
 ## The list and the parameters are the contract of docs/05_INTERFACES.md §3. Systems emit on `session.events`,
 ## which in the game is this autoload and in the tests a private `GameEvents.new()`.
-## M10 signals (`fracture_opened`, `fracture_closed`) are added by their tasks.
 
 # Session
 signal session_started(slot: int, is_new: bool)
@@ -83,3 +82,13 @@ signal notification_requested(text: String, kind: StringName)
 
 # Hints (M9)
 signal hint_triggered(hint_id: StringName)
+
+# Fractures as maps and Cards (M13, docs/05_INTERFACES.md §3, §5.23)
+signal fracture_opened(grade: int)  # the Card is consumed and the Fracture starts
+signal fracture_group_cleared(index: int, total: int)
+signal fracture_boss_started(boss_id: StringName)
+signal fracture_finished(outcome: StringName, grade: int, groups: int, cards: int, pieces: int)  # outcome: won, died, abandoned
+signal fracture_bag_changed(stacks: int, pieces: int, cards: int)
+signal fracture_loot_lost(stacks: int, pieces: int, cards: int)
+signal card_changed(uid: int, change: StringName)  # change: added, removed, updated
+signal card_rejected(grade: int)  # Deposit full

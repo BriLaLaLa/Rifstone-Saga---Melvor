@@ -31,6 +31,7 @@ var skills: SkillsSystem
 var mastery: MasterySystem
 var character: CharacterSystem
 var armory: Armory
+var cards: CardStore  # M13-01
 var equipment: Equipment
 var loadout: Loadout
 var actions: ActionRunner
@@ -148,6 +149,9 @@ func _create_systems() -> void:
 	_join(MasterySystem.SAVE_KEY, mastery.new_game, mastery.to_save, mastery.from_save, mastery.rebuild_modifiers)
 	armory = Armory.new(self)
 	_join(Armory.SAVE_KEY, armory.new_game, armory.to_save, armory.from_save)
+	cards = CardStore.new(self)
+	deposit.register_occupant(CardStore.OCCUPANT_ID, cards.used)
+	_join(CardStore.SAVE_KEY, cards.new_game, cards.to_save, cards.from_save)
 	equipment = Equipment.new(self)
 	_join(Equipment.SAVE_KEY, equipment.new_game, equipment.to_save, equipment.from_save, equipment.rebuild_modifiers)
 	loadout = Loadout.new(self)

@@ -17,6 +17,7 @@ const CONTENT_FILES: Dictionary[String, String] = {
 	"shop": "shop/shop.json", "affixes": "affixes/affixes.json",
 	"rift_stones": "combat/rift_stones.json",
 	"hints": "hints/hints.json", "loot_tables": LootIndex.FILE,  # M12: mandatory
+	"map_mods": MapIndex.MODS_FILE, "bosses": MapIndex.BOSSES_FILE,  # M13: mandatory (may be empty)
 }
 const CONTENT_DIRS: Dictionary[String, String] = {
 	"items": "items", "actions": "actions", "mastery": "mastery", "classes": "classes",
@@ -53,6 +54,7 @@ var _hint_list: Array[HintDef] = []
 var _guide: GuideBook = GuideBook.new()  # M11
 var _helper: HelperIndex = HelperIndex.new()  # M12
 var _loot: LootIndex = LootIndex.new()  # M12
+var _maps: MapIndex = MapIndex.new()  # M13
 var _blueprint_list: Array[ItemDef] = []
 var _blueprint_by_base: Dictionary[StringName, ItemDef] = {}
 var _unique_tools: Dictionary[StringName, ItemDef] = {}  # slot -> unique tool (M10)
@@ -61,15 +63,15 @@ var _unique_tools: Dictionary[StringName, ItemDef] = {}  # slot -> unique tool (
 static func load_from_dirs(content_root: String = "res://data", config_root: String = "res://data/config") -> GameData:
 	var data := GameData.new()
 	var raw: Dictionary = {
-		"balance": data._read_files([config_root.path_join(BALANCE_FILE)]),
-		"stats": data._read_files([config_root.path_join(STATS_FILE)]),
+		"balance": DataBuildUtil.read_files([config_root.path_join(BALANCE_FILE)], data.errors),
+		"stats": DataBuildUtil.read_files([config_root.path_join(STATS_FILE)], data.errors),
 	}
 	for section: String in CONTENT_FILES:
-		raw[section] = data._read_files([content_root.path_join(CONTENT_FILES[section])])
+		raw[section] = DataBuildUtil.read_files([content_root.path_join(CONTENT_FILES[section])], data.errors)
 	for section: String in CONTENT_DIRS:
-		raw[section] = data._read_files(JsonLoader.list_json_files(content_root.path_join(CONTENT_DIRS[section]),
-				data.errors))
-	raw["guide"] = data._read_files(DataValidatorGuide.list_files(content_root, data.errors))  # M11, optional
+		raw[section] = DataBuildUtil.read_files(JsonLoader.list_json_files(content_root.path_join(CONTENT_DIRS[section]),
+				data.errors), data.errors)
+	raw["guide"] = DataBuildUtil.read_files(DataValidatorGuide.list_files(content_root, data.errors), data.errors)  # M11, optional
 	DataValidator.validate(raw, data.errors)
 	if data.errors.is_empty():
 		data._build(raw)
@@ -290,19 +292,19 @@ func guide_page(id: StringName) -> GuidePageDef: return _find(_guide.by_id, id, 
 func guide_exceptions() -> Dictionary: return _guide.exceptions.duplicate(true)
 
 
-# {path: top-level object} of the files that load as objects; the others are reported in `errors`.
-func _read_files(paths: PackedStringArray) -> Dictionary:
-	var files: Dictionary = {}
-	for path: String in paths:
-		var content: Variant = JsonLoader.load_file(path, errors)
-		if content is Dictionary:
-			files[path] = content
-		elif content != null:
-			errors.append("%s: the top level is not an object" % path)
-	return files
+## M13 (docs/04_DATA_SCHEMA.md §11): the Card base of a grade 1..10 (null and an error if there is none); the modifiers
+## in file order; a modifier by id; the boss of a grade and a boss by id (null and an error if unknown); a row of
+## `fracture.grades` (F-110, grade 1..10).
+func map_base(grade: int) -> ItemDef: return _find(_maps.bases, grade, "map base") as ItemDef
+func map_mods() -> Array[MapModDef]: return _maps.mods.duplicate()
+func map_mod(id: StringName) -> MapModDef: return _maps.mods_by_id.get(id) as MapModDef
+func boss_for_grade(grade: int) -> BossDef: return _find(_maps.boss_by_grade, grade, "boss of grade") as BossDef
+func boss(id: StringName) -> BossDef: return _find(_maps.bosses_by_id, id, "boss") as BossDef
+func fracture_grade(grade: int) -> FractureGradeDef:
+	return _find(_maps.grade_by_number, grade, "fracture grade") as FractureGradeDef
 
 
-func _find(table: Dictionary, id: StringName, kind: String) -> RefCounted:
+func _find(table: Dictionary, id: Variant, kind: String) -> RefCounted:
 	if table.has(id):
 		return table[id] as RefCounted
 	Log.error(LOG_CATEGORY, "unknown %s '%s'" % [kind, id])
@@ -355,6 +357,7 @@ func _build(raw: Dictionary) -> void:
 	ItemIndexM10.build(_item_list, _blueprint_list, _blueprint_by_base, _unique_tools)
 	_helper.build(_balance, _item_list)
 	_loot.build(raw["loot_tables"] as Dictionary, errors)
+	_maps.build(_item_list, raw["map_mods"] as Dictionary, raw["bosses"] as Dictionary, _balance, errors)
 	_skill_list.sort_custom(func(a: SkillDef, b: SkillDef) -> bool: return a.order < b.order)
 	_area_list.sort_custom(func(a: AreaDef, b: AreaDef) -> bool: return a.order < b.order)
 	_class_list.sort_custom(func(a: ClassDef, b: ClassDef) -> bool: return a.order < b.order)
@@ -367,8 +370,6 @@ func _build(raw: Dictionary) -> void:
 		_clear()
 
 
-
-
 # Registers a built Def by id; a null Def (from_dict already logged why) becomes an error with file and id.
 func _add(def: RefCounted, table: Dictionary, list: Array, path: String, kind: String, d: Dictionary) -> void:
 	if def == null:
@@ -376,7 +377,6 @@ func _add(def: RefCounted, table: Dictionary, list: Array, path: String, kind: S
 		return
 	table[StringName(d["id"] as String)] = def
 	list.append(def)
-
 
 
 # With a Def that could not be built the data is not valid: nothing stays half-loaded.
@@ -387,6 +387,7 @@ func _clear() -> void:
 	_guide.clear()
 	_helper.clear()
 	_loot.clear()
+	_maps.clear()
 	for list: Array in [_item_list, _skill_list, _action_list, _node_list, _area_list, _shop_list, _class_list,
 			_affix_list, _hint_list, _blueprint_list]:
 		list.clear()

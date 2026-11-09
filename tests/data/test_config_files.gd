@@ -174,7 +174,7 @@ const EXPECTED_STATS: Dictionary = {
 
 const STAT_FIELDS: Array[String] = ["id", "name", "format", "min", "max", "description", "formula", "test"]
 const STAT_FORMATS: Array[String] = ["pct", "flat", "flag"]
-const LATER_MILESTONE_STATS: Array[String] = ["fracture_duration_pct"]
+const LATER_MILESTONE_STATS: Array[String] = []  # fracture_duration_pct was removed with the timed Fracture (R-04)
 const LATER_MILESTONE_BALANCE_KEYS: Array[String] = [
 	"fractures", "parallel",
 ]
@@ -215,7 +215,8 @@ func _flatten(value: Variant, prefix: String, out: Dictionary) -> void:
 func _flatten_without_loot(out: Dictionary) -> void:
 	_flatten(_load_dict(BALANCE_PATH), "", out)
 	for key: String in out.keys():
-		if key.begins_with("upgrade.") or key.begins_with("salvage.") or key.begins_with("tool_upgrade."):
+		if key.begins_with("upgrade.") or key.begins_with("salvage.") or key.begins_with("tool_upgrade.") \
+				or key.begins_with("fracture."):  # fracture.* is covered by tests/core/data/test_map_data_validation.gd
 			out.erase(key)
 
 

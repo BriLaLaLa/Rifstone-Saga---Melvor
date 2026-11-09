@@ -5,12 +5,12 @@ extends RefCounted
 
 const ACTION_SKILL_CATEGORIES: PackedStringArray = ["gathering", "artisan"]
 const ITEM_FIELDS: PackedStringArray = ["id", "name", "description", "category", "icon", "value", "sort_order",
-	"equip", "food", "infusion", "stone", "currency", "blueprint", "bag", "contract"]
+	"equip", "food", "infusion", "stone", "currency", "blueprint", "bag", "contract", "map"]
 const ITEM_ICON_DIR: String = "res://assets/icons/items/"
 ## Item file name (without `.json`) -> the category of its items.
 const ITEM_FILE_CATEGORIES: Dictionary[String, String] = {
 	"materials": "material", "components": "component", "blueprints": "blueprint", "equipment": "equipment", "tools": "tool", "food": "food", "infusions": "infusion",
-	"misc": "misc", "stones": "stone", "currencies": "currency", "bags": "bag", "contracts": "contract",
+	"misc": "misc", "stones": "stone", "currencies": "currency", "bags": "bag", "contracts": "contract", "maps": "map",
 }
 const CURRENCY_EFFECTS: PackedStringArray = ["to_magic", "to_rare", "reroll"]
 const EQUIP_CATEGORIES: PackedStringArray = ["equipment", "tool"]
@@ -94,6 +94,8 @@ static func _item(v: DataValidatorRules, e: Dictionary, file_category: String) -
 			v.fail("a bag must have value 0 (it cannot be sold)")
 	if _sub_object(v, e, "contract", category == "contract"):
 		DataValidatorHelper.contract(v, e)
+	if _sub_object(v, e, "map", category == "map"):
+		DataValidatorMaps.map_item(v, e)
 	if _sub_object(v, e, "currency", category == "currency"):
 		var currency: Dictionary = e["currency"] as Dictionary
 		v.keys(currency, ["effect"], "currency")
