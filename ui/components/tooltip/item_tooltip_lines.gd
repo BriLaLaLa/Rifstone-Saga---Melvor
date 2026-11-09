@@ -67,6 +67,7 @@ static func body(item: ItemDef, data: GameData) -> PackedStringArray:
 		lines.append_array(_requirement_lines(item.equip, data))
 		if item.equip.weapon != null:
 			lines.append(weapon_line(item.equip.weapon))
+			lines.append(damage_line(float(item.equip.weapon.dmg_min), float(item.equip.weapon.dmg_max)))
 		lines.append_array(modifier_lines(item.equip.modifiers, data))
 	if item.is_infusion() and has_data:
 		lines.append_array(modifier_lines(item.infusion_modifiers, data))
@@ -172,12 +173,26 @@ static func _requirement_lines(equip: EquipInfo, data: GameData) -> PackedString
 	return lines
 
 
-static func weapon_line(weapon: WeaponInfo) -> String:
-	var seconds: String = NumberFormat.format_number(weapon.attack_interval_ms / 1000.0)
+## "Stile Lama, un attacco ogni 2,4 s[, a due mani]". `interval_ms` > 0 replaces the base interval of the weapon with the
+## one of F-26 (the interval the player really has).
+static func weapon_line(weapon: WeaponInfo, interval_ms: int = -1) -> String:
+	var shown_ms: int = interval_ms if interval_ms > 0 else weapon.attack_interval_ms
+	var seconds: String = NumberFormat.format_number(shown_ms / 1000.0)
 	var line: String = "Stile %s, un attacco ogni %s s" % [style_name(weapon.style), _value(seconds)]
 	if weapon.two_handed:
 		line += ", a due mani"
 	return line
+
+
+## "Danno: min - max" (docs/02_FORMULAS.md F-22), one decimal at most.
+static func damage_line(low: float, high: float) -> String:
+	return "Danno: %s" % _value("%s - %s" % [NumberFormat.format_number(snappedf(low, 0.1)),
+			NumberFormat.format_number(snappedf(high, 0.1))])
+
+
+## "Danno al secondo: N" (F-22).
+static func dps_line(dps: float) -> String:
+	return "Danno al secondo: %s" % _value(NumberFormat.format_number(snappedf(dps, 0.1)))
 
 
 ## Display name of the scope of `mod` (a skill or an action); empty for global modifiers.

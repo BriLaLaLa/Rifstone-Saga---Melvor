@@ -15,10 +15,12 @@ const UNKNOWN_TEXT: String = "Pagina non trovata: %s"
 const NO_TITLE_FALLBACK := &"page:guide_first_steps"
 const RESULT_TEXT: String = "%s  (%s)"
 const MARGIN: int = 16
+const LOCKED_ROW_TEXT: String = "???"
 
 var _session: GameSession = null
 var _nav: GuideNav = null
 var _renderer: GuideRenderer = null
+var _entities: GuideEntityBlocks = null
 var _current: StringName = &""
 var _history: Array[StringName] = []
 var _results: Array[StringName] = []
@@ -48,8 +50,9 @@ func bind(session: GameSession) -> void:
 	unbind()
 	_session = session
 	_nav = GuideNav.new(session.data)
-	var entities: GuideEntityBlocks = GuideEntityBlocks.new(session.data, GuideIndex.new(session.data), _nav)
-	_renderer = GuideRenderer.new(session.data, _nav, entities, open_entry)
+	_entities = GuideEntityBlocks.new(session.data, GuideIndex.new(session.data), _nav, session.discoveries)
+	_renderer = GuideRenderer.new(session.data, _nav, _entities, open_entry)
+	session.events.item_discovered.connect(_on_item_discovered)
 	_fill_tree()
 	var argument: String = _route_argument()
 	if argument.is_empty():
@@ -60,9 +63,12 @@ func bind(session: GameSession) -> void:
 
 
 func unbind() -> void:
+	if _session != null and is_instance_valid(_session) and _session.events.item_discovered.is_connected(_on_item_discovered):
+		_session.events.item_discovered.disconnect(_on_item_discovered)
 	_session = null
 	_nav = null
 	_renderer = null
+	_entities = null
 	_current = &""
 	_history.clear()
 	_results.clear()
@@ -97,7 +103,13 @@ func go_back() -> bool:
 
 ## Pages whose title contains `query` (case and accents ignored); an empty query gives the whole index.
 func search(query: String) -> Array[StringName]:
-	return _nav.search(query) if _nav != null else []
+	if _nav == null:
+		return []
+	var found: Array[StringName] = []
+	for id: StringName in _nav.search(query):
+		if not _entities.is_locked_item(id):
+			found.append(id)
+	return found
 
 
 ## Id of the page shown now; `&""` if none.
@@ -131,8 +143,16 @@ func _fill_tree() -> void:
 		folder.collapsed = true
 		for id: StringName in group["ids"] as Array[StringName]:
 			var row: TreeItem = _index_tree.create_item(folder)
-			row.set_text(0, _nav.title_of(id))
-			row.set_metadata(0, id)
+			_set_row(row, id)
+
+
+## A locked item is a closed row ("???", not selectable); the others show their title.
+func _set_row(row: TreeItem, id: StringName) -> void:
+	var locked: bool = _entities.is_locked_item(id)
+	row.set_text(0, LOCKED_ROW_TEXT if locked else _nav.title_of(id))
+	row.set_metadata(0, id)
+	row.set_selectable(0, not locked)
+	row.set_custom_color(0, UiStyle.TEXT_DISABLED if locked else UiStyle.TEXT)
 
 
 func _select_in_tree(entry_id: StringName) -> void:
@@ -177,3 +197,18 @@ func _on_tree_item_selected() -> void:
 func _on_result_selected(index: int) -> void:
 	if index >= 0 and index < _results.size():
 		open_entry(_results[index])
+
+
+## An item discovered now opens its row and its page, also if the page is the one on screen.
+func _on_item_discovered(item_id: StringName) -> void:
+	if _nav == null:
+		return
+	var root: TreeItem = _index_tree.get_root()
+	var entry: StringName = GuideIndex.entry(GuideNav.KIND_ITEM, item_id)
+	if root != null:
+		for folder: TreeItem in root.get_children():
+			for row: TreeItem in folder.get_children():
+				if row.get_metadata(0) == entry:
+					_set_row(row, entry)
+	if _current != &"":
+		_renderer.render(_body, _current)

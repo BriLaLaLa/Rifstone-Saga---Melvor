@@ -61,12 +61,12 @@ static func loss_text(session: GameSession, action: ActionDef) -> String:
 			item.name if item != null else String(input.item_id)]
 
 
-## "Da: <sources>" of an ingredient, from the Guide index (the same as the tooltips); empty when it has none.
-static func source_text(item_id: StringName, data: GameData) -> String:
+## "Da: <sources>" of an ingredient, from the Guide index and only if the item is discovered (F-124); empty otherwise.
+static func source_text(item_id: StringName, data: GameData, discoveries: Object) -> String:
 	if _index == null or _index_data != data:
 		_index = GuideIndex.new(data)
 		_index_data = data
-	var summary: String = _index.summary_line(_index.sources_of(item_id), 3)
+	var summary: String = _index.summary_line(_index.sources_visible(item_id, discoveries), 3)
 	return SOURCE_TEXT % summary if not summary.is_empty() else ""
 
 
@@ -85,3 +85,41 @@ static func flow_for(parent: Container, flows: Dictionary[StringName, HFlowConta
 		parent.add_child(flow)
 		flows[section] = flow
 	return flows[section]
+
+
+## Sub-tabs of the Engraver page (docs/01_GDD.md §29): the id of each tab, its label and the sections it shows.
+const TAB_SLAB: StringName = &"slabs"
+const TAB_MERGE: StringName = &"merge"
+const TAB_CRYSTALS: StringName = &"crystals"
+const TAB_RUNES: StringName = &"runes"
+const TABS: Array[Dictionary] = [
+	{"id": TAB_SLAB, "label": "Lastre", "sections": [SECTION_SLAB]},
+	{"id": TAB_MERGE, "label": "Fondere", "sections": [SECTION_MERGE]},
+	{"id": TAB_CRYSTALS, "label": "Cristalli", "sections": [SECTION_CRYSTALS]},
+	{"id": TAB_RUNES, "label": "Rune", "sections": [SECTION_ENGRAVE, SECTION_UPGRADE]},
+]
+
+
+## The tab that shows `section`.
+static func tab_of(section: StringName) -> StringName:
+	for tab: Dictionary in TABS:
+		if (tab["sections"] as Array).has(section):
+			return tab["id"]
+	return &""
+
+
+## Shows only the sections of `tab_id`: headings and flows of `parent` (the heading of a tab with one section is hidden,
+## the tab label already says it).
+static func show_tab(parent: Container, tab_id: StringName) -> void:
+	var shown: Array = []
+	for tab: Dictionary in TABS:
+		if tab["id"] == tab_id:
+			shown = tab["sections"]
+	for section: StringName in SECTIONS:
+		var visible_now: bool = shown.has(section)
+		var heading: Node = parent.find_child(SECTION_NODE % section, false, false)
+		var flow: Node = parent.find_child("Flow_%s" % section, false, false)
+		if heading != null:
+			(heading as Control).visible = visible_now and shown.size() > 1
+		if flow != null:
+			(flow as Control).visible = visible_now

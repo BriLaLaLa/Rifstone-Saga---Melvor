@@ -1,16 +1,15 @@
 class_name BankPage
 extends Page
 ## Bank page (docs/01_GDD.md §7), route `bank`: a grid of ItemSlotView cells, one per stack of `bank.stacks()` in the
-## bank's order, the counter "used / capacity", a search by name, the "Ordina" button and the item panel.
+## bank's order, the counter "used / capacity", a search by name, the "Riordina" button and the item panel.
 ##
 ## Every redraw reads the session: the stacks from `bank.stacks()`, the counter from `bank.used()` and
 ## `deposit.capacity()`, the item panel from the bank. It redraws on `bank_changed` and `deposit_changed`; the
 ## quantity a cell draws is the one of its last `set_item` (presentation copy of ItemSlotView, never read back).
 ## Player actions are bank commands: a click on a cell opens the item panel (lock / unlock = `set_locked`); dragging
 ## a cell onto another moves it to that cell's index (`move_stack`), onto the grid outside the cells to the last
-## index; "Ordina" = `sort_stacks`. The grid changes only through the events of the bank: a
-## refused command moves nothing and shows its reason. Selling = `shop.sell`,
-## "Usa come cibo" = `equipment.set_food` (all from the item panel).
+## index; "Riordina" sorts the open tab (`DepositTabs.sort_open_tab`). A refused command moves nothing and shows its reason.
+## Selling = `shop.sell`, "Usa come cibo" = `equipment.set_food` (all from the item panel).
 ## It keeps no game state: only the session reference, its nodes and presentation state (search text, the item of
 ## the panel, the hovered cell whose tooltip is refreshed after a redraw).
 
@@ -21,8 +20,8 @@ const FULL_TEXT: String = "Il deposito è pieno: i nuovi oggetti non entrano."
 const EMPTY_TEXT: String = "Il deposito è vuoto."
 const NO_MATCH_TEXT: String = "Nessun oggetto corrisponde alla ricerca."
 const SEARCH_PLACEHOLDER: String = "Cerca per nome"
-const SORT_TEXT: String = "Ordina"
-const SORT_TOOLTIP: String = "Ordina per categoria e poi per tipo di oggetto."
+const SORT_TEXT: String = "Riordina"
+const SORT_TOOLTIP: String = "Riordina la scheda aperta: per categoria e tipo, oppure per slot, grado e rarità."
 ## Reason of a refused bank command -> text shown above the grid; other reasons: REFUSED_TEXT_DEFAULT.
 const REFUSED_TEXTS: Dictionary[StringName, String] = {
 	Reasons.UNKNOWN_ID: "L'oggetto non è più nel deposito.",
@@ -346,7 +345,7 @@ func _on_item_panel_close_requested() -> void:
 func _on_sort_button_pressed() -> void:
 	if _session != null:
 		_message_label.visible = false
-		_session.bank.sort_stacks()
+		_tabs.sort_open_tab(_session)
 
 
 func _on_search_edit_text_changed(_new_text: String) -> void:

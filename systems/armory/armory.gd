@@ -311,6 +311,17 @@ func is_filtered(inst: ItemInstance) -> bool:
 	return _filter.rejects(equip.slot, inst.rarity, equip.grade)
 
 
+## M14 "Riordina" (`ArmorySort`): signals `armory_changed` only for the pieces that moved.
+func sort() -> void:
+	var before: Array = _items.keys()
+	var sorted: Dictionary[int, ItemInstance] = {}
+	for uid: int in ArmorySort.sorted_uids(_items, _data):
+		sorted[uid] = _items[uid]
+	_items = sorted
+	for uid: int in sorted.keys().filter(func(u: int) -> bool: return sorted.keys().find(u) != before.find(u)):
+		_events.armory_changed.emit(uid, CHANGE_UPDATED)
+
+
 ## Empty, then the starting kit (ArmoryKit, docs/01_GDD.md §1.1) with uids 1…n, without signals; Equipment.new_game wears it.
 func new_game() -> void:
 	_clear()

@@ -152,6 +152,11 @@ func _new_row(section: VBoxContainer, entry: ShopEntryDef) -> Dictionary:
 	row.add_child(info)
 	_label(info, entry.name, &"HeaderLabel").name = "NameLabel"
 	_label(info, entry.description, &"MutedLabel").autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var effect_label: Label = _label(info, ShopTexts.describe(entry, _session.data), &"")
+	effect_label.name = "EffectLabel"
+	effect_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	effect_label.add_theme_color_override("font_color", UiStyle.GOLD_LIGHT)
+	effect_label.visible = not effect_label.text.is_empty()
 	var requires_label: Label = _label(info, "", &"")
 	requires_label.name = "RequiresLabel"
 	requires_label.add_theme_color_override("font_color", UiStyle.BAD)

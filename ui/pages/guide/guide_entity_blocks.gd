@@ -13,15 +13,36 @@ const NONE_TEXT: String = "Nessuno."
 const BULLET: String = "- "
 const SEPARATOR: String = " - "
 
+const LOCKED_TITLE: String = "???"
+const LOCKED_TEXT: String = "Non hai ancora trovato questo oggetto: la sua pagina si apre la prima volta che lo ottieni."
+const HEADING_STONE: String = "Monolito del Rift: %s"
+const DROPS_NONE_TEXT: String = "Nessun bottino."
+
 var _data: GameData = null
 var _index: GuideIndex = null
 var _nav: GuideNav = null
+## The `Discoveries` of the session (anything with `has(item_id)`); null = nothing discovered (everything locked).
+var _discoveries: Object = null
 
 
-func _init(data: GameData, index: GuideIndex, nav: GuideNav) -> void:
+func _init(data: GameData, index: GuideIndex, nav: GuideNav, discoveries: Object = null) -> void:
 	_data = data
 	_index = index
 	_nav = nav
+	_discoveries = discoveries
+
+
+## True when `entry_id` is an item page whose item has not been obtained yet (no name, no page).
+func is_locked_item(entry_id: StringName) -> bool:
+	var text: String = String(entry_id)
+	if not text.begins_with(String(GuideNav.KIND_ITEM) + ":"):
+		return false
+	return not GuideDrops.is_unlocked(StringName(text.substr(text.find(":") + 1)), _discoveries)
+
+
+## What an item, monster, area or action can give, with the lock state of every entry (`GuideIndex.drops_view`).
+func drops_view(kind: StringName, id: StringName) -> Array[Dictionary]:
+	return _index.drops_view(kind, id, _discoveries)
 
 
 ## Blocks of the generated page `entry_id` (`<kind>:<id>`); empty for a kind that is not generated.
@@ -49,9 +70,11 @@ func build(entry_id: StringName) -> Array[Dictionary]:
 
 func _item(id: StringName) -> Array[Dictionary]:
 	var def: ItemDef = _data.item(id)
+	if not GuideDrops.is_unlocked(id, _discoveries):
+		return [_plain(LOCKED_TEXT)]
 	var blocks: Array[Dictionary] = [_plain(def.description), _plain("Valore: %s oro" % GuideIndex.num(def.value))]
 	blocks.append(_heading(HEADING_SOURCES))
-	blocks.append_array(_ref_lines(_index.sources_of(id)))
+	blocks.append_array(_ref_lines(_index.sources_visible(id, _discoveries)))
 	blocks.append(_heading(HEADING_USES))
 	blocks.append_array(_ref_lines(_index.uses_of(id)))
 	return blocks
@@ -70,7 +93,7 @@ func _monster(id: StringName) -> Array[Dictionary]:
 	if not places.is_empty():
 		blocks.append(_rich("Si trova in: " + ", ".join(places)))
 	blocks.append(_heading(HEADING_DROPS))
-	blocks.append({"type": "table", "source": GuideTables.PREFIX_MONSTER_DROPS + String(id)})
+	blocks.append(_drops_block(GuideNav.KIND_MONSTER, id))
 	return blocks
 
 
@@ -81,6 +104,12 @@ func _area(id: StringName) -> Array[Dictionary]:
 		blocks.append(_plain("Livello richiesto (%s): %s" % [_requirement_name(key), GuideIndex.num(def.requirements[key])]))
 	blocks.append(_heading(HEADING_MONSTERS))
 	blocks.append({"type": "table", "source": GuideTables.PREFIX_AREA_MONSTERS + String(id)})
+	blocks.append(_heading(HEADING_DROPS))
+	blocks.append(_drops_block(GuideNav.KIND_AREA, id))
+	var stone: RiftStoneDef = _data.rift_stone_for_area(id)
+	if stone != null:
+		blocks.append(_heading(HEADING_STONE % stone.name))
+		blocks.append(_drops_block(GuideRef.KIND_RIFT_STONE, stone.id))
 	return blocks
 
 
@@ -90,6 +119,10 @@ func _skill(id: StringName) -> Array[Dictionary]:
 	if not _data.actions_for_skill(id).is_empty():
 		blocks.append(_heading(HEADING_ACTIONS))
 		blocks.append({"type": "table", "source": GuideTables.PREFIX_ACTIONS + String(id)})
+		for action: ActionDef in _data.actions_for_skill(id):
+			if action.inputs.is_empty() and not action.outputs.is_empty():
+				blocks.append(_plain(action.name))
+				blocks.append(_drops_block(GuideRef.KIND_ACTION, action.id))
 	return blocks
 
 
@@ -134,6 +167,11 @@ func _ref_lines(refs: Array[GuideRef]) -> Array[Dictionary]:
 		var detail: String = (" (%s)" % GuideRich.escape(ref.detail)) if not ref.detail.is_empty() else ""
 		lines.append(_rich(BULLET + label + detail))
 	return lines
+
+
+## A list of cells with everything `kind` / `id` can give; locked cells for the items not yet obtained.
+func _drops_block(kind: StringName, id: StringName) -> Dictionary:
+	return {"type": "drops", "kind": kind, "id": id}
 
 
 func _plain(text: String) -> Dictionary:

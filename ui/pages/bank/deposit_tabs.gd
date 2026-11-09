@@ -92,3 +92,12 @@ func _add_placeholder(cell_name: String, occupied: bool) -> void:
 	if occupied:
 		cell.tooltip_text = OCCUPIED_TOOLTIP
 	_grid.add_child(cell)
+
+
+## "Riordina" (GDD §29): `Bank.sort` on the "Oggetti" tab, `Armory.sort` on the "Equipaggiamento" tab (model commands).
+func sort_open_tab(session: GameSession) -> void:
+	if current_tab == get_tab_count() - 1:
+		session.armory.sort()
+		redraw(session)
+	else:
+		session.bank.sort()

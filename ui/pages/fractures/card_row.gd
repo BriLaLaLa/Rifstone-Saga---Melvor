@@ -12,6 +12,8 @@ signal currency_requested(uid: int)
 const ICON_SIZE: int = 48
 const SEPARATION: int = 12
 const BUTTON_WIDTH: int = 110
+const MOD_SEPARATION: int = 16
+const MOD_NAME_WIDTH: int = 150
 
 
 ## Draws `card` for `session`; `can_open` is false while a Fracture is in progress or loot is pending.
@@ -53,8 +55,9 @@ func _info(session: GameSession, card: MapCard) -> VBoxContainer:
 	var sub := Label.new()
 	sub.name = "GradeLabel"
 	sub.theme_type_variation = &"MutedLabel"
-	sub.text = "%s   |   %s" % [FractureTexts.CARD_GRADE_TEXT % card.grade,
-			FractureTexts.RECOMMENDED_TEXT % session.fractures.recommended_level(card.grade)]
+	sub.text = "%s   |   %s   |   %s" % [FractureTexts.CARD_GRADE_TEXT % card.grade,
+			FractureTexts.RECOMMENDED_TEXT % session.fractures.recommended_level(card.grade),
+			FractureTexts.risk_total_text(card, session.data)]
 	box.add_child(sub)
 	var effects: Array[Dictionary] = MapCardRoller.effects(card, session.data)
 	if effects.is_empty():
@@ -68,12 +71,14 @@ func _info(session: GameSession, card: MapCard) -> VBoxContainer:
 	return box
 
 
-func _mod_block(data: GameData, effect: Dictionary) -> VBoxContainer:
-	var block := VBoxContainer.new()
+func _mod_block(data: GameData, effect: Dictionary) -> HBoxContainer:
+	var block := HBoxContainer.new()
+	block.add_theme_constant_override("separation", MOD_SEPARATION)
 	block.name = "Mod_%s" % effect["mod"]
 	var def: MapModDef = data.map_mod(effect["mod"] as StringName)
 	var name_label := Label.new()
 	name_label.name = "ModName"
+	name_label.custom_minimum_size.x = MOD_NAME_WIDTH
 	name_label.text = def.name if def != null else String(effect["mod"])
 	if def != null:
 		name_label.tooltip_text = def.description

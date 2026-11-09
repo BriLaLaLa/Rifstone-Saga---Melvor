@@ -26,7 +26,7 @@ static func refine_info(session: GameSession, uid: int) -> Dictionary:
 	var data: GameData = session.data
 	if inst == null or inst.upgrade >= Upgrade.max_level(data):
 		return {"max": true}
-	var grade: int = data.item(inst.base_id).equip.grade
+	var grade: int = Upgrade.material_grade(inst, data)
 	var cost: Dictionary = Upgrade.cost(inst.upgrade, grade, data)
 	var chance: float = Upgrade.chance_pct(inst.upgrade, session.modifiers.total(Upgrade.STAT), data)
 	var lines: PackedStringArray = PackedStringArray()
@@ -35,6 +35,7 @@ static func refine_info(session: GameSession, uid: int) -> Dictionary:
 				NumberFormat.format_int(session.wallet.get_gold())])
 	_append_item_line(lines, session, cost["ingot"], int(cost["ingots"]))
 	_append_item_line(lines, session, Upgrade.SHARD_ITEM, int(cost["shards"]))
+	_append_item_line(lines, session, Upgrade.DUST_ITEM, int(cost["dust"]))
 	var failed: int = Upgrade.failed_level(inst.upgrade, data)
 	var seal: StringName = Upgrade.seal_item(data)
 	var seal_def: ItemDef = data.item(seal) if data.has_item(seal) else null

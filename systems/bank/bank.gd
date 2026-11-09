@@ -135,11 +135,16 @@ func move_stack(item_id: StringName, new_index: int) -> CommandResult:
 	return CommandResult.success()
 
 
-## Category (SORT_CATEGORIES), then the item's sort_order, then id.
-func sort_stacks() -> void:
+## M14 "Riordina" (05 §5.24): category (SORT_CATEGORIES), then the item's sort_order, then id.
+func sort() -> void:
 	var before: Array[StringName] = _order.duplicate()
 	_order.sort_custom(_sorts_before)
 	_emit_moved(before)
+
+
+## Same as `sort` (name kept for the older callers).
+func sort_stacks() -> void:
+	sort()
 
 
 ## Puts one bag from the bank into a bag slot. invalid_amount (slot out of range), unknown_id, not_a_bag,

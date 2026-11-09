@@ -49,6 +49,7 @@ var _blueprints: BlueprintSection = null
 var _tool_panel: ToolUpgradePanel = null
 var _bench: ForgeBench = null
 var _helper_row: HelperRow = null
+var _tabs: SkillTabs = SkillTabs.new()
 ## The helper events carry 2 or 3 arguments the page does not need: one stored Callable each (to disconnect them).
 var _helper_event_3: Callable = _on_helper_event.unbind(3)
 var _helper_event_2: Callable = _on_helper_event.unbind(2)
@@ -89,6 +90,7 @@ func bind(session: GameSession) -> void:
 	_mastery_button.visible = skill.has_mastery
 	_build_extras()
 	_build_cards()
+	_tabs.build(_skill.id, _extras, _cards, _session.data, _blueprints, _bench)
 	var events: GameEvents = _session.events
 	events.xp_gained.connect(_on_events_xp_gained)
 	events.level_up.connect(_on_events_level_up)
@@ -303,6 +305,7 @@ func _build_extras() -> void:
 	_bench = null
 	_helper_row = null
 	_section_flows.clear()
+	_tabs.clear()
 	if _skill.id == BlueprintCraft.SKILL:
 		_blueprints = BLUEPRINT_SECTION_SCENE.instantiate() as BlueprintSection
 		_extras.add_child(_blueprints)

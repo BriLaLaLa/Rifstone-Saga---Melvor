@@ -32,6 +32,7 @@ func test_opens_on_first_steps_with_index_and_content() -> void:
 
 
 func test_every_entity_has_a_page_that_opens() -> void:
+	_discover_all()
 	_open()
 	var kinds: Dictionary[String, bool] = {}
 	for id: StringName in GuideTables.page_ids(_session.data):
@@ -45,6 +46,7 @@ func test_every_entity_has_a_page_that_opens() -> void:
 
 
 func test_item_page_shows_sources_and_uses() -> void:
+	_session.discoveries.note(&"redbirch_log")
 	_open()
 	_page.open_entry(GuideIndex.entry(&"item", &"redbirch_log"))
 	var headings: PackedStringArray = []
@@ -55,6 +57,7 @@ func test_item_page_shows_sources_and_uses() -> void:
 
 
 func test_search_by_name_ignores_case_and_accents() -> void:
+	_discover_all()
 	_open()
 	assert_eq(_page.search("").size(), _nav.ids().size(), "empty query = whole index")
 	var found: Array[StringName] = _page.search("ABILITA")
@@ -180,3 +183,64 @@ func _search_edit() -> LineEdit:
 
 func _results() -> ItemList:
 	return _page.get_node("%ResultsList") as ItemList
+
+
+func _discover_all() -> void:
+	for item: ItemDef in _session.data.items():
+		_session.discoveries.note(item.id)
+
+
+func test_undiscovered_item_is_a_closed_row_and_has_no_page_content() -> void:
+	_open()
+	var entry: StringName = GuideIndex.entry(&"item", &"redbirch_log")
+	assert_false(_session.discoveries.has(&"redbirch_log"))
+	assert_eq(_row_text(entry), "???")
+	assert_false(_page.search(_nav.title_of(entry)).has(entry), "the name of a locked item is not searchable")
+	_page.open_entry(entry)
+	assert_eq(_body_title(), "???")
+	var texts: PackedStringArray = []
+	for node: Node in _page.find_children("*", "Label", true, false):
+		texts.append((node as Label).text)
+	assert_false(texts.has("Si ottiene da"), "no source for an item never obtained")
+	assert_false(texts.has("Serve a"))
+
+
+func test_discovering_an_item_opens_its_row_and_its_page() -> void:
+	_open()
+	var entry: StringName = GuideIndex.entry(&"item", &"redbirch_log")
+	_page.open_entry(entry)
+	_session.discoveries.note(&"redbirch_log")
+	assert_eq(_row_text(entry), _nav.title_of(entry))
+	assert_eq(_body_title(), _nav.title_of(entry))
+	assert_true(_page.search(_nav.title_of(entry)).has(entry))
+
+
+func test_monster_page_lists_every_drop_in_locked_cells() -> void:
+	_open()
+	var monster_id: StringName = _session.data.areas()[0].monster_ids[0]
+	_page.open_entry(GuideIndex.entry(&"monster", monster_id))
+	var cells: Array[Node] = _page.find_children("*", "LockedCell", true, false)
+	var view: Array[Dictionary] = GuideIndex.new(_session.data).drops_view(&"monster", monster_id, _session.discoveries)
+	assert_eq(cells.size(), view.size())
+	assert_gt(cells.size(), 0)
+	for cell: Node in cells:
+		var locked_cell: LockedCell = cell as LockedCell
+		if locked_cell.is_locked():
+			assert_eq(locked_cell.shown_name(), "???")
+			assert_eq(locked_cell.shown_chance(), "")
+	var first: Dictionary = view[0]
+	_session.discoveries.note(first["item"])
+	var opened: LockedCell = _page.find_children("*", "LockedCell", true, false)[0] as LockedCell
+	assert_false(opened.is_locked())
+	assert_eq(opened.shown_name(), _session.data.item(first["item"]).name)
+	var ref: GuideRef = first["ref"]
+	var expected_pct: String = "%s%%" % GuideDrops.pct_text(ref.chance_pct) if ref.chance_pct >= 0.0 else ""
+	assert_eq(opened.shown_chance(), expected_pct)
+
+
+func _row_text(entry: StringName) -> String:
+	for folder: TreeItem in _tree().get_root().get_children():
+		for row: TreeItem in folder.get_children():
+			if row.get_metadata(0) == entry:
+				return row.get_text(0)
+	return ""

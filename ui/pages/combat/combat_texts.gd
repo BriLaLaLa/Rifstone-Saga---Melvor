@@ -54,12 +54,12 @@ const GROUP_SIZE_TEXT: String = "%d nemici"
 const GROUP_SIZE_ONE_TEXT: String = "1 nemico"
 const LOOT_MORE_TEXT: String = "+%d"
 const TARGET_TITLE: String = "Bersaglio"
-const QUEUE_TITLE: String = "In fila (%d)"
+const QUEUE_TITLE: String = "Altri nemici (%d)"
 const NO_TARGET_TEXT: String = "Nessun nemico in campo."
 const DEFEATED_TEXT: String = "sconfitto"
 const TAG_TEXT: String = "%s · %s"
 const RELATION_TEXTS: Dictionary[StringName, String] = {
-	&"advantage": "sei in vantaggio", &"neutral": "alla pari", &"disadvantage": "svantaggio",
+	&"advantage": "Debole contro di te", &"neutral": "Alla pari", &"disadvantage": "Forte contro di te",
 }
 const ENEMY_INFO_TEXT: String = "Attacca ogni %s s · riduzione del danno %s"
 const LEVEL_TEXT: String = "Livello %d · %s"

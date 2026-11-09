@@ -1,7 +1,7 @@
 class_name BlueprintSection
 extends VBoxContainer
 ## Blueprint section of the Forging page (docs/01_GDD.md §5.1, docs/05_INTERFACES.md §7.x): the blueprints in the bank,
-## the requirements ("owned / required"), duration, XP and rare chance read from the systems, the choice of the affix
+## the requirements ("owned / required"), duration, XP and two-affix chance read from the systems, the choice of the affix
 ## from the Forging level `blueprint.choose_affix_level`, and Start / Stop for the craft in progress.
 ##
 ## Internal to SkillPage. `setup` builds one row per blueprint of the data (hidden unless owned or running); `redraw`
@@ -147,7 +147,7 @@ func _redraw_detail(session: GameSession, state: Dictionary) -> void:
 	var duration_ms: int = BlueprintCraft.duration_ms(blueprint, session.modifiers.total(INTERVAL_STAT, ctx), _data)
 	if is_running:
 		duration_ms = int(state["duration_ms"])
-	var rare: float = ItemRoller.blueprint_rare_chance(level, session.modifiers.total(BlueprintCraft.RARITY_STAT, ctx),
+	var rare: float = ItemRoller.blueprint_two_affix_chance(level, session.modifiers.total(BlueprintCraft.RARITY_STAT, ctx),
 			_data)
 	_info_label.text = BlueprintTexts.INFO_LINE % [BlueprintTexts.duration(duration_ms),
 			NumberFormat.format_int(BlueprintCraft.xp(blueprint, _data)), BlueprintTexts.percent(rare)]

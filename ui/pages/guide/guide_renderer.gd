@@ -7,6 +7,7 @@ const TABLE_H_SEPARATION: int = 18
 const TABLE_V_SEPARATION: int = 4
 const BODY_FONT_SIZE: int = 16
 const CELL_MIN_WIDTH: float = 72.0
+const CELL_SEPARATION: int = 6
 const BULLET: String = "- "
 
 var _data: GameData = null
@@ -40,7 +41,7 @@ func render(body: VBoxContainer, entry_id: StringName) -> void:
 		child.queue_free()
 	var title: Label = Label.new()
 	title.name = "PageTitle"
-	title.text = _nav.title_of(entry_id)
+	title.text = GuideEntityBlocks.LOCKED_TITLE if _entities.is_locked_item(entry_id) else _nav.title_of(entry_id)
 	title.theme_type_variation = &"TitleLabel"
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	body.add_child(title)
@@ -66,6 +67,8 @@ func _render_block(body: VBoxContainer, block: Dictionary) -> void:
 			body.add_child(heading)
 		"table":
 			_add_table(body, str(block.get("source", "")))
+		"drops":
+			_add_drops(body, StringName(str(block.get("kind", ""))), StringName(str(block.get("id", ""))))
 		"links":
 			for target: Variant in block.get("targets", []) as Array:
 				var id: StringName = StringName(str(target))
@@ -85,6 +88,28 @@ func _add_rich(parent: Control, bbcode: String) -> RichTextLabel:
 	label.meta_clicked.connect(_on_meta_clicked)
 	parent.add_child(label)
 	return label
+
+
+## Cells of everything a monster, area, Monolith or action can give: a `LockedCell` per entry, locked or open.
+func _add_drops(body: VBoxContainer, kind: StringName, id: StringName) -> void:
+	var view: Array[Dictionary] = _entities.drops_view(kind, id)
+	if view.is_empty():
+		_add_rich(body, GuideRich.escape(GuideEntityBlocks.DROPS_NONE_TEXT))
+		return
+	var flow: HFlowContainer = HFlowContainer.new()
+	flow.name = "Drops_%s" % id
+	flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	flow.add_theme_constant_override("h_separation", CELL_SEPARATION)
+	flow.add_theme_constant_override("v_separation", CELL_SEPARATION)
+	body.add_child(flow)
+	for entry: Dictionary in view:
+		var cell: LockedCell = LockedCell.new()
+		flow.add_child(cell)
+		cell.setup(_data)
+		if entry["unlocked"]:
+			cell.show_item(entry["item"], entry["chance_pct"])
+		else:
+			cell.show_locked()
 
 
 func _add_table(body: VBoxContainer, source: String) -> void:

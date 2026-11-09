@@ -20,11 +20,6 @@ static func blueprint_two_affix_chance(forging_level: int, rarity_pct: float, da
 	return minf((base + per_level * forging_level) * k, 100.0)
 
 
-## Same value as `blueprint_two_affix_chance` (the name of M10; the UI of the Forging page still calls it).
-static func blueprint_rare_chance(forging_level: int, rarity_pct: float, data: GameData) -> float:
-	return blueprint_two_affix_chance(forging_level, rarity_pct, data)
-
-
 ## F-84: x = magic %, y = rare %. `source` is `&"monster"` (rarity.drop) or `&"rift_stone"` (rarity.rift_stone); an
 ## unknown source logs an error and gives zero. Same `k` and same clamping as F-91.
 static func drop_chances(source: StringName, rarity_pct: float, data: GameData) -> Vector2:

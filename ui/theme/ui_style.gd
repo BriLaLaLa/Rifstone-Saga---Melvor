@@ -178,6 +178,8 @@ const WINDOW_BORDER_WIDTH: int = 2
 const RARITY_COMMON := Color("d8d2c0")
 const RARITY_MAGIC := Color("6f9bff")
 const RARITY_RARE := Color("f1d27a")
+const RARITY_MASTERWORK := Color("b36bff")
+const RARITY_LEGENDARY := Color("ff8a2b")
 const RARITY_UNKNOWN := Color("a89f8a")
 
 const FONT_SIZE: int = 17
@@ -294,13 +296,14 @@ static func build_theme() -> Theme:
 	return UiThemeBuilder.build()
 
 
-## Color of a rarity (`common`, `magic`, `rare`) for names and borders of pieces; RARITY_UNKNOWN for anything else.
+## Color of a rarity (RarityColors); RARITY_UNKNOWN for anything else.
 static func rarity_color(rarity: StringName) -> Color:
-	match rarity:
-		&"common":
-			return RARITY_COMMON
-		&"magic":
-			return RARITY_MAGIC
-		&"rare":
-			return RARITY_RARE
-	return RARITY_UNKNOWN
+	return RarityColors.color(rarity)
+
+
+# --- Locked cells of the Guide (docs/01_GDD.md §27.1) ---
+const LOCKED_CELL_SIZE := Vector2(104, 92)
+const LOCKED_CELL_ICON_SIDE: int = 40
+const LOCKED_ICON_SHADE := Color(0.0, 0.0, 0.0, 0.55)
+const LOCKED_CELL_BORDER_WIDTH: int = 1
+const LOCKED_CELL_RADIUS: float = 4.0
