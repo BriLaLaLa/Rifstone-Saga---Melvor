@@ -139,3 +139,50 @@ Sottoprodotti della maestria (traguardo 25): nomi originali semplici, es. Resina
 (Trota); gli altri li propone il task DATA (M12-05) nello stesso stile (una parola, dice cosa è).
 Note: il termine "Pietra" resta solo per le pietre dei castoni; i Monoliti sono i bersagli speciali; "Frammento del Rift"
 (`rift_shard`) resta com'è.
+
+
+## Fratture come mappe (M13, X1-X4, R-04)
+
+Criteri: il nome dice dove si va (Carta) o cosa cambia (modificatore); **classici ai gradi bassi, più esotici ai gradi alti**; nomi originali, nessuno da altri giochi. I testi di gioco sono in italiano; gli id sono i soli identificatori.
+
+| Cosa | Id | Nome |
+|---|---|---|
+| Pagina e sistema | — | **Fratture** (voce della sidebar); l'oggetto è la **Carta della Frattura** (nelle liste: "Carta") |
+| Contenitore del bottino | — | **Borsa della Frattura**; se la consegna non entra: **Bottino in attesa** ("Raccogli") |
+| Comandi | — | **Apri**, **Abbandona**, **Raccogli** |
+| Informazione | — | **Livello consigliato**, **Gruppo N/30**, **Boss** |
+
+**Carte** (`fracture_card_<grado>`, categoria `map`):
+
+| Grado | Nome |
+|---|---|
+| 1 | Carta della Radura |
+| 2 | Carta del Sentiero |
+| 3 | Carta della Palude |
+| 4 | Carta della Cripta |
+| 5 | Carta della Fucina spenta |
+| 6 | Carta del Baratro |
+| 7 | Carta della Guglia spezzata |
+| 8 | Carta dell'Eclissi |
+| 9 | Carta della Vertigine |
+| 10 | Carta dell'Origine |
+
+**Modificatori** (`data/maps/map_mods.json`; rischio / premio in `02_FORMULAS.md` F-111): Mostri robusti (`sturdy`), Assalto (`assault`), Fame (`famine`), Brutalità (`brutal`), Orde (`hordes`), Impulsi (`pulses`), Velati (`shrouded`), Digiuno (`fasting`),
+Titani del Rift (`titans`), Lame spettrali (`spectral`), Frenesia del Rift (`frenzy`), Tempesta dell'Abisso (`abyssal`). Gli ultimi quattro (gradi alti) sono i più esotici.
+
+**Boss** (`boss_grade_<grado>`, uno per grado; abilità tra parentesi, F-112):
+
+| Grado | Nome | Abilità |
+|---|---|---|
+| 1 | Zannalunga, il Gran Cinghiale | colpo pesante |
+| 2 | Capobranco Cenere | evocazione |
+| 3 | Re del Fango | scudo |
+| 4 | Cavaliere senza Nome | colpo pesante |
+| 5 | Custode della Fucina | scudo |
+| 6 | Strega delle Vene Nere | evocazione |
+| 7 | Guardiano della Guglia | colpo pesante |
+| 8 | Colosso d'Ossidiana | scudo |
+| 9 | Araldo dell'Eclissi | evocazione |
+| 10 | Il Primo Frammento | colpo pesante |
+
+Nomi delle abilità visibili in gioco (testo di presentazione): "Colpo pesante", "Scudo", "Evocazione". Gli evocati sono mostri esistenti del grado (nessun nome nuovo).

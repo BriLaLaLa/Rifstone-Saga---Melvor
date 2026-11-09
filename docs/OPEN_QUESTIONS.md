@@ -32,7 +32,7 @@ in "Chiuse".
 |---|---|---|
 | Q16 | Limite offline aumentabile (es. voce dello shop)? | No: 12 ore fisse |
 | Q17 | Si può interrompere la simulazione offline? | No; deve durare < 10 s |
-| Q18 | Le Fratture (M12) avanzano anche offline? | Sì, con la stessa simulazione |
+| Q18 | Le Fratture (M13) avanzano anche offline? | Sì, con lo stesso motore a eventi (una Frattura aperta prima di uscire finisce durante l'assenza; R-04) |
 
 ## UI, contenuti, piattaforma
 
@@ -106,6 +106,16 @@ in M12-07 (`tools/sim_combat.gd`).
 | Q60 | Traguardi della maestria per risorsa | 25 sottoprodotto raro, 50 bonus della risorsa, 99 bonus permanente del mestiere (piccolo, si somma tra le risorse); valori in `02_FORMULAS.md` §8.8b. **Misura M12-07**: Polvere ~38-79/h, Schegge 2,6-4,1/h per famiglia, Pietre 0,16-0,25/h; i Cristalli diretti non cadono nelle Miniere | F-103, `data/actions/` (`milestones`), `data/mastery/`, M12-03, M12-05 |
 | Q61 | Cristallizzare: probabilità per livello e fallimento | 40% al livello 1 → 90% al 99 (lineare); fallimento = metà della polvere persa. **Misura M12-07**: primo Cristallo del risveglio dopo 0,2-0,4 h, del mutamento 0,5-1,0 h, dell'ascesa 0,8-1,7 h; prima Pietra perfetta dopo 1,9-2,9 h | F-104, `balance.json` `engraver.*`, M12-04 |
 | Q62 | Runa di grado V troppo costosa da farmare: V = 81 rune di grado I (`rune.upgrade_ratio`^4); farming 7,7-37 h, la Runa del baluardo V ≈ 93 h (misura M12-07) | **CHIUSA 2026-11-09**: regola III in 5-10 h, V in 50-100 h per tutte le rune (`DECISIONS_LOG.md` Q62), dati ritarati. Default originale: lasciare; da tarare dopo la prova (quantità o frequenza del drop delle rune più rare, o `rune.upgrade_ratio`) | F-107, `balance.json` `rune.*`, M12-07 |
+
+## Fratture come mappe (M13, `FRATTURE.md` riportata da R-04)
+
+I documenti sono già scritti con questi default. I numeri non presenti nella fonte sono valori di partenza **da tarare** in M13-06 (`tools/sim_fracture.gd`).
+
+| # | Domanda | Default proposto | Dove impatta |
+|---|---|---|---|
+| Q63 | Gruppi per Frattura | 30 più il boss (`fracture.groups`); obiettivo di durata 15-30 minuti nel grado giusto | F-50, `balance.json` `fracture.groups`, M13-02, M13-06 |
+| Q64 | Probabilità di Carte da mostri, Monoliti, Fratture e boss; grado dalle fonti; scala dei gradi | tarate per l'obiettivo "~1 Carta di grado uguale o superiore per Frattura" e "una Carta ogni 2-4 ore di combattimento nell'area giusta" fuori dalle Fratture; valori di partenza in F-113 (`monster_pct` 0,4, `boss_pct` 70, delta [70, 27, 3] e [20, 70, 10]), gradi dalle fonti e tabella dei gradi in F-110. Scelte di R-04 incluse nel default: la Carta si **consuma all'apertura**; dopo la Frattura il combattimento **torna all'area** in cui si stava combattendo; il bottino non consegnato per Deposito pieno resta **in attesa** (non si perde), una Carta caduta con il Deposito pieno invece **si perde** | F-110, F-113, F-116, `balance.json`, `loot_tables.json`, M13-02, M13-04, M13-06 |
+| Q65 | Modificatori per rarità e tabella iniziale | comune 0, magica 1-2, rara 3-4; 12 modificatori (F-111), un solo tipo di rischio per Carta; rischio e premio con la stessa intensità (11 gradini); i quattro più forti da grado 5 in su | F-109, F-111, `data/maps/map_mods.json`, M13-01, M13-04 |
 
 ## Chiuse
 

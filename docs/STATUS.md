@@ -16,7 +16,18 @@ Se la sessione si interrompe, si riparte da qui.
 - Descrizioni di tratti e abilità generate da effetti, parametri e ricarica (`ui/pages/character/loadout_describe.gd`, il campo `description` dei dati non si mostra più); stat `damage_reduction` ora si chiama "Armatura" (solo testo in `stats.json`).
 - Aperto di P-01 chiuso da P-03 (`player_renamed`).
 
-## Ripartenza (fine M12, 2026-11-08)
+## Ripartenza (inizio M13, R-04 fatta, 2026-11-09)
+- **Stato**: **R-04 DONE**: le Fratture come mappe (decisioni X1-X4, fonte `FRATTURE.md`) sono nei documenti canonici (`01_GDD.md` §17 riscritto, `02_FORMULAS.md` §7 con F-50 riscritta e F-109…F-116, `04_DATA_SCHEMA.md` §11 riscritto,
+  `05_INTERFACES.md` §3 / §5.23 / §7.v / save `cards` e `fractures`, `03_ARCHITECTURE.md`, `00_VISION.md`, `06_ROADMAP.md` M13, `07_TASKS.md` M13-01…M13-07, `OPEN_QUESTIONS.md` Q63-Q65, `DECISIONS_LOG.md` X1-X4 e scelte R-04,
+  `NOMI.md` sezione Fratture, `CLAUDE.md`). Hash: R-04 = commit `docs: R-04 Fratture come mappe` (`git log --grep "R-04"`). Codice e dati **non** toccati: il gioco è ancora quello di M12 (+ rune ritarate); i documenti descrivono lo stato di arrivo di M13.
+  Da qui `FRATTURE.md` serve solo come storico: i task leggono i documenti canonici.
+- **Prossimo passo**: **M13-01** (CORE: Carte, modificatori, dati, `CardStore`; poi M13-02 motore ∥ M13-04 dati, M13-03 boss, M13-05 UI ∥ M13-06 sim, M13-07 integrazione, tag `m13-done`). Sessione nuova da questo file. Poi M14+.
+- **Cambi di contratto da ricordare**: stat `fracture_duration_pct` e chiavi `fractures.*` **tolte** (la Frattura non ha più durata né timer); segnali `fracture_opened(grade)`, `fracture_group_cleared`, `fracture_boss_started`, `fracture_finished`, `fracture_bag_changed`, `fracture_loot_lost`, `card_changed`, `card_rejected`;
+  5 `Reasons` nuove (55 in tutto); categoria oggetti `map` (non impilabile); `format_version` resta 4 (chiavi additive). Note ereditate N10/N11 in `07_TASKS.md` (test della copertura delle stat e chiave finta `fractures` di `ProbeSession`).
+- **Aperti ereditati**: layout 1600x900 e 1280x720 non visto a schermo; worktree `wt-M12-*` e `.claude/worktrees/agent-*` da potare a mano; `tests/fixtures/data/m10` non validabile da sola; `CLOSED_FORMULAS` elenca ancora F-16 e F-82, eliminate.
+- **Numeri da tarare in M13-06** (Q63-Q65): gruppi per Frattura (30), probabilità di Carte (F-113), tabella dei gradi (F-110), 12 modificatori (F-111), statistiche dei boss.
+
+## Ripartenza precedente (fine M12, 2026-11-08)
 - **Stato**: **M12 Riforma 2 completata** (tutti i task DONE); il tag `m12-done` e il push li fa l'Orchestratore. `run_checks.ps1` verde su main: **2274 test**, dati, righe, riferimenti.
 - **Hash** (merge su main): M12-01 `ba4bad4`, M12-02 `dcdeff4`, M12-03 `b363fe4`, M12-04 `4625818`, M12-05 `8fe91f3`, M12-06 `630950a`, M12-07 `ae59020`, M12-08 `d6bb3c2` (commit di test dei Reasons `f02740d`),
   M12-09 = commit `docs: M12-09 chiusura Riforma 2` (`git log --grep "M12-09"`).

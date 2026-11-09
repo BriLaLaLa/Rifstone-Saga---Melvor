@@ -31,7 +31,7 @@ res://
 │   ├── common/                   ← command_result.gd, reasons.gd
 │   ├── data/                     ← game_data.gd, json_loader.gd, data_validator.gd
 │   │   └── defs/                 ← item_def.gd, skill_def.gd, action_def.gd, monster_def.gd, area_def.gd,
-│   │                               shop_entry_def.gd, mastery_node_def.gd, item_qty.gd, drop_entry.gd, fracture_def.gd (M13), milestone_def.gd, loot_table_def.gd (M12),
+│   │                               shop_entry_def.gd, mastery_node_def.gd, item_qty.gd, drop_entry.gd, map_mod_def.gd, boss_def.gd, fracture_grade_def.gd (M13), milestone_def.gd, loot_table_def.gd (M12),
 │   │                               class_def.gd, setup_def.gd, affix_def.gd, affix_tier.gd, pack_def.gd (M4), trait_def.gd, trait_effect_def.gd, ability_def.gd (M6)
 │   ├── modifiers/                ← modifier.gd, modifier_context.gd, modifier_service.gd, stat_registry.gd
 │   ├── progression/              ← xp_table.gd
@@ -58,7 +58,7 @@ res://
 │   ├── shop/                     ← shop.gd
 │   ├── rift/                     ← rift_altar.gd (M8)
 │   ├── hints/                    ← hints_system.gd (M9)
-│   └── fractures/                ← fracture_system.gd (M13)
+│   └── fractures/                ← card_store.gd, map_card.gd, map_card_roller.gd (M13-01); fracture_system.gd, fracture_run.gd, fracture_bag.gd, fracture_scaler.gd (M13-02)
 ├── data/
 │   ├── config/                   ← balance.json, stats.json
 │   ├── skills/skills.json        ← 7 skill di supporto
@@ -70,7 +70,7 @@ res://
 │   ├── combat/                   ← areas.json, monsters.json, rift_stones.json (M7; "Monoliti del Rift" per la UI), loot_tables.json (M12)
 │   ├── shop/shop.json
 │   ├── hints/hints.json          (M9)
-│   └── fractures/fractures.json  (M13)
+│   └── maps/map_mods.json, bosses.json  (M13; le Carte sono in items/maps.json)
 ├── ui/
 │   ├── theme/                    ← ui_style.gd, number_format.gd (M1-14), riftstone_idle_theme.tres (generato)
 │   ├── components/               ← game_window/, tooltip/, toast/, item_slot/, progress/, confirm_dialog/
@@ -214,6 +214,10 @@ non c'è ciclo di classi (Deposit non conosce Bank né Armory; i comandi che spo
 `Bank`). `HelperSystem` è un sistema parallelo ad `ActionRunner` (stesso `GatheringResolver`, profilo "aiutante") e non lo
 conosce: le corsie parallele non esistono più.
 
+**M13 (X1-X4)**: `CardStore` (istanze delle Carte) è un occupante del Deposito come `Armory`. `FractureSystem` (Carta → `FractureRun` + `FractureBag`) non ha timer: non è nel tick. Il `CombatEngine` esegue la Frattura (gruppi scalati da `FractureScaler`, boss,
+consegna alla fine) tenendo un riferimento al `FractureRun` e scrivendo il bottino in una `FractureBag` al posto della `LootBag` (stesso `KillRewards`, un sink diverso); `FractureSystem` ascolta `fracture_finished` per consegnare o perdere la borsa. Nessun ciclo di classi:
+`FractureRun`, `FractureBag`, `FractureScaler` sono dati/logica pura che dipendono solo da `GameData`, `Rng` e dalle istanze; `FractureSystem` conosce il motore (`start_fracture`), il motore non conosce `FractureSystem`. Le Fratture funzionano offline con lo stesso motore a eventi.
+
 Regola: i sistemi "foglia" (`Wallet`, `Bank`, `SkillsSystem`, `MasterySystem`, `ModifierService`, `ItemRoller`) non
 conoscono azioni, combattimento o UI. Eccezioni dichiarate (una sola lettura, null-safe): `Equipment` e `Loadout`
 chiedono `combat.in_encounter()`; `ActionRunner` chiama `combat.stop`. `ActionRunner` e `CombatEngine` orchestrano. La UI non è mai chiamata dalla logica.
@@ -256,7 +260,7 @@ sequenceDiagram
 - `GameClock._process(delta)` accumula millisecondi reali e, per ogni `tick_ms` (100) intero accumulato, emette
   `ticked(tick_ms)`; massimo `max_catchup_ms` per frame (il resto si scarta). `set_paused(true)` durante menu e offline.
 - `Game` collega `GameClock.ticked` a `session.advance(delta_ms)` solo quando la sessione è in stato `PLAYING`.
-- `GameSession.advance(delta_ms)` chiama in ordine fisso: `fractures.advance` (M12) → `actions.advance` → `combat.advance`
+- `GameSession.advance(delta_ms)` chiama in ordine fisso: `actions.advance` → `helpers.advance` → `combat.advance`
   → `play_time_ms += delta_ms`.
 - Ogni `advance` gestisce **più eventi nello stesso passo** (es. due cicli d'azione da 250 ms in 600 ms): è la
   condizione che rende identici online e offline (test di equivalenza F-41).
@@ -335,7 +339,7 @@ flowchart TD
     MN[MasterySystem: mastery_node:id] --> MS
     SH[Shop: shop:entry] --> MS
     RA[RiftAltar: rift_socket:i] --> MS
-    FR[FractureSystem: fracture:id M12] --> MS
+    FR[FractureSystem: fracture:uid M13] --> MS
     MS -->|"total(stat, ctx)"| F1[ActionMath F-03]
     MS --> F2[SkillsSystem F-02, CharacterSystem F-71]
     MS --> F3[MasteryMath F-10]

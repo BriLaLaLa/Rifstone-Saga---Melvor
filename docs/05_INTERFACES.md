@@ -76,8 +76,13 @@ const NOT_A_CONTRACT := &"not_a_contract"         # M12: l'oggetto non è un con
 const NO_HELPER := &"no_helper"                   # M12: il mestiere non ha un aiutante
 const HELPER_NOT_BETTER := &"helper_not_better"   # M12: il contratto non supera il grado dell'aiutante attuale (non si consuma)
 const BLUEPRINT_DONE := &"blueprint_done"   # M10: motivo di stop di fine progetto (action_stopped)
+const FRACTURE_ACTIVE := &"fracture_active"             # M13: c'è già una Frattura in corso
+const FRACTURE_BAG_PENDING := &"fracture_bag_pending"   # M13: la borsa della Frattura precedente non è stata consegnata del tutto
+const NO_FRACTURE := &"no_fracture"                     # M13: nessuna Frattura in corso (abbandona) o nessun bottino in attesa (raccogli)
+const FRACTURE_WON := &"fracture_won"                   # M13: motivo di stop del combattimento a Frattura vinta (solo se non c'era un'area a cui tornare)
+const FRACTURE_ABANDONED := &"fracture_abandoned"       # M13: idem, per l'abbandono
 ```
-Le costanti nuove le aggiunge il primo task che le usa (M4-01 per quelle di M4), con il test di `reasons.gd`. A fine M12 la lista chiusa conta **50** costanti.
+Le costanti nuove le aggiunge il primo task che le usa (M4-01 per quelle di M4), con il test di `reasons.gd`. A fine M12 la lista chiusa conta **50** costanti; M13 ne aggiunge 5 (**55**).
 
 ## 2. Autoload
 
@@ -283,8 +288,14 @@ func hide_tooltip() -> void
 | `helper_completed` (M12) | `skill_id: StringName, action_id: StringName, outputs: Dictionary` | HelperSystem | fine di un ciclo dell'aiutante (`outputs`: `{item_id: qty}`) |
 | `helper_blocked` (M12) | `skill_id: StringName, blocked: bool` | HelperSystem | l'aiutante attende (Deposito pieno) o riparte; emesso solo al cambio |
 | `mastery_milestone_reached` (M12) | `skill_id: StringName, action_id: StringName, at: int` | MasterySystem | un traguardo (25/50/99) raggiunto in gioco, dopo `mastery_level_up`; mai in `from_save` |
-| `fracture_opened` (M13) | `fracture_id: StringName, duration_ms: int` | FractureSystem | |
-| `fracture_closed` (M13) | `fracture_id: StringName` | FractureSystem | |
+| `fracture_opened` (M13) | `grade: int` | FractureSystem | la Carta è consumata e la Frattura parte (sostituisce la vecchia firma `fracture_id, duration_ms`) |
+| `fracture_group_cleared` (M13) | `index: int, total: int` | CombatEngine | gruppo `index` (da 1) superato |
+| `fracture_boss_started` (M13) | `boss_id: StringName` | CombatEngine | parte l'incontro del boss |
+| `fracture_finished` (M13) | `outcome: StringName, grade: int, groups: int, cards: int, pieces: int` | CombatEngine | `outcome` = `&"won"`, `&"died"`, `&"abandoned"`; `groups` = gruppi superati; `cards`/`pieces` = quelli nella borsa (consegnati o persi); emesso prima della consegna (5.23) |
+| `fracture_bag_changed` (M13) | `stacks: int, pieces: int, cards: int` | FractureSystem | cambia il contenuto della borsa della Frattura in corso o in attesa |
+| `fracture_loot_lost` (M13) | `stacks: int, pieces: int, cards: int` | FractureSystem | sconfitta o abbandono: la borsa è persa (X4) |
+| `card_changed` (M13) | `uid: int, change: StringName` | CardStore | `change` = `&"added"`, `&"removed"`, `&"updated"` (blocco, Cristallo) |
+| `card_rejected` (M13) | `grade: int` | CardStore | Carta non aggiunta per Deposito pieno |
 
 I segnali segnati M4…M7 li aggiunge (o cambia) in `core/autoload/event_bus.gd` e in `tests/core/autoload/test_event_bus.gd`
 il task che li emette per primo (ownership estesa alle sole righe del segnale). Fino ad allora `event_bus.gd` ha le firme
@@ -332,7 +343,12 @@ func blueprint_for_base(base_id: StringName) -> ItemDef   # M10: il progetto del
 func unique_tool(slot: StringName) -> ItemDef         # M10: l'attrezzo unico dello slot tool_*; null + Log.error se manca
 func hints() -> Array[HintDef]                        # M9-04, nell ordine del file
 func hint(id: StringName) -> HintDef                  # M9-04; null se sconosciuto
-func fractures() -> Array[FractureDef]                # M13: lo aggiunge il task delle Fratture (non esiste in M1-04)
+func map_base(grade: int) -> ItemDef                  # M13: la Carta del grado 1..10 (null + Log.error se manca)
+func map_mods() -> Array[MapModDef]                   # M13: nell'ordine del file
+func map_mod(id: StringName) -> MapModDef             # M13: null se sconosciuto
+func boss_for_grade(grade: int) -> BossDef            # M13: il boss del grado
+func boss(id: StringName) -> BossDef                  # M13
+func fracture_grade(grade: int) -> FractureGradeDef   # M13: riga di fracture.grades (F-110)
 const LOG_CATEGORY: String = "data"
 const BALANCE_FILE: String = "balance.json"           # in config_root
 const STATS_FILE: String = "stats.json"               # in config_root
@@ -407,6 +423,7 @@ class_name ItemDef
   var blueprint: BlueprintInfo    # M10: null se non progetto
   func is_equippable() -> bool; func is_food() -> bool; func is_infusion() -> bool
   func is_blueprint() -> bool; func is_component() -> bool   # M10: categoria blueprint / component
+  var map_grade: int; func is_map() -> bool                 # M13: Carta della Frattura (categoria map, 04 §11.1); 0 se non Carta
 class_name EquipInfo  ; var slot: StringName; var requirements: Dictionary[StringName, int]   # chiave &"character" = personaggio
                         var modifiers: Array[Modifier]; var weapon: WeaponInfo   # null se non arma
                         var kind: StringName; var grade: int      # M4-01: &"" se lo slot non è weapon/offhand
@@ -467,8 +484,14 @@ class_name AffixDef (M4)   ; var id: StringName; var name: String; var stat: Str
 class_name AffixTier (M4)  ; var min_ilvl: int; var min: float; var max: float; var step: float
 class_name RiftStoneDef (M7); campi di 04_DATA_SCHEMA §16
 class_name HintDef (M9)    ; var id: StringName; var title: String; var text: String; var trigger: StringName
-class_name FractureDef (M12); var id: StringName; var name: String; var description: String; var weight: int
-                             var modifiers: Array[Modifier]; var bonus_area_id: StringName; var bonus_monster_id: StringName
+class_name MapEffectDef (M13) ; var type: StringName; var min_value: float; var max_value: float
+class_name MapModDef (M13)    ; var id: StringName; var name: String; var description: String; var min_grade: int; var weight: int
+                               var risk: MapEffectDef; var reward: MapEffectDef
+class_name BossAbilityDef (M13); var type: StringName; var every_ms: int; var mult: float; var duration_ms: int; var shield_pct: int
+                               var count: int; var max_alive: int; var monsters: Array[StringName]   # solo i campi del tipo (F-112)
+class_name BossDef (M13) extends MonsterDef ; var grade: int; var ability: BossAbilityDef; var dust_min: int; var dust_max: int
+class_name FractureGradeDef (M13); var areas: Array[StringName]; var level_bonus: int; var hp_mult: float; var damage_mult: float
+                               var reward_mult: float; var piece_grade: int; var recommended_level: int   # F-110
 ```
 (`class_name X ; var ...` è notazione compatta: ogni classe è un file `snake_case` separato.)
 
@@ -536,7 +559,7 @@ func end_batch() -> void             # emette una sola volta se qualcosa è camb
 Id delle sorgenti: `equipment:<slot>` (modificatori dell'istanza: base × F-86 + affissi + castoni), `setup:<id>` (M4),
 `trait:<id>` (M6), `ability:<id>` (M6, buff temporanei del combattimento), `mastery_item:<action_id>`,
 `mastery_node:<node_id>`, `shop:<entry_id>`, `rift_socket:<index>` (M8), `skill_level:<skill_id>` (M10, F-93: modificatori
-`level_modifiers` della skill, ricostruiti da `SkillsSystem` a ogni `level_up` e in `rebuild_modifiers`), `fracture:<id>` (M12).
+`level_modifiers` della skill, ricostruiti da `SkillsSystem` a ogni `level_up` e in `rebuild_modifiers`), `fracture:<uid>` (M13: uid della Carta in corso; stat dei premi, F-111; tolta a fine Frattura).
 
 ### 5.3 Sessione (`res://core/session/game_session.gd`)
 ```gdscript
@@ -550,11 +573,11 @@ var equipment: Equipment; var actions: ActionRunner; var combat: CombatEngine   
 var shop: Shop; var rift: RiftAltar   # rift: M8
 var hints: HintsSystem            # M9 (null prima)
 var deposit: Deposit; var helpers: HelperSystem   # M12-01 / M12-02 (null prima)
-var fractures: FractureSystem     # M13 (null prima)
+var cards: CardStore; var fractures: FractureSystem   # M13-01 / M13-02 (null prima)
 var slot: int; var player_name: String; var created_at_unix_ms: int; var play_time_ms: int
 func _init(game_data: GameData, game_events: GameEvents, rng_seed: int) -> void
 func new_game() -> void                                  # stato iniziale 01_GDD §1.1 + rebuild_modifiers
-func advance(delta_ms: int) -> void                      # ordine: fractures, actions, helpers, combat, play_time
+func advance(delta_ms: int) -> void                      # ordine: actions, helpers, combat, play_time (M13: le Fratture non hanno timer)
 func to_save(now_unix_ms: int) -> Dictionary             # file completo (§6)
 func from_save(d: Dictionary) -> CommandResult           # poi rebuild_modifiers
 func rebuild_modifiers() -> void                         # begin_batch, clear_all, rebuild di ogni sistema, end_batch
@@ -600,7 +623,7 @@ const _PHASE_FRACTURES: int; const _PHASE_ACTIONS: int; const _PHASE_HELPERS: in
   di dipendenza. Con la riforma: `character` subito dopo `skills` (M4-03), `armory` prima di `equipment` (M4-05),
   `equipment` dopo `armory` e `character` (M4-06 sposta la riga se serve), `combat` dopo `equipment` (M5-03).
 - Nei test, `ProbeSession` (`test_game_session.gd`) ridefinisce `_tick` registrando solo le fasi dei `FakeSystem`; le
-  chiavi finte non devono coincidere con le `SAVE_KEY` dei sistemi veri (oggi `lanes`, `combat`, `fractures`): il task
+  chiavi finte non devono coincidere con le `SAVE_KEY` dei sistemi veri (oggi `lanes`, `combat`, `fractures`, `cards`): il task
   che registra un sistema con la stessa chiave rinomina quella finta.
 
 - **M12**: `_create_systems()` crea `deposit` subito dopo `wallet` e prima di `bank`; `bank` e `armory` si registrano con `deposit.register_occupant(&"bank", bank.used)` e
@@ -1033,6 +1056,8 @@ Comportamento (M5-03):
   dispatch degli agganci, emette `trait_triggered`) e `TraitEffect` con un file per tipo di F-81. Per M6-03: i colpi
   delle abilità passano da `EffectSet.hit(ctx, damage)` (altrimenti `leech_pct` non cura).
 
+- **Fratture (M13)**: lo stesso motore esegue le Fratture (`start_fracture`, scala dei mostri, boss, borsa separata, ritorno all'area): contratto in 5.23.
+
 ### 5.11 Shop (`systems/shop/shop.gd`) — dipendenze: data, events, modifiers, bank, wallet, skills, character, armory
 ```gdscript
 const SAVE_KEY := &"shop"
@@ -1095,6 +1120,7 @@ var stop_reasons: Array[StringName]
 var stop_times_ms: Array[int]                  # tempo offline di ogni stop (parallelo a stop_reasons); M10 (B3): ms dall'INIZIO dell'offline (blocchi già fatti + tempo nel blocco), mai relativi al blocco: una morte dopo 3 h 12 m dice 3 h 12 m
 var pieces_stored: int; var pieces_dismantled: int; var pieces_rejected: int   # Armeria: conservati / smantellati dal filtro / persi per Armeria piena
 var bank_rejected: Dictionary[StringName, int]  # rese che non entrano nella banca (anche rese di smantellamento automatico)
+var fractures: Array[Dictionary]               # M13: [{"grade", "outcome", "groups", "cards", "pieces"}], una per fracture_finished durante l'offline (5.23)
 static func from_snapshots(before: SessionSnapshot, after: SessionSnapshot, elapsed_ms: int, capped: bool, stop_reasons: Array[StringName]) -> OfflineSummary
 func is_empty() -> bool
 ```
@@ -1115,7 +1141,7 @@ static func apply_ui_scale(window: Window) -> void
 # chiavi: window_mode, window_size, ui_scale, vsync, fps_limit, volume, log_level
 ```
 
-### 5.15 Hint (M9) e Fratture (M13)
+### 5.15 Hint (M9) (le Fratture di M13 sono in 5.23)
 ```gdscript
 class_name HintsSystem extends RefCounted      # systems/hints/hints_system.gd (M9); dipendenze: data, events
 const SAVE_KEY := &"hints"
@@ -1127,14 +1153,6 @@ func to_save() -> Dictionary                   # {"seen": [id, ...]} nell ordine
 func from_save(d: Dictionary) -> void          # tollerante: lista errata = nessuno visto; id sconosciuti scartati con Log.warn
 func pending() -> Array[StringName]            # attivati e non ancora chiusi; volatile, mai salvato
 
-class_name FractureSystem extends RefCounted   # systems/fractures/fracture_system.gd (M13); dipendenze: data, events, modifiers, rng, combat
-const SAVE_KEY := &"fractures"
-func active_id() -> StringName
-func time_left_ms() -> int
-func next_in_ms() -> int
-func bonus_monster_for_area(area_id: StringName) -> StringName
-func advance(delta_ms: int) -> void            # F-50
-func rebuild_modifiers() -> void               # sorgente fracture:<id>
 ```
 
 ### 5.15b UI di M9 (sola lettura/comandi; nessuno stato di gioco)
@@ -1150,8 +1168,8 @@ class_name SettingsPanel extends Control       # ui/settings/; signal closed; va
     # legge/scrive solo GameSettings; in partita mostra "Salva ed esci" (end_session + scene_changer)
 class_name ToastManager extends Control        # al massimo UiStyle.TOAST_MAX_VISIBLE visibili; oltre UiStyle.TOAST_PENDING_MAX in attesa scarta il piu vecchio
 ```
-Le corsie parallele sono eliminate (M12, W3): niente `SECONDARY`, `lanes_available()` né F-51; le sostituisce `HelperSystem` (5.21). Le firme delle Fratture
-si rivedono a inizio M13 (Fratture come mappe, `01_GDD.md` §17).
+Le corsie parallele sono eliminate (M12, W3): niente `SECONDARY`, `lanes_available()` né F-51; le sostituisce `HelperSystem` (5.21). Le Fratture
+come mappe (M13, Carta + incursione) sono in 5.23.
 
 ### 5.16 CharacterSystem (`systems/character/character_system.gd`) — dipendenze: data, events, modifiers, skills
 ```gdscript
@@ -1411,6 +1429,116 @@ static func resolve(session: GameSession, action: ActionDef) -> ActionOutcome   
   sconosciuto; solo presentazione). `GuideRef` ha i tipi `KIND_LOOT_TABLE`, `KIND_MILESTONE`, `KIND_BAG`, `KIND_CONTRACT`; `GuideIndex` le pagine `PAGE_DEPOSIT` (`guide_deposit`)
   e `PAGE_HELPERS` (`guide_helpers`); `GuideTables` le tabelle `bags`, `helper_grades`, `engraver_recipes` e `mastery_milestones:<skill>`.
 
+### 5.23 Carte e Fratture (M13; `01_GDD.md` §17, `02_FORMULAS.md` §7, `04_DATA_SCHEMA.md` §11) — cartella `systems/fractures/`
+`CardStore`, `MapCard`, `MapCardRoller` (CORE, M13-01); `FractureSystem`, `FractureRun`, `FractureBag`, `FractureScaler` e l'integrazione nel motore (COMBAT, M13-02); boss (COMBAT, M13-03). Dipendenze di `CardStore`: data, events, rng, modifiers
+(solo `item_rarity_pct`), bank (solo `has`/`remove`/`add` di Cristalli e Polvere), deposit. Dipendenze di `FractureSystem`: data, events, modifiers, rng, bank, armory, cards, combat, equipment (cibo).
+```gdscript
+class_name MapModRoll extends RefCounted       # systems/fractures/map_mod_roll.gd
+var mod_id: StringName; var step: int          # F-109: i valori si ricalcolano dai dati
+
+class_name MapCard extends RefCounted          # systems/fractures/map_card.gd
+var uid: int; var base_id: StringName; var grade: int; var rarity: StringName   # base_id = fracture_card_<grado>
+var mods: Array[MapModRoll]; var locked: bool
+func duplicate_card() -> MapCard
+func to_dict() -> Dictionary; static func from_dict(d: Dictionary, data: GameData) -> MapCard   # null se non valida
+
+class_name MapCardRoller extends RefCounted    # logica pura, nessuno stato
+static func roll_rarity(rarity_pct: float, data: GameData, rng: RngService) -> StringName      # F-109: un randf; &"common"/&"magic"/&"rare"
+static func create(grade: int, rarity: StringName, data: GameData, rng: RngService) -> MapCard  # uid 0; modificatori di F-109
+static func extend_mods(card: MapCard, rarity: StringName, data: GameData, rng: RngService) -> Array[MapModRoll]   # aggiunge fino al numero della rarità, senza duplicare id né tipo di rischio
+static func effects(card: MapCard, data: GameData) -> Array[Dictionary]
+    # [{"mod": id, "risk_type": StringName, "risk": float, "reward_type": StringName, "reward": float}] con i valori di F-109 (per il motore e per la UI)
+
+class_name CardStore extends RefCounted
+const SAVE_KEY := &"cards"
+func used() -> int                             # Carte nel Deposito (occupante "cards", F-100)
+func can_add(count: int = 1) -> bool           # deposit.has_room
+func add(card: MapCard) -> int                 # assegna il uid e lo restituisce; 0 + card_rejected(grade) se il Deposito è pieno
+func create(grade: int, rarity: StringName) -> int   # MapCardRoller.create + add; 0 se piena o grado non valido
+func get_card(uid: int) -> MapCard             # copia; null se assente
+func cards() -> Array[MapCard]                 # copie, ordine di inserimento
+func has(uid: int) -> bool
+func set_locked(uid: int, locked: bool) -> CommandResult      # unknown_id
+func use_currency(uid: int, currency_id: StringName) -> CommandResult
+    # un Cristallo dalla Bank (F-109): unknown_id, not_equippable (non è un Cristallo), item_locked, requirement_not_met (rarità non adatta), not_enough_items; atomico; card_changed(uid, updated)
+func salvage(uid: int) -> CommandResult        # F-114: unknown_id, item_locked, bank_full (nulla cambia); la Polvere va nella Bank; card_changed(uid, removed)
+func take(uid: int) -> MapCard                 # INTERNO: solo FractureSystem.open; toglie la Carta e la restituisce (null se assente); card_changed(uid, removed)
+func new_game() -> void; func to_save() -> Dictionary; func from_save(d: Dictionary) -> void
+```
+- `add`/`create` emettono `card_changed(uid, added)` e `deposit.notify_changed()`; `uid` crescenti da 1 (`next_uid` salvato), mai riusati. Il drop di una Carta (tabelle di drop F-32 con `item` di categoria `map`, e F-113) passa da `cards.create`-equivalente
+  con la rarità di F-109 (`item_rarity_pct` globale). Il registro come occupante: `deposit.register_occupant(&"cards", cards.used)` in `_create_systems()` dopo `armory`.
+- Save (§6): `{"next_uid": int, "items": [MapCard.to_dict()]}` con `to_dict` = `{"uid", "base", "rarity", "mods": [{"mod", "step"}], "locked"}`. `from_save` tollerante: voce non valida, base non Carta, grado ≠ quello della base, modificatore sconosciuto o
+  `step` fuori da `0..fracture.intensity_steps` (voce scartata), `uid` duplicato → `Log.warn` e Carta scartata; `next_uid` ≤ massimo `uid` → massimo + 1. Non controlla la capienza. Nessun segnale.
+
+```gdscript
+class_name FractureBag extends RefCounted      # systems/fractures/fracture_bag.gd — borsa della Frattura (nessun limite di caselle)
+func add_stack(item_id: StringName, qty: int) -> void
+func add_piece(inst: ItemInstance) -> void     # uid 0 fino alla consegna
+func add_card(card: MapCard) -> void           # uid 0 fino alla consegna
+func stacks() -> Array[Dictionary]             # [{"item": StringName, "qty": int}] in ordine di inserimento
+func pieces() -> Array[ItemInstance]; func cards() -> Array[MapCard]
+func is_empty() -> bool; func clear() -> void
+func to_save() -> Dictionary; func from_save(d: Dictionary, data: GameData) -> void
+    # {"stacks": [{"item", "qty"}], "pieces": [ItemInstance.to_dict()], "cards": [MapCard.to_dict()]}; tollerante come LootBag/Armory (voci non valide saltate con Log.warn)
+
+class_name FractureScaler extends RefCounted   # systems/fractures/fracture_scaler.gd — logica pura
+static func scale_monster(def: MonsterDef, grade: int, effects: Array[Dictionary], data: GameData) -> MonsterDef   # F-110 poi F-111 (rischi); copia, il dato originale non cambia
+static func total(effects: Array[Dictionary], type: StringName) -> float    # somma dei valori (rischio o premio) di quel tipo
+static func pack_size(base_size: int, effects: Array[Dictionary], data: GameData) -> int    # `pack_bonus`, limitato a combat.max_pack_size
+
+class_name FractureRun extends RefCounted      # systems/fractures/fracture_run.gd — stato di una Frattura in corso (dati puri, nessun segnale)
+var card: MapCard; var grade: int; var groups_total: int
+var group: int                                 # 0 = nessun gruppo ancora; 1..groups_total = gruppo in corso o appena superato
+var boss_started: bool; var return_area: StringName    # area da riprendere alla fine (&"" = nessuna)
+var bag: FractureBag; var effects: Array[Dictionary]   # effects = MapCardRoller.effects(card)
+var groups_cleared: int
+func next_pack(rng: RngService, data: GameData) -> Array[MonsterDef]   # F-50: sceglie il gruppo (F-77 sull'unione dei gruppi delle aree del grado), lo scala (F-110, F-111), `group += 1`
+func boss_def(data: GameData) -> BossDef
+func to_save() -> Dictionary; static func from_save(d: Dictionary, data: GameData) -> FractureRun   # null se non valida
+
+class_name FractureSystem extends RefCounted   # systems/fractures/fracture_system.gd
+const SAVE_KEY := &"fractures"
+func is_active() -> bool
+func run() -> FractureRun                      # null fuori dalla Frattura; il motore la legge, non la modifica
+func state() -> Dictionary                     # copia per la UI: {} fuori; altrimenti {"grade", "card": MapCard, "group", "groups", "boss": bool, "bag": {"stacks": [...], "pieces": int, "cards": int}}
+func open(card_uid: int) -> CommandResult
+    # in ordine: unknown_id, fracture_active, fracture_bag_pending. Effetto: cards.take, FractureRun, combat.start_fracture (ferma combattimento e azione, `replaced`, ricorda `return_area`), rebuild_modifiers, fracture_opened(grade)
+func abandon() -> CommandResult                # no_fracture; come la sconfitta (combat.abandon_fracture)
+func pending() -> Dictionary                   # {} se nulla in attesa; altrimenti {"stacks": [...], "pieces": int, "cards": int} (copia per la UI)
+func collect() -> CommandResult                # F-116: no_fracture (nulla in attesa); bank_full / armory_full se qualcosa resta in attesa (le voci che entrano si spostano comunque)
+func has_pending() -> bool
+func recommended_level(grade: int) -> int      # F-110 (solo informazione)
+func rebuild_modifiers() -> void               # sorgente fracture:<uid>: stat dei premi item_rarity_pct, skill_xp_pct (global), gold_drop_pct (F-111) mentre la Frattura è in corso; nessuna sorgente fuori
+func new_game() -> void; func to_save() -> Dictionary; func from_save(d: Dictionary) -> void
+```
+- **Niente `advance`**: la Frattura non ha timer (X1); la fa avanzare il motore del combattimento. Quindi `GameSession.advance` non chiama più `fractures`.
+- Il bottino: `KillRewards.grant` scrive su un **sink** (`add(item_id, qty)`, `add_piece(inst)`, `add_card(card)`): `LootBag` fuori dalla Frattura (pezzi → `armory.add_drop`, Carte → `cards`), `FractureBag` dentro (tutto resta nella borsa: pezzi e Carte
+  si consegnano alla vittoria, F-116). L'oro e l'XP vanno subito al portafoglio e al personaggio. Le tabelle di drop dentro la Frattura sono quelle dei mostri (F-32); `loot_qty_pct`, `dust_pct`, `blueprint_pct` (F-111) e le Carte (F-113) si applicano nel sink.
+- `fracture_finished` (emesso dal motore) fa scattare nel `FractureSystem`, in modo sincrono: **vittoria** → consegna F-116 (la parte in attesa va in `pending`), **sconfitta/abbandono** → `fracture_loot_lost`, borsa svuotata; poi `fracture_bag_changed` e
+  `rebuild_modifiers` (sorgente `fracture:<uid>` tolta). Solo dopo il motore torna all'area (`return_area`) o si ferma.
+- Save (§6): `{"run": {} | FractureRun.to_save(), "pending": {} | FractureBag.to_save()}`, con `FractureRun.to_save()` = `{"card": MapCard.to_dict(), "group": int, "groups_cleared": int, "boss_started": bool, "return_area": str, "bag": FractureBag.to_save()}`.
+  `from_save` tollerante: `run` non valida (Carta sconosciuta, gruppo fuori da `0..groups_total`) → nessuna Frattura (`Log.warn`; il motore ricaricato non è in Frattura: cfr. sotto) e la sua borsa è persa; `pending` non valido → vuoto. Nessun segnale.
+
+**Motore (aggiunte a 5.10)**:
+```gdscript
+# in CombatEngine
+func start_fracture(run: FractureRun) -> CommandResult    # solo FractureSystem.open: fracture_active se già in Frattura. Ferma l'azione (REPLACED) e l'area (replaced), `run.return_area` = area attuale, PV al massimo, mano 0, combat_started(&""), primo gruppo (run.next_pack)
+func abandon_fracture() -> void                           # solo FractureSystem.abandon e stop(): sconfitta con outcome &"abandoned"
+func in_fracture() -> bool
+func fracture_run() -> FractureRun                        # null fuori
+```
+- Stato: gli stati di 5.10 restano; `in_fracture()` è un flag, `area_id()` è `&""` e `get_state()` ha `"fracture": {"group", "groups", "boss": bool, "boss_id", "boss_ability_ms", "shield", "shield_ms"}` (assente fuori dalla Frattura). `enemies` contiene i mostri scalati (`monster` = id del mostro del dato) e,
+  per il boss, `monster` = id del boss; gli evocati hanno `summoned = true`. Una `monster_killed(index, monster_id)` per gli evocati non produce bottino (F-112).
+- Regole nella Frattura: nessun tiro di Monolito, nessun conteggio F-87, nessun cambio di tratti/abilità (`combat_active`); il cibo e l'auto-cibo (con `food_heal_pct`, F-111) funzionano come fuori; `pulse` (F-111) ha un timer proprio (`fracture.pulse_ms`) salvato; la morte non
+  fa `lose_all` sulla borsa del bottino (che non è in gioco: resta com'era) ma sulla borsa della Frattura. A ogni gruppo superato `fracture_group_cleared(index, total)`; dopo l'ultimo e `combat.respawn_ms` parte il boss (`fracture_boss_started(boss_id)`, abilità F-112);
+  boss ucciso → vittoria. Nell'ordine: `fracture_finished(outcome, grade, groups, cards, pieces)` → consegna/perdita del `FractureSystem` → ritorno all'area di `return_area` (`start`, PV al massimo, la sua borsa del bottino com'era) oppure stop con `fracture_won`/`player_died`/
+  `fracture_abandoned` se non c'era un'area. `stop(reason)` durante la Frattura = abbandono.
+- Save: in `combat` (additivo, `format_version` invariata): `enemies[i].summoned` (bool, assente = false) e `fracture = {"pulse_ms": int, "boss": {"ability_ms": int, "shield": int, "shield_ms": int}}` (assente fuori dalla Frattura). `from_save` risolve i nemici
+  sul `FractureRun` già caricato (`FractureSystem.from_save` prima di `combat.from_save`); se `combat` dice di essere in Frattura ma `fractures.run` manca o non è valido → `idle` con `Log.warn`.
+- `OfflineSummary` ha `var fractures: Array[Dictionary]` (`[{"grade", "outcome", "groups", "cards", "pieces"}]`, una voce per `fracture_finished` durante l'offline, riempita da `OfflineSimulator` ascoltando il segnale) e `is_empty()` ne tiene conto; `OfflineTexts.fracture_line(entry) -> String`.
+- Ordine in `_create_systems()`: `cards` subito dopo `armory` (si registra come occupante del Deposito), `fractures` dopo `equipment` e **prima** di `combat` (accede a `session.combat` solo al momento dei comandi); `from_save`: `armory`, `cards`, `equipment`, `fractures`, `combat`.
+  `GameSession.rebuild_modifiers` chiama `fractures.rebuild_modifiers`; `new_game` di `cards` e `fractures` = vuoti.
+
 ## 6. Formato del salvataggio (`user://saves/slot_<n>.json`)
 
 Versione **4 da M12** (v3 da M10, v2 da M4-03, D3). Un save v1, v2 o **v3 non si carica** (`version_unsupported`, nessuna migrazione: nessun giocatore reale ancora; gli "spazi" comprati nei v3 non contano). `SaveMigrator.CURRENT_VERSION` = 4.
@@ -1449,7 +1577,8 @@ Versione **4 da M12** (v3 da M10, v2 da M4-03, D3). Un save v1, v2 o **v3 non si
     "helpers": {"forestry": {"grade": "journeyman", "action": "cut_redbirch", "elapsed_ms": 4200}},
     "rift": {"sockets": ["inf_swift_hands", "", "", "", ""]},
     "hints": {"seen": ["first_action"]},
-    "fractures": {"active": "", "time_left_ms": 0, "next_in_ms": 9000000}
+    "cards": {"next_uid": 3, "items": [{"uid": 2, "base": "fracture_card_2", "rarity": "magic", "mods": [{"mod": "sturdy", "step": 5}], "locked": false}]},
+    "fractures": {"run": {}, "pending": {}}
   }
 }
 ```
@@ -1979,3 +2108,22 @@ func redraw(session: GameSession) -> void       # "Aiutante: <grado> — lavora:
 - **Toast/feedback**: `mastery_milestone_reached` → toast "Traguardo di maestria: <risorsa> (25/50/99)"; `helper_blocked(true)` → avviso "L'aiutante del <mestiere> è fermo: Deposito pieno".
 - **Guida** (M12-06): pagine scritte a mano nuove (`data/guide/`): Deposito e borse, Aiutanti, Maestria per risorsa, Incisore, Monoliti del Rift (sezioni e `help_for` di
   `04_DATA_SCHEMA.md` §19; "?" nelle pagine Deposito e dell'Incisore); tabelle generate nuove in `GuideTables`: `bags`, `helper_grades`, `engraver_recipes`, `mastery_milestones:<skill>`.
+
+
+### 7.v UI di M13 (Fratture come mappe; nessuno stato di gioco nella UI, solo letture e comandi)
+```gdscript
+class_name FracturesPage extends Page           # ui/pages/fractures/fractures_page.gd (+ .tscn), rotta fractures (voce "Fratture" della sidebar, sezione Partita)
+# Fuori dalla Frattura: elenco delle Carte (session.cards.cards(), ordinate per grado decrescente poi uid) con grado, rarità, e per ogni modificatore nome, rischio e premio
+# (valori da MapCardRoller.effects) e il livello consigliato (session.fractures.recommended_level); comandi per Carta: "Apri" (fractures.open), "Blocca/Sblocca" (cards.set_locked),
+# "Smantella" (cards.salvage, mostra la Polvere), "Cristalli" (cards.use_currency con i Cristalli posseduti). Se session.fractures.has_pending(): riquadro "Bottino in attesa" con "Raccogli" (fractures.collect).
+# Durante la Frattura: barra "Gruppo N/30" e "Boss" (fractures.state()), modificatori attivi, borsa della Frattura (fractures.state()["bag"]), "Abbandona" con conferma (ConfirmDialog; fractures.abandon).
+# Rifiuti in MessageLabel con FractureTexts.REFUSED (unknown_id, fracture_active, fracture_bag_pending, item_locked, requirement_not_met, not_enough_items, bank_full).
+class_name FractureTexts extends RefCounted     # ui/pages/fractures/fracture_texts.gd — testi italiani; static func effect_line(effect: Dictionary) -> String ("PV dei mostri +40%"), rarity_name, outcome_text(outcome)
+class_name FractureRunPanel extends VBoxContainer   # ui/pages/fractures/fracture_run_panel.gd — avanzamento, modificatori, borsa; func redraw(session: GameSession) -> void
+class_name CardRow extends PanelContainer       # ui/pages/fractures/card_row.gd — una Carta; signals open_requested(uid), lock_requested(uid, locked), salvage_requested(uid), currency_requested(uid)
+```
+- Redraw su `card_changed`, `deposit_changed`, `fracture_opened`, `fracture_group_cleared`, `fracture_boss_started`, `fracture_finished`, `fracture_bag_changed`, `fracture_loot_lost`, `bank_changed` (Cristalli).
+- **Combattimento**: con `combat.in_fracture()` la pagina mostra "Frattura di grado N — gruppo i/N" al posto dell'area, i nemici come sempre (il boss con il suo nome e l'abilità in corso, scudo se attivo), niente scelta dell'area né Monoliti; le zone "borsa del bottino"
+  e "Raccogli tutto" restano per la borsa del bottino normale (non toccata). Un rimando alla pagina Fratture per la borsa e per "Abbandona".
+- **Toast**: `fracture_finished` → "Frattura vinta!" (con il numero di Carte e pezzi) / "Frattura persa: bottino perduto" / "Frattura abbandonata"; `card_rejected` → "Carta persa: Deposito pieno". **Riepilogo offline**: `OfflineSummaryView` mostra le righe di `OfflineSummary.fractures`.
+- **Guida**: pagina scritta a mano nuova `guide_fractures` ("Fratture", `data/guide/`; `GuideIndex.PAGE_FRACTURES`), tabelle generate nuove in `GuideTables`: `fracture_grades` (F-110), `map_mods` (F-111), `bosses` (F-112); ogni Carta (`category: map`) è documentata nella pagina dell'oggetto; "?" nella pagina Fratture.

@@ -19,7 +19,7 @@ flowchart LR
     M10 --> M11[M11 Guida in gioco]
     M11 --> M12[M12 Riforma 2: Deposito, aiutanti, Incisore]
     M12 --> M13[M13 Fratture come mappe]
-    M12 --> M14[M14+ Seconda classe, boss, dungeon]
+    M13 --> M14[M14+ Seconda classe, dungeon]
 ```
 
 ## M0: Setup del progetto
@@ -163,13 +163,22 @@ mestieri; l'Incisore sale di livello solo consumando drop (più la Lastra runica
   sottoprodotti scelti dal Data Designer (vedi i dati) sono valori di partenza da tarare.
 
 ## M13: Fratture come mappe (dopo la Riforma 2)
-Fratture del Rift ripensate come "mappe" con modificatori (`01_GDD.md` §17 da rivedere a inizio milestone; F-50, `FractureSystem`). Le corsie parallele non esistono più (W3).
+**Fonte**: decisioni X1-X4 (`DECISIONS_LOG.md`, approvate dall'utente il 2026-11-09, riportate da R-04); documenti `01_GDD.md` §17, `02_FORMULAS.md` §7 (F-50, F-109…F-116), `04_DATA_SCHEMA.md` §11, `05_INTERFACES.md` §5.23 e §7.v.
+La Frattura casuale ogni 2-4 ore è **eliminata**; le corsie parallele non esistono più (W3).
+**Contenuto**: **Carte della Frattura** di grado 1-10 con rarità e modificatori (rischio + premio), che cadono dai mostri delle aree e dai Monoliti (gradi bassi) e soprattutto dalle Fratture; i Cristalli funzionano anche sulle Carte, lo smantellamento dà Polvere;
+**Fratture** aperte dal giocatore con una Carta (30 gruppi di mostri scalati per grado, poi un **boss** con una abilità propria), borsa della Frattura separata consegnata solo alla vittoria, **se muori perdi la Carta e il bottino della Frattura**;
+funzionano anche offline; pagina **Fratture**, Frattura in corso in Combattimento, Guida; nomi nuovi di `NOMI.md` (sezione Fratture); salvataggio `cards` e `fractures` (additivi, `format_version` 4 invariata).
+**Giocabile**: si trova una Carta cacciando, la si migliora con i Cristalli, la si apre, si combatte 30 gruppi e un boss; vittoria = bottino e Carte più alte nel Deposito, morte = tutto perso.
+**Uscita** (accettazione riportata in `07_TASKS.md`): nessuna apertura automatica; Carte 1-10 con rarità e modificatori e Cristalli che funzionano; ogni Frattura ha N gruppi e un boss; vittoria = bottino nel Deposito, morte o abbandono = Carta e borsa perse;
+offline con riepilogo; la sim dà 15-30 minuti per Frattura nel grado giusto e ~1 Carta di grado uguale o superiore per Frattura (la scala dei gradi non si interrompe); Guida aggiornata; tutti i test verdi.
+**Task** M13-01…M13-07 (`07_TASKS.md`); tag `m13-done`. Domande Q63-Q65 (`OPEN_QUESTIONS.md`).
 
-## M14+: Seconda classe, boss, dungeon (dopo l'MVP)
+## M14+: Seconda classe, dungeon, altri boss (dopo l'MVP)
 Seconda classe con le sue armi (es. arco o bastone, con i suoi progetti e componenti del Falegname), supporti delle abilità,
-boss, dungeon a ondate, oggetti unici, elementi e resistenze.
+altri boss, dungeon a ondate, oggetti unici, elementi e resistenze.
 
 ## Percorso critico e parallelismo
+- M13: R-04 → M13-01 → (M13-02 ∥ M13-04) → M13-03 → (M13-05 ∥ M13-06) → M13-07. M13-01 e M13-02 toccano file comuni (`core/data/**`, `event_bus.gd`, `reasons.gd`, `game_session.gd`): in sequenza; M13-02 (motore) e M13-04 (dati) hanno file diversi.
 - M12: R-03 → M12-01 → M12-02 → M12-03 → M12-04 → M12-05 → (M12-06 ∥ M12-07) → M12-08 → M12-09. I task CORE toccano file comuni (`core/data/**`, `event_bus.gd`, `reasons.gd`, `game_session.gd`): vanno in sequenza; M12-06 (UI) e M12-07 (bilanciamento) hanno file diversi.
 - M11: R-02 → (M11-01 ∥ M11-02) → M11-03 → M11-04 → M11-05 → M11-06 → M11-07.
 - M10: R-01 → M10-01 → M10-02 → M10-03 → M10-04 (con M10-05) → M10-06 → M10-07 → M10-08 → M10-09. M10-02 e M10-03 si parallelizzano (file diversi).

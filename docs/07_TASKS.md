@@ -1601,10 +1601,105 @@ migrazione). Gli **id restano** (Q52) tranne gli oggetti nuovi (`NOMI.md`, sezio
 - **Ruolo** REV · **Stima** S · **Dipendenze** M12-08 · **Stato** DONE (commit docs: M12-09 chiusura Riforma 2)
 - **Descrizione** Merge, checklist di `06_ROADMAP.md` (M12 "Uscita"), `docs/RELEASE_CHECKLIST_MVP.md` aggiornata, tag `m12-done`, report di milestone. Il push lo fa l'Orchestratore.
 
-## M13-M14 (dopo M12)
+## Fratture come mappe (R-04) e M13
 
-- M13 · Fratture come mappe: task da definire all'inizio di M13 (M12 chiusa) (`01_GDD.md` §17 da rivedere; nota ereditata N11). I task si chiameranno M13-xx.
-- M14+ · Seconda classe, boss, dungeon: da definire.
+### R-04 · Fratture come mappe nei documenti canonici
+- **Ruolo** REV · **Stima** M · **Dipendenze** M12-09 · **Fatto** (2026-11-09)
+- **Descrizione** Decisioni X1-X4 (`DECISIONS_LOG.md`) riportate in `01_GDD.md` §17 (riscritto), `02_FORMULAS.md` §7 (F-50 riscritta, F-109…F-116, tabella `fracture` in §9, stat `fracture_duration_pct` tolta), `04_DATA_SCHEMA.md` §11 (riscritto: Carte, modificatori, boss,
+  `fracture` in `balance.json`), `05_INTERFACES.md` (§3 segnali, §5.23 e §7.v nuovi, save `cards`/`fractures`, `Reasons`), `03_ARCHITECTURE.md`, `00_VISION.md`, `06_ROADMAP.md` (M13), questo file, `OPEN_QUESTIONS.md` (Q63-Q65), `NOMI.md` (sezione Fratture),
+  `STATUS.md`, `CLAUDE.md`. Da qui `FRATTURE.md` serve solo come storico: i task leggono i documenti canonici.
+
+## M13 · Fratture come mappe (Carte, Fratture a gruppi, boss)
+
+Regole comuni dei brief di M13: i valori di design si leggono **sempre** dalla sezione indicata (mai riscritti nei brief); i numeri di `02_FORMULAS.md` §7 sono valori di partenza "da tarare" (Q63-Q65, `OPEN_QUESTIONS.md`), che M13-06 può cambiare nei dati. `format_version` resta 4:
+`cards` e `fractures` sono chiavi additive del salvataggio (assenti = vuote). Nessuna stat nuova; `fracture_duration_pct` non esiste più (nota ereditata N10/N11: `CLOSED_FORMULAS` e `FORMULA_MILESTONES` di `tests/data/test_stat_registry_coverage.gd` con F-50 e F-109…F-116 → M13,
+`LATER_MILESTONE_STATS` di `tests/data/test_config_files.gd` senza `fracture_duration_pct`, la chiave finta `fractures` di `ProbeSession` in `test_game_session.gd` rinominata). **Niente più Frattura a tempo**: nessun codice o dato con `fractures.interval_*`, `duration_ms`, `FractureDef`,
+`fracture_opened(id, duration)`. M13-01 e M13-02 toccano file comuni (`core/data/**`, `event_bus.gd`, `reasons.gd`, `game_session.gd`): **in sequenza**; M13-04 (dati) gira in parallelo a M13-02/M13-03 (file diversi); M13-05 (UI) in parallelo a M13-06 (sim). La Frattura
+si apre solo con una Carta; nessun altro evento la apre. I nomi e i testi di gioco vengono da `NOMI.md` (sezione Fratture); nulla da Melvor Idle.
+
+### M13-01 · Carte, modificatori e dati (CORE)
+- **Ruolo** CORE · **Stima** L · **Parallelizzabile** no (primo) · **Dipendenze** R-04 · **Stato** TODO
+- **Ownership** `systems/fractures/{card_store,map_card,map_mod_roll,map_card_roller}.gd` (nuovi), `core/data/**` (categoria `map`, `ItemDef.map_grade`/`is_map()`, `MapModDef`, `MapEffectDef`, `BossDef`, `BossAbilityDef`, `FractureGradeDef`, `GameData.map_base/map_mods/map_mod/boss_for_grade/boss/fracture_grade`,
+  caricamento di `data/maps/*.json` e `data/items/maps.json`, validatore di `fracture.*`, `map_mods.json`, `bosses.json`, voci `map` di `loot_tables.json`; tolti `FractureDef`, `GameData.fractures()` e il caricamento di `data/fractures/`), `core/session/game_session.gd` e `session_participants.gd`
+  (modulo `cards`, occupante `cards` del Deposito, `from_save`/`to_save`), `core/autoload/event_bus.gd` (**tutte** le righe di M13: `fracture_opened(grade)`, `fracture_group_cleared`, `fracture_boss_started`, `fracture_finished`, `fracture_bag_changed`, `fracture_loot_lost`, `card_changed`, `card_rejected`;
+  tolte `fracture_opened(id, duration)` e `fracture_closed`) con `tests/core/autoload/test_event_bus.gd`, `core/common/reasons.gd` (le 5 costanti di M13) con il suo test, `systems/bank/bank.gd` (la categoria `map` è rifiutata: `not_stackable`), `systems/combat/kill_rewards.gd` (solo: le voci `map` delle tabelle di
+  drop chiamano `cards.create`-equivalente con F-109, mai la borsa), `data/config/balance.json` (tolta `fractures`, aggiunta `fracture` con i valori di F-110 e `04_DATA_SCHEMA.md` §11.4), file **vuoti ma validi** `data/items/maps.json` (`{"items": []}`), `data/maps/map_mods.json` (`{"mods": []}`), `data/maps/bosses.json` (`{"bosses": []}`),
+  `tools/validate_data.gd` se serve, `tests/systems/fractures/**` (solo i test di questo task), `tests/core/{data,save,session}/**`, `tests/data/**` (le sole righe elencate sopra), `tests/fixtures/data/**` (Carte, 12 modificatori, 10 boss, `fracture` con `groups` 3).
+- **Leggere** `01_GDD.md` §17.1, §26; `02_FORMULAS.md` F-109, F-111, F-113 (solo la parte delle tabelle), F-114, §9 (`fracture.*`); `04_DATA_SCHEMA.md` §3 (regole), §8b, §11; `05_INTERFACES.md` §1 (Reasons), §3, §4 (nuove classi), §5.17 (modello dei pezzi), §5.20, §5.23 (solo `MapModRoll`, `MapCard`, `MapCardRoller`, `CardStore`), §6.
+- **Descrizione**
+  1. **Pulizia** (primo sotto-punto): via `FractureDef`, `data/fractures/` e le chiavi `fractures.*`; allineare i test elencati nelle regole comuni.
+  2. Dati e validatore (§11.1-§11.4, regole elencate). **Regola transitoria**: finché M13-04 non riempie i file, `maps.json`, `map_mods.json` e `bosses.json` **vuoti** sono ammessi sui dati veri (le regole "10 Carte", "almeno 12 modificatori", "un boss per grado", "4 rischi distinti per grado" sono errori solo con lista non vuota; M13-04 toglie
+     l'eccezione, e i controlli sui dati veri sono `pending("M13-04")`); le fixture sono complete e verificano tutte le regole.
+  3. `MapCard`, `MapModRoll`, `MapCardRoller` (F-109, ordine dei tiri su `rng` come scritto), `CardStore` come in 5.23 (`add`, `create`, `get_card`, `cards`, `set_locked`, `use_currency` con i tre effetti, `salvage` F-114, `take`), save `cards`, `card_changed`/`card_rejected`, occupante del Deposito.
+  4. Il drop di una Carta da una tabella di drop (voce `map`): rarità F-109 con `item_rarity_pct` globale, `cards.create`; Deposito pieno → `card_rejected` e nessuna perdita silenziosa (notifica).
+- **Accettazione** esempi di F-109 e F-114 come test (valori, ordine dei tiri con seme fisso); i Cristalli funzionano sulle Carte (`to_magic`, `to_rare` senza duplicati, `reroll`) con tutti i rifiuti e atomicità; `Deposit` conta le Carte (una casella ciascuna) e `can_add`; Carta rifiutata dalla Bank (`not_stackable`);
+  save `cards` round-trip e tollerante (modificatore sconosciuto, `step` fuori limite, grado ≠ base); il validatore rifiuta tipi di rischio/premio sconosciuti, `pack_bonus` oltre il massimo, fixture con meno di 4 rischi distinti a un grado; nessun riferimento a `fractures.interval_*` o `FractureDef` nel codice e nei test;
+  copertura delle stat verde senza `fracture_duration_pct`.
+- **Test** `tests/systems/fractures/test_map_card_roller.gd`, `test_card_store.gd`, `test_card_currency.gd`, `test_card_drops_to_store.gd`, `tests/core/data/test_map_data_validation.gd`, `tests/integration/test_save_cards.gd`.
+
+### M13-02 · Motore della Frattura (COMBAT)
+- **Ruolo** COMBAT · **Stima** L · **Parallelizzabile** con M13-04 · **Dipendenze** M13-01 · **Stato** TODO
+- **Ownership** `systems/fractures/{fracture_system,fracture_run,fracture_bag,fracture_scaler}.gd` (nuovi), `systems/combat/**` (integrazione nel motore: `start_fracture`, `abandon_fracture`, `in_fracture`, `fracture_run`, sink del bottino, ritorno all'area, salvataggio additivo; nuovi file per restare ≤ 400 righe), `systems/combat/kill_rewards.gd`
+  (il sink), `systems/equipment/equipment.gd` e `systems/character/loadout.gd` (solo `_combat_active`: vale anche `in_fracture()`), `core/session/game_session.gd` e `session_participants.gd` (modulo `fractures` dopo `equipment` e prima di `combat`, niente fase nel tick, `rebuild_modifiers`, ordine di `from_save`),
+  `core/offline/**` (`OfflineSummary.fractures`, `OfflineSimulator` ascolta `fracture_finished`, `from_snapshots`/`is_empty`), `tests/systems/fractures/**`, `tests/systems/combat/**` (solo aggiunte), `tests/core/offline/**` (solo aggiunte), `tests/integration/**`, `tests/fixtures/data/**` (aggiunte).
+- **Leggere** `01_GDD.md` §10.6-§10.10, §17.2, §17.5; `02_FORMULAS.md` F-50, F-77, F-110, F-111, F-113, F-116; `04_DATA_SCHEMA.md` §11; `05_INTERFACES.md` §3 (fracture_*), §5.10, §5.13, §5.23, §6.
+- **Descrizione** `FractureRun` (`next_pack`: gruppo F-50/F-77 sull'unione dei gruppi delle aree del grado, scalato da `FractureScaler` con F-110 e F-111, `pack_bonus`), `FractureBag` (nessun limite), `FractureSystem` (`open`, `abandon`, `collect`, `pending`, `state`, `rebuild_modifiers` con sorgente `fracture:<uid>`), motore:
+  Frattura = N gruppi con `BETWEEN` tra l'uno e l'altro, poi il boss (qui un **segnaposto** con il `BossDef` dei dati e senza abilità: l'abilità è M13-03), vittoria/sconfitta/abbandono con `fracture_finished`, consegna F-116 o perdita, ritorno all'area, `pulse` (timer proprio salvato), `food_heal_pct`,
+  effetti dei premi (`loot_qty_pct`, `dust_pct`, `blueprint_pct`, Carte di F-113), nessun Monolito, oro e XP subito, salvataggio e ripresa (`combat.fracture`, `enemies[i].summoned`), offline.
+- **Accettazione** (da FRATTURE, riportata): nessuna apertura automatica (nessun codice la apre se non `open`); `open` consuma la Carta e rispetta i rifiuti (`unknown_id`, `fracture_active`, `fracture_bag_pending`); Frattura = `fracture.groups` gruppi e il boss; vittoria → bottino nel Deposito (con il caso "in attesa" e `collect`);
+  morte e `abandon` → borsa persa, Carta già consumata, PV al massimo; il bottino della Frattura **non** passa per la borsa del bottino normale e questa non cambia; i modificatori della Carta hanno gli effetti di F-111 (un test per tipo); equivalenza `advance(1000)` = dieci `advance(100)` anche in Frattura (stesso seme);
+  salvataggio a metà Frattura e ripresa identica (gruppo, nemici, PV, timer, borsa); **offline**: una Frattura aperta prima di uscire finisce durante l'assenza (vinta o persa), il combattimento torna all'area, il riepilogo (`OfflineSummary.fractures`) la racconta; 12 ore con una Frattura in corso in meno di 10 s;
+  nessun Monolito né F-87 dentro la Frattura; traits/abilità non cambiabili (`combat_active`).
+- **Test** `tests/systems/fractures/test_fracture_run.gd`, `test_fracture_flow.gd`, `test_fracture_effects.gd`, `test_fracture_scaler.gd`, `test_fracture_delivery.gd`, `test_fracture_system.gd`, `test_card_drops.gd`, `tests/core/offline/test_offline_fracture.gd`, `tests/integration/test_save_fracture.gd`.
+
+### M13-03 · Boss con abilità propria (COMBAT)
+- **Ruolo** COMBAT · **Stima** M · **Parallelizzabile** no · **Dipendenze** M13-02 · **Stato** TODO
+- **Ownership** `systems/fractures/boss_*.gd` (nuovi: abilità `heavy_strike`, `shield`, `summon`, ricompense F-115) e le sole righe del motore che li chiamano (`systems/combat/**`), `tests/systems/fractures/**`, `tests/fixtures/data/**` (aggiunte).
+- **Leggere** `01_GDD.md` §17.3; `02_FORMULAS.md` F-112, F-115, F-76; `04_DATA_SCHEMA.md` §11.3; `05_INTERFACES.md` §5.10 (ordine dei tiri), §5.23 (motore).
+- **Descrizione** Le tre abilità di F-112 (timer che parte da `every_ms`, risolto dopo l'attacco base del boss, salvato in `combat.fracture.boss`), evocati (`summoned`, nessun XP/oro/drop, muoiono con la fine della Frattura), scudo che assorbe danno (e `get_state` lo mostra), ricompense garantite di F-115 e la Carta del boss (F-113) alla vittoria.
+- **Accettazione** esempi di F-112 e F-115 come test; ciascuna abilità funziona e si salva/riprende; gli evocati non danno bottino né XP; `max_alive` e posizioni rispettate (boss + evocati ≤ `combat.max_pack_size`); nessuna meccanica a fasi; il pezzo garantito è almeno magico e di `piece_grade`; ordine F-76 a parità di istante;
+  equivalenza `advance` a passi diversi con il boss.
+- **Test** `tests/systems/fractures/test_boss_abilities.gd`, `test_boss_rewards.gd`.
+
+### M13-04 · Contenuti: Carte, modificatori, boss, drop, scala (DATA)
+- **Ruolo** DATA · **Stima** L · **Parallelizzabile** con M13-02/M13-03 (file diversi) · **Dipendenze** M13-01 · **Stato** TODO
+- **Ownership** `data/items/maps.json`, `data/maps/map_mods.json`, `data/maps/bosses.json`, `data/combat/loot_tables.json` (voci `map` per area e per Monolito; altre voci invariate), `data/config/balance.json` (solo i valori di `fracture.*`), `data/guide/**` (pagina `guide_fractures` e voci collegate), `assets/icons/items/fracture_card_*.svg`,
+  `assets/icons/monsters/boss_*.svg`, `core/data/**` (**solo** la riga/e della regola transitoria di M13-01, da togliere), `tests/data/**` (solo test dei dati di questo task), `tests/fixtures/data/**` (sola lettura).
+- **Leggere** `01_GDD.md` §17; `02_FORMULAS.md` F-109…F-113, F-115, §8.5; `04_DATA_SCHEMA.md` §8, §8b, §11, §19; `docs/NOMI.md` (sezione Fratture).
+- **Descrizione** 10 Carte (`fracture_card_1`…`fracture_card_10`, nomi di `NOMI.md`); i 12 modificatori di F-111 con i testi (descrizioni in italiano, originali); 10 boss, uno per grado, con nomi di `NOMI.md`, statistiche di ordine di grandezza §11.3 e un'abilità ciascuno (distribuzione: almeno 3 `heavy_strike`, 3 `shield`, 3 `summon`; evocati scelti tra i mostri del grado);
+  voci di Carta nelle tabelle di drop con i gradi di F-113 (Pianure 1; Bosco 1-2; Miniere 1-3; Soglia 2-3; Monoliti 1-4) e probabilità che diano ~una Carta ogni 2-4 ore di combattimento; tabella `fracture.grades` come F-110; 10 icone SVG originali di Carte e 10 di boss (stile delle icone esistenti); pagina della Guida.
+  Si toglie l'eccezione transitoria del validatore: le liste vuote diventano errore e i controlli `pending("M13-04")` si attivano.
+- **Accettazione** `validate_data.gd` verde sui dati veri con le regole piene; ogni grado 1..10 ha almeno 4 modificatori distinti di rischio; nessun nome da Melvor Idle; i nomi di `NOMI.md` ci sono nei dati (test come M10-05); ogni boss ha un'abilità valida e un'icona esistente; le Carte dei gradi 1-4 cadono da almeno una tabella; tutte le tabelle sono usate.
+- **Test** `tests/data/test_map_data.gd`, `test_boss_data.gd`, `test_card_drop_tables.gd`.
+
+### M13-05 · UI: pagina Fratture, Frattura in Combattimento, Guida (UI)
+- **Ruolo** UI · **Stima** L · **Parallelizzabile** con M13-06 · **Dipendenze** M13-03, M13-04 · **Stato** TODO
+- **Ownership** `ui/pages/fractures/**` (nuovi), `ui/pages/combat/**` (solo la Frattura in corso: intestazione, boss, scudo; niente scelta dell'area né Monoliti in Frattura), `ui/screens/main/{page_host,sidebar}.gd` (rotta `fractures`, voce "Fratture" nella sezione Partita), `ui/screens/offline/**` (righe di `OfflineSummary.fractures`),
+  `ui/feedback/**` (toast di `fracture_finished`, `card_rejected`), `core/guide/**` (`PAGE_FRACTURES`, tabelle `fracture_grades`, `map_mods`, `bosses`), `ui/pages/guide/**` (solo se serve), `tests/ui/**`, `tests/core/guide/**`.
+- **Leggere** `01_GDD.md` §17.1-§17.3; `04_DATA_SCHEMA.md` §11, §19; `05_INTERFACES.md` §3, §5.23, §7.v, §7.y; `docs/NOMI.md`; `docs/UI_GDR.md` (stile).
+- **Descrizione** Come 5.23/7.v: pagina Fratture (Carte con grado, rarità, modificatori con rischio e premio, livello consigliato; Apri, Blocca, Smantella, Cristalli; bottino in attesa e Raccogli; durante la Frattura avanzamento "gruppo N/30" e boss, modificatori, borsa, "Abbandona" con conferma), Frattura in corso nella pagina Combattimento come area speciale,
+  testi centralizzati, riepilogo offline, pagina "Fratture" nella Guida con tabelle generate. Nessuno stato di gioco nella UI (solo letture e comandi); nessun numero di design nel codice.
+- **Accettazione** la UI non tiene dati: tutto da `session.cards`/`session.fractures`/`session.combat`; "Apri" apre una Frattura; "Abbandona" chiede conferma e perde la borsa; la Frattura in corso si vede in Combattimento; il rifiuto di ogni comando ha un testo; le Carte mostrano rischio e premio con i valori di F-109; il riepilogo offline la racconta;
+  la Guida spiega le Fratture dai dati; nessun testo vecchio ("Frattura ogni 2-4 ore"); layout a 1600×900 e 1280×720 senza tagli (per costruzione); i test della UI verdi.
+- **Test** `tests/ui/pages/fractures/test_fractures_page.gd`, `test_fracture_run_panel.gd`, `test_fracture_texts.gd`, `tests/ui/pages/combat/test_combat_fracture.gd`, `tests/core/guide/test_guide_fractures.gd`.
+
+### M13-06 · Bilanciamento con la sim e test (QA)
+- **Ruolo** QA · **Stima** M · **Parallelizzabile** con M13-05 · **Dipendenze** M13-03, M13-04 · **Stato** TODO
+- **Ownership** `tools/sim_fracture.gd` (nuovo), `tools/sim_combat.gd` (solo opzioni per le Fratture), `tests/integration/**` (test di M13), `tests/balance/**`, `data/config/balance.json` (**solo** `fracture.*`), `data/maps/**`, `data/combat/loot_tables.json` (solo le voci `map`) per ritarare i numeri; `docs/06_ROADMAP.md` (misure) e `docs/OPEN_QUESTIONS.md` (Q63-Q65).
+- **Leggere** `01_GDD.md` §17.4; `02_FORMULAS.md` §7, §8.5, §9; `05_INTERFACES.md` §5.23, §8 (helper dei test); `docs/OPEN_QUESTIONS.md` Q63-Q65.
+- **Descrizione** Strumento che simula Fratture di ogni grado (personaggio del livello consigliato con il set del grado, tratti e abilità automatici, cibo) per 3 semi: durata, morti, esito, Carte ottenute (grado e rarità), pezzi, Polvere, XP/h. Tarare `fracture.*`, i boss e le tabelle (Q63-Q65) finché:
+  la Frattura nel grado giusto dura 15-30 minuti, ~1 Carta di grado uguale o superiore per Frattura, la scala 1→10 non si interrompe, un personaggio sotto il livello consigliato di 10 muore spesso. Scrivere le misure in `06_ROADMAP.md`. Test di integrazione dell'intera accettazione di M13 (sotto).
+- **Accettazione** `sim_fracture` stampa le misure per grado; i valori finali rispettano gli obiettivi di sopra (o la deviazione è motivata in `OPEN_QUESTIONS.md`); ogni punto di accettazione di M13 ha almeno un test: nessuna apertura senza Carta; Carte 1-10 con rarità e modificatori e Cristalli; N gruppi + boss; vittoria = bottino nel Deposito;
+  morte/abbandono = Carta e borsa perse; offline con riepilogo; conservazione degli oggetti (nessun oggetto creato o perso per errore); save round-trip a metà Frattura; copertura delle stat in modalità rigida.
+- **Test** `tests/integration/test_m13_acceptance.gd`, `test_fracture_conservation.gd`, `tests/balance/test_fracture_balance.gd`.
+
+### M13-07 · Integrazione di M13
+- **Ruolo** REV · **Stima** S · **Dipendenze** M13-05, M13-06 · **Stato** TODO
+- **Descrizione** Merge, checklist di `06_ROADMAP.md` (M13 "Uscita"), `docs/RELEASE_CHECKLIST_MVP.md` aggiornata, `docs/STATUS.md`, tag `m13-done`, report di milestone. Il push lo fa l'Orchestratore.
+
+## M14+ (dopo M13)
+
+- M14+ · Seconda classe, dungeon, altri boss: da definire.
 - Le **corsie parallele** (ex M13, `01_GDD.md` §18, F-51, nota N12) sono **eliminate**: le sostituiscono gli aiutanti di M12.
 
 ## Note ereditate dai task superati
@@ -1639,8 +1734,8 @@ migrazione). Gli **id restano** (Q52) tranne gli oggetti nuovi (`NOMI.md`, sezio
 - **N9 (da M3-09)** I toast dei livelli si accumulano sopra le finestre: con il banner del livello decidere livello di
   disegno e limite dei toast (ownership estesa a `ui/components/toast/**`).
 - **N10 (da M1-19)** Modalità rigida di `test_stat_registry_coverage.gd`: nessuna stat in `pending`; `CLOSED_FORMULAS` e
-  `FORMULA_MILESTONES` restano la mappa formula → milestone (da R-03: F-50 → M13, F-51 eliminata; nessuna stat nuova in M12: `bank_slots`/`armory_slots`/`parallel_lanes` tolte); la stat di M13 (`fracture_duration_pct`) entra con il suo task.
-- **N11 (da M7-01 vecchio; ora M13)** Se `FractureSystem.SAVE_KEY` è `fractures`, rinominare la chiave finta di `ProbeSession`.
+  `FORMULA_MILESTONES` restano la mappa formula → milestone (da R-03: F-50 → M13, F-51 eliminata; nessuna stat nuova in M12: `bank_slots`/`armory_slots`/`parallel_lanes` tolte); M13 non aggiunge stat e toglie `fracture_duration_pct` (R-04).
+- **N11 (da M7-01 vecchio; ora M13-01, R-04)** Se `FractureSystem.SAVE_KEY` è `fractures`, rinominare la chiave finta di `ProbeSession`.
 - **N12 — SUPERATA da R-03 (corsie parallele eliminate, W3; storico)**. Il runner ha già `LANE_ORDER` e `_lanes`; da sbloccare `start`, `from_save`,
   `current_interval_ms`, `lanes_available`; `ActionMath.secondary_interval_ms` (F-51) è già testato; aggiungere
   `skill_in_other_lane`; lo stop del combattimento resta solo per la corsia main.

@@ -125,7 +125,7 @@ esattamente 9 voci con `min_level` crescente (1..99), `grade` 1..8 non decrescen
 `plate_items` e `handle_items` hanno 8 id di oggetti `component` (uno per grado).
 `start.items` è una lista di `{"item": id, "qty": n}`. `player_name.min_length` e `max_length` (lunghezza del nome dopo
 `strip_edges`) sono interi ≥ 1 con `min_length` ≤ `max_length`. `mastery.pool_warning_pct` è un numero > 0 e ≤ 100
-(percentuale del tetto del pool da cui la UI avvisa che il pool è quasi pieno). In M13 si aggiungerà `fractures` (vedi §11). Le corsie parallele (`parallel`) non esistono più (§12).
+(percentuale del tetto del pool da cui la UI avvisa che il pool è quasi pieno). In M13 si aggiunge `fracture` (Carte, modificatori, scala dei gradi: §11). Le corsie parallele (`parallel`) non esistono più (§12).
 **Riforma 2 (M12, W1-W7)**: tolte le chiavi `bank` e `armory`; aggiunte `deposit`, `helper`, `engraver`, `rune` e `mastery.milestones` (esempio sopra; valori e formule in `02_FORMULAS.md` §9, F-100…F-108). Regole del validatore: `deposit.base_slots` ≥ 1, `deposit.bag_slots` 1..12; `helper.grades` ha **4 voci** in ordine di grado con `interval_mult` ≥ 1 non crescente (i più lenti per primi) e `id` unici; `helper.xp_pct` e `helper.mastery_pct` 1..100; **invariante** `3 × helper.xp_pct / (100 × min interval_mult) ≤ 1` (F-102); `mastery.milestones.byproduct_at < resource_at < trade_at` (1..99), `byproduct_chance_pct` 0..100; `engraver.crystal_chance_min_pct ≤ crystal_chance_max_pct` (0..100), `crystal_fail_loss_pct` 0..100, `merge_ratio` ≥ 2; `rune.upgrade_ratio` ≥ 2, `rune.grade_mult` ha 5 numeri > 0, crescente, il primo è 1.
 
 ## 4. `data/skills/skills.json`
@@ -247,7 +247,7 @@ e le loro ricette sono eliminate (id nuovi per i tre attrezzi; gli altri id rest
 
 L'oggetto `rift_shard` (categoria `misc`) è obbligatorio: lo usano F-07 e la Legatura del Rift.
 Gli oggetti `equipment` e `tool` sono **basi**: nel gioco esistono solo come istanze dell'Armeria (`01_GDD.md` §21);
-non entrano mai nella bank e non possono essere in `start.items` (il kit usa `start.armory` e `start.tools`). Categorie aggiunte dopo: `stone`, `currency` (M8).
+non entrano mai nella bank e non possono essere in `start.items` (il kit usa `start.armory` e `start.tools`). Categorie aggiunte dopo: `stone`, `currency` (M8), `map` (M13, §11.1: Carte della Frattura, istanze non impilabili).
 Classi: `ItemDef` (con `EquipInfo`, `WeaponInfo` come sotto-oggetti tipizzati nello stesso file), `ItemQty`.
 
 ## 6. `data/actions/<skill>.json`
@@ -381,7 +381,7 @@ In M7 si aggiunge `data/combat/rift_stones.json` (§16).
 | Campo | Tipo | Vincoli |
 |---|---|---|
 | `id` | String | unico; regex comune |
-| `entries` | array | 1..24 voci `{item, chance_pct 0.01..100, qty [min ≥ 1, max ≥ min]}`; `item` di categoria `material`, `stone`, `currency`, `bag`, `contract` (mai `equipment`, `tool`, `blueprint`: restano nei `drops`) |
+| `entries` | array | 1..24 voci `{item, chance_pct 0.01..100, qty [min ≥ 1, max ≥ min]}`; `item` di categoria `material`, `stone`, `currency`, `bag`, `contract` e, da M13, `map` (Carte, §11.1; mai `equipment`, `tool`, `blueprint`: restano nei `drops`) |
 Ogni uccisione tira, per ogni tabella dell'area, del mostro (e, per un Monolito, della sua voce `loot_tables`), ogni voce con la propria probabilità
 (come F-32); gli oggetti vanno nella borsa del bottino. Ogni tabella deve essere usata da almeno un'area, un mostro o un Monolito (il validatore segnala
 quelle orfane). Classe: `LootTableDef`. Valori di partenza in `02_FORMULAS.md` §8.5b; file **obbligatorio** da M12 (vuoto non ammesso).
@@ -420,16 +420,76 @@ File singolo e **obbligatorio** (`CONTENT_FILES["hints"]`): se manca `GameData` 
 suggerimento per trigger, in ordine di file; `GameData.hint(id)` ritorna `null` per un id sconosciuto. Il salvataggio
 dello slot tiene `{"hints": {"seen": [id, ...]}}`.
 
-## 11. `data/fractures/fractures.json` (M13)
+## 11. Fratture come mappe (M13): `data/items/maps.json`, `data/maps/`, `balance.json` `fracture`
 
+Sostituisce il vecchio `data/fractures/fractures.json` (Frattura casuale a tempo, **eliminata** da R-04: la cartella `data/fractures/` e la classe `FractureDef` non esistono più). Regole in `01_GDD.md` §17, formule F-50, F-109…F-116 in `02_FORMULAS.md` §7.
+
+### 11.1 Carte: `data/items/maps.json`
 ```json
-{"fractures": [{"id": "verdant_rift", "name": "Frattura verdeggiante", "description": "Il legno cresce più in fretta.",
-                "weight": 10, "modifiers": [{"stat": "skill_xp_pct", "value": 25, "scope": "skill:forestry"}],
-                "bonus_monster": null}]}
+{"items": [{"id": "fracture_card_1", "name": "Carta della Radura", "category": "map", "value": 0, "sort_order": 10,
+            "icon": "res://assets/icons/items/fracture_card_1.svg", "description": "Apre una Frattura di grado 1.",
+            "map": {"grade": 1}}]}
 ```
-`weight` int ≥ 1 (estrazione pesata); `bonus_monster`: `null` o `{"area": id, "monster": id}`.
-`balance.json` riceve `"fractures": {"interval_min_ms": 7200000, "interval_max_ms": 14400000, "duration_ms": 1800000}`.
-Classe: `FractureDef`.
+Categoria nuova `map`: **una base per grado**, 10 oggetti `fracture_card_1`…`fracture_card_10`, `map.grade` int 1..10 unico, `value` 0 (non vendibile), nessuna `stack_size`. Le Carte sono **istanze** (`MapCard`, `05_INTERFACES.md` §5.23):
+la Bank le rifiuta (`not_stackable`) e non entrano in `start.items` né negli `drops` dei mostri (arrivano solo da `loot_tables.json`, §8b, e dalle Fratture). `ItemDef` ha `map_grade: int` (0 se non Carta) e `is_map()`; `GameData.map_base(grade) -> ItemDef`.
+
+### 11.2 Modificatori: `data/maps/map_mods.json`
+```json
+{"mods": [{"id": "sturdy", "name": "Mostri robusti", "description": "I mostri hanno più PV; il bottino è più abbondante.",
+           "min_grade": 1, "weight": 10,
+           "risk": {"type": "monster_hp_pct", "min": 20, "max": 60},
+           "reward": {"type": "loot_qty_pct", "min": 5, "max": 15}}]}
+```
+| Campo | Tipo | Vincoli |
+|---|---|---|
+| `id`, `name`, `description` | String | `id` unico, regex comune |
+| `min_grade` | int | 1..10 |
+| `weight` | int | ≥ 1 |
+| `risk.type` | String | uno dei tipi di rischio di F-111 (`monster_hp_pct`, `monster_damage_pct`, `monster_speed_pct`, `monster_defence_pct`, `pack_bonus`, `food_heal_pct`, `pulse`) |
+| `reward.type` | String | uno dei tipi di premio di F-111 (`loot_qty_pct`, `item_rarity_pct`, `xp_pct`, `gold_drop_pct`, `blueprint_pct`, `dust_pct`, `card_chance_pct`) |
+| `risk.min`, `risk.max`, `reward.min`, `reward.max` | number | `0 < min ≤ max`; `pack_bonus` interi con `max` ≤ `combat.max_pack_size − 1`; `food_heal_pct` ≤ 100; `monster_speed_pct` ≤ 90 |
+
+Regole del validatore: file **obbligatorio**; almeno **12** modificatori (Q65); per ogni grado 1..10 ci sono almeno **4** modificatori con `min_grade ≤ grado` e tipi di rischio **distinti** (una Carta rara deve poterne avere 4). Il campo `reward.type` che applica
+una stat (`item_rarity_pct`, `xp_pct` → `skill_xp_pct`, `gold_drop_pct`) richiede che la stat esista in `stats.json`. Classe: `MapModDef` (`id`, `name`, `description`, `min_grade`, `weight`, `risk: MapEffectDef`, `reward: MapEffectDef`;
+`MapEffectDef`: `type`, `min`, `max`). `GameData.map_mods()`, `map_mod(id)`.
+
+### 11.3 Boss: `data/maps/bosses.json`
+```json
+{"bosses": [{"id": "boss_grade_1", "name": "Zannalunga", "description": "…", "icon": "res://assets/icons/monsters/boss_grade_1.svg",
+             "grade": 1, "hp": 2500, "style": "blade", "attack_interval_ms": 3000,
+             "attack_level": 46, "power_level": 48, "defence_level": 44, "accuracy_bonus": 0, "power_bonus": 0, "evasion_bonus": 0, "damage_reduction": 10,
+             "gold": [200, 400], "rift_shard_chance": 100, "xp": 6000,
+             "drops": [{"item": "boar_tusk", "chance_pct": 40, "qty": [2, 4]}],
+             "ability": {"type": "heavy_strike", "every_ms": 8000, "mult": 2.0},
+             "rewards": {"dust": [20, 30]}}]}
+```
+Un boss per grado: 10 voci, `grade` 1..10 unico. I campi di combattimento e di bottino sono quelli dei mostri (§8: `hp`, `style`, `attack_interval_ms`, livelli, bonus, `damage_reduction`, `gold`, `rift_shard_chance`, `xp`, `drops`, `loot_tables`, `icon` in `res://assets/icons/monsters/`);
+**non** si scalano con F-110 (i valori sono già del grado). Ordine di grandezza di partenza: PV ≈ 8-10 volte il mostro più forte del grado, `power_level`/`attack_level` poco sopra di lui (tarati con la sim, M13-06).
+| Campo | Tipo | Vincoli |
+|---|---|---|
+| `ability.type` | String | `heavy_strike`, `shield`, `summon` (F-112) |
+| `ability.every_ms` | int | ≥ 2000 per `heavy_strike`, ≥ 4000 per `shield` e `summon` |
+| `ability.mult` | float | 1,2..4 (solo `heavy_strike`) |
+| `ability.duration_ms`, `ability.shield_pct` | int | `duration_ms` 1000..`every_ms`; `shield_pct` 5..50 (solo `shield`) |
+| `ability.count`, `ability.max_alive`, `ability.monsters` | int, int, array | `count` 1..3, `max_alive` 1..5 con `max_alive + 1 ≤ combat.max_pack_size`, `monsters` almeno 1 id di mostri esistenti (solo `summon`) |
+| `rewards.dust` | `[min, max]` | 1 ≤ min ≤ max |
+
+Classi: `BossDef` (stessi campi di `MonsterDef` più `grade`, `ability: BossAbilityDef`, `dust_min`, `dust_max`; `BossDef` è un `MonsterDef`, così il motore lo tratta come un nemico), `BossAbilityDef` (`type`, `every_ms`, parametri). `GameData.boss_for_grade(grade)`, `boss(id)`.
+
+### 11.4 `balance.json` `fracture`
+```json
+"fracture": {"groups": 30, "intensity_steps": 10, "pulse_ms": 4000,
+  "mod_count": {"common": [0, 0], "magic": [1, 2], "rare": [3, 4]},
+  "card_rarity": {"magic_pct": 25, "rare_pct": 6},
+  "card_drop": {"monster_pct": 0.4, "boss_pct": 70, "monster_delta": [70, 27, 3], "boss_delta": [20, 70, 10]},
+  "salvage": {"dust_per_grade": 5, "rarity_mult": {"common": 1, "magic": 1.5, "rare": 2}},
+  "grades": [{"areas": ["cracked_mines"], "level_bonus": 0, "hp_mult": 1.0, "damage_mult": 1.0, "reward_mult": 1.0, "piece_grade": 5, "recommended_level": 45}]}
+```
+`grades` ha **10** voci (grado = posizione + 1); `areas` almeno 1 id di area esistente; `level_bonus` ≥ 0; `hp_mult`, `damage_mult`, `reward_mult` ≥ 1,0 e non decrescenti rispetto al grado precedente nella stessa area; `piece_grade` 1..8 non
+decrescente; `recommended_level` 1..99 non decrescente. `groups` ≥ 1; `intensity_steps` ≥ 1; `pulse_ms` ≥ `combat.min_attack_interval_ms`; `mod_count` ha `common`, `magic`, `rare` con `[a, b]` e `0 ≤ a ≤ b ≤ 4` (comune `[0, 0]`);
+`card_rarity` percentuali 0..100 con somma ≤ 100; `card_drop`: `monster_pct`, `boss_pct` 0..100, `*_delta` 3 pesi interi ≥ 0 con somma ≥ 1; `salvage.dust_per_grade` ≥ 1, `rarity_mult` ≥ 1 per ogni rarità.
+Le chiavi `fractures.*` (`interval_min_ms`, `interval_max_ms`, `duration_ms`) sono **tolte**. Valori di partenza e tabella dei gradi: `02_FORMULAS.md` F-110, §9.
+`loot_tables.json` (§8b) ammette anche voci con `item` di categoria `map` (`qty` [1, 1]); il motore le manda al `CardStore`, non alla borsa del bottino.
 
 ## 12. Corsie parallele (ELIMINATE in M12)
 

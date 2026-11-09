@@ -71,7 +71,7 @@ dei mostri; pietre, valute e polvere **cadono dai mostri** e dai Monoliti; un so
 | Potenziamenti | Molte fonti diverse | **Rune del Rift**: l'Incisore trasforma i drop dei mostri in rune (5 gradi) da mettere negli incavi dell'Altare; ogni runa è un insieme di modificatori |
 | Combattimento | Duello contro un mostro alla volta, skill di combattimento separate | **Gruppi di mostri** (1-6) con bersagli e motore a eventi; un **livello del personaggio** unico; tratti e abilità della classe |
 | Equipaggiamento | Oggetti impilabili e uguali tra loro, prodotti in serie dall'artigianato | **Pezzi unici** nell'Armeria con rarità e affissi a gradi, dai **mostri** o da **un singolo craft** (progetto + materiali + componente raro); raffinazione +0…+9 che non distrugge; castoni |
-| Eventi | Nessun evento periodico nel gioco base | **Monoliti del Rift** (M7, ex "Pietre del Rift"): incontri speciali con garanzia; **Fratture del Rift** come mappe (dopo l'MVP, M13) |
+| Eventi | Nessun evento periodico nel gioco base | **Monoliti del Rift** (M7, ex "Pietre del Rift"): incontri speciali con garanzia; **Fratture del Rift** come mappe (M13): si aprono quando vuole il giocatore con una **Carta** di grado 1-10, N gruppi più un boss, se muori perdi la Carta e il bottino della Frattura |
 | Azioni | Una sola azione alla volta | Una azione (o il combattimento) alla volta, più gli **aiutanti** (M12): un aiutante per mestiere di raccolta lavora mentre il giocatore combatte, con tutte le risorse ma il 25% dell'XP e più lento di lui |
 | Maestria della raccolta | Bonus per oggetto uguali per ogni risorsa | **3 traguardi per ogni risorsa** (sottoprodotto, bonus della risorsa, bonus del mestiere) e un albero di nodi **diverso per ogni mestiere** (M12) |
 | Inventario | Una bank a caselle comprate | Un **Deposito unico** (oggetti ed equipaggiamento sulla stessa capienza) che cresce con **6 slot borsa** (M12), non con caselle in vendita |
@@ -92,7 +92,7 @@ Nell'MVP (M0-M9) **non** ci sono:
 - dungeon a ondate, boss con meccaniche, incarichi di caccia, preghiere, farming, agricoltura, pozioni;
 - schede (tab) per categoria della bank: il Deposito ha solo le due schede Oggetti ed Equipaggiamento, sulla stessa capienza (M12, W1);
 - multiplayer, cloud save, achievement di piattaforma, mobile, web, localizzazione oltre l'italiano;
-- Fratture del Rift come mappe (M13), seconda classe, boss e dungeon (M14+): documentati
+- Fratture del Rift come mappe con boss (M13), seconda classe e dungeon (M14+): documentati
   o accennati, pianificati dopo l'MVP.
 
 Nell'MVP **ci sono** (prima erano fuori scope): affissi casuali, rarità, raffinazione +N, castoni e pietre (M4-M8).

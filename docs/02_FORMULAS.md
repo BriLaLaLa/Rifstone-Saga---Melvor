@@ -491,9 +491,9 @@ tarare in M12-07 con `tools/sim_combat.gd` (Q58-Q61); gli esempi sono casi di te
 ### F-100 Capienza del Deposito
 `capacity = deposit.base_slots + Σ slots delle borse negli slot borsa` (`deposit.base_slots = 60`, `deposit.bag_slots = 6`;
 una borsa è un oggetto `category: bag` con `bag.slots`, §8.6b). `used = caselle della Bank (un tipo di oggetto impilato = 1)
-+ pezzi dell'Armeria non indossati (1 ciascuno)`; `free = capacity − used`. Le borse messe negli slot borsa **non** occupano
++ pezzi dell'Armeria non indossati (1 ciascuno) + Carte della Frattura (M13, 1 ciascuna)`; `free = capacity − used`. Le borse messe negli slot borsa **non** occupano
 caselle; una borsa fuori dagli slot è un oggetto della Bank (1 casella). Il solo scopo della capienza è accettare o rifiutare
-oggetti nuovi (`bank_full` / `armory_full`).
+oggetti nuovi (`bank_full` / `armory_full`; una Carta che non entra è persa, `card_rejected`, F-113).
 Togliere una borsa dallo slot (`unequip_bag`): la borsa torna nella Bank; si può solo se, dopo, `used' ≤ capacity'`, con
 `capacity' = capacity − bag.slots` e `used' = used + 1` (1 solo se la borsa non ha già uno stack nella Bank); altrimenti
 `deposit_not_empty`. Mettere una borsa (`equip_bag`) la toglie dalla Bank (1 pezzo) e aumenta la capienza.
@@ -586,15 +586,127 @@ Esempi: 5 h → 18.000.000, capped false; 20 h → 43.200.000, capped true; orol
 `chunks = ceil(elapsed / offline_chunk_ms)`, `offline_chunk_ms = 60000`. Esempio: 12 h → 720 blocchi; 90 s → 2 (60 s + 30 s).
 Equivalenza: simulare 600.000 ms in un blocco o in 10 blocchi dà lo stesso stato con lo stesso seme. Test: idem.
 
-## 7. Fratture come mappe (M13)
+## 7. Fratture come mappe (M13; X1-X4, R-04)
 
-Le **corsie parallele** (ex M13) sono **eliminate** (W3): le sostituiscono gli aiutanti (F-101, F-102). F-51, `parallel.*` e la stat
-`parallel_lanes` non esistono più. Le Fratture sono rilette come mappe in M13 (`VISIONE_V2.md` §7): F-50 è la regola di partenza.
+Le **corsie parallele** sono **eliminate** (W3): le sostituiscono gli aiutanti (F-101, F-102). F-51, `parallel.*` e la stat `parallel_lanes` non esistono più. La **Frattura casuale a tempo** è eliminata (X1): niente `fractures.*` in
+`balance.json`, niente stat `fracture_duration_pct`. Le Fratture sono incursioni aperte dal giocatore con una Carta (`01_GDD.md` §17). Tutti i numeri sono **valori di partenza** (chiavi di `balance.json` `fracture`, §9) da tarare in
+M13-06 con la sim (Q63-Q65); gli esempi sono casi di test e cambiano insieme ai valori. Stat nuove: nessuna.
 
-### F-50 Fratture
-Prossima apertura: `randi_range(fractures.interval_min_ms, fractures.interval_max_ms)` = 7.200.000-14.400.000 ms.
-Durata: `round(fractures.duration_ms × (1 + T(fracture_duration_pct)/100))`; `duration_ms = 1800000`.
-Esempio: +20% → 2.160.000. Test: `tests/systems/fractures/test_fracture_system.gd`.
+### F-50 Struttura della Frattura
+Apertura: la Carta esce dal `CardStore` e la Frattura parte con il gruppo 1 (nessun timer, nessuna estrazione). La Frattura ha `fracture.groups` (30) gruppi, in ordine; il gruppo `i` è scelto come F-77 (`pick_weighted` sui pesi) tra i `packs`
+di **tutte** le aree di `fracture.grades[g].areas` (unione, pesi dei gruppi invariati); i suoi mostri sono scalati con F-110/F-111 (più `pack_bonus`, F-111). Tra un gruppo e l'altro passa `combat.respawn_ms` (stato `BETWEEN`). Cancellato
+l'ultimo gruppo, dopo `combat.respawn_ms` entra il **boss** del grado (F-112, F-115). Boss ucciso = vittoria. Morte o abbandono = sconfitta (X4). Nessun tiro di Monolito e nessun conteggio F-87 dentro la Frattura.
+Esempio (`fracture.groups` = 3 nelle fixture): gruppo 1, `BETWEEN`, gruppo 2, `BETWEEN`, gruppo 3, `BETWEEN`, boss; tre `fracture_group_cleared(i, 3)`, poi `fracture_boss_started`, poi `fracture_finished(&"won", g, 3, …)`. Morte al gruppo 2 →
+`fracture_finished(&"died", …)` e borsa persa. Durata attesa di una Frattura nel grado giusto: 15-30 minuti (obiettivo della sim). Test: `tests/systems/fractures/test_fracture_run.gd`, `test_fracture_flow.gd`.
+
+### F-109 Carta: rarità e modificatori
+- **Rarità** (Carte da drop e da Frattura): un solo `randf`; `p_magic = fracture.card_rarity.magic_pct × k`, `p_rare = fracture.card_rarity.rare_pct × k`, `k = 1 + T(item_rarity_pct)/100` (stesso tiro di F-84/F-91: rara se `r < p_rare`,
+  magica se `r < p_rare + p_magic`, altrimenti comune). Esempio: +50% → 37,5 e 9. Il numero di modificatori è `randi_range(a, b)` con `fracture.mod_count[rarità]` (comune [0,0], magica [1,2], rara [3,4]).
+- **Scelta**: per ogni modificatore, in ordine: candidati = voci di `data/maps/map_mods.json` con `min_grade ≤ grado`, `id` non già sulla Carta e `risk.type` non già sulla Carta; `pick_weighted(weight)`; poi l'**intensità**
+  `step = randi_range(0, fracture.intensity_steps)` (10). Senza candidati si smette. Ordine dei tiri su `rng`: rarità, numero, poi per ogni modificatore scelta e `step`.
+- **Valore**: `value(x) = x.min + round((x.max − x.min) × step / fracture.intensity_steps)` per il rischio e per il premio **con lo stesso `step`** (più rischio, più premio). Il salvataggio tiene solo `{mod, step}`: i valori si ricalcolano dai dati.
+- **Cristalli** (`CardStore.use_currency`): `to_magic` (comune → magica: aggiunge modificatori fino al numero tirato per la magica), `to_rare` (magica → rara: tiene i vecchi e ne aggiunge fino al numero tirato per la rara, senza duplicati),
+  `reroll` (magica o rara: ritira tutti i modificatori, stessa rarità, stessa regola). Rarità non adatta → `requirement_not_met`.
+- Esempio di valore: "Mostri robusti" (`risk` `monster_hp_pct` 20-60, `reward` `loot_qty_pct` 5-15), `step` 5 → +40% PV e +10% quantità; `step` 0 → +20% / +5%; `step` 10 → +60% / +15%. Carta di grado 1 magica: candidati solo con `min_grade` 1;
+  rara di grado 5: fino a 4 modificatori di tipi di rischio diversi. Test: `tests/systems/fractures/test_map_card_roller.gd`.
+
+### F-110 Scala dei gradi
+Per il grado `g` (1-10) la riga `fracture.grades[g]`:
+- **Mostri** di un gruppo (da una delle aree della riga): `attack_level`, `power_level`, `defence_level` = `min(99, livello + level_bonus)`; `hp = round(hp × hp_mult)`; `xp` e `gold` × `reward_mult` (`round`); danno (min e max dopo F-22) × `damage_mult`
+  (`floor`, minimo 1); il resto invariato. Poi si applicano i modificatori della Carta (F-111). Gli `hp` ottenuti sono i massimi dell'incontro.
+- **`ilvl`** dei pezzi caduti: come F-85, ma sui livelli **scalati** del mostro (quindi cresce con il grado, fino a 99).
+- `piece_grade` = grado della base del pezzo garantito dal boss (F-115); `recommended_level` = livello del personaggio consigliato (solo informazione per la UI, nessun blocco).
+
+Esempio: `crack_golem` (L 38, 320 PV) al grado 3 → livelli 46, PV 320 × 1,30 = 416, danno ×1,16; `vein_witch` (L 55) al grado 3 → livello 63; `shard_wraith` (L 65) al grado 4 → livello 65 e PV invariati.
+Tabella di partenza:
+
+| g | aree | `level_bonus` | `hp_mult` | `damage_mult` | `reward_mult` | `piece_grade` | `recommended_level` |
+|---|---|---|---|---|---|---|---|
+| 1 | cracked_mines | 0 | 1,00 | 1,00 | 1,0 | 5 | 45 |
+| 2 | cracked_mines | 4 | 1,15 | 1,08 | 1,2 | 5 | 50 |
+| 3 | cracked_mines | 8 | 1,30 | 1,16 | 1,4 | 6 | 56 |
+| 4 | rift_threshold | 0 | 1,00 | 1,00 | 1,6 | 6 | 70 |
+| 5 | rift_threshold | 3 | 1,15 | 1,08 | 1,8 | 7 | 76 |
+| 6 | rift_threshold | 6 | 1,30 | 1,16 | 2,0 | 7 | 82 |
+| 7 | rift_threshold | 7 | 1,50 | 1,25 | 2,3 | 8 | 88 |
+| 8 | rift_threshold | 7 | 1,75 | 1,35 | 2,6 | 8 | 94 |
+| 9 | rift_threshold | 7 | 2,05 | 1,50 | 3,0 | 8 | 99 |
+| 10 | rift_threshold | 7 | 2,40 | 1,70 | 3,5 | 8 | 99 |
+
+Test: `tests/systems/fractures/test_fracture_scaler.gd`.
+
+### F-111 Tipi di rischio e di premio dei modificatori
+Elenco **chiuso** (il validatore rifiuta altri tipi). Un tipo non è una stat: o è un effetto del motore, o applica una stat esistente con sorgente `fracture:<uid>` mentre la Frattura è in corso (`FractureSystem.rebuild_modifiers`). Effetti dello stesso
+tipo sulla stessa Carta si sommano (i rischi sono unici per Carta, F-109).
+
+| Tipo | Famiglia | Effetto con valore `v` |
+|---|---|---|
+| `monster_hp_pct` | rischio | PV massimi dei mostri e del boss × `(1 + v/100)` (dopo F-110, `round`) |
+| `monster_damage_pct` | rischio | danno min e max dei mostri e del boss × `(1 + v/100)` (`floor`, minimo 1) |
+| `monster_speed_pct` | rischio | intervallo d'attacco = F-26 con `pct = −v` (minimo `combat.min_attack_interval_ms`) |
+| `monster_defence_pct` | rischio | evasione dei mostri e del boss × `(1 + v/100)` (F-21, `round`) |
+| `pack_bonus` | rischio | `+v` mostri in ogni gruppo (non nel boss), ripetendo in ordine i mostri del gruppo, fino a `combat.max_pack_size` |
+| `food_heal_pct` | rischio | la cura del cibo (F-29) × `(1 − v/100)`, `floor`, minimo 0 |
+| `pulse` | rischio | ogni `fracture.pulse_ms` (4000), durante un incontro, danno `max(1, floor(PV massimi del giocatore × v/100))` senza tiro di colpo, ridotto da F-25 (relazione neutra), parabile (F-75), come l'impulso dei Monoliti (F-87) |
+| `loot_qty_pct` | premio | quantità dei drop di oggetti dei mostri (`drops` e tabelle; non pezzi né Carte) × `(1 + v/100)`, `round`, minimo la quantità tirata |
+| `item_rarity_pct` | premio | stat `item_rarity_pct` `+v` (F-84, F-109) |
+| `xp_pct` | premio | stat `skill_xp_pct` `+v`, scope `global` (XP del personaggio, F-71) |
+| `gold_drop_pct` | premio | stat `gold_drop_pct` `+v` (F-31) |
+| `blueprint_pct` | premio | probabilità dei drop di categoria `blueprint` × `(1 + v/100)` (massimo 100) |
+| `dust_pct` | premio | quantità di Polvere del Rift (`rift_dust`) dei drop × `(1 + v/100)`, `round` |
+| `card_chance_pct` | premio | probabilità di Carta (F-113) × `(1 + v/100)` |
+
+Tabella iniziale (12 modificatori, Q65; nomi in `NOMI.md`):
+
+| id | Nome | `min_grade` | `weight` | Rischio (min-max) | Premio (min-max) |
+|---|---|---|---|---|---|
+| `sturdy` | Mostri robusti | 1 | 10 | `monster_hp_pct` 20-60 | `loot_qty_pct` 5-15 |
+| `assault` | Assalto | 1 | 10 | `monster_speed_pct` 10-35 | `item_rarity_pct` 10-35 |
+| `famine` | Fame | 1 | 8 | `food_heal_pct` 20-60 | `blueprint_pct` 25-75 |
+| `brutal` | Brutalità | 1 | 8 | `monster_damage_pct` 15-45 | `gold_drop_pct` 20-60 |
+| `hordes` | Orde | 2 | 8 | `pack_bonus` 1-2 | `xp_pct` 10-30 |
+| `pulses` | Impulsi | 2 | 8 | `pulse` 2-5 | `dust_pct` 20-60 |
+| `shrouded` | Velati | 3 | 6 | `monster_defence_pct` 20-60 | `card_chance_pct` 20-60 |
+| `fasting` | Digiuno | 4 | 6 | `food_heal_pct` 50-90 | `xp_pct` 25-50 |
+| `titans` | Titani del Rift | 5 | 6 | `monster_hp_pct` 60-120 | `card_chance_pct` 30-70 |
+| `spectral` | Lame spettrali | 5 | 6 | `monster_damage_pct` 40-90 | `item_rarity_pct` 30-70 |
+| `frenzy` | Frenesia del Rift | 6 | 6 | `monster_speed_pct` 30-60 | `loot_qty_pct` 15-35 |
+| `abyssal` | Tempesta dell'Abisso | 8 | 6 | `pulse` 4-8 | `blueprint_pct` 60-120 |
+
+Esempi: Mostri robusti +40 su un mostro da 320 PV al grado 3 → 416 × 1,40 = 582 (`round`); Assalto +20 su 2800 ms senza altri bonus → F-26 con pct −20 → 2240 ms; Impulsi 4 con 500 PV massimi → 20 di danno ogni 4 s prima di F-25;
+Fame +40 con un cibo da 100 → 60. Test: `tests/systems/fractures/test_fracture_effects.gd`.
+
+### F-112 Abilità del boss
+Un'abilità per boss (`data/maps/bosses.json`), dal momento in cui parte l'incontro del boss. Il timer dell'abilità parte da `every_ms`, si risolve **dopo** l'attacco base del boss nello stesso istante (F-76) e si ripete finché il boss è vivo.
+- `heavy_strike` `{every_ms, mult}`: colpo senza tiro di precisione, danno `floor(max_hit del boss × mult)`, poi F-25 con la relazione del boss; parabile (F-75).
+- `shield` `{every_ms, duration_ms, shield_pct}`: il boss ottiene uno scudo di `floor(PV massimi × shield_pct/100)` che assorbe il danno prima dei PV per `duration_ms` (poi svanisce con quel che resta); uno scudo attivo non si rinnova.
+- `summon` `{every_ms, count, max_alive, monsters}`: se gli evocati vivi sono meno di `max_alive`, evoca `count` mostri (presi da `monsters`, in ordine ripetuto; scalati come i mostri del grado, F-110/F-111) nelle posizioni libere; boss + evocati
+  ≤ `combat.max_pack_size`. Gli evocati **non danno XP, oro né drop**; il boss ucciso termina la Frattura anche se restano evocati.
+
+Esempio: `heavy_strike` ogni 8000 ms, `mult` 2,0, `max_hit` 40, riduzione del giocatore 10% → `floor(40 × 2,0)` = 80 → 72 dopo F-25; `shield` 20% su 1000 PV → 200 di scudo per `duration_ms`. Test: `tests/systems/fractures/test_boss_abilities.gd`.
+
+### F-113 Carte dalle Fratture e dalle tabelle
+Dentro la Frattura, a ogni uccisione di un mostro (non evocato): `roll_pct(fracture.card_drop.monster_pct × (1 + card_chance_pct/100))`; se riesce, `delta = pick_weighted(fracture.card_drop.monster_delta)` (pesi per +0, +1, +2), la Carta ha grado
+`min(10, g + delta)` e rarità F-109. Boss ucciso: `roll_pct(fracture.card_drop.boss_pct)` e `boss_delta`. Le Carte cadute vanno nella borsa della Frattura. Ordine dei tiri: probabilità, delta, rarità (poi i tiri di F-109).
+**Fuori** dalle Fratture le Carte escono dalle tabelle di drop dei mostri e dei Monoliti (F-32, voce con `item` di categoria `map`, `qty` [1, 1], rarità F-109); gradi di partenza: Pianure 1; Bosco 1-2; Miniere 1-3; Soglia 2-3; Monoliti 1-4
+(`loot_tables.json`). Obiettivo (Q64): fuori dalle Fratture una Carta ogni 2-4 ore di combattimento nell'area giusta; dentro, ~1 Carta di grado uguale o superiore per Frattura.
+Valori di partenza: `monster_pct` 0,4; `boss_pct` 70; `monster_delta` [70, 27, 3]; `boss_delta` [20, 70, 10].
+Esempi: grado 4 con `card_chance_pct` 50 → 0,6% per uccisione; grado 10 → il grado resta 10 per ogni delta; `boss_pct` 100 con seme fisso → una Carta a ogni boss. Test: `tests/systems/fractures/test_card_drops.gd`.
+
+### F-114 Smantellamento di una Carta
+`dust = floor(fracture.salvage.dust_per_grade × grado × fracture.salvage.rarity_mult[rarità])` Polvere del Rift (`rift_dust`) nella Bank. Valori: `dust_per_grade` 5; `rarity_mult` comune 1, magica 1,5, rara 2.
+Esempi: grado 3 rara → 30; grado 1 comune → 5; grado 4 magica → 30. Carta bloccata → `item_locked`; Bank senza posto per la Polvere → `bank_full` (nulla cambia). Test: `tests/systems/fractures/test_card_store.gd`.
+
+### F-115 Ricompense del boss
+Alla vittoria, oltre ai drop del boss (che seguono F-32 e F-84): **un pezzo almeno magico** (base `equipment` ammessa dalla classe, a caso tra quelle di grado `fracture.grades[g].piece_grade`; rarità F-84 con fonte `monster`, e se esce comune diventa
+magica; affissi F-85 con `ilvl` del boss), `randi_range(rewards.dust)` Polvere del Rift (campo del boss, × `(1 + dust_pct/100)`) e la Carta di F-113. Tutto nella borsa della Frattura, poi consegnato con la vittoria. XP e oro del boss come
+quelli dei mostri (`reward_mult` non si applica: i valori del boss sono già nei dati).
+Esempio: grado 6 → base di grado 7; boss con `dust` [20, 30] e `dust_pct` 40 → 28-42. Test: `tests/systems/fractures/test_boss_rewards.gd`.
+
+### F-116 Consegna del bottino della Frattura
+Alla vittoria, per ogni voce della borsa nell'ordine di inserimento: oggetti → `bank.add` (ciò che non entra resta **in attesa**); pezzi → `armory.add_drop` (filtro automatico dell'Armeria, `01_GDD.md` §25: il filtro smantella, un Deposito pieno smantella come per ogni drop;
+nulla resta in attesa); Carte → `cards.add` (Deposito pieno → restano in attesa). `collect()` riprova con le voci in attesa. Alla sconfitta la borsa è svuotata e conta come persa (`fracture_loot_lost`).
+Esempio: borsa con 40 tipi di oggetto e la Bank con 25 caselle libere → 25 consegnati, 15 in attesa; fatto spazio e `collect()`, entrano. Test: `tests/systems/fractures/test_fracture_delivery.gd`.
 
 ### F-51 Penalità della corsia secondaria — **ELIMINATA in M12** (corsie parallele sostituite dagli aiutanti, F-101)
 
@@ -896,7 +1008,7 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | `sockets.{by_rarity, bonus_at_upgrade}` (M8) | `{"common":0,"magic":1,"rare":2}`, 7 | F-89 |
 | `rift.sockets` (già presente, usata in M8) | `[{"level":1},{"level":20},{"level":40},{"level":60},{"level":80}]` | 11 |
 | `offline.{cap_ms, min_ms, chunk_ms}` | 43200000, 60000, 60000 | F-40, F-41 |
-| `fractures.{interval_min_ms, interval_max_ms, duration_ms}` (M13) | 7200000, 14400000, 1800000 | F-50 |
+| `fracture.{groups, intensity_steps, pulse_ms, mod_count, card_rarity, card_drop, salvage, grades}` (M13, R-04; sostituisce `fractures.*`) | 30, 10, 4000, `{"common":[0,0],"magic":[1,2],"rare":[3,4]}`, `{"magic_pct":25,"rare_pct":6}`, `{"monster_pct":0.4,"boss_pct":70,"monster_delta":[70,27,3],"boss_delta":[20,70,10]}`, `{"dust_per_grade":5,"rarity_mult":{"common":1,"magic":1.5,"rare":2}}`, tabella F-110 (10 righe) | F-50, F-109…F-116 |
 | ~~`parallel.*`~~ | tolta | era F-51 (corsie eliminate) |
 
 Chiavi tolte con la riforma (M4-01, D3): `combat.hp_per_vitality`, `combat.hp_skill`, `combat.defence_skill`,
@@ -942,7 +1054,6 @@ sezione (`auto_loot`: `"10.6"` = `01_GDD §10.6`; `04_DATA_SCHEMA.md` §2). Con 
 | `item_rarity_pct` (M4) | 0 | 1000 | probabilità di pezzi magici e rari | F-84, F-91 (M10: `formula` di `stats.json` passa da F-83 a F-84) | `tests/systems/items/test_item_roller.gd::test_item_rarity_pct` |
 | `block_chance` (M5) | 0 | 50 | probabilità di parare un colpo con lo scudo (Q40) | F-75 | `tests/systems/combat/test_combat_engine.gd::test_block_chance` |
 | `upgrade_success_pct` (M7) | 0 | 300 | probabilità di riuscita della raffinazione | F-86, F-93 (M10: sorgente `skill_level:forging`) | `tests/systems/armory/test_upgrade.gd::test_upgrade_success_pct` |
-| `fracture_duration_pct` (M13) | 0 | 300 | durata delle Fratture | F-50 | `tests/systems/fractures/test_fracture_system.gd::test_duration_pct` |
 
-Stat **tolte in M12** (nessuna stat decorativa: la capienza viene dalle borse, F-100; le corsie non esistono): `bank_slots`, `armory_slots`, `parallel_lanes`.
+Stat **tolta in M13 (R-04)**: `fracture_duration_pct` (le Fratture non hanno più durata). Stat **tolte in M12** (nessuna stat decorativa: la capienza viene dalle borse, F-100; le corsie non esistono): `bank_slots`, `armory_slots`, `parallel_lanes`.
 Nessuna stat nuova in M12: aiutanti, traguardi e Incisore usano stat esistenti (`skill_interval_pct`, `double_item_chance`, `skill_xp_pct`, `rift_shard_chance`, `mastery_xp_pct`).

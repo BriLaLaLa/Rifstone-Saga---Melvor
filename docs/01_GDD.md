@@ -249,9 +249,9 @@ comprato (`node_owned`); spesa che porterebbe la maestria oltre il 99 (si spende
 
 **Regole**
 - Il Deposito è l'**unico** contenitore degli oggetti posseduti (materiali, cibo, rune, pietre, valute, borse, contratti, progetti, componenti; esclusi la borsa del
-  bottino e gli incavi dell'Altare) **e dei pezzi dell'Armeria** non indossati (§21). Ha **una sola capienza** (F-100) e **due schede**, Oggetti ed
+  bottino e gli incavi dell'Altare) **, dei pezzi dell'Armeria** non indossati (§21) **e delle Carte della Frattura** (§17, M13). Ha **una sola capienza** (F-100) e **due schede**, Oggetti ed
   Equipaggiamento: sono solo una vista (i moduli `bank` e `armory` e gli id restano). L'inventario della pagina Equipaggiamento mostra gli stessi pezzi della scheda.
-  Un tipo di oggetto impilato occupa **una** casella (quantità illimitata, intero a 64 bit); un pezzo occupa una casella come un tipo di oggetto.
+  Un tipo di oggetto impilato occupa **una** casella (quantità illimitata, intero a 64 bit); un pezzo o una Carta occupa una casella come un tipo di oggetto.
 - Capienza = `deposit.base_slots` (60) + le caselle delle borse negli **slot borsa** (`deposit.bag_slots` = 6, in cima al Deposito). Le caselle vuote sono visibili fino alla capienza.
 - **Borse** (`category: bag`, `bag.slots`): oggetti che si mettono in uno slot e aggiungono le loro caselle. Sono: Borsa di tela +6 (ricetta del Falegname), Borsa di cuoio +10
   (drop delle Pianure e del Bosco), Borsa rinforzata +14 (ricetta del Falegname con sottoprodotti della maestria), Borsa del viandante +18 (drop raro delle Miniere), Borsa
@@ -497,7 +497,7 @@ Elenco delle stat dell'MVP (dettagli in `02_FORMULAS.md` §11):
 `rift_shard_chance`, `accuracy_bonus`, `accuracy_pct`, `power_bonus`, `power_pct`, `evasion_bonus`,
 `evasion_pct`, `damage_reduction`, `attack_interval_pct`, `max_hp_flat`, `food_healing_pct`, `gold_drop_pct`,
 `loot_bag_slots`, `auto_loot`, `auto_eat_tier`, `item_rarity_pct` (M4), `block_chance` (M5),
-`upgrade_success_pct` (M7). Dopo l'MVP: `fracture_duration_pct` (M13). Tolte in M12: `bank_slots`, `armory_slots` (capienza dalle borse), `parallel_lanes` (corsie eliminate).
+`upgrade_success_pct` (M7). Tolta la stat `fracture_duration_pct` (R-04: le Fratture non hanno più durata); M13 non aggiunge stat (i modificatori delle Carte usano stat esistenti e tipi del motore, F-111). Tolte in M12: `bank_slots`, `armory_slots` (capienza dalle borse), `parallel_lanes` (corsie eliminate).
 Gli effetti dei tratti che non sono somme di stat (es. "evasione a 0") non sono stat: sono tipi di effetto (F-81).
 
 ## 16. Impostazioni
@@ -505,16 +505,54 @@ Gli effetti dei tratti che non sono somme di stat (es. "evasione a 0") non sono 
 Globali (non per slot, perché non sono stato di gioco): modalità finestra, dimensione, scala UI, VSync, limite FPS,
 volume, livello dei log. File `user://settings.cfg`. Pannello dal menu e in partita (Esc).
 
-## 17. Fratture del Rift (M13, dopo la Riforma 2)
+## 17. Fratture del Rift come mappe (M13; decisioni X1-X4)
 
-Da rivedere a inizio M13: le Fratture diventano "mappe" con modificatori (`VISIONE_V2.md` §7). Le regole sotto sono quelle
-di partenza.
+Una **Frattura** è un'incursione che il giocatore apre **quando vuole** consumando una **Carta della Frattura**: N gruppi di mostri scalati per grado, poi un boss. Non esistono più aperture casuali o a tempo (la vecchia
+Frattura ogni 2-4 ore è eliminata: niente `fractures.interval_*`, `duration_ms`, stat `fracture_duration_pct`, modificatori globali di sessione). Idea delle mappe dei giochi d'azione adattata a un idle; nomi e numeri originali.
 
-- Ogni `fractures.interval_min_ms`-`interval_max_ms` (2-4 ore) di tempo di sessione (online + offline) si apre una
-  Frattura casuale da `data/fractures/fractures.json`, per `fractures.duration_ms` (30 min) ×
-  `(1 + fracture_duration_pct/100)`.
-- Una Frattura applica modificatori globali (sorgente `fracture:<id>`) e/o rende disponibile un mostro speciale
-  in un'area. Alla chiusura tutto torna normale. Stato salvato (prossima apertura, frattura attiva, tempo rimasto).
+### 17.1 La Carta
+- Oggetto di categoria `map` (`04_DATA_SCHEMA.md` §11), **un'istanza** come i pezzi (`uid`, grado, rarità, modificatori), custodita dal `CardStore` (`05_INTERFACES.md` §5.23). Una casella del Deposito ciascuna (occupante `cards`, F-100); non è
+  impilabile né vendibile. Non si può avere una Carta nella Bank.
+- **Grado 1-10.** **Rarità** come i pezzi: comune (0 modificatori), magica (1-2), rara (3-4) (F-109).
+- **Fonti**: drop dei mostri delle aree e dei Monoliti (gradi bassi, dalle tabelle di drop, F-32; il grado dipende dall'area), **Fratture** (stesso grado o +1, raramente +2; il boss con alta probabilità, F-113). Le Carte di grado più alto cadono
+  soprattutto dalle Fratture (X2). Una Carta caduta con il Deposito pieno si perde (`card_rejected`, notifica, riepilogo offline), come un pezzo che non entra.
+- **Modificatori** (`data/maps/map_mods.json`): ognuno ha un **rischio** (cambia i mostri o il giocatore dentro la Frattura) e un **premio** (aumenta il bottino), con la stessa intensità (F-109). I tipi di rischio e di premio sono un elenco chiuso del motore
+  (F-111), non stat nuove. Le stat esistenti si applicano al giocatore con sorgente `fracture:<uid>` solo mentre la Frattura è in corso. Esempi di partenza: Mostri robusti (+PV; più quantità), Assalto (mostri più rapidi; più rarità), Fame (il cibo cura
+  meno; più progetti), Orde (gruppi più numerosi; più XP), Impulsi (danno periodico come i Monoliti; più Polvere del Rift). I modificatori più forti hanno `min_grade` alto.
+- I **Cristalli** funzionano anche sulle Carte (stessi tre effetti dei pezzi, §26): risveglio (comune → magica), ascesa (magica → rara), mutamento (rifà i modificatori). Lo **smantellamento** di una Carta dà Polvere del Rift (F-114).
+  Una Carta si **blocca** (non si smantella per errore) come un pezzo.
+
+### 17.2 La Frattura
+- Si apre dalla pagina **Fratture** ("Apri") sulla Carta scelta: la Carta si **consuma subito**. Il combattimento normale si ferma e l'azione del giocatore pure (`replaced`); gli **aiutanti continuano**. Una sola Frattura alla volta.
+  Non si apre se il Deposito non può ricevere il bottino di una Frattura precedente ancora in attesa (`fracture_bag_pending`).
+- **Contenuto**: `fracture.groups` (30, Q63) gruppi di mostri del grado (F-110: mostri delle aree del grado, scalati), uno dopo l'altro come gli incontri di un'area (stesso motore a eventi, `combat.respawn_ms` tra un gruppo e l'altro, stesso triangolo, tratti,
+  abilità e cibo), poi il **boss** (§17.3). I modificatori della Carta si applicano a mostri, giocatore e ricompense (F-111). Nei gruppi della Frattura **non appaiono Monoliti** e non si contano uccisioni per F-87.
+- **Bottino della Frattura**: tutto quello che cade dentro (oggetti, pezzi, Carte; l'oro invece va nel portafoglio subito, non è a rischio) va nella **borsa della Frattura**, separata dalla borsa del bottino e dal Deposito, senza limite di caselle. XP del
+  personaggio e livelli si guadagnano subito e non si perdono.
+  - **Vittoria sul boss**: la borsa passa al Deposito (oggetti nella Bank, pezzi nell'Armeria con il filtro automatico, Carte nel `CardStore`) più le ricompense garantite del boss (§17.3). Ciò che non entra per mancanza di caselle resta **in attesa** nella borsa della Frattura finché
+    il giocatore non fa spazio e preme "Raccogli" (`collect`); finché c'è qualcosa in attesa non si apre un'altra Frattura.
+  - **Morte** (X4): si perdono la Carta (già consumata) e **tutta la borsa della Frattura** (`fracture_loot_lost`); Deposito ed equipaggiamento non si toccano; i PV tornano al massimo.
+  - **Abbandona** (comando del giocatore, con conferma): come la morte.
+- Dopo la fine (vittoria, morte, abbandono) il combattimento torna all'**area in cui il giocatore stava combattendo** prima di aprire la Frattura (se combatteva), con la sua borsa del bottino com'era; altrimenti resta fermo. L'azione del giocatore non riparte.
+- **Stato salvato**: la Frattura in corso (Carta, gruppo, boss, borsa, contatori) e l'eventuale borsa in attesa sono nello slot (`fractures`); ricaricando, la Frattura riprende dallo stesso punto.
+- Funziona **anche offline**, con lo stesso motore a eventi (§10.10): una Frattura può iniziare e finire durante l'assenza (online non parte da sola: è sempre già in corso al momento dell'uscita). Se finisce, il combattimento torna all'area (sopra) e
+  prosegue. Il riepilogo "Mentre eri via…" dice per ogni Frattura grado, esito (vinta, persa per morte), gruppi superati, Carte e pezzi ottenuti o persi.
+
+### 17.3 Il boss
+- Un boss per grado (10), definito in `data/maps/bosses.json`: un mostro grande (PV e danni molto sopra i mostri del grado) con **una abilità propria** semplice, di un elenco chiuso (F-112): colpo pesante a intervalli, scudo temporaneo, evocazione di un piccolo
+  gruppo. **Nessuna meccanica a fasi** in M13.
+- **Ricompense garantite** (alla vittoria): un pezzo almeno magico (F-84 con rarità minima magica, `ilvl` di F-110), Polvere del Rift (`fracture.boss.dust`), e la probabilità di una Carta di grado +1 (F-113). Più i drop del boss, che entrano nella borsa come quelli dei mostri.
+- Il boss non dà Monoliti, non fa parte dei gruppi, ha il proprio incontro (stato `ENCOUNTER` con il solo boss, più gli evocati).
+
+### 17.4 Scala e bilanciamento
+- Grado 1 ≈ difficoltà delle Miniere; grado 10 ≈ ben oltre la Soglia (fine gioco). Il livello degli oggetti caduti (`ilvl`) cresce con il grado: le Fratture diventano la fonte dei pezzi migliori.
+- Obiettivo (sim, M13-06): un personaggio ben equipaggiato del livello consigliato completa una Frattura in **15-30 minuti** e ottiene in media **~1 Carta di grado uguale o superiore** per Frattura (la scala non si interrompe; i gradi alti si raggiungono solo
+  migliorando il personaggio). Numeri di partenza in `02_FORMULAS.md` §7, da tarare (Q64).
+
+### 17.5 Casi limite
+Carta bloccata o sconosciuta (`unknown_id`, `item_locked` per smantellare); aprire con una Frattura già in corso (`fracture_active`); Deposito pieno alla consegna (attesa, non perdita); morte nello stesso istante in cui muore il boss (vale F-76: se il giocatore uccide
+per primo la Frattura è vinta); `stop` del combattimento durante la Frattura (= abbandono); un tratto/abilità non si cambia durante la Frattura (`combat_active`); caricamento di un salvataggio con Frattura in corso (riprende); Carta con un modificatore o un grado sconosciuto nel
+salvataggio (scartata con `Log.warn`; se era la Frattura in corso, la Frattura termina come abbandonata, senza bottino).
 
 ## 18. Azioni in parallelo — ELIMINATE (M12, W3)
 
