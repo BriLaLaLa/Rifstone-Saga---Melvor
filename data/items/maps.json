@@ -1,1 +1,125 @@
-{"items": []}
+{
+  "_doc": "Carte della Frattura (04_DATA_SCHEMA.md §11.1): una base per grado, istanze nel CardStore (non vendibili, mai nella Bank).",
+  "items": [
+    {
+      "id": "fracture_card_1",
+      "name": "Carta della Radura",
+      "category": "map",
+      "value": 0,
+      "sort_order": 10,
+      "icon": "res://assets/icons/items/fracture_card_1.svg",
+      "description": "Apre una Frattura di grado 1: una radura battuta dal Rift.",
+      "map": {
+        "grade": 1
+      }
+    },
+    {
+      "id": "fracture_card_2",
+      "name": "Carta del Sentiero",
+      "category": "map",
+      "value": 0,
+      "sort_order": 20,
+      "icon": "res://assets/icons/items/fracture_card_2.svg",
+      "description": "Apre una Frattura di grado 2: un sentiero tra le crepe.",
+      "map": {
+        "grade": 2
+      }
+    },
+    {
+      "id": "fracture_card_3",
+      "name": "Carta della Palude",
+      "category": "map",
+      "value": 0,
+      "sort_order": 30,
+      "icon": "res://assets/icons/items/fracture_card_3.svg",
+      "description": "Apre una Frattura di grado 3: una palude di fango viola.",
+      "map": {
+        "grade": 3
+      }
+    },
+    {
+      "id": "fracture_card_4",
+      "name": "Carta della Cripta",
+      "category": "map",
+      "value": 0,
+      "sort_order": 40,
+      "icon": "res://assets/icons/items/fracture_card_4.svg",
+      "description": "Apre una Frattura di grado 4: una cripta sotto la roccia.",
+      "map": {
+        "grade": 4
+      }
+    },
+    {
+      "id": "fracture_card_5",
+      "name": "Carta della Fucina spenta",
+      "category": "map",
+      "value": 0,
+      "sort_order": 50,
+      "icon": "res://assets/icons/items/fracture_card_5.svg",
+      "description": "Apre una Frattura di grado 5: una fucina ormai spenta.",
+      "map": {
+        "grade": 5
+      }
+    },
+    {
+      "id": "fracture_card_6",
+      "name": "Carta del Baratro",
+      "category": "map",
+      "value": 0,
+      "sort_order": 60,
+      "icon": "res://assets/icons/items/fracture_card_6.svg",
+      "description": "Apre una Frattura di grado 6: un baratro senza fondo.",
+      "map": {
+        "grade": 6
+      }
+    },
+    {
+      "id": "fracture_card_7",
+      "name": "Carta della Guglia spezzata",
+      "category": "map",
+      "value": 0,
+      "sort_order": 70,
+      "icon": "res://assets/icons/items/fracture_card_7.svg",
+      "description": "Apre una Frattura di grado 7: una guglia spezzata.",
+      "map": {
+        "grade": 7
+      }
+    },
+    {
+      "id": "fracture_card_8",
+      "name": "Carta dell'Eclissi",
+      "category": "map",
+      "value": 0,
+      "sort_order": 80,
+      "icon": "res://assets/icons/items/fracture_card_8.svg",
+      "description": "Apre una Frattura di grado 8: un'eclissi sul confine.",
+      "map": {
+        "grade": 8
+      }
+    },
+    {
+      "id": "fracture_card_9",
+      "name": "Carta della Vertigine",
+      "category": "map",
+      "value": 0,
+      "sort_order": 90,
+      "icon": "res://assets/icons/items/fracture_card_9.svg",
+      "description": "Apre una Frattura di grado 9: una vertigine di luce.",
+      "map": {
+        "grade": 9
+      }
+    },
+    {
+      "id": "fracture_card_10",
+      "name": "Carta dell'Origine",
+      "category": "map",
+      "value": 0,
+      "sort_order": 100,
+      "icon": "res://assets/icons/items/fracture_card_10.svg",
+      "description": "Apre una Frattura di grado 10: il luogo da cui tutto ebbe origine.",
+      "map": {
+        "grade": 10
+      }
+    }
+  ]
+}

@@ -1,1 +1,703 @@
-{"bosses": []}
+{
+  "_doc": "Boss delle Fratture, uno per grado (F-112, F-115, 04_DATA_SCHEMA.md §11.3). Statistiche di partenza, da tarare in M13-06.",
+  "bosses": [
+    {
+      "id": "boss_grade_1",
+      "name": "Zannalunga, il Gran Cinghiale",
+      "description": "Un cinghiale grosso come un carro, con zanne che scavano la roccia.",
+      "icon": "res://assets/icons/monsters/boss_grade_1.svg",
+      "grade": 1,
+      "hp": 4200,
+      "style": "blade",
+      "attack_interval_ms": 3200,
+      "attack_level": 58,
+      "power_level": 58,
+      "defence_level": 56,
+      "accuracy_bonus": 62,
+      "power_bonus": 48,
+      "evasion_bonus": 48,
+      "damage_reduction": 14,
+      "gold": [
+        200,
+        400
+      ],
+      "rift_shard_chance": 100,
+      "xp": 7000,
+      "drops": [
+        {
+          "item": "golem_core",
+          "chance_pct": 40,
+          "qty": [
+            2,
+            4
+          ]
+        },
+        {
+          "item": "crawler_carapace",
+          "chance_pct": 35,
+          "qty": [
+            1,
+            3
+          ]
+        },
+        {
+          "item": "witch_charm",
+          "chance_pct": 30,
+          "qty": [
+            1,
+            2
+          ]
+        },
+        {
+          "item": "mine_dust",
+          "chance_pct": 40,
+          "qty": [
+            3,
+            6
+          ]
+        }
+      ],
+      "ability": {
+        "type": "heavy_strike",
+        "every_ms": 8000,
+        "mult": 2.0
+      },
+      "rewards": {
+        "dust": [
+          20,
+          30
+        ]
+      }
+    },
+    {
+      "id": "boss_grade_2",
+      "name": "Capobranco Cenere",
+      "description": "Guida un branco di creature fatte di cenere e brace.",
+      "icon": "res://assets/icons/monsters/boss_grade_2.svg",
+      "grade": 2,
+      "hp": 4800,
+      "style": "arcana",
+      "attack_interval_ms": 2800,
+      "attack_level": 62,
+      "power_level": 62,
+      "defence_level": 60,
+      "accuracy_bonus": 66,
+      "power_bonus": 52,
+      "evasion_bonus": 52,
+      "damage_reduction": 15,
+      "gold": [
+        240,
+        480
+      ],
+      "rift_shard_chance": 100,
+      "xp": 8000,
+      "drops": [
+        {
+          "item": "golem_core",
+          "chance_pct": 40,
+          "qty": [
+            2,
+            4
+          ]
+        },
+        {
+          "item": "crawler_carapace",
+          "chance_pct": 35,
+          "qty": [
+            1,
+            3
+          ]
+        },
+        {
+          "item": "witch_charm",
+          "chance_pct": 30,
+          "qty": [
+            1,
+            2
+          ]
+        },
+        {
+          "item": "mine_dust",
+          "chance_pct": 40,
+          "qty": [
+            3,
+            6
+          ]
+        }
+      ],
+      "ability": {
+        "type": "summon",
+        "every_ms": 10000,
+        "count": 2,
+        "max_alive": 3,
+        "monsters": [
+          "crack_golem",
+          "deep_crawler"
+        ]
+      },
+      "rewards": {
+        "dust": [
+          25,
+          35
+        ]
+      }
+    },
+    {
+      "id": "boss_grade_3",
+      "name": "Re del Fango",
+      "description": "Sovrano di una palude che inghiotte tutto quel che calpesta.",
+      "icon": "res://assets/icons/monsters/boss_grade_3.svg",
+      "grade": 3,
+      "hp": 5400,
+      "style": "blade",
+      "attack_interval_ms": 3400,
+      "attack_level": 66,
+      "power_level": 66,
+      "defence_level": 64,
+      "accuracy_bonus": 70,
+      "power_bonus": 56,
+      "evasion_bonus": 56,
+      "damage_reduction": 16,
+      "gold": [
+        280,
+        560
+      ],
+      "rift_shard_chance": 100,
+      "xp": 9000,
+      "drops": [
+        {
+          "item": "golem_core",
+          "chance_pct": 40,
+          "qty": [
+            2,
+            4
+          ]
+        },
+        {
+          "item": "crawler_carapace",
+          "chance_pct": 35,
+          "qty": [
+            1,
+            3
+          ]
+        },
+        {
+          "item": "witch_charm",
+          "chance_pct": 30,
+          "qty": [
+            1,
+            2
+          ]
+        },
+        {
+          "item": "mine_dust",
+          "chance_pct": 40,
+          "qty": [
+            3,
+            6
+          ]
+        }
+      ],
+      "ability": {
+        "type": "shield",
+        "every_ms": 12000,
+        "duration_ms": 6000,
+        "shield_pct": 20
+      },
+      "rewards": {
+        "dust": [
+          30,
+          45
+        ]
+      }
+    },
+    {
+      "id": "boss_grade_4",
+      "name": "Cavaliere senza Nome",
+      "description": "Porta un'armatura senza stemma e nessun ricordo del proprio nome.",
+      "icon": "res://assets/icons/monsters/boss_grade_4.svg",
+      "grade": 4,
+      "hp": 10400,
+      "style": "blade",
+      "attack_interval_ms": 2600,
+      "attack_level": 95,
+      "power_level": 95,
+      "defence_level": 93,
+      "accuracy_bonus": 102,
+      "power_bonus": 82,
+      "evasion_bonus": 112,
+      "damage_reduction": 26,
+      "gold": [
+        700,
+        1300
+      ],
+      "rift_shard_chance": 100,
+      "xp": 18000,
+      "drops": [
+        {
+          "item": "knight_plate",
+          "chance_pct": 40,
+          "qty": [
+            2,
+            4
+          ]
+        },
+        {
+          "item": "wraith_veil",
+          "chance_pct": 35,
+          "qty": [
+            1,
+            3
+          ]
+        },
+        {
+          "item": "colossus_shard",
+          "chance_pct": 30,
+          "qty": [
+            1,
+            2
+          ]
+        },
+        {
+          "item": "threshold_ash",
+          "chance_pct": 40,
+          "qty": [
+            3,
+            6
+          ]
+        }
+      ],
+      "ability": {
+        "type": "heavy_strike",
+        "every_ms": 8000,
+        "mult": 2.2
+      },
+      "rewards": {
+        "dust": [
+          40,
+          60
+        ]
+      }
+    },
+    {
+      "id": "boss_grade_5",
+      "name": "Custode della Fucina",
+      "description": "Veglia su una fucina spenta e non lascia passare nessuno.",
+      "icon": "res://assets/icons/monsters/boss_grade_5.svg",
+      "grade": 5,
+      "hp": 12000,
+      "style": "blade",
+      "attack_interval_ms": 3000,
+      "attack_level": 97,
+      "power_level": 97,
+      "defence_level": 95,
+      "accuracy_bonus": 106,
+      "power_bonus": 86,
+      "evasion_bonus": 116,
+      "damage_reduction": 27,
+      "gold": [
+        800,
+        1500
+      ],
+      "rift_shard_chance": 100,
+      "xp": 20000,
+      "drops": [
+        {
+          "item": "knight_plate",
+          "chance_pct": 40,
+          "qty": [
+            2,
+            4
+          ]
+        },
+        {
+          "item": "wraith_veil",
+          "chance_pct": 35,
+          "qty": [
+            1,
+            3
+          ]
+        },
+        {
+          "item": "colossus_shard",
+          "chance_pct": 30,
+          "qty": [
+            1,
+            2
+          ]
+        },
+        {
+          "item": "threshold_ash",
+          "chance_pct": 40,
+          "qty": [
+            3,
+            6
+          ]
+        }
+      ],
+      "ability": {
+        "type": "shield",
+        "every_ms": 12000,
+        "duration_ms": 6000,
+        "shield_pct": 25
+      },
+      "rewards": {
+        "dust": [
+          50,
+          70
+        ]
+      }
+    },
+    {
+      "id": "boss_grade_6",
+      "name": "Strega delle Vene Nere",
+      "description": "Cuce maledizioni lungo le vene nere della roccia.",
+      "icon": "res://assets/icons/monsters/boss_grade_6.svg",
+      "grade": 6,
+      "hp": 13500,
+      "style": "arcana",
+      "attack_interval_ms": 2800,
+      "attack_level": 99,
+      "power_level": 99,
+      "defence_level": 97,
+      "accuracy_bonus": 110,
+      "power_bonus": 90,
+      "evasion_bonus": 120,
+      "damage_reduction": 28,
+      "gold": [
+        900,
+        1700
+      ],
+      "rift_shard_chance": 100,
+      "xp": 22000,
+      "drops": [
+        {
+          "item": "knight_plate",
+          "chance_pct": 40,
+          "qty": [
+            2,
+            4
+          ]
+        },
+        {
+          "item": "wraith_veil",
+          "chance_pct": 35,
+          "qty": [
+            1,
+            3
+          ]
+        },
+        {
+          "item": "colossus_shard",
+          "chance_pct": 30,
+          "qty": [
+            1,
+            2
+          ]
+        },
+        {
+          "item": "threshold_ash",
+          "chance_pct": 40,
+          "qty": [
+            3,
+            6
+          ]
+        }
+      ],
+      "ability": {
+        "type": "summon",
+        "every_ms": 10000,
+        "count": 2,
+        "max_alive": 3,
+        "monsters": [
+          "shard_wraith",
+          "rift_knight"
+        ]
+      },
+      "rewards": {
+        "dust": [
+          60,
+          85
+        ]
+      }
+    },
+    {
+      "id": "boss_grade_7",
+      "name": "Guardiano della Guglia",
+      "description": "Una sentinella di pietra fissa sulla cima di una guglia spezzata.",
+      "icon": "res://assets/icons/monsters/boss_grade_7.svg",
+      "grade": 7,
+      "hp": 15600,
+      "style": "marksmanship",
+      "attack_interval_ms": 3000,
+      "attack_level": 99,
+      "power_level": 99,
+      "defence_level": 97,
+      "accuracy_bonus": 114,
+      "power_bonus": 94,
+      "evasion_bonus": 124,
+      "damage_reduction": 29,
+      "gold": [
+        1000,
+        1900
+      ],
+      "rift_shard_chance": 100,
+      "xp": 24000,
+      "drops": [
+        {
+          "item": "knight_plate",
+          "chance_pct": 40,
+          "qty": [
+            2,
+            4
+          ]
+        },
+        {
+          "item": "wraith_veil",
+          "chance_pct": 35,
+          "qty": [
+            1,
+            3
+          ]
+        },
+        {
+          "item": "colossus_shard",
+          "chance_pct": 30,
+          "qty": [
+            1,
+            2
+          ]
+        },
+        {
+          "item": "threshold_ash",
+          "chance_pct": 40,
+          "qty": [
+            3,
+            6
+          ]
+        }
+      ],
+      "ability": {
+        "type": "heavy_strike",
+        "every_ms": 7000,
+        "mult": 2.5
+      },
+      "rewards": {
+        "dust": [
+          70,
+          100
+        ]
+      }
+    },
+    {
+      "id": "boss_grade_8",
+      "name": "Colosso d'Ossidiana",
+      "description": "Un gigante di vetro nero, lucido e silenzioso come la notte.",
+      "icon": "res://assets/icons/monsters/boss_grade_8.svg",
+      "grade": 8,
+      "hp": 18200,
+      "style": "blade",
+      "attack_interval_ms": 3600,
+      "attack_level": 99,
+      "power_level": 99,
+      "defence_level": 97,
+      "accuracy_bonus": 118,
+      "power_bonus": 98,
+      "evasion_bonus": 128,
+      "damage_reduction": 30,
+      "gold": [
+        1150,
+        2150
+      ],
+      "rift_shard_chance": 100,
+      "xp": 27000,
+      "drops": [
+        {
+          "item": "knight_plate",
+          "chance_pct": 40,
+          "qty": [
+            2,
+            4
+          ]
+        },
+        {
+          "item": "wraith_veil",
+          "chance_pct": 35,
+          "qty": [
+            1,
+            3
+          ]
+        },
+        {
+          "item": "colossus_shard",
+          "chance_pct": 30,
+          "qty": [
+            1,
+            2
+          ]
+        },
+        {
+          "item": "threshold_ash",
+          "chance_pct": 40,
+          "qty": [
+            3,
+            6
+          ]
+        }
+      ],
+      "ability": {
+        "type": "shield",
+        "every_ms": 10000,
+        "duration_ms": 5000,
+        "shield_pct": 30
+      },
+      "rewards": {
+        "dust": [
+          80,
+          115
+        ]
+      }
+    },
+    {
+      "id": "boss_grade_9",
+      "name": "Araldo dell'Eclissi",
+      "description": "Annuncia l'eclissi e ciò che l'accompagna.",
+      "icon": "res://assets/icons/monsters/boss_grade_9.svg",
+      "grade": 9,
+      "hp": 21300,
+      "style": "arcana",
+      "attack_interval_ms": 2600,
+      "attack_level": 99,
+      "power_level": 99,
+      "defence_level": 97,
+      "accuracy_bonus": 122,
+      "power_bonus": 102,
+      "evasion_bonus": 132,
+      "damage_reduction": 31,
+      "gold": [
+        1300,
+        2400
+      ],
+      "rift_shard_chance": 100,
+      "xp": 30000,
+      "drops": [
+        {
+          "item": "knight_plate",
+          "chance_pct": 40,
+          "qty": [
+            2,
+            4
+          ]
+        },
+        {
+          "item": "wraith_veil",
+          "chance_pct": 35,
+          "qty": [
+            1,
+            3
+          ]
+        },
+        {
+          "item": "colossus_shard",
+          "chance_pct": 30,
+          "qty": [
+            1,
+            2
+          ]
+        },
+        {
+          "item": "threshold_ash",
+          "chance_pct": 40,
+          "qty": [
+            3,
+            6
+          ]
+        }
+      ],
+      "ability": {
+        "type": "summon",
+        "every_ms": 9000,
+        "count": 3,
+        "max_alive": 4,
+        "monsters": [
+          "shard_wraith",
+          "rift_knight"
+        ]
+      },
+      "rewards": {
+        "dust": [
+          90,
+          130
+        ]
+      }
+    },
+    {
+      "id": "boss_grade_10",
+      "name": "Il Primo Frammento",
+      "description": "La prima scheggia staccatasi dal Rift: tutto il resto viene da lui.",
+      "icon": "res://assets/icons/monsters/boss_grade_10.svg",
+      "grade": 10,
+      "hp": 25000,
+      "style": "arcana",
+      "attack_interval_ms": 2800,
+      "attack_level": 99,
+      "power_level": 99,
+      "defence_level": 97,
+      "accuracy_bonus": 126,
+      "power_bonus": 106,
+      "evasion_bonus": 136,
+      "damage_reduction": 32,
+      "gold": [
+        1500,
+        2800
+      ],
+      "rift_shard_chance": 100,
+      "xp": 34000,
+      "drops": [
+        {
+          "item": "knight_plate",
+          "chance_pct": 40,
+          "qty": [
+            2,
+            4
+          ]
+        },
+        {
+          "item": "wraith_veil",
+          "chance_pct": 35,
+          "qty": [
+            1,
+            3
+          ]
+        },
+        {
+          "item": "colossus_shard",
+          "chance_pct": 30,
+          "qty": [
+            1,
+            2
+          ]
+        },
+        {
+          "item": "threshold_ash",
+          "chance_pct": 40,
+          "qty": [
+            3,
+            6
+          ]
+        }
+      ],
+      "ability": {
+        "type": "heavy_strike",
+        "every_ms": 6000,
+        "mult": 3.0
+      },
+      "rewards": {
+        "dust": [
+          100,
+          150
+        ]
+      }
+    }
+  ]
+}

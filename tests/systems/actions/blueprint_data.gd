@@ -17,6 +17,11 @@ static func data() -> GameData:
 	if _data == null:
 		var root: String = PreRun.test_dir("blueprint_data")
 		_copy(M10_ROOT, root)
+		# M13-04: Cards, modifiers and bosses are mandatory; the M10 fixtures have none, so the main fixtures' stand in.
+		for file_name: String in ["maps/map_mods.json", "maps/bosses.json", "items/maps.json"]:
+			var map_file := FileAccess.open(root.path_join(file_name), FileAccess.WRITE)
+			map_file.store_string(FileAccess.get_file_as_string("res://tests/fixtures/data".path_join(file_name)))
+			map_file.close()
 		_add_smelting(root.path_join("actions/forging.json"))
 		_data = GameData.load_from_dirs(root, M10_CONFIG)
 		assert(_data.is_valid(), "blueprint test data is not valid: %s" % ["\n".join(_data.errors)])

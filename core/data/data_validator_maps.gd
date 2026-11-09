@@ -4,8 +4,8 @@ extends RefCounted
 ## data/maps/map_mods.json and the bosses of data/maps/bosses.json (docs/04_DATA_SCHEMA.md §11, M13). The balance
 ## section `fracture` is in DataValidatorFracture.
 ##
-## Transitional rule (M13-01, removed by M13-04): the three files may be empty. The set rules ("10 Cards", "at least 12
-## modifiers", "4 distinct risk types per grade", "one boss per grade") are errors only when the list is not empty.
+## The set rules ("10 Cards", "at least 12 modifiers", "4 distinct risk types per grade", "one boss per grade") always
+## apply: empty lists are errors (the transitional exception of M13-01 was removed by M13-04).
 
 const GRADE_COUNT: int = 10
 const CARD_ID_PREFIX: String = "fracture_card_"
@@ -45,20 +45,16 @@ static func map_item(v: DataValidatorRules, e: Dictionary) -> void:
 		v.fail("a Card must have value 0 (it cannot be sold)")
 
 
-## One Card per grade 1..10, but only when the data has Cards at all (the file is M13-04 content).
+## One Card per grade 1..10.
 static func validate_card_set(v: DataValidatorRules, files: Dictionary[String, Dictionary]) -> void:
 	var grades: Dictionary[int, bool] = {}
-	var any: bool = false
 	for id: StringName in v.items:
 		var e: Dictionary = v.items[id]
 		if e.get("category") != "map" or not e.get("map") is Dictionary:
 			continue
-		any = true
 		var grade: Variant = (e["map"] as Dictionary).get("grade")
 		if DataValidatorRules.is_int(grade):
 			grades[int(grade)] = true
-	if not any:
-		return
 	v.at_file("section 'items'" if files.is_empty() else (files.keys()[0] as String).get_base_dir())
 	for grade: int in range(1, GRADE_COUNT + 1):
 		if not grades.has(grade):
@@ -81,9 +77,7 @@ static func validate_mods(v: DataValidatorRules, files: Dictionary[String, Dicti
 			_effect(v, e, "risk", RISK_TYPES)
 			_effect(v, e, "reward", REWARD_TYPES)
 			mods.append(e)
-	if mods.is_empty():
-		return
-	v.at_file(files.keys()[0] as String)
+	v.at_file(files.keys()[0] as String if not files.is_empty() else "map_mods.json")
 	v.at_entry("map mods", 0, {})
 	if mods.size() < MODS_MIN:
 		v.fail("needs at least %d modifiers, got %d" % [MODS_MIN, mods.size()])
@@ -132,7 +126,6 @@ static func _effect(v: DataValidatorRules, mod: Dictionary, key: String, types: 
 static func validate_bosses(v: DataValidatorRules, files: Dictionary[String, Dictionary]) -> void:
 	var seen: Dictionary[StringName, bool] = {}
 	var grades: Dictionary[int, bool] = {}
-	var count: int = 0
 	for path: String in files:
 		v.at_file(path)
 		var list: Array[Dictionary] = DataValidator.entries(v, files[path], "bosses")
@@ -140,7 +133,6 @@ static func validate_bosses(v: DataValidatorRules, files: Dictionary[String, Dic
 			var e: Dictionary = list[index]
 			v.entry("boss", index, e, seen, BOSS_FIELDS)
 			DataValidatorClasses.combat_fields(v, e)
-			count += 1
 			if v.integer(e, "grade", 1, GRADE_COUNT):
 				if grades.has(int(e["grade"])):
 					v.fail("duplicate boss grade %d" % int(e["grade"]))
@@ -150,9 +142,7 @@ static func validate_bosses(v: DataValidatorRules, files: Dictionary[String, Dic
 			if e.get("rewards") is Dictionary:
 				v.keys(rewards, ["dust"], "rewards")
 				v.int_pair(rewards, "dust", 1, DataValidatorRules.NO_LIMIT, true, "rewards")
-	if count == 0:
-		return
-	v.at_file(files.keys()[0] as String)
+	v.at_file(files.keys()[0] as String if not files.is_empty() else "bosses.json")
 	v.at_entry("bosses", 0, {})
 	for grade: int in range(1, GRADE_COUNT + 1):
 		if not grades.has(grade):

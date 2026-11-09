@@ -3,6 +3,7 @@ extends GutTest
 ## DataValidator for the M10 fixtures (res://tests/fixtures/data/m10, 04_DATA_SCHEMA.md §18: its own balance.json and
 ## stats.json in `config/`), a fresh copy at each call, and the helpers to break one rule and expect one error.
 
+const PreRun := preload("res://tests/helpers/gut_pre_run.gd")
 const M10_ROOT: String = "res://tests/fixtures/data/m10"
 const M10_CONFIG: String = "res://tests/fixtures/data/m10/config"
 const BALANCE: String = "balance.json"
@@ -19,8 +20,38 @@ static func m10_raw() -> Dictionary:
 	for section: String in GameData.CONTENT_DIRS:
 		raw[section] = _read(JsonLoader.list_json_files(M10_ROOT.path_join(GameData.CONTENT_DIRS[section]), errors),
 				errors)
+	# M13-04: the Card, modifier and boss rules always apply; the M10 fixtures have no map files, so the complete ones of
+	# the main fixtures (the monsters and items they use exist in both sets) stand in for them.
+	var main: String = "res://tests/fixtures/data"
+	raw["map_mods"] = _read([main.path_join(GameData.CONTENT_FILES["map_mods"])], errors)
+	raw["bosses"] = _read([main.path_join(GameData.CONTENT_FILES["bosses"])], errors)
+	(raw["items"] as Dictionary)[main.path_join("items/maps.json")] = JsonLoader.load_file(main.path_join("items/maps.json"), errors)
 	assert(errors.is_empty(), "M10 fixture files must load: %s" % [errors])
 	return raw
+
+
+## GameData of the M10 fixtures: a copy of the tree in a test folder with the map files of the main fixtures added (the
+## Card, modifier and boss rules always apply since M13-04; the M10 fixtures have none).
+static func load_m10() -> GameData:
+	var root: String = PreRun.test_dir("m10_base")
+	_copy_tree(M10_ROOT, root)
+	for file_name: String in ["maps/map_mods.json", "maps/bosses.json", "items/maps.json"]:
+		var out := FileAccess.open(root.path_join(file_name), FileAccess.WRITE)
+		out.store_string(FileAccess.get_file_as_string("res://tests/fixtures/data".path_join(file_name)))
+		out.close()
+	return GameData.load_from_dirs(root, M10_CONFIG)
+
+
+static func _copy_tree(from: String, to: String) -> void:
+	DirAccess.make_dir_recursive_absolute(to)
+	for dir: String in DirAccess.get_directories_at(from):
+		if dir != "config":
+			_copy_tree(from.path_join(dir), to.path_join(dir))
+	for file_name: String in DirAccess.get_files_at(from):
+		if file_name.ends_with(".json"):
+			var out := FileAccess.open(to.path_join(file_name), FileAccess.WRITE)
+			out.store_string(FileAccess.get_file_as_string(from.path_join(file_name)))
+			out.close()
 
 
 static func validate(raw: Dictionary) -> PackedStringArray:

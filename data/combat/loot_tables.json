@@ -10,7 +10,8 @@
       {"item":"contract_forestry_apprentice","chance_pct":0.02,"qty":[1,1]},
       {"item":"contract_quarrying_apprentice","chance_pct":0.02,"qty":[1,1]},
       {"item":"contract_angling_apprentice","chance_pct":0.02,"qty":[1,1]},
-      {"item":"bag_leather","chance_pct":0.05,"qty":[1,1]}
+      {"item":"bag_leather","chance_pct":0.05,"qty":[1,1]},
+      {"item":"fracture_card_1","chance_pct":0.16,"qty":[1,1]}
     ]},
     {"id": "loot_area_whisper_wood", "entries": [
       {"item":"rift_dust","chance_pct":20,"qty":[1,2]},
@@ -31,7 +32,9 @@
       {"item":"contract_forestry_journeyman","chance_pct":0.015,"qty":[1,1]},
       {"item":"contract_quarrying_journeyman","chance_pct":0.015,"qty":[1,1]},
       {"item":"contract_angling_journeyman","chance_pct":0.015,"qty":[1,1]},
-      {"item":"bag_leather","chance_pct":0.05,"qty":[1,1]}
+      {"item":"bag_leather","chance_pct":0.05,"qty":[1,1]},
+      {"item":"fracture_card_1","chance_pct":0.2,"qty":[1,1]},
+      {"item":"fracture_card_2","chance_pct":0.11,"qty":[1,1]}
     ]},
     {"id": "loot_area_cracked_mines", "entries": [
       {"item":"rift_dust","chance_pct":20,"qty":[1,2]},
@@ -52,7 +55,10 @@
       {"item":"contract_forestry_expert","chance_pct":0.01,"qty":[1,1]},
       {"item":"contract_quarrying_expert","chance_pct":0.01,"qty":[1,1]},
       {"item":"contract_angling_expert","chance_pct":0.01,"qty":[1,1]},
-      {"item":"bag_wayfarer","chance_pct":0.02,"qty":[1,1]}
+      {"item":"bag_wayfarer","chance_pct":0.02,"qty":[1,1]},
+      {"item":"fracture_card_1","chance_pct":0.15,"qty":[1,1]},
+      {"item":"fracture_card_2","chance_pct":0.15,"qty":[1,1]},
+      {"item":"fracture_card_3","chance_pct":0.11,"qty":[1,1]}
     ]},
     {"id": "loot_area_rift_threshold", "entries": [
       {"item":"rift_dust","chance_pct":20,"qty":[1,2]},
@@ -72,7 +78,9 @@
       {"item":"contract_angling_expert","chance_pct":0.01,"qty":[1,1]},
       {"item":"contract_forestry_master","chance_pct":0.01,"qty":[1,1]},
       {"item":"contract_quarrying_master","chance_pct":0.01,"qty":[1,1]},
-      {"item":"contract_angling_master","chance_pct":0.01,"qty":[1,1]}
+      {"item":"contract_angling_master","chance_pct":0.01,"qty":[1,1]},
+      {"item":"fracture_card_2","chance_pct":0.28,"qty":[1,1]},
+      {"item":"fracture_card_3","chance_pct":0.28,"qty":[1,1]}
     ]},
     {"id": "loot_monolith_redrock", "entries": [
       {"item":"rift_dust","chance_pct":100,"qty":[20,40]},
@@ -89,7 +97,8 @@
       {"item":"currency_crown","chance_pct":5,"qty":[1,1]},
       {"item":"contract_forestry_apprentice","chance_pct":2,"qty":[1,1]},
       {"item":"contract_quarrying_apprentice","chance_pct":2,"qty":[1,1]},
-      {"item":"contract_angling_apprentice","chance_pct":2,"qty":[1,1]}
+      {"item":"contract_angling_apprentice","chance_pct":2,"qty":[1,1]},
+      {"item":"fracture_card_1","chance_pct":15,"qty":[1,1]}
     ]},
     {"id": "loot_monolith_whisper", "entries": [
       {"item":"rift_dust","chance_pct":100,"qty":[20,40]},
@@ -106,7 +115,9 @@
       {"item":"currency_crown","chance_pct":5,"qty":[1,1]},
       {"item":"contract_forestry_journeyman","chance_pct":2,"qty":[1,1]},
       {"item":"contract_quarrying_journeyman","chance_pct":2,"qty":[1,1]},
-      {"item":"contract_angling_journeyman","chance_pct":2,"qty":[1,1]}
+      {"item":"contract_angling_journeyman","chance_pct":2,"qty":[1,1]},
+      {"item":"fracture_card_1","chance_pct":10,"qty":[1,1]},
+      {"item":"fracture_card_2","chance_pct":15,"qty":[1,1]}
     ]},
     {"id": "loot_monolith_mine", "entries": [
       {"item":"rift_dust","chance_pct":100,"qty":[20,40]},
@@ -123,7 +134,9 @@
       {"item":"currency_crown","chance_pct":5,"qty":[1,1]},
       {"item":"contract_forestry_expert","chance_pct":2,"qty":[1,1]},
       {"item":"contract_quarrying_expert","chance_pct":2,"qty":[1,1]},
-      {"item":"contract_angling_expert","chance_pct":2,"qty":[1,1]}
+      {"item":"contract_angling_expert","chance_pct":2,"qty":[1,1]},
+      {"item":"fracture_card_2","chance_pct":10,"qty":[1,1]},
+      {"item":"fracture_card_3","chance_pct":15,"qty":[1,1]}
     ]},
     {"id": "loot_monolith_threshold", "entries": [
       {"item":"rift_dust","chance_pct":100,"qty":[20,40]},
@@ -141,7 +154,9 @@
       {"item":"bag_runic","chance_pct":5,"qty":[1,1]},
       {"item":"contract_forestry_master","chance_pct":2,"qty":[1,1]},
       {"item":"contract_quarrying_master","chance_pct":2,"qty":[1,1]},
-      {"item":"contract_angling_master","chance_pct":2,"qty":[1,1]}
+      {"item":"contract_angling_master","chance_pct":2,"qty":[1,1]},
+      {"item":"fracture_card_3","chance_pct":10,"qty":[1,1]},
+      {"item":"fracture_card_4","chance_pct":20,"qty":[1,1]}
     ]}
   ]
 }
