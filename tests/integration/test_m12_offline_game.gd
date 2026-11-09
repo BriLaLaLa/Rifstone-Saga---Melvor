@@ -54,8 +54,9 @@ func test_helper_and_bags_survive_three_hours_away_and_the_summary_counts_the_he
 	var sum: OfflineSummary = _game.last_offline_summary
 	assert_not_null(sum)
 	var cycles: int = 3 * HOUR_MS / 4500
-	assert_eq(s.skills.get_xp(&"forestry"), cycles * 2, "Master: 4500 ms per cycle, 2 xp each (F-101, F-102)")
-	assert_eq(sum.xp.get(&"forestry", 0), cycles * 2)
+	var xp: int = s.skills.get_xp(&"forestry")
+	assert_between(xp, cycles * 2, cycles * 2 * 6 / 5, "Master: 4500 ms per cycle, 2 xp each; the mastery steps (F-122) shorten it a little")
+	assert_eq(sum.xp.get(&"forestry", 0), xp)
 	assert_gte(int(sum.items.get(&"redbirch_log", 0)), cycles, "the helper's logs are in the summary")
 	assert_eq(s.bank.get_count(&"redbirch_log"), int(sum.items.get(&"redbirch_log", 0)))
 	assert_eq(s.deposit.get_bag(0), &"bag_leather")

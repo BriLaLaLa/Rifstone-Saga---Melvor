@@ -65,6 +65,7 @@ func add(inst: ItemInstance) -> int:
 	_next_uid += 1
 	_items[stored.uid] = stored
 	_events.armory_changed.emit(stored.uid, CHANGE_ADDED)
+	_events.item_obtained.emit(stored.base_id, 1)
 	_deposit.notify_changed()
 	return stored.uid
 
@@ -282,6 +283,7 @@ func add_drop(inst: ItemInstance) -> int:
 	var uid: int = _next_uid
 	_next_uid += 1
 	Salvage.pay(Salvage.paid(inst, _data), _bank)
+	_events.item_obtained.emit(inst.base_id, 1)  # F-124: seen even when the filter sells it
 	_events.item_salvaged.emit(uid, inst.base_id, true)
 	return 0
 

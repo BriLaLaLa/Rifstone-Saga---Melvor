@@ -40,7 +40,6 @@ const FORMAT_FLAT: String = "flat"
 const FORMAT_FLAG: String = "flag"
 ## Last lines of an item tooltip (docs/01_GDD.md §27).
 const GUIDE_MAX_ENTRIES: int = 3
-const SOURCES_TEXT: String = "Si ottiene da: %s"
 const USES_TEXT: String = "Serve a: %s"
 
 static var _index: GuideIndex = null
@@ -82,7 +81,8 @@ static func body(item: ItemDef, data: GameData) -> PackedStringArray:
 	return lines
 
 
-## "Si ottiene da: ..." and "Serve a: ..." (at most GUIDE_MAX_ENTRIES entries then "e altro", from the Guide index);
+## "Serve a: ..." only (M14, F-124: "Si ottiene da" lives in the Guide, behind the discoveries). At most GUIDE_MAX_ENTRIES
+## entries then "e altro", from the Guide index;
 ## a line with no entries is left out. Nothing for data that is not valid or has no such item. Appended by the tooltip
 ## (`CustomTooltip.setup_item`), not by `body`.
 static func guide_lines(item: ItemDef, data: GameData) -> PackedStringArray:
@@ -90,9 +90,6 @@ static func guide_lines(item: ItemDef, data: GameData) -> PackedStringArray:
 	if data == null or not data.is_valid() or not data.has_item(item.id):
 		return lines
 	var index: GuideIndex = _guide_index(data)
-	var sources: String = index.summary_line(index.sources_of(item.id), GUIDE_MAX_ENTRIES)
-	if not sources.is_empty():
-		lines.append(_muted(SOURCES_TEXT % escape(sources)))
 	var uses: String = index.summary_line(index.uses_of(item.id), GUIDE_MAX_ENTRIES)
 	if not uses.is_empty():
 		lines.append(_muted(USES_TEXT % escape(uses)))

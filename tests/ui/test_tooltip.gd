@@ -44,7 +44,6 @@ func test_show_item_weapon_lines() -> void:
 		"Stile Lama, un attacco ogni 2,4 s",
 		"Precisione +8",
 		"Valore: 12 oro",
-		"Si ottiene da: Lama di prova",  # Guide lines (M11-05), from the fixture guide index
 		"Serve a: Smantellamento",
 	]))
 	assert_eq(_tooltip.footer_text().strip_edges(), "Spada a una mano per i test.")
@@ -55,7 +54,6 @@ func test_show_item_tool_shows_pct_and_skill_scope() -> void:
 	assert_eq(_lines(_tooltip.body_text()), PackedStringArray([
 		"Velocità delle azioni -5% (Raccolta di prova)",
 		"Non vendibile",  # a unique tool (M10): no value, never sold
-		"Si ottiene da: Kit iniziale",
 		"Serve a: Raffinazione",
 	]))
 
@@ -73,21 +71,21 @@ func test_show_item_infusion_lines() -> void:
 func test_show_item_food_lines() -> void:
 	_show_item(&"test_ration", 5)
 	assert_eq(_lines(_tooltip.body_text()), PackedStringArray([
-		"Cura 20 punti vita", "Valore: 2 oro", "Si ottiene da: Mostro di prova B", "Serve a: Cibo"]))
+		"Cura 20 punti vita", "Valore: 2 oro", "Serve a: Cibo"]))
 
 
 func test_show_item_quantity_uses_thousands_separator() -> void:
 	_show_item(&"test_twig", 1250)
 	assert_eq(_lines(_tooltip.title_text()), PackedStringArray(["Rametto di prova", "Materiale  ·  Quantità: 1.250"]))
 	assert_eq(_lines(_tooltip.body_text()), PackedStringArray([
-		"Valore: 1 oro", "Si ottiene da: Mostro di prova B, Raccogliere fasci di prova, Raccogliere rametti di prova"]))
+		"Valore: 1 oro"]))
 
 
 func test_show_item_without_count_has_no_quantity() -> void:
 	_show_item(&"rift_shard", 0)
 	assert_eq(_lines(_tooltip.title_text()), PackedStringArray(["Frammento del Rift", "Varie"]))
 	assert_eq(_lines(_tooltip.body_text()), PackedStringArray([
-		"Non vendibile", "Si ottiene da: Mostro di prova A, Mostro di prova B, Pietra di prova e altro", "Serve a: Raffinazione"]))
+		"Non vendibile", "Serve a: Raffinazione"]))
 
 
 func test_show_item_null_hides_and_reports() -> void:

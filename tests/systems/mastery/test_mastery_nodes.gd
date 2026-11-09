@@ -195,7 +195,7 @@ func test_rebuild_modifiers_registers_node_sources_in_one_batch() -> void:
 	assert_true(_session.modifiers.has_source(&"mastery_node:test_gather_n1"))
 	assert_true(_session.modifiers.has_source(&"mastery_node:test_gather_n3"))
 	assert_false(_session.modifiers.has_source(&"mastery_node:test_gather_n2"))
-	assert_eq(_total(&"double_item_chance", ModifierContext.for_action(SKILL, TWIG)), 10.0)
+	assert_eq(_total(&"double_item_chance", ModifierContext.for_action(SKILL, TWIG)), 15.0)  # 8 resource milestone + node 2 + 5 steps of +1
 
 
 func test_to_save_lists_owned_nodes_in_data_order() -> void:

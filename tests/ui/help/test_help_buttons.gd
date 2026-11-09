@@ -88,14 +88,14 @@ func test_item_tooltip_lines_have_at_most_three_entries() -> void:
 	assert_gt(seen, 0)
 
 
-func test_item_tooltip_shows_sources_and_uses_from_the_index() -> void:
+func test_item_tooltip_shows_only_uses_from_the_index() -> void:
 	var index := GuideIndex.new(_session.data)
 	var found: bool = false
 	for item: ItemDef in _session.data.items():
 		if index.sources_of(item.id).is_empty() or index.uses_of(item.id).is_empty():
 			continue
 		var text: String = "\n".join(ItemTooltipLines.guide_lines(item, _session.data))
-		assert_string_contains(text, "Si ottiene da: ")
+		assert_false(text.contains("Si ottiene da"), "M14: sources live in the Guide behind the discoveries")
 		assert_string_contains(text, "Serve a: ")
 		found = true
 		break

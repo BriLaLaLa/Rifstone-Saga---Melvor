@@ -1,7 +1,7 @@
 extends GutTest
 ## MasterySystem milestones of the gathering actions (F-103, F-108, 05 §5.7): `mastery_item:<action>` from level 50,
 ## `mastery_trade:<skill>` from level 99 summed across the resources, `milestones_reached`/`milestone_active`, the
-## `mastery_milestone_reached` signal (not in `from_save`/`new_game`), F-11 still valid for the artisan skills.
+## `mastery_milestone_reached` signal (not in `from_save`/`new_game`), the artisan skills have the F-122 steps only.
 ##
 ## Fixture test_gather: twig (resource double +8, trade +0.5), log (resource double +6, trade +1).
 
@@ -101,11 +101,11 @@ func test_no_signal_in_from_save_and_new_game() -> void:
 
 
 ## Artisan: F-11 stays (preservation +1.5 per 10 levels), and no trade source for a non-gathering skill.
-func test_artisan_keeps_f11() -> void:
+func test_artisan_gets_the_f122_steps_and_no_trade_source() -> void:
 	_mastery.from_save({"test_craft": {"actions": {"craft_plank": _table.xp_for_level(50)}}})
 	_session.rebuild_modifiers()
 	var ctx: ModifierContext = ModifierContext.for_action(&"test_craft", &"craft_plank")
-	assert_eq(_session.modifiers.total(&"preservation_chance", ctx), 7.5)
+	assert_eq(_session.modifiers.total(&"preservation_chance", ctx), 10.0, "5 steps of +2")
 	assert_false(_session.modifiers.has_source(&"mastery_trade:test_craft"))
 
 
@@ -133,12 +133,14 @@ func test_real_data_milestones() -> void:
 		actions[id] = _table.xp_for_level(99)
 	real.mastery.from_save({"forestry": {"pool": 0, "actions": actions}})
 	real.rebuild_modifiers()
-	assert_eq(real.modifiers.total(interval, ModifierContext.for_action(&"forestry", &"cut_veilcypress")), -12.0,
-			"8 resources: -4.0 of the trade and -8 of its own resource")
+	assert_eq(real.modifiers.total(interval, ModifierContext.for_action(&"forestry", &"cut_veilcypress")), -30.0,
+			"8 resources: -4.0 of the trade and -8 of its own resource, then 9 steps of -2")
 
 
+## The milestone part of the `double_item_chance` of an action: the F-122 steps (+1 per 10 levels, M14) are taken out.
 func _double(action_id: StringName) -> float:
-	return _session.modifiers.total(DOUBLE, ModifierContext.for_action(SKILL, action_id))
+	var steps: int = MasteryMath.step_count(_mastery.get_mastery_level(action_id), _session.data)
+	return _session.modifiers.total(DOUBLE, ModifierContext.for_action(SKILL, action_id)) - float(steps)
 
 
 func _load(actions: Dictionary, pool: int = 0) -> void:

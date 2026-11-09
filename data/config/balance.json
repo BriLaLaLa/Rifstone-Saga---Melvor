@@ -43,6 +43,11 @@
       "resource_at": 50,
       "trade_at": 99,
       "byproduct_chance_pct": 2.0
+    },
+    "step": {
+      "every_levels": 10,
+      "gathering": [{"stat": "skill_interval_pct", "value": -2}, {"stat": "double_item_chance", "value": 1}],
+      "crafting": [{"stat": "preservation_chance", "value": 2}, {"stat": "skill_interval_pct", "value": -2}]
     }
   },
   "action": {
@@ -257,6 +262,8 @@
   "sockets": {"by_rarity": {"common": 0, "magic": 1, "rare": 2, "masterwork": 2, "legendary": 2}, "bonus_at_upgrade": 7},
   "fracture": {
     "groups": 16, "intensity_steps": 10, "pulse_ms": 4000,
+    "risk_cap": {"base": 40, "per_grade": 10},
+    "risk_unit": {"pack_bonus": 20, "pulse": 5},
     "mod_count": {"common": [0, 0], "magic": [1, 2], "rare": [3, 4]},
     "card_rarity": {"magic_pct": 25, "rare_pct": 6},
     "card_drop": {"monster_pct": 0.5, "boss_pct": 70, "monster_delta": [70, 27, 3], "boss_delta": [20, 70, 10]},

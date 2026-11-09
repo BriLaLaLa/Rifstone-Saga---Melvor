@@ -72,12 +72,8 @@ func test_every_table_block_builds_with_rows() -> void:
 
 func test_every_item_has_source_and_use_or_a_declared_exception() -> void:
 	var index: GuideIndex = GuideIndex.new(_data)
-	# M14-05: pieces and blueprints get their sources from the drop pool and the legendaries (M14-08, F-121, F-124).
-	var missing: Array[StringName] = []
-	for id: StringName in index.items_without_source():
-		if not [&"equipment", &"tool", &"blueprint"].has(_data.item(id).category):
-			missing.append(id)
-	assert_eq(missing.size(), 0, "no item without source: %s" % str(missing))
+	# M14: pieces and blueprints get their sources from the drop pool and the legendaries (F-121, F-120, F-124).
+	assert_eq(index.items_without_source().size(), 0, "no item without source: %s" % str(index.items_without_source()))
 	assert_eq(index.items_without_use().size(), 0, "no item without use: %s" % str(index.items_without_use()))
 
 

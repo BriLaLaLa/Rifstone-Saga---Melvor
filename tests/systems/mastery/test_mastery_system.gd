@@ -1,5 +1,5 @@
 extends GutTest
-## MasterySystem: per-action mastery (F-09/F-10), pool share and cap (F-12/F-13), per-action bonuses (F-11),
+## MasterySystem: per-action mastery (F-09/F-10), pool share and cap (F-12/F-13), per-action bonuses (F-122),
 ## pool spending (F-14), skills/actions without mastery, save. Nodes: test_mastery_nodes.gd.
 ##
 ## Fixture skill test_gather: mastery actions gather_twig (3000 ms) and gather_log (4000 ms), cap 600,000;
@@ -116,15 +116,15 @@ func test_milestone_bonus_examples() -> void:
 	assert_eq(_session.modifiers.total(DOUBLE), 0.0)
 
 
-## F-11 artisan example (fixture rules = real artisan rules): L 50 -> +7.5 preservation; L 99 -> +13.5 and -5 interval.
-func test_f11_artisan_bonus_examples() -> void:
+## F-122 artisan example: L 50 (n = 5) -> +10 preservation and -10 interval; L 99 (n = 9) -> +18 and -18.
+func test_f122_artisan_bonus_examples() -> void:
 	var ctx: ModifierContext = ModifierContext.for_action(CRAFT_SKILL, &"craft_plank")
 	_load({CRAFT_SKILL: {"actions": {&"craft_plank": _table.xp_for_level(50)}}})
-	assert_eq(_session.modifiers.total(&"preservation_chance", ctx), 7.5)
-	assert_eq(_session.modifiers.total(&"skill_interval_pct", ctx), 0.0)
+	assert_eq(_session.modifiers.total(&"preservation_chance", ctx), 10.0)
+	assert_eq(_session.modifiers.total(&"skill_interval_pct", ctx), -10.0)
 	_load({CRAFT_SKILL: {"actions": {&"craft_plank": _table.xp_for_level(99)}}})
-	assert_eq(_session.modifiers.total(&"preservation_chance", ctx), 13.5)
-	assert_eq(_session.modifiers.total(&"skill_interval_pct", ctx), -5.0)
+	assert_eq(_session.modifiers.total(&"preservation_chance", ctx), 18.0)
+	assert_eq(_session.modifiers.total(&"skill_interval_pct", ctx), -18.0)
 
 
 func test_item_bonus_source_only_when_it_has_modifiers() -> void:
@@ -134,16 +134,16 @@ func test_item_bonus_source_only_when_it_has_modifiers() -> void:
 	assert_false(_session.modifiers.has_source(&"mastery_item:craft_plank"))
 
 
-func test_f11_with_real_data() -> void:
+func test_f122_with_real_data() -> void:
 	var real: GameSession = autofree(TestFactory.session_no_kit(1, TestFactory.real_data()))
 	real.mastery.from_save({"forestry": {"actions": {"cut_redbirch": _table.xp_for_level(99)}}})
 	real.rebuild_modifiers()
 	var interval: StringName = &"skill_interval_pct"
 	var ctx: ModifierContext = ModifierContext.for_action(&"forestry", &"cut_redbirch")
-	assert_eq(real.modifiers.total(interval, ctx), -8.5, "own resource -8 and trade -0.5")
+	assert_eq(real.modifiers.total(interval, ctx), -26.5, "own resource -8, trade -0.5 and 9 steps of -2")
 	assert_eq(real.modifiers.total(interval, ModifierContext.for_action(&"forestry", &"cut_ashpine")), -0.5,
 			"the trade bonus is for the whole skill, the resource bonus only for its own")
-	assert_eq(real.modifiers.total(DOUBLE, ctx), 0.0, "no F-11 for the gathering trades")
+	assert_eq(real.modifiers.total(DOUBLE, ctx), 9.0, "9 steps of +1")
 
 
 ## Acceptance: the pool never exceeds the F-13 cap (gather_log at L 50 gives +5; the surplus is lost).
@@ -186,7 +186,7 @@ func test_f14_spend_from_zero() -> void:
 	assert_signal_emitted_with_parameters(_session.events, "mastery_xp_gained", [SKILL, TWIG, 5000])
 	assert_signal_emit_count(_session.events, "mastery_level_up", 29)
 	assert_signal_emitted_with_parameters(_session.events, "mastery_pool_changed", [SKILL, 5000])
-	assert_signal_emit_count(_session.events, "modifiers_changed", 0)
+	assert_signal_emit_count(_session.events, "modifiers_changed", 1)  # F-122: one batch for the steps 10, 20 and 30
 	assert_signal_emitted_with_parameters(_session.events, "mastery_milestone_reached", [SKILL, TWIG, 25])
 	assert_eq(_double(TWIG), 0.0)
 
@@ -255,7 +255,7 @@ func test_save_round_trip_through_the_session() -> void:
 	watch_signals(other.events)
 	assert_true(other.from_save(SaveCodec.decode(text)).ok)
 	assert_eq(other.mastery.to_save(), _mastery.to_save())
-	assert_eq(other.modifiers.total(DOUBLE, ModifierContext.for_action(SKILL, TWIG)), 8.0)
+	assert_eq(other.modifiers.total(DOUBLE, ModifierContext.for_action(SKILL, TWIG)), 13.0)  # 8 resource milestone + 5 steps of +1 (F-122)
 	assert_signal_not_emitted(other.events, "mastery_xp_gained")
 	assert_signal_not_emitted(other.events, "mastery_pool_changed")
 
@@ -300,7 +300,8 @@ func _action(action_id: StringName) -> ActionDef:
 
 
 func _double(action_id: StringName) -> float:
-	return _session.modifiers.total(DOUBLE, ModifierContext.for_action(SKILL, action_id))
+	var steps: int = MasteryMath.step_count(_mastery.get_mastery_level(action_id), _session.data)  # F-122 steps taken out
+	return _session.modifiers.total(DOUBLE, ModifierContext.for_action(SKILL, action_id)) - float(steps)
 
 
 # Loads a mastery module (StringName keys are fine: from_save reads them with str) and rebuilds the modifiers.

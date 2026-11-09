@@ -41,10 +41,12 @@ func test_a_certain_drop_goes_to_the_bag_of_the_fracture() -> void:
 
 func test_the_order_of_the_draws_is_probability_grade_offset_rarity() -> void:
 	var fc: FractureCombat = _start(41, 3)
-	var shadow := RngService.new(41)
-	# the state of the stream after the opening of the Fracture is not zero: sync the shadow by replaying nothing, since
-	# `open` rolls nothing; the kill rolls the gold (1, 1) first, the probability is certain (nothing consumed)
+	var shadow := RngService.new(1)
+	shadow.from_save(_s.rng.to_save())  # the stream as it is after the opening of the Fracture
+	# the kill rolls the gold (1, 1) first, then (M14, F-121) the pool; the probability of the Card is certain (nothing consumed)
 	shadow.randi_range(1, 1)
+	shadow.randf()  # M14 F-121: the pool rolls its piece chance and its blueprint chance (nothing falls) before the Card
+	shadow.randf()
 	var weights: Array[int] = [70, 27, 3]
 	var expected_grade: int = mini(10, 3 + shadow.pick_weighted(weights))
 	var expected_rarity: StringName = MapCardRoller.roll_rarity(_s.modifiers.total(&"item_rarity_pct"), _s.data, shadow)

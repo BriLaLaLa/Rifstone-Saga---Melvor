@@ -77,6 +77,7 @@ static func validate_mods(v: DataValidatorRules, files: Dictionary[String, Dicti
 			_effect(v, e, "risk", RISK_TYPES)
 			_effect(v, e, "reward", REWARD_TYPES)
 			mods.append(e)
+	DataValidatorStep.validate_cap_candidates(v, mods)
 	v.at_file(files.keys()[0] as String if not files.is_empty() else "map_mods.json")
 	v.at_entry("map mods", 0, {})
 	if mods.size() < MODS_MIN:

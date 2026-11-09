@@ -118,7 +118,6 @@ func test_skills_are_ordered_by_order() -> void:
 func test_skills_by_category() -> void:
 	assert_eq(_ids(_data.skills_by_category(&"gathering")), [&"test_gather", &"test_gather_b"] as Array[StringName])
 	assert_eq(_ids(_data.skills_by_category(&"artisan")), [&"test_craft", &"riftbinding"] as Array[StringName])
-	assert_eq(_data.skill(&"test_craft").mastery_bonuses.size(), 2)
 
 
 func test_skills_by_unknown_category_is_error() -> void:

@@ -43,6 +43,8 @@ signal helper_changed(skill_id: StringName, grade: StringName, action_id: String
 signal helper_completed(skill_id: StringName, action_id: StringName, outputs: Dictionary)  # M12: a helper cycle ended
 signal helper_blocked(skill_id: StringName, blocked: bool)  # M12: the helper waits for Deposit room (true) or restarts (false)
 signal armory_rejected(base_id: StringName, qty: int)
+signal item_obtained(item_id: StringName, qty: int)  # M14: an item enters the possession of the player (Bank, loot bag, Armory, CardStore); Discoveries listens (F-124)
+signal item_discovered(item_id: StringName)  # M14: the first time an item is obtained (wiki a scoperta, F-124)
 signal item_upgraded(uid: int, success: bool, new_level: int)  # M7
 signal item_salvaged(uid: int, base_id: StringName, auto: bool)  # M7: auto = by the Armory filter
 signal modifiers_changed()

@@ -1,8 +1,6 @@
 {
-  "_doc": "Eccezioni dichiarate della Guida (M11, M12, M13): oggetti senza fonte o senza uso che l'indice non vede. Le fonti da tabelle di drop e sottoprodotti, gli usi di borse e contratti e fonte e uso delle Carte (M13-05) sono nell'indice.",
-  "no_source": [
-    "ashlead_ring", "ashlead_amulet", "duskcobalt_ring", "duskcobalt_amulet", "palecinnabar_ring", "palecinnabar_amulet", "riftite_ring", "riftite_amulet"
-  ],
+  "_doc": "Eccezioni dichiarate della Guida (M11, M12, M13): oggetti senza fonte o senza uso che l'indice non vede. Le fonti da tabelle di drop e sottoprodotti, gli usi di borse e contratti e fonte e uso delle Carte (M13-05) sono nell'indice. M14: i pezzi, i progetti e i leggendari hanno la fonte nell'indice (pool F-121 e fonti F-120), nessuna eccezione di fonte.",
+  "no_source": [],
   "no_use": [
     "redrock_flint", "whisper_resin", "mine_dust", "threshold_ash",
     "pine_cone", "oak_acorn", "elm_samara", "yew_berry", "ebony_knot", "ember_coal", "rift_bark", "iron_slag",

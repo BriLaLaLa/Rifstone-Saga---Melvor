@@ -39,6 +39,7 @@ func add(item_id: StringName, qty: int) -> bool:
 		_session.events.loot_lost.emit(item_id, qty)
 		return false
 	_items[item_id] = _items.get(item_id, 0) + qty
+	_session.events.item_obtained.emit(item_id, qty)
 	_emit_changed()
 	return true
 

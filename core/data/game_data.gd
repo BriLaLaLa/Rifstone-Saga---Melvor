@@ -151,11 +151,9 @@ func blueprint_for_base(base_id: StringName) -> ItemDef: return _blueprint_by_ba
 ## M14: every legendary base (`equip.legendary`), in the order of the data.
 func legendaries() -> Array[ItemDef]: return LegendaryIndex.all(_item_list)
 
-
 ## M14: the legendaries whose source is the boss or the Monolith `source_id` (`source_type` &"boss" / &"monolith").
 func legendaries_from(source_type: StringName, source_id: StringName) -> Array[ItemDef]:
 	return LegendaryIndex.from_source(_item_list, source_type, source_id)
-
 
 ## M14 (F-121): a base the drop pool can give: equipment that is neither a Masterwork nor a legendary.
 func is_equipment_pool_base(base_id: StringName) -> bool:
@@ -238,6 +236,8 @@ func has_area(id: StringName) -> bool: return _areas.has(id)
 
 
 func has_monster(id: StringName) -> bool: return _monsters.has(id)
+func has_action(id: StringName) -> bool: return _actions.has(id)  # M14
+func has_balance(path: String) -> bool: return DataValidator.lookup(_balance, path) != null  # M14: no error when absent
 
 
 func has_rift_stone(id: StringName) -> bool: return _stones.has(id)

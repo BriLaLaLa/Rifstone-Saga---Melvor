@@ -1,6 +1,6 @@
 class_name MasteryMath
 extends RefCounted
-## Pure mastery formulas (docs/02_FORMULAS.md F-10..F-13, F-15, F-11 multiplier). No state.
+## Pure mastery formulas (docs/02_FORMULAS.md F-10..F-13, F-15, F-122 step bonuses). No state.
 ##
 ## The F-10 parameters come from balance.json (`mastery.base_factor`, `mastery.per_level`, `mastery.ratio_weight`);
 ## the other formulas take their parameters from the caller, who reads them from the data.
@@ -8,6 +8,7 @@ extends RefCounted
 const BASE_FACTOR_KEY: String = "mastery.base_factor"
 const PER_LEVEL_KEY: String = "mastery.per_level"
 const RATIO_WEIGHT_KEY: String = "mastery.ratio_weight"
+const STEP_EVERY_KEY: String = "mastery.step.every_levels"
 
 
 ## F-10: mxp = max(1, floor(t × (base_factor + per_level × L + ratio_weight × R) × (1 + pct/100))),
@@ -43,11 +44,37 @@ static func node_cost(pool_cap: int, cost_pct: float) -> int:
 	return ceili(float(pool_cap) * cost_pct / 100.0)
 
 
-## F-11: `every_levels: k` → floor(L / k); `at_level: n` → 1 when L ≥ n, else 0; a rule with neither → 0.
-static func rule_multiplier(rule: MasteryBonusRule, level: int) -> int:
-	if rule.every_levels > 0:
-		@warning_ignore("integer_division")
-		return maxi(level, 0) / rule.every_levels
-	if rule.at_level > 0:
-		return 1 if level >= rule.at_level else 0
-	return 0
+## F-122 (M14): number of bonus steps at mastery `level`, `floor(level / mastery.step.every_levels)`.
+static func step_count(level: int, data: GameData) -> int:
+	@warning_ignore("integer_division")
+	return maxi(level, 0) / int(data.balance_value(STEP_EVERY_KEY))
+
+
+## F-122: the bonus of an action with mastery at `level`: `n` x the modifiers of `mastery.step.<kind>` (kind &"gathering"
+## or &"crafting"), without scope (`MasterySystem` sets the action scope). Empty below the first step.
+static func step_bonus(level: int, kind: StringName, data: GameData) -> Array[Modifier]:
+	return _step_modifiers(step_count(level, data), kind, data)
+
+
+## F-122: the next bonus: `{"level": the mastery level that grants it, "modifiers": the modifiers it adds (one step)}`;
+## `{}` when no further step exists up to the maximum mastery level.
+static func next_step(level: int, kind: StringName, data: GameData) -> Dictionary:
+	var next_level: int = (step_count(level, data) + 1) * int(data.balance_value(STEP_EVERY_KEY))
+	if next_level > data.mastery_table().max_level:
+		return {}
+	return {"level": next_level, "modifiers": _step_modifiers(1, kind, data)}
+
+
+## The kind of bonus (`mastery.step.<kind>`) of a skill category: gathering skills &"gathering", artisan skills &"crafting".
+static func step_kind(category: StringName) -> StringName:
+	return &"gathering" if category == &"gathering" else &"crafting"
+
+
+static func _step_modifiers(times: int, kind: StringName, data: GameData) -> Array[Modifier]:
+	var result: Array[Modifier] = []
+	if times <= 0:
+		return result
+	for entry: Variant in data.balance_value("mastery.step.%s" % kind) as Array:
+		var row: Dictionary = entry as Dictionary
+		result.append(Modifier.make(StringName(str(row["stat"])), float(row["value"]) * float(times)))
+	return result

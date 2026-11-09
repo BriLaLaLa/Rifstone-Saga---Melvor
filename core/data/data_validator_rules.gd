@@ -38,6 +38,10 @@ var grade_mult: Array[float] = []  # rune.grade_mult (M12), when valid
 var min_attack_interval_ms: float = 0.0
 var grade_material: Array[int] = []  # equipment.grade_material (M14), when valid: material grade of each piece grade
 var extra_rare: int = 2  # blueprint.extra_rare (M14): how many different rare components a blueprint asks for
+var risk_cap_base: float = 0.0  # fracture.risk_cap (M14, F-123), when valid
+var risk_cap_per_grade: float = 0.0
+var risk_units: Dictionary = {}  # fracture.risk_unit: risk type -> points per unit of risk value
+var step_stats: PackedStringArray = []  # stats named by mastery.step, checked later against stats.json
 
 var _file: String = ""
 var _where: String = ""

@@ -1,5 +1,5 @@
 {
-  "_doc": "Le 7 skill dell'MVP (00_VISION.md). Il personaggio ha un livello proprio (chiave riservata character). mastery_bonuses: F-11 (solo artigianato, Incisore compreso: preservation_chance e skill_interval_pct); la raccolta usa i traguardi per risorsa (F-103, F-108).",
+  "_doc": "Le 7 skill dell'MVP (00_VISION.md). Il personaggio ha un livello proprio (chiave riservata character). bonus di maestria ogni 10 livelli: balance.json mastery.step (F-122); traguardi per risorsa della raccolta: F-103, F-108.",
   "skills": [
     {"id": "forestry", "name": "Boscaiolo", "category": "gathering", "order": 1, "icon": "res://assets/icons/skills/forestry.svg",
      "color": "#7fbf6a",
@@ -17,34 +17,18 @@
      "color": "#d9822b",
      "description": "Fondi i minerali in lingotti e piastre, poi forgia i pezzi dai progetti. Più sali, più la raffinazione riesce.",
      "has_mastery": true,
-     "level_modifiers": [{"stat": "upgrade_success_pct", "per_level": 0.4}],
-     "mastery_bonuses": [
-       {"every_levels": 10, "modifiers": [{"stat": "preservation_chance", "value": 1.5}]},
-       {"at_level": 99, "modifiers": [{"stat": "skill_interval_pct", "value": -5}]}
-     ]},
+     "level_modifiers": [{"stat": "upgrade_success_pct", "per_level": 0.4}]},
     {"id": "hearthcraft", "name": "Cuoco", "category": "artisan", "order": 5, "icon": "res://assets/icons/skills/hearthcraft.svg",
      "color": "#e0b040",
      "description": "Cucina il pescato sulla brace: il cibo cura in combattimento.",
-     "has_mastery": true,
-     "mastery_bonuses": [
-       {"every_levels": 10, "modifiers": [{"stat": "preservation_chance", "value": 1.5}]},
-       {"at_level": 99, "modifiers": [{"stat": "skill_interval_pct", "value": -5}]}
-     ]},
+     "has_mastery": true},
     {"id": "woodwright", "name": "Falegname", "category": "artisan", "order": 6, "icon": "res://assets/icons/skills/woodwright.svg",
      "color": "#b07a48",
      "description": "Intaglia i legni in impugnature, telai degli scudi e manici.",
-     "has_mastery": true,
-     "mastery_bonuses": [
-       {"every_levels": 10, "modifiers": [{"stat": "preservation_chance", "value": 1.5}]},
-       {"at_level": 99, "modifiers": [{"stat": "skill_interval_pct", "value": -5}]}
-     ]},
+     "has_mastery": true},
     {"id": "riftbinding", "name": "Incisore", "category": "artisan", "order": 7, "icon": "res://assets/icons/skills/riftbinding.svg",
      "color": "#9a5ce0",
      "description": "Cristallizza la Polvere del Rift, fonde le pietre e incide le rune da incastonare nell'Altare del Rift.",
-     "has_mastery": true,
-     "mastery_bonuses": [
-       {"every_levels": 10, "modifiers": [{"stat": "preservation_chance", "value": 1.5}]},
-       {"at_level": 99, "modifiers": [{"stat": "skill_interval_pct", "value": -5}]}
-     ]}
+     "has_mastery": true}
   ]
 }

@@ -1,5 +1,5 @@
 extends GutTest
-## MasteryMath: F-10 mastery per cycle, F-12 pool share, F-13 pool cap, F-15 node cost, F-11 rule multiplier.
+## MasteryMath: F-10 mastery per cycle, F-12 pool share, F-13 pool cap, F-15 node cost.
 ## The F-10 parameters come from the real balance.json (shared by the fixtures).
 
 const ARTISAN_SKILL: StringName = &"forging"
@@ -53,56 +53,3 @@ func test_f15_examples() -> void:
 	assert_eq(MasteryMath.node_cost(2400000, 10.0), 240000)
 	assert_eq(MasteryMath.node_cost(2400000, 7.5), 180000)
 	assert_eq(MasteryMath.node_cost(10, 5.0), 1)
-
-
-func test_rule_multiplier_every_levels() -> void:
-	var rule: MasteryBonusRule = _rule(10, 0)
-	assert_eq(MasteryMath.rule_multiplier(rule, 1), 0)
-	assert_eq(MasteryMath.rule_multiplier(rule, 9), 0)
-	assert_eq(MasteryMath.rule_multiplier(rule, 10), 1)
-	assert_eq(MasteryMath.rule_multiplier(rule, 35), 3)
-	assert_eq(MasteryMath.rule_multiplier(rule, 99), 9)
-
-
-func test_rule_multiplier_at_level() -> void:
-	var rule: MasteryBonusRule = _rule(0, 99)
-	assert_eq(MasteryMath.rule_multiplier(rule, 98), 0)
-	assert_eq(MasteryMath.rule_multiplier(rule, 99), 1)
-
-
-func test_rule_multiplier_without_threshold_is_zero() -> void:
-	assert_eq(MasteryMath.rule_multiplier(_rule(0, 0), 99), 0)
-
-
-## M12: the gathering trades have no F-11 rules any more (milestones of F-103 and F-108 instead).
-func test_gathering_skills_have_no_f11_rules() -> void:
-	var rules: Array[MasteryBonusRule] = TestFactory.real_data().skill(GATHERING_SKILL).mastery_bonuses
-	assert_true(rules.is_empty())
-	assert_eq(_bonus(rules, 99), {})
-
-
-## F-11 artisan examples with the real forging rules: L 50 -> +7.5 preservation; L 99 -> +13.5 and -5% interval.
-## (The fixtures have no artisan bonuses and the real data no artisan actions yet: checked at rule level.)
-func test_f11_artisan_examples_with_real_rules() -> void:
-	var rules: Array[MasteryBonusRule] = TestFactory.real_data().skill(ARTISAN_SKILL).mastery_bonuses
-	assert_eq(_bonus(rules, 50), {&"preservation_chance": 7.5})
-	assert_eq(_bonus(rules, 99), {&"preservation_chance": 13.5, &"skill_interval_pct": -5.0})
-
-
-func _rule(every_levels: int, at_level: int) -> MasteryBonusRule:
-	var rule := MasteryBonusRule.new()
-	rule.every_levels = every_levels
-	rule.at_level = at_level
-	return rule
-
-
-# Sum per stat of value × multiplier over the rules (what MasterySystem registers for one action).
-func _bonus(rules: Array[MasteryBonusRule], level: int) -> Dictionary:
-	var totals: Dictionary = {}
-	for rule: MasteryBonusRule in rules:
-		var times: int = MasteryMath.rule_multiplier(rule, level)
-		if times <= 0:
-			continue
-		for mod: Modifier in rule.modifiers:
-			totals[mod.stat] = float(totals.get(mod.stat, 0.0)) + mod.value * float(times)
-	return totals

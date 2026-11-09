@@ -13,6 +13,8 @@ const RING: StringName = &"emberbronze_ring"
 const INGOT: StringName = &"emberbronze_ingot"
 const PLATE: StringName = &"emberbronze_plate"
 const SHARD: StringName = &"rift_shard"
+const DUST: StringName = &"rift_dust"
+const DUSTS: Array[int] = [0, 0, 0, 0, 10, 20, 30, 40, 50]  # upgrade.levels[].dust (M14, Q71)
 const SEAL: StringName = &"warding_seal"
 const HERO: StringName = &"test:hero"
 var _room: Array[int] = []
@@ -146,7 +148,7 @@ func test_salvage_and_the_filter_respect_lock_and_worn() -> void:
 
 
 func _cost(level: int) -> Dictionary:
-	return {"gold": GOLD_PER_GRADE[level], "ingots": INGOTS[level], "shards": SHARDS[level]}
+	return {"gold": GOLD_PER_GRADE[level], "ingots": INGOTS[level], "shards": SHARDS[level], "dust": DUSTS[level]}
 
 
 func _stock(s: GameSession, seals: int) -> void:
@@ -157,6 +159,7 @@ func _stock(s: GameSession, seals: int) -> void:
 		s.bank.remove(INGOT, s.bank.get_count(INGOT))
 	TestFactory.give(s, INGOT, 5000)
 	TestFactory.give(s, SHARD, 5000)
+	TestFactory.give(s, DUST, 5000)
 	if seals > 0:
 		TestFactory.give(s, SEAL, seals)
 
@@ -170,6 +173,7 @@ func _refine_to_max(s: GameSession, uid: int, use_seal: bool) -> int:
 		var gold: int = s.wallet.get_gold()
 		var ingots: int = s.bank.get_count(INGOT)
 		var shards: int = s.bank.get_count(SHARD)
+		var dust: int = s.bank.get_count(DUST)
 		var seals: int = s.bank.get_count(SEAL)
 		var outcome: Array = [false, 0]
 		var conn: Callable = func(_u: int, ok: bool, lvl: int) -> void:
@@ -186,6 +190,7 @@ func _refine_to_max(s: GameSession, uid: int, use_seal: bool) -> int:
 		assert_eq(gold - s.wallet.get_gold(), cost["gold"], "gold from +%d" % level)
 		assert_eq(ingots - s.bank.get_count(INGOT), cost["ingots"], "ingots from +%d" % level)
 		assert_eq(shards - s.bank.get_count(SHARD), cost["shards"], "shards from +%d" % level)
+		assert_eq(dust - s.bank.get_count(DUST), cost["dust"], "dust from +%d" % level)
 		var after: ItemInstance = s.armory.get_instance(uid)
 		var expected: int = level + 1
 		var seal_spent: int = 0

@@ -25,11 +25,7 @@ func test_skill_schema_example() -> void:
 		{"id": "forestry", "name": "Selvicoltura", "category": "gathering", "order": 1,
 		 "icon": "res://assets/icons/skills/forestry.png", "color": "#7fbf6a",
 		 "description": "Abbatti alberi per ottenere legni.",
-		 "has_mastery": true,
-		 "mastery_bonuses": [
-		   {"every_levels": 10, "modifiers": [{"stat": "double_item_chance", "value": 1}]},
-		   {"at_level": 99, "modifiers": [{"stat": "double_item_chance", "value": 5}]}
-		 ]}"""))
+		 "has_mastery": true}"""))
 	assert_not_null(skill)
 	assert_eq(skill.id, &"forestry")
 	assert_eq(skill.name, "Selvicoltura")
@@ -40,24 +36,8 @@ func test_skill_schema_example() -> void:
 	assert_eq(skill.icon, "res://assets/icons/skills/forestry.png")
 	assert_eq(skill.color, Color.html("#7fbf6a"))
 	assert_true(skill.has_mastery)
-	assert_eq(skill.mastery_bonuses.size(), 2)
-	var every: MasteryBonusRule = skill.mastery_bonuses[0]
-	assert_eq(every.every_levels, 10)
-	assert_eq(every.at_level, 0)
-	assert_eq(every.modifiers.size(), 1)
-	_assert_modifier(every.modifiers[0], &"double_item_chance", 1.0, &"global", &"")
-	var at: MasteryBonusRule = skill.mastery_bonuses[1]
-	assert_eq(at.every_levels, 0)
-	assert_eq(at.at_level, 99)
-	_assert_modifier(at.modifiers[0], &"double_item_chance", 5.0, &"global", &"")
 
 
-func test_skill_without_mastery_bonuses_has_empty_list() -> void:
-	var skill: SkillDef = SkillDef.from_dict(_parse("""
-		{"id": "blade", "name": "Lama", "category": "combat", "order": 5, "icon": "", "color": "#c04040",
-		 "description": "", "has_mastery": false}"""))
-	assert_not_null(skill)
-	assert_eq(skill.mastery_bonuses.size(), 0)
 
 
 func test_skill_bad_color_is_null() -> void:
@@ -66,19 +46,6 @@ func test_skill_bad_color_is_null() -> void:
 		 "description": "", "has_mastery": false}"""))
 	assert_null(skill)
 	assert_push_error(1)
-
-
-func test_mastery_bonus_scope_is_ignored() -> void:
-	var rule: MasteryBonusRule = MasteryBonusRule.from_dict(_parse("""
-		{"every_levels": 10, "modifiers": [{"stat": "preservation_chance", "value": 1.5, "scope": "skill:forging"}]}"""))
-	assert_not_null(rule)
-	_assert_modifier(rule.modifiers[0], &"preservation_chance", 1.5, &"global", &"")
-
-
-func test_mastery_bonus_without_level_rule_is_null() -> void:
-	assert_null(MasteryBonusRule.from_dict(_parse("""{"modifiers": []}""")))
-	assert_push_error(1)
-
 
 # --- §6 actions ------------------------------------------------------------------------------------------------
 

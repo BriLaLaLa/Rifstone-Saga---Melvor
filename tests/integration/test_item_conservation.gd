@@ -76,7 +76,7 @@ func test_default_chances_products_equal_bank_gain() -> void:
 	var start: Dictionary[StringName, int] = _bank_counts(_session)
 	_session.actions.start(SKILL, T1_ACTION)
 	_advance_in_ticks(_session, RUN_MS)
-	assert_eq(_cycles, 200, "600 000 / 3000 (F-03)")
+	assert_between(_cycles, 200, 230, "600 000 / 3000 (F-03), a little more: the mastery steps (F-122) shorten the interval")
 	_assert_conserved(start)
 
 

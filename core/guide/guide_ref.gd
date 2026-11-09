@@ -19,6 +19,9 @@ const KIND_MILESTONE: StringName = &"milestone"
 const KIND_BAG: StringName = &"bag"
 const KIND_CONTRACT: StringName = &"contract"
 const KIND_FRACTURE: StringName = &"fracture"
+const KIND_POOL: StringName = &"pool"  # M14: the drop pool of equipment and blueprints (F-121), by area
+const KIND_BOSS: StringName = &"boss"  # M14: a Fracture boss (legendaries, F-120)
+const KIND_ACTION: StringName = &"action"  # M14: the output of a gathering or crafting action
 
 var kind: StringName = &""
 ## Canonical id of the linked page (GuideIndex.entry), &"" when the entry links to no page.
@@ -26,12 +29,19 @@ var target: StringName = &""
 var label: String = ""
 ## Optional, e.g. area and percentage; numbers always come from the data.
 var detail: String = ""
+## M14 (F-124): the item concerned (what `GuideIndex.drops_of` gives; the queried item in `sources_of`) and the base
+## percentage 0..100 of the source, -1 when it does not apply (recipes, shop, kit).
+var item: StringName = &""
+var chance_pct: float = -1.0
 
 
-static func make(kind_: StringName, target_: StringName, label_: String, detail_: String = "") -> GuideRef:
+static func make(kind_: StringName, target_: StringName, label_: String, detail_: String = "", item_: StringName = &"",
+		chance_pct_: float = -1.0) -> GuideRef:
 	var ref := GuideRef.new()
 	ref.kind = kind_
 	ref.target = target_
 	ref.label = label_
 	ref.detail = detail_
+	ref.item = item_
+	ref.chance_pct = chance_pct_
 	return ref

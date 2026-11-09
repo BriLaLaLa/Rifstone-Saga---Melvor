@@ -83,12 +83,8 @@ func test_exceptions_are_only_what_the_index_still_cannot_explain() -> void:
 		assert_true(_index.sources_of(StringName(str(id))).is_empty(), "no_source %s is superfluous" % id)
 	for id: Variant in exceptions.get("no_use", []):
 		assert_true(_index.uses_of(StringName(str(id))).is_empty(), "no_use %s is superfluous" % id)
-	# M14-05: pieces and blueprints get their sources from the drop pool and the legendaries (M14-08, F-121, F-124).
-	var missing: Array[StringName] = []
-	for id: StringName in _index.items_without_source():
-		if not [&"equipment", &"tool", &"blueprint"].has(_data.item(id).category):
-			missing.append(id)
-	assert_eq(missing.size(), 0, str(missing))
+	# M14: pieces, tools and blueprints get their sources from the drop pool and the legendaries (F-121, F-120, F-124).
+	assert_eq(_index.items_without_source().size(), 0, str(_index.items_without_source()))
 	assert_eq(_index.items_without_use().size(), 0)
 
 

@@ -28,6 +28,19 @@ static func grant(session: GameSession, loot: LootSink, def: MonsterDef, area_id
 	var shard_pct: float = def.rift_shard_chance + session.modifiers.total(&"rift_shard_chance")
 	if session.rng.roll_pct(shard_pct):
 		loot.add(SHARD_ITEM, 1)
+	roll_pool(session, loot, def, ItemRoller.SOURCE_MONSTER)
+
+
+## F-121: the pool of equipment and blueprints (every slot of the grade near the level of the monster, the Fracture's
+## scaled level included): a piece with its rarity (F-84) and affixes (F-85), then a blueprint (a stack for the bag).
+static func roll_pool(session: GameSession, loot: LootSink, def: MonsterDef, source: StringName) -> void:
+	var level: int = EquipmentPool.monster_level(def)
+	var piece_id: StringName = EquipmentDrop.roll(level, session.data, session.rng)
+	if piece_id != &"":
+		loot.add_piece(roll_piece(session, session.data.item(piece_id), source, monster_ilvl(def)))
+	var blueprint_id: StringName = EquipmentDrop.roll_blueprint(level, session.data, session.rng)
+	if blueprint_id != &"":
+		loot.add(blueprint_id, 1)
 
 
 ## F-32 / F-84. `source` is the rarity source of `ItemRoller.drop_chances`, `ilvl` the item level of the pieces.

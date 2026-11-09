@@ -156,8 +156,13 @@ func _load_copy(text: String) -> GameSession:
 	return copy
 
 
+static var _plain_data: GameData = null
+
+
 func _new_session(seed_value: int) -> GameSession:
-	var session: GameSession = TestFactory.session_no_kit(seed_value, TestFactory.real_data())
+	if _plain_data == null:  # M14: the cycle counts of this file are derived without the F-122 mastery steps
+		_plain_data = TestFactory.without_mastery_steps(GameData.load_from_dirs())
+	var session: GameSession = TestFactory.session_no_kit(seed_value, _plain_data)
 	_sessions.append(session)
 	return session
 

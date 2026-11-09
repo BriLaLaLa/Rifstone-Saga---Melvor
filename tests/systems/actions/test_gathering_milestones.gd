@@ -71,7 +71,9 @@ func test_roll_order_is_double_then_shard_then_byproduct() -> void:
 	var replica: RngService = RngService.new(1234)
 	var seen_byproduct: int = 0
 	for i: int in 400:
-		var doubled: bool = replica.randf() * 100.0 < 50.0
+		# 50 + the F-122 steps of the mastery level the action has now (it grows while the loop runs)
+		var double_pct: float = _session.modifiers.total(DOUBLE, ModifierContext.for_action(SKILL, TWIG))
+		var doubled: bool = replica.randf() * 100.0 < double_pct
 		var shard: bool = replica.randf() * 100.0 < 50.0
 		var byproduct: bool = replica.randf() * 100.0 < chance
 		var outcome: ActionOutcome = GatheringResolver.resolve(_session, _session.data.action(TWIG))
