@@ -297,8 +297,8 @@ func _drop_invalid_hands() -> void:
 
 
 func _def_of(uid: int) -> ItemDef:
-	var inst: ItemInstance = _armory.get_instance(uid)
-	return _data.item(inst.base_id) if inst != null and _data.has_item(inst.base_id) else null
+	var base_id: StringName = _armory.base_id_of(uid)
+	return _data.item(base_id) if base_id != &"" and _data.has_item(base_id) else null
 
 
 func _is_two_handed(def: ItemDef) -> bool:

@@ -48,8 +48,7 @@ func used() -> int:
 	return _items.size() - _worn.size()
 
 
-func can_add(count: int = 1) -> bool:
-	return count >= 0 and _deposit.has_room(count)
+func can_add(count: int = 1) -> bool: return count >= 0 and _deposit.has_room(count)
 
 
 ## Takes a copy of `inst`, assigns the next uid and returns it. 0 (and armory_rejected) when the Armory is full,
@@ -92,12 +91,13 @@ func instances() -> Array[ItemInstance]:
 	return result
 
 
-func has(uid: int) -> bool:
-	return _items.has(uid)
+## The base id of the piece `uid` (&"" if none) without copying the instance: hot path of the combat loop.
+func base_id_of(uid: int) -> StringName: return _items[uid].base_id if _items.has(uid) else &""
+
+func has(uid: int) -> bool: return _items.has(uid)
 
 
-func is_worn(uid: int) -> bool:
-	return _worn.has(uid)
+func is_worn(uid: int) -> bool: return _worn.has(uid)
 
 
 ## Only Equipment calls this. Changes used(). `quiet` (only Equipment.from_save) sets the flag without signals.
