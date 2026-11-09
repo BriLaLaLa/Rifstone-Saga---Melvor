@@ -217,11 +217,11 @@ Esempi: livello 1 → 60; livello 10 e +20 → 170; livello 99 → 1.040. Test: 
 Ogni nemico ucciso dà al personaggio `base_xp = floor(xp del mostro × combat.kill_xp_mult)` (campo `xp` del mostro,
 `04_DATA_SCHEMA.md` §8), che passa da F-71. Nessuna XP per danno, nessuna stance (D3). Una Pietra del Rift (F-87) dà il
 suo `xp` con la stessa regola. Valori: tabella §8.5 (`xp = 4 × PV`, tranne le Miniere Crepate a 3,2 × PV, tarate da B1);
-**B1 (M10-07)**: `combat.kill_xp_mult` = **0,11**, tarato con `tools/sim_combat.gd` e `tools/sim_progress.gd`: livello 99 in circa
-296 h nell'area giusta (la più alta consentita dal livello; offline compreso, stesso motore) e una notte offline (12 h) dal 50
+**B1 (M10-07, ritarato in M14-10)**: `combat.kill_xp_mult` = **0,064** (era 0,11; dopo i nuovi mostri e le armi con forbice), tarato con `tools/sim_combat.gd` e `tools/sim_progress.gd`: livello 99 in circa
+320 h (319,6) nell'area giusta (la più alta consentita dal livello; offline compreso, stesso motore) e una notte offline (12 h) dal 50
 dà al massimo +12 livelli (Q54). Con 1,0 si ottiene la regola dell'MVP.
-Esempi (mult 0,11): `plains_boar` (xp 80) → base 8; +25% → 10; gruppo di 3 `plains_boar` → 24; `redrock_raider` (200) → 22;
-Pietra con xp 240 → 26. Con mult 1,0: 80, 100, 240. Test: `tests/systems/combat/test_combat_engine.gd::test_kill_grants_character_xp`.
+Esempi (mult 0,064): `plains_boar` (xp 80) → base 5; +25% → 6; gruppo di 3 `plains_boar` → 15; `redrock_raider` (200) → 12;
+Pietra con xp 240 → 15. Con mult 1,0: 80, 100, 240. Test: `tests/systems/combat/test_combat_engine.gd::test_kill_grants_character_xp`.
 
 ### F-29 Cura del cibo
 `heal = floor(food.heal × (1 + T(food_healing_pct)/100))`; `hp = min(max_hp, hp + heal)`.
@@ -606,9 +606,9 @@ Esempio: se §8.2 chiede 4 piastre per il corpo del materiale 6, il progetto del
 - **Rarità `legendary`** (arancione), niente affissi, un'**istanza** come ogni pezzo. Base con `equip.legendary: {source, effects}` (`04_DATA_SCHEMA.md` §5). Statistiche: quelle del modello (§8.4) di slot, grado e materiale indicati × `rarity.legendary.base_mult` (1,4) a runtime (stesso ordine di F-119);
   raffinazione +0…+9 (F-86) e castoni (`sockets.by_rarity.legendary` = 2, F-89) come ogni pezzo non unico. Le armi leggendarie hanno `dmg_min`/`dmg_max` come le altre. Il filtro dell'Armeria non smantella mai un leggendario; a mano si può vendere e smantellare (frammenti, nessun componente).
 - **Attrezzi leggendari** (`slot: tool_*`): sostituiscono l'attrezzo unico nello slot (l'unico torna tra i pezzi non indossati: mai vendibile, riequipaggiabile); requisito il livello del mestiere; modificatori fissi con scope `skill:<id>` (valori di partenza per fonte in `NOMI.md`: `skill_interval_pct` −26…−35, `double_item_chance` +3…+7; l'attrezzo unico a +9 ha −23) e nessuna raffinazione (`upgrade_tool` e `upgrade` → `not_equippable`).
-- **Fonte** (`legendary.source`, sempre dichiarata e mostrata dalla Guida a scoperta): `{"type":"boss","id":<boss>,"chance_pct":0,8}`: alla vittoria su quel boss, `roll_pct(chance_pct)` per ogni leggendario di quella fonte, in ordine; `{"type":"monolith","id":<Monolito>,"chance_pct":0,3}`: uccidendo quel Monolito (F-87), stesso tiro.
+- **Fonte** (`legendary.source`, sempre dichiarata e mostrata dalla Guida a scoperta): `{"type":"boss","id":<boss>,"chance_pct":0,6}`: alla vittoria su quel boss, `roll_pct(chance_pct)` per ogni leggendario di quella fonte, in ordine; `{"type":"monolith","id":<Monolito>,"chance_pct":0,3}`: uccidendo quel Monolito (F-87), stesso tiro.
   Nessun `item_rarity_pct`. Consegna: dal boss nella borsa della Frattura (F-116, solo a vittoria); dal Monolito direttamente nell'Armeria. Deposito pieno: il leggendario **si perde** con notifica (`armory_rejected`), come le Carte (Q64).
-  Obiettivo (Q69): circa 1 leggendario ogni 15-30 ore di Fratture del grado giusto (3 leggendari × 0,8% = 2,4% a vittoria, ~2,4 Fratture all'ora → 1 ogni ~17 ore).
+  Obiettivo (Q69): circa 1 leggendario ogni 15-30 ore di Fratture del grado giusto (3 leggendari × 0,6% = 1,8% a vittoria, tarato in M14-10: un leggendario di boss ogni 17-26 ore di Fratture; i Monoliti restano allo 0,3%).
 - **Tipi di effetto** (elenco **chiuso**, stesso `EffectSet` di F-81; i tipi di F-81 restano validi anche sui leggendari). Nuovi agganci: `on_block` (parata riuscita, F-75), `on_gather` (ciclo di raccolta riuscito del giocatore, mai dell'aiutante), `on_monolith` (Monolito ucciso).
 
 | Tipo | Parametri | Aggancio | Regola | Esempio |
@@ -632,7 +632,7 @@ Intervalli di formato: `pct`, `hp_pct` in (0, 100] (`hit_cap_pct` in [1, 100]); 
 
 ### F-121 Drop di equipaggiamento e progetti (Y6, Q69)
 Ogni mostro può far cadere **tutti gli slot** del grado giusto, senza liste fisse di modelli. Alla morte di ogni nemico (anche nelle Fratture, con il livello scalato), con `L_m` = massimo di `attack_level`, `power_level` e `defence_level`:
-1. `roll_pct(loot.equipment.chance_pct)` (2,5): se riesce cade un pezzo;
+1. `roll_pct(loot.equipment.chance_pct)` (2,9, tarato in M14-10): se riesce cade un pezzo;
 2. tipo: `pick_weighted(loot.equipment.kind_weights)` tra i 10 tipi (spada, spadone, scudo, elmo, corpo, gambe, piedi, mani, anello, collo; peso 1 ciascuno); per armature e scudo il materiale è uniforme tra Piastre, Cuoio, Tessuto runico;
 3. grado: uniforme tra i gradi `g` con `lvl(g) > L_m − loot.equipment.level_window` (15) e `lvl(g) ≤ L_m + loot.equipment.level_ahead` (5);
 4. rarità: F-84 (`rarity.drop.magic_pct` 25, `rare_pct` 5; mai Capolavoro né leggendario); `ilvl` e affissi come F-85.
@@ -887,15 +887,17 @@ Un **Capolavoro** (F-119) e un **leggendario** (F-120) sono basi proprie con gli
 | Pianure di Roccarossa | `plains_boar` | 1 | 20 | blade | 2800 | 0 / 0 / 0 | 0 | 1-4 | 0,5 | 80 |
 | | `ember_rat` | 4 | 32 | arcana | 2400 | 5 / 4 / 5 | 0 | 2-6 | 0,5 | 128 |
 | | `redrock_raider` | 8 | 50 | marksmanship | 2600 | 10 / 8 / 8 | 2 | 4-10 | 0,75 | 200 |
-| Bosco dei Sussurri | `whisper_wolf` | 16 | 110 | blade | 2600 | 20 / 15 / 18 | 4 | 8-18 | 1,0 | 440 |
-| | `moss_troll` | 22 | 160 | arcana | 3000 | 25 / 22 / 30 | 8 | 12-25 | 1,0 | 640 |
-| | `hollow_archer` | 30 | 210 | marksmanship | 2400 | 30 / 18 / 20 | 5 | 15-30 | 1,0 | 840 |
-| Miniere Crepate | `crack_golem` | 38 | 320 | blade | 3200 | 45 / 35 / 50 | 12 | 25-50 | 1,5 | 1024 |
-| | `deep_crawler` | 46 | 400 | marksmanship | 2200 | 50 / 30 / 35 | 8 | 30-60 | 1,5 | 1280 |
-| | `vein_witch` | 55 | 520 | arcana | 2800 | 55 / 40 / 40 | 10 | 40-80 | 1,5 | 1664 |
-| Soglia del Rift | `shard_wraith` | 65 | 700 | arcana | 2600 | 70 / 55 / 60 | 15 | 60-120 | 2,0 | 2800 |
-| | `rift_knight` | 78 | 950 | blade | 2400 | 85 / 65 / 80 | 20 | 90-170 | 2,5 | 3800 |
-| | `riftborn_colossus` | 92 | 1300 | marksmanship | 3400 | 100 / 80 / 110 | 25 | 150-300 | 3,0 | 5200 |
+| Bosco dei Sussurri | `whisper_wolf` | 16 | 81 | blade | 2600 | 20 / 15 / 18 | 4 | 6-13 | 1,0 | 324 |
+| | `moss_troll` | 22 | 118 | arcana | 3000 | 25 / 22 / 30 | 8 | 9-18 | 1,0 | 472 |
+| | `hollow_archer` | 30 | 155 | marksmanship | 2400 | 30 / 18 / 20 | 5 | 11-22 | 1,0 | 620 |
+| Miniere Crepate | `crack_golem` | 38 | 198 | blade | 3200 | 45 / 35 / 50 | 12 | 16-31 | 1,5 | 633 |
+| | `deep_crawler` | 46 | 248 | marksmanship | 2200 | 50 / 30 / 35 | 8 | 19-37 | 1,5 | 793 |
+| | `vein_witch` | 55 | 322 | arcana | 2800 | 55 / 40 / 40 | 10 | 25-50 | 1,5 | 1030 |
+| Soglia del Rift | `shard_wraith` | 65 | 287 | arcana | 2600 | 70 / 55 / 60 | 15 | 25-49 | 2,0 | 1148 |
+| | `rift_knight` | 78 | 390 | blade | 2400 | 85 / 65 / 80 | 20 | 37-70 | 2,5 | 1560 |
+| | `riftborn_colossus` | 92 | 533 | marksmanship | 3400 | 100 / 80 / 110 | 25 | 61-123 | 3,0 | 2132 |
+
+**Ritaratura M14-10** (`tools/sim_combat.gd`): PV dei mostri del Bosco ×0,74, delle Miniere ×0,62, della Soglia ×0,41 (Pianure invariate: ancorano l'incontro di riferimento); `xp` = 4 × PV (3,2 × PV nelle Miniere) e oro in proporzione. Uccisioni all'ora con il set del grado giusto: Pianure 334, Bosco 245, Miniere 238, Soglia 250.
 I drop di oggetti (pelli, ossa, materiali dell'area) li definisce il Data Designer: al massimo 8 voci per mostro,
 probabilità tra 1% e 40%. Requisito di ogni area: `{"character": n}` con n = livello del primo mostro dell'area (1, 16, 38, 65).
 
@@ -1098,7 +1100,7 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | ~~`rarity.craft.*`~~ | tolta in M10 | era F-83 (sostituita da F-91) |
 | `blueprint.{duration_base_min, duration_per_grade_min, xp_mult, rare_base_pct, rare_per_forging_level, choose_affix_level, chosen_affix_tier}` (M10) | 10, 7, 1.5, 10, 0.5, 50, 2 | F-90, F-91, F-92 (Q48, Q50; il resto da tarare, Q53) |
 | `tool_upgrade.{interval_base_pct, interval_per_level_pct, levels, plate_items, handle_items}` (M10) | 5, 2, tabella F-94 (9 voci `{min_level, grade, plates, handles, gold}`), 8 id delle piastre T1-T8, 8 id dei manici T1-T8 | F-94 |
-| `combat.kill_xp_mult` (M10) | 0.11 (tarato in M10-07, Q54) | F-28 |
+| `combat.kill_xp_mult` (M10, M14-10) | 0.064 (tarato in M14-10, era 0.11; Q54) | F-28 |
 | `rarity.affix_count.{magic, rare}` | `[1, 2]`, `[3, 4]` | F-85 |
 | `traits.slot_levels` (M6) | `[1, 10, 25, 50]` | F-78 (Q35) |
 | `abilities.slot_levels` (M6) | `[1, 1, 30]` | F-78 (Q36) |
@@ -1115,7 +1117,7 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | `rarity.masterwork.{base_mult, affix_count}` (M14, Y4) | 1.25, `[1, 2]` | F-119, F-91 |
 | `rarity.legendary.base_mult` (M14, Y5) | 1.4 | F-120 |
 | `blueprint.{cost_mult, extra_rare}` (M14, Q68) | 3, 2 componenti rari diversi | F-90, F-119 |
-| `loot.equipment.{chance_pct, level_ahead, level_window, kind_weights}`, `loot.blueprint.chance_pct` (M14, Y6, Q69) | 2.5, 5, 15, 1 per ciascuno dei 10 tipi di pezzo; 0.4 | F-121 |
+| `loot.equipment.{chance_pct, level_ahead, level_window, kind_weights}`, `loot.blueprint.chance_pct` (M14, Y6, Q69) | 2.9, 5, 15, 1 per ciascuno dei 10 tipi di pezzo; 0.4 | F-121 |
 | `mastery.step.{every_levels, gathering, crafting}` (M14, Y8, Q70) | 10, `[{"stat":"skill_interval_pct","value":-2},{"stat":"double_item_chance","value":1}]`, `[{"stat":"preservation_chance","value":2},{"stat":"skill_interval_pct","value":-2}]` | F-122 |
 | `fracture.{risk_cap, risk_unit}` (M14, Q72) | `{"base":40,"per_grade":10}`, `{"pack_bonus":20,"pulse":5}` | F-123 |
 | `upgrade.levels[].dust` (M14, Q71) | 0,0,0,0,10,20,30,40,50 | F-86 |

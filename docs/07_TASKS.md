@@ -1713,7 +1713,7 @@ Parallelismo (massimo 2 agenti): M14-01 → M14-02 → M14-03 → M14-04 (toccan
 I nomi e i testi di gioco vengono da `NOMI.md` (sezione Alpha); nulla da Melvor Idle, Metin2, World of Warcraft o Path of Exile.
 
 ### M14-01 · Armi: danno minimo-massimo e velocità (COMBAT)
-- **Ruolo** COMBAT · **Stima** M · **Parallelizzabile** no (primo) · **Dipendenze** R-05
+- **Ruolo** COMBAT · **Stima** M · **Parallelizzabile** no (primo) · **Dipendenze** R-05 · **Stato** DONE (merge 71a7c3a)
 - **Ownership** `systems/combat/{weapon_math,combat_math,combatant_stats}.gd` (+ file nuovi per restare ≤ 400 righe), `core/data/**` (solo `WeaponInfo.dmg_min`/`dmg_max`, `EquipInfo.grade` 1..15, validatore delle armi, `GameData.material_grade`/`grade_level`, `equipment.*` e `combat.unarmed` del validatore di `balance.json`), `data/config/balance.json` (solo `equipment.grade_levels`, `grade_material`, `combat.unarmed`),
   `data/items/equipment.json` (**solo** le armi esistenti: `dmg_min`/`dmg_max` con le formule di F-118 sul loro grado attuale e `power_bonus` base tolto; i gradi 1..15 completi sono M14-05), `tests/systems/combat/**`, `tests/core/data/**`, `tests/fixtures/data/**`.
 - **Leggere** `01_GDD.md` §28.1-§28.2; `02_FORMULAS.md` F-22, F-26, F-73, F-74, §8.4, §9; `04_DATA_SCHEMA.md` §5, §21; `05_INTERFACES.md` §4 (WeaponInfo, EquipInfo), §5.10 (CombatantStats), §5.24 (armi).
@@ -1723,7 +1723,7 @@ I nomi e i testi di gioco vengono da `NOMI.md` (sezione Alpha); nulla da Melvor 
 - **Test** `tests/systems/combat/test_weapon_math.gd`, `test_combat_math.gd` (esempi di F-22), `tests/core/data/test_weapon_validation.gd`.
 
 ### M14-02 · Armature: materiali, Armatura e Barriera (COMBAT)
-- **Ruolo** COMBAT · **Stima** L · **Parallelizzabile** no · **Dipendenze** M14-01
+- **Ruolo** COMBAT · **Stima** L · **Parallelizzabile** no · **Dipendenze** M14-01 · **Stato** DONE (merge 71a7c3a)
 - **Ownership** `systems/combat/{armor_math,combat_fight,combat_engine,combatant_stats,combat_math}.gd` (+ file nuovi), `core/data/**` (`EquipInfo.material`, validatore dei materiali, `combat.armor.*`, tolta la stat `damage_reduction`), `data/config/stats.json` (`damage_reduction` → `armor`, nuova `barrier`, testi "Armatura" e "Barriera"), `data/config/balance.json` (solo `combat.armor.*`, `equipment.slot_weights`, `equipment.set_budget`),
   `data/items/equipment.json` (**solo** le armature e gli scudi esistenti: `material: plate`, `armor`/`evasion_bonus` secondo F-118 sul loro grado attuale), `data/affixes/affixes.json` (`warded` → `armor`, nuovo `runeward` su `barrier`), `data/items/infusions.json` (`inf_stoneskin` → `armor`), `tests/systems/combat/**`, `tests/data/**` (copertura delle stat), `tests/fixtures/data/**`.
 - **Leggere** `01_GDD.md` §28.3; `02_FORMULAS.md` F-25, F-81 (`stat_trade`), F-117, §8.4, §8.9, §11; `04_DATA_SCHEMA.md` §2, §5, §21; `05_INTERFACES.md` §5.10, §5.24 (combattimento).
@@ -1734,7 +1734,7 @@ I nomi e i testi di gioco vengono da `NOMI.md` (sezione Alpha); nulla da Melvor 
 - **Test** `tests/systems/combat/test_armor_math.gd`, `test_combat_math.gd` (F-25, F-117), `test_armor_in_fight.gd`, `tests/data/test_stat_registry_coverage.gd` (modalità rigida).
 
 ### M14-03 · Rarità Capolavoro e Leggendario; progetti che creano Capolavori (CORE)
-- **Ruolo** CORE · **Stima** L · **Parallelizzabile** no · **Dipendenze** M14-02
+- **Ruolo** CORE · **Stima** L · **Parallelizzabile** no · **Dipendenze** M14-02 · **Stato** DONE (merge 919b617)
 - **Ownership** `systems/items/{item_roller,item_instance}.gd`, `systems/armory/**` (filtro, `Rarities`, smantellamento, castoni, raffinazione di Capolavoro e leggendario), `systems/actions/blueprint_craft.gd` (e file collegati), `core/data/**` (`EquipInfo.masterwork`/`legendary` come campi, `BlueprintInfo.rare_components`, validatore di basi `masterwork`/`legendary`, `rarity.masterwork`, `rarity.legendary`, `sockets.by_rarity`, `blueprint.cost_mult`),
   `data/config/balance.json` (solo queste chiavi), `core/common/rarities.gd` (nuovo), `tests/systems/items/**`, `tests/systems/armory/**`, `tests/systems/actions/**`, `tests/core/data/**`, `tests/fixtures/data/**`.
 - **Leggere** `01_GDD.md` §5.1, §21-§22, §28.4; `02_FORMULAS.md` F-84, F-85, F-86, F-89, F-90, F-91, F-92, F-95, F-119; `04_DATA_SCHEMA.md` §5, §21; `05_INTERFACES.md` §5.17, §5.18, §5.24.
@@ -1746,7 +1746,7 @@ I nomi e i testi di gioco vengono da `NOMI.md` (sezione Alpha); nulla da Melvor 
 - **Test** `tests/systems/items/test_masterwork.gd`, `test_item_roller.gd` (aggiornato), `tests/systems/armory/test_rarity_filter.gd`, `tests/systems/actions/test_blueprint_craft.gd` (aggiornato), `tests/core/data/test_masterwork_validation.gd`.
 
 ### M14-04 · Leggendari: effetti e fonti (CORE)
-- **Ruolo** CORE · **Stima** L · **Parallelizzabile** no · **Dipendenze** M14-03
+- **Ruolo** CORE · **Stima** L · **Parallelizzabile** no · **Dipendenze** M14-03 · **Stato** DONE (merge 919b617)
 - **Ownership** `systems/combat/effects/**` (i 12 tipi nuovi di F-120, uno per tipo; ownership di COMBAT estesa a questo task), `systems/combat/legendary_roller.gd`, `systems/equipment/equipment.gd` (`item_effects`, attrezzo leggendario nello slot `tool_*`), `systems/actions/gathering_resolver.gd` (aggancio `on_gather`), le sole righe del motore e di `FractureSystem` che tirano i leggendari (`systems/combat/**`, `systems/fractures/**`),
   `core/data/**` (`LegendaryInfo`, `ItemEffectDef`, validatore, `GameData.legendaries*`), `tests/systems/**` (di questo task), `tests/fixtures/data/**`.
 - **Leggere** `01_GDD.md` §9, §28.5; `02_FORMULAS.md` F-75, F-81, F-120, F-115, F-116, F-87; `04_DATA_SCHEMA.md` §21; `05_INTERFACES.md` §5.9, §5.10, §5.23, §5.24.
@@ -1757,7 +1757,7 @@ I nomi e i testi di gioco vengono da `NOMI.md` (sezione Alpha); nulla da Melvor 
 - **Test** `tests/systems/combat/effects/test_<tipo>.gd` (12 file), `tests/systems/combat/test_legendary_roller.gd`, `tests/systems/equipment/test_legendary_tools.gd`, `tests/systems/actions/test_gather_effects.gd`, `tests/systems/combat/test_monolith_effects.gd`.
 
 ### M14-05 · Contenuti: 15 gradi, materiali, Capolavori, leggendari, drop di tutti gli slot, Polvere ridotta (DATA)
-- **Ruolo** DATA · **Stima** XL · **Parallelizzabile** con M14-07 (file diversi) · **Dipendenze** M14-04
+- **Ruolo** DATA · **Stima** XL · **Parallelizzabile** con M14-07 (file diversi) · **Dipendenze** M14-04 · **Stato** DONE (merge f3b7a3e)
 - **Ownership** `data/items/{equipment,blueprints,components,materials}.json`, `tools/gen_equipment.gd` (nuovo: genera le basi da F-118 e `NOMI.md`; l'output è nei dati), `data/combat/{monsters,loot_tables,rift_stones}.json` (via le voci `equipment` e `blueprint` da `drops`; legendari dei Monoliti; Polvere 8% × 1), `data/config/balance.json` (solo `loot.*`, `rarity.drop`, `blueprint.*`, `equipment.*` se servono ritocchi),
   `data/shop/shop.json` (solo se un id cambia), `data/guide/**` (nuove pagine a mano di §21 di `04_DATA_SCHEMA.md`), `assets/icons/items/**` (SVG per slot × materiale × rarità e per leggendario), `core/data/**` (**solo** le righe della regola transitoria da togliere), `tests/data/**` (di questo task), `tests/fixtures/data/**` (sola lettura).
 - **Leggere** `01_GDD.md` §28; `02_FORMULAS.md` §8.4, F-119…F-121, §8.5b, §9; `04_DATA_SCHEMA.md` §5, §8, §8b, §21; `docs/NOMI.md` (sezione Alpha e "Riforma 2").
@@ -1768,7 +1768,7 @@ I nomi e i testi di gioco vengono da `NOMI.md` (sezione Alpha); nulla da Melvor 
 - **Test** `tests/data/test_equipment_table.gd`, `test_legendaries.gd`, `test_masterwork_data.gd`, `test_names_alpha.gd`, `test_no_equipment_in_drops.gd`.
 
 ### M14-06 · Ritocchi UI e scheda dell'oggetto nuova (UI)
-- **Ruolo** UI · **Stima** L · **Parallelizzabile** no (ultimo della UI) · **Dipendenze** M14-05, M14-07, M14-08
+- **Ruolo** UI · **Stima** L · **Parallelizzabile** no (ultimo della UI) · **Dipendenze** M14-05, M14-07, M14-08 · **Stato** DONE (merge b20981c (UI, con le parti UI di M14-07/08/09))
 - **Ownership** `ui/pages/combat/**` (barra XP del personaggio, "Altri nemici", etichette del triangolo), `ui/pages/shop/**`, `ui/pages/crafting/**` o le pagine di Fabbro e Incisore (sottoschede), `ui/pages/deposit/**` (Riordina), `ui/pages/equipment/**` e `ui/components/item_card/**` (scheda dell'arma e dell'armatura, colori), `ui/theme/rarity_colors.gd`,
   `ui/components/{sub_tab_bar,locked_cell}/**` (se non già creati da M14-07), `systems/bank/bank.gd` e `systems/armory/armory.gd` (**solo** `sort()`), `tests/ui/**`.
 - **Leggere** `01_GDD.md` §28, §29; `02_FORMULAS.md` F-22 (DPS), F-117; `05_INTERFACES.md` §5.24, §7.u, §7.w; `docs/NOMI.md` (testi di interfaccia); `docs/UI_GDR.md` (stile).
@@ -1778,7 +1778,7 @@ I nomi e i testi di gioco vengono da `NOMI.md` (sezione Alpha); nulla da Melvor 
 - **Test** `tests/ui/pages/combat/test_combat_alpha.gd`, `tests/ui/pages/shop/test_shop_texts.gd`, `tests/ui/components/test_sub_tab_bar.gd`, `tests/ui/components/test_item_card_weapon.gd`, `tests/ui/test_rarity_colors.gd`, `tests/systems/bank/test_sort.gd`, `tests/systems/armory/test_sort.gd`.
 
 ### M14-07 · Wiki a scoperta (CORE + UI)
-- **Ruolo** CORE + UI · **Stima** L · **Parallelizzabile** con M14-05 · **Dipendenze** M14-04
+- **Ruolo** CORE + UI · **Stima** L · **Parallelizzabile** con M14-05 · **Dipendenze** M14-04 · **Stato** DONE (core: merge 1e88a33; UI: merge b20981c)
 - **Ownership** `systems/discovery/discoveries.gd` (nuovo), `core/autoload/event_bus.gd` (`item_obtained`, `item_discovered`) con `tests/core/autoload/test_event_bus.gd`, `core/session/game_session.gd` e `session_participants.gd` (modulo `discoveries`, `new_game`, save, `SaveMigrator.CURRENT_VERSION` = 5), le sole righe di `Bank`, `LootBag`, `Armory`, `CardStore` che emettono `item_obtained`,
   `core/guide/**` (`GuideIndex.drops_of`, `GuideRef.item`/`chance_pct`, tabelle nuove), `ui/pages/guide/**`, `ui/components/{locked_cell}/**`, `ui/components/tooltip/**` (niente "Si ottiene da"), `ui/feedback/**` (toast `item_discovered`), `tests/core/**`, `tests/ui/**`, `tests/integration/test_save_discoveries.gd`.
 - **Leggere** `01_GDD.md` §27, §27.1; `02_FORMULAS.md` F-124, F-121 (% del pool); `04_DATA_SCHEMA.md` §19, §21; `05_INTERFACES.md` §3, §5.19, §5.24, §6, §7.u, §7.y.
@@ -1788,7 +1788,7 @@ I nomi e i testi di gioco vengono da `NOMI.md` (sezione Alpha); nulla da Melvor 
 - **Test** `tests/systems/discovery/test_discoveries.gd`, `tests/core/guide/test_drops_of.gd`, `test_guide_locked.gd`, `tests/ui/test_tooltip_no_source.gd`, `tests/integration/test_save_discoveries.gd`, `tests/core/save/test_version5.gd`.
 
 ### M14-08 · Maestria visibile e bonus ogni 10 livelli (CORE + UI)
-- **Ruolo** CORE + UI · **Stima** M · **Parallelizzabile** con M14-09 · **Dipendenze** M14-05
+- **Ruolo** CORE + UI · **Stima** M · **Parallelizzabile** con M14-09 · **Dipendenze** M14-05 · **Stato** DONE (core: merge 1e88a33; UI: merge b20981c)
 - **Ownership** `systems/mastery/**` (`step_bonus`, `next_step`, `step_info`, modificatori `mastery_step:<action_id>`), `core/data/**` (`mastery.step`, tolti `mastery_bonuses`), `data/skills/**` (tolti `mastery_bonuses`), `data/config/balance.json` (solo `mastery.step`), `ui/pages/mastery/**` e le carte delle azioni (`MasteryStepRow`), `core/guide/**` (solo la pagina `guide_mastery_step`), `tests/systems/mastery/**`, `tests/ui/**`.
 - **Leggere** `01_GDD.md` §6, §6.5; `02_FORMULAS.md` F-10, F-11, F-103, F-108, F-122; `04_DATA_SCHEMA.md` §3, §4, §7, §21; `05_INTERFACES.md` §5.7, §5.24, §7.u.
 - **Descrizione** F-122 su ogni azione con maestria (raccolta e artigianato, Incisore compreso); sostituisce F-11; la carta dell'azione mostra livello, bonus attuali e prossimo bonus; si somma ai traguardi 25/50/99; l'aiutante usa i bonus come ora (nodi e maestria valgono per lui).
@@ -1796,7 +1796,7 @@ I nomi e i testi di gioco vengono da `NOMI.md` (sezione Alpha); nulla da Melvor 
 - **Test** `tests/systems/mastery/test_mastery_step.gd`, `tests/ui/pages/mastery/test_mastery_step_row.gd`.
 
 ### M14-09 · Fratture: tetto ai rischi e carte compatte (DATA + UI)
-- **Ruolo** DATA + UI · **Stima** S · **Parallelizzabile** con M14-08 · **Dipendenze** M14-03
+- **Ruolo** DATA + UI · **Stima** S · **Parallelizzabile** con M14-08 · **Dipendenze** M14-03 · **Stato** DONE (dati e logica: merge 1e88a33; UI: merge b20981c)
 - **Ownership** `systems/fractures/map_card_roller.gd` (tetto di F-123, `risk_points`, `risk_cap`), `data/config/balance.json` (solo `fracture.risk_cap` e `fracture.risk_unit`), `data/maps/map_mods.json` (solo se serve per rispettare "almeno un candidato per grado"), `core/data/**` (validatore di `fracture.risk_*`), `ui/pages/fractures/**` (`CardRow` compatta: un modificatore per riga), `tests/systems/fractures/**`, `tests/ui/pages/fractures/**`.
 - **Leggere** `01_GDD.md` §17.1; `02_FORMULAS.md` F-109, F-111, F-123; `04_DATA_SCHEMA.md` §11, §21; `05_INTERFACES.md` §5.23, §5.24, §7.v.
 - **Descrizione** Il tetto ai punti di rischio per grado (F-123) nella scelta dei modificatori e nei Cristalli; `CardRow` più bassa con rischio e premio su una riga per modificatore.
@@ -1804,7 +1804,7 @@ I nomi e i testi di gioco vengono da `NOMI.md` (sezione Alpha); nulla da Melvor 
 - **Test** `tests/systems/fractures/test_risk_cap.gd`, `tests/ui/pages/fractures/test_card_row_compact.gd`.
 
 ### M14-10 · Bilanciamento con la sim e test (QA)
-- **Ruolo** QA · **Stima** L · **Parallelizzabile** no · **Dipendenze** M14-05, M14-08, M14-09
+- **Ruolo** QA · **Stima** L · **Parallelizzabile** no · **Dipendenze** M14-05, M14-08, M14-09 · **Stato** DONE (merge 74f5d38)
 - **Ownership** `tools/sim_combat.gd` e `tools/sim_fracture.gd` (opzioni per i drop di equipaggiamento, Armatura e leggendari), `tools/sim_m14.gd` (nuovo), `tests/integration/**` e `tests/balance/**` (di M14), `data/config/balance.json` (`loot.*`, `combat.armor.*`, `rarity.*`, `blueprint.*`, `fracture.*` per ritarare), `data/combat/**` (solo probabilità e quantità), `data/items/equipment*.json` (solo valori numerici, mai nomi), `docs/06_ROADMAP.md` (misure) e `docs/OPEN_QUESTIONS.md` (Q66-Q77).
 - **Leggere** `01_GDD.md` §28; `02_FORMULAS.md` §5e, §7, §8.4, §9; `05_INTERFACES.md` §5.24, §8; `docs/OPEN_QUESTIONS.md` Q66-Q77.
 - **Descrizione** Misurare con la sim, nell'area del proprio livello: pezzi ogni 30 minuti (obiettivo 3-5), magici (≈ 1), rari (1 ogni 2-3 ore), progetti (≈ 1/ora); durata delle Fratture dopo l'Armatura (15-30 minuti, la scala non si interrompe: dal M13 il personaggio ha ora armi e armature nuove e le uccisioni cambiano); riduzione di Armatura e Barriera a livello 1/50/90 (15-55%);
@@ -1813,7 +1813,7 @@ I nomi e i testi di gioco vengono da `NOMI.md` (sezione Alpha); nulla da Melvor 
 - **Test** `tests/integration/test_m14_acceptance.gd`, `test_drop_rates.gd`, `test_equipment_conservation.gd`, `tests/balance/test_armor_balance.gd`.
 
 ### M14-11 · Integrazione di M14, tag `m14-alpha` (REV)
-- **Ruolo** REV · **Stima** S · **Dipendenze** M14-06, M14-10
+- **Ruolo** REV · **Stima** S · **Dipendenze** M14-06, M14-10 · **Stato** IN_PROGRESS (allineamento documenti fatto; suite, tag `m14-alpha`/`m14-done` e push all'Orchestratore)
 - **Descrizione** Merge, checklist di `06_ROADMAP.md` (M14 "Uscita"), `docs/RELEASE_CHECKLIST_MVP.md` aggiornata (sezione Alpha), `docs/STATUS.md`, tag `m14-alpha` (e `m14-done`), report di milestone. Il push lo fa l'Orchestratore.
 
 ## M15+ (dopo M14)

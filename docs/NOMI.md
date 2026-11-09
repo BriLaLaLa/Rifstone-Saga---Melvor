@@ -245,7 +245,7 @@ Nome = tipo + marchio del grado: **Lama** (spada), **Spadone**, **Scudo**, **Elm
 Il progetto si chiama "Progetto: <nome>" (es. "Progetto: Corazza di Fiamma Eterna"). Colore del nome: viola. Descrizione tipo: "Un pezzo forgiato con cura, migliore di ogni altro del suo grado." Le armature di Cuoio e Tessuto runico non hanno Capolavoro (Q75).
 
 ### Leggendari (39: 3 per slot, colore arancione)
-Statistiche: modello di slot, grado e materiale indicati (`02_FORMULAS.md` §8.4) × 1,4 (F-120). Requisito = livello del grado (grado 10: 45, 11: 50, 13: 70, 14: 80, 15: 90), per gli attrezzi il livello del mestiere indicato. Fonte: boss della Frattura 0,8% a vittoria; Monolito 0,3% a morte (valori di partenza, Q76).
+Statistiche: modello di slot, grado e materiale indicati (`02_FORMULAS.md` §8.4) × 1,4 (F-120). Requisito = livello del grado (grado 10: 45, 11: 50, 13: 70, 14: 80, 15: 90), per gli attrezzi il livello del mestiere indicato. Fonte: boss della Frattura 0,6% a vittoria; Monolito 0,3% a morte (tarati in M14-10, Q76).
 Effetto: tipi e parametri di `02_FORMULAS.md` F-120 (e F-81). Testo di gioco: una riga che dice la regola con i numeri letti dai dati.
 
 | Slot | Nome | Grado, materiale | Fonte | Effetto (tipo, parametri) | Che cosa fa |

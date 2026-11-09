@@ -1610,7 +1610,7 @@ class_name ArmorMath extends RefCounted       # systems/combat/armor_math.gd (lo
 static func reduction_pct(x: int, attacker_level: int, data: GameData) -> float   # F-117: min(cap_pct, 100·X/(X + k·(L + off)))
 static func set_budget(piece_grade: int, data: GameData) -> Dictionary           # F-118: {"armor": int, "evasion": int} per i generatori e i test
 # CombatantStats (cambiate): var armor: int; var barrier: int            # giocatore (F-117); damage_reduction: float solo mostri (F-25)
-#   for_player usa W_max/W_min dell'arma che colpisce (F-22): var weapon_min: int; var weapon_max: int (0 senza arma)
+#   for_player usa W_max/W_min dell'arma che colpisce (F-22): var weapon_min: float; var weapon_max: float (0 senza arma; float perché il moltiplicatore di rarità e la raffinazione li rendono frazionari)
 class_name EquipmentDrop extends RefCounted   # systems/combat/equipment_drop.gd (logica pura, F-121)
 static func candidate_grades(monster_level: int, data: GameData) -> Array[int]
 static func roll(monster_level: int, data: GameData, rng: RngService) -> StringName   # id di base del pezzo caduto, &"" se niente (ordine dei tiri: chance, tipo, materiale, grado)
@@ -1655,6 +1655,34 @@ func drops_of(kind: StringName, id: StringName) -> Array[GuideRef]   # kind &"mo
 ```
 - Emettono `item_obtained(item_id, qty)`: `Bank.add` (a ogni aggiunta riuscita), `LootBag.add`, `Armory.add`/`add_drop` (id di base, qty 1), `CardStore.add`/`create` (id della base della Carta), il kit iniziale (via `Discoveries.new_game`). `Discoveries` non emette per quantità 0 né per oggetti già noti.
 - Il tooltip e `GuideIndex.sources_of` non cambiano di firma: è la UI a nascondere la sezione "Si ottiene da" se `!discoveries.has(item)` e a non mostrarla nei tooltip (§7.u). `Guida` e `Discoveries` non si conoscono: li compone la UI con `session.discoveries`.
+
+**Aggiunte di fine M14** (sono nel codice di M14-03…M14-10; sola lettura salvo dove indicato)
+```gdscript
+# GameData
+func has_action(id: StringName) -> bool                       # true se l'azione esiste (nessun errore se manca)
+func has_balance(path: String) -> bool                        # true se il percorso esiste in balance.json (nessun errore se manca; i dati senza pool F-121 restano validi)
+# EquipmentPool (core/data/equipment_pool.gd, logica pura, F-121: descrizione e percentuali del pool)
+static func table(level: int, data: GameData) -> Dictionary[StringName, float]   # id di base -> % per uccisione di un mostro di quel livello (pezzi, poi progetti); {} senza pool nei dati
+static func chance_of(base_id: StringName, level: int, data: GameData) -> float
+# EquipmentDrop usa la stessa tabella dei tiri; KillRewards.roll_pool lo chiama dopo il tiro della scheggia (anche nelle Fratture)
+# Upgrade (systems/armory/upgrade.gd, F-86)
+const DUST_ITEM: StringName = &"rift_dust"
+static func cost(level: int, grade: int, data: GameData) -> Dictionary    # {gold, ingot, ingots, shards, dust}: `dust` da upgrade.levels[].dust, controllata in check e pagata in pay
+static func material_grade(inst: ItemInstance, data: GameData) -> int     # grado del materiale 1..8 usato per il costo (non il grado del pezzo 1..15)
+# MasterySteps (systems/mastery/mastery_steps.gd, F-122, funzioni pure su GameData)
+static func scoped(level: int, category: StringName, action_id: StringName, data: GameData) -> Array[Modifier]   # scope action:<id>
+static func info(level: int, category: StringName, data: GameData) -> Dictionary   # {"level", "n", "current", "next": {"level", "modifiers", "text"} o {}}; MasterySystem.step_info lo chiama
+# MasteryMath (aggiunte): static func step_count(level: int, data: GameData) -> int; static func step_kind(category: StringName) -> StringName
+# MapCardRoller (aggiunte): static func total_risk_points(mods: Array[MapModRoll], data: GameData) -> float; static func fitting_step(mod: MapModDef, step: int, room: float, data: GameData) -> int
+# GuideIndex (core/guide/, sola lettura; `discoveries` è session.discoveries passato come Object, la Guida non conosce Discoveries)
+func drops_view(kind: StringName, id: StringName, discoveries: Object) -> Array[Dictionary]   # [{ref: GuideRef, item, unlocked: bool, name ("???" se bloccato), chance_pct (-1 se bloccato)}]; kind come drops_of
+func sources_visible(item_id: StringName, discoveries: Object) -> Array[GuideRef]             # sources_of se l'oggetto è scoperto, [] altrimenti
+# GuideDrops (core/guide/guide_drops.gd): static func is_unlocked(item_id: StringName, discoveries: Object) -> bool; static func pct_text(value: float) -> String   # fino a 4 decimali, senza zeri inutili
+# GuideRef: nuovi tipi KIND_POOL, KIND_BOSS, KIND_ACTION; GuideRef.item e GuideRef.chance_pct anche in sources_of
+# Bank.sort() / Armory.sort(): comandi del modello (vedi sopra); Armory ha l'ordinamento nella classe di UI ArmorySort per la vista
+```
+- **Effetti dei leggendari, agganci aggiunti a `TraitEffect`** (con default neutro; `EffectSet` li compone): `cap_damage(ctx, damage: int) -> int` (`hit_cap_pct`, dopo F-25, minimo 1) e `damage_mult_against(ctx, target_hp: int, target_max_hp: int) -> float` (`execute_mult`; prodotto dei fattori degli effetti). Sono in `EffectSet` e non nei segnali di `EventBus`.
+- **Chiavi lette dal codice** (valori in `balance.json`, tarati in M14-10): `fracture.risk_cap`, `fracture.risk_unit`, `mastery.step`, `loot.equipment`, `loot.blueprint`, `upgrade.levels[].dust`.
 
 **Sessione e salvataggio**: `GameSession.discoveries: Discoveries` (modulo `discoveries`, ultimo della composizione); `SaveMigrator.CURRENT_VERSION` = **5**; `format_version` 4 → `version_unsupported`. Le chiavi tolte/cambiate sono quelle dei dati (Armatura, basi nuove), non della struttura del save.
 ## 6. Formato del salvataggio (`user://saves/slot_<n>.json`)
@@ -2253,8 +2281,8 @@ class_name ItemCard extends PanelContainer       # (esistente, scheda del pezzo)
                                                  # armatura = Armatura e Barriera in % contro un attaccante del livello del giocatore (ArmorMath.reduction_pct, solo informativo); leggendario = effetti (ItemEffectDef → testo) e "Fonte" solo se scoperto
 class_name RarityColors extends RefCounted       # ui/theme/rarity_colors.gd — static func color(rarity: StringName) -> Color: bianco, blu, giallo, viola (masterwork), arancione (legendary)
 class_name SubTabBar extends HBoxContainer       # ui/components/sub_tab_bar/sub_tab_bar.gd — signal tab_selected(id: StringName); func setup(tabs: Array[Dictionary]) -> void  # [{"id","label"}]
-class_name LockedCell extends PanelContainer     # ui/components/locked_cell/locked_cell.gd — casella bloccata della Guida: func show_locked() / show_item(item_id: StringName, chance_pct: float)
-class_name PlayerXpBar extends ProgressBar       # ui/pages/combat/player_xp_bar.gd — legge session.character (F-71) e ascolta character_xp_gained / character_level_up
+class_name LockedCell extends PanelContainer     # ui/components/locked_cell/locked_cell.gd — casella bloccata della Guida: func setup(data: GameData) -> void; func show_locked() -> void; func show_item(item_id: StringName, chance_pct: float) -> void
+# Barra XP del personaggio in Combattimento: riusa la `XpBar` esistente (nessuna `PlayerXpBar`), alimentata da session.character (F-71) e da character_xp_gained / character_level_up
 class_name MasteryStepRow extends HBoxContainer  # ui/pages/mastery/mastery_step_row.gd — func show_info(info: Dictionary) -> void  # da MasterySystem.step_info: bonus attuali e "Al livello N: …"
 ```
 - **Combattimento**: barra XP del personaggio; "In fila" → "**Altri nemici**"; etichetta del triangolo: "**Forte contro di te**" (il mostro è in vantaggio), "**Debole contro di te**" (in svantaggio), "**Alla pari**" (testi in `CombatTexts`).

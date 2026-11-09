@@ -200,6 +200,7 @@ rarità **Capolavoro** (solo progetti, costo alto) e **Leggendario** (≥ 39: 3 
 **Uscita** (accettazione in `07_TASKS.md` M14-10): armi con danno min-max, velocità e DPS; armature con materiali, Armatura % e Barriera %; 15 gradi per slot; Capolavori solo da progetti; ≥ 3 leggendari per slot con effetto e fonte; la sim dà 3-5 pezzi ogni 30 minuti nell'area giusta, 1 magico ogni 30 minuti, 1 raro ogni 2-3 ore;
 Guida a scoperta senza "Si ottiene da"; maestria con prossimo bonus su ogni carta; ritocchi UI; tutti i test verdi.
 **Task** R-05 → M14-01…M14-11 (`07_TASKS.md`); tag `m14-alpha`. Domande Q66-Q77 (`OPEN_QUESTIONS.md`).
+**Stato**: **M14 completata** (M14-01…M14-11 DONE; tag `m14-alpha` e `m14-done` messi dall'Orchestratore dopo la suite completa). Misure e tarature di M14-10 qui sotto; Q66-Q77 chiuse in `OPEN_QUESTIONS.md`.
 
 ### Misure di M14-10 (sim sui dati veri, seme 1234; `tools/sim_m14.gd`, `sim_combat.gd`, `sim_fracture.gd`, `sim_progress.gd`)
 Personaggio del livello dell'area, set forgiato del grado (spada e scudo, Piastre; per le Fratture Cuoio), 48 ore simulate per area. Test in `tests/balance/` (ogni riga è un test con tolleranza).
