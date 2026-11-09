@@ -24,6 +24,7 @@ const ROUTES: Dictionary[StringName, String] = {
 	&"character": "res://ui/pages/character/character_page.tscn",
 	&"combat": "res://ui/pages/combat/combat_page.tscn",
 	&"rift": "res://ui/pages/rift/rift_page.tscn",
+	&"fractures": "res://ui/pages/fractures/fractures_page.tscn",
 	ROUTE_GUIDE: "res://ui/pages/guide/guide_page.tscn",
 	ROUTE_HELP: "res://ui/pages/guide/guide_page.tscn",
 }

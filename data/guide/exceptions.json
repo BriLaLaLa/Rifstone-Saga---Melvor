@@ -1,12 +1,9 @@
 {
-  "_doc": "Eccezioni dichiarate della Guida (M11, M12): oggetti senza fonte o senza uso che l'indice non vede. Le fonti da tabelle di drop e sottoprodotti e gli usi di borse e contratti sono ora nell'indice (M12-06).",
+  "_doc": "Eccezioni dichiarate della Guida (M11, M12, M13): oggetti senza fonte o senza uso che l'indice non vede. Le fonti da tabelle di drop e sottoprodotti, gli usi di borse e contratti e fonte e uso delle Carte (M13-05) sono nell'indice.",
   "no_source": [
-    "ashlead_ring", "ashlead_amulet", "duskcobalt_ring", "duskcobalt_amulet", "palecinnabar_ring", "palecinnabar_amulet", "riftite_ring", "riftite_amulet",
-    "fracture_card_5", "fracture_card_6", "fracture_card_7", "fracture_card_8", "fracture_card_9", "fracture_card_10"
+    "ashlead_ring", "ashlead_amulet", "duskcobalt_ring", "duskcobalt_amulet", "palecinnabar_ring", "palecinnabar_amulet", "riftite_ring", "riftite_amulet"
   ],
   "no_use": [
-    "fracture_card_1", "fracture_card_2", "fracture_card_3", "fracture_card_4", "fracture_card_5",
-    "fracture_card_6", "fracture_card_7", "fracture_card_8", "fracture_card_9", "fracture_card_10",
     "redrock_flint", "whisper_resin", "witch_charm", "mine_dust", "colossus_shard", "threshold_ash",
     "pine_cone", "oak_acorn", "elm_samara", "yew_berry", "ebony_knot", "ember_coal", "rift_bark", "iron_slag",
     "dark_iron_clod", "black_iron_graphite", "silver_flake", "obsidian_geode", "astrite_glow", "riftite_vein",

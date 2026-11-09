@@ -1,0 +1,125 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://ui/pages/fractures/fractures_page.gd" id="1_page"]
+[ext_resource type="Script" path="res://ui/pages/fractures/fracture_run_panel.gd" id="2_run"]
+
+[node name="FracturesPage" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_page")
+
+[node name="Margin" type="MarginContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Scroll" type="ScrollContainer" parent="Margin"]
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="Content" type="VBoxContainer" parent="Margin/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="Margin/Scroll/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"TitleLabel"
+
+[node name="IntroLabel" type="Label" parent="Margin/Scroll/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+autowrap_mode = 3
+
+[node name="MessageLabel" type="Label" parent="Margin/Scroll/Content"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="PendingBox" type="PanelContainer" parent="Margin/Scroll/Content"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_type_variation = &"HudPanel"
+
+[node name="Row" type="HBoxContainer" parent="Margin/Scroll/Content/PendingBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="PendingText" type="Label" parent="Margin/Scroll/Content/PendingBox/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+autowrap_mode = 3
+
+[node name="CollectButton" type="Button" parent="Margin/Scroll/Content/PendingBox/Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+focus_mode = 0
+
+[node name="RunBox" type="PanelContainer" parent="Margin/Scroll/Content"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_type_variation = &"HudPanel"
+
+[node name="Column" type="VBoxContainer" parent="Margin/Scroll/Content/RunBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="RunPanel" type="VBoxContainer" parent="Margin/Scroll/Content/RunBox/Column"]
+unique_name_in_owner = true
+layout_mode = 2
+script = ExtResource("2_run")
+
+[node name="AbandonButton" type="Button" parent="Margin/Scroll/Content/RunBox/Column"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+focus_mode = 0
+
+[node name="CrystalBox" type="PanelContainer" parent="Margin/Scroll/Content"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_type_variation = &"HudPanel"
+
+[node name="CrystalContent" type="VBoxContainer" parent="Margin/Scroll/Content/CrystalBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="CardsSection" type="VBoxContainer" parent="Margin/Scroll/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CardsTitle" type="Label" parent="Margin/Scroll/Content/CardsSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+
+[node name="NoCardsLabel" type="Label" parent="Margin/Scroll/Content/CardsSection"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+autowrap_mode = 3
+
+[node name="CardsList" type="VBoxContainer" parent="Margin/Scroll/Content/CardsSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8

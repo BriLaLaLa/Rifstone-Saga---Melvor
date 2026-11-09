@@ -79,3 +79,30 @@ func last_lines(count: int) -> PackedStringArray:
 
 func line_count() -> int:
 	return _log.size()
+
+
+## Builds the four value/caption boxes in `grid` (one per kind of CombatTexts.YIELD_LABELS); returns the value labels.
+static func build_grid(grid: GridContainer) -> Dictionary[StringName, Label]:
+	var values: Dictionary[StringName, Label] = {}
+	for kind: StringName in CombatTexts.YIELD_LABELS:
+		var box := VBoxContainer.new()
+		box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var value := Label.new()
+		value.add_theme_font_override("font", UiStyle.font_bold())
+		value.add_theme_font_size_override("font_size", UiStyle.COMBAT_YIELD_FONT_SIZE)
+		box.add_child(value)
+		var caption := Label.new()
+		caption.text = CombatTexts.YIELD_LABELS[kind]
+		caption.theme_type_variation = &"MutedLabel"
+		box.add_child(caption)
+		grid.add_child(box)
+		values[kind] = value
+	return values
+
+
+## Writes the rates per hour (kills, XP, gold) and per second (damage) into the labels of `build_grid`.
+func redraw_values(values: Dictionary[StringName, Label], now: int) -> void:
+	values[KILLS].text = NumberFormat.format_int(per_hour(KILLS, now))
+	values[XP].text = NumberFormat.format_int(per_hour(XP, now))
+	values[GOLD].text = NumberFormat.format_int(per_hour(GOLD, now))
+	values[DAMAGE].text = NumberFormat.format_int(per_second(DAMAGE, now))

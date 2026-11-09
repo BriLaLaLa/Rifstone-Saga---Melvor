@@ -81,6 +81,8 @@ func _enter_tree() -> void:
 	_bound_events.session_ended.connect(_on_events_session_ended)
 	_bound_events.mastery_milestone_reached.connect(_on_events_milestone_reached)
 	_bound_events.helper_blocked.connect(_on_events_helper_blocked)
+	_bound_events.fracture_finished.connect(_on_events_fracture_finished)
+	_bound_events.card_rejected.connect(_on_events_card_rejected)
 
 
 func _exit_tree() -> void:
@@ -94,6 +96,8 @@ func _exit_tree() -> void:
 	_bound_events.session_ended.disconnect(_on_events_session_ended)
 	_bound_events.mastery_milestone_reached.disconnect(_on_events_milestone_reached)
 	_bound_events.helper_blocked.disconnect(_on_events_helper_blocked)
+	_bound_events.fracture_finished.disconnect(_on_events_fracture_finished)
+	_bound_events.card_rejected.disconnect(_on_events_card_rejected)
 	_bound_events = null
 
 
@@ -170,6 +174,16 @@ func _on_events_milestone_reached(_skill_id: StringName, action_id: StringName, 
 func _on_events_helper_blocked(skill_id: StringName, blocked: bool) -> void:
 	if blocked:
 		push(HelperTexts.BLOCKED_TOAST_TEXT % _display_name(skill_id), KIND_WARNING)
+
+
+## "Frattura vinta! ..." / "Frattura persa: bottino perduto" / "Frattura abbandonata" (texts: FractureTexts).
+func _on_events_fracture_finished(outcome: StringName, _grade: int, _groups: int, cards: int, pieces: int) -> void:
+	push(FractureTexts.toast_text(outcome, cards, pieces), KIND_SUCCESS if outcome == &"won" else KIND_WARNING)
+
+
+## "Carta persa: Deposito pieno".
+func _on_events_card_rejected(_grade: int) -> void:
+	push(FractureTexts.TOAST_REJECTED_TEXT, KIND_WARNING)
 
 
 func _on_events_bank_changed(item_id: StringName, _new_count: int, delta: int) -> void:

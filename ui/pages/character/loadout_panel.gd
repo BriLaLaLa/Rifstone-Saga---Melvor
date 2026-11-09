@@ -50,7 +50,7 @@ func unbind() -> void:
 func refresh() -> void:
 	if _session == null:
 		return
-	var locked: bool = _session.combat != null and _session.combat.in_encounter()
+	var locked: bool = _session.combat != null and (_session.combat.in_encounter() or _session.combat.in_fracture())
 	var class_def: ClassDef = _session.character.class_def()
 	for kind: StringName in _sections:
 		_refresh_section(kind, class_def, locked)
