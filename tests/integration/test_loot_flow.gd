@@ -266,18 +266,18 @@ func test_a_refined_piece_changes_the_stats_when_worn_and_the_affixes_come_along
 	var ring: int = TestFactory.give_piece(s, RING, &"rare", 8)
 	_stock(s, 0)
 	s.modifiers.set_source(&"test:luck", [Modifier.make(&"upgrade_success_pct", 300.0)])
-	var base_power: float = s.modifiers.total(&"power_bonus")
+	var base_power: float = s.modifiers.total(&"accuracy_bonus")
 	var base_hit: int = s.combat.player_stats().max_hit
 	assert_true(s.equipment.equip(sword).ok)
-	var plain_power: float = s.modifiers.total(&"power_bonus") - base_power
-	assert_eq(plain_power, 6.0, "the base sword gives power_bonus 6")
+	var plain_power: float = s.modifiers.total(&"accuracy_bonus") - base_power
+	assert_eq(plain_power, 8.0, "the base sword gives accuracy_bonus 8")
 	var plain_hit: int = s.combat.player_stats().max_hit
 	assert_gt(plain_hit, base_hit, "wearing the sword raises the maximum hit")
 	for i: int in MAX_LEVEL:
 		assert_true(s.armory.upgrade(sword).ok)
 	assert_eq(s.armory.get_instance(sword).upgrade, MAX_LEVEL)
-	var refined_power: float = s.modifiers.total(&"power_bonus") - base_power
-	assert_almost_eq(refined_power, 6.0 * (1.0 + 0.1 * MAX_LEVEL), 0.001, "F-86: base modifiers x (1 + 10% per level)")
+	var refined_power: float = s.modifiers.total(&"accuracy_bonus") - base_power
+	assert_almost_eq(refined_power, 8.0 * (1.0 + 0.1 * MAX_LEVEL), 0.001, "F-86: base modifiers x (1 + 10% per level)")
 	assert_gt(s.combat.player_stats().max_hit, plain_hit, "and the stats follow the refinement of the worn piece")
 	# The ring: every global modifier of the instance (base + affixes) reaches the totals once.
 	var totals_before: Dictionary[StringName, float] = {}

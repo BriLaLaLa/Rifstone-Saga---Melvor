@@ -148,17 +148,17 @@ func test_the_setup_filters_active_traits_and_abilities_but_keeps_the_choice() -
 
 func test_stat_trade_trait_changes_the_player_stats_and_is_removed() -> void:
 	var s: GameSession = _build(SEED, SHIELD, 12)
-	s.modifiers.set_source(BOOST, [Modifier.make(&"damage_reduction", 10.0), Modifier.make(&"evasion_bonus", 20.0)])
+	s.modifiers.set_source(BOOST, [Modifier.make(&"armor", 10.0), Modifier.make(&"evasion_bonus", 20.0)])
 	var before: CombatantStats = s.combat.player_stats()
-	assert_gt(before.damage_reduction, 0.0)
+	assert_gt(before.armor, 0.0)
 	assert_true(s.loadout.set_trait(0, &"stone_stance").ok)
 	var after: CombatantStats = s.combat.player_stats()
 	assert_gt(after.block_chance, before.block_chance, "stone_stance: +10 block_chance")
-	assert_gt(after.damage_reduction, before.damage_reduction, "stone_stance doubles the damage reduction")
+	assert_gt(after.armor, before.armor, "stone_stance doubles the armour")
 	assert_lt(after.evasion, before.evasion, "stone_stance gives up the evasion bonus")
 	assert_true(s.loadout.set_trait(0, &"").ok)
 	var restored: CombatantStats = s.combat.player_stats()
-	assert_eq(restored.damage_reduction, before.damage_reduction, "removed: the base is back")
+	assert_eq(restored.armor, before.armor, "removed: the base is back")
 	assert_eq(restored.block_chance, before.block_chance)
 	assert_eq(restored.evasion, before.evasion)
 

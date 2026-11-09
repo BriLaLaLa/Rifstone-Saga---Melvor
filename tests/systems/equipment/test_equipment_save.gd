@@ -42,7 +42,7 @@ func test_save_round_trip_restores_state_and_sources() -> void:
 	assert_eq(other.equipment.get_food(), RATION)
 	assert_eq(other.equipment.setup(), &"dual_swords")
 	assert_true(other.modifiers.has_source(&"setup:dual_swords"))
-	assert_eq(other.modifiers.total(&"power_bonus"), 12.0)
+	assert_eq(other.modifiers.total(&"accuracy_bonus"), 16.0)
 	assert_eq(other.equipment.base_attack_interval_ms(), 1800)
 
 

@@ -182,12 +182,12 @@ func test_instance_modifiers() -> void:
 	inst.base_id = &"test_blade"
 	inst.affixes.append(AffixRoll.make(&"test_keen", 2, 9.0))
 	var mods: Array[Modifier] = ItemRoller.instance_modifiers(inst, _data)
-	assert_eq(mods.size(), 3)
+	assert_eq(mods.size(), 2, "M14: a weapon has no power_bonus, its damage is dmg_min-dmg_max")
 	assert_eq(mods[0].stat, &"accuracy_bonus")
 	assert_eq(mods[0].value, 8.0)
-	assert_eq(mods[2].stat, &"accuracy_bonus")
-	assert_eq(mods[2].value, 9.0)
-	assert_eq(mods[2].scope_kind, Modifier.SCOPE_GLOBAL)
+	assert_eq(mods[1].stat, &"accuracy_bonus")
+	assert_eq(mods[1].value, 9.0)
+	assert_eq(mods[1].scope_kind, Modifier.SCOPE_GLOBAL)
 
 
 func test_tool_affix_scope() -> void:
@@ -207,14 +207,13 @@ func test_instance_modifiers_upgrade_multiplier() -> void:
 	inst.upgrade = 3
 	inst.affixes.append(AffixRoll.make(&"test_keen", 2, 9.0))
 	var mods: Array[Modifier] = ItemRoller.instance_modifiers(inst, _data)
-	assert_eq(mods.size(), 3)
+	assert_eq(mods.size(), 2)
 	assert_almost_eq(mods[0].value, 8.0 * 1.3, 0.0001, "accuracy_bonus x1.3")
-	assert_almost_eq(mods[1].value, 6.0 * 1.3, 0.0001, "power_bonus x1.3")
-	assert_eq(mods[2].value, 9.0, "the affix keeps its value")
+	assert_eq(mods[1].value, 9.0, "the affix keeps its value")
 	inst.upgrade = 0
 	assert_eq(ItemRoller.instance_modifiers(inst, _data)[0].value, 8.0, "+0 leaves the base")
 	inst.upgrade = 9
-	assert_almost_eq(ItemRoller.instance_modifiers(inst, _data)[1].value, 6.0 * 1.9, 0.0001, "+9 -> x1.9")
+	assert_almost_eq(ItemRoller.instance_modifiers(inst, _data)[0].value, 8.0 * 1.9, 0.0001, "+9 -> x1.9")
 
 
 func test_drop_rarity() -> void:
