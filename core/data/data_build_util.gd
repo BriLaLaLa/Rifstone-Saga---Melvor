@@ -21,3 +21,15 @@ static func list(content: Variant, key: String) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	result.assign((content as Dictionary)[key] as Array)
 	return result
+
+
+## {path: top-level object} of the files that load as objects; the others are reported in `errors`.
+static func read_files(paths: PackedStringArray, errors: PackedStringArray) -> Dictionary:
+	var files: Dictionary = {}
+	for path: String in paths:
+		var content: Variant = JsonLoader.load_file(path, errors)
+		if content is Dictionary:
+			files[path] = content
+		elif content != null:
+			errors.append("%s: the top level is not an object" % path)
+	return files

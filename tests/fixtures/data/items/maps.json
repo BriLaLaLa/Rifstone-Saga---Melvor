@@ -1,0 +1,24 @@
+{
+  "items": [
+    {"id": "fracture_card_1", "name": "Carta di prova 1", "category": "map", "value": 0, "sort_order": 10,
+     "icon": "res://assets/icons/items/fracture_card_1.svg", "description": "Apre una Frattura di grado 1.", "map": {"grade": 1}},
+    {"id": "fracture_card_2", "name": "Carta di prova 2", "category": "map", "value": 0, "sort_order": 20,
+     "icon": "res://assets/icons/items/fracture_card_2.svg", "description": "Apre una Frattura di grado 2.", "map": {"grade": 2}},
+    {"id": "fracture_card_3", "name": "Carta di prova 3", "category": "map", "value": 0, "sort_order": 30,
+     "icon": "res://assets/icons/items/fracture_card_3.svg", "description": "Apre una Frattura di grado 3.", "map": {"grade": 3}},
+    {"id": "fracture_card_4", "name": "Carta di prova 4", "category": "map", "value": 0, "sort_order": 40,
+     "icon": "res://assets/icons/items/fracture_card_4.svg", "description": "Apre una Frattura di grado 4.", "map": {"grade": 4}},
+    {"id": "fracture_card_5", "name": "Carta di prova 5", "category": "map", "value": 0, "sort_order": 50,
+     "icon": "res://assets/icons/items/fracture_card_5.svg", "description": "Apre una Frattura di grado 5.", "map": {"grade": 5}},
+    {"id": "fracture_card_6", "name": "Carta di prova 6", "category": "map", "value": 0, "sort_order": 60,
+     "icon": "res://assets/icons/items/fracture_card_6.svg", "description": "Apre una Frattura di grado 6.", "map": {"grade": 6}},
+    {"id": "fracture_card_7", "name": "Carta di prova 7", "category": "map", "value": 0, "sort_order": 70,
+     "icon": "res://assets/icons/items/fracture_card_7.svg", "description": "Apre una Frattura di grado 7.", "map": {"grade": 7}},
+    {"id": "fracture_card_8", "name": "Carta di prova 8", "category": "map", "value": 0, "sort_order": 80,
+     "icon": "res://assets/icons/items/fracture_card_8.svg", "description": "Apre una Frattura di grado 8.", "map": {"grade": 8}},
+    {"id": "fracture_card_9", "name": "Carta di prova 9", "category": "map", "value": 0, "sort_order": 90,
+     "icon": "res://assets/icons/items/fracture_card_9.svg", "description": "Apre una Frattura di grado 9.", "map": {"grade": 9}},
+    {"id": "fracture_card_10", "name": "Carta di prova 10", "category": "map", "value": 0, "sort_order": 100,
+     "icon": "res://assets/icons/items/fracture_card_10.svg", "description": "Apre una Frattura di grado 10.", "map": {"grade": 10}}
+  ]
+}

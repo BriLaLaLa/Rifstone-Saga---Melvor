@@ -30,7 +30,8 @@ const M1_STATS: Array[StringName] = [
 	&"skill_interval_pct", &"skill_xp_pct", &"mastery_xp_pct", &"double_item_chance", &"rift_shard_chance",
 ]
 # Formula -> milestone that implements it (for the pending messages).
-const FORMULA_MILESTONES: Dictionary[String, String] = {"F-50": "M13"}
+const FORMULA_MILESTONES: Dictionary[String, String] = {"F-50": "M13", "F-109": "M13", "F-110": "M13", "F-111": "M13",
+	"F-112": "M13", "F-113": "M13", "F-114": "M13", "F-115": "M13", "F-116": "M13"}
 
 var _registry: StatRegistry = null
 var _sources: Dictionary[String, String] = {}

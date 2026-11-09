@@ -192,6 +192,8 @@ static func drop(v: DataValidatorRules, drop_entry: Dictionary, prefix: String) 
 			v.fail("field '%s.qty': a blueprint drops as [1, 1]" % prefix)
 	if category == "tool":
 		v.fail("field '%s.item': '%s' is a tool, tools no longer drop (M10)" % [prefix, drop_entry["item"]])
+	if category == "map":
+		v.fail("field '%s.item': '%s' is a Card, Cards come only from loot tables and Fractures (M13)" % [prefix, drop_entry["item"]])
 
 
 static func is_true(d: Dictionary, key: String) -> bool:

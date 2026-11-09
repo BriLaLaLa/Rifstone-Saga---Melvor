@@ -6,7 +6,7 @@ extends RefCounted
 
 const TABLE_FIELDS: PackedStringArray = ["id", "entries"]
 const ENTRY_FIELDS: PackedStringArray = ["item", "chance_pct", "qty"]
-const CATEGORIES: PackedStringArray = ["material", "stone", "currency", "bag", "contract"]
+const CATEGORIES: PackedStringArray = ["material", "stone", "currency", "bag", "contract", "map"]  # M13: Cards
 const ENTRIES_MAX: int = 24
 const CHANCE_MIN: float = 0.01
 
@@ -63,3 +63,9 @@ static func _entries(v: DataValidatorRules, table: Dictionary) -> void:
 				v.fail("field '%s.item': '%s' is %s, a loot table holds only %s" % [prefix, entry["item"], category, CATEGORIES])
 		v.number(entry, "chance_pct", CHANCE_MIN, 100.0, prefix)
 		v.int_pair(entry, "qty", 1, DataValidatorRules.NO_LIMIT, true, prefix)
+		var item: Dictionary = v.items.get(StringName(str(entry.get("item"))), {})
+		var qty: Variant = entry.get("qty")
+		if str(item.get("category")) == "map" and qty is Array and (qty as Array).size() == 2 \
+				and DataValidatorRules.is_number((qty as Array)[0]) and DataValidatorRules.is_number((qty as Array)[1]) \
+				and (float((qty as Array)[0]) != 1.0 or float((qty as Array)[1]) != 1.0):
+			v.fail("field '%s.qty': a Card drops as [1, 1]" % prefix)

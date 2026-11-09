@@ -16,7 +16,7 @@ const START_ITEMS_KEY: String = "start.items"
 const SORT_CATEGORIES: Array[StringName] = [&"material", &"bag", &"contract", &"food", &"infusion", &"misc", &"stone",
 		&"currency"]
 ## Categories held by the Armory as unique pieces: the bank rejects them (M4-05).
-const PIECE_CATEGORIES: Array[StringName] = [&"equipment", &"tool"]
+const PIECE_CATEGORIES: Array[StringName] = [&"equipment", &"tool", &"map"]  # M13: Cards live in the CardStore
 const OCCUPANT_ID: StringName = &"bank"
 
 var _data: GameData
