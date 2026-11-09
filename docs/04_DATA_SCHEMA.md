@@ -478,10 +478,10 @@ Classi: `BossDef` (stessi campi di `MonsterDef` più `grade`, `ability: BossAbil
 
 ### 11.4 `balance.json` `fracture`
 ```json
-"fracture": {"groups": 30, "intensity_steps": 10, "pulse_ms": 4000,
+"fracture": {"groups": 16, "intensity_steps": 10, "pulse_ms": 4000,
   "mod_count": {"common": [0, 0], "magic": [1, 2], "rare": [3, 4]},
   "card_rarity": {"magic_pct": 25, "rare_pct": 6},
-  "card_drop": {"monster_pct": 0.4, "boss_pct": 70, "monster_delta": [70, 27, 3], "boss_delta": [20, 70, 10]},
+  "card_drop": {"monster_pct": 0.5, "boss_pct": 70, "monster_delta": [70, 27, 3], "boss_delta": [20, 70, 10]},
   "salvage": {"dust_per_grade": 5, "rarity_mult": {"common": 1, "magic": 1.5, "rare": 2}},
   "grades": [{"areas": ["cracked_mines"], "level_bonus": 0, "hp_mult": 1.0, "damage_mult": 1.0, "reward_mult": 1.0, "piece_grade": 5, "recommended_level": 45}]}
 ```

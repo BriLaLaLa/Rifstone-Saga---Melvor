@@ -525,7 +525,7 @@ Frattura ogni 2-4 ore è eliminata: niente `fractures.interval_*`, `duration_ms`
 ### 17.2 La Frattura
 - Si apre dalla pagina **Fratture** ("Apri") sulla Carta scelta: la Carta si **consuma subito**. Il combattimento normale si ferma e l'azione del giocatore pure (`replaced`); gli **aiutanti continuano**. Una sola Frattura alla volta.
   Non si apre se il Deposito non può ricevere il bottino di una Frattura precedente ancora in attesa (`fracture_bag_pending`).
-- **Contenuto**: `fracture.groups` (30, Q63) gruppi di mostri del grado (F-110: mostri delle aree del grado, scalati), uno dopo l'altro come gli incontri di un'area (stesso motore a eventi, `combat.respawn_ms` tra un gruppo e l'altro, stesso triangolo, tratti,
+- **Contenuto**: `fracture.groups` (16, Q63) gruppi di mostri del grado (F-110: mostri delle aree del grado, scalati), uno dopo l'altro come gli incontri di un'area (stesso motore a eventi, `combat.respawn_ms` tra un gruppo e l'altro, stesso triangolo, tratti,
   abilità e cibo), poi il **boss** (§17.3). I modificatori della Carta si applicano a mostri, giocatore e ricompense (F-111). Nei gruppi della Frattura **non appaiono Monoliti** e non si contano uccisioni per F-87.
 - **Bottino della Frattura**: tutto quello che cade dentro (oggetti, pezzi, Carte; l'oro invece va nel portafoglio subito, non è a rischio) va nella **borsa della Frattura**, separata dalla borsa del bottino e dal Deposito, senza limite di caselle. XP del
   personaggio e livelli si guadagnano subito e non si perdono.
@@ -533,7 +533,7 @@ Frattura ogni 2-4 ore è eliminata: niente `fractures.interval_*`, `duration_ms`
     il giocatore non fa spazio e preme "Raccogli" (`collect`); finché c'è qualcosa in attesa non si apre un'altra Frattura.
   - **Morte** (X4): si perdono la Carta (già consumata) e **tutta la borsa della Frattura** (`fracture_loot_lost`); Deposito ed equipaggiamento non si toccano; i PV tornano al massimo.
   - **Abbandona** (comando del giocatore, con conferma): come la morte.
-- Dopo la fine (vittoria, morte, abbandono) il combattimento torna all'**area in cui il giocatore stava combattendo** prima di aprire la Frattura (se combatteva), con la sua borsa del bottino com'era; altrimenti resta fermo. L'azione del giocatore non riparte.
+- Dopo la fine (vittoria, morte, abbandono dal comando "Abbandona") il combattimento torna all'**area in cui il giocatore stava combattendo** prima di aprire la Frattura (se combatteva), con la sua borsa del bottino com'era; altrimenti resta fermo. L'azione del giocatore non riparte.
 - **Stato salvato**: la Frattura in corso (Carta, gruppo, boss, borsa, contatori) e l'eventuale borsa in attesa sono nello slot (`fractures`); ricaricando, la Frattura riprende dallo stesso punto.
 - Funziona **anche offline**, con lo stesso motore a eventi (§10.10): una Frattura può iniziare e finire durante l'assenza (online non parte da sola: è sempre già in corso al momento dell'uscita). Se finisce, il combattimento torna all'area (sopra) e
   prosegue. Il riepilogo "Mentre eri via…" dice per ogni Frattura grado, esito (vinta, persa per morte), gruppi superati, Carte e pezzi ottenuti o persi.
@@ -543,6 +543,7 @@ Frattura ogni 2-4 ore è eliminata: niente `fractures.interval_*`, `duration_ms`
   gruppo. **Nessuna meccanica a fasi** in M13.
 - **Ricompense garantite** (alla vittoria): un pezzo almeno magico (F-84 con rarità minima magica, `ilvl` di F-110), Polvere del Rift (`fracture.boss.dust`), e la probabilità di una Carta di grado +1 (F-113). Più i drop del boss, che entrano nella borsa come quelli dei mostri.
 - Il boss non dà Monoliti, non fa parte dei gruppi, ha il proprio incontro (stato `ENCOUNTER` con il solo boss, più gli evocati).
+- Boss ed evocati **non contano nelle uccisioni** (`kills`, F-87) e i **Monoliti sono sospesi** per tutta la Frattura. Lo **scudo** del boss si rinnova solo quando è esaurito; l'**evocazione** non supera mai `max_alive` evocati vivi. Il ritorno all'area alla fine è **differito a fine istante** (dopo l'evento che ha chiuso la Frattura).
 
 ### 17.4 Scala e bilanciamento
 - Grado 1 ≈ difficoltà delle Miniere; grado 10 ≈ ben oltre la Soglia (fine gioco). Il livello degli oggetti caduti (`ilvl`) cresce con il grado: le Fratture diventano la fonte dei pezzi migliori.
@@ -551,7 +552,7 @@ Frattura ogni 2-4 ore è eliminata: niente `fractures.interval_*`, `duration_ms`
 
 ### 17.5 Casi limite
 Carta bloccata o sconosciuta (`unknown_id`, `item_locked` per smantellare); aprire con una Frattura già in corso (`fracture_active`); Deposito pieno alla consegna (attesa, non perdita); morte nello stesso istante in cui muore il boss (vale F-76: se il giocatore uccide
-per primo la Frattura è vinta); `stop` del combattimento durante la Frattura (= abbandono); un tratto/abilità non si cambia durante la Frattura (`combat_active`); caricamento di un salvataggio con Frattura in corso (riprende); Carta con un modificatore o un grado sconosciuto nel
+per primo la Frattura è vinta); `stop` del combattimento durante la Frattura (= abbandono, ma **non** riporta all'area: il combattimento resta fermo; solo `abandon_fracture` e le fini naturali riportano all'area, scelta approvata); un tratto/abilità non si cambia durante la Frattura (`combat_active`); caricamento di un salvataggio con Frattura in corso (riprende); Carta con un modificatore o un grado sconosciuto nel
 salvataggio (scartata con `Log.warn`; se era la Frattura in corso, la Frattura termina come abbandonata, senza bottino).
 
 ## 18. Azioni in parallelo — ELIMINATE (M12, W3)

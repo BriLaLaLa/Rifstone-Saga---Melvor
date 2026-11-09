@@ -1618,7 +1618,7 @@ Regole comuni dei brief di M13: i valori di design si leggono **sempre** dalla s
 si apre solo con una Carta; nessun altro evento la apre. I nomi e i testi di gioco vengono da `NOMI.md` (sezione Fratture); nulla da Melvor Idle.
 
 ### M13-01 · Carte, modificatori e dati (CORE)
-- **Ruolo** CORE · **Stima** L · **Parallelizzabile** no (primo) · **Dipendenze** R-04 · **Stato** TODO
+- **Ruolo** CORE · **Stima** L · **Parallelizzabile** no (primo) · **Dipendenze** R-04 · **Stato** DONE (merge d11569e)
 - **Ownership** `systems/fractures/{card_store,map_card,map_mod_roll,map_card_roller}.gd` (nuovi), `core/data/**` (categoria `map`, `ItemDef.map_grade`/`is_map()`, `MapModDef`, `MapEffectDef`, `BossDef`, `BossAbilityDef`, `FractureGradeDef`, `GameData.map_base/map_mods/map_mod/boss_for_grade/boss/fracture_grade`,
   caricamento di `data/maps/*.json` e `data/items/maps.json`, validatore di `fracture.*`, `map_mods.json`, `bosses.json`, voci `map` di `loot_tables.json`; tolti `FractureDef`, `GameData.fractures()` e il caricamento di `data/fractures/`), `core/session/game_session.gd` e `session_participants.gd`
   (modulo `cards`, occupante `cards` del Deposito, `from_save`/`to_save`), `core/autoload/event_bus.gd` (**tutte** le righe di M13: `fracture_opened(grade)`, `fracture_group_cleared`, `fracture_boss_started`, `fracture_finished`, `fracture_bag_changed`, `fracture_loot_lost`, `card_changed`, `card_rejected`;
@@ -1638,7 +1638,7 @@ si apre solo con una Carta; nessun altro evento la apre. I nomi e i testi di gio
 - **Test** `tests/systems/fractures/test_map_card_roller.gd`, `test_card_store.gd`, `test_card_currency.gd`, `test_card_drops_to_store.gd`, `tests/core/data/test_map_data_validation.gd`, `tests/integration/test_save_cards.gd`.
 
 ### M13-02 · Motore della Frattura (COMBAT)
-- **Ruolo** COMBAT · **Stima** L · **Parallelizzabile** con M13-04 · **Dipendenze** M13-01 · **Stato** TODO
+- **Ruolo** COMBAT · **Stima** L · **Parallelizzabile** con M13-04 · **Dipendenze** M13-01 · **Stato** DONE (merge 3c609b0)
 - **Ownership** `systems/fractures/{fracture_system,fracture_run,fracture_bag,fracture_scaler}.gd` (nuovi), `systems/combat/**` (integrazione nel motore: `start_fracture`, `abandon_fracture`, `in_fracture`, `fracture_run`, sink del bottino, ritorno all'area, salvataggio additivo; nuovi file per restare ≤ 400 righe), `systems/combat/kill_rewards.gd`
   (il sink), `systems/equipment/equipment.gd` e `systems/character/loadout.gd` (solo `_combat_active`: vale anche `in_fracture()`), `core/session/game_session.gd` e `session_participants.gd` (modulo `fractures` dopo `equipment` e prima di `combat`, niente fase nel tick, `rebuild_modifiers`, ordine di `from_save`),
   `core/offline/**` (`OfflineSummary.fractures`, `OfflineSimulator` ascolta `fracture_finished`, `from_snapshots`/`is_empty`), `tests/systems/fractures/**`, `tests/systems/combat/**` (solo aggiunte), `tests/core/offline/**` (solo aggiunte), `tests/integration/**`, `tests/fixtures/data/**` (aggiunte).
@@ -1653,7 +1653,7 @@ si apre solo con una Carta; nessun altro evento la apre. I nomi e i testi di gio
 - **Test** `tests/systems/fractures/test_fracture_run.gd`, `test_fracture_flow.gd`, `test_fracture_effects.gd`, `test_fracture_scaler.gd`, `test_fracture_delivery.gd`, `test_fracture_system.gd`, `test_card_drops.gd`, `tests/core/offline/test_offline_fracture.gd`, `tests/integration/test_save_fracture.gd`.
 
 ### M13-03 · Boss con abilità propria (COMBAT)
-- **Ruolo** COMBAT · **Stima** M · **Parallelizzabile** no · **Dipendenze** M13-02 · **Stato** TODO
+- **Ruolo** COMBAT · **Stima** M · **Parallelizzabile** no · **Dipendenze** M13-02 · **Stato** DONE (merge 6bd280d)
 - **Ownership** `systems/fractures/boss_*.gd` (nuovi: abilità `heavy_strike`, `shield`, `summon`, ricompense F-115) e le sole righe del motore che li chiamano (`systems/combat/**`), `tests/systems/fractures/**`, `tests/fixtures/data/**` (aggiunte).
 - **Leggere** `01_GDD.md` §17.3; `02_FORMULAS.md` F-112, F-115, F-76; `04_DATA_SCHEMA.md` §11.3; `05_INTERFACES.md` §5.10 (ordine dei tiri), §5.23 (motore).
 - **Descrizione** Le tre abilità di F-112 (timer che parte da `every_ms`, risolto dopo l'attacco base del boss, salvato in `combat.fracture.boss`), evocati (`summoned`, nessun XP/oro/drop, muoiono con la fine della Frattura), scudo che assorbe danno (e `get_state` lo mostra), ricompense garantite di F-115 e la Carta del boss (F-113) alla vittoria.
@@ -1662,7 +1662,7 @@ si apre solo con una Carta; nessun altro evento la apre. I nomi e i testi di gio
 - **Test** `tests/systems/fractures/test_boss_abilities.gd`, `test_boss_rewards.gd`.
 
 ### M13-04 · Contenuti: Carte, modificatori, boss, drop, scala (DATA)
-- **Ruolo** DATA · **Stima** L · **Parallelizzabile** con M13-02/M13-03 (file diversi) · **Dipendenze** M13-01 · **Stato** TODO
+- **Ruolo** DATA · **Stima** L · **Parallelizzabile** con M13-02/M13-03 (file diversi) · **Dipendenze** M13-01 · **Stato** DONE (merge 9e882b6)
 - **Ownership** `data/items/maps.json`, `data/maps/map_mods.json`, `data/maps/bosses.json`, `data/combat/loot_tables.json` (voci `map` per area e per Monolito; altre voci invariate), `data/config/balance.json` (solo i valori di `fracture.*`), `data/guide/**` (pagina `guide_fractures` e voci collegate), `assets/icons/items/fracture_card_*.svg`,
   `assets/icons/monsters/boss_*.svg`, `core/data/**` (**solo** la riga/e della regola transitoria di M13-01, da togliere), `tests/data/**` (solo test dei dati di questo task), `tests/fixtures/data/**` (sola lettura).
 - **Leggere** `01_GDD.md` §17; `02_FORMULAS.md` F-109…F-113, F-115, §8.5; `04_DATA_SCHEMA.md` §8, §8b, §11, §19; `docs/NOMI.md` (sezione Fratture).
@@ -1673,7 +1673,7 @@ si apre solo con una Carta; nessun altro evento la apre. I nomi e i testi di gio
 - **Test** `tests/data/test_map_data.gd`, `test_boss_data.gd`, `test_card_drop_tables.gd`.
 
 ### M13-05 · UI: pagina Fratture, Frattura in Combattimento, Guida (UI)
-- **Ruolo** UI · **Stima** L · **Parallelizzabile** con M13-06 · **Dipendenze** M13-03, M13-04 · **Stato** TODO
+- **Ruolo** UI · **Stima** L · **Parallelizzabile** con M13-06 · **Dipendenze** M13-03, M13-04 · **Stato** DONE (merge f3017d7)
 - **Ownership** `ui/pages/fractures/**` (nuovi), `ui/pages/combat/**` (solo la Frattura in corso: intestazione, boss, scudo; niente scelta dell'area né Monoliti in Frattura), `ui/screens/main/{page_host,sidebar}.gd` (rotta `fractures`, voce "Fratture" nella sezione Partita), `ui/screens/offline/**` (righe di `OfflineSummary.fractures`),
   `ui/feedback/**` (toast di `fracture_finished`, `card_rejected`), `core/guide/**` (`PAGE_FRACTURES`, tabelle `fracture_grades`, `map_mods`, `bosses`), `ui/pages/guide/**` (solo se serve), `tests/ui/**`, `tests/core/guide/**`.
 - **Leggere** `01_GDD.md` §17.1-§17.3; `04_DATA_SCHEMA.md` §11, §19; `05_INTERFACES.md` §3, §5.23, §7.v, §7.y; `docs/NOMI.md`; `docs/UI_GDR.md` (stile).
@@ -1684,7 +1684,7 @@ si apre solo con una Carta; nessun altro evento la apre. I nomi e i testi di gio
 - **Test** `tests/ui/pages/fractures/test_fractures_page.gd`, `test_fracture_run_panel.gd`, `test_fracture_texts.gd`, `tests/ui/pages/combat/test_combat_fracture.gd`, `tests/core/guide/test_guide_fractures.gd`.
 
 ### M13-06 · Bilanciamento con la sim e test (QA)
-- **Ruolo** QA · **Stima** M · **Parallelizzabile** con M13-05 · **Dipendenze** M13-03, M13-04 · **Stato** TODO
+- **Ruolo** QA · **Stima** M · **Parallelizzabile** con M13-05 · **Dipendenze** M13-03, M13-04 · **Stato** DONE (merge aad73c6)
 - **Ownership** `tools/sim_fracture.gd` (nuovo), `tools/sim_combat.gd` (solo opzioni per le Fratture), `tests/integration/**` (test di M13), `tests/balance/**`, `data/config/balance.json` (**solo** `fracture.*`), `data/maps/**`, `data/combat/loot_tables.json` (solo le voci `map`) per ritarare i numeri; `docs/06_ROADMAP.md` (misure) e `docs/OPEN_QUESTIONS.md` (Q63-Q65).
 - **Leggere** `01_GDD.md` §17.4; `02_FORMULAS.md` §7, §8.5, §9; `05_INTERFACES.md` §5.23, §8 (helper dei test); `docs/OPEN_QUESTIONS.md` Q63-Q65.
 - **Descrizione** Strumento che simula Fratture di ogni grado (personaggio del livello consigliato con il set del grado, tratti e abilità automatici, cibo) per 3 semi: durata, morti, esito, Carte ottenute (grado e rarità), pezzi, Polvere, XP/h. Tarare `fracture.*`, i boss e le tabelle (Q63-Q65) finché:
@@ -1694,7 +1694,7 @@ si apre solo con una Carta; nessun altro evento la apre. I nomi e i testi di gio
 - **Test** `tests/integration/test_m13_acceptance.gd`, `test_fracture_conservation.gd`, `tests/balance/test_fracture_balance.gd`.
 
 ### M13-07 · Integrazione di M13
-- **Ruolo** REV · **Stima** S · **Dipendenze** M13-05, M13-06 · **Stato** TODO
+- **Ruolo** REV · **Stima** S · **Dipendenze** M13-05, M13-06 · **Stato** DONE (commit `docs: M13-07 chiusura Fratture come mappe`)
 - **Descrizione** Merge, checklist di `06_ROADMAP.md` (M13 "Uscita"), `docs/RELEASE_CHECKLIST_MVP.md` aggiornata, `docs/STATUS.md`, tag `m13-done`, report di milestone. Il push lo fa l'Orchestratore.
 
 ## M14+ (dopo M13)

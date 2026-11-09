@@ -53,3 +53,9 @@ Da provare a mano (nessuna sessione grafica in questo ambiente): vedi sezione 4.
 - Eseguibile non firmato (SmartScreen avvisera); nessuna icona di applicazione impostata nel preset (`application/icon` vuoto).
 - Follow-up gia annotati in `STATUS.md`: getter del livello di sblocco in `RiftAltar`; Incastona dalla bank senza scelta della presa; `CombatantStats.for_player` non in `05_INTERFACES.md`; pietre incastonabili tra i drop; bilanciamento dei pezzi rari/ora in Bosco.
 - Decisioni aperte: Q26, Q27-Q43 (default in `OPEN_QUESTIONS.md`).
+
+## 6. Aggiornamento M13 (Fratture come mappe, 2026-11-09)
+- **Controlli automatici**: `run_checks.ps1` su main dopo M13-07: 2531 test verdi, dati, righe per file e riferimenti vietati OK. Un test fragile corretto (`test_combat_flow.gd`, seme di `test_state_between_encounters_survives_a_save`: i drop nuovi di M13-06 hanno cambiato le estrazioni e il personaggio senza bonus moriva al primo gruppo).
+- **Prove manuali da fare** (M13): trovare una Carta cacciando; migliorarla con i Cristalli; aprire una Frattura dalla pagina Fratture (Combattimento fermo, aiutanti attivi); gruppi, boss e abilita (colpo pesante, scudo, evocazione);
+  vittoria (borsa nel Deposito, Carte di grado piu alto, "Raccogli" se manca spazio); morte e "Abbandona" con conferma (Carta e borsa perse); salvare e ricaricare in mezzo a una Frattura; uscire e rientrare (riepilogo offline con le Fratture); pagina Guida "Fratture".
+- **Limiti noti**: layout 1600x900 e 1280x720 della pagina Fratture e della Frattura in Combattimento non visto a schermo; riga di stato del Combattimento con il boss non verificata a schermo; grado 1 in 13,9 minuti (sotto l'obiettivo 15-30) e regola "muore sotto di 10 livelli" rispettata solo al grado 1 (Q63).

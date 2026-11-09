@@ -16,7 +16,19 @@ Se la sessione si interrompe, si riparte da qui.
 - Descrizioni di tratti e abilità generate da effetti, parametri e ricarica (`ui/pages/character/loadout_describe.gd`, il campo `description` dei dati non si mostra più); stat `damage_reduction` ora si chiama "Armatura" (solo testo in `stats.json`).
 - Aperto di P-01 chiuso da P-03 (`player_renamed`).
 
-## Ripartenza (inizio M13, R-04 fatta, 2026-11-09)
+## Ripartenza (fine M13, 2026-11-09)
+- **Stato**: **M13 Fratture come mappe completata** (M13-01…07 DONE); il tag `m13-done` e il push li fa l'Orchestratore. `run_checks.ps1` verde su main: **2531 test**, dati, righe, riferimenti.
+- **Hash** (merge su main): M13-01 `d11569e`, M13-02 `3c609b0`, M13-03 `6bd280d`, M13-04 `9e882b6`, M13-05 `f3017d7`, M13-06 `aad73c6`, M13-07 = commit `docs: M13-07 chiusura Fratture come mappe` (`git log --grep "M13-07"`).
+- **Prossimo passo**: **M14+** (seconda classe, dungeon, altri boss: da definire), sessione nuova da questo file.
+- **Documenti allineati al codice (M13-07)**: `fracture.groups` = 16 (era 30) e `monster_pct` 0,5; `05_INTERFACES.md` §5.23 (`CardStore.roll_rarity()`/`salvage_dust()`, `ScaledMonsterDef`, `LootSink`/`FractureSink`/`FractureCombat`,
+  `CombatFight` + `CombatEngine extends CombatFight`, `PULSE_SOURCE = -2`, `BossAbility`, `BossRewards`, `collect()` con `bank_full`/`armory_full`); `01_GDD.md` §17 (`stop()` = abbandono senza ritorno all'area, ritorno differito a fine istante, boss/evocati fuori da `kills`,
+  Monoliti sospesi, scudo e evocazione); `DECISIONS_LOG.md` R-05.
+- **Aperti**: layout 1600x900 e 1280x720 non visto a schermo (pagina Fratture e Frattura in Combattimento); la riga di stato del Combattimento con il boss non è verificata a schermo; `tests/fixtures/data/m10` ha `maps` vuoti (helper `load_m10`);
+  `tests/data/test_stat_registry_coverage.gd` `CLOSED_FORMULAS` elenca ancora F-16 e F-82, eliminate; worktree `wt-M13-*` e `.claude/worktrees/agent-*` da potare a mano.
+- **Misure della sim (M13-06, Q63)**: gradi 2-10 in 15-30 minuti (14-29 in tutto), grado 1 a 13,9 minuti (sotto l'obiettivo); la regola "muore sotto di 10 livelli" è rispettata solo al grado 1 (0/6 vittorie): i gradi 2-4 e 8-9 si vincono comunque quasi sempre
+  perché il personaggio della sim ha pezzi comuni +0 del suo livello. Tabella in `06_ROADMAP.md` M13.
+
+## Ripartenza precedente (inizio M13, R-04 fatta, 2026-11-09)
 - **Stato**: **R-04 DONE**: le Fratture come mappe (decisioni X1-X4, fonte `FRATTURE.md`) sono nei documenti canonici (`01_GDD.md` §17 riscritto, `02_FORMULAS.md` §7 con F-50 riscritta e F-109…F-116, `04_DATA_SCHEMA.md` §11 riscritto,
   `05_INTERFACES.md` §3 / §5.23 / §7.v / save `cards` e `fractures`, `03_ARCHITECTURE.md`, `00_VISION.md`, `06_ROADMAP.md` M13, `07_TASKS.md` M13-01…M13-07, `OPEN_QUESTIONS.md` Q63-Q65, `DECISIONS_LOG.md` X1-X4 e scelte R-04,
   `NOMI.md` sezione Fratture, `CLAUDE.md`). Hash: R-04 = commit `docs: R-04 Fratture come mappe` (`git log --grep "R-04"`). Codice e dati **non** toccati: il gioco è ancora quello di M12 (+ rune ritarate); i documenti descrivono lo stato di arrivo di M13.

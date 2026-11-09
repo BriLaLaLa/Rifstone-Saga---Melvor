@@ -593,7 +593,7 @@ Le **corsie parallele** sono **eliminate** (W3): le sostituiscono gli aiutanti (
 M13-06 con la sim (Q63-Q65); gli esempi sono casi di test e cambiano insieme ai valori. Stat nuove: nessuna.
 
 ### F-50 Struttura della Frattura
-Apertura: la Carta esce dal `CardStore` e la Frattura parte con il gruppo 1 (nessun timer, nessuna estrazione). La Frattura ha `fracture.groups` (30) gruppi, in ordine; il gruppo `i` è scelto come F-77 (`pick_weighted` sui pesi) tra i `packs`
+Apertura: la Carta esce dal `CardStore` e la Frattura parte con il gruppo 1 (nessun timer, nessuna estrazione). La Frattura ha `fracture.groups` (16) gruppi, in ordine; il gruppo `i` è scelto come F-77 (`pick_weighted` sui pesi) tra i `packs`
 di **tutte** le aree di `fracture.grades[g].areas` (unione, pesi dei gruppi invariati); i suoi mostri sono scalati con F-110/F-111 (più `pack_bonus`, F-111). Tra un gruppo e l'altro passa `combat.respawn_ms` (stato `BETWEEN`). Cancellato
 l'ultimo gruppo, dopo `combat.respawn_ms` entra il **boss** del grado (F-112, F-115). Boss ucciso = vittoria. Morte o abbandono = sconfitta (X4). Nessun tiro di Monolito e nessun conteggio F-87 dentro la Frattura.
 Esempio (`fracture.groups` = 3 nelle fixture): gruppo 1, `BETWEEN`, gruppo 2, `BETWEEN`, gruppo 3, `BETWEEN`, boss; tre `fracture_group_cleared(i, 3)`, poi `fracture_boss_started`, poi `fracture_finished(&"won", g, 3, …)`. Morte al gruppo 2 →
@@ -690,7 +690,7 @@ Dentro la Frattura, a ogni uccisione di un mostro (non evocato): `roll_pct(fract
 `min(10, g + delta)` e rarità F-109. Boss ucciso: `roll_pct(fracture.card_drop.boss_pct)` e `boss_delta`. Le Carte cadute vanno nella borsa della Frattura. Ordine dei tiri: probabilità, delta, rarità (poi i tiri di F-109).
 **Fuori** dalle Fratture le Carte escono dalle tabelle di drop dei mostri e dei Monoliti (F-32, voce con `item` di categoria `map`, `qty` [1, 1], rarità F-109); gradi di partenza: Pianure 1; Bosco 1-2; Miniere 1-3; Soglia 2-3; Monoliti 1-4
 (`loot_tables.json`). Obiettivo (Q64): fuori dalle Fratture una Carta ogni 2-4 ore di combattimento nell'area giusta; dentro, ~1 Carta di grado uguale o superiore per Frattura.
-Valori di partenza: `monster_pct` 0,4; `boss_pct` 70; `monster_delta` [70, 27, 3]; `boss_delta` [20, 70, 10].
+Valori di partenza: `monster_pct` 0,5; `boss_pct` 70; `monster_delta` [70, 27, 3]; `boss_delta` [20, 70, 10].
 Esempi: grado 4 con `card_chance_pct` 50 → 0,6% per uccisione; grado 10 → il grado resta 10 per ogni delta; `boss_pct` 100 con seme fisso → una Carta a ogni boss. Test: `tests/systems/fractures/test_card_drops.gd`.
 
 ### F-114 Smantellamento di una Carta
@@ -1008,7 +1008,7 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | `sockets.{by_rarity, bonus_at_upgrade}` (M8) | `{"common":0,"magic":1,"rare":2}`, 7 | F-89 |
 | `rift.sockets` (già presente, usata in M8) | `[{"level":1},{"level":20},{"level":40},{"level":60},{"level":80}]` | 11 |
 | `offline.{cap_ms, min_ms, chunk_ms}` | 43200000, 60000, 60000 | F-40, F-41 |
-| `fracture.{groups, intensity_steps, pulse_ms, mod_count, card_rarity, card_drop, salvage, grades}` (M13, R-04; sostituisce `fractures.*`) | 30, 10, 4000, `{"common":[0,0],"magic":[1,2],"rare":[3,4]}`, `{"magic_pct":25,"rare_pct":6}`, `{"monster_pct":0.4,"boss_pct":70,"monster_delta":[70,27,3],"boss_delta":[20,70,10]}`, `{"dust_per_grade":5,"rarity_mult":{"common":1,"magic":1.5,"rare":2}}`, tabella F-110 (10 righe) | F-50, F-109…F-116 |
+| `fracture.{groups, intensity_steps, pulse_ms, mod_count, card_rarity, card_drop, salvage, grades}` (M13, R-04; sostituisce `fractures.*`) | 16, 10, 4000, `{"common":[0,0],"magic":[1,2],"rare":[3,4]}`, `{"magic_pct":25,"rare_pct":6}`, `{"monster_pct":0.5,"boss_pct":70,"monster_delta":[70,27,3],"boss_delta":[20,70,10]}`, `{"dust_per_grade":5,"rarity_mult":{"common":1,"magic":1.5,"rare":2}}`, tabella F-110 (10 righe) | F-50, F-109…F-116 |
 | ~~`parallel.*`~~ | tolta | era F-51 (corsie eliminate) |
 
 Chiavi tolte con la riforma (M4-01, D3): `combat.hp_per_vitality`, `combat.hp_skill`, `combat.defence_skill`,

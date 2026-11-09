@@ -166,10 +166,10 @@ mestieri; l'Incisore sale di livello solo consumando drop (più la Lastra runica
 **Fonte**: decisioni X1-X4 (`DECISIONS_LOG.md`, approvate dall'utente il 2026-11-09, riportate da R-04); documenti `01_GDD.md` §17, `02_FORMULAS.md` §7 (F-50, F-109…F-116), `04_DATA_SCHEMA.md` §11, `05_INTERFACES.md` §5.23 e §7.v.
 La Frattura casuale ogni 2-4 ore è **eliminata**; le corsie parallele non esistono più (W3).
 **Contenuto**: **Carte della Frattura** di grado 1-10 con rarità e modificatori (rischio + premio), che cadono dai mostri delle aree e dai Monoliti (gradi bassi) e soprattutto dalle Fratture; i Cristalli funzionano anche sulle Carte, lo smantellamento dà Polvere;
-**Fratture** aperte dal giocatore con una Carta (30 gruppi di mostri scalati per grado, poi un **boss** con una abilità propria), borsa della Frattura separata consegnata solo alla vittoria, **se muori perdi la Carta e il bottino della Frattura**;
+**Fratture** aperte dal giocatore con una Carta (16 gruppi di mostri scalati per grado, poi un **boss** con una abilità propria), borsa della Frattura separata consegnata solo alla vittoria, **se muori perdi la Carta e il bottino della Frattura**;
 funzionano anche offline; pagina **Fratture**, Frattura in corso in Combattimento, Guida; nomi nuovi di `NOMI.md` (sezione Fratture); salvataggio `cards` e `fractures` (additivi, `format_version` 4 invariata).
-**Giocabile**: si trova una Carta cacciando, la si migliora con i Cristalli, la si apre, si combatte 30 gruppi e un boss; vittoria = bottino e Carte più alte nel Deposito, morte = tutto perso.
-**Uscita** (accettazione riportata in `07_TASKS.md`): nessuna apertura automatica; Carte 1-10 con rarità e modificatori e Cristalli che funzionano; ogni Frattura ha N gruppi e un boss; vittoria = bottino nel Deposito, morte o abbandono = Carta e borsa perse;
+**Giocabile**: si trova una Carta cacciando, la si migliora con i Cristalli, la si apre, si combattono 16 gruppi e un boss; vittoria = bottino e Carte più alte nel Deposito, morte = tutto perso.
+**Uscita** (accettazione riportata in `07_TASKS.md`; **verificata in M13-07, tutti i punti soddisfatti** salvo la durata del grado 1, 13,9 minuti, e la regola "muore sotto di 10 livelli", vedi Q63): nessuna apertura automatica; Carte 1-10 con rarità e modificatori e Cristalli che funzionano; ogni Frattura ha N gruppi e un boss; vittoria = bottino nel Deposito, morte o abbandono = Carta e borsa perse;
 offline con riepilogo; la sim dà 15-30 minuti per Frattura nel grado giusto e ~1 Carta di grado uguale o superiore per Frattura (la scala dei gradi non si interrompe); Guida aggiornata; tutti i test verdi.
 **Task** M13-01…M13-07 (`07_TASKS.md`); tag `m13-done`. Domande Q63-Q65 (`OPEN_QUESTIONS.md`).
 

@@ -1463,6 +1463,8 @@ func use_currency(uid: int, currency_id: StringName) -> CommandResult
     # un Cristallo dalla Bank (F-109): unknown_id, not_equippable (non è un Cristallo), item_locked, requirement_not_met (rarità non adatta), not_enough_items; atomico; card_changed(uid, updated)
 func salvage(uid: int) -> CommandResult        # F-114: unknown_id, item_locked, bank_full (nulla cambia); la Polvere va nella Bank; card_changed(uid, removed)
 func take(uid: int) -> MapCard                 # INTERNO: solo FractureSystem.open; toglie la Carta e la restituisce (null se assente); card_changed(uid, removed)
+func roll_rarity() -> StringName               # F-109: rarità di una Carta che cade, con `item_rarity_pct` della sessione (`MapCardRoller.roll_rarity`)
+func salvage_dust(grade: int, rarity: StringName) -> int   # F-114: `floor(dust_per_grade × grado × rarity_mult)`, la Polvere che darebbe lo smantellamento
 func new_game() -> void; func to_save() -> Dictionary; func from_save(d: Dictionary) -> void
 ```
 - `add`/`create` emettono `card_changed(uid, added)` e `deposit.notify_changed()`; `uid` crescenti da 1 (`next_uid` salvato), mai riusati. Il drop di una Carta (tabelle di drop F-32 con `item` di categoria `map`, e F-113) passa da `cards.create`-equivalente
@@ -1505,7 +1507,7 @@ func open(card_uid: int) -> CommandResult
     # in ordine: unknown_id, fracture_active, fracture_bag_pending. Effetto: cards.take, FractureRun, combat.start_fracture (ferma combattimento e azione, `replaced`, ricorda `return_area`), rebuild_modifiers, fracture_opened(grade)
 func abandon() -> CommandResult                # no_fracture; come la sconfitta (combat.abandon_fracture)
 func pending() -> Dictionary                   # {} se nulla in attesa; altrimenti {"stacks": [...], "pieces": int, "cards": int} (copia per la UI)
-func collect() -> CommandResult                # F-116: no_fracture (nulla in attesa); bank_full / armory_full se qualcosa resta in attesa (le voci che entrano si spostano comunque)
+func collect() -> CommandResult                # F-116: no_fracture (nulla in attesa); `bank_full` se restano oggetti, `armory_full` se restano Carte (caselle del Deposito); i pezzi entrano sempre (`armory.add_drop`); ciò che entra si sposta comunque
 func has_pending() -> bool
 func recommended_level(grade: int) -> int      # F-110 (solo informazione)
 func rebuild_modifiers() -> void               # sorgente fracture:<uid>: stat dei premi item_rarity_pct, skill_xp_pct (global), gold_drop_pct (F-111) mentre la Frattura è in corso; nessuna sorgente fuori
@@ -1519,11 +1521,44 @@ func new_game() -> void; func to_save() -> Dictionary; func from_save(d: Diction
 - Save (§6): `{"run": {} | FractureRun.to_save(), "pending": {} | FractureBag.to_save()}`, con `FractureRun.to_save()` = `{"card": MapCard.to_dict(), "group": int, "groups_cleared": int, "boss_started": bool, "return_area": str, "bag": FractureBag.to_save()}`.
   `from_save` tollerante: `run` non valida (Carta sconosciuta, gruppo fuori da `0..groups_total`) → nessuna Frattura (`Log.warn`; il motore ricaricato non è in Frattura: cfr. sotto) e la sua borsa è persa; `pending` non valido → vuoto. Nessun segnale.
 
+**Classi di appoggio del motore e del boss (COMBAT, M13-02/M13-03)**:
+```gdscript
+class_name ScaledMonsterDef extends MonsterDef   # systems/fractures/scaled_monster_def.gd — un mostro come appare nella Frattura (F-110/F-111)
+var damage_mult: float; var risk_damage_pct: float; var risk_speed_pct: float; var risk_defence_pct: float; var is_boss: bool
+static func copy_of(source: MonsterDef) -> ScaledMonsterDef   # livelli, PV, XP e oro già scalati; `CombatantStats.for_monster` legge i moltiplicatori
+
+class_name LootSink extends RefCounted           # systems/combat/loot_sink.gd — dove vanno i drop di un'uccisione (base neutra)
+func add(item_id: StringName, qty: int) -> bool; func add_piece(inst: ItemInstance) -> void; func drop_card(grade: int) -> void
+func drop_chance(base: ItemDef, chance_pct: float) -> float; func drop_qty(base: ItemDef, qty: int) -> int   # i valori dei dati, invariati
+# LootBag (fuori dalla Frattura) e FractureSink (dentro) la specializzano; KillRewards parla solo con questa interfaccia
+
+class_name FractureSink extends LootSink         # systems/combat/fracture_sink.gd — tutto nella borsa della Frattura; applica loot_qty_pct, dust_pct, blueprint_pct (F-111)
+func _init(session: GameSession, run: FractureRun); func add_card(card: MapCard) -> void   # drop_card tira la rarità con CardStore.roll_rarity
+
+class_name FractureCombat extends RefCounted     # systems/combat/fracture_combat.gd — la parte del motore specifica della Frattura (nessun flusso proprio)
+const PULSE_SOURCE: int = -2                     # attaccante di `combat_hit` dell'impulso (F-111 `pulse`): nessuna posizione di nemico (-1 è il giocatore)
+func active() -> bool; func begin(run: FractureRun) -> void; func end() -> void; func sink() -> LootSink
+func next_encounter() -> Encounter; func tick(ms: int) -> void; func after_kill(enemy, encounter) -> StringName; func reward(enemy) -> bool
+func use_ability(enemy, encounter, me, summoned) -> Dictionary; func absorb(enemy, damage: int) -> int   # abilità e scudo del boss
+func view() -> Dictionary; func to_save() -> Dictionary; func from_save(d: Dictionary) -> void
+
+class_name BossAbility extends RefCounted        # systems/fractures/boss_ability.gd — F-112, solo numeri, nessuno stato
+static func heavy_strike(boss: CombatantStats, defender: CombatantStats, ability: BossAbilityDef, rng: RngService, …) -> Dictionary   # niente tiro di precisione, solo parata (F-75)
+static func shield_amount(max_hp: int, ability: BossAbilityDef) -> int
+static func summon_defs(ability: BossAbilityDef, alive: int, used: int, max_pack: int, grade: int, …) -> Array[MonsterDef]   # mai oltre `max_alive` evocati vivi né oltre `max_pack` nemici
+
+class_name BossRewards extends RefCounted        # systems/fractures/boss_rewards.gd — F-115
+static func grant(session: GameSession, sink: LootSink, run: FractureRun, boss: MonsterDef) -> void   # pezzo almeno magico + Polvere nella borsa tramite il sink
+static func dust_qty(dust: int, dust_pct: float) -> int; static func piece_bases(class_def: ClassDef, grade: int, data: GameData) -> Array[ItemDef]
+```
+- **Il motore è diviso in due file** per la dimensione: `CombatFight` (`systems/combat/combat_fight.gd`, `extends RefCounted`) contiene la **meccanica** (stato, timer, attacchi, uccisioni, fine della Frattura); `CombatEngine extends CombatFight`
+  (`class_name CombatEngine`) contiene l'API pubblica, i comandi e il salvataggio. Il contratto di 5.10 e 5.23 resta quello di `CombatEngine`.
+
 **Motore (aggiunte a 5.10)**:
 ```gdscript
 # in CombatEngine
 func start_fracture(run: FractureRun) -> CommandResult    # solo FractureSystem.open: fracture_active se già in Frattura. Ferma l'azione (REPLACED) e l'area (replaced), `run.return_area` = area attuale, PV al massimo, mano 0, combat_started(&""), primo gruppo (run.next_pack)
-func abandon_fracture() -> void                           # solo FractureSystem.abandon e stop(): sconfitta con outcome &"abandoned"
+func abandon_fracture() -> void                           # FractureSystem.abandon e stop(): sconfitta con outcome &"abandoned". Solo `abandon_fracture` e le fini naturali (vittoria, morte) riportano all'area; `stop()` abbandona ma NON riporta (il combattimento resta fermo)
 func in_fracture() -> bool
 func fracture_run() -> FractureRun                        # null fuori
 ```
@@ -1532,7 +1567,7 @@ func fracture_run() -> FractureRun                        # null fuori
 - Regole nella Frattura: nessun tiro di Monolito, nessun conteggio F-87, nessun cambio di tratti/abilità (`combat_active`); il cibo e l'auto-cibo (con `food_heal_pct`, F-111) funzionano come fuori; `pulse` (F-111) ha un timer proprio (`fracture.pulse_ms`) salvato; la morte non
   fa `lose_all` sulla borsa del bottino (che non è in gioco: resta com'era) ma sulla borsa della Frattura. A ogni gruppo superato `fracture_group_cleared(index, total)`; dopo l'ultimo e `combat.respawn_ms` parte il boss (`fracture_boss_started(boss_id)`, abilità F-112);
   boss ucciso → vittoria. Nell'ordine: `fracture_finished(outcome, grade, groups, cards, pieces)` → consegna/perdita del `FractureSystem` → ritorno all'area di `return_area` (`start`, PV al massimo, la sua borsa del bottino com'era) oppure stop con `fracture_won`/`player_died`/
-  `fracture_abandoned` se non c'era un'area. `stop(reason)` durante la Frattura = abbandono.
+  `fracture_abandoned` se non c'era un'area. `stop(reason)` durante la Frattura = abbandono **senza** ritorno all'area (il combattimento resta fermo); solo `abandon_fracture` e le fini naturali riportano all'area. Il ritorno è **differito a fine istante** (dopo l'evento in corso, non dentro di esso). L'impulso emette `combat_hit(FractureCombat.PULSE_SOURCE, PLAYER, …)`; boss ed evocati non entrano in `kills` (F-87) e i Monoliti sono sospesi per tutta la Frattura; lo scudo del boss si rinnova solo se esaurito; l'evocazione non supera mai `max_alive`.
 - Save: in `combat` (additivo, `format_version` invariata): `enemies[i].summoned` (bool, assente = false) e `fracture = {"pulse_ms": int, "boss": {"ability_ms": int, "shield": int, "shield_ms": int}}` (assente fuori dalla Frattura). `from_save` risolve i nemici
   sul `FractureRun` già caricato (`FractureSystem.from_save` prima di `combat.from_save`); se `combat` dice di essere in Frattura ma `fractures.run` manca o non è valido → `idle` con `Log.warn`.
 - `OfflineSummary` ha `var fractures: Array[Dictionary]` (`[{"grade", "outcome", "groups", "cards", "pieces"}]`, una voce per `fracture_finished` durante l'offline, riempita da `OfflineSimulator` ascoltando il segnale) e `is_empty()` ne tiene conto; `OfflineTexts.fracture_line(entry) -> String`.
