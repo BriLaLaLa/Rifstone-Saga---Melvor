@@ -1,5 +1,5 @@
 class_name LootBag
-extends RefCounted
+extends LootSink
 ## The loot bag (F-33, docs/01_GDD.md §10.6): one slot per item type, unlimited quantity. Lost on death.
 
 var _session: GameSession
@@ -41,6 +41,16 @@ func add(item_id: StringName, qty: int) -> bool:
 	_items[item_id] = _items.get(item_id, 0) + qty
 	_emit_changed()
 	return true
+
+
+## Outside a Fracture a piece goes to the Armory (through the automatic filter) ...
+func add_piece(inst: ItemInstance) -> void:
+	_session.armory.add_drop(inst)
+
+
+## ... and a Card to the CardStore (F-109 rarity with the global `item_rarity_pct`; a full Deposit = `card_rejected`).
+func drop_card(grade: int) -> void:
+	_session.cards.create(grade, _session.cards.roll_rarity())
 
 
 ## Moves everything it can into the bank; what does not fit stays (`bank_full`).

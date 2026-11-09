@@ -32,6 +32,7 @@ var mastery: MasterySystem
 var character: CharacterSystem
 var armory: Armory
 var cards: CardStore  # M13-01
+var fractures: FractureSystem  # M13-02
 var equipment: Equipment
 var loadout: Loadout
 var actions: ActionRunner
@@ -154,6 +155,8 @@ func _create_systems() -> void:
 	_join(CardStore.SAVE_KEY, cards.new_game, cards.to_save, cards.from_save)
 	equipment = Equipment.new(self)
 	_join(Equipment.SAVE_KEY, equipment.new_game, equipment.to_save, equipment.from_save, equipment.rebuild_modifiers)
+	fractures = FractureSystem.new(self)
+	_join(FractureSystem.SAVE_KEY, fractures.new_game, fractures.to_save, fractures.from_save, fractures.rebuild_modifiers)
 	loadout = Loadout.new(self)
 	_join(Loadout.SAVE_KEY, loadout.new_game, loadout.to_save, loadout.from_save, loadout.rebuild_modifiers)
 	actions = ActionRunner.new(self)

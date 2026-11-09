@@ -16,7 +16,7 @@ static func write(snapshot: Dictionary) -> Dictionary:
 	for id: StringName in kills:
 		kills_out[String(id)] = kills[id]
 	var idle: bool = snapshot["state"] == CombatEngine.STATE_IDLE
-	return {
+	var result: Dictionary = {
 		"state": String(snapshot["state"]), "area": "" if idle else String(snapshot["area"]),
 		"player_hp": 0 if idle else snapshot["player_hp"],
 		"player_timer_ms": 0 if idle else snapshot["player_timer_ms"],
@@ -28,14 +28,18 @@ static func write(snapshot: Dictionary) -> Dictionary:
 		"loot": snapshot["loot"], "kills": kills_out, "deaths": snapshot["deaths"],
 		"food_eaten": snapshot["food_eaten"], "stone": snapshot["stone"],
 	}
+	if not idle and snapshot.get("fracture") is Dictionary and not (snapshot["fracture"] as Dictionary).is_empty():  # M13
+		result["fracture"] = snapshot["fracture"]
+	return result
 
 
 ## Tolerant read (an unknown area or monster, or a malformed fight, gives `idle` with the bag and counters kept).
 ## Returns the same keys as `write` takes plus `encounter` (Encounter, null when idle); `loot` stays in `d`.
-static func read(d: Dictionary, data: GameData) -> Dictionary:
+## `run`: the Fracture already loaded by `FractureSystem` (null = none); a saved Fracture fight needs it (M13).
+static func read(d: Dictionary, data: GameData, run: FractureRun = null) -> Dictionary:
 	var result: Dictionary = {
 		"state": CombatEngine.STATE_IDLE, "area": &"", "encounter": null, "player_hp": 0, "player_timer_ms": 0,
-		"hand": 0, "between_ms": 0, "effects": {}, "abilities": {}, "buffs": {},
+		"hand": 0, "between_ms": 0, "effects": {}, "abilities": {}, "buffs": {}, "fracture": {},
 		"kills": _read_kills(d, data), "deaths": maxi(0, _int(d, "deaths")),
 		"food_eaten": maxi(0, _int(d, "food_eaten")),
 	}
@@ -43,12 +47,19 @@ static func read(d: Dictionary, data: GameData) -> Dictionary:
 	if not [CombatEngine.STATE_ENCOUNTER, CombatEngine.STATE_RIFTSTONE, CombatEngine.STATE_BETWEEN].has(saved_state):
 		return result
 	var area_id := StringName(str(d.get("area", "")))
-	if not data.has_area(area_id):
+	var fracture: Variant = d.get("fracture")
+	if fracture is Dictionary:
+		if run == null:
+			Log.warn(LOG_CATEGORY, "saved Fracture fight without a valid Fracture: idle")
+			return result
+		result["fracture"] = fracture
+		area_id = &""
+	elif not data.has_area(area_id):
 		Log.warn(LOG_CATEGORY, "saved fight in unknown area '%s': idle" % area_id)
 		return result
 	var encounter := Encounter.new()
 	if saved_state != CombatEngine.STATE_BETWEEN:
-		encounter = Encounter.from_save(d["enemies"] if d.get("enemies") is Array else [], data)
+		encounter = Encounter.from_save(d["enemies"] if d.get("enemies") is Array else [], data, run if fracture is Dictionary else null)
 		if encounter == null:
 			Log.warn(LOG_CATEGORY, "saved fight with an unknown monster or a malformed enemy: idle")
 			return result

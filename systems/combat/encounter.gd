@@ -15,6 +15,7 @@ class Enemy extends RefCounted:
 	var hp: int = 0
 	var timer_ms: int = 0
 	var pulse_damage: int = 0  # > 0: a Rift Stone (F-87); its "attack" is the pulse, `timer_ms` the time to the next one
+	var summoned: bool = false  # M13 (F-112): called by a boss; gives no xp, gold or drops
 
 	func _init(monster: MonsterDef, data: GameData, pulse: int = 0) -> void:
 		def = monster
@@ -47,34 +48,60 @@ static func spawn(area: AreaDef, data: GameData, rng: RngService) -> Encounter:
 	return result
 
 
-## Rebuilds the enemies of a save (`[{"monster", "hp", "timer_ms"}]`). null if a monster is unknown or an entry
-## is malformed (the caller logs and goes idle). hp is clamped to [0, max], the timer to [0, interval].
-static func from_save(entries: Array, data: GameData) -> Encounter:
+## Rebuilds the enemies of a save (`[{"monster", "hp", "timer_ms"}]`, `"summoned": true` for a summoned one). null if a
+## monster is unknown or an entry is malformed (the caller logs and goes idle). hp is clamped to [0, max], the timer to
+## [0, interval]. With a `run` (a Fracture) the monsters are scaled like its packs (F-110, F-111) and the boss of its grade
+## is known.
+static func from_save(entries: Array, data: GameData, run: FractureRun = null) -> Encounter:
 	var result := Encounter.new()
 	for entry: Variant in entries:
 		if not (entry is Dictionary):
 			return null
 		var d: Dictionary = entry
 		var monster_id := StringName(str(d.get("monster", "")))
-		var known: bool = data.has_monster(monster_id) or data.has_rift_stone(monster_id)
-		if not known or not (d.get("hp") is int or d.get("hp") is float):
+		var def: MonsterDef = _saved_def(monster_id, data, run)
+		if def == null and not data.has_rift_stone(monster_id) or not (d.get("hp") is int or d.get("hp") is float):
 			return null
 		var enemy: Enemy = null
-		if data.has_rift_stone(monster_id):
-			enemy = RiftStone.enemy(data.rift_stone(monster_id), data)
+		if def != null:
+			enemy = Enemy.new(def, data)
 		else:
-			enemy = Enemy.new(data.monster(monster_id), data)
+			enemy = RiftStone.enemy(data.rift_stone(monster_id), data)
+		enemy.summoned = d.get("summoned") == true
 		enemy.hp = clampi(int(d["hp"]), 0, enemy.stats.max_hp)
 		enemy.timer_ms = clampi(int(d.get("timer_ms", enemy.timer_ms)), 0, enemy.stats.attack_interval_ms)
 		result.enemies.append(enemy)
 	return result
 
 
+# The monster (scaled inside a Fracture) or the boss of the run; null for a Rift Stone or an unknown id.
+static func _saved_def(monster_id: StringName, data: GameData, run: FractureRun) -> MonsterDef:
+	if run != null:
+		var boss: BossDef = run.boss_def(data)
+		if boss != null and boss.id == monster_id:
+			return FractureScaler.scale_monster(boss, run.grade, run.effects, data)
+		if data.has_monster(monster_id):
+			return FractureScaler.scale_monster(data.monster(monster_id), run.grade, run.effects, data)
+		return null
+	return data.monster(monster_id) if data.has_monster(monster_id) else null
+
+
 func to_save() -> Array:
 	var out: Array = []
 	for enemy: Enemy in enemies:
-		out.append({"monster": String(enemy.def.id), "hp": enemy.hp, "timer_ms": enemy.timer_ms})
+		var saved: Dictionary = {"monster": String(enemy.def.id), "hp": enemy.hp, "timer_ms": enemy.timer_ms}
+		if enemy.summoned:
+			saved["summoned"] = true
+		out.append(saved)
 	return out
+
+
+## The enemies of a Fracture group (already scaled): full hp, timers at their own interval.
+static func of_defs(defs: Array[MonsterDef], data: GameData) -> Encounter:
+	var result := Encounter.new()
+	for def: MonsterDef in defs:
+		result.enemies.append(Enemy.new(def, data))
+	return result
 
 
 func monster_ids() -> Array[StringName]:
