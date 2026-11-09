@@ -32,6 +32,7 @@ func _played() -> GameSession:
 	s.wallet.add_gold(100000)
 	TestFactory.give(s, INGOT, 100)
 	TestFactory.give(s, SHARD, 100)
+	TestFactory.give(s, &"rift_dust", 2000)
 	var sword: int = TestFactory.give_piece(s, SWORD, &"rare", 8)
 	var ring: int = TestFactory.give_piece(s, RING, &"magic", 4)
 	var locked: int = TestFactory.give_piece(s, AMULET, &"common", 1)
@@ -187,6 +188,7 @@ func test_upgrade_success_pct_changes_the_refinement_end_to_end() -> void:
 	s.wallet.add_gold(2000000)
 	TestFactory.give(s, INGOT, 1000)
 	TestFactory.give(s, SHARD, 1000)
+	TestFactory.give(s, &"rift_dust", 2000)
 	var uid: int = TestFactory.give_piece(s, SWORD, &"magic", 8)
 	s.modifiers.set_source(LUCK, [Modifier.make(&"upgrade_success_pct", 300.0)])
 	for i: int in 9:

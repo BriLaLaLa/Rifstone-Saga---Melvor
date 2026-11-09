@@ -68,6 +68,7 @@ func add(item_id: StringName, qty: int) -> CommandResult:
 		_locked[item_id] = false
 	_counts[item_id] += qty
 	_events.bank_changed.emit(item_id, _counts[item_id], qty)
+	_events.item_obtained.emit(item_id, qty)
 	if is_new:
 		_deposit.notify_changed()
 	return CommandResult.success()

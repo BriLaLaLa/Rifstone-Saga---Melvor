@@ -50,7 +50,7 @@ func test_to_rare_keeps_the_old_modifiers_without_duplicates() -> void:
 		assert_true(session.cards.use_currency(uid, TO_RARE).ok)
 		var card: MapCard = session.cards.get_card(uid)
 		assert_eq(card.rarity, &"rare")
-		assert_between(card.mods.size(), 3, 4)
+		assert_between(card.mods.size(), maxi(before.size(), 1), 4)  # F-123 may stop earlier
 		var after: Array[StringName] = _ids(card)
 		for i: int in before.size():
 			assert_eq(after[i], before[i], "old modifiers kept, in place")

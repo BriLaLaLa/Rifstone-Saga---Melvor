@@ -3,7 +3,7 @@ extends RefCounted
 ## "Si ottiene da" / "Serve a" of every item (docs/05_INTERFACES.md §5.19, docs/01_GDD.md §27), built once from GameData.
 ## Read-only: no state of the game, no signals, never saved. Every number shown comes from the data.
 ##
-## Sources: monster and Rift Stone drops, recipes, blueprints, shop, salvage, starter kit.
+## Sources: monster and Rift Stone drops, the drop pool and the legendaries (M14), recipes, blueprints, shop, salvage, starter kit.
 ## Uses: recipes, blueprints, refinement (ingots, plates, handles, seal, shards, currencies), sockets, altar, food, salvage.
 
 const LOG_CATEGORY: String = "guide"
@@ -30,10 +30,12 @@ var _sources: Dictionary[StringName, Array] = {}
 var _uses: Dictionary[StringName, Array] = {}
 var _no_source: Array[StringName] = []
 var _no_use: Array[StringName] = []
+var _drops: GuideDrops = null
 
 
 func _init(data: GameData) -> void:
 	_data = data
+	_drops = GuideDrops.new(data)
 	for item: ItemDef in _data.items():
 		_sources[item.id] = []
 		_uses[item.id] = []
@@ -50,6 +52,22 @@ static func entry(kind: StringName, id: StringName) -> StringName:
 
 func sources_of(item_id: StringName) -> Array[GuideRef]:
 	return _refs(_sources, item_id)
+
+
+## M14 (F-124): everything a monster / area / Rift Stone / boss / action can give, with the base percentage; the UI
+## blocks the entries whose item is not discovered.
+func drops_of(kind: StringName, id: StringName) -> Array[GuideRef]:
+	return _drops.drops_of(kind, id)
+
+
+## M14 (F-124): `drops_of` with the lock state of every entry (`GuideDrops.drops_view`); `discoveries` has `has(item_id)`.
+func drops_view(kind: StringName, id: StringName, discoveries: Object) -> Array[Dictionary]:
+	return _drops.drops_view(kind, id, discoveries)
+
+
+## M14 (F-124): the sources of an item only when it is discovered; an item never obtained does not reveal its source.
+func sources_visible(item_id: StringName, discoveries: Object) -> Array[GuideRef]:
+	return sources_of(item_id) if GuideDrops.is_unlocked(item_id, discoveries) else ([] as Array[GuideRef])
 
 
 func uses_of(item_id: StringName) -> Array[GuideRef]:
@@ -122,6 +140,8 @@ func _add(table: Dictionary[StringName, Array], item_id: StringName, ref: GuideR
 		if known.kind == ref.kind and known.target == ref.target and known.label == ref.label \
 				and known.detail == ref.detail:
 			return
+	if ref.item == &"":
+		ref.item = item_id
 	table[item_id].append(ref)
 
 
@@ -158,6 +178,8 @@ func _build_sources() -> void:
 	for def: ItemDef in _data.items():
 		if def.is_map():
 			_add_card_source(def)
+	for extra: Dictionary in _drops.extra_sources():  # M14: drop pool (F-121) and legendaries (F-120)
+		_add(_sources, extra["item"], extra["ref"])
 
 
 func _add_monster_sources(area: AreaDef, monster: MonsterDef) -> void:
@@ -169,7 +191,7 @@ func _add_monster_sources(area: AreaDef, monster: MonsterDef) -> void:
 		_add_table_sources(table_id, entry(&"monster", monster.id), monster.name, area)
 	for drop: DropEntry in monster.drops:
 		_add(_sources, drop.item_id, GuideRef.make(GuideRef.KIND_MONSTER, entry(&"monster", monster.id), monster.name,
-				"%s, %s%%" % [area.name, num(drop.chance_pct)]))
+				"%s, %s%%" % [area.name, num(drop.chance_pct)], drop.item_id, drop.chance_pct))
 	if monster.rift_shard_chance > 0.0:
 		_add(_sources, SHARD_ITEM, GuideRef.make(GuideRef.KIND_MONSTER, entry(&"monster", monster.id), monster.name,
 				"%s, %s%%" % [area.name, num(monster.rift_shard_chance)]))
@@ -181,7 +203,7 @@ func _add_stone_sources(area: AreaDef, stone: RiftStoneDef) -> void:
 		_add_table_sources(table_id, target, stone.name, area)
 	for drop: DropEntry in stone.drops:
 		_add(_sources, drop.item_id, GuideRef.make(GuideRef.KIND_RIFT_STONE, target, stone.name,
-				"%s, %s%%" % [area.name, num(drop.chance_pct)]))
+				"%s, %s%%" % [area.name, num(drop.chance_pct)], drop.item_id, drop.chance_pct))
 	if stone.shards_max > 0:
 		_add(_sources, SHARD_ITEM, GuideRef.make(GuideRef.KIND_RIFT_STONE, target, stone.name, area.name))
 
@@ -193,7 +215,7 @@ func _add_table_sources(table_id: StringName, target: StringName, label: String,
 			continue
 		for drop: DropEntry in table.entries:
 			_add(_sources, drop.item_id, GuideRef.make(GuideRef.KIND_LOOT_TABLE, target, label,
-					"%s, %s%%" % [area.name, num(drop.chance_pct)]))
+					"%s, %s%%" % [area.name, num(drop.chance_pct)], drop.item_id, drop.chance_pct))
 
 
 ## Equipment: forged from its blueprint; components of that blueprint come back from salvage (F-95).

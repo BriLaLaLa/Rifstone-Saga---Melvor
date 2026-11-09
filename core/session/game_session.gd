@@ -41,6 +41,7 @@ var combat: CombatEngine
 var shop: Shop
 var rift: RiftAltar
 var hints: HintsSystem
+var discoveries: Discoveries  # M14-07
 # The other system fields of docs/05_INTERFACES.md §5.3 are declared by the task that creates each system.
 var slot: int = -1
 var player_name: String = ""
@@ -175,6 +176,8 @@ func _create_systems() -> void:
 	hints = HintsSystem.new(self)
 	_join(HintsSystem.SAVE_KEY, hints.new_game, hints.to_save, hints.from_save)
 	hints.connect_triggers()
+	discoveries = Discoveries.new(data, events)
+	_join(Discoveries.SAVE_KEY, discoveries.new_game, discoveries.to_save, discoveries.from_save)
 
 
 # Registers a SaveParticipant (docs/05_INTERFACES.md: SAVE_KEY, new_game, to_save, from_save).

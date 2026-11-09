@@ -8,6 +8,7 @@ const DOWNGRADE_FROM_KEY: String = "upgrade.downgrade_from"
 const SEAL_KEY: String = "upgrade.seal_item"
 const INGOT_ITEMS_KEY: String = "upgrade.ingot_items"
 const SHARD_ITEM: StringName = &"rift_shard"
+const DUST_ITEM: StringName = &"rift_dust"
 const STAT: StringName = &"upgrade_success_pct"
 
 
@@ -41,7 +42,8 @@ static func seal_item(data: GameData) -> StringName:
 	return StringName(str(data.balance_value(SEAL_KEY)))
 
 
-## Cost of the step `level` -> `level + 1` for a piece of `grade`: {gold, ingot (item id), ingots, shards}.
+## Cost of the step `level` -> `level + 1` for a piece of `grade`: {gold, ingot (item id), ingots, shards, dust}
+## (`dust` = Rift Dust, M14; data/UI read the same dictionary).
 static func cost(level: int, grade: int, data: GameData) -> Dictionary:
 	var r: Dictionary = row(level, data)
 	return {
@@ -49,6 +51,7 @@ static func cost(level: int, grade: int, data: GameData) -> Dictionary:
 		"ingot": ingot_item(grade, data),
 		"ingots": int(r["ingots"]),
 		"shards": int(r["shards"]),
+		"dust": int(r.get("dust", 0)),
 	}
 
 
@@ -61,6 +64,7 @@ static func check(inst: ItemInstance, use_seal: bool, wallet: Wallet, bank: Bank
 	if wallet.get_gold() < int(price["gold"]):
 		return CommandResult.fail(Reasons.NOT_ENOUGH_GOLD)
 	if not bank.has(price["ingot"], int(price["ingots"])) or not bank.has(SHARD_ITEM, int(price["shards"])) \
+			or not bank.has(DUST_ITEM, int(price["dust"])) \
 			or (seal_needed(inst, use_seal, data) and not bank.has(seal_item(data), 1)):
 		return CommandResult.fail(Reasons.NOT_ENOUGH_ITEMS)
 	return CommandResult.success()
@@ -84,6 +88,7 @@ static func pay(inst: ItemInstance, wallet: Wallet, bank: Bank, data: GameData) 
 		wallet.spend(int(price["gold"]))
 	spend(bank, price["ingot"], int(price["ingots"]))
 	spend(bank, SHARD_ITEM, int(price["shards"]))
+	spend(bank, DUST_ITEM, int(price["dust"]))
 
 
 ## Removes `qty` of `item_id` from the bank when positive.

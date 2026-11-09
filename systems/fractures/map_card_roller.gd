@@ -2,9 +2,11 @@ class_name MapCardRoller
 extends RefCounted
 ## Rolls of a Fracture Card (docs/02_FORMULAS.md F-109). Pure logic, no state. Order of draws on `rng`: rarity (one
 ## randf, `roll_rarity`), the number of modifiers (always one `randi_range`), then for each modifier the choice
-## (`pick_weighted`) and the intensity step (`randi_range`).
+## (`pick_weighted`) and the intensity step (`randi_range`). F-123: the total risk points of a Card stay within `risk_cap`
+## (the step is reduced; a candidate that does not fit at step 0 is dropped and the choice is repeated).
 
 const LOG_CATEGORY: String = "cards"
+const EPSILON: float = 1e-9
 
 
 ## F-109: `p_magic`/`p_rare` = `fracture.card_rarity` x `k`, `k = 1 + rarity_pct / 100`; rare if `r < p_rare`, magic if
@@ -50,16 +52,55 @@ static func extend_mods(card: MapCard, rarity: StringName, data: GameData, rng: 
 	var range_raw: Array = data.balance_value("fracture.mod_count.%s" % rarity) as Array
 	var target: int = rng.randi_range(int(range_raw[0]), int(range_raw[1]))
 	var steps: int = int(data.balance_value("fracture.intensity_steps"))
+	var cap: float = risk_cap(card.grade, data)
+	var discarded: Dictionary[StringName, bool] = {}  # F-123: candidates that do not fit even at step 0
 	while result.size() < target:
 		var candidates: Array[MapModDef] = _candidates(result, card.grade, data)
+		for id: StringName in discarded:
+			candidates = candidates.filter(func(def: MapModDef) -> bool: return def.id != id)
 		if candidates.is_empty():
 			break
 		var weights: Array[int] = []
 		for def: MapModDef in candidates:
 			weights.append(def.weight)
 		var picked: MapModDef = candidates[rng.pick_weighted(weights)]
-		result.append(MapModRoll.make(picked.id, rng.randi_range(0, steps)))
+		var step: int = fitting_step(picked, rng.randi_range(0, steps), cap - total_risk_points(result, data), data)
+		if step < 0:
+			discarded[picked.id] = true
+			continue
+		result.append(MapModRoll.make(picked.id, step))
 	return result
+
+
+## F-123: risk points of a modifier at `step`: `risk_value x fracture.risk_unit[risk type]` (unit 1 by default).
+static func risk_points(mod: MapModDef, step: int, data: GameData) -> float:
+	var steps: int = int(data.balance_value("fracture.intensity_steps"))
+	var units: Dictionary = data.balance_value("fracture.risk_unit") as Dictionary
+	return mod.risk.value_at(step, steps) * float(units.get(String(mod.risk.type), 1.0))
+
+
+## F-123: `fracture.risk_cap.base + fracture.risk_cap.per_grade x (grade - 1)`.
+static func risk_cap(grade: int, data: GameData) -> float:
+	return float(data.balance_value("fracture.risk_cap.base")) \
+			+ float(data.balance_value("fracture.risk_cap.per_grade")) * float(grade - 1)
+
+
+## F-123: the sum of the risk points of `mods`.
+static func total_risk_points(mods: Array[MapModRoll], data: GameData) -> float:
+	var total: float = 0.0
+	for roll: MapModRoll in mods:
+		var def: MapModDef = data.map_mod(roll.mod_id)
+		if def != null:
+			total += risk_points(def, roll.step, data)
+	return total
+
+
+## F-123: the highest step `<= step` of `mod` whose points fit in `room`; -1 when not even step 0 fits.
+static func fitting_step(mod: MapModDef, step: int, room: float, data: GameData) -> int:
+	for s: int in range(step, -1, -1):
+		if risk_points(mod, s, data) <= room + EPSILON:
+			return s
+	return -1
 
 
 ## F-109: for every modifier of the card the risk and the reward at its step: `[{"mod": id, "risk_type": StringName,

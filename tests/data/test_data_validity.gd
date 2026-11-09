@@ -14,10 +14,6 @@ const SKILLS: Array[Array] = [
 ## Ids that the reform removed (D3, Q37): combat skills, bows and staves.
 const REMOVED_SKILLS: PackedStringArray = ["blade", "marksmanship", "arcana", "vitality", "guard"]
 const REMOVED_ITEM_SUFFIXES: PackedStringArray = ["_blade", "_bow", "_staff"]
-## F-11 rules as [every_levels or at_level key, level, stat, value] (artisan only: the gathering trades use the milestones).
-const ARTISAN_BONUSES: Array[Array] = [
-	["every_levels", 10, "preservation_chance", 1.5], ["at_level", 99, "skill_interval_pct", -5.0],
-]
 ## 02_FORMULAS.md §8.1, T1..T8: [level, interval_ms, xp, product qty, item value].
 const GATHERING_TIERS: Array[Array] = [
 	[1, 3000, 10, 1, 1], [10, 3200, 18, 1, 3], [20, 3500, 28, 1, 6], [30, 3800, 40, 1, 10],
@@ -137,21 +133,11 @@ func test_no_removed_ids_in_items_and_actions() -> void:
 			assert_false(REMOVED_SKILLS.has(key), "requirement %s of %s" % [key, e["id"]])
 
 
-func test_mastery_bonuses_follow_f11() -> void:
+func test_no_skill_has_mastery_bonuses_any_more() -> void:
+	# M14 (F-122): the per-item bonuses are gone; the rule is balance.json mastery.step (tests/systems/mastery/test_mastery_step.gd).
 	for e: Dictionary in _entries("skills", "skills"):
-		var expected: Array[Array] = []
-		if e["category"] != "gathering":
-			expected = ARTISAN_BONUSES
-		var rules: Array = e.get("mastery_bonuses", [])
-		assert_eq(rules.size(), expected.size(), "rules of %s" % e["id"])
-		for index: int in mini(rules.size(), expected.size()):
-			var rule: Dictionary = rules[index] as Dictionary
-			var want: Array = expected[index]
-			assert_eq(rule.get(want[0]), float(want[1]), "%s rule %d level" % [e["id"], index])
-			assert_eq((rule["modifiers"] as Array).size(), 1, "%s rule %d modifiers" % [e["id"], index])
-			var m: Dictionary = rule["modifiers"][0] as Dictionary
-			assert_eq(m["stat"], want[2], "%s rule %d stat" % [e["id"], index])
-			assert_almost_eq(float(m["value"]), float(want[3]), 0.0001, "%s rule %d value" % [e["id"], index])
+		assert_false(e.has("mastery_bonuses"), "skill %s" % e["id"])
+
 
 
 func test_every_action_has_mastery() -> void:

@@ -20,7 +20,7 @@
      ]},
     {"id": "guide_mastery_step", "section": "crafts", "title": "Bonus di maestria", "order": 20,
      "blocks": [
-       {"type": "text", "text": "Ogni azione con maestria dà bonus permanenti a intervalli regolari di livelli di maestria. Nella raccolta migliorano {stat:skill_interval_pct} e {stat:double_item_chance}; nell'artigianato {stat:preservation_chance} e {stat:skill_interval_pct}."},
+       {"type": "text", "text": "Ogni azione con maestria dà bonus permanenti ogni {balance:mastery.step.every_levels|int} livelli di maestria, fino al livello massimo. Nella raccolta migliorano {stat:skill_interval_pct} e {stat:double_item_chance}; nell'artigianato {stat:preservation_chance} e {stat:skill_interval_pct}."},
        {"type": "text", "text": "La carta dell'azione mostra il livello di maestria, i bonus attuali e il prossimo. I bonus si sommano ai traguardi del livello venticinque, cinquanta e novantanove."}
      ]}
   ]

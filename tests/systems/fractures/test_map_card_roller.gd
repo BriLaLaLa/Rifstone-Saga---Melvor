@@ -86,7 +86,8 @@ func test_mod_counts_by_rarity() -> void:
 		var magic: MapCard = MapCardRoller.create(5, &"magic", _data, RngService.new(seed_value))
 		assert_between(magic.mods.size(), 1, 2, "magic 1-2")
 		var rare: MapCard = MapCardRoller.create(5, &"rare", _data, RngService.new(seed_value))
-		assert_between(rare.mods.size(), 3, 4, "rare 3-4")
+		assert_between(rare.mods.size(), 1, 4, "rare up to 4: the risk cap (F-123) can leave fewer")
+		assert_lte(MapCardRoller.total_risk_points(rare.mods, _data), MapCardRoller.risk_cap(5, _data) + 1e-9)
 
 
 func test_order_of_the_draws_is_count_then_choice_and_step() -> void:
@@ -171,7 +172,7 @@ func test_extend_keeps_the_old_modifiers_and_adds_without_duplicates() -> void:
 		var before: Array[StringName] = _mod_ids(card)
 		var extended: Array[MapModRoll] = MapCardRoller.extend_mods(card, &"rare", _data, RngService.new(seed_value + 100))
 		assert_gte(extended.size(), before.size())
-		assert_between(extended.size(), 3, 4, "the draw is the total of the rarity")
+		assert_between(extended.size(), maxi(before.size(), 1), 4, "the draw is the total of the rarity, F-123 may stop earlier")
 		for i: int in before.size():
 			assert_eq(extended[i].mod_id, before[i], "old modifiers first and unchanged")
 		var ids: Array[StringName] = []

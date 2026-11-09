@@ -28,7 +28,7 @@ const RARE_COMPONENTS_MAX: int = 4  # format limit of blueprint.extra_rare
 
 ## True for the sections and the keys of M14 (so that DataValidator does not report them as unknown).
 static func is_known_key(path: String) -> bool:
-	return SECTIONS.has(path) or REQUIRED_KEYS.has(path)
+	return SECTIONS.has(path) or REQUIRED_KEYS.has(path) or DataValidatorStep.is_known_key(path)
 
 
 # --- balance.json ------------------------------------------------------------------------------------------------
@@ -53,6 +53,7 @@ static func validate_balance(v: DataValidatorRules, balance: Dictionary) -> void
 		_dmg_pair(v, unarmed as Dictionary, "combat.unarmed", true)
 	_rarity_and_blueprint(v, balance)
 	_loot(v, balance)
+	DataValidatorStep.validate_balance(v, balance)
 
 
 # `loot.equipment` and `loot.blueprint` (F-121, M14-05): optional (earlier fixtures have none), checked when present.

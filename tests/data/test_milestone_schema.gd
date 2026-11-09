@@ -132,12 +132,6 @@ func test_milestones_only_for_gathering_actions() -> void:
 	_expect(raw, ["test_craft.json", "milestones", "only for gathering"])
 
 
-func test_gathering_skills_have_no_mastery_bonuses() -> void:
-	var raw: Dictionary = V.fixture_raw()
-	V.entry_of(raw, "skills", V.SKILLS, "skills", 0)["mastery_bonuses"] = [
-		{"every_levels": 10, "modifiers": [{"stat": "double_item_chance", "value": 1}]}]
-	_expect(raw, [V.SKILLS, "skill 'test_gather'", "mastery_bonuses", "gathering"])
-
 
 func test_gathering_trees_must_differ() -> void:
 	var raw: Dictionary = V.fixture_raw()

@@ -77,6 +77,7 @@ var _purchases: Array[StringName] = []
 static func _data() -> GameData:
 	if _plain_data == null:
 		_plain_data = GameData.load_from_dirs()
+		TestFactory.without_mastery_steps(_plain_data)  # M14: the numbers below are derived without the F-122 steps
 		for action: ActionDef in _plain_data.actions_for_skill(SKILL):
 			action.milestones.clear()
 	return _plain_data

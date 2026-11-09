@@ -1,8 +1,8 @@
 class_name DataValidatorMilestones
 extends RefCounted
 ## Mastery milestone rules of DataValidator (internal, M12; docs/04_DATA_SCHEMA.md §3, §4, §6, F-103, F-108): the
-## `mastery.milestones` balance section, the 3 `milestones` of every gathering action (25/50/99), `mastery_bonuses`
-## forbidden for gathering skills and the mastery trees of the gathering trades not being identical.
+## `mastery.milestones` balance section, the 3 `milestones` of every gathering action (25/50/99)
+## and the mastery trees of the gathering trades not being identical.
 
 const BALANCE_KEYS: PackedStringArray = ["byproduct_at", "resource_at", "trade_at"]
 const TYPES: PackedStringArray = ["byproduct", "resource", "trade"]
@@ -78,17 +78,6 @@ static func _byproduct(v: DataValidatorRules, m: Dictionary, prefix: String) -> 
 		if category != "material":
 			v.fail("field '%s.item': '%s' is not a material (category '%s')" % [prefix, m["item"], category])
 
-
-## `mastery_bonuses` are not allowed for gathering skills.
-static func validate_skills(v: DataValidatorRules, skill_files: Dictionary[String, Dictionary]) -> void:
-	for path: String in skill_files:
-		v.at_file(path)
-		var list: Array[Dictionary] = v.object_list(skill_files[path], "skills")
-		for index: int in list.size():
-			var e: Dictionary = list[index]
-			if str(e.get("category", "")) == GATHERING and e.has("mastery_bonuses"):
-				v.at_entry("skill", index, e)
-				v.fail("field 'mastery_bonuses' is not allowed for gathering skills (use the action milestones)")
 
 
 ## The trees of any two gathering trades differ in at least 3 nodes (by position; a node is its set of stat:value pairs).

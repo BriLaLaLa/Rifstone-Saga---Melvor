@@ -132,7 +132,7 @@ func test_heavy_strike_timing_and_order() -> void:
 
 
 func test_shield_appears_absorbs_and_fades() -> void:
-	_to_boss(2)
+	_to_boss(2, 57)  # a seed where the player hits the shield within the window (M14: the drop pool shifts the rng)
 	_at(9900)
 	assert_eq(_s.combat.get_state()["fracture"]["shield"], 0)
 	_at(10000)

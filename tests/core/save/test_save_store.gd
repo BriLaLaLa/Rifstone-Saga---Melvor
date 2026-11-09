@@ -107,7 +107,7 @@ func test_corrupted_main_without_bak_reports_corrupted() -> void:
 
 func test_newer_version_is_unsupported() -> void:
 	var d: Dictionary = _payload("Future", 9)
-	d["format_version"] = 5
+	d["format_version"] = 6
 	_write_text(_store.slot_path(2), SaveCodec.encode(d))
 	assert_eq(_store.read_slot(2), {})
 	assert_eq(_store.last_error, Reasons.VERSION_UNSUPPORTED)
@@ -118,7 +118,7 @@ func test_newer_version_does_not_fall_back_on_bak() -> void:
 	_store.write_slot(2, _payload("Old", 1))
 	_store.write_slot(2, _payload("Old", 1))
 	var d: Dictionary = _payload("Future", 9)
-	d["format_version"] = 5
+	d["format_version"] = 6
 	_write_text(_store.slot_path(2), SaveCodec.encode(d))
 	assert_eq(_store.read_slot(2), {}, "loading the older .bak would later overwrite newer progress")
 	assert_eq(_store.last_error, Reasons.VERSION_UNSUPPORTED)

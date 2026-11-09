@@ -59,6 +59,7 @@ func add(card: MapCard) -> int:
 	_next_uid += 1
 	_items[stored.uid] = stored
 	_events.card_changed.emit(stored.uid, CHANGE_ADDED)
+	_events.item_obtained.emit(stored.base_id, 1)
 	_deposit.notify_changed()
 	return stored.uid
 

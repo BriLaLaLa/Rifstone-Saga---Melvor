@@ -42,18 +42,18 @@ func _broken_step(_from_version: int) -> Callable:
 	return Callable(FakeSteps, &"broken")
 
 
-func test_current_version_is_four() -> void:
-	assert_eq(SaveMigrator.CURRENT_VERSION, 4)
+func test_current_version_is_five() -> void:
+	assert_eq(SaveMigrator.CURRENT_VERSION, 5)
 
 
 func test_can_load_current_version() -> void:
-	assert_true(SaveMigrator.can_load({"format_version": 4}))
-	assert_true(SaveMigrator.can_load({"format_version": 4.0}), "JSON numbers arrive as float")
+	assert_true(SaveMigrator.can_load({"format_version": 5}))
+	assert_true(SaveMigrator.can_load({"format_version": 5.0}), "JSON numbers arrive as float")
 
 
 func test_can_load_rejects_newer_version() -> void:
-	assert_false(SaveMigrator.can_load({"format_version": 5}))
-	assert_false(SaveMigrator.can_load({"format_version": 5.0}))
+	assert_false(SaveMigrator.can_load({"format_version": 6}))
+	assert_false(SaveMigrator.can_load({"format_version": 6.0}))
 
 
 func test_can_load_rejects_missing_or_invalid_version() -> void:
@@ -63,7 +63,7 @@ func test_can_load_rejects_missing_or_invalid_version() -> void:
 
 
 func test_migrate_current_version_returns_equal_copy() -> void:
-	var d: Dictionary = {"format_version": 4, "modules": {"wallet": {"gold": 5}}}
+	var d: Dictionary = {"format_version": 5, "modules": {"wallet": {"gold": 5}}}
 	var out: Dictionary = SaveMigrator.migrate(d)
 	assert_eq(out, d)
 	out["modules"]["wallet"]["gold"] = 99
@@ -71,12 +71,12 @@ func test_migrate_current_version_returns_equal_copy() -> void:
 
 
 func test_migrate_float_version_becomes_int() -> void:
-	var out: Dictionary = SaveMigrator.migrate({"format_version": 4.0})
+	var out: Dictionary = SaveMigrator.migrate({"format_version": 5.0})
 	assert_typeof(out["format_version"], TYPE_INT)
 
 
 func test_migrate_newer_version_returns_empty() -> void:
-	assert_eq(SaveMigrator.migrate({"format_version": 5}), {})
+	assert_eq(SaveMigrator.migrate({"format_version": 6}), {})
 
 
 func test_migrate_without_migration_file_returns_empty() -> void:

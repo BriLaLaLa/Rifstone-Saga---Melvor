@@ -114,10 +114,6 @@ func test_dust_and_slab_are_materials() -> void:
 	assert_eq(_data.item(&"rune_slab").value, 0)
 
 
-func test_gathering_skills_have_no_f11_rules() -> void:
-	for skill: String in TRADES:
-		assert_true(_data.skill(StringName(skill)).mastery_bonuses.is_empty(), skill)
-
 
 func test_every_new_item_has_icon_and_description() -> void:
 	for item: ItemDef in _data.items():

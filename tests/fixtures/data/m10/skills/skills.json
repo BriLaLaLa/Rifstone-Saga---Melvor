@@ -9,11 +9,7 @@
      "description": "Seconda skill di raccolta per i test.", "has_mastery": true},
     {"id": "test_craft", "name": "Artigianato di prova", "category": "artisan", "order": 3,
      "icon": "res://assets/icons/skills/test_craft.png", "color": "#c08040",
-     "description": "Skill di artigianato per i test.", "has_mastery": true,
-     "mastery_bonuses": [
-       {"every_levels": 10, "modifiers": [{"stat": "preservation_chance", "value": 1.5}]},
-       {"at_level": 99, "modifiers": [{"stat": "skill_interval_pct", "value": -5}]}
-     ]},
+     "description": "Skill di artigianato per i test.", "has_mastery": true},
     {"id": "forestry", "name": "Selvicoltura di prova", "category": "gathering", "order": 4,
      "icon": "res://assets/icons/skills/forestry.svg", "color": "#7fbf6a",
      "description": "Skill dell'attrezzo di prova.", "has_mastery": false},

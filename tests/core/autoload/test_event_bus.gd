@@ -38,6 +38,8 @@ const EXPECTED: Dictionary = {
 	"helper_completed": [["skill_id", SN, ""], ["action_id", SN, ""], ["outputs", TYPE_DICTIONARY, ""]],
 	"helper_blocked": [["skill_id", SN, ""], ["blocked", B, ""]],
 	"armory_rejected": [["base_id", SN, ""], ["qty", I, ""]],
+	"item_obtained": [["item_id", SN, ""], ["qty", I, ""]],
+	"item_discovered": [["item_id", SN, ""]],
 	"item_upgraded": [["uid", I, ""], ["success", B, ""], ["new_level", I, ""]],
 	"item_salvaged": [["uid", I, ""], ["base_id", SN, ""], ["auto", B, ""]],
 	"modifiers_changed": [],

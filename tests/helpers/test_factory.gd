@@ -164,3 +164,11 @@ static func make_roomy(session: GameSession) -> Array[int]:
 	var room: Array[int] = [ROOMY_SLOTS]
 	session.deposit.register_occupant(&"test:roomy", func() -> int: return -room[0])
 	return room
+
+
+## M14 (F-122): `data` with the bonus every 10 levels of mastery switched off (`mastery.step.every_levels` beyond the maximum
+## level), for the long runs whose numbers were derived by hand without it. Changes `data` itself: pass a copy of its own.
+static func without_mastery_steps(data: GameData) -> GameData:
+	var balance: Dictionary = data.get("_balance") as Dictionary
+	((balance["mastery"] as Dictionary)["step"] as Dictionary)["every_levels"] = 1000.0
+	return data

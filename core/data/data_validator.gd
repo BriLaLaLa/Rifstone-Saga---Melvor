@@ -73,7 +73,7 @@ const STAT_FORMULA_PATTERN: String = "^(F-[0-9]{2,3}|[0-9]+(\\.[0-9]+)*)$"
 const STAT_TEST_PATTERN: String = "^[^:]+\\.gd::[A-Za-z_][A-Za-z0-9_]*$"
 const STAT_NAME_MAX_LENGTH: int = 40
 const SKILL_FIELDS: PackedStringArray = ["id", "name", "description", "category", "order", "icon", "color",
-	"has_mastery", "mastery_bonuses", "level_modifiers"]
+	"has_mastery", "mastery_bonuses", "level_modifiers"]  # mastery_bonuses: accepted here only to give a precise error
 const COLOR_PATTERN: String = "^#[0-9a-fA-F]{6}$"
 const SKILL_ICON_DIR: String = "res://assets/icons/skills/"
 
@@ -99,7 +99,6 @@ static func validate(raw: Dictionary, errors: PackedStringArray) -> void:
 	DataValidatorItems.validate_actions(v, _files(raw, "actions"))
 	v.validate_mastery(_files(raw, "mastery"))
 	DataValidatorEngraver.validate_runes(v, _files(raw, "items"))
-	DataValidatorMilestones.validate_skills(v, _files(raw, "skills"))
 	DataValidatorMilestones.validate_trees(v, _files(raw, "mastery"))
 	DataValidatorClasses.validate_areas(v, _files(raw, "areas"))
 	DataValidatorClasses.validate_monsters(v, _files(raw, "monsters"))
@@ -381,19 +380,7 @@ static func _validate_skills(v: DataValidatorRules, files: Dictionary[String, Di
 				_skill_mastery(v, e, e["has_mastery"] as bool)
 
 
-static func _skill_mastery(v: DataValidatorRules, e: Dictionary, has_mastery: bool) -> void:
-	if e.has("mastery_bonuses") and not has_mastery:
-		v.fail("field 'mastery_bonuses' is allowed only with 'has_mastery': true")
-	if not e.has("mastery_bonuses") or not has_mastery:
-		return
-	var rules: Array[Dictionary] = v.object_list(e, "mastery_bonuses")
-	for index: int in rules.size():
-		var rule: Dictionary = rules[index]
-		var prefix: String = "mastery_bonuses[%d]" % index
-		v.keys(rule, ["every_levels", "at_level", "modifiers"], prefix)
-		if rule.has("every_levels") == rule.has("at_level"):
-			v.fail("field '%s' needs exactly one of 'every_levels' and 'at_level'" % prefix)
-		for key: String in ["every_levels", "at_level"]:
-			if rule.has(key):
-				v.integer(rule, key, 1, v.max_mastery_level, prefix)
-		v.modifiers(rule, "modifiers", prefix, false)
+## M14 (F-122): the per-item bonus rules `mastery_bonuses` are gone; the only rule is `mastery.step` in balance.json.
+static func _skill_mastery(v: DataValidatorRules, e: Dictionary, _has_mastery: bool) -> void:
+	if e.has("mastery_bonuses"):
+		v.fail("field 'mastery_bonuses' was removed (M14, F-122): the bonuses are balance.json mastery.step")
