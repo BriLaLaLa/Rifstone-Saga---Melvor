@@ -156,7 +156,7 @@ var play_time_ms: int
 var total_level: int
 
 class_name SaveMigrator extends RefCounted    # core/save/save_migrator.gd
-const CURRENT_VERSION: int = 3                 # 3 da M10 (riforma del bottino); nessuna migrazione 1 → 2 né 2 → 3: un save v1 o v2 è version_unsupported (nessun giocatore reale ancora)
+const CURRENT_VERSION: int = 5                 # 5 da M14 (3 da M10, 4 da M12; vedi §6); nessuna migrazione 1 → 2 né 2 → 3: un save v1 o v2 è version_unsupported (nessun giocatore reale ancora)
 static func can_load(d: Dictionary) -> bool          # format_version <= CURRENT_VERSION
 static func migrate(d: Dictionary) -> Dictionary     # applica migrations/migration_<a>_to_<b>.gd in catena
 static func migrate_chain(d: Dictionary, target_version: int, step_for: Callable) -> Dictionary
@@ -296,6 +296,8 @@ func hide_tooltip() -> void
 | `fracture_loot_lost` (M13) | `stacks: int, pieces: int, cards: int` | FractureSystem | sconfitta o abbandono: la borsa è persa (X4) |
 | `card_changed` (M13) | `uid: int, change: StringName` | CardStore | `change` = `&"added"`, `&"removed"`, `&"updated"` (blocco, Cristallo) |
 | `card_rejected` (M13) | `grade: int` | CardStore | Carta non aggiunta per Deposito pieno |
+| `item_obtained` (M14) | `item_id: StringName, qty: int` | Bank, LootBag, Armory, CardStore | ogni volta che un oggetto entra in possesso del giocatore (pezzi e Carte: id di base, qty 1); lo ascolta `Discoveries` (F-124) |
+| `item_discovered` (M14) | `item_id: StringName` | Discoveries | la prima volta che un oggetto viene ottenuto nello slot (sblocca la Guida, toast) |
 
 I segnali segnati M4…M7 li aggiunge (o cambia) in `core/autoload/event_bus.gd` e in `tests/core/autoload/test_event_bus.gd`
 il task che li emette per primo (ownership estesa alle sole righe del segnale). Fino ad allora `event_bus.gd` ha le firme
@@ -428,9 +430,10 @@ class_name EquipInfo  ; var slot: StringName; var requirements: Dictionary[Strin
                         var modifiers: Array[Modifier]; var weapon: WeaponInfo   # null se non arma
                         var kind: StringName; var grade: int      # M4-01: &"" se lo slot non è weapon/offhand
                         var unique: bool; var upgrade_extras: Array[ToolExtra]   # M10: attrezzo unico (04 §5); extras vuoto se assente
+                        var material: StringName; var masterwork: bool; var legendary: LegendaryInfo   # M14 (§5.24); grade 1..15
 class_name ToolExtra  ; var at: int; var modifiers: Array[Modifier]   # M10: bonus cumulativi dal passo `at` (F-94)
-class_name BlueprintInfo ; var base_id: StringName; var grade: int; var inputs: Array[ItemQty]; var rare_component: ItemQty   # M10
-class_name WeaponInfo ; var style: StringName; var attack_interval_ms: int; var two_handed: bool
+class_name BlueprintInfo ; var base_id: StringName; var grade: int; var inputs: Array[ItemQty]; var rare_components: Array[ItemQty]   # M10; M14: grade = grado del materiale, due componenti rari diversi (F-119, §5.24)
+class_name WeaponInfo ; var style: StringName; var attack_interval_ms: int; var two_handed: bool; var dmg_min: int; var dmg_max: int   # M14: dmg_min/dmg_max, F-22 (§5.24)
 class_name SkillDef
   var id: StringName; var name: String; var description: String; var category: StringName
   var order: int; var icon: String; var color: Color; var has_mastery: bool
@@ -709,7 +712,7 @@ static func pool_gain(mastery_xp: int, share_pct: float) -> int     # F-12
 static func helper_share(mastery_xp: int, share_pct: float) -> int  # M12, F-102: quota di maestria dell'aiutante, round(mastery_xp × share_pct / 100)
 static func pool_cap(action_count: int, per_item: int) -> int       # F-13
 static func node_cost(pool_cap: int, cost_pct: float) -> int        # F-15
-static func rule_multiplier(rule: MasteryBonusRule, level: int) -> int   # F-11: floor(L/k) o 0/1
+static func rule_multiplier(rule: MasteryBonusRule, level: int) -> int   # F-11: floor(L/k) o 0/1   # M14: tolta con F-11 (sostituita da step_bonus, §5.24)
 
 class_name MasterySystem extends RefCounted
 const SAVE_KEY := &"mastery"
@@ -933,7 +936,7 @@ static func block_chance(total: float, data: GameData) -> float                 
 
 class_name CombatantStats extends RefCounted
 var style: StringName; var accuracy: int; var evasion: int; var max_hit: int; var min_hit: int
-var attack_interval_ms: int; var damage_reduction: float; var max_hp: int; var block_chance: float
+var attack_interval_ms: int; var damage_reduction: float; var max_hp: int; var block_chance: float   # M14: damage_reduction solo mostri; giocatore: var armor: int; var barrier: int (F-117), var weapon_min: int; var weapon_max: int (F-22), vedi §5.24
 static func for_player(session: GameSession, hand: int = 0) -> CombatantStats   # F-70; hand 1 = offhand (F-74)
 static func for_monster(monster: MonsterDef, data: GameData) -> CombatantStats
     # M5-02: sempre ricalcolati (niente nel save); block_chance 0 senza scudo nell'offhand; mostri senza modificatori,
@@ -1574,12 +1577,92 @@ func fracture_run() -> FractureRun                        # null fuori
 - Ordine in `_create_systems()`: `cards` subito dopo `armory` (si registra come occupante del Deposito), `fractures` dopo `equipment` e **prima** di `combat` (accede a `session.combat` solo al momento dei comandi); `from_save`: `armory`, `cards`, `equipment`, `fractures`, `combat`.
   `GameSession.rebuild_modifiers` chiama `fractures.rebuild_modifiers`; `new_game` di `cards` e `fractures` = vuoti.
 
+### 5.24 Alpha (M14; `01_GDD.md` §27.1 e §28, `02_FORMULAS.md` §5e e §8.4, `04_DATA_SCHEMA.md` §21)
+Contratto dei task M14-01…M14-09. Dove una firma di un'altra sezione cambia, vale questa. Nessuna `Reasons` nuova (si riusano `not_equippable`, `unknown_id`, `item_locked`, `item_equipped`, `armory_full`).
+
+**Dati (`core/data/`)**
+```gdscript
+class_name WeaponInfo (aggiunte M14)  ; var dmg_min: int; var dmg_max: int                    # F-22: obbligatori con slot weapon
+class_name EquipInfo  (aggiunte M14)  ; var material: StringName                              # &"plate" / &"leather" / &"cloth"; &"" se non armatura
+                                        var masterwork: bool; var legendary: LegendaryInfo   # null se non leggendario; grade 1..15
+class_name LegendaryInfo extends RefCounted   # core/data/defs/legendary_info.gd
+var source_type: StringName                   # &"boss" / &"monolith"
+var source_id: StringName; var chance_pct: float
+var effects: Array[ItemEffectDef]
+class_name ItemEffectDef extends RefCounted   # core/data/defs/item_effect_def.gd
+var type: StringName; var params: Dictionary  # tipi e parametri di F-81 / F-120 (stesso formato di un effetto di tratto)
+# GameData (aggiunte M14)
+func material_grade(piece_grade: int) -> int                  # F-118: equipment.grade_material[g−1]
+func grade_level(piece_grade: int) -> int                     # equipment.grade_levels[g−1]
+func legendaries() -> Array[ItemDef]                          # tutti i leggendari, in ordine dei dati
+func legendaries_from(source_type: StringName, source_id: StringName) -> Array[ItemDef]
+func is_equipment_pool_base(base_id: StringName) -> bool      # base che può cadere dal pool F-121 (non masterwork, non legendary)
+```
+- `ItemInstance.rarity` ammette `&"masterwork"` e `&"legendary"` (ordine `Rarities.ORDER` = common, magic, rare, masterwork, legendary; `filter` di `Armory.set_filter` accetta tutti e 5). `ItemRoller.create` impone la rarità della base se `masterwork` o `legendary`.
+- **Basi tolte/cambiate**: `blueprint.rare_component` → `rare_components: Array[ItemQty]` (2, diversi); `BlueprintInfo.grade` = grado del materiale; la stat `damage_reduction` non esiste più (`CombatantStats.damage_reduction` resta solo per i mostri).
+
+**Combattimento (`systems/combat/`)**
+```gdscript
+class_name WeaponMath extends RefCounted      # systems/combat/weapon_math.gd (logica pura)
+static func damage_range(inst: ItemInstance, data: GameData) -> Vector2          # (dmg_min, dmg_max) con moltiplicatore di rarità (F-119/F-120) e raffinazione (F-86); float
+static func dps(inst: ItemInstance, attack_interval_pct: float, data: GameData) -> float   # F-22: (min + max)/2 / (intervallo F-26 / 1000)
+class_name ArmorMath extends RefCounted       # systems/combat/armor_math.gd (logica pura)
+static func reduction_pct(x: int, attacker_level: int, data: GameData) -> float   # F-117: min(cap_pct, 100·X/(X + k·(L + off)))
+static func set_budget(piece_grade: int, data: GameData) -> Dictionary           # F-118: {"armor": int, "evasion": int} per i generatori e i test
+# CombatantStats (cambiate): var armor: int; var barrier: int            # giocatore (F-117); damage_reduction: float solo mostri (F-25)
+#   for_player usa W_max/W_min dell'arma che colpisce (F-22): var weapon_min: int; var weapon_max: int (0 senza arma)
+class_name EquipmentDrop extends RefCounted   # systems/combat/equipment_drop.gd (logica pura, F-121)
+static func candidate_grades(monster_level: int, data: GameData) -> Array[int]
+static func roll(monster_level: int, data: GameData, rng: RngService) -> StringName   # id di base del pezzo caduto, &"" se niente (ordine dei tiri: chance, tipo, materiale, grado)
+static func roll_blueprint(monster_level: int, data: GameData, rng: RngService) -> StringName   # id del progetto, &"" se niente
+class_name LegendaryRoller extends RefCounted # systems/combat/legendary_roller.gd (logica pura, F-120)
+static func roll(source_type: StringName, source_id: StringName, data: GameData, rng: RngService) -> Array[StringName]   # id di base, uno tiro per leggendario in ordine
+```
+- Il giocatore applica la riduzione in `CombatFight`: `rid = ArmorMath.reduction_pct(armor o barrier, attacker.power_level, data)` secondo lo stile del mostro (F-117); `armor_pierce_pct` solo per il giocatore.
+- **Effetti dei leggendari**: `Equipment.item_effects() -> Array[ItemEffectDef]` (effetti dei leggendari indossati, con sorgente `equipment:<slot>`); `EffectSet` li costruisce come i tratti (F-81) e aggiunge i tipi di F-120 e gli agganci `on_block` (in `CombatFight` alla parata, F-75), `on_gather` (in `GatheringResolver`, solo giocatore) e `on_monolith` (alla morte del Monolito). Il motore non conosce i leggendari per nome.
+- **Fonti**: alla vittoria sul boss `FractureSystem` tira `LegendaryRoller.roll(&"boss", boss_id)` e mette i pezzi nella borsa della Frattura (F-116); alla morte di un Monolito il combattimento tira `LegendaryRoller.roll(&"monolith", rift_stone_id)` e li passa a `Armory.add_drop`. Il Deposito pieno perde il pezzo con `armory_rejected` (notifica e riepilogo offline).
+- `MapCardRoller` (F-123): `static func risk_points(mod: MapModDef, step: int, data: GameData) -> float`, `static func risk_cap(grade: int, data: GameData) -> float`; la scelta del modificatore riduce lo `step` come in F-123 (stesso ordine dei tiri su `rng`).
+
+**Armeria ed equipaggiamento**
+- `Armory.is_filtered` è `false` per `legendary`. `Armory.upgrade` e `upgrade_tool` su un attrezzo leggendario → `not_equippable`. `Equipment.equip(uid, slot)` su `tool_*` accetta un attrezzo leggendario (requisito: livello del mestiere): l'attrezzo unico tornato non indossato resta in Armeria (`item_unique` per vendita e smantellamento).
+- `Armory.sort() -> void` (slot, grado decrescente, rarità decrescente, uid) e `Bank.sort() -> void` (categoria, `sort_order`, id) per il pulsante "Riordina" (comandi del modello, emettono `armory_changed`/`bank_changed` come oggi; nessuna nuova capienza).
+- Smantellamento: i pezzi senza progetto restituiscono 0 componenti (F-95).
+
+**Maestria (F-122)**
+```gdscript
+# MasteryMath (aggiunte M14; rule_multiplier tolta con F-11)
+static func step_bonus(level: int, kind: StringName, data: GameData) -> Array[Modifier]   # kind &"gathering" / &"crafting"; n × i modificatori di mastery.step.<kind>, scope vuoto (lo imposta MasterySystem)
+static func next_step(level: int, kind: StringName, data: GameData) -> Dictionary         # {"level": int, "modifiers": Array[Modifier]}; {} a livello 99
+# MasterySystem (aggiunte M14)
+func step_info(skill_id: StringName, action_id: StringName) -> Dictionary     # {"level": int, "n": int, "current": Array[Modifier], "next": Dictionary} per la UI (sola lettura)
+```
+- I modificatori `mastery_step:<action_id>` entrano nel `ModifierService` con ambito `mastery_item:<action_id>`, ricostruiti a ogni `mastery_level_up` (come i vecchi bonus per oggetto).
+
+**Scoperte (F-124)**
+```gdscript
+class_name Discoveries extends RefCounted     # systems/discovery/discoveries.gd — dipendenze: data, events
+const SAVE_KEY := &"discoveries"
+func _init(data: GameData, events: GameEvents) -> void       # ascolta item_obtained
+func note(item_id: StringName) -> bool        # true se nuovo; emette item_discovered(item_id); id sconosciuto: Log.warn e false
+func has(item_id: StringName) -> bool
+func items() -> Array[StringName]             # copia, ordine di scoperta
+func new_game() -> void                       # vuoto, poi note() per ogni oggetto del kit iniziale
+func to_save() -> Dictionary                  # {"items": [id…]}
+func from_save(d: Dictionary) -> void         # tollerante: id sconosciuti scartati con Log.warn; assente = vuoto
+# GuideIndex (aggiunte M14, sola lettura)
+func drops_of(kind: StringName, id: StringName) -> Array[GuideRef]   # kind &"monster" / &"area" / &"rift_stone" / &"boss" / &"action": tutto ciò che può dare, con GuideRef.item e GuideRef.chance_pct (F-124); la UI blocca le voci con !discoveries.has(ref.item)
+# GuideRef (aggiunte): var item: StringName; var chance_pct: float   # −1 se non applicabile
+```
+- Emettono `item_obtained(item_id, qty)`: `Bank.add` (a ogni aggiunta riuscita), `LootBag.add`, `Armory.add`/`add_drop` (id di base, qty 1), `CardStore.add`/`create` (id della base della Carta), il kit iniziale (via `Discoveries.new_game`). `Discoveries` non emette per quantità 0 né per oggetti già noti.
+- Il tooltip e `GuideIndex.sources_of` non cambiano di firma: è la UI a nascondere la sezione "Si ottiene da" se `!discoveries.has(item)` e a non mostrarla nei tooltip (§7.u). `Guida` e `Discoveries` non si conoscono: li compone la UI con `session.discoveries`.
+
+**Sessione e salvataggio**: `GameSession.discoveries: Discoveries` (modulo `discoveries`, ultimo della composizione); `SaveMigrator.CURRENT_VERSION` = **5**; `format_version` 4 → `version_unsupported`. Le chiavi tolte/cambiate sono quelle dei dati (Armatura, basi nuove), non della struttura del save.
 ## 6. Formato del salvataggio (`user://saves/slot_<n>.json`)
 
-Versione **4 da M12** (v3 da M10, v2 da M4-03, D3). Un save v1, v2 o **v3 non si carica** (`version_unsupported`, nessuna migrazione: nessun giocatore reale ancora; gli "spazi" comprati nei v3 non contano). `SaveMigrator.CURRENT_VERSION` = 4.
+Versione **5 da M14** (v4 da M12, v3 da M10, v2 da M4-03, D3). Un save v1, v2, v3 o **v4 non si carica** (`version_unsupported`, nessuna migrazione: nessun giocatore reale ancora; M14 cambia il significato di `damage_reduction`, le basi dei pezzi e aggiunge `discoveries`). `SaveMigrator.CURRENT_VERSION` = 5.
 ```json
 {
-  "format_version": 4,
+  "format_version": 5,
   "game_version": "0.2.0",
   "slot": 2,
   "player_name": "Davide",
@@ -1613,7 +1696,8 @@ Versione **4 da M12** (v3 da M10, v2 da M4-03, D3). Un save v1, v2 o **v3 non si
     "rift": {"sockets": ["inf_swift_hands", "", "", "", ""]},
     "hints": {"seen": ["first_action"]},
     "cards": {"next_uid": 3, "items": [{"uid": 2, "base": "fracture_card_2", "rarity": "magic", "mods": [{"mod": "sturdy", "step": 5}], "locked": false}]},
-    "fractures": {"run": {}, "pending": {}}
+    "fractures": {"run": {}, "pending": {}},
+    "discoveries": {"items": ["redbirch_log", "emberbronze_sword"]}
   }
 }
 ```
@@ -2162,3 +2246,23 @@ class_name CardRow extends PanelContainer       # ui/pages/fractures/card_row.gd
   e "Raccogli tutto" restano per la borsa del bottino normale (non toccata). Un rimando alla pagina Fratture per la borsa e per "Abbandona".
 - **Toast**: `fracture_finished` → "Frattura vinta!" (con il numero di Carte e pezzi) / "Frattura persa: bottino perduto" / "Frattura abbandonata"; `card_rejected` → "Carta persa: Deposito pieno". **Riepilogo offline**: `OfflineSummaryView` mostra le righe di `OfflineSummary.fractures`.
 - **Guida**: pagina scritta a mano nuova `guide_fractures` ("Fratture", `data/guide/`; `GuideIndex.PAGE_FRACTURES`), tabelle generate nuove in `GuideTables`: `fracture_grades` (F-110), `map_mods` (F-111), `bosses` (F-112); ogni Carta (`category: map`) è documentata nella pagina dell'oggetto; "?" nella pagina Fratture.
+
+### 7.u UI di M14 (Alpha; nessuno stato di gioco nella UI, solo letture e comandi; `01_GDD.md` §29)
+```gdscript
+class_name ItemCard extends PanelContainer       # (esistente, scheda del pezzo) — M14: arma = danno minimo-massimo (WeaponMath.damage_range), velocità (F-26) e danno al secondo (WeaponMath.dps);
+                                                 # armatura = Armatura e Barriera in % contro un attaccante del livello del giocatore (ArmorMath.reduction_pct, solo informativo); leggendario = effetti (ItemEffectDef → testo) e "Fonte" solo se scoperto
+class_name RarityColors extends RefCounted       # ui/theme/rarity_colors.gd — static func color(rarity: StringName) -> Color: bianco, blu, giallo, viola (masterwork), arancione (legendary)
+class_name SubTabBar extends HBoxContainer       # ui/components/sub_tab_bar/sub_tab_bar.gd — signal tab_selected(id: StringName); func setup(tabs: Array[Dictionary]) -> void  # [{"id","label"}]
+class_name LockedCell extends PanelContainer     # ui/components/locked_cell/locked_cell.gd — casella bloccata della Guida: func show_locked() / show_item(item_id: StringName, chance_pct: float)
+class_name PlayerXpBar extends ProgressBar       # ui/pages/combat/player_xp_bar.gd — legge session.character (F-71) e ascolta character_xp_gained / character_level_up
+class_name MasteryStepRow extends HBoxContainer  # ui/pages/mastery/mastery_step_row.gd — func show_info(info: Dictionary) -> void  # da MasterySystem.step_info: bonus attuali e "Al livello N: …"
+```
+- **Combattimento**: barra XP del personaggio; "In fila" → "**Altri nemici**"; etichetta del triangolo: "**Forte contro di te**" (il mostro è in vantaggio), "**Debole contro di te**" (in svantaggio), "**Alla pari**" (testi in `CombatTexts`).
+- **Shop**: la descrizione di ogni voce si compone dai dati (`ShopTexts.describe(entry, data)`: PV curati, %, effetti, numeri letti da `shop.json` e `balance.json`, mai scritti a mano).
+- **Incisore**: `SubTabBar` con Lastre, Fondere, Cristalli, Rune; **Fabbro**: Lingotti, Piastre, Progetti, Banco del fabbro. Le sottoschede sono solo vista: la scheda scelta non si salva.
+- **Deposito**: pulsante **Riordina** nella scheda aperta (`Bank.sort()` o `Armory.sort()`, §5.24).
+- **Fratture**: `CardRow` più bassa, un modificatore per riga compatta (rischio e premio sulla stessa riga).
+- **Guida**: l'oggetto non scoperto è una `LockedCell`; la pagina di un oggetto scoperto mostra "Si ottiene da" (`GuideIndex.sources_of`); le pagine di mostro, area, Monolito, boss e attività usano `GuideIndex.drops_of` con `LockedCell`. I tooltip (`Tooltips`) non contengono mai "Si ottiene da".
+- **Toast**: `item_discovered` → "Nuovo: <oggetto>" (raggruppati come gli altri toast, solo una riga per scoperta; non per il kit iniziale).
+- **Maestria**: ogni carta dell'azione mostra `MasteryStepRow`; il pannello della maestria resta com'è.
+- **Colori** dei pezzi con `RarityColors` ovunque appaia un pezzo (inventario, scheda, tooltip, Armeria, toast).

@@ -16,7 +16,17 @@ Se la sessione si interrompe, si riparte da qui.
 - Descrizioni di tratti e abilità generate da effetti, parametri e ricarica (`ui/pages/character/loadout_describe.gd`, il campo `description` dei dati non si mostra più); stat `damage_reduction` ora si chiama "Armatura" (solo testo in `stats.json`).
 - Aperto di P-01 chiuso da P-03 (`player_renamed`).
 
-## Ripartenza (fine M13, 2026-11-09)
+## Ripartenza (inizio M14, R-05 fatta, 2026-11-09)
+- **Stato**: **R-05 DONE**: l'Alpha (decisioni Y1-Y9, fonte storica `ALPHA.md`) è nei documenti canonici: `01_GDD.md` (§6.5, §27.1, §28 Equipaggiamento vero, §29 Ritocchi UI, ritocchi a §5.1, §9, §10.6, §17.1, §21-§22), `02_FORMULAS.md` (F-22, F-25, F-81, F-84, F-86, F-89, F-90, F-91, F-95 riviste; nuove F-117…F-124 in §5e e §7; §8.4 a 15 gradi; stat `armor` e `barrier`; chiavi in §9),
+  `04_DATA_SCHEMA.md` §5 e §21, `05_INTERFACES.md` (§3 `item_obtained`/`item_discovered`, §5.24, §7.u, salvataggio **v5**), `03_ARCHITECTURE.md`, `NOMI.md` (sezione Alpha: 15 gradi, materiali, Capolavori, 39 leggendari con effetto e fonte), `06_ROADMAP.md` (M14), `07_TASKS.md` (M14-01…M14-11, nota N13), `OPEN_QUESTIONS.md` (Q66-Q77), `DECISIONS_LOG.md` (Y1-Y9 e scelte R-05), `CLAUDE.md`.
+  Hash: R-05 = commit `docs: R-05 Alpha nei documenti` (`git log --grep "R-05 Alpha"`). Codice e dati **non** toccati: il gioco è ancora quello di M13; i documenti descrivono lo stato di arrivo dell'Alpha. Da qui `ALPHA.md` serve solo come storico.
+- **Prossimo passo**: **M14-01** (COMBAT: armi con danno minimo-massimo, F-22 rivista), poi M14-02 → M14-03 → M14-04 in sequenza, poi (M14-05 ∥ M14-07), (M14-08 ∥ M14-09), M14-06, M14-10, M14-11 (tag `m14-alpha`). Sessione nuova da questo file.
+- **Cambi di contratto da ricordare**: stat `damage_reduction` del giocatore → `armor` (+ `barrier`; il campo dei mostri resta); `format_version` 4 → **5**; nuovi segnali `item_obtained` e `item_discovered`; nuove classi `WeaponMath`, `ArmorMath`, `EquipmentDrop`, `LegendaryRoller`, `Discoveries`; rarità `masterwork` e `legendary`; `blueprint.rare_component` → `rare_components` (due);
+  `equip.grade` 1..15 con grado del materiale 1..8 derivato; i `mastery_bonuses` delle skill spariscono (regola unica `mastery.step`); le voci di equipaggiamento e di progetto escono da `monster.drops` (le sostituisce il pool F-121). L'id "R-05" compare due volte in `DECISIONS_LOG.md` (chiusura M13 e Alpha): sono voci diverse.
+- **Aperti ereditati**: layout 1600x900 e 1280x720 non visto a schermo; `tests/fixtures/data/m10` non validabile da sola; `CLOSED_FORMULAS` elenca ancora F-16 e F-82 (N13); worktree `wt-M13-*` e `.claude/worktrees/agent-*` da potare a mano.
+- **Numeri da tarare in M14-10** (Q66-Q77): `combat.armor.k` e budget dei set, danni delle armi (Q77), `loot.equipment.chance_pct` e finestra dei gradi, `rarity.drop` (25 e 5), probabilità dei leggendari (0,8% e 0,3%), `blueprint.cost_mult`, `mastery.step`, `fracture.risk_cap`; effetto sul bilanciamento di mostri e Fratture (le armi con forbice 0,5-0,6 alzano il danno medio rispetto a 0,1-1).
+
+## Ripartenza precedente (fine M13, 2026-11-09)
 - **Stato**: **M13 Fratture come mappe completata** (M13-01…07 DONE); il tag `m13-done` e il push li fa l'Orchestratore. `run_checks.ps1` verde su main: **2531 test**, dati, righe, riferimenti.
 - **Hash** (merge su main): M13-01 `d11569e`, M13-02 `3c609b0`, M13-03 `6bd280d`, M13-04 `9e882b6`, M13-05 `f3017d7`, M13-06 `aad73c6`, M13-07 = commit `docs: M13-07 chiusura Fratture come mappe` (`git log --grep "M13-07"`).
 - **Prossimo passo**: **M14+** (seconda classe, dungeon, altri boss: da definire), sessione nuova da questo file.

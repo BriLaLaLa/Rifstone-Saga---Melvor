@@ -1,7 +1,7 @@
 # 06. Roadmap
 
 Milestone incrementali: alla fine di ognuna il gioco si avvia, è giocabile per quello che contiene e tutti i test
-passano (`tools/run_checks.ps1` verde). L'MVP è M0-M9; M10 (riforma del bottino e dei nomi, prima di far provare il gioco agli amici) e M11-M14+ vengono dopo (M12 = Riforma 2, M13 = Fratture come mappe). Il dettaglio dei task è in `07_TASKS.md`.
+passano (`tools/run_checks.ps1` verde). L'MVP è M0-M9; M10 (riforma del bottino e dei nomi, prima di far provare il gioco agli amici) e M11-M15+ vengono dopo (M12 = Riforma 2, M13 = Fratture come mappe, M14 = Alpha). Il dettaglio dei task è in `07_TASKS.md`.
 Da M4 vale la direzione "combattimento al centro" (decisioni D1-D6, `DECISIONS_LOG.md`); M0-M3 restano valide.
 
 ```mermaid
@@ -19,7 +19,8 @@ flowchart LR
     M10 --> M11[M11 Guida in gioco]
     M11 --> M12[M12 Riforma 2: Deposito, aiutanti, Incisore]
     M12 --> M13[M13 Fratture come mappe]
-    M13 --> M14[M14+ Seconda classe, dungeon]
+    M13 --> M14[M14 Alpha: equipaggiamento vero]
+    M14 --> M15[M15+ Seconda classe, dungeon]
 ```
 
 ## M0: Setup del progetto
@@ -190,11 +191,22 @@ offline con riepilogo; la sim dà 15-30 minuti per Frattura nel grado giusto e ~
 
 Le Carte per Frattura sono mediate anche sulle sconfitte (con la sconfitta la borsa si perde): per Frattura vinta sono circa 1. Dieci livelli sotto il consigliato (`delta=-10`) il grado 1 non si vince mai (0/6), i gradi 5-7 si vincono 3-4 volte su 6, i gradi 2-4 e 8-9 quasi sempre (deviazione in Q63).
 
-## M14+: Seconda classe, dungeon, altri boss (dopo l'MVP)
+## M14: Alpha (dopo le Fratture come mappe)
+**Fonte**: decisioni Y1-Y9 (`DECISIONS_LOG.md`, approvate dall'utente il 2026-11-09 dalla prova del gioco, riportate da R-05); documenti `01_GDD.md` §28-§29 e §27.1, `02_FORMULAS.md` §5e, §7 (F-123) e §8.4, `04_DATA_SCHEMA.md` §21, `05_INTERFACES.md` §5.24 e §7.u, `NOMI.md` (sezione Alpha). Obiettivo: **alpha giocabile**.
+**Contenuto**: **armi** con danno minimo-massimo e velocità propri (danno al secondo nella scheda); **armature** in tre materiali (Piastre, Cuoio, Tessuto runico) con **Armatura** (riduce il danno fisico) e **Barriera** (danno arcano), formula a rendimenti decrescenti; **15 gradi** per slot (livelli 1…90) con nomi nuovi;
+rarità **Capolavoro** (solo progetti, costo alto) e **Leggendario** (≥ 39: 3 per slot, attrezzi compresi, con un effetto che cambia le regole e la fonte dichiarata); **drop di equipaggiamento** su tutti gli slot (3-5 pezzi ogni 30 minuti); **Guida a scoperta** (oggetti e drop bloccati finché non trovati, niente "Si ottiene da" nei tooltip);
+**maestria visibile** con bonus ogni 10 livelli; Polvere del Rift ridotta e con più usi; tetto ai rischi delle Carte; ritocchi UI (barra XP, "Altri nemici", sottoschede, Riordina, shop con i numeri). Salvataggio **v5**.
+**Giocabile**: si cacciano pezzi di ogni slot, si sceglie un materiale e un'arma, si vedono Armatura e Barriera, si forgia un Capolavoro, si inseguono i leggendari nelle Fratture e nei Monoliti, la Guida si riempie scoprendo; sale la maestria con bonus visibili.
+**Uscita** (accettazione in `07_TASKS.md` M14-10): armi con danno min-max, velocità e DPS; armature con materiali, Armatura % e Barriera %; 15 gradi per slot; Capolavori solo da progetti; ≥ 3 leggendari per slot con effetto e fonte; la sim dà 3-5 pezzi ogni 30 minuti nell'area giusta, 1 magico ogni 30 minuti, 1 raro ogni 2-3 ore;
+Guida a scoperta senza "Si ottiene da"; maestria con prossimo bonus su ogni carta; ritocchi UI; tutti i test verdi.
+**Task** R-05 → M14-01…M14-11 (`07_TASKS.md`); tag `m14-alpha`. Domande Q66-Q77 (`OPEN_QUESTIONS.md`).
+
+## M15+: Seconda classe, dungeon, altri boss (dopo l'Alpha)
 Seconda classe con le sue armi (es. arco o bastone, con i suoi progetti e componenti del Falegname), supporti delle abilità,
 altri boss, dungeon a ondate, oggetti unici, elementi e resistenze.
 
 ## Percorso critico e parallelismo
+- M14: R-05 → M14-01 → M14-02 → M14-03 → M14-04 → (M14-05 ∥ M14-07) → (M14-08 ∥ M14-09) → M14-06 → M14-10 → M14-11. I primi quattro toccano file comuni (`core/data/**`, `event_bus.gd`, `game_session.gd`, `systems/combat/**`): in sequenza; la UI (M14-06) per ultima.
 - M13: R-04 → M13-01 → (M13-02 ∥ M13-04) → M13-03 → (M13-05 ∥ M13-06) → M13-07. M13-01 e M13-02 toccano file comuni (`core/data/**`, `event_bus.gd`, `reasons.gd`, `game_session.gd`): in sequenza; M13-02 (motore) e M13-04 (dati) hanno file diversi.
 - M12: R-03 → M12-01 → M12-02 → M12-03 → M12-04 → M12-05 → (M12-06 ∥ M12-07) → M12-08 → M12-09. I task CORE toccano file comuni (`core/data/**`, `event_bus.gd`, `reasons.gd`, `game_session.gd`): vanno in sequenza; M12-06 (UI) e M12-07 (bilanciamento) hanno file diversi.
 - M11: R-02 → (M11-01 ∥ M11-02) → M11-03 → M11-04 → M11-05 → M11-06 → M11-07.

@@ -43,6 +43,7 @@ res://
 │   ├── wallet/                   ← wallet.gd
 │   ├── bank/                     ← bank.gd
 │   ├── deposit/                  ← deposit.gd (M12: capienza unica, slot borsa)
+│   ├── discovery/                ← discoveries.gd (M14: scoperte della Guida, F-124)
 │   ├── helpers/                  ← helper_system.gd, helper_math.gd (M12: aiutanti dei mestieri di raccolta)
 │   ├── skills/                   ← skills_system.gd
 │   ├── mastery/                  ← mastery_system.gd, mastery_math.gd
@@ -54,6 +55,7 @@ res://
 │   ├── equipment/                ← equipment.gd
 │   ├── combat/                   ← combat_engine.gd, combat_math.gd, combatant_stats.gd, auto_eat.gd, loot_bag.gd,
 │   │   │                           ability_runner.gd (M6)
+│   │                               weapon_math.gd, armor_math.gd, equipment_drop.gd, legendary_roller.gd (M14, F-22, F-117, F-120, F-121)
 │   │   └── effects/              ← trait_effect.gd + un file per tipo di effetto (M6, F-81)
 │   ├── shop/                     ← shop.gd
 │   ├── rift/                     ← rift_altar.gd (M8)
@@ -304,6 +306,7 @@ sequenceDiagram
 - **Stato derivato non salvato**: livelli, modificatori, capienze, statistiche di combattimento si ricalcolano.
 - **Versione 4 (M12)**: `format_version` 3 → 4 (Deposito, aiutanti). I salvataggi v3 non si caricano (`version_unsupported`, nessuna
   migrazione: come per M4 e M10, nessun giocatore reale); gli "spazi" già comprati non contano più.
+- **Versione 5 (M14, Alpha)**: `format_version` 4 → 5 (Armatura e Barriera al posto della riduzione piatta, 15 gradi e basi nuove, chiave `discoveries`). I salvataggi v4 non si caricano (`version_unsupported`, nessuna migrazione).
 - **Isolamento**: caricare lo slot B dopo lo slot A crea una `GameSession` nuova; niente sopravvive tra slot
   (test `tests/integration/test_slot_isolation.gd`).
 

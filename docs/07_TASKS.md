@@ -1697,9 +1697,128 @@ si apre solo con una Carta; nessun altro evento la apre. I nomi e i testi di gio
 - **Ruolo** REV · **Stima** S · **Dipendenze** M13-05, M13-06 · **Stato** DONE (commit `docs: M13-07 chiusura Fratture come mappe`)
 - **Descrizione** Merge, checklist di `06_ROADMAP.md` (M13 "Uscita"), `docs/RELEASE_CHECKLIST_MVP.md` aggiornata, `docs/STATUS.md`, tag `m13-done`, report di milestone. Il push lo fa l'Orchestratore.
 
-## M14+ (dopo M13)
+## Alpha (R-05) e M14
 
-- M14+ · Seconda classe, dungeon, altri boss: da definire.
+### R-05 · Alpha nei documenti canonici
+- **Ruolo** REV · **Stima** L · **Dipendenze** M13-07 · **Fatto** (2026-11-09)
+- **Descrizione** Decisioni Y1-Y9 (`DECISIONS_LOG.md`) riportate in `01_GDD.md` (§6.5, §27.1, §28, §29 e ritocchi a §5.1, §9, §10.6, §17.1, §21-§22), `02_FORMULAS.md` (F-22, F-25, F-81, F-84, F-86, F-89…F-91, F-95 riviste; nuove F-117…F-124 in §5e e §7; tabella 8.4 a 15 gradi; stat `armor`/`barrier`; chiavi di §9),
+  `04_DATA_SCHEMA.md` (§5 e nuova §21), `05_INTERFACES.md` (§3 segnali, §5.24 e §7.u nuovi, salvataggio v5), `03_ARCHITECTURE.md`, `NOMI.md` (sezione Alpha), `06_ROADMAP.md` (M14), questo file, `OPEN_QUESTIONS.md` (Q66-Q77), `STATUS.md`, `CLAUDE.md`. Da qui `ALPHA.md` serve solo come storico: i task leggono i documenti canonici.
+
+## M14 · Alpha: equipaggiamento vero, leggendari, wiki a scoperta, maestria visibile, ritocchi
+
+Regole comuni dei brief di M14: i valori di design si leggono **sempre** dalla sezione indicata (mai riscritti nei brief); i numeri di `02_FORMULAS.md` §5e, §8.4 e §7 (F-123) sono valori di partenza "da tarare" (Q66-Q77, `OPEN_QUESTIONS.md`), che M14-10 può cambiare nei dati. **`format_version` passa a 5** (nessuna migrazione: i v4 non si caricano).
+La stat `damage_reduction` del giocatore **non esiste più** (diventa `armor`; nasce `barrier`); il campo `damage_reduction` dei mostri resta (nota ereditata N13: `CLOSED_FORMULAS` e `FORMULA_MILESTONES` di `tests/data/test_stat_registry_coverage.gd` con F-117 → M14, `armor` e `barrier` al posto di `damage_reduction`; `LATER_MILESTONE_STATS` di `test_config_files.gd`).
+**Stati intermedi**: M14-01…M14-04 cambiano codice e validatore ma i dati veri si riempiono in M14-05; fino ad allora il validatore accetta le forme vecchie con la regola transitoria (come M13-01) e i controlli sui dati veri sono `pending("M14-05")`; le fixture sono complete e verificano tutte le regole.
+Parallelismo (massimo 2 agenti): M14-01 → M14-02 → M14-03 → M14-04 (toccano `core/data/**`, `event_bus.gd`, `reasons.gd`, `game_session.gd`, `systems/combat/**`: **in sequenza**); poi (M14-05 ∥ M14-07), poi (M14-08 ∥ M14-09), poi M14-06 (UI, dopo che 05, 07, 08 hanno chiuso i file di UI), M14-10, M14-11.
+I nomi e i testi di gioco vengono da `NOMI.md` (sezione Alpha); nulla da Melvor Idle, Metin2, World of Warcraft o Path of Exile.
+
+### M14-01 · Armi: danno minimo-massimo e velocità (COMBAT)
+- **Ruolo** COMBAT · **Stima** M · **Parallelizzabile** no (primo) · **Dipendenze** R-05
+- **Ownership** `systems/combat/{weapon_math,combat_math,combatant_stats}.gd` (+ file nuovi per restare ≤ 400 righe), `core/data/**` (solo `WeaponInfo.dmg_min`/`dmg_max`, `EquipInfo.grade` 1..15, validatore delle armi, `GameData.material_grade`/`grade_level`, `equipment.*` e `combat.unarmed` del validatore di `balance.json`), `data/config/balance.json` (solo `equipment.grade_levels`, `grade_material`, `combat.unarmed`),
+  `data/items/equipment.json` (**solo** le armi esistenti: `dmg_min`/`dmg_max` con le formule di F-118 sul loro grado attuale e `power_bonus` base tolto; i gradi 1..15 completi sono M14-05), `tests/systems/combat/**`, `tests/core/data/**`, `tests/fixtures/data/**`.
+- **Leggere** `01_GDD.md` §28.1-§28.2; `02_FORMULAS.md` F-22, F-26, F-73, F-74, §8.4, §9; `04_DATA_SCHEMA.md` §5, §21; `05_INTERFACES.md` §4 (WeaponInfo, EquipInfo), §5.10 (CombatantStats), §5.24 (armi).
+- **Descrizione** `WeaponMath.damage_range`/`dps`; F-22 con `W_max`/`W_min` dell'arma che colpisce (anche per le due spade) e `min_hit_ratio` per mostri e mani nude; `CombatantStats.for_player` legge `weapon_min`/`weapon_max`; validatore (`dmg_min ≤ dmg_max`, obbligatori con `slot: weapon`, `grade` 1..15, `equipment.*`);
+  conversione delle armi esistenti; i dati di combattimento dei mostri non cambiano.
+- **Accettazione** gli esempi di F-22 e il DPS di §8.4 come test; due spade usano il danno dell'arma che colpisce; senza arma vale `min_hit_ratio` come prima; i mostri restano identici (stessi numeri di prima); `advance(1000)` = dieci `advance(100)`; il validatore rifiuta un'arma senza `dmg_min`/`dmg_max` o con minimo > massimo.
+- **Test** `tests/systems/combat/test_weapon_math.gd`, `test_combat_math.gd` (esempi di F-22), `tests/core/data/test_weapon_validation.gd`.
+
+### M14-02 · Armature: materiali, Armatura e Barriera (COMBAT)
+- **Ruolo** COMBAT · **Stima** L · **Parallelizzabile** no · **Dipendenze** M14-01
+- **Ownership** `systems/combat/{armor_math,combat_fight,combat_engine,combatant_stats,combat_math}.gd` (+ file nuovi), `core/data/**` (`EquipInfo.material`, validatore dei materiali, `combat.armor.*`, tolta la stat `damage_reduction`), `data/config/stats.json` (`damage_reduction` → `armor`, nuova `barrier`, testi "Armatura" e "Barriera"), `data/config/balance.json` (solo `combat.armor.*`, `equipment.slot_weights`, `equipment.set_budget`),
+  `data/items/equipment.json` (**solo** le armature e gli scudi esistenti: `material: plate`, `armor`/`evasion_bonus` secondo F-118 sul loro grado attuale), `data/affixes/affixes.json` (`warded` → `armor`, nuovo `runeward` su `barrier`), `data/items/infusions.json` (`inf_stoneskin` → `armor`), `tests/systems/combat/**`, `tests/data/**` (copertura delle stat), `tests/fixtures/data/**`.
+- **Leggere** `01_GDD.md` §28.3; `02_FORMULAS.md` F-25, F-81 (`stat_trade`), F-117, §8.4, §8.9, §11; `04_DATA_SCHEMA.md` §2, §5, §21; `05_INTERFACES.md` §5.10, §5.24 (combattimento).
+- **Descrizione** `ArmorMath.reduction_pct` (F-117); il giocatore difensore usa Armatura o Barriera secondo lo stile del mostro con `L_att` = `power_level` e massimo `cap_pct`; il mostro difensore resta con il proprio `damage_reduction` (F-25); impulsi dei Monoliti e delle Fratture contano come stile neutro (Armatura);
+  `stat_trade` e `CombatantStats.scale_stat` lavorano su `armor`/`barrier`; il budget dei set (`ArmorMath.set_budget`) e i tre materiali; nessun "-" a runtime se `armor` manca.
+- **Accettazione** esempi di F-117 e F-25 come test (Armatura 100 vs livello 20 → 35,71%; limite 75; Barriera contro arcana, l'Armatura non conta; svantaggio × 0,75); `armor` e `barrier` sono nella copertura delle stat con l'effetto verificato; nessun riferimento a `damage_reduction` come stat del giocatore nel codice, nei dati e nei test (restano solo i mostri); il blocco della parata (F-75) è invariato;
+  il set completo di Piastre grado 11 dà 404 Armatura (esempio di §8.4).
+- **Test** `tests/systems/combat/test_armor_math.gd`, `test_combat_math.gd` (F-25, F-117), `test_armor_in_fight.gd`, `tests/data/test_stat_registry_coverage.gd` (modalità rigida).
+
+### M14-03 · Rarità Capolavoro e Leggendario; progetti che creano Capolavori (CORE)
+- **Ruolo** CORE · **Stima** L · **Parallelizzabile** no · **Dipendenze** M14-02
+- **Ownership** `systems/items/{item_roller,item_instance}.gd`, `systems/armory/**` (filtro, `Rarities`, smantellamento, castoni, raffinazione di Capolavoro e leggendario), `systems/actions/blueprint_craft.gd` (e file collegati), `core/data/**` (`EquipInfo.masterwork`/`legendary` come campi, `BlueprintInfo.rare_components`, validatore di basi `masterwork`/`legendary`, `rarity.masterwork`, `rarity.legendary`, `sockets.by_rarity`, `blueprint.cost_mult`),
+  `data/config/balance.json` (solo queste chiavi), `core/common/rarities.gd` (nuovo), `tests/systems/items/**`, `tests/systems/armory/**`, `tests/systems/actions/**`, `tests/core/data/**`, `tests/fixtures/data/**`.
+- **Leggere** `01_GDD.md` §5.1, §21-§22, §28.4; `02_FORMULAS.md` F-84, F-85, F-86, F-89, F-90, F-91, F-92, F-95, F-119; `04_DATA_SCHEMA.md` §5, §21; `05_INTERFACES.md` §5.17, §5.18, §5.24.
+- **Descrizione** Rarità `masterwork` (viola) e `legendary` (arancione); `ItemRoller.create` impone la rarità della base; `instance_modifiers` e `WeaponMath` applicano `rarity.masterwork.base_mult` / `rarity.legendary.base_mult` prima della raffinazione (F-119 ordine); `create_from_blueprint` produce sempre un Capolavoro con 1 o 2 affissi (F-91 rivista, `blueprint_two_affix_chance`);
+  F-92 (affisso scelto) invariato; castoni per rarità (F-89); `rare_components` (due, diversi) e costo × `cost_mult` nei progetti; smantellamento per grado del materiale (F-95); il filtro non tocca leggendari e conosce i 5 livelli di rarità; i drop non producono mai Capolavoro o leggendario (F-84).
+  Regola transitoria del validatore per i progetti vecchi fino a M14-05.
+- **Accettazione** esempi di F-91 (rivista) e F-119 come test (151,25; 25-42,5; 12 piastre; 4 restituite); un Capolavoro ha 1-2 affissi, 2 castoni e statistiche × 1,25 e non esce mai da un drop; un leggendario non ha affissi; i rifiuti dei progetti (due componenti rari mancanti → `missing_inputs`); il salvataggio conserva rarità e `uid`; `armory_full` e restituzione come prima;
+  conservazione degli oggetti (nessun oggetto creato o perso per errore).
+- **Test** `tests/systems/items/test_masterwork.gd`, `test_item_roller.gd` (aggiornato), `tests/systems/armory/test_rarity_filter.gd`, `tests/systems/actions/test_blueprint_craft.gd` (aggiornato), `tests/core/data/test_masterwork_validation.gd`.
+
+### M14-04 · Leggendari: effetti e fonti (CORE)
+- **Ruolo** CORE · **Stima** L · **Parallelizzabile** no · **Dipendenze** M14-03
+- **Ownership** `systems/combat/effects/**` (i 12 tipi nuovi di F-120, uno per tipo; ownership di COMBAT estesa a questo task), `systems/combat/legendary_roller.gd`, `systems/equipment/equipment.gd` (`item_effects`, attrezzo leggendario nello slot `tool_*`), `systems/actions/gathering_resolver.gd` (aggancio `on_gather`), le sole righe del motore e di `FractureSystem` che tirano i leggendari (`systems/combat/**`, `systems/fractures/**`),
+  `core/data/**` (`LegendaryInfo`, `ItemEffectDef`, validatore, `GameData.legendaries*`), `tests/systems/**` (di questo task), `tests/fixtures/data/**`.
+- **Leggere** `01_GDD.md` §9, §28.5; `02_FORMULAS.md` F-75, F-81, F-120, F-115, F-116, F-87; `04_DATA_SCHEMA.md` §21; `05_INTERFACES.md` §5.9, §5.10, §5.23, §5.24.
+- **Descrizione** I tipi di effetto di F-120 (agganci `on_block`, `on_gather`, `on_monolith` nuovi) nello stesso `EffectSet` dei tratti; `Equipment.item_effects` con sorgente `equipment:<slot>`; attrezzi leggendari (sostituiscono l'attrezzo unico, che torna nell'Armeria; nessuna raffinazione); `LegendaryRoller` alla vittoria sul boss (nella borsa della Frattura, F-116) e alla morte del Monolito (Armeria);
+  Deposito pieno → `armory_rejected`; validatore: fonte ed effetti obbligatori, parametri nei loro intervalli, un tipo di attrezzo solo su attrezzi.
+- **Accettazione** un test per tipo con gli esempi di F-120 (block_heal, kill_heal, armor_pierce, hit_cap, stat_convert, double_hit, execute, monolith_loot, gather_bonus_item, gather_grade_up, byproduct, card_drop) e per `on_kill_timer_cut` 100; i leggendari sono indossabili solo se il requisito è soddisfatto; un attrezzo leggendario sostituisce quello unico e viceversa;
+  alla vittoria sul boss con `chance_pct` 100 il leggendario è consegnato con la borsa e **si perde con la sconfitta**; dal Monolito va direttamente nell'Armeria; l'aiutante non attiva `on_gather`; equivalenza `advance` a passi diversi con gli effetti; fixture con almeno un leggendario per tipo.
+- **Test** `tests/systems/combat/effects/test_<tipo>.gd` (12 file), `tests/systems/combat/test_legendary_roller.gd`, `tests/systems/equipment/test_legendary_tools.gd`, `tests/systems/actions/test_gather_effects.gd`, `tests/systems/combat/test_monolith_effects.gd`.
+
+### M14-05 · Contenuti: 15 gradi, materiali, Capolavori, leggendari, drop di tutti gli slot, Polvere ridotta (DATA)
+- **Ruolo** DATA · **Stima** XL · **Parallelizzabile** con M14-07 (file diversi) · **Dipendenze** M14-04
+- **Ownership** `data/items/{equipment,blueprints,components,materials}.json`, `tools/gen_equipment.gd` (nuovo: genera le basi da F-118 e `NOMI.md`; l'output è nei dati), `data/combat/{monsters,loot_tables,rift_stones}.json` (via le voci `equipment` e `blueprint` da `drops`; legendari dei Monoliti; Polvere 8% × 1), `data/config/balance.json` (solo `loot.*`, `rarity.drop`, `blueprint.*`, `equipment.*` se servono ritocchi),
+  `data/shop/shop.json` (solo se un id cambia), `data/guide/**` (nuove pagine a mano di §21 di `04_DATA_SCHEMA.md`), `assets/icons/items/**` (SVG per slot × materiale × rarità e per leggendario), `core/data/**` (**solo** le righe della regola transitoria da togliere), `tests/data/**` (di questo task), `tests/fixtures/data/**` (sola lettura).
+- **Leggere** `01_GDD.md` §28; `02_FORMULAS.md` §8.4, F-119…F-121, §8.5b, §9; `04_DATA_SCHEMA.md` §5, §8, §8b, §21; `docs/NOMI.md` (sezione Alpha e "Riforma 2").
+- **Descrizione** 15 gradi × slot e materiali con i nomi di `NOMI.md` (10 tipi di pezzo; armature e scudo in 3 materiali), 120 basi di Capolavoro e 120 progetti (8 tipi × 15 gradi, Piastre) con `rare_components` (due componenti rari diversi dell'area del grado; se ne servono altri, nuovi `material` con nomi originali), 39 leggendari (30 + 9 attrezzi) con statistiche, effetti e fonti come in `NOMI.md`;
+  le voci di equipaggiamento e di progetto escono da `monsters.json` (le sostituisce il pool di F-121); Polvere del Rift 8% × 1 nelle tabelle (Q71); kit iniziale e `start.*` con le basi nuove; `warded`/`runeward`; nomi e descrizioni nuovi; pagine di Guida a mano (`guide_equipment`, `guide_masterwork_legendary`, `guide_discovery`, `guide_mastery_step`).
+- **Accettazione** `validate_data.gd` verde sui dati veri con le regole piene (si tolgono le eccezioni transitorie e i `pending("M14-05")`); i valori delle basi coincidono con la tabella di F-118 (test); ogni slot di §28.5 ha **almeno 3 leggendari**, ognuno con effetto e fonte validi, e ogni boss e Monolito ha le sue fonti; i nomi di `NOMI.md` ci sono nei dati (test come M10-05); nessun nome da altri giochi;
+  ogni progetto produce una base `masterwork` esistente; nessun `drops` contiene equipaggiamento o progetti; il kit iniziale è giocabile (spada e scudo del grado 1); tutte le tabelle sono usate; i file ≤ 400 righe oppure divisi per slot (`equipment_<slot>.json`, `CONTENT_FILES` aggiornato).
+- **Test** `tests/data/test_equipment_table.gd`, `test_legendaries.gd`, `test_masterwork_data.gd`, `test_names_alpha.gd`, `test_no_equipment_in_drops.gd`.
+
+### M14-06 · Ritocchi UI e scheda dell'oggetto nuova (UI)
+- **Ruolo** UI · **Stima** L · **Parallelizzabile** no (ultimo della UI) · **Dipendenze** M14-05, M14-07, M14-08
+- **Ownership** `ui/pages/combat/**` (barra XP del personaggio, "Altri nemici", etichette del triangolo), `ui/pages/shop/**`, `ui/pages/crafting/**` o le pagine di Fabbro e Incisore (sottoschede), `ui/pages/deposit/**` (Riordina), `ui/pages/equipment/**` e `ui/components/item_card/**` (scheda dell'arma e dell'armatura, colori), `ui/theme/rarity_colors.gd`,
+  `ui/components/{sub_tab_bar,locked_cell}/**` (se non già creati da M14-07), `systems/bank/bank.gd` e `systems/armory/armory.gd` (**solo** `sort()`), `tests/ui/**`.
+- **Leggere** `01_GDD.md` §28, §29; `02_FORMULAS.md` F-22 (DPS), F-117; `05_INTERFACES.md` §5.24, §7.u, §7.w; `docs/NOMI.md` (testi di interfaccia); `docs/UI_GDR.md` (stile).
+- **Descrizione** Come 7.u: barra XP; "Altri nemici"; etichette "Forte contro di te" / "Debole contro di te" / "Alla pari"; descrizioni dello shop con i numeri dai dati; sottoschede del Fabbro (Lingotti, Piastre, Progetti, Banco del fabbro) e dell'Incisore (Lastre, Fondere, Cristalli, Rune); Riordina; scheda dell'arma (danno minimo-massimo, velocità, danno al secondo) e dell'armatura (Armatura, Barriera);
+  colori viola e arancione per Capolavoro e leggendario ovunque; effetti dei leggendari in testo dai dati.
+- **Accettazione** nessuno stato di gioco nella UI; nessun numero di design nel codice; ogni ritocco di §29 è presente e coperto da un test della UI; l'arma mostra `WeaponMath.damage_range` e `dps`; nessun testo "In fila" né "Si ottiene da" in un tooltip; layout a 1600×900 e 1280×720 senza tagli (per costruzione); i test della UI verdi.
+- **Test** `tests/ui/pages/combat/test_combat_alpha.gd`, `tests/ui/pages/shop/test_shop_texts.gd`, `tests/ui/components/test_sub_tab_bar.gd`, `tests/ui/components/test_item_card_weapon.gd`, `tests/ui/test_rarity_colors.gd`, `tests/systems/bank/test_sort.gd`, `tests/systems/armory/test_sort.gd`.
+
+### M14-07 · Wiki a scoperta (CORE + UI)
+- **Ruolo** CORE + UI · **Stima** L · **Parallelizzabile** con M14-05 · **Dipendenze** M14-04
+- **Ownership** `systems/discovery/discoveries.gd` (nuovo), `core/autoload/event_bus.gd` (`item_obtained`, `item_discovered`) con `tests/core/autoload/test_event_bus.gd`, `core/session/game_session.gd` e `session_participants.gd` (modulo `discoveries`, `new_game`, save, `SaveMigrator.CURRENT_VERSION` = 5), le sole righe di `Bank`, `LootBag`, `Armory`, `CardStore` che emettono `item_obtained`,
+  `core/guide/**` (`GuideIndex.drops_of`, `GuideRef.item`/`chance_pct`, tabelle nuove), `ui/pages/guide/**`, `ui/components/{locked_cell}/**`, `ui/components/tooltip/**` (niente "Si ottiene da"), `ui/feedback/**` (toast `item_discovered`), `tests/core/**`, `tests/ui/**`, `tests/integration/test_save_discoveries.gd`.
+- **Leggere** `01_GDD.md` §27, §27.1; `02_FORMULAS.md` F-124, F-121 (% del pool); `04_DATA_SCHEMA.md` §19, §21; `05_INTERFACES.md` §3, §5.19, §5.24, §6, §7.u, §7.y.
+- **Descrizione** `Discoveries` (note, has, items, save tollerante); emissione di `item_obtained` dai punti di ingresso; `GuideIndex.drops_of` per mostro, area, Monolito, boss e attività (con la % di F-124, anche per i pezzi del pool); la Guida mostra caselle bloccate per gli oggetti non scoperti e per i drop non trovati; i tooltip perdono "Si ottiene da"; toast "Nuovo: …"; salvataggio v5.
+- **Accettazione** un oggetto ottenuto una volta resta sbloccato (anche dopo averlo venduto o perso e dopo il salvataggio); un oggetto mai ottenuto non rivela la sua fonte (né nel tooltip né nella pagina dell'oggetto); la pagina di un mostro elenca tutto ciò che può dare con caselle bloccate; le percentuali coincidono con i dati (esempio di F-124: 0,0208%); il kit iniziale conta come ottenuto; l'offline sblocca;
+  i testi delle meccaniche restano visibili; salvataggio v5 round-trip; un save v4 → `version_unsupported`; nessuno stato nella UI.
+- **Test** `tests/systems/discovery/test_discoveries.gd`, `tests/core/guide/test_drops_of.gd`, `test_guide_locked.gd`, `tests/ui/test_tooltip_no_source.gd`, `tests/integration/test_save_discoveries.gd`, `tests/core/save/test_version5.gd`.
+
+### M14-08 · Maestria visibile e bonus ogni 10 livelli (CORE + UI)
+- **Ruolo** CORE + UI · **Stima** M · **Parallelizzabile** con M14-09 · **Dipendenze** M14-05
+- **Ownership** `systems/mastery/**` (`step_bonus`, `next_step`, `step_info`, modificatori `mastery_step:<action_id>`), `core/data/**` (`mastery.step`, tolti `mastery_bonuses`), `data/skills/**` (tolti `mastery_bonuses`), `data/config/balance.json` (solo `mastery.step`), `ui/pages/mastery/**` e le carte delle azioni (`MasteryStepRow`), `core/guide/**` (solo la pagina `guide_mastery_step`), `tests/systems/mastery/**`, `tests/ui/**`.
+- **Leggere** `01_GDD.md` §6, §6.5; `02_FORMULAS.md` F-10, F-11, F-103, F-108, F-122; `04_DATA_SCHEMA.md` §3, §4, §7, §21; `05_INTERFACES.md` §5.7, §5.24, §7.u.
+- **Descrizione** F-122 su ogni azione con maestria (raccolta e artigianato, Incisore compreso); sostituisce F-11; la carta dell'azione mostra livello, bonus attuali e prossimo bonus; si somma ai traguardi 25/50/99; l'aiutante usa i bonus come ora (nodi e maestria valgono per lui).
+- **Accettazione** esempi di F-122 come test (livello 9 → nessun bonus; 47 → −8% e +4%; 99 → −18% e +9%; artigianato 30 → +6% e −6%); ogni carta di azione con maestria mostra il prossimo bonus ("Al livello 40: …"); nessun vecchio `mastery_bonuses` nei dati; nessun numero nel codice; il salvataggio non cambia; copertura delle stat verde.
+- **Test** `tests/systems/mastery/test_mastery_step.gd`, `tests/ui/pages/mastery/test_mastery_step_row.gd`.
+
+### M14-09 · Fratture: tetto ai rischi e carte compatte (DATA + UI)
+- **Ruolo** DATA + UI · **Stima** S · **Parallelizzabile** con M14-08 · **Dipendenze** M14-03
+- **Ownership** `systems/fractures/map_card_roller.gd` (tetto di F-123, `risk_points`, `risk_cap`), `data/config/balance.json` (solo `fracture.risk_cap` e `fracture.risk_unit`), `data/maps/map_mods.json` (solo se serve per rispettare "almeno un candidato per grado"), `core/data/**` (validatore di `fracture.risk_*`), `ui/pages/fractures/**` (`CardRow` compatta: un modificatore per riga), `tests/systems/fractures/**`, `tests/ui/pages/fractures/**`.
+- **Leggere** `01_GDD.md` §17.1; `02_FORMULAS.md` F-109, F-111, F-123; `04_DATA_SCHEMA.md` §11, §21; `05_INTERFACES.md` §5.23, §5.24, §7.v.
+- **Descrizione** Il tetto ai punti di rischio per grado (F-123) nella scelta dei modificatori e nei Cristalli; `CardRow` più bassa con rischio e premio su una riga per modificatore.
+- **Accettazione** esempi di F-123 come test (39 punti a `step` 8; 24 + 15 con due modificatori; `pack_bonus` 2 = 40; `pulse` a `step` 10 = 25); una Carta rara di grado 1 non supera mai 40 punti in 1000 tiri; l'ordine dei tiri su `rng` non cambia; il premio segue lo `step` ridotto; la Carta salvata si ricarica come prima; la card ha altezza minore di prima.
+- **Test** `tests/systems/fractures/test_risk_cap.gd`, `tests/ui/pages/fractures/test_card_row_compact.gd`.
+
+### M14-10 · Bilanciamento con la sim e test (QA)
+- **Ruolo** QA · **Stima** L · **Parallelizzabile** no · **Dipendenze** M14-05, M14-08, M14-09
+- **Ownership** `tools/sim_combat.gd` e `tools/sim_fracture.gd` (opzioni per i drop di equipaggiamento, Armatura e leggendari), `tools/sim_m14.gd` (nuovo), `tests/integration/**` e `tests/balance/**` (di M14), `data/config/balance.json` (`loot.*`, `combat.armor.*`, `rarity.*`, `blueprint.*`, `fracture.*` per ritarare), `data/combat/**` (solo probabilità e quantità), `data/items/equipment*.json` (solo valori numerici, mai nomi), `docs/06_ROADMAP.md` (misure) e `docs/OPEN_QUESTIONS.md` (Q66-Q77).
+- **Leggere** `01_GDD.md` §28; `02_FORMULAS.md` §5e, §7, §8.4, §9; `05_INTERFACES.md` §5.24, §8; `docs/OPEN_QUESTIONS.md` Q66-Q77.
+- **Descrizione** Misurare con la sim, nell'area del proprio livello: pezzi ogni 30 minuti (obiettivo 3-5), magici (≈ 1), rari (1 ogni 2-3 ore), progetti (≈ 1/ora); durata delle Fratture dopo l'Armatura (15-30 minuti, la scala non si interrompe: dal M13 il personaggio ha ora armi e armature nuove e le uccisioni cambiano); riduzione di Armatura e Barriera a livello 1/50/90 (15-55%);
+  leggendari ≈ 1 ogni 15-30 ore di Fratture; Polvere del Rift per ora e usi; livello 99 in ~300 ore ancora vero (B1). Ritarare `loot.*`, `combat.armor.*`, valori delle armi e i mostri finché gli obiettivi sono rispettati.
+- **Accettazione** le misure sono in `06_ROADMAP.md`; ogni punto di accettazione di M14 ha almeno un test (armi, armature, 15 gradi, Capolavoro solo da progetti, ≥ 3 leggendari per slot con effetto e fonte, drop, wiki a scoperta, maestria, ritocchi); conservazione degli oggetti; save v5 round-trip; offline 12 ore con le nuove regole in meno di 10 s; copertura delle stat in modalità rigida.
+- **Test** `tests/integration/test_m14_acceptance.gd`, `test_drop_rates.gd`, `test_equipment_conservation.gd`, `tests/balance/test_armor_balance.gd`.
+
+### M14-11 · Integrazione di M14, tag `m14-alpha` (REV)
+- **Ruolo** REV · **Stima** S · **Dipendenze** M14-06, M14-10
+- **Descrizione** Merge, checklist di `06_ROADMAP.md` (M14 "Uscita"), `docs/RELEASE_CHECKLIST_MVP.md` aggiornata (sezione Alpha), `docs/STATUS.md`, tag `m14-alpha` (e `m14-done`), report di milestone. Il push lo fa l'Orchestratore.
+
+## M15+ (dopo M14)
+
+- M15+ · Seconda classe, dungeon, altri boss, quarti leggendari per slot: da definire.
 - Le **corsie parallele** (ex M13, `01_GDD.md` §18, F-51, nota N12) sono **eliminate**: le sostituiscono gli aiutanti di M12.
 
 ## Note ereditate dai task superati
@@ -1736,6 +1855,7 @@ si apre solo con una Carta; nessun altro evento la apre. I nomi e i testi di gio
 - **N10 (da M1-19)** Modalità rigida di `test_stat_registry_coverage.gd`: nessuna stat in `pending`; `CLOSED_FORMULAS` e
   `FORMULA_MILESTONES` restano la mappa formula → milestone (da R-03: F-50 → M13, F-51 eliminata; nessuna stat nuova in M12: `bank_slots`/`armory_slots`/`parallel_lanes` tolte); M13 non aggiunge stat e toglie `fracture_duration_pct` (R-04).
 - **N11 (da M7-01 vecchio; ora M13-01, R-04)** Se `FractureSystem.SAVE_KEY` è `fractures`, rinominare la chiave finta di `ProbeSession`.
+- **N13 (da R-05, M14)** Stat `damage_reduction` del giocatore sostituita da `armor` e `barrier`: `CLOSED_FORMULAS` e `FORMULA_MILESTONES` di `tests/data/test_stat_registry_coverage.gd` con F-117 → M14 e le stat nuove; `LATER_MILESTONE_STATS` di `test_config_files.gd` senza `damage_reduction`; F-16 e F-82 (eliminate) vanno tolte dagli elenchi.
 - **N12 — SUPERATA da R-03 (corsie parallele eliminate, W3; storico)**. Il runner ha già `LANE_ORDER` e `_lanes`; da sbloccare `start`, `from_save`,
   `current_interval_ms`, `lanes_available`; `ActionMath.secondary_interval_ms` (F-51) è già testato; aggiungere
   `skill_in_other_lane`; lo stop del combattimento resta solo per la corsia main.

@@ -183,9 +183,9 @@ ognuno `{"items": [...]}`. Campi comuni:
 | `slot` | String | `head`, `body`, `legs`, `feet`, `hands`, `neck`, `ring`, `weapon`, `offhand`, `tool_forestry`, `tool_quarrying`, `tool_angling` (i `tool_*` solo per `category: tool`, e un `tool` solo negli slot `tool_*`) |
 | `requirements` | object | `{skill_id | "character": livello}`, può essere vuoto. `equipment`: solo la chiave `character`; `tool`: solo la skill dello slot (`tool_<skill>`) |
 | `modifiers` | array | modificatori (§1): i valori **base** del pezzo (la raffinazione li moltiplica, F-86; gli affissi si aggiungono, §15) |
-| `grade` | int | obbligatorio, 1..8: grado del pezzo (affissi, raffinazione, smantellamento) |
+| `grade` | int | obbligatorio, 1..15 (M14, Q66): **grado del pezzo** (livello del pezzo `equipment.grade_levels`, affissi `ilvl`); il grado del materiale 1..8 (raffinazione, progetti, smantellamento) si ricava da `equipment.grade_material` (`GameData.material_grade(grade)`); gli attrezzi unici hanno `grade` 1 |
 | `kind` | String | obbligatorio per `slot: weapon` e `slot: offhand`, vietato per gli altri: `greatsword`, `sword`, `shield` (`greatsword`/`sword` solo con `weapon`, `shield` solo con `slot: offhand`). Una `sword` ha `slot: weapon` ma si può indossare anche nell'`offhand` se la classe lo ammette |
-| `weapon` | object | obbligatorio con `slot: weapon`, vietato per gli altri: `style` (`blade`/`marksmanship`/`arcana`), `attack_interval_ms` (≥ 800), `two_handed` (bool; `true` se e solo se `kind: greatsword`) |
+| `weapon` | object | obbligatorio con `slot: weapon`, vietato per gli altri: `style` (`blade`/`marksmanship`/`arcana`), `attack_interval_ms` (≥ 800), `dmg_min` e `dmg_max` (M14, F-22: interi, `1 ≤ dmg_min ≤ dmg_max`), `two_handed` (bool; `true` se e solo se `kind: greatsword`) |
 
 `food`: `{"heal": int ≥ 1}`. `infusion`: `{"modifiers": [...], "unique": bool, "grade": 1..5, "family": id}` (`unique` default `false`; `grade` default 1,
 M12); `modifiers` ha almeno 1 modificatore (una runa senza effetto sarebbe decorativa). **Gradi delle rune (M12, F-107)**: la runa di grado I
@@ -358,7 +358,7 @@ alberi di raccolta in cui meno di 3 nodi su 6 differiscono per l'insieme `(stat,
 | `attack_interval_ms` | int | ≥ `combat.min_attack_interval_ms` |
 | `attack_level`, `power_level`, `defence_level` | int | 1..99 |
 | `accuracy_bonus`, `power_bonus`, `evasion_bonus` | int | ≥ 0 |
-| `damage_reduction` | float | 0..80 |
+| `damage_reduction` | float | 0..80: **riduzione percentuale del mostro** (F-25); non è più una stat del giocatore (M14: `armor` e `barrier`) |
 | `gold` | `[min, max]` | 0 ≤ min ≤ max |
 | `rift_shard_chance` | float | 0..100 |
 | `loot_tables` | array di id | facoltativo (M12): tabelle di `loot_tables.json` (§8b) in aggiunta ai `drops`; ogni id esiste |
@@ -674,3 +674,46 @@ Riepilogo per il validatore e i task M12-01…M12-05 (dettagli nelle sezioni ind
 - Guida (§19): pagine nuove (Deposito e borse, Aiutanti, Maestria per risorsa, Incisore, Monoliti del Rift) e tabelle generate `bags`, `helper_grades`,
   `engraver_recipes`, `mastery_milestones` (`05_INTERFACES.md` §5.19).
 - Nomi: solo `name` e `description` (Q52); i nomi di `NOMI.md` (sezione Riforma 2) li controlla un test dei dati.
+
+## 21. Aggiunte di M14 (Alpha: equipaggiamento vero, leggendari, drop, wiki a scoperta, maestria)
+
+Riepilogo per il validatore e i task M14-01…M14-09 (formule in `02_FORMULAS.md` §5e, §7 F-123, §8.4; contratto in `05_INTERFACES.md` §5.24).
+
+**`equip` (§5), pezzi `equipment`**
+| Campo | Tipo | Vincoli |
+|---|---|---|
+| `grade` | int | 1..15 (vedi riga di §5) |
+| `material` | String | `plate`, `leather`, `cloth`: **obbligatorio** per `slot` `head`, `body`, `legs`, `feet`, `hands` e per `kind: shield`; vietato per gli altri |
+| `weapon.dmg_min`, `weapon.dmg_max` | int | obbligatori con `slot: weapon` (§5); il validatore controlla che i dati veri coincidano con la tabella di §8.4 (F-118) (test dei dati, non regola del validatore) |
+| `modifiers` | array | per un'arma **non** contiene più `power_bonus` (il danno è `dmg_min`/`dmg_max`); per le armature contiene `armor`, `barrier` (se > 0), `evasion_bonus` secondo F-118; la stat `damage_reduction` **non esiste più** (rifiutata dal validatore) |
+| `masterwork` | bool | facoltativo (default `false`): base di **Capolavoro** (nome proprio, rarità `masterwork` obbligata, mai nei drop); solo se esiste il progetto che la produce e solo `material: plate` per le armature (Q75) |
+| `legendary` | object | facoltativo, mutuamente esclusivo con `masterwork`: `{"source": {...}, "effects": [...]}` (sotto) |
+
+`legendary.source`: `{"type": "boss", "id": <id di un boss di bosses.json>, "chance_pct": 0 < x ≤ 100}` oppure `{"type": "monolith", "id": <id di un Monolito di rift_stones.json>, "chance_pct": ...}`. `legendary.effects`: lista (almeno 1) di `{"type": <uno dei tipi di F-81 o F-120>, ...parametri...}`, parametri e intervalli come in F-120. Un leggendario ha `value` ≥ 1 (si può vendere, F-120). Regole del validatore: ogni leggendario ha **fonte ed effetti**; gli attrezzi leggendari hanno `slot: tool_*`, `requirements` del mestiere, `unique` assente o `false`, nessun `upgrade_extras`; ogni fonte `boss` esiste e ogni boss ha da 1 a 5 leggendari; ogni slot di §28.5 ha **almeno 3**
+leggendari; `gather_bonus_item`, `gather_grade_up_pct` e `byproduct_mult` solo su attrezzi (con item o risorsa del mestiere dello slot), gli altri tipi solo su pezzi non-tool; `monolith_loot_mult` e `card_drop_mult` solo su anello o collo.
+Basi `masterwork` e `legendary`: la rarità dell'istanza è fissa; `ItemRoller.create` la impone (`rarity` passata ignorata) e `instance_modifiers` applica `rarity.masterwork.base_mult` o `rarity.legendary.base_mult` (F-119, F-120). Esempio:
+```json
+{"id": "mw_chest_plate_11", "name": "<nome da NOMI.md>", "category": "equipment", "value": 0, "sort_order": 1100,
+ "icon": "res://assets/icons/items/mw_chest_plate_11.svg", "description": "...",
+ "equip": {"slot": "body", "grade": 11, "material": "plate", "masterwork": true, "requirements": {"character": 50},
+           "modifiers": [{"stat": "armor", "value": 121}, {"stat": "evasion_bonus", "value": 5}]}}
+```
+
+**Progetti (`blueprint`, §5)**: `rare_component` (singolo) è sostituito da `rare_components`: **due** `{item, qty}` con `item` diversi (Q68); `inputs` = quantità di `02_FORMULAS.md` §8.2 × `blueprint.cost_mult`; `grade` (1..8) = grado del **materiale** della base (`material_grade(base.grade)`);
+una sola `blueprint` per base; solo basi `masterwork`. I progetti per `blueprint.base` non-Piastre sono rifiutati.
+
+**`balance.json` (§3)**: nuove chiavi `equipment.{grade_levels (15 interi crescenti 1..99), grade_material (15 interi 1..8 non decrescenti), slot_weights (somma 1), set_budget}`, `combat.armor.{k, level_offset, cap_pct (1..95), materials}`, `rarity.masterwork.{base_mult, affix_count}`,
+`rarity.legendary.base_mult`, `sockets.by_rarity` con `masterwork` e `legendary`, `blueprint.{cost_mult, extra_rare}`, `loot.equipment.{chance_pct, level_ahead, level_window, kind_weights}`, `loot.blueprint.chance_pct`, `mastery.step.{every_levels, gathering, crafting}`, `fracture.{risk_cap, risk_unit}`,
+`upgrade.levels[].dust`, `rarity.drop` 25/5, `combat.unarmed` con `dmg_min`/`dmg_max` (valori e rami in `02_FORMULAS.md` §9). Chiave tolta: nessuna (le voci di equipaggiamento di `monster.drops` sono dati, non chiavi).
+
+**`stats.json` (§2)**: tolta `damage_reduction`, aggiunte `armor` e `barrier` (0..100000, `formula` `F-117`, test in `test_stat_registry_coverage.gd`). Affissi e rune con `damage_reduction` passano a `armor` (`02_FORMULAS.md` §8.9; nuovo affisso `runeward` su `barrier`).
+
+**Mostri e Monoliti (§8, §16)**: il campo `damage_reduction` resta (percentuale); le voci di `drops` che sono `equipment` o `blueprint` **spariscono** (le sostituisce il pool di F-121): il validatore le rifiuta; `drops` ≤ 8 voci restano per materiali e componenti rari. I `drops` dei Monoliti mantengono i pezzi con `rarity.rift_stone` ma con le basi del nuovo catalogo.
+
+**Maestria (§4, §6, §7)**: `mastery_bonuses` delle skill di artigianato sono **tolti** (sostituiti dall'unica regola `mastery.step`, F-122); il validatore li rifiuta per ogni skill. I traguardi 25/50/99 (`milestones`) restano.
+
+**Carte (§11)**: il validatore verifica che per ogni grado 1..10 esista almeno un modificatore di rischio con punti ≤ `cap(grado)` (F-123); `fracture.risk_unit` ha chiavi solo tra i tipi di rischio di F-111.
+
+**Guida (§19)**: nessuna pagina di oggetto cambia nei file `data/guide/*.json`; la Guida filtra per `discoveries` (F-124). Nuove pagine a mano: `guide_equipment` (armi, armature, Armatura/Barriera), `guide_masterwork_legendary` (Capolavori e leggendari: cosa sono, non da dove vengono), `guide_discovery` (come funzionano le scoperte), `guide_mastery_step` (bonus ogni 10 livelli); testi con segnaposto `{balance:...}`.
+
+**Nomi**: solo `name` e `description` (Q52); i nomi di `NOMI.md` (sezione Alpha) li controlla un test dei dati.

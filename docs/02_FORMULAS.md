@@ -94,7 +94,7 @@ Parametri: `mastery.base_factor = 1.0`, `mastery.per_level = 0.1`, `mastery.rati
 Esempi: t 3, L 1, R 1/792 → **3**; t 3, L 50, R 0,25 → **20**; t 3, L 99, R 1,0 → **41**; t 2,5, L 10, R 0,05, pct 5 → **5**.
 Test: `tests/systems/mastery/test_mastery_math.gd`.
 
-### F-11 Bonus della maestria per oggetto (dal M12 solo artigianato; la raccolta usa F-103 e F-108)
+### F-11 Bonus della maestria per oggetto (dal M12 solo artigianato; la raccolta usa F-103 e F-108) — **SOSTITUITA da F-122 (M14)**
 Per ogni regola in `skill.mastery_bonuses`: `every_levels: k` → valore × `floor(L/k)`; `at_level: n` → valore se `L ≥ n`.
 Scope dei modificatori: `action:<id>`. Regole iniziali:
 - ~~raccolta: `every_levels 10 → double_item_chance +1`; `at_level 99 → double_item_chance +5`~~ (**sostituita in M12** dai traguardi per risorsa, F-103/F-108; gli esempi di raccolta qui sotto non valgono più);
@@ -166,13 +166,18 @@ Test: `tests/systems/combat/test_combat_math.gd`.
 `ER = floor((L + acc_level_offset) × (evasion_bonus + acc_bonus_offset) × (1 + evasion_pct/100))`; `L` = `L_char` o `defence_level`.
 Esempi: (1, 0, 0) → 450; (16, 18, 0) → 1.632; (24, 30, 0) → 2.560. Test: `test_combat_math.gd`.
 
-### F-22 Danno massimo, minimo e tiro
-`max_hit = floor((L + combat.maxhit_level_offset) × (power_bonus + combat.maxhit_bonus_offset) / maxhit_bonus_offset × (1 + power_pct/100))`;
-`L` = `L_char` o `power_level`.
-`min_hit = max(1, floor(max_hit × combat.min_hit_ratio))`; tiro = intero uniforme in `[min_hit, max_hit]`.
+### F-22 Danno massimo, minimo e tiro (rivista in M14: danno dell'arma, Y2)
+`max_hit = floor((L + combat.maxhit_level_offset) × (W_max + power_bonus + combat.maxhit_bonus_offset) / maxhit_bonus_offset × (1 + power_pct/100))`;
+`L` = `L_char` o `power_level`. **`W_max`** = `dmg_max` dell'arma che colpisce (§8.4; con due spade quella della mano che colpisce, F-74), 0 senza arma e per i mostri (che usano `power_bonus` dei dati come prima). Il danno dell'arma **sostituisce** il vecchio `power_bonus` dei modelli base;
+`power_bonus` e `power_pct` degli affissi, dei tratti e delle rune si sommano ancora.
+`min_hit = max(1, floor(max_hit × r))` con `r = dmg_min / dmg_max` dell'arma (la forbice propria del modello: spada 0,6, spadone 0,5) oppure `combat.min_hit_ratio` (0,1) senza arma e per i mostri; tiro = intero uniforme in `[min_hit, max_hit]`.
+Con un Capolavoro o un leggendario (F-119, F-120) `dmg_min` e `dmg_max` sono già moltiplicati; con la raffinazione F-86 vale lo stesso ordine di F-119.
 Parametri: `maxhit_level_offset = 10`, `maxhit_bonus_offset = 40`, `min_hit_ratio = 0.1`.
-Esempi: (1, 0, 0) → max 11, min 1; (10, 20, 0) → 30 / 3; (50, 60, 0) → 150 / 15; (99, 150, 0) → 517 / 51;
-(10, 20, 10) → floor(33,0) = 33 / 3. Test: `test_combat_math.gd`.
+Esempi: senza arma (1, 0, 0) → max 11, min 1; mostro (10, 20, 0) → 30 / 3; mostro (50, 60, 0) → 150 / 15; mostro (99, 150, 0) → 517 / 51; mostro (10, 20, 10) → floor(33,0) = 33 / 3 (invariati);
+**spada grado 1** (dmg 4-6) a livello 1: floor(11 × (6 + 40)/40) = floor(12,65) = **12**, min floor(12 × 4/6) = **8**; **spada grado 15** (37-62) a livello 90: floor(100 × (62 + 40)/40) = **255**, min floor(255 × 37/62) = **152**;
+spadone grado 8 (dmg 34-68) a livello 50: floor(60 × (68 + 40)/40) = **162**, min **81**; spada grado 8 con `power_bonus +10` e `power_pct +10` a livello 50: floor(60 × (34 + 10 + 40)/40 × 1,1) = floor(138,6) = **138**.
+**Danno al secondo dell'arma** (scheda dell'oggetto, `WeaponMath.dps`): `dps = (dmg_min + dmg_max) / 2 / (intervallo ms / 1000)`, dove l'intervallo è quello di F-26 con il totale `attack_interval_pct`; non dipende dal livello. Esempi: spada grado 1 (4-6, 2000 ms) → 2,5; spadone grado 1 (6-12, 3200 ms) → 2,81; spada grado 15 con `attack_interval_pct` −10 → 49,5 / 1,8 = 27,5.
+Test: `tests/systems/combat/test_combat_math.gd` (`test_weapon_damage`, `test_weapon_dps`).
 
 ### F-23 Probabilità di colpire
 `hit = clamp(AR / (AR + ER), combat.hit_chance_min, combat.hit_chance_max)`; `min = 0.05`, `max = 0.95`.
@@ -190,12 +195,13 @@ lo stile del giocatore viene dall'arma (`weapon.style`) o da `combat.unarmed.sty
 Il danno moltiplicato si tronca (`floor`) prima della riduzione. Esempi: `triangle(blade, arcana) = advantage`;
 `triangle(blade, marksmanship) = disadvantage`; `triangle(arcana, arcana) = neutral`. Test: `test_combat_math.gd`.
 
-### F-25 Riduzione del danno
-`dr_eff = T(damage_reduction) (0..80 da stats.json) × (0,75 se il difensore è in svantaggio)`
+### F-25 Riduzione del danno (rivista in M14: Armatura e Barriera)
+- **Difensore giocatore**: `dr_eff = rid%` di F-117 (Armatura contro `blade`/`marksmanship`, Barriera contro `arcana`, rendimenti decrescenti, massimo `combat.armor.cap_pct`), × 0,75 se il giocatore è in svantaggio (triangolo). Gli effetti `armor_pierce_pct` valgono solo per gli attacchi del giocatore.
+- **Difensore mostro**: `dr_eff = damage_reduction` dei dati del mostro (percentuale piatta, 0..80, invariata) × (0,75 se in svantaggio); un effetto `armor_pierce_pct` del giocatore moltiplica `dr_eff` per `(1 − pct/100)`.
 `danno = max(1, floor(danno_dopo_triangolo × (1 − dr_eff/100)))`
-Esempi: 20, DR 25 → **15**; 3, DR 80 → **1**; tiro 20, attaccante in vantaggio, DR del difensore 10 →
-floor(20×1,15) = 23 → dr_eff 7,5 → floor(23 × 0,925) = **21**; tiro 20, svantaggio, DR 10 → floor(17) = 17 → floor(15,3) = **15**.
-Test: `test_combat_math.gd`.
+Esempi: mostro con DR 25 colpito da 20 → **15**; 3, DR 80 → **1**; tiro 20, giocatore in vantaggio, DR del mostro 10 → floor(20×1,15) = 23 → dr_eff 7,5 → floor(23 × 0,925) = **21**; tiro 20, svantaggio, DR 10 → floor(17) = 17 → floor(15,3) = **15**.
+**Giocatore difensore**: tiro 40, mostro `blade` livello 20, Armatura 100 (rid 35,71%), triangolo neutro → floor(40 × 0,6429) = **25**; stesso colpo con il giocatore in svantaggio → dr_eff 26,79% → floor(40 × 0,7321) = **29**; mostro `arcana` (livello 30), Barriera 121 e Armatura 500 → rid 33,52% (l'Armatura non conta) → tiro 40 → floor(26,59) = **26**.
+Test: `tests/systems/combat/test_combat_math.gd`.
 
 ### F-26 Intervallo d'attacco
 `interval = max(combat.min_attack_interval_ms, round(base_ms × (1 + T(attack_interval_pct)/100)))`; min 800 ms.
@@ -342,7 +348,8 @@ buff 6000 ms usato a t=8000 → attivo fino a 14000. Test: `test_abilities.gd`.
 | `leech_pct` | `pct` | `on_hit` | cura `floor(danno inflitto × pct/100)` | 60 × 5% → 3 |
 | `opening_strike` | — | `on_encounter_start` | il timer dell'attacco base va a 0: il primo attacco parte subito | timer 2400 → 0 |
 Test: `tests/systems/combat/effects/test_<tipo>.gd` (uno per tipo).
-`stat_trade`, mappa stat -> numero di combattimento (M6-02, `CombatantStats.scale_stat`; × fattore con floor, poi i limiti di `stats.json` dove esistono): `accuracy_bonus`/`accuracy_pct` -> accuratezza; `evasion_bonus`/`evasion_pct` -> evasione; `power_bonus`/`power_pct` -> `max_hit` (`min_hit` segue, F-22); `max_hp_flat` -> PV massimi; `damage_reduction` e `block_chance` (limiti della stat). Ogni altra stat non alimenta nulla (sarebbe decorativa): il validatore la rifiuta (restringimento in M6-04); a runtime è ignorata con `Log.warn`.
+M14: gli stessi tipi (e i tipi nuovi di F-120: `block_heal_pct`, `kill_heal_pct`, `armor_pierce_pct`, `hit_cap_pct`, `stat_convert`, `double_hit_pct`, `execute_mult`, `monolith_loot_mult`, `gather_bonus_item`, `gather_grade_up_pct`, `byproduct_mult`, `card_drop_mult`) sono usati dagli effetti dei leggendari; `stat_trade` e `stat_convert` lavorano su `armor` e `barrier` al posto di `damage_reduction`.
+`stat_trade`, mappa stat -> numero di combattimento (M6-02, `CombatantStats.scale_stat`; × fattore con floor, poi i limiti di `stats.json` dove esistono): `accuracy_bonus`/`accuracy_pct` -> accuratezza; `evasion_bonus`/`evasion_pct` -> evasione; `power_bonus`/`power_pct` -> `max_hit` (`min_hit` segue, F-22); `max_hp_flat` -> PV massimi; `armor`, `barrier` e `block_chance` (limiti della stat; M14: `armor` e `barrier` sostituiscono `damage_reduction`). Ogni altra stat non alimenta nulla (sarebbe decorativa): il validatore la rifiuta (restringimento in M6-04); a runtime è ignorata con `Log.warn`.
 `leech_pct` e abilità: il colpo di un'abilità chiama `EffectSet.hit` come l'attacco base (M6-03).
 Intervalli di formato dei parametri (validatore, `04_DATA_SCHEMA.md` §14): `n` int 2..20; `pct`, `hp_pct` in (0, 100]; `mult` in (0, 10]; `stat_trade` con almeno una stat in `zero` o `mult`, nessuna in comune, fattori > 0.
 
@@ -361,6 +368,7 @@ Nessuna ricetta produce più equipaggiamento: la rarità per maestria non esiste
 `roll_rarity` (`r < p_rare` → raro; `r < p_rare + p_magic` → magico; altrimenti comune) resta ed è usato anche da F-84.
 
 ### F-84 Rarità nei drop (M7)
+> M14: `rarity.drop` vale 25 e 5 (F-121); Capolavoro e leggendari non escono mai da questo tiro.
 `p_magic = rarity.drop.magic_pct × k`, `p_rare = rarity.drop.rare_pct × k` (`k = 1 + T(item_rarity_pct, ctx)/100` e tiro come in F-91, con `p_magic` e `p_rare` entrambi presenti); valori
 20, 3 per i mostri, `rarity.rift_stone.magic_pct` 40 e `rare_pct` 12 per le Pietre del Rift. Esempio: mostro con +50% →
 30 / 4,5. Test: `test_item_roller.gd::test_drop_rarity`.
@@ -378,7 +386,7 @@ Test: `test_item_roller.gd::test_affix_rolls`.
 
 ### F-86 Raffinazione (M7)
 Tentativo da `+N` a `+N+1` (N 0..8, Q28): costo `upgrade.levels[N] = {success_pct, gold_per_grade, ingots, shards}`:
-oro `gold_per_grade × grado`, `ingots` lingotti del grado del pezzo, `shards` frammenti del Rift.
+oro `gold_per_grade × grado`, `ingots` lingotti del grado del pezzo, `shards` frammenti del Rift e (M14, dal passo che porta al +5) `dust` Polvere del Rift; "grado" qui è il **grado del materiale** `m(g)` (§8.4, 1…8), non il grado del pezzo. Vale per tutte le rarità, anche Capolavoro e leggendari.
 `chance = min(100, success_pct × (1 + T(upgrade_success_pct)/100))` (da M10 `upgrade_success_pct` include il
 bonus del livello del Fabbro, F-93). Vale per **armi e armature**; gli attrezzi unici usano F-94 (sempre riuscita). Successo → `+N+1`. Fallimento: materiali persi;
 se `N ≥ upgrade.downgrade_from` (4) il pezzo scende a `+N−1`, salvo il Sigillo di salvaguardia (`upgrade.seal_item`,
@@ -390,6 +398,7 @@ affissi non cambiano.
 | `gold_per_grade` | 50 | 100 | 200 | 400 | 800 | 1600 | 3200 | 6400 | 12800 |
 | `ingots` | 1 | 1 | 2 | 2 | 3 | 3 | 4 | 4 | 5 |
 | `shards` | 0 | 0 | 0 | 0 | 0 | 5 | 10 | 15 | 20 |
+| `dust` (M14, Q71) | 0 | 0 | 0 | 0 | 10 | 20 | 30 | 40 | 50 |
 Esempi: +5 → +6 con +10% → 60,5%; fallimento da +5 → +4; fallimento da +3 → resta +3; `power_bonus` 48 a +3 → 62,4;
 spada T4, +5 → +6: 6.400 oro, 3 lingotti T4, 5 frammenti. Test: `tests/systems/armory/test_upgrade.gd`.
 
@@ -406,7 +415,7 @@ garantita; chance 100 → sempre. Test:
 Restituiva lingotti in base alla ricetta del pezzo; senza ricette in serie restituisce componenti (F-95).
 
 ### F-89 Castoni (M8)
-`sockets = sockets.by_rarity[rarity] + (1 se upgrade ≥ sockets.bonus_at_upgrade)`; comune 0, magico 1, raro 2, bonus a
+`sockets = sockets.by_rarity[rarity] + (1 se upgrade ≥ sockets.bonus_at_upgrade)`; comune 0, magico 1, raro 2, **Capolavoro 2, leggendario 2** (M14), bonus a
 +7. Esempi: raro +7 → 3; comune +9 → 1; magico +6 → 1. Test: `tests/systems/armory/test_sockets.gd`.
 
 ## 5c. Progetti, attrezzi unici e smantellamento a componenti (F-90…F-95, M10)
@@ -418,6 +427,7 @@ mestiere 25), kit iniziale (Q51). Il grado `n` va da 1 a 8; "livello del grado" 
 45, 60, 75, 90).
 
 ### F-90 Craft di un progetto (azione a ciclo unico)
+> M14: il progetto crea un Capolavoro (F-119). Il grado `n` qui è il **grado del materiale** `m(g)` (§8.4); le quantità dei `inputs` sono moltiplicate per `blueprint.cost_mult` (3) e il progetto chiede **due** componenti rari diversi (Q68). Durata, livello del Fabbro e XP invariati; `ilvl` del pezzo = `lvl(g)` di §8.4 (il livello del grado del pezzo, F-85).
 Livello richiesto del Fabbro: il livello del grado `n` del progetto. Durata (Q48):
 `duration_min = blueprint.duration_base_min + blueprint.duration_per_grade_min × (n − 1)` con 10 e 7 (grado 1: 10
 minuti; grado 8: 59), poi F-03 con `skill_interval_pct` (contesto `for_action(forging, blueprint_craft)`), minimo
@@ -430,18 +440,16 @@ Esempi: grado 1 → 10 min, `xp_min` 8 × 60000/2000 = 240, XP 3.600; grado 4 (f
 grado 8 (fusione XP 116) → 59 min, XP 307.980; con `skill_interval_pct` −10 il grado 1 dura 9 min. Test:
 `tests/systems/actions/test_blueprint_craft.gd::test_duration_and_xp`.
 
-### F-91 Rarità di un progetto
-Mai comune. `k = 1 + T(item_rarity_pct, ctx)/100` (come in F-84) e `L` = livello del Fabbro:
-`p_rare = min(100, (blueprint.rare_base_pct + blueprint.rare_per_forging_level × L) × k)` con 10 e 0,5; tiro
-`r = rng.randf() × 100`; `r < p_rare` → `rare`, altrimenti `magic`.
-Esempi: L 1, +0% → 10,5; L 50, +0% → 35; L 50, +20% → 42; L 99, +0% → 59,5; L 99, +100% → 100 (119 limitato). Con
-`p_rare` 35: r 20 → raro; r 50 → magico. Test: `tests/systems/items/test_item_roller.gd::test_blueprint_rarity`.
+### F-91 Rarità di un progetto (rivista in M14: il progetto crea un Capolavoro, Y4)
+Il pezzo di un progetto è sempre un **Capolavoro** (`masterwork`, F-119): la rarità non si tira più. Quello che cresce con il livello del Fabbro è il **numero di affissi**: `k = 1 + T(item_rarity_pct, ctx)/100` (come in F-84) e `L` = livello del Fabbro:
+`p_two = min(100, (blueprint.rare_base_pct + blueprint.rare_per_forging_level × L) × k)` con 10 e 0,5; tiro `r = rng.randf() × 100`; `r < p_two` → **2 affissi**, altrimenti **1** (`rarity.masterwork.affix_count` = [1, 2]).
+Esempi: L 1, +0% → 10,5; L 50, +0% → 35; L 50, +20% → 42; L 99, +0% → 59,5; L 99, +100% → 100 (119 limitato). Con `p_two` 35: r 20 → 2 affissi; r 50 → 1 affisso. Test: `tests/systems/items/test_item_roller.gd::test_blueprint_rarity` (rinominato in M14 `test_masterwork_affix_count`).
 
 ### F-92 Affisso scelto
 Disponibile se `L ≥ blueprint.choose_affix_level` (50, Q50), altrimenti il comando è rifiutato (`invalid_choice`). Il
 giocatore sceglie un affisso tra quelli ammessi dallo slot del pezzo con almeno un grado sbloccato da `ilvl`; il grado
 è fisso: `min(blueprint.chosen_affix_tier, gradi sbloccati)` con `chosen_affix_tier` = 2; il valore si tira nel grado
-come in F-85. L'affisso scelto è il **primo** degli affissi e conta nel numero della rarità (magico 1-2, raro 3-4,
+come in F-85. L'affisso scelto è il **primo** degli affissi e conta nel numero della rarità (Capolavoro 1-2; era magico 1-2, raro 3-4,
 `rarity.affix_count`); gli altri si tirano con F-85 senza duplicarlo. Ordine dei tiri su `rng`: rarità, numero di
 affissi, valore dell'affisso scelto, poi gli altri (scelta, grado, valore). Esempi: `ilvl` 20 con gradi `min_ilvl` 1,
 20, 45 → 2 gradi sbloccati, si usa il grado 2; `ilvl` 1 → grado 1; L 49 → rifiutato. Test:
@@ -476,6 +484,7 @@ con il Minatore al livello 1: 2 piastre di rame, 1 manico di betulla, 100 oro. T
 `tests/systems/armory/test_upgrade_tool.gd`.
 
 ### F-95 Smantellamento a componenti
+> M14: `grado` = grado del materiale `m(g)` (§8.4); i pezzi senza progetto (anelli, colli, Cuoio, Tessuto runico, drop di basi non progettabili, leggendari) restituiscono 0 componenti e i soli frammenti; per un Capolavoro la base del progetto è la sua (componenti × `salvage.component_ratio`, con le quantità maggiorate di F-119).
 Sostituisce F-88. Il progetto con `base` uguale a quella del pezzo (uno per base) elenca i componenti: per ognuno,
 tranne il componente raro, restituisce `floor(qty × salvage.component_ratio)` (0,4) dello stesso oggetto;
 frammenti: `salvage.shards_by_rarity[rarity] × grado + N` (comune 0, magico 1, raro 3, come prima). Anelli e amuleti
@@ -573,6 +582,79 @@ Esempi (Boscaiolo, `skill_interval_pct −0,5` per risorsa): 0 risorse al 99 →
 Test: `tests/systems/mastery/test_mastery_milestones.gd`.
 
 ---
+## 5e. Equipaggiamento vero, leggendari, drop e maestria visibile (F-117…F-122, F-124; M14, Alpha, Y1-Y9)
+
+Fonte: `ALPHA.md` (storica dopo R-05). Tutti i numeri sono **valori di partenza** (chiavi di `balance.json`, §9) da tarare in M14-10 con la sim (Q66-Q77); gli esempi sono casi di test e cambiano insieme ai valori. F-118 è la tabella di §8.4; F-123 (tetto ai rischi delle Carte) è in §7.
+Stat nuove: `armor` (sostituisce `damage_reduction`) e `barrier`. Nessun altro sistema nuovo: i leggendari usano il sistema degli effetti dei tratti (F-81) con nuovi tipi.
+
+### F-117 Armatura e Barriera
+Il danno subito dal giocatore da un colpo che ha superato F-23 si riduce con rendimenti decrescenti. `A = floor(T(armor))`, `B = floor(T(barrier))` (totali del giocatore, F-05). Con `L_att` = `power_level` del mostro attaccante (scalato in Frattura) e lo stile del mostro:
+`X` = `A` se lo stile è `blade` o `marksmanship`, `B` se è `arcana` (gli impulsi dei Monoliti e delle Fratture, senza stile, contano come `combat.unarmed.style`: Armatura);
+`rid% = min(combat.armor.cap_pct, 100 × X / (X + combat.armor.k × (L_att + combat.armor.level_offset)))` con `k` 6, `level_offset` 10, `cap_pct` 75. Va usata in F-25 al posto della vecchia riduzione piatta.
+Esempi: X 100, L_att 20 → 100/(100 + 180) = **35,71%**; X 724, L_att 92 → 724/(724 + 612) = **54,19%**; X 2000, L_att 10 → 94,3% → limitato a **75**; X 0 → 0; arcana: B 121, L_att 30 → 121/(121 + 240) = **33,52%** (l'Armatura non conta).
+Budget dei set e valori dei modelli: §8.4 (F-118). Test: `tests/systems/combat/test_combat_math.gd::test_armor_reduction`, `test_barrier_arcane`.
+
+### F-119 Capolavoro e progetti a costo alto
+- **Rarità `masterwork`** (viola), **solo da progetti** (mai da drop). Un progetto produce una base propria (`equip.masterwork: true`, nome proprio in `NOMI.md`) dello stesso slot, grado e materiale (Piastre per le armature, Q75) del modello normale. Tutti i valori base del modello
+  (modificatori e, per le armi, `dmg_min`/`dmg_max`) si moltiplicano a runtime per `rarity.masterwork.base_mult` (1,25): corpo Piastre grado 11, armor 121 → **151,25**; spada grado 8 (20-34) → **25-42,5**. Ordine: `base × 1,25 × (1 + upgrade.mod_pct_per_level × N / 100)` (F-86), nessun arrotondamento prima del colpo.
+- **Affissi**: `rarity.masterwork.affix_count` = [1, 2] (invece di magico 1-2 / raro 3-4): vedi F-91 (rivista). **Castoni**: `sockets.by_rarity.masterwork` = 2 (F-89).
+- **Costo** (Q68): `inputs` del progetto = quantità di §8.2 × `blueprint.cost_mult` (3), più **due componenti rari diversi** (`rare_components`, i due che cadono nell'area del grado; quantità come l'attuale `rare_component`). Durata, livello del Fabbro e XP: F-90 col grado del materiale `m(g)`, invariati.
+- Fonte dei progetti: pool dei mostri (F-121, `loot.blueprint`) e Monoliti come oggi.
+Esempio: se §8.2 chiede 4 piastre per il corpo del materiale 6, il progetto del corpo Piastre grado 11 (materiale 6) ne chiede 12 più 2 componenti rari diversi; smantellare (F-95) un Capolavoro restituisce `floor(12 × 0,4) = 4` piastre. Test: `tests/systems/items/test_masterwork.gd`, `tests/systems/actions/test_blueprint_craft.gd`.
+
+### F-120 Leggendari
+- **Rarità `legendary`** (arancione), niente affissi, un'**istanza** come ogni pezzo. Base con `equip.legendary: {source, effects}` (`04_DATA_SCHEMA.md` §5). Statistiche: quelle del modello (§8.4) di slot, grado e materiale indicati × `rarity.legendary.base_mult` (1,4) a runtime (stesso ordine di F-119);
+  raffinazione +0…+9 (F-86) e castoni (`sockets.by_rarity.legendary` = 2, F-89) come ogni pezzo non unico. Le armi leggendarie hanno `dmg_min`/`dmg_max` come le altre. Il filtro dell'Armeria non smantella mai un leggendario; a mano si può vendere e smantellare (frammenti, nessun componente).
+- **Attrezzi leggendari** (`slot: tool_*`): sostituiscono l'attrezzo unico nello slot (l'unico torna tra i pezzi non indossati: mai vendibile, riequipaggiabile); requisito il livello del mestiere; modificatori fissi con scope `skill:<id>` (valori di partenza per fonte in `NOMI.md`: `skill_interval_pct` −26…−35, `double_item_chance` +3…+7; l'attrezzo unico a +9 ha −23) e nessuna raffinazione (`upgrade_tool` e `upgrade` → `not_equippable`).
+- **Fonte** (`legendary.source`, sempre dichiarata e mostrata dalla Guida a scoperta): `{"type":"boss","id":<boss>,"chance_pct":0,8}`: alla vittoria su quel boss, `roll_pct(chance_pct)` per ogni leggendario di quella fonte, in ordine; `{"type":"monolith","id":<Monolito>,"chance_pct":0,3}`: uccidendo quel Monolito (F-87), stesso tiro.
+  Nessun `item_rarity_pct`. Consegna: dal boss nella borsa della Frattura (F-116, solo a vittoria); dal Monolito direttamente nell'Armeria. Deposito pieno: il leggendario **si perde** con notifica (`armory_rejected`), come le Carte (Q64).
+  Obiettivo (Q69): circa 1 leggendario ogni 15-30 ore di Fratture del grado giusto (3 leggendari × 0,8% = 2,4% a vittoria, ~2,4 Fratture all'ora → 1 ogni ~17 ore).
+- **Tipi di effetto** (elenco **chiuso**, stesso `EffectSet` di F-81; i tipi di F-81 restano validi anche sui leggendari). Nuovi agganci: `on_block` (parata riuscita, F-75), `on_gather` (ciclo di raccolta riuscito del giocatore, mai dell'aiutante), `on_monolith` (Monolito ucciso).
+
+| Tipo | Parametri | Aggancio | Regola | Esempio |
+|---|---|---|---|---|
+| `on_kill_timer_cut` (F-81) | `pct` | `on_kill` | con 100 il prossimo attacco parte subito | timer 2000 → 0 |
+| `block_heal_pct` | `pct` | `on_block` | parata riuscita: cura `floor(max_hp × pct/100)` (non oltre i PV massimi) | max 200, 10 → +20 |
+| `kill_heal_pct` | `pct` | `on_kill` | uccisione: cura `floor(max_hp × pct/100)` | max 1.000, 2 → +20 |
+| `armor_pierce_pct` | `pct` | `on_before_attack` | la riduzione del bersaglio (F-25) × `(1 − pct/100)` | DR 20, 50 → 10 |
+| `hit_cap_pct` | `pct` | `on_damaged` | un colpo subito non supera `floor(max_hp × pct/100)` (minimo 1), dopo F-25 | max 400, 25, colpo 180 → 100 |
+| `stat_convert` | `from`, `to`, `pct` | `modify_stats` | dopo il calcolo delle stat: `to += floor(from × pct/100)`, poi i limiti di `stats.json` | barrier 100, 50 → armor +50 |
+| `double_hit_pct` | `pct` | `on_hit` | `roll_pct(pct)`: un secondo colpo base sullo stesso bersaglio (F-23 e F-22 nuovi) | pct 100 → sempre 2 colpi |
+| `execute_mult` | `hp_pct`, `mult` | `on_before_attack` | danno dopo F-24 × `mult` (`floor`) se il bersaglio ha PV ≤ `hp_pct`% dei suoi massimi | 30%, ×2, tiro 40 → 80 |
+| `monolith_loot_mult` | `mult` | `on_monolith` | quantità di ogni voce di bottino del Monolito × `mult` (`round`) | ×2, Polvere 30 → 60 |
+| `gather_bonus_item` | `items` (lista, uno a caso), `pct` | `on_gather` | `roll_pct(pct)`: +1 oggetto di `items` oltre al prodotto | 5%, 200 cicli → ~10 |
+| `gather_grade_up_pct` | `pct` | `on_gather` | `roll_pct(pct)`: il prodotto è quello della risorsa di grado successivo dello stesso mestiere (se esiste; XP della risorsa lavorata) | 10%, Trota → Persico |
+| `byproduct_mult` | `mult` | `on_gather` | probabilità dei sottoprodotti di maestria (F-103) × `mult` | 2,0% × 3 → 6% |
+| `card_drop_mult` | `mult` | `on_kill` | probabilità delle Carte dai mostri e dai Monoliti (F-113) × `mult` | ×2 |
+
+Intervalli di formato: `pct`, `hp_pct` in (0, 100] (`hit_cap_pct` in [1, 100]); `mult` in (1, 10]; `stat_convert`: `from` ≠ `to`, entrambe stat esistenti. Test: `tests/systems/combat/effects/test_<tipo>.gd` per i tipi di combattimento, `tests/systems/actions/test_gather_effects.gd`,
+`tests/systems/combat/test_monolith_effects.gd`, `tests/data/test_legendaries.gd` (fonte ed effetto di ognuno).
+
+### F-121 Drop di equipaggiamento e progetti (Y6, Q69)
+Ogni mostro può far cadere **tutti gli slot** del grado giusto, senza liste fisse di modelli. Alla morte di ogni nemico (anche nelle Fratture, con il livello scalato), con `L_m` = massimo di `attack_level`, `power_level` e `defence_level`:
+1. `roll_pct(loot.equipment.chance_pct)` (2,5): se riesce cade un pezzo;
+2. tipo: `pick_weighted(loot.equipment.kind_weights)` tra i 10 tipi (spada, spadone, scudo, elmo, corpo, gambe, piedi, mani, anello, collo; peso 1 ciascuno); per armature e scudo il materiale è uniforme tra Piastre, Cuoio, Tessuto runico;
+3. grado: uniforme tra i gradi `g` con `lvl(g) > L_m − loot.equipment.level_window` (15) e `lvl(g) ≤ L_m + loot.equipment.level_ahead` (5);
+4. rarità: F-84 (`rarity.drop.magic_pct` 25, `rare_pct` 5; mai Capolavoro né leggendario); `ilvl` e affissi come F-85.
+
+I **progetti** cadono con lo stesso schema: `roll_pct(loot.blueprint.chance_pct)` (0,4), tipo tra gli 8 progettabili (spada, spadone, scudo, elmo, corpo, gambe, piedi, mani; Piastre), grado come al punto 3. Anello e collo non hanno progetto (Q30).
+Esempi: mostro con `L_m` 46 → gradi con livello in (31, 51] = 35, 40, 45, 50 → gradi 8-11; `L_m` 92 → (77, 97] = 80, 90 → gradi 14-15; `L_m` 1 → gradi 1-2. Con ~300 uccisioni all'ora: 7,5 pezzi/ora (3,75 ogni 30 minuti), 0,94 magici ogni 30 minuti, un raro ogni ~2,7 ore, ~1,2 progetti/ora (Q49).
+Il pool sostituisce le voci di equipaggiamento e di progetto nei `drops` dei mostri (che restano per materiali e componenti rari). Test: `tests/systems/combat/test_equipment_drop.gd` (grado, tipo e materiale con seme fisso), `tests/integration/test_drop_rates.gd` (sim).
+
+### F-122 Bonus di maestria ogni 10 livelli (Y8, Q70)
+Vale per **ogni azione con maestria**, di raccolta e di artigianato (Incisore compreso). `n = floor(mastery_level / mastery.step.every_levels)` (10; 0…9 fino al livello 99). L'azione ha i modificatori di `mastery.step.gathering` (raccolta: `skill_interval_pct −2`, `double_item_chance +1`)
+o di `mastery.step.crafting` (artigianato: `preservation_chance +2`, `skill_interval_pct −2`), ognuno × `n`, con ambito azione (sorgente `mastery_step:<action_id>`, la stessa dei vecchi bonus per oggetto). Sostituisce F-11 (bonus per oggetto dell'artigianato) e **si somma** ai traguardi 25/50/99 (F-103, F-108).
+La carta dell'azione mostra il livello di maestria, i **bonus attuali** e il **prossimo** ("Al livello 40: −2% intervallo, +1% prodotto doppio"; a 99 nessun prossimo).
+Esempi: maestria 9 → nessun bonus, prossimo al livello 10; 10 → −2% e +1%; 47 (n = 4) → −8% intervallo e +4% doppio; 99 (n = 9) → −18% e +9%. Artigianato 30 (n = 3) → +6% conservazione e −6% intervallo; 99 → +18% e −18%.
+Le funzioni stanno in `MasteryMath` (`step_bonus`, `next_step`, `05_INTERFACES.md` §5.7). Test: `tests/systems/mastery/test_mastery_step.gd`.
+
+### F-124 Scoperte della Guida (wiki a scoperta, Y7)
+Regola, non formula. Lo stato per slot è `discoveries.items`, l'insieme degli id di base degli oggetti **ottenuti almeno una volta**. Un oggetto è ottenuto quando entra in possesso del giocatore per qualsiasi via (Bank, borsa del bottino, Armeria, `CardStore`, kit iniziale, Frattura consegnata,
+aiutanti, offline), segnalato da `item_obtained(item_id, qty)`; i pezzi e le Carte contano per l'id della loro base. L'insieme è monotono (non si perde mai). Effetti sulla Guida: oggetto non scoperto → casella bloccata ("???", icona in ombra), pagina chiusa; scoperto → pagina con **Si ottiene da** e la **% base**; pagina di
+mostro, area, Monolito o attività → **tutto ciò che può dare**, in caselle bloccate fino alla scoperta (sbloccate mostrano la %). La % di un pezzo del pool (F-121) è `chance_pct × (peso del tipo / somma dei pesi) × (1 / n. di gradi candidati) × (1/3 per il materiale, se armatura o scudo)`. Il tooltip e la scheda
+dell'oggetto **non** mostrano più "Si ottiene da" (resta "Serve a"); le meccaniche (testi) restano sempre visibili.
+Esempio: un Persico mai pescato è una casella bloccata nella pagina della Lenza; al primo Persico pescato si sblocca e mostra la sua fonte e la % dai dati. Pezzo del pool: mostro `L_m` 46, corpo di Cuoio grado 9 → 2,5 × (1/10) × (1/4) × (1/3) = **0,0208%**. Test: `tests/core/guide/test_discoveries.gd`, `tests/core/data/test_guide_index_sources.gd`.
+
 
 ## 6. Offline
 
@@ -604,6 +686,7 @@ Esempio (`fracture.groups` = 3 nelle fixture): gruppo 1, `BETWEEN`, gruppo 2, `B
   magica se `r < p_rare + p_magic`, altrimenti comune). Esempio: +50% → 37,5 e 9. Il numero di modificatori è `randi_range(a, b)` con `fracture.mod_count[rarità]` (comune [0,0], magica [1,2], rara [3,4]).
 - **Scelta**: per ogni modificatore, in ordine: candidati = voci di `data/maps/map_mods.json` con `min_grade ≤ grado`, `id` non già sulla Carta e `risk.type` non già sulla Carta; `pick_weighted(weight)`; poi l'**intensità**
   `step = randi_range(0, fracture.intensity_steps)` (10). Senza candidati si smette. Ordine dei tiri su `rng`: rarità, numero, poi per ogni modificatore scelta e `step`.
+- **Tetto ai rischi** (M14): vedi F-123 (i punti di rischio non superano `fracture.risk_cap`).
 - **Valore**: `value(x) = x.min + round((x.max − x.min) × step / fracture.intensity_steps)` per il rischio e per il premio **con lo stesso `step`** (più rischio, più premio). Il salvataggio tiene solo `{mod, step}`: i valori si ricalcolano dai dati.
 - **Cristalli** (`CardStore.use_currency`): `to_magic` (comune → magica: aggiunge modificatori fino al numero tirato per la magica), `to_rare` (magica → rara: tiene i vecchi e ne aggiunge fino al numero tirato per la rara, senza duplicati),
   `reroll` (magica o rara: ritira tutti i modificatori, stessa rarità, stessa regola). Rarità non adatta → `requirement_not_met`.
@@ -708,6 +791,15 @@ Alla vittoria, per ogni voce della borsa nell'ordine di inserimento: oggetti →
 nulla resta in attesa); Carte → `cards.add` (Deposito pieno → restano in attesa). `collect()` riprova con le voci in attesa. Alla sconfitta la borsa è svuotata e conta come persa (`fracture_loot_lost`).
 Esempio: borsa con 40 tipi di oggetto e la Bank con 25 caselle libere → 25 consegnati, 15 in attesa; fatto spazio e `collect()`, entrano. Test: `tests/systems/fractures/test_fracture_delivery.gd`.
 
+### F-123 Tetto ai rischi della Carta (M14, Q72)
+Una Carta rara di grado basso con 3-4 rischi pesanti era punitiva. I rischi hanno un **tetto**: `cap(g) = fracture.risk_cap.base + fracture.risk_cap.per_grade × (g − 1)` (40 + 10 per grado: grado 1 → 40, grado 5 → 80, grado 10 → 130). I **punti di rischio** di un modificatore sono
+`risk_value × fracture.risk_unit[tipo di rischio]` (default 1; `pack_bonus` 20, `pulse` 5), con `risk_value` di F-109. La somma dei punti di tutti i modificatori della Carta è ≤ `cap(g)`.
+Regola nella scelta (F-109, nessun tiro in più su `rng`): dopo la scelta di un candidato e il tiro dello `step`, se la somma supererebbe il tetto lo `step` si **riduce** al massimo che ci sta (`step_max`); se anche `step` 0 non ci sta il candidato è scartato dai candidati e la scelta si
+ripete (senza nuovi tiri se non quelli di scelta e `step`); senza candidati si smette. Il premio segue lo `step` ridotto. Vale anche per i Cristalli (`to_rare`, `reroll`).
+Esempi (grado 1, tetto 40): "Brutalità" (`monster_damage_pct` 15-45, unità 1) con `step` 10 → 45 > 40, ridotto a `step` 8 → 15 + round(30 × 8/10) = **39** punti; resta 1: nessun altro modificatore ci sta (il minimo è 10), la Carta rara ha un solo modificatore.
+"Mostri robusti" (20-60) `step` 1 → 24; restano 16, "Assalto" (10-35) a `step` 2 → 10 + round(25 × 0,2) = 15 (totale 39). "Orde" (`pack_bonus` 1-2, unità 20) al grado 2 (tetto 50): `pack_bonus` 2 → 40 punti. "Impulsi" (`pulse` 2-5, unità 5) a `step` 10 → 25 punti.
+Test: `tests/systems/fractures/test_map_card_roller.gd::test_risk_cap`; i dati veri: `tests/data/test_map_data_validation.gd` (almeno un candidato di rischio ≤ 40 per il grado 1, in modo che la scelta non si blocchi).
+
 ### F-51 Penalità della corsia secondaria — **ELIMINATA in M12** (corsie parallele sostituite dagli aiutanti, F-101)
 
 ---
@@ -765,21 +857,29 @@ Gli attrezzi non hanno ricette (F-94). I pezzi `equipment` prodotti da un proget
 |---|---|---|---|---|---|---|---|---|
 | `heal` | 20 | 35 | 55 | 80 | 110 | 150 | 200 | 260 |
 
-### 8.4 Equipaggiamento (grado n = 1..8)
-| Pezzo | `kind` / stile | Modificatori | Intervallo | Requisito |
-|---|---|---|---|---|
-| Spada | `sword`, `blade`, una mano (`weapon` o `offhand`) | `accuracy_bonus 8n`, `power_bonus 6n` | 2400 | `{"character": livello Tn}` |
-| Spadone | `greatsword`, `blade`, due mani | `accuracy_bonus 9n`, `power_bonus 11n` | 3200 | personaggio |
-| Scudo (offhand) | `shield` | `evasion_bonus 4n`, `damage_reduction n`, `block_chance 5 + floor(10 × (n − 1) / 7)` | — | personaggio |
-| Corpetto | — | `evasion_bonus 6n`, `damage_reduction n` | — | personaggio |
-| Gambali | — | `evasion_bonus 4n`, `damage_reduction ceil(n/2)` | — | personaggio |
-| Elmo | — | `evasion_bonus 3n`, `damage_reduction ceil(n/2)` | — | personaggio |
-| Stivali / Guanti | — | `evasion_bonus 2n` | — | personaggio |
-| Anello / Amuleto (M7, solo drop, Q30) | — | `accuracy_bonus 3n` / `max_hp_flat 10n` | — | personaggio |
-| Attrezzo unico (M10, R3) | — | `skill_interval_pct −(5 + 2N)` con scope `skill:<skill>`, N = raffinazione +0…+9 (F-94) | — | nessuno per indossarlo; livello del mestiere per raffinare |
-Esempio: set completo T8 con scudo → `damage_reduction` 8 + 4 + 4 + 8 = 24, `block_chance` 15. Ogni pezzo ha `grado` n
-(`equip.grade`). Identità degli assetti (D6): spadone lento e forte, spada e scudo difensivo, due spade rapide (F-73).
-Modificatori degli assetti (`data/classes/rift_blade.json`): solo `dual_swords` con `accuracy_pct −10` (Q39, provvisorio); gli altri nessuno.
+### 8.4 Equipaggiamento: 15 gradi (M14, Y2-Y3, Q66, Q67, Q74, Q77; **F-118**)
+Sostituisce la vecchia tabella a 8 gradi. Il **grado del pezzo** `g` (1…15, `equip.grade`) dà il **livello** `lvl(g)` = `equipment.grade_levels[g−1]` (1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90), che è il requisito `{"character": lvl}`
+e l'`ilvl` degli affissi (F-85). Il **grado del materiale** `m(g)` (1…8) = `equipment.grade_material[g−1]` (1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8) decide lingotti e componenti di raffinazione (F-86), progetti (F-90) e smantellamento (F-95).
+Slot e tipi: spada, spadone, scudo, elmo, corpo, gambe, piedi, mani, anello, collo (amuleto). **Valori di partenza** (generati nei dati da questa tabella, da tarare in M14-10):
+
+| Pezzo | `kind` / stile | Valori base del modello di grado `g` | Intervallo |
+|---|---|---|---|
+| Spada | `sword`, `blade`, una mano (`weapon` o `offhand`) | `weapon.dmg_max = 6 + 4 (g−1)`, `dmg_min = round(0,6 × dmg_max)`, `accuracy_bonus 4g` | 2000 ms |
+| Spadone | `greatsword`, `blade`, due mani | `dmg_max = 12 + 8 (g−1)`, `dmg_min = round(0,5 × dmg_max)`, `accuracy_bonus 5g` | 3200 ms |
+| Elmo, Corpo, Gambe, Piedi, Mani | tre **materiali** (`equip.material`: `plate` Piastre, `leather` Cuoio, `cloth` Tessuto runico) | `armor`, `barrier`, `evasion_bonus` come sotto | — |
+| Scudo (offhand) | `shield`, anch'esso in tre materiali | `armor`, `barrier`, `evasion_bonus` come sotto, `block_chance 5 + floor(10 × (g−1) / 14)` | — |
+| Anello | — | `accuracy_bonus 3g` | — |
+| Collo (amuleto) | — | `max_hp_flat 6g + 4` | — |
+| Attrezzo unico (M10, R3) | — | invariato: `skill_interval_pct −(5 + 2N)`, scope `skill:<skill>`, N = raffinazione +0…+9 (F-94) | — |
+
+**Armature** (budget per set): `A_set(g) = 4 + 8 × lvl(g)` (Armatura e Barriera, `equipment.set_budget.armor`) e `E_set(g) = round(2 + 1,5 × lvl(g))` (evasione, `set_budget.evasion`). Pesi degli slot `w` (`equipment.slot_weights`): corpo 0,30, gambe 0,20, elmo 0,15,
+scudo 0,15, mani 0,10, piedi 0,10 (somma 1). Moltiplicatori del materiale (`combat.armor.materials`): Piastre {armor 1,0, barrier 0, evasion 0,2}, Cuoio {0,6, 0,4, 1,0}, Tessuto runico {0,3, 1,0, 0,4}.
+`armor = round(A_set × w × m_armor)`, `barrier = round(A_set × w × m_barrier)`, `evasion_bonus = round(E_set × w × m_evasion)`; un valore 0 non si scrive nel modificatore.
+Identità: **Piastre** = Armatura alta, niente Barriera; **Cuoio** = Armatura media, poca Barriera, molta Schivata; **Tessuto runico** = Armatura bassa, Barriera alta.
+Esempi (grado 11, livello 50: `A_set` 404, `E_set` 77): corpo Piastre → armor 121, evasion 5; corpo Cuoio → armor 73, barrier 48, evasion 23; corpo Tessuto → armor 36, barrier 121, evasion 9; set Piastre completo con scudo → armor 121 + 81 + 61 + 61 + 40 + 40 = **404**.
+Spada: grado 1 → 4-6, `accuracy_bonus 4`, danno al secondo 2,5; grado 8 → 20-34; grado 15 → 37-62, DPS 24,75. Spadone: grado 1 → 6-12, DPS 2,81; grado 15 → 62-124, DPS 29,06. Scudo: `block_chance` 5 (g1), 10 (g8), 15 (g15). Anello g15 → `accuracy_bonus 45`; collo g15 → `max_hp_flat 94`.
+Un **Capolavoro** (F-119) e un **leggendario** (F-120) sono basi proprie con gli stessi valori del modello di grado/slot/materiale, moltiplicati a runtime per la loro rarità. Test: `tests/data/test_equipment_table.gd` (i dati veri coincidono con la tabella),
+`tests/systems/items/test_equipment_values.gd`. Modificatori degli assetti (`data/classes/rift_blade.json`): solo `dual_swords` con `accuracy_pct −10` (Q39, provvisorio); gli altri nessuno.
 
 ### 8.5 Mostri
 | Area | Id | L (att = pot = dif) | PV | Stile | Interv. ms | acc / pot / eva | DR | Oro | Frammento % | XP |
@@ -813,7 +913,7 @@ dell'area), ai mostri e ai Monoliti, in aggiunta ai `drops` propri (che restano 
 uccisione** (da tarare in M12-07 con `sim_combat`; i gradi alti delle pietre e i Cristalli sono più frequenti nelle aree alte):
 | Voce | Pianure / Bosco / Miniere / Soglia | Quantità |
 |---|---|---|
-| Polvere del Rift (`rift_dust`) | 20% | 1-2 |
+| Polvere del Rift (`rift_dust`) | **8%** (M14, Q71: era 20%) | **1** (era 1-2) |
 | Scheggia (per ciascuna delle 4 famiglie) | 1% | 1 |
 | Pietra (per ciascuna famiglia) | 0,05% (solo Bosco, Miniere, Soglia) | 1 |
 | Cristallo del risveglio / mutamento / ascesa | 0,05% / 0,03% / 0,02% (solo Bosco, Miniere, Soglia) | 1 |
@@ -876,7 +976,7 @@ da tarare in M12-07. Le valute di sola uscita (`currency_*`) restano nei dati co
 | 15 | `inf_bountiful` | Pelliccia di ratto (Pianure) | `double_item_chance +2` | 70 | 4000 |
 | 25 | `inf_scholar` | Zanna di lupo (Bosco) | `skill_xp_pct +6` | 110 | 4500 |
 | 35 | `inf_keen_edge` | Punta di freccia (Bosco) | `accuracy_pct +4` | 150 | 4500 |
-| 45 | `inf_stoneskin` | Muschio di troll (Bosco) | `damage_reduction +2` | 200 | 5000 |
+| 45 | `inf_stoneskin` | Muschio di troll (Bosco) | `armor +10` (M14: era `damage_reduction +2`) | 200 | 5000 |
 | 55 | `inf_deep_roots` | Nucleo di golem (Miniere) | `mastery_xp_pct +10` | 260 | 5000 |
 | 65 | `inf_hearthfire` | Chitina di ragno (Miniere) | `food_healing_pct +10` | 330 | 5500 |
 | 75 | `inf_riftsense` (unica) | Velo dello spettro (Soglia) | `rift_shard_chance +0.5` | 420 | 5500 |
@@ -936,7 +1036,8 @@ affissi `offhand` escono solo sugli scudi. Gli id sono indicativi; nomi original
 | `swift` | `attack_interval_pct` | weapon, hands, feet | −2..−1 | −3..−2 | −4..−3 | −6..−4 | 4 |
 | `nimble` | `evasion_bonus` | head, body, legs, feet, hands, offhand | 2..4 | 5..8 | 9..14 | 15..22 | 10 |
 | `evasive` | `evasion_pct` | legs, feet | 1..2 | 3..4 | 5..6 | 7..9 | 6 |
-| `warded` | `damage_reduction` | head, body, legs, offhand | 1..1 | 1..2 | 2..3 | 3..4 | 6 |
+| `warded` (M14: era `damage_reduction`) | `armor` | head, body, legs, feet, hands, offhand | 4..8 | 10..18 | 20..32 | 35..55 | 6 |
+| `runeward` (M14, nuovo; nome di gioco in `NOMI.md`) | `barrier` | head, body, legs, feet, hands, offhand | 4..8 | 10..18 | 20..32 | 35..55 | 4 |
 | `hale` | `max_hp_flat` | head, body, legs, feet, neck, ring, offhand | 5..10 | 11..20 | 21..35 | 36..55 | 10 |
 | `hearty` | `food_healing_pct` | head, body, neck | 2..4 | 5..8 | 9..12 | 13..18 | 4 |
 | `bulwark` | `block_chance` | offhand | 1..2 | 2..3 | 3..4 | 4..5 | 4 |
@@ -985,7 +1086,7 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | `combat.triangle.{advantage_damage_mult, disadvantage_damage_mult, defender_dr_mult}` | 1.15, 0.85, 0.75 | F-24 |
 | `combat.triangle.beats` | `{"blade":"arcana","arcana":"marksmanship","marksmanship":"blade"}` | F-24 |
 | `combat.min_attack_interval_ms` | 800 | F-26 |
-| `combat.unarmed` | `{"style":"blade","attack_interval_ms":2400}` | F-26, F-72 |
+| `combat.unarmed` | `{"style":"blade","attack_interval_ms":2400,"dmg_min":0,"dmg_max":0}` (M14: senza arma il danno è solo F-22 con `min_hit_ratio`) | F-22, F-26, F-72 |
 | `combat.{hp_base, hp_per_level}` | 50, 10 | F-27 (sostituisce `hp_per_vitality`) |
 | `combat.dual_wield.interval_mult` | 0.75 | F-73 (Q39) |
 | `combat.max_pack_size` | 6 | `01_GDD.md` §10.1, §8.5 (Q38) |
@@ -1001,21 +1102,30 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | `rarity.affix_count.{magic, rare}` | `[1, 2]`, `[3, 4]` | F-85 |
 | `traits.slot_levels` (M6) | `[1, 10, 25, 50]` | F-78 (Q35) |
 | `abilities.slot_levels` (M6) | `[1, 1, 30]` | F-78 (Q36) |
-| `rarity.drop.{magic_pct, rare_pct}`, `rarity.rift_stone.{magic_pct, rare_pct}` (M7) | 20, 3; 40, 12 | F-84 |
+| `rarity.drop.{magic_pct, rare_pct}`, `rarity.rift_stone.{magic_pct, rare_pct}` (M7; M14: drop 25, 5) | 25, 5; 40, 12 | F-84, F-121 |
 | `upgrade.{levels, downgrade_from, mod_pct_per_level, seal_item, ingot_items}` (M7) | tabella F-86, 4, 10, id del Sigillo, 8 id dei lingotti T1-T8 | F-86 |
 | `rift_stone.{chance_pct, pity_kills}` (M7) | 0.5, 300 | F-87; `chance_pct` è il default delle aree senza `rift_stone_chance_pct` (Q46) |
 | `salvage.{component_ratio, shards_by_rarity}` (M7; M10: `ingot_ratio` rinominata `component_ratio`) | 0.4, `{"common":0,"magic":1,"rare":3}` | F-95 |
-| `sockets.{by_rarity, bonus_at_upgrade}` (M8) | `{"common":0,"magic":1,"rare":2}`, 7 | F-89 |
+| `sockets.{by_rarity, bonus_at_upgrade}` (M8; M14: + masterwork, legendary) | `{"common":0,"magic":1,"rare":2,"masterwork":2,"legendary":2}`, 7 | F-89 |
 | `rift.sockets` (già presente, usata in M8) | `[{"level":1},{"level":20},{"level":40},{"level":60},{"level":80}]` | 11 |
 | `offline.{cap_ms, min_ms, chunk_ms}` | 43200000, 60000, 60000 | F-40, F-41 |
 | `fracture.{groups, intensity_steps, pulse_ms, mod_count, card_rarity, card_drop, salvage, grades}` (M13, R-04; sostituisce `fractures.*`) | 16, 10, 4000, `{"common":[0,0],"magic":[1,2],"rare":[3,4]}`, `{"magic_pct":25,"rare_pct":6}`, `{"monster_pct":0.5,"boss_pct":70,"monster_delta":[70,27,3],"boss_delta":[20,70,10]}`, `{"dust_per_grade":5,"rarity_mult":{"common":1,"magic":1.5,"rare":2}}`, tabella F-110 (10 righe) | F-50, F-109…F-116 |
+| `combat.armor.{k, level_offset, cap_pct, materials}` (M14, Y2, Q67, Q74) | 6, 10, 75, `{"plate":{"armor":1.0,"barrier":0,"evasion":0.2},"leather":{"armor":0.6,"barrier":0.4,"evasion":1.0},"cloth":{"armor":0.3,"barrier":1.0,"evasion":0.4}}` | F-117, F-118 |
+| `equipment.{grade_levels, grade_material, slot_weights, set_budget}` (M14, Q66) | 15 livelli (1…90), mappa pezzo → materiale (1,1,2,2,3,3,4,4,5,5,6,6,7,7,8), pesi degli slot (corpo 0,30, gambe 0,20, elmo 0,15, scudo 0,15, mani 0,10, piedi 0,10), `{"armor":[4,8],"evasion":[2,1.5]}` (base, per livello) | F-118 |
+| `rarity.masterwork.{base_mult, affix_count}` (M14, Y4) | 1.25, `[1, 2]` | F-119, F-91 |
+| `rarity.legendary.base_mult` (M14, Y5) | 1.4 | F-120 |
+| `blueprint.{cost_mult, extra_rare}` (M14, Q68) | 3, 2 componenti rari diversi | F-90, F-119 |
+| `loot.equipment.{chance_pct, level_ahead, level_window, kind_weights}`, `loot.blueprint.chance_pct` (M14, Y6, Q69) | 2.5, 5, 15, 1 per ciascuno dei 10 tipi di pezzo; 0.4 | F-121 |
+| `mastery.step.{every_levels, gathering, crafting}` (M14, Y8, Q70) | 10, `[{"stat":"skill_interval_pct","value":-2},{"stat":"double_item_chance","value":1}]`, `[{"stat":"preservation_chance","value":2},{"stat":"skill_interval_pct","value":-2}]` | F-122 |
+| `fracture.{risk_cap, risk_unit}` (M14, Q72) | `{"base":40,"per_grade":10}`, `{"pack_bonus":20,"pulse":5}` | F-123 |
+| `upgrade.levels[].dust` (M14, Q71) | 0,0,0,0,10,20,30,40,50 | F-86 |
 | ~~`parallel.*`~~ | tolta | era F-51 (corsie eliminate) |
 
 Chiavi tolte con la riforma (M4-01, D3): `combat.hp_per_vitality`, `combat.hp_skill`, `combat.defence_skill`,
 `combat.xp_per_damage_style`, `combat.xp_per_damage_vitality`. Le chiavi segnate (M6)…(M13) le aggiunge il task che
 le usa, insieme alla regola del validatore.
 
-I limiti delle stat (es. `damage_reduction` max 80, `preservation_chance` max 80, `skill_interval_pct` min −80) stanno
+I limiti delle stat (es. `preservation_chance` max 80, `skill_interval_pct` min −80) stanno
 **solo** in `stats.json` (§11), non in `balance.json`.
 
 ## 10. Numeri della UI non di gioco
@@ -1043,7 +1153,8 @@ sezione (`auto_loot`: `"10.6"` = `01_GDD §10.6`; `04_DATA_SCHEMA.md` §2). Con 
 | `power_pct` | −90 | 1000 | danno massimo percentuale | F-22 | `tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats` |
 | `evasion_bonus` | −1000 | 100000 | evasione piatta | F-21 | `tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats` |
 | `evasion_pct` | −90 | 1000 | evasione percentuale | F-21 | `tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats` |
-| `damage_reduction` | 0 | 80 | riduzione del danno subito | F-25 | `tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats` |
+| `armor` (M14; **sostituisce `damage_reduction`**, Y2) | 0 | 100000 | Armatura: riduce in % (rendimenti decrescenti, massimo `combat.armor.cap_pct`) il danno **fisico** (mostri `blade` e `marksmanship`) | F-25, F-117 | `tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats` |
+| `barrier` (M14, Y2) | 0 | 100000 | Barriera: come l'Armatura ma sul danno **arcano** (mostri `arcana`) | F-25, F-117 | `tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats` |
 | `attack_interval_pct` | −90 | 200 | velocità d'attacco | F-26 | `tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats` |
 | `max_hp_flat` | 0 | 100000 | PV massimi piatti | F-27 | `tests/data/test_stat_registry_coverage.gd::test_combat_stat_effects_through_player_stats` |
 | `food_healing_pct` | 0 | 500 | cura del cibo | F-29 | `tests/systems/combat/test_auto_eat.gd::test_food_healing_pct` |

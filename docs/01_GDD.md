@@ -24,7 +24,7 @@ si legge "bank" (il modulo e gli id restano `bank`).
 
 Riforma 2 da M12 (decisioni W1-W7 in `DECISIONS_LOG.md`, nomi in `NOMI.md`): un **Deposito unico** con **borse** (§7), gli **aiutanti** dei mestieri di raccolta al posto
 delle corsie parallele (§4.1, §18), la **maestria per risorsa** con alberi diversi per mestiere (§6.4), l'**Incisore** che trasforma i drop dei mostri (§11) e i
-**Monoliti del Rift** (§24). Il formato del salvataggio passa alla versione 4.
+**Monoliti del Rift** (§24). Il formato del salvataggio passa alla versione 4 (5 da M14).
 
 ---
 
@@ -172,6 +172,7 @@ l'intervallo si ricalcola a ogni avvio di ciclo).
   i drop dei mostri (§11); le sue ricette consumano drop, tranne la Lastra runica.
 
 ### 5.1 Progetti: il craft singolo (R1)
+> **M14 (Y4)**: il progetto crea un **Capolavoro** (§28.4): base propria, 1-2 affissi, statistiche +25%, costo circa 3× e due componenti rari diversi. I gradi dei pezzi sono 15; costo, durata e livello del Fabbro seguono il grado del materiale 1…8 (F-90, F-119). Dove il testo sotto dice "magica/rara" valgono F-91 (rivista) e F-119.
 - Un **progetto** (`blueprint`) è un oggetto di bank (categoria `blueprint`) che indica la **base** da produrre (un
   modello di spada, spadone, scudo, elmo, corpo, gambe, piedi o mani) e il suo **grado**. Un progetto = un pezzo.
   Anelli e amuleti non hanno progetto (solo drop, Q30).
@@ -244,6 +245,13 @@ comprato (`node_owned`); spesa che porterebbe la maestria oltre il 99 (si spende
 - I traguardi valgono anche per l'aiutante (§4.1). Il raggiungimento di un traguardo mostra un toast. Le skill di artigianato non hanno traguardi (restano i bonus per oggetto di F-11).
 - Per le skill di raccolta i traguardi **sostituiscono** i vecchi bonus per oggetto ("ogni 10 livelli…"); i nomi delle azioni di raccolta sono solo il nome della risorsa ("Betulla").
 - L'**albero dei nodi** (§6.3) è **diverso per ogni mestiere** di raccolta (stat e temi diversi; chiude Q26): vedi `02_FORMULAS.md` §8.8b.
+
+### 6.5 Bonus ogni 10 livelli di maestria (M14, Y8, Q70; F-122)
+Nell'Alpha la maestria deve essere **chiara e utile**. Vale per ogni azione con maestria di raccolta e di artigianato:
+- ogni **10 livelli** di maestria **dell'azione** dà un bonus **visibile** di quell'azione (raccolta: −2% intervallo e +1% prodotto doppio; artigianato: +2% conservazione degli ingredienti e −2% intervallo), cumulativo fino a 9 volte (livello 99);
+- i **traguardi** 25/50/99 restano (§6.4 per la raccolta, sottoprodotto, bonus della risorsa, bonus del mestiere) e si sommano; i vecchi bonus per oggetto dell'artigianato (F-11) sono sostituiti da questa regola;
+- la **carta dell'azione** mostra il livello di maestria, i **bonus attuali** e il **prossimo** ("Al livello 40: −2% intervallo, +1% prodotto doppio");
+- nei **progetti** del Fabbro il livello di maestria della ricetta di fusione del grado non cambia: la qualità dipende dal livello del Fabbro (F-91).
 
 ## 7. Deposito (ex Bank; M12, W1-W2)
 
@@ -322,6 +330,7 @@ comunque e blocca solo i nuovi ingressi); oggetto sconosciuto in un salvataggio 
   superata dalla riforma R3). Danno modificatori con ambito della loro skill, che dipendono dalla raffinazione
   +0…+9 (§23.1). Esiste un solo esemplare per mestiere, creato dal kit iniziale (§1.1) e sempre usabile (nessun requisito di
   livello per indossarlo: il livello del mestiere serve per raffinarlo).
+- **M14**: le armi hanno danno minimo-massimo e velocità proprie (§28.2) e le armature Armatura e Barriera (§28.3). Un **attrezzo leggendario** (§28.5) sta nello slot `tool_*` al posto dell'attrezzo unico, che torna tra i pezzi non indossati (mai vendibile); si può rimettere quando si vuole (anche durante un incontro: gli attrezzi non contano per il combattimento).
 - Durante un **incontro** si può cambiare tutto tranne arma e offhand (`combat_active`): l'assetto non cambia a metà
   incontro. Il cambio di armatura vale subito (le statistiche si ricalcolano).
 
@@ -373,6 +382,7 @@ comunque e blocca solo i nuovi ingressi); oggetto sconosciuto in un salvataggio 
   rara dei mostri e delle Pietre; i **componenti rari** (es. Nucleo di golem) sono materiali di drop dell'area.
 - Dal M12 (W6) si tirano anche le **tabelle di drop** (`data/combat/loot_tables.json`) dell'area, del mostro e del Monolito: Polvere del Rift, Schegge, Pietre, Cristalli,
   Contratti degli aiutanti e borse (§7, §11, `02_FORMULAS.md` §8.5b). Vanno nella borsa del bottino come ogni altro oggetto.
+- **M14 (Y6, F-121)**: i pezzi di equipaggiamento e i progetti non sono più voci fisse dei mostri: ogni uccisione tira il **pool** di §28.6 (tutti gli slot del grado vicino al livello del mostro). I leggendari non cadono dai mostri comuni (§28.5).
 - La borsa ha `combat.loot_bag_base_slots` (12) + `loot_bag_slots` caselle (una per tipo, quantità illimitata). Se è
   piena, gli oggetti nuovi si perdono (notifica).
 - "Raccogli tutto" sposta tutto nella bank (ciò che non entra resta nella borsa). Con `auto_loot` ≥ 1 ogni drop va
@@ -519,6 +529,7 @@ Frattura ogni 2-4 ore è eliminata: niente `fractures.interval_*`, `duration_ms`
 - **Modificatori** (`data/maps/map_mods.json`): ognuno ha un **rischio** (cambia i mostri o il giocatore dentro la Frattura) e un **premio** (aumenta il bottino), con la stessa intensità (F-109). I tipi di rischio e di premio sono un elenco chiuso del motore
   (F-111), non stat nuove. Le stat esistenti si applicano al giocatore con sorgente `fracture:<uid>` solo mentre la Frattura è in corso. Esempi di partenza: Mostri robusti (+PV; più quantità), Assalto (mostri più rapidi; più rarità), Fame (il cibo cura
   meno; più progetti), Orde (gruppi più numerosi; più XP), Impulsi (danno periodico come i Monoliti; più Polvere del Rift). I modificatori più forti hanno `min_grade` alto.
+- **Tetto ai rischi (M14, Q72, F-123)**: la somma dei punti di rischio dei modificatori non supera 40 al grado 1, più 10 per grado; se un modificatore sforerebbe, la sua intensità si riduce (e il premio con lei). Una Carta rara di grado basso non è più punitiva.
 - I **Cristalli** funzionano anche sulle Carte (stessi tre effetti dei pezzi, §26): risveglio (comune → magica), ascesa (magica → rara), mutamento (rifà i modificatori). Lo **smantellamento** di una Carta dà Polvere del Rift (F-114).
   Una Carta si **blocca** (non si smantella per errore) come un pezzo.
 
@@ -630,11 +641,11 @@ tutti i pezzi); `uid` duplicato o base sconosciuta nel save (`Log.warn`, pezzo s
 
 ## 22. Rarità e affissi
 
-- Rarità: `common` (0 affissi), `magic` (1-2), `rare` (3-4) (F-85); unici dopo l'MVP (Q29).
+- Rarità: `common` (0 affissi), `magic` (1-2), `rare` (3-4) (F-85); da M14 anche `masterwork` (Capolavoro, 1-2 affissi, solo progetti) e `legendary` (leggendario, nessun affisso, effetto unico) (§28.4, F-119, F-120).
 - Gli **affissi** (`data/affixes/affixes.json`) sono a **gradi** sbloccati da `ilvl`, solo su **stat del registro**;
   ogni affisso dice in quali slot può uscire. Gli attrezzi unici non hanno rarità né affissi (Q32 superata da R3).
-- Rarità dei **progetti**: almeno magica, probabilità di raro che cresce con il livello del Fabbro (F-91, sostituisce
-  F-83, sostituita). Rarità nei drop (M7): soglie per fonte (F-84). Entrambe × `(1 + item_rarity_pct/100)`. Il kit iniziale è comune.
+- Rarità dei **progetti**: sempre Capolavoro (M14); cresce con il livello del Fabbro la probabilità di avere 2 affissi invece di 1 (F-91 rivista; era: almeno magica, probabilità di raro; sostituisce
+  F-83, sostituita). Rarità nei drop (M7): soglie per fonte (F-84). I drop × `(1 + item_rarity_pct/100)`. Il kit iniziale è comune.
 - Anelli e amuleti: **solo da drop** (Q30, M7).
 
 ## 23. Raffinazione +0…+9 (M7)
@@ -701,8 +712,8 @@ Decisioni G1-G2 (`DECISIONS_LOG.md`): la wiki sta **dentro il gioco** (pagina "G
 | Personaggio e combattimento | livello, assetti, triangolo, tratti, abilità, cibo e Razioni, morte e borsa del bottino, gruppi e bersaglio | testo a mano + tabelle dai dati (tratti, abilità con sblocco e ricarica) |
 | Bottino | rarità, affissi (tabella dei gradi), raffinazione (costi e probabilità), castoni e pietre, valute, smantellamento e filtro, Monoliti del Rift, progetti | testo a mano + tabelle dai dati |
 | Mestieri | una pagina per mestiere: cosa fa, tabella delle azioni (livello, XP, durata, ingredienti, prodotto), maestria e nodi, attrezzo e raffinazione | testo breve a mano + tabelle dai dati |
-| Oggetti | descrizione, valore, **Si ottiene da** (mostri con area e %, ricette, shop, Pietre, smantellamento, kit iniziale), **Serve a** (ricette, progetti, raffinazione, castoni, Altare, cibo) | tutto dai dati |
-| Mostri e aree | area: livello richiesto, gruppi, mostri; mostro: statistiche, stile, intervallo, drop con % | tutto dai dati |
+| Oggetti | descrizione, valore, **Si ottiene da** (mostri con area e %, ricette, shop, Pietre, smantellamento, kit iniziale; **solo dopo la scoperta**, M14), **Serve a** (ricette, progetti, raffinazione, castoni, Altare, cibo) | tutto dai dati |
+| Mostri e aree | area: livello richiesto, gruppi, mostri; mostro: statistiche, stile, intervallo, **tutto ciò che può dare** (caselle bloccate fino alla scoperta, M14) | tutto dai dati |
 | Altare del Rift | incavi, livelli di sblocco, rune con effetto e gradi | dai dati + testo breve |
 | Deposito e borse (M12) | capienza unica, slot borsa, tabella delle borse | testo a mano + tabella `bags` |
 | Aiutanti (M12) | contratti, gradi (tabella `helper_grades`), XP e velocità, Deposito pieno | testo a mano + tabella dai dati |
@@ -719,14 +730,81 @@ Maestria; Attrezzi; Altare del Rift; Offline.
 - Ogni nome di oggetto, mostro, area, mestiere, stat, tratto o abilità nella Guida è un **collegamento** che apre la sua pagina.
 - **Pulsante "?"** nell'intestazione di ogni pagina del gioco (Combattimento, Equipaggiamento, Personaggio, Altare, Deposito, Shop, pagine
   dei mestieri): apre la pagina di Guida pertinente.
-- **Tooltip degli oggetti**: due righe in fondo, "Si ottiene da: …" e "Serve a: …" (al massimo 3 voci ciascuna, poi "e altro"), dallo
-  stesso indice della Guida.
+- **Tooltip degli oggetti** (M14, Y7): una riga in fondo, "Serve a: …" (al massimo 3 voci, poi "e altro"), dallo stesso indice della Guida. **Non** dice più da dove si ottiene l'oggetto: la fonte si scopre (§27.1).
 - **Tooltip delle stat** (personaggio ed equipaggiamento): la descrizione da `stats.json`.
 
 **Accettazione**
 - La Guida si apre dalla sidebar; ricerca per nome; ogni nome è un collegamento; "indietro" funziona.
-- Ogni entità elencata sopra ha la sua pagina; ogni oggetto mostra "Si ottiene da" e "Serve a"; un oggetto senza fonte o senza uso è
+- Ogni entità elencata sopra ha la sua pagina; ogni oggetto **scoperto** (§27.1) mostra "Si ottiene da" e "Serve a"; un oggetto senza fonte o senza uso è
   segnalato dal test, salvo eccezioni dichiarate nei dati.
 - Nessun numero scritto a mano nei testi (solo segnaposto); nessun segnaposto o collegamento non risolto.
 - Ogni pagina del gioco ha il suo "?". Nomi da `NOMI.md`. Layout a 1600×900 e 1280×720.
-- Nessuno stato di gioco nella Guida: legge solo i dati (e non entra nel salvataggio).
+- Nessuno stato di gioco nella Guida: legge i dati e (M14) l'insieme delle scoperte, che sta nel modello e nel salvataggio dello slot (§27.1).
+
+### 27.1 Guida a scoperta (M14, Y7; F-124)
+- Nuovo stato **per slot**: le **scoperte** (`discoveries.items`, `05_INTERFACES.md` §5.24), cioè gli oggetti ottenuti almeno una volta. Si riempie da solo (segnale `item_obtained`), anche offline e con il kit iniziale; non si perde mai.
+- Un oggetto **non ancora ottenuto** appare nella Guida come **casella bloccata** ("???", icona in ombra) e non ha pagina. La **prima volta** che lo ottieni si sblocca la pagina con **da dove si ottiene** (mostro, area, attività, Monolito, boss) e la **percentuale base**.
+- La pagina del **mostro**, dell'**area**, del **Monolito**, del **boss** o dell'**attività** mostra **tutto ciò che può dare**, in caselle bloccate finché non lo trovi; sbloccate mostrano nome e percentuale.
+- Restano sempre visibili le **meccaniche** (testi), le statistiche dei mostri, le tabelle di mestiere e il "Serve a" degli oggetti sbloccati. Il tooltip degli oggetti non dice mai dove si ottengono.
+- Logica nel modello (`Discoveries`, `GuideIndex.sources_of` ancora completo ma filtrato dalla UI tramite `Discoveries.has`); nessuno stato nella UI. Test: oggetto non scoperto = bloccato, scoperto = sbloccato; mai un "Si ottiene da" in un tooltip.
+
+
+## 28. Equipaggiamento vero (M14, Alpha; decisioni Y1-Y6, Q66-Q77)
+
+Fonte `ALPHA.md` (storica dopo R-05); formule in `02_FORMULAS.md` §5e e §8.4. L'equipaggiamento è il cuore del gioco: più modelli, più gradi, armi e armature con identità, un Capolavoro dai progetti, leggendari che cambiano le regole.
+
+### 28.1 Gradi e modelli (Y3)
+- **15 gradi del pezzo** con requisito di livello del personaggio 1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90 (Q66). Ogni slot (spada, spadone, scudo, elmo, corpo, gambe, piedi, mani, anello, collo) ha **un modello per grado**, con nome proprio in `NOMI.md` (classici in basso, esotici in alto).
+- Il **grado del materiale** (1…8: metalli, legni) resta quello dei mestieri: più gradi di pezzo condividono lo stesso materiale (tabella in F-118). Costi di raffinazione, progetti e smantellamento seguono il grado del materiale; i requisiti e gli affissi seguono il livello del pezzo.
+- Gli **attrezzi unici** non cambiano (un attrezzo per mestiere, raffinazione +0…+9); si aggiungono gli attrezzi leggendari (§28.5).
+
+### 28.2 Armi (Y2)
+- Ogni arma ha **danno minimo e massimo** e **velocità d'attacco** (intervallo) propri. La **spada** è più rapida e di danno medio; lo **spadone** è lento e di danno alto (valori di partenza in F-118, Q77). Il danno dell'arma sostituisce il vecchio `power_bonus` come base del colpo (F-22 rivista); livello del personaggio e affissi lo modificano.
+- Con due spade ogni colpo usa danno e velocità dell'arma che colpisce (F-73, F-74). La **scheda** dell'arma mostra danno minimo-massimo, velocità e **danno al secondo** (F-22).
+
+### 28.3 Armature: Piastre, Cuoio, Tessuto runico (Y2, Q67, Q74)
+- Elmo, corpo, gambe, piedi, mani e scudo esistono in **tre materiali**: **Piastre** (Armatura alta, niente Barriera), **Cuoio** (Armatura media, poca Barriera, molta Schivata), **Tessuto runico** (Armatura bassa, Barriera alta). Anelli e colli non hanno materiale.
+- **Armatura** (stat `armor`) riduce in % il danno **fisico** (mostri `blade` e `marksmanship`); **Barriera** (stat `barrier`) riduce il danno **arcano** (mostri `arcana`). Rendimenti decrescenti, massimo 75% (F-117). Il vecchio valore piatto `damage_reduction` del giocatore diventa l'Armatura; il campo `damage_reduction` dei mostri resta una percentuale.
+- Scelta di gioco: contro un'area di mostri `arcana` conviene la Barriera; il triangolo (F-24) e le armature si sommano.
+
+### 28.4 Rarità (Y4, Y5)
+| Rarità | Colore | Affissi | Fonte |
+|---|---|---|---|
+| Comune | bianco | 0 | drop |
+| Magico | blu | 1-2 | drop |
+| Raro | giallo | 3-4 | drop |
+| **Capolavoro** | viola | **1-2** (uno scelto dal Fabbro dal livello 50) e statistiche base **+25%** | **solo progetti** |
+| **Leggendario** | arancione | nessuno; statistiche fisse (×1,4) e **un effetto che cambia le regole** | boss delle Fratture, Monoliti |
+- **Progetti** (Y4, §5.1): un progetto crea un **Capolavoro** (modello con nome proprio, diverso dai drop), con 1 o 2 affissi (più probabile averne 2 al crescere del livello del Fabbro, F-91), 2 castoni e **costo alto**: circa 3× i materiali di prima più **due componenti rari diversi**, durata invariata (F-119). I progetti di armature riguardano le **Piastre** (Q75: Cuoio e Tessuto runico
+  vengono solo dai drop e dai leggendari finché non esiste un mestiere che li produca).
+
+### 28.5 Leggendari (Y5, F-120)
+- **3 per slot** nell'alpha (Q73): elmo, corpo, gambe, piedi, mani, collo, anello, spada, spadone, scudo, **accetta, piccone, canna** (39 in tutto; nomi, effetto e fonte in `NOMI.md`).
+- Ognuno ha statistiche fisse e **un effetto che cambia una regola**, costruito sul sistema degli effetti dei tratti (nuovi tipi nello stesso elenco chiuso): ad es. lo spadone fa partire subito il prossimo attacco a ogni uccisione; lo scudo restituisce PV a ogni parata; l'anello raddoppia il bottino dei Monoliti; la canna ogni tanto dà il pesce del grado
+  superiore; il piccone dà a volte una Scheggia.
+- **Fonte dichiarata nei dati** (un boss di Frattura o un Monolito) e mostrata dalla Guida a scoperta. Gli **attrezzi leggendari** sostituiscono l'attrezzo unico nello slot (che torna nell'Armeria).
+- Un leggendario non viene mai smantellato dal filtro. Con il Deposito pieno si perde, come una Carta.
+
+### 28.6 Drop di equipaggiamento (Y6, F-121, Q69)
+- Ogni mostro può far cadere **tutti gli slot** del grado vicino al proprio livello (non più 1-2 modelli fissi), con probabilità tarate perché cadano **3-5 pezzi ogni 30 minuti** nell'area del proprio livello, circa **1 magico ogni 30 minuti** e **1 raro ogni 2-3 ore**. I progetti cadono con lo stesso schema (circa 1 all'ora).
+- I **leggendari** non cadono dai mostri comuni: circa 1 ogni 15-30 ore di Fratture del grado giusto.
+
+### 28.7 Polvere del Rift (Q71)
+Cade meno (8% per uccisione, 1 pezzo; `02_FORMULAS.md` §8.5b) e serve a più cose: **Cristalli** (Incisore, F-104), **raffinazione dal +5** (F-86), **borse** rinforzate e oltre, smantellamento di Carte (F-114). Il tooltip dice "Serve a" chiaramente.
+
+## 29. Ritocchi UI dell'Alpha (Y9)
+
+| Dove | Ritocco |
+|---|---|
+| Combattimento | **barra XP del personaggio** nella carta del giocatore; "In fila" diventa **"Altri nemici"**; etichetta del triangolo: "**Forte contro di te**" / "**Debole contro di te**" / "**Alla pari**" |
+| Shop | descrizioni con i **numeri** letti dai dati (PV curati, %, effetti) |
+| Incisore | **sottoschede**: Lastre, Fondere, Cristalli, Rune |
+| Fabbro | **sottoschede**: Lingotti, Piastre, Progetti, Banco del fabbro |
+| Deposito | pulsante **Riordina** (ordine della categoria e `sort_order`) |
+| Equipaggiamento | scheda dell'arma con danno minimo-massimo, velocità e danno al secondo; armature con Armatura e Barriera; colori **viola** (Capolavoro) e **arancione** (leggendario) |
+| Fratture | carte della pagina più basse: ogni modificatore su una riga compatta |
+| Guida / oggetti | caselle bloccate e pagine a scoperta (§27) |
+| Maestria | su ogni carta: livello, bonus attuali, prossimo bonus (§6.5) |
+
+**Accettazione dell'Alpha** (`07_TASKS.md` M14): armi con danno min-max, velocità e danno al secondo; armature con materiali, Armatura % e Barriera %; 15 gradi per slot; Capolavori solo dai progetti; almeno 3 leggendari per slot (attrezzi compresi) con effetto e fonte; la sim dà 3-5 pezzi ogni 30 minuti nell'area giusta, 1 magico ogni 30 minuti, 1 raro ogni 2-3 ore;
+la Guida nasconde oggetti e drop finché non trovati e nessun tooltip dice "Si ottiene da"; maestria con bonus visibili e prossimo bonus; tutti i ritocchi di §29.
