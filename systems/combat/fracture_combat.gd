@@ -58,6 +58,7 @@ func next_encounter() -> Encounter:
 	if boss == null:
 		return Encounter.new()
 	run.boss_started = true
+	boss_ability_ms = boss.ability.every_ms  # F-112: the first use is `every_ms` after the boss appears
 	_session.events.fracture_boss_started.emit(boss.id)
 	var scaled: Array[MonsterDef] = [FractureScaler.scale_monster(boss, run.grade, run.effects, data)]
 	return Encounter.of_defs(scaled, data)
@@ -65,8 +66,82 @@ func next_encounter() -> Encounter:
 
 ## Time passes during an encounter: the pulse timer runs.
 func tick(ms: int) -> void:
-	if run != null:
-		pulse_ms = maxi(0, pulse_ms - ms)
+	if run == null:
+		return
+	pulse_ms = maxi(0, pulse_ms - ms)
+	if run.boss_started:
+		boss_ability_ms = maxi(0, boss_ability_ms - ms)
+		boss_shield_ms = maxi(0, boss_shield_ms - ms)
+		if boss_shield_ms == 0:
+			boss_shield = 0
+
+
+## Time to the next use of the ability of the boss, `NO_TIMER` before the boss appears.
+func next_boss_ms() -> int:
+	return boss_ability_ms if run != null and run.boss_started else NO_TIMER
+
+
+func ability_due(enemy: Encounter.Enemy) -> bool:
+	return run != null and run.boss_started and enemy.alive() and boss_ability_ms <= 0 and is_boss(enemy)
+
+
+func is_boss(enemy: Encounter.Enemy) -> bool:
+	return enemy.def is ScaledMonsterDef and (enemy.def as ScaledMonsterDef).is_boss
+
+
+## F-112: the ability of the boss is due. Restarts its timer. `heavy_strike` returns the attack to apply (`hit`, `blocked`,
+## `damage`); `shield` (not renewed while one is up) and `summon` (into free or dead summoned slots) act at once and
+## return `{}`. Returns the positions of the new enemies in `summoned`.
+func use_ability(enemy: Encounter.Enemy, encounter: Encounter, me: CombatantStats, summoned: Array[int]) -> Dictionary:
+	var data: GameData = _session.data
+	var ability: BossAbilityDef = run.boss_def(data).ability
+	boss_ability_ms = ability.every_ms
+	match ability.type:
+		BossAbilityDef.HEAVY_STRIKE:
+			return BossAbility.heavy_strike(enemy.stats, me, ability, _session.rng, data)
+		BossAbilityDef.SHIELD:
+			if boss_shield <= 0:
+				boss_shield = BossAbility.shield_amount(enemy.stats.max_hp, ability)
+				boss_shield_ms = ability.duration_ms
+		BossAbilityDef.SUMMON:
+			_summon(ability, encounter, summoned)
+	return {}
+
+
+func _summon(ability: BossAbilityDef, encounter: Encounter, summoned: Array[int]) -> void:
+	var data: GameData = _session.data
+	var max_pack: int = int(data.balance_value("combat.max_pack_size"))
+	var alive_summoned: int = 0
+	for e: Encounter.Enemy in encounter.enemies:
+		if e.summoned and e.alive():
+			alive_summoned += 1
+	var defs: Array[MonsterDef] = BossAbility.summon_defs(ability, alive_summoned, encounter.alive_count(), max_pack, run.grade,
+			run.effects, data)
+	for def: MonsterDef in defs:
+		var fresh := Encounter.Enemy.new(def, data)
+		fresh.summoned = true
+		var slot: int = -1
+		for i: int in encounter.enemies.size():  # a dead summoned enemy leaves its position free
+			if encounter.enemies[i].summoned and not encounter.enemies[i].alive():
+				slot = i
+				break
+		if slot < 0:
+			encounter.enemies.append(fresh)
+			slot = encounter.enemies.size() - 1
+		else:
+			encounter.enemies[slot] = fresh
+		summoned.append(slot)
+
+
+## The shield of the boss takes the damage first (F-112); returns what is left for the hp.
+func absorb(enemy: Encounter.Enemy, damage: int) -> int:
+	if run == null or boss_shield <= 0 or not is_boss(enemy):
+		return damage
+	var taken: int = mini(boss_shield, damage)
+	boss_shield -= taken
+	if boss_shield == 0:
+		boss_shield_ms = 0
+	return damage - taken
 
 
 ## What the kill of `enemy` did to the fight: `won` (the Fracture boss died), `cleared` (the group or encounter is beaten) or
@@ -88,7 +163,9 @@ func reward(enemy: Encounter.Enemy) -> bool:
 	if enemy.summoned:
 		return false
 	KillRewards.grant(_session, _sink, enemy.def)
-	if enemy.def is ScaledMonsterDef and (enemy.def as ScaledMonsterDef).is_boss:
+	if is_boss(enemy):  # F-115: the piece and the dust, then the Card of F-113 (no `card_chance_pct` on the boss)
+		BossRewards.grant(_session, _sink, run, enemy.def)
+		_roll_card(&"boss_pct", &"boss_delta", 0.0)
 		return false
 	_roll_card(&"monster_pct", &"monster_delta", _session.fractures.effect_total(FractureScaler.REWARD_CARD))
 	return true

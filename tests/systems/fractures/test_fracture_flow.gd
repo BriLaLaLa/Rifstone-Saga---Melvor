@@ -70,8 +70,10 @@ func test_three_groups_then_the_boss_then_the_win() -> void:
 	_open()
 	FractureUtil.run_until(_s, _over)
 	var events: Array = _log.filter(func(e: Array) -> bool: return e[0] in ["cleared", "boss", "finished", "opened"])
-	assert_eq(events, [["opened", 1], ["cleared", 1, 3], ["cleared", 2, 3], ["cleared", 3, 3], ["boss", &"boss_grade_1"],
-		["finished", &"won", 1, 3, 0, 0]])
+	var last: Array = events.pop_back()  # F-115: the boss adds a piece (and maybe a Card, F-113) to the bag
+	assert_eq(events, [["opened", 1], ["cleared", 1, 3], ["cleared", 2, 3], ["cleared", 3, 3], ["boss", &"boss_grade_1"]])
+	assert_eq(last.slice(0, 4), ["finished", &"won", 1, 3])
+	assert_eq(last[5], 1, "the guaranteed piece of the boss")
 	var encounters: int = _names().count("encounter")
 	assert_eq(encounters, 4, "three groups and the boss")
 	assert_false(_s.fractures.is_active())
