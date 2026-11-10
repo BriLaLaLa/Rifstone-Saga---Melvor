@@ -24,7 +24,7 @@ func test_level_99_in_about_300_hours() -> void:
 	var line: String = _line("hours to level")
 	assert_false(line.is_empty())
 	var hours: float = float(line.get_slice(": ", 1).split(" / ")[3])
-	assert_between(hours, 250.0, 350.0, "hours to level 99")
+	assert_between(hours, 250.0, 380.0, "hours to level 99 (M15-08: 327 without Monoliths, about 370 with them; Q78, Q82)")
 
 
 func test_a_night_from_level_50_gives_at_most_twelve_levels() -> void:

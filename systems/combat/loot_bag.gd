@@ -72,9 +72,7 @@ func drop_card(grade: int) -> void:
 ## is rejected with `armory_rejected` (as `add_drop` always did).
 func collect_all() -> CommandResult:
 	var left: bool = false
-	for inst: ItemInstance in pieces():
-		_session.armory.add_drop(inst)
-		_pieces.erase(inst)
+	_move_pieces()
 	for item_id: StringName in _items.keys():
 		if _session.bank.add(item_id, _items[item_id]).ok:
 			_items.erase(item_id)
@@ -82,6 +80,19 @@ func collect_all() -> CommandResult:
 			left = true
 	_emit_changed()
 	return CommandResult.fail(Reasons.BANK_FULL) if left else CommandResult.success()
+
+
+## Only the pieces (not the stacks) go to the Armory, same rules as `collect_all`. Used by the offline simulator after
+## every block, so that the offline summary sees the pieces stored or salvaged.
+func collect_pieces() -> void:
+	_move_pieces()
+	_emit_changed()
+
+
+func _move_pieces() -> void:
+	for inst: ItemInstance in pieces():
+		_session.armory.add_drop(inst)
+		_pieces.erase(inst)
 
 
 ## Death: everything is lost, one `loot_lost` per item type (a piece counts 1 of its base).

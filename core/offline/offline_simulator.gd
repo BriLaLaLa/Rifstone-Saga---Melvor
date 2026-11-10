@@ -48,6 +48,7 @@ static func advance_silently(session: GameSession, elapsed_ms: int) -> void:
 	while done_ms < elapsed_ms:
 		var step_ms: int = mini(chunk_ms, elapsed_ms - done_ms)
 		session.advance(step_ms)
+		session.combat.loot.collect_pieces()
 		done_ms += step_ms
 	session.play_time_ms = play_time_ms
 
@@ -70,6 +71,7 @@ func run(session: GameSession, elapsed_ms: int, capped: bool, yield_frames: bool
 		var step_ms: int = mini(chunk_ms, total_ms - done_ms)
 		_chunk_start_ms = done_ms
 		session.advance(step_ms)
+		session.combat.loot.collect_pieces()  # M15-04: pieces wait in the loot bag; offline they go to the Armory
 		done_ms += step_ms
 		session.events.offline_progress.emit(done_ms, total_ms)
 		if yield_frames and done_ms < total_ms:

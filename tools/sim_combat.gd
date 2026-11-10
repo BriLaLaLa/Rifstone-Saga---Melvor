@@ -221,7 +221,7 @@ static func measure(data: Object, area: Object, scope: String, opts: Dictionary)
 	var worn_uids: Array[int] = []
 	for inst: Object in session.armory.instances():
 		worn_uids.append(int(inst.uid))
-	var tally: Dictionary = {"stones": 0, "stone_kills": 0, "stone_deaths": 0, "in_stone": false, "bp_lost": 0}
+	var tally: Dictionary = {"stone_xp": 0, "stones": 0, "stone_kills": 0, "stone_deaths": 0, "in_stone": false, "bp_lost": 0}
 	session.events.loot_lost.connect(func(id: StringName, q: int) -> void:
 		if str(id).begins_with("bp_"):
 			tally["bp_lost"] += q)
@@ -233,7 +233,8 @@ static func measure(data: Object, area: Object, scope: String, opts: Dictionary)
 				tally["in_stone"] = true)
 	session.events.monster_killed.connect(func(_i: int, id: StringName) -> void:
 		if data.call("has_rift_stone", id):
-			tally["stone_kills"] += 1)
+			tally["stone_kills"] += 1
+			tally["stone_xp"] += floori(float(data.call("rift_stone", id).xp) * float(data.call("balance_value", "combat.kill_xp_mult")) + 1e-9))
 	session.events.player_died.connect(func() -> void:
 		if tally["in_stone"]:
 			tally["stone_deaths"] += 1)
@@ -254,9 +255,13 @@ static func measure(data: Object, area: Object, scope: String, opts: Dictionary)
 	for i: int in range(area.packs.size()):
 		area.packs[i].weight = saved_weights[i]
 	var pieces: Dictionary = {"common": 0, "magic": 0, "rare": 0, "masterwork": 0, "legendary": 0}
+	var dropped: Array = []  # M15-04: the pieces wait in the loot bag until collected; count them with the ones in the Armory
 	for inst: Object in session.armory.instances():
 		if not worn_uids.has(int(inst.uid)):
-			pieces[str(inst.rarity)] += 1
+			dropped.append(inst)
+	dropped.append_array(engine.loot.pieces())
+	for inst: Object in dropped:
+		pieces[str(inst.rarity)] += 1
 	var bps: int = int(tally["bp_lost"])
 	var dust: int = session.bank.get_count(&"rift_dust")
 	for entry: Dictionary in engine.loot.items():
@@ -272,7 +277,7 @@ static func measure(data: Object, area: Object, scope: String, opts: Dictionary)
 		kill_xp += int(counts[monster_id]) * floori(float(data.call("monster", monster_id).xp) * float(data.call("balance_value", "combat.kill_xp_mult")) + 1e-9)
 	var row: Dictionary = {
 		"grade": grade, "level": level, "tier": tier, "ms": elapsed, "deaths": engine.deaths(),
-		"kills": kills, "xp": kill_xp, "gold": session.wallet.get_gold() - gold_start,
+		"kills": kills, "xp": kill_xp + int(tally["stone_xp"]), "gold": session.wallet.get_gold() - gold_start,
 		"food": food_start - session.bank.get_count(food_id),
 		"pieces": int(pieces["common"]) + int(pieces["magic"]) + int(pieces["rare"]), "magic": pieces["magic"], "legendary": pieces["legendary"],
 		"rare": pieces["rare"], "stones": tally["stones"], "stone_kills": tally["stone_kills"],
