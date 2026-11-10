@@ -255,11 +255,8 @@ static func measure(data: Object, area: Object, scope: String, opts: Dictionary)
 	for i: int in range(area.packs.size()):
 		area.packs[i].weight = saved_weights[i]
 	var pieces: Dictionary = {"common": 0, "magic": 0, "rare": 0, "masterwork": 0, "legendary": 0}
-	var dropped: Array = []  # M15-04: the pieces wait in the loot bag until collected; count them with the ones in the Armory
-	for inst: Object in session.armory.instances():
-		if not worn_uids.has(int(inst.uid)):
-			dropped.append(inst)
-	dropped.append_array(engine.loot.pieces())
+	var dropped: Array = session.armory.instances().filter(func(i: Object) -> bool: return not worn_uids.has(int(i.uid)))
+	dropped.append_array(engine.loot.pieces())  # M15-04: pieces wait in the loot bag until collected
 	for inst: Object in dropped:
 		pieces[str(inst.rarity)] += 1
 	var bps: int = int(tally["bp_lost"])
