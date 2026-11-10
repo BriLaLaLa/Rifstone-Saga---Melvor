@@ -1859,3 +1859,17 @@ I nomi e i testi di gioco vengono da `NOMI.md` (sezione Alpha); nulla da Melvor 
 - **N12 — SUPERATA da R-03 (corsie parallele eliminate, W3; storico)**. Il runner ha già `LANE_ORDER` e `_lanes`; da sbloccare `start`, `from_save`,
   `current_interval_ms`, `lanes_available`; `ActionMath.secondary_interval_ms` (F-51) è già testato; aggiungere
   `skill_in_other_lane`; lo stop del combattimento resta solo per la corsia main.
+
+## M15 — Monoliti da Metin, pezzi nel bottino, combattimento affollato (R-06, fonte `docs/METIN.md`)
+Max 2 agenti insieme. Catena A: 01 → 02 → 03 → 05 → 06. Catena B: 01 → 04 → 07. 08 dopo A e B, 09 ultimo.
+| ID | Titolo | Ruolo | Dipende | Accettazione |
+|---|---|---|---|---|
+| M15-01 | Riportare R-06 nei documenti (F-125…F-128, schema, interfacce, save v6, Z1-Z9) | REV | — | documenti coerenti con `docs/METIN.md`; domande aperte registrate |
+| M15-02 | Dati: tipi di Monolito ogni 5 livelli (script `tools/gen_metin.gd`), pool per area, bottino, `balance.json` | DATA | 01 | `validate_data` verde; Pianure con livelli 5-10-15; nessuna riga scritta a mano |
+| M15-03 | Core: Monolito a ondate (HP, impulso 1, soglie 75/50/25, evocati, bottino garantito) | CORE+COMBAT | 02 | test F-125…F-127 e salvataggio a metà ondata |
+| M15-04 | Core: pezzi nel Bottino → Deposito (`LootBag` tiene i pezzi, `collect_all`, migrazione save) | CORE | 01 | un pezzo caduto non è nell'Armeria finché non si raccoglie; conservazione degli oggetti testata |
+| M15-05 | Core: impostazione di salto dei Monoliti (stato dello slot) | CORE | 03 | test F-128, salvata e caricata |
+| M15-06 | UI: Combattimento affollato (vista compatta, gruppi per tipo, Monolito con tacche, numeri aggregati, impostazione salto) | UI | 03, 05 | smoke test; 30+ nemici senza rallentamenti |
+| M15-07 | UI: pezzi nel Bottino, sezione "Pezzi" nel Deposito, Equipaggiamento solo pezzi | UI | 04 | smoke test per pagina |
+| M15-08 | QA: tasso Monoliti per area, prestazioni offline con 30 mostri, regressione | QA | 06, 07 | suite verde; nessun bug aperto |
+| M15-09 | Integrazione e tag `m15-done` | REV | 08 | `run_checks.ps1` verde dopo il merge |
