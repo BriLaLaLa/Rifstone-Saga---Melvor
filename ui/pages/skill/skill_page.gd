@@ -45,6 +45,8 @@ var _session: GameSession = null
 var _skill: SkillDef = null
 var _cards: Dictionary[StringName, ActionCard] = {}
 var _mastery_panel: MasteryPanel = null
+## Thin bar under the XP bar: the skill's mastery pool against its cap (skills with mastery only).
+var _pool_bar: ProgressBar = null
 var _blueprints: BlueprintSection = null
 var _tool_panel: ToolUpgradePanel = null
 var _bench: ForgeBench = null
@@ -88,6 +90,7 @@ func bind(session: GameSession) -> void:
 	_skill_icon.modulate = skill.color
 	_name_label.text = skill.name
 	_mastery_button.visible = skill.has_mastery
+	_build_pool_bar()
 	_build_extras()
 	_build_cards()
 	_tabs.build(_skill.id, _extras, _cards, _session.data, _blueprints, _bench)
@@ -196,6 +199,7 @@ func _redraw() -> void:
 func _redraw_header() -> void:
 	_level_label.text = LEVEL_TEXT % NumberFormat.format_int(_session.skills.get_level(_skill.id))
 	_xp_bar.set_xp(_session.data.xp_table(), _session.skills.get_xp(_skill.id))
+	_redraw_pool_bar()
 	_redraw_status()
 
 
@@ -258,6 +262,8 @@ func _on_events_action_stopped(_lane: StringName, _skill_id: StringName, _reason
 
 
 func _on_events_mastery_xp_gained(skill_id: StringName, action_id: StringName, _amount: int) -> void:
+	if skill_id == _skill.id:
+		_redraw_pool_bar()
 	if skill_id == _skill.id and _cards.has(action_id):
 		_cards[action_id].redraw(_session)
 
@@ -398,3 +404,25 @@ func _on_tool_upgrade_requested(uid: int) -> void:
 func _show_refusal_text(text: String) -> void:
 	_message_label.text = text
 	_message_label.visible = true
+
+
+func _build_pool_bar() -> void:
+	if _pool_bar != null or not _skill.has_mastery:
+		return
+	_pool_bar = ProgressBar.new()
+	_pool_bar.name = "PoolBar"
+	_pool_bar.show_percentage = false
+	_pool_bar.min_value = 0.0
+	_pool_bar.max_value = 1.0
+	_pool_bar.custom_minimum_size = Vector2(0, 6)
+	_pool_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_xp_bar.add_sibling(_pool_bar)
+
+
+func _redraw_pool_bar() -> void:
+	if _pool_bar == null:
+		return
+	var cap: int = _session.mastery.get_pool_cap(_skill.id)
+	_pool_bar.value = float(_session.mastery.get_pool(_skill.id)) / float(cap) if cap > 0 else 0.0
+	_pool_bar.tooltip_text = "Pool di maestria: %s / %s XP" % [NumberFormat.format_int(_session.mastery.get_pool(_skill.id)),
+			NumberFormat.format_int(cap)]
