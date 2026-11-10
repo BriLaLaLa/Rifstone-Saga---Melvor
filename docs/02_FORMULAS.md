@@ -403,6 +403,7 @@ Esempi: +5 → +6 con +10% → 60,5%; fallimento da +5 → +4; fallimento da +3 
 spada T4, +5 → +6: 6.400 oro, 3 lingotti T4, 5 frammenti. Test: `tests/systems/armory/test_upgrade.gd`.
 
 ### F-87 Monoliti del Rift (M7; ex "Pietre del Rift", W7: solo il nome visibile cambia, id invariati)
+> M15: appare uno dei Monoliti del pool dell'area (uguale probabilità, §5f); PV F-125, impulso fisso, ondate F-126, bottino F-127, salto F-128; niente `hp`/`pulse_damage` nei dati.
 Dopo ogni uccisione (non di una Pietra): `since += 1`; appare una Pietra se `since ≥ rift_stone.pity_kills` (300)
 oppure `roll_pct(chance)` con `chance` = `rift_stone_chance_pct` dell'area se presente, altrimenti `rift_stone.chance_pct` (0.5; Q46); quando appare `since = 0` e il prossimo incontro (dopo `BETWEEN`) è la
 Pietra dell'area. La Pietra non attacca: ogni `pulse_ms` infligge `pulse_damage` al giocatore (senza tiro, ridotto da
@@ -655,6 +656,40 @@ mostro, area, Monolito o attività → **tutto ciò che può dare**, in caselle 
 dell'oggetto **non** mostrano più "Si ottiene da" (resta "Serve a"); le meccaniche (testi) restano sempre visibili.
 Esempio: un Persico mai pescato è una casella bloccata nella pagina della Lenza; al primo Persico pescato si sblocca e mostra la sua fonte e la % dai dati. Pezzo del pool: mostro `L_m` 46, corpo di Cuoio grado 9 → 2,5 × (1/10) × (1/4) × (1/3) = **0,0208%**. Test: `tests/core/guide/test_discoveries.gd`, `tests/core/data/test_guide_index_sources.gd`.
 
+
+## 5f. Monoliti da Metin (F-125…F-128; M15, Z1-Z9, R-06)
+
+Fonte: `METIN.md` (storica dopo M15-01). Tutti i numeri sono **valori di partenza** in `balance.json` (§9), da tarare in M15-08 (Q78); gli esempi sono casi di test e cambiano insieme ai valori. F-87 (quando appare un Monolito) è invariata.
+
+### F-125 PV del Monolito e impulso
+`hp = round(metin.hp_base × (1 + metin.hp_per_level × L))` con `L` = `level` del Monolito (dati, multiplo di 5). Obiettivo di taratura: ~60-90 s per abbatterlo con il DPS atteso a `L` (Q78). Il campo `hp` dei dati sparisce.
+Impulso: ogni `pulse_ms` (dati, 3000) infligge `metin.pulse_damage` (1) al giocatore: **danno fisso**, senza tiro di colpo, **ignora Armatura e Barriera** (niente F-25 né F-117/F-118), non parabile; riduce comunque i PV (il cibo automatico agisce, F-30).
+Valori di partenza: `metin.hp_base` 200, `metin.hp_per_level` 0,25.
+Esempi: L 5 → 200 × 2,25 = **450**; L 10 → 200 × 3,5 = **700**; L 15 → 200 × 4,75 = **950**; L 65 → 200 × 17,25 = **3450**; L 95 → 200 × 24,75 = **4950**. Impulso con Armatura 40%: sempre 1.
+Test: `tests/systems/combat/test_metin_hp.gd` (i casi sopra + l'impulso ignora la difesa).
+
+### F-126 Ondate di evocazione
+Soglie `metin.wave_thresholds` = [75, 50, 25] (% dei PV massimi) più il **primo colpo ricevuto** (valore 100). Un colpo del giocatore che porta i PV a `h1` fa scattare ogni soglia `s` non ancora scattata con
+`h1 × 100 < s × hp_max` (stretto); il primo colpo scatta sempre. Una soglia scatta **una volta sola** per Monolito; un colpo che ne attraversa due le fa scattare **entrambe**, in ordine decrescente di `s`. Ogni scatto evoca
+`metin.wave_size` (7) mostri: si pescano gruppi pesati (F-77) tra i `wave_packs` del Monolito (o tutti i gruppi dell'area) finché si raggiunge `wave_size`, l'ultimo gruppo è troncato; i mostri nascono con `summoned = true`,
+**livelli (attacco, potenza, difesa) = `min(99, L)`**, PV, danno e ricompense invariati (Q79); non danno XP, oro né drop e non contano come uccisioni (F-87), come i richiami del boss (F-112). Totale massimo: 4 ondate = 28 mostri + il Monolito.
+Esempi (`hp_max` 1000): primo colpo 1000 → 960 → 1 ondata (7 mostri); poi 960 → 749 → scatta il 75% (749 < 750; con 750 no) → 14 in tutto; poi 749 → 240 → scattano 50% **e** 25% → 28 in tutto; ancora colpi: nulla.
+Con un solo colpo 1000 → 200 si evocano le 4 ondate insieme (28). Un Monolito caricato dal salvataggio ricorda le soglie già scattate (`combat.wave.fired`). Test: `tests/systems/combat/test_metin_waves.gd` (incluso il salvataggio a metà ondata).
+
+### F-127 Bottino del Monolito
+Alla morte del Monolito, oltre a Frammenti (`shards`, F-87), `drops` e `loot_tables` (F-32) e leggendari (F-120):
+1. **pezzo garantito** (`metin.guaranteed_pieces` = 1): F-121 senza il tiro di probabilità del punto 1; tipo, grado e materiale come F-121 punti 2-3 con `L_m` = `L` del Monolito; rarità come F-84 con fonte `rift_stone` e
+   `k = 1 + (T(item_rarity_pct, ctx) + metin.rarity_bonus_pct)/100` (`metin.rarity_bonus_pct` = 100); `ilvl` e affissi come F-85;
+2. **un tiro di Progetto**: `roll_pct(loot.blueprint.chance_pct)` come F-121, con `L_m` = `L`.
+I pezzi vanno nel Bottino (`01_GDD.md` §10.14).
+Esempi: `L` 45 → gradi con livello in (30, 50] = 35, 40, 45, 50 → gradi 8-11 (come F-121 con `L_m` 46); con +0%, `k` = 2 → `p_magic` 80 e `p_rare` 24 (limite e ordine dei tiri come F-84); con +50%, `k` = 2,5. Il pezzo c'è sempre (probabilità 100%).
+Test: `tests/systems/combat/test_metin_loot.gd` (pezzo sempre presente; grado dalla finestra di F-121; `k`).
+
+### F-128 Salto dei Monoliti
+Stato dello slot `combat.skip_stone_level` = `S` (0 = disattivato; intero 0..`character_curve.max_level`; valore iniziale di un nuovo slot = `combat.skip_stone_level` di `balance.json`, 0). Quando il prossimo incontro sarebbe il Monolito
+pendente: se `S ≠ 0` e `level ≤ S` il Monolito è **scartato**: nessun incontro, nessuna uccisione, `pending = false`, `since = 0`, e si estrae il gruppo normale (F-77). Anche un Monolito appena estratto (F-87) è scartato subito
+se il suo livello è ≤ `S`. Cambiare `S` non tocca un Monolito già in combattimento.
+Esempi: `S` 10 e Monolito di livello 10 → scartato; livello 15 → combattuto; `S` 0 → mai scartato; `S` 99 → scartati tutti. Test: `tests/systems/combat/test_metin_skip.gd` (anche salvataggio e caricamento).
 
 ## 6. Offline
 
@@ -1120,6 +1155,10 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | `loot.equipment.{chance_pct, level_ahead, level_window, kind_weights}`, `loot.blueprint.chance_pct` (M14, Y6, Q69) | 2.9, 5, 15, 1 per ciascuno dei 10 tipi di pezzo; 0.4 | F-121 |
 | `mastery.step.{every_levels, gathering, crafting}` (M14, Y8, Q70) | 10, `[{"stat":"skill_interval_pct","value":-2},{"stat":"double_item_chance","value":1}]`, `[{"stat":"preservation_chance","value":2},{"stat":"skill_interval_pct","value":-2}]` | F-122 |
 | `fracture.{risk_cap, risk_unit}` (M14, Q72) | `{"base":40,"per_grade":10}`, `{"pack_bonus":20,"pulse":5}` | F-123 |
+| `metin.{hp_base, hp_per_level, pulse_damage, wave_size, wave_thresholds, rarity_bonus_pct, guaranteed_pieces}` (M15, Z3-Z4) | 200, 0,25, 1, 7, `[75, 50, 25]`, 100, 1 | F-125…F-127 (Q78) |
+| `combat.crowd_threshold` (M15, Z6) | 8 | `01_GDD.md` §10.13 (solo UI) |
+| `combat.skip_stone_level` (M15, Z7) | 0 | F-128: **valore iniziale** del nuovo slot; il valore in uso è stato dello slot |
+| `rift_stone_chance_pct` Pianure (M15, Z5) | 0 → 0,6 (dati dell'area) | F-87 (Q82) |
 | `upgrade.levels[].dust` (M14, Q71) | 0,0,0,0,10,20,30,40,50 | F-86 |
 | ~~`parallel.*`~~ | tolta | era F-51 (corsie eliminate) |
 

@@ -423,6 +423,16 @@ area) e stampa uccisioni/ora, morti, oro/ora, XP/ora, cibo consumato. Si usa a o
 (criteri in `02_FORMULAS.md` §8.5). Opzioni `loot=1` (tabelle di bottino, Pietre e costo della raffinazione) e
 `loadout=auto` (tratti e abilità sbloccati negli slot aperti): vedi `05_INTERFACES.md` §8.
 
+### 10.13 Combattimento affollato (M15, Z6)
+Con più di `combat.crowd_threshold` nemici in campo (8) la zona nemici passa alla **vista compatta**: il Monolito fisso in alto con barra dei PV e **tacche** a 75/50/25; i mostri **raggruppati per tipo** ("Lupo del Bosco ×7") con la barra dei PV
+del bersaglio e il conteggio; elenco scorrevole; nessuna carta per nemico. Numeri dei colpi e registro **aggregati** (un numero per tipo per tick). Solo vista: lo stato resta nel motore.
+
+### 10.14 Bottino con i pezzi (M15, Z1)
+Un pezzo di equipaggiamento che cade (da mostro o Monolito, fuori dalla Frattura) finisce nel **Bottino**, non più direttamente nell'Armeria. "Raccogli tutto" lo sposta nel Deposito (§7), dove compare nella sezione **Pezzi**; la pagina
+Equipaggiamento mostra **solo** i pezzi. Un pezzo nel Bottino non è indossabile. Con la tasca del Bottino automatico (`auto_loot`, §7) il pezzo va subito nel Deposito. Il filtro (§25) agisce alla caduta (il pezzo scartato è smantellato e
+non entra nel Bottino). Bottino pieno: il pezzo si perde con `loot_lost`; la morte perde tutto il Bottino, pezzi compresi. La fonte di verità resta una (Armeria, F-100): il Bottino tiene i pezzi in attesa, la UI non copia dati.
+Nella Frattura non cambia (il sacco della Frattura tiene già i pezzi, F-116). Aperto: caselle del Bottino e del Deposito (Q80, Q81).
+
 ## 11. Incisore e Altare del Rift (M8; riscritta in M12, W5-W6)
 
 **Regole**
@@ -676,6 +686,21 @@ Contratti; `02_FORMULAS.md` §8.5b).
   Pietra viene per prima, poi l'eventuale gruppo evocato; l'incontro finisce solo con la morte di **tutti** i nemici.
 - Le uccisioni durante l'attesa non contano per F-87; quelle della Pietra non contano mai.
 - I pezzi dei drop hanno la rarità di F-84 (fonte `rift_stone` per la Pietra) e l'`ilvl` di F-85.
+
+## 24b. Monoliti da Metin (M15; decisioni Z1-Z9, R-06)
+
+Dal M15 il Monolito è un incontro "a ondate" (idea ispirata alle pietre di Metin2, solo come meccanica; nomi e numeri originali). Nome e id (`rift_stone`) restano.
+- **Livelli (Z2)**: un tipo di Monolito ogni 5 livelli (5, 10, 15…). Il **pool** di un'area sono i multipli di 5 tra il suo livello minimo (arrotondato per eccesso a 5, almeno 5) e il suo livello massimo (= minimo dell'area
+  dopo − 1; ultima area: tetto del personaggio, 99), compreso sempre il multiplo di 5 più alto sotto il massimo. Pianure (1-15): 5, 10, 15 (anche al livello 1); Bosco (16-37): 20…35; Miniere (38-64): 40…60; Soglia (65-99): 65…95.
+  Quando appare un Monolito (F-87, invariata) se ne sceglie uno del pool con uguale probabilità.
+- **Comportamento (Z3)**: PV molti (F-125), nessun danno vero: ogni `pulse_ms` infligge **1 danno fisso** che ignora Armatura e Barriera (e non si para). Al **primo colpo ricevuto** e quando i PV scendono sotto **75%, 50%, 25%**
+  evoca un gruppo di mostri dell'area, al livello del Monolito (F-126). Gli evocati attaccano come gli altri ma non danno XP, oro né drop (come i richiami del boss); il Monolito sì. In campo possono esserci 30 mostri o più: vale
+  la vista compatta (§10.13). L'incontro finisce solo con la morte di tutti i nemici (invariato).
+- **Bottino (Z4, F-127)**: Frammenti (F-87), **un tiro garantito di equipaggiamento** con rarità aumentata e un tiro di Progetto; i valori stanno nei dati e in `balance.json`. Frequenza (Z5): resta F-87; le Pianure passano
+  a una probabilità > 0 (default 0,6 come il Bosco), tarata da QA.
+- **Salto (Z7, F-128)**: impostazione nella pagina Combattimento, "Salta i Monoliti fino al livello X" (0 = disattivato). Un Monolito di livello ≤ X è scartato prima dell'incontro: non si combatte, non conta come uccisione,
+  `since` si azzera e si estrae il gruppo successivo. È stato dello **slot**, non delle impostazioni (`user://settings.cfg`).
+- **Miniboss (Z8)**: rimandati, nessun lavoro in M15.
 
 ## 25. Smantellamento e filtro (M7)
 

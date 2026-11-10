@@ -954,6 +954,8 @@ func items() -> Array[Dictionary]          # [{"item": StringName, "qty": int}]
 func used() -> int
 func capacity() -> int                     # F-33
 func add(item_id: StringName, qty: int) -> bool    # con auto_loot prova prima la bank; false = perso (loot_lost)
+func pieces() -> Array[ItemInstance]       # M15 (Z1): pezzi in attesa nel Bottino (sola lettura; uid 0)
+func add_piece(inst: ItemInstance) -> bool # M15: vedi §5.25
     # M5-02: qty ≤ 0 → true, nulla; auto_loot (T ≥ 1): bank se can_add e add riesce, altrimenti la borsa; tipo nuovo
     # a borsa piena → loot_lost(item, qty) e false; altrimenti somma e loot_bag_changed(used, capacity)
 func collect_all() -> CommandResult        # bank_full se qualcosa resta
@@ -1517,7 +1519,7 @@ func rebuild_modifiers() -> void               # sorgente fracture:<uid>: stat d
 func new_game() -> void; func to_save() -> Dictionary; func from_save(d: Dictionary) -> void
 ```
 - **Niente `advance`**: la Frattura non ha timer (X1); la fa avanzare il motore del combattimento. Quindi `GameSession.advance` non chiama più `fractures`.
-- Il bottino: `KillRewards.grant` scrive su un **sink** (`add(item_id, qty)`, `add_piece(inst)`, `add_card(card)`): `LootBag` fuori dalla Frattura (pezzi → `armory.add_drop`, Carte → `cards`), `FractureBag` dentro (tutto resta nella borsa: pezzi e Carte
+- Il bottino: `KillRewards.grant` scrive su un **sink** (`add(item_id, qty)`, `add_piece(inst)`, `add_card(card)`): `LootBag` fuori dalla Frattura (pezzi → `add_piece` nel Bottino fino a `collect_all`, M15; Carte → `cards`), `FractureBag` dentro (tutto resta nella borsa: pezzi e Carte
   si consegnano alla vittoria, F-116). L'oro e l'XP vanno subito al portafoglio e al personaggio. Le tabelle di drop dentro la Frattura sono quelle dei mostri (F-32); `loot_qty_pct`, `dust_pct`, `blueprint_pct` (F-111) e le Carte (F-113) si applicano nel sink.
 - `fracture_finished` (emesso dal motore) fa scattare nel `FractureSystem`, in modo sincrono: **vittoria** → consegna F-116 (la parte in attesa va in `pending`), **sconfitta/abbandono** → `fracture_loot_lost`, borsa svuotata; poi `fracture_bag_changed` e
   `rebuild_modifiers` (sorgente `fracture:<uid>` tolta). Solo dopo il motore torna all'area (`return_area`) o si ferma.
@@ -1620,7 +1622,7 @@ static func roll(source_type: StringName, source_id: StringName, data: GameData,
 ```
 - Il giocatore applica la riduzione in `CombatFight`: `rid = ArmorMath.reduction_pct(armor o barrier, attacker.power_level, data)` secondo lo stile del mostro (F-117); `armor_pierce_pct` solo per il giocatore.
 - **Effetti dei leggendari**: `Equipment.item_effects() -> Array[ItemEffectDef]` (effetti dei leggendari indossati, con sorgente `equipment:<slot>`); `EffectSet` li costruisce come i tratti (F-81) e aggiunge i tipi di F-120 e gli agganci `on_block` (in `CombatFight` alla parata, F-75), `on_gather` (in `GatheringResolver`, solo giocatore) e `on_monolith` (alla morte del Monolito). Il motore non conosce i leggendari per nome.
-- **Fonti**: alla vittoria sul boss `FractureSystem` tira `LegendaryRoller.roll(&"boss", boss_id)` e mette i pezzi nella borsa della Frattura (F-116); alla morte di un Monolito il combattimento tira `LegendaryRoller.roll(&"monolith", rift_stone_id)` e li passa a `Armory.add_drop`. Il Deposito pieno perde il pezzo con `armory_rejected` (notifica e riepilogo offline).
+- **Fonti**: alla vittoria sul boss `FractureSystem` tira `LegendaryRoller.roll(&"boss", boss_id)` e mette i pezzi nella borsa della Frattura (F-116); alla morte di un Monolito il combattimento tira `LegendaryRoller.roll(&"monolith", rift_stone_id)` e li passa a `LootBag.add_piece` (M15). Il Deposito pieno perde il pezzo con `armory_rejected` (notifica e riepilogo offline).
 - `MapCardRoller` (F-123): `static func risk_points(mod: MapModDef, step: int, data: GameData) -> float`, `static func risk_cap(grade: int, data: GameData) -> float`; la scelta del modificatore riduce lo `step` come in F-123 (stesso ordine dei tiri su `rng`).
 
 **Armeria ed equipaggiamento**
@@ -1684,13 +1686,51 @@ func sources_visible(item_id: StringName, discoveries: Object) -> Array[GuideRef
 - **Effetti dei leggendari, agganci aggiunti a `TraitEffect`** (con default neutro; `EffectSet` li compone): `cap_damage(ctx, damage: int) -> int` (`hit_cap_pct`, dopo F-25, minimo 1) e `damage_mult_against(ctx, target_hp: int, target_max_hp: int) -> float` (`execute_mult`; prodotto dei fattori degli effetti). Sono in `EffectSet` e non nei segnali di `EventBus`.
 - **Chiavi lette dal codice** (valori in `balance.json`, tarati in M14-10): `fracture.risk_cap`, `fracture.risk_unit`, `mastery.step`, `loot.equipment`, `loot.blueprint`, `upgrade.levels[].dust`.
 
-**Sessione e salvataggio**: `GameSession.discoveries: Discoveries` (modulo `discoveries`, ultimo della composizione); `SaveMigrator.CURRENT_VERSION` = **5**; `format_version` 4 → `version_unsupported`. Le chiavi tolte/cambiate sono quelle dei dati (Armatura, basi nuove), non della struttura del save.
+**Sessione e salvataggio**: `GameSession.discoveries: Discoveries` (modulo `discoveries`, ultimo della composizione); `SaveMigrator.CURRENT_VERSION` = **5** (6 da M15, §6); `format_version` 4 → `version_unsupported`. Le chiavi tolte/cambiate sono quelle dei dati (Armatura, basi nuove), non della struttura del save.
+### 5.25 Monoliti da Metin e Bottino con i pezzi (M15; `01_GDD.md` §24b, §10.13-10.14, `02_FORMULAS.md` §5f, `04_DATA_SCHEMA.md` §22)
+
+**LootBag** (pezzi nel Bottino, Z1; `systems/combat/loot_bag.gd`)
+```
+func pieces() -> Array[ItemInstance]
+func add_piece(inst: ItemInstance) -> bool
+    # item_obtained(base, 1). Ordine: filtro (Armory.is_filtered → smantellato, item_salvaged auto, true); con auto_loot (T ≥ 1) → armory.add(inst) (uid assegnato);
+    # altrimenti nel Bottino come voce nuova (occupa una casella, F-33; Q80); Bottino pieno → loot_lost(base, 1) e false; poi loot_bag_changed(used, capacity)
+func collect_all() -> CommandResult    # come oggi per gli impilati; poi ogni pezzo con armory.add(inst) (nessun filtro); restano nel Bottino quelli che non entrano:
+    # armory_full (oltre a bank_full per gli impilati); armory_changed e loot_bag_changed alla fine; il pezzo raccolto riceve il suo uid
+func lose_all() -> void                # morte: un loot_lost per tipo e per pezzo
+func to_save() -> Dictionary           # {"stacks": [{"item", "qty"}], "pieces": [ItemInstance.to_dict() senza uid]}; from_save tollerante (voci non valide saltate con Log.warn; accetta anche l'Array v5)
+```
+- Un pezzo nel Bottino **non è nell'Armeria** (`armory.get`/`can_add` non lo contano) e non è indossabile; `KillRewards.grant` usa il sink `add_piece` (anche per i leggendari dei Monoliti, F-120). La conservazione degli oggetti
+  (QA) vale su Bottino + Armeria + smantellati.
+- `Armory.add(inst)` è l'unico ingresso senza filtro; `add_drop` resta per la Frattura e per i test.
+
+**Monolito a ondate** (`systems/combat/`; il motore resta `CombatEngine`, la logica nuova in classi di supporto, es. `StoneFight`)
+- `GameData.rift_stones_for_area(area_id) -> Array[RiftStoneDef]` (pool ordinato per `level`); alla comparsa (F-87) il motore sceglie un Monolito con `rng` e salva `stone_id`; `rift_stone_appeared(stone_id)` invariato.
+- PV massimi F-125 (non nel dato), impulso fisso `metin.pulse_damage` che **non** passa da F-25/F-75, ondate F-126 (`StoneFight.waves_crossed(hp_after: int, hp_max: int, fired: Array[int]) -> Array[int]`, pura e testabile),
+  bottino F-127 (`MonolithLoot.guaranteed_piece(level: int, rng, ctx) -> ItemInstance`, puro), salto F-128.
+- Nuovi segnali (CombatEngine): `rift_stone_wave(stone_id: StringName, threshold: int, count: int)` (`threshold` 100 = primo colpo, poi 75, 50, 25), `rift_stone_skipped(stone_id: StringName)` (Monolito scartato da F-128),
+  `skip_stone_changed(level: int)`.
+- Impostazione di salto (**stato dello slot**, modulo `combat`): `func skip_stone_level() -> int`; `func set_skip_stone_level(level: int) -> CommandResult` (`invalid_choice` se fuori da 0..99, nessun cambio). Il nuovo slot
+  parte da `balance.combat.skip_stone_level`.
+- `CombatEngine.get_state()` espone per la UI (sola lettura): `stone = {"id", "level", "hp", "max_hp", "fired": [int]}` (`{}` fuori dal Monolito), `skip_stone_level`, il numero dei nemici vivi (la UI confronta con
+  `combat.crowd_threshold`) e `enemies[i].summoned`. Nessuno stato di gioco nella UI.
+- **UI (M15-06/07)**: vista compatta con gruppi per tipo dal solo `get_state()`; sezione "Pezzi" del Deposito e pagina Equipaggiamento (solo pezzi) leggono `loot.pieces()` e `armory`; comandi solo
+  `combat.set_skip_stone_level` e `combat.loot.collect_all`.
+- **Chiavi lette dal codice**: `metin.*`, `combat.crowd_threshold` (solo UI), `combat.skip_stone_level` (default del nuovo slot).
+
 ## 6. Formato del salvataggio (`user://saves/slot_<n>.json`)
 
-Versione **5 da M14** (v4 da M12, v3 da M10, v2 da M4-03, D3). Un save v1, v2, v3 o **v4 non si carica** (`version_unsupported`, nessuna migrazione: nessun giocatore reale ancora; M14 cambia il significato di `damage_reduction`, le basi dei pezzi e aggiunge `discoveries`). `SaveMigrator.CURRENT_VERSION` = 5.
+Versione **6 da M15** (v5 da M14, migrata; vedi sotto); v5 da M14 (v4 da M12, v3 da M10, v2 da M4-03, D3). Un save v1, v2, v3 o **v4 non si carica** (`version_unsupported`, nessuna migrazione: nessun giocatore reale ancora; M14 cambia il significato di `damage_reduction`, le basi dei pezzi e aggiunge `discoveries`). `SaveMigrator.CURRENT_VERSION` = 5.
+**Save v6 e migrazione v5 → v6 (M15, `core/save/migrations/migration_5_to_6.gd`)**: `SaveMigrator.CURRENT_VERSION` = 6; v5 si migra, v1-v4 restano `version_unsupported`. Chiavi nuove o cambiate, tutte in `modules.combat`:
+- `loot`: da Array `[{"item","qty"}]` a `{"stacks": [...], "pieces": [ItemInstance.to_dict()]}` (pezzi in attesa nel Bottino, Z1). Migrazione: `stacks` = il vecchio array, `pieces` = `[]`.
+- `skip_stone_level`: int (Z7); migrazione: 0.
+- `stone`: `{since, pending, stone_id}`; `stone_id` = Monolito scelto alla comparsa ("" se nessuno). Migrazione: `stone_id` = ""; una Pietra `pending` della v5 diventa `pending = false` (id e livelli dei Monoliti cambiano con M15-02).
+- `wave`: `{"fired": [int]}` (soglie già scattate: 100 = primo colpo, 75, 50, 25; solo nello stato `riftstone`; assente = nessuna). In stato `riftstone` i PV del Monolito sono in `enemies[0].hp`; il massimo si ricalcola da F-125.
+  Migrazione: un combattimento v5 in stato `riftstone` diventa `between` con `enemies = []` (il vecchio Monolito sparisce senza perdite; Bottino e contatori restano).
+`from_save` tollerante: `stone_id` sconosciuto → `pending = false` con `Log.warn`; `skip_stone_level` non intero o fuori 0..99 → 0; `wave.fired` malformato → vuoto. Nessun altro modulo cambia.
 ```json
 {
-  "format_version": 5,
+  "format_version": 6,
   "game_version": "0.2.0",
   "slot": 2,
   "player_name": "Davide",
@@ -1717,7 +1757,8 @@ Versione **5 da M14** (v4 da M12, v3 da M10, v2 da M4-03, D3). Un save v1, v2, v
     "combat": {"state": "between", "area": "redrock_plains", "player_hp": 52, "player_timer_ms": 800, "hand": 0,
                "between_ms": 700, "enemies": [],
                "abilities": {"whirl": 3000}, "buffs": {}, "effects": {"chain_cleave": {"count": 2}},
-               "loot": [{"item": "boar_tusk", "qty": 2}], "kills": {"plains_boar": 41}, "deaths": 1, "food_eaten": 12},
+               "loot": {"stacks": [{"item": "boar_tusk", "qty": 2}], "pieces": []}, "skip_stone_level": 0,
+               "stone": {"since": 41, "pending": false, "stone_id": ""}, "kills": {"plains_boar": 41}, "deaths": 1, "food_eaten": 12},
     "shop": {"purchases": {"loot_pocket": 2, "auto_eat_1": 1}},
     "deposit": {"bags": ["bag_canvas", "bag_leather", "", "", "", ""]},
     "helpers": {"forestry": {"grade": "journeyman", "action": "cut_redbirch", "elapsed_ms": 4200}},

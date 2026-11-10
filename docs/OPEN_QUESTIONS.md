@@ -129,6 +129,16 @@ I documenti sono già scritti con questi default. I numeri non presenti nella fo
 | Q76 | Fonti dei leggendari | 30 leggendari di pezzo dai boss delle Fratture (3 per boss, ognuno ~0,8% a vittoria) e 9 attrezzi dai Monoliti (~0,3% per Monolito); niente "boss rari" nell'alpha **[Chiusa in M14-10: boss 0,6% a vittoria (era 0,8%), Monolito 0,3%]** | F-120, `NOMI.md`, M14-04 |
 | Q77 | Danno delle armi e velocità | spada: 2000 ms, `dmg_max` 6 + 4 (g−1), minimo 60%; spadone: 3200 ms, 12 + 8 (g−1), minimo 50%; con due spade ogni colpo usa il danno e la velocità dell'arma che colpisce **[Chiusa in M14-10: confermati; la ritaratura di M14-10 ha cambiato PV, oro e XP dei mostri (F-28, `combat.kill_xp_mult` 0,11 -> 0,064), non i danni delle armi]** | F-22, F-118, M14-01 |
 
+## Monoliti da Metin (M15, `METIN.md` riportata da M15-01)
+
+| # | Domanda | Default | Chi/quando |
+|---|---|---|---|
+| Q78 | Taratura dei PV del Monolito (`metin.hp_base` 200, `metin.hp_per_level` 0,25): obiettivo ~60-90 s con il DPS atteso a ogni livello | valori di partenza di F-125 | QA, M15-08 (sim) |
+| Q79 | Livello e forza degli evocati: oggi solo i livelli sono quelli del Monolito (PV, danno, ricompense invariati); serve una scala in più (come F-110 con `hp_mult`)? | solo livelli, `min(99, L)` | QA, M15-08 |
+| Q80 | I pezzi nel Bottino occupano una casella del Bottino (F-33) come un tipo di oggetto? Con 28 mostri e molti pezzi il Bottino può riempirsi | sì, una casella ciascuno | utente / QA |
+| Q81 | Nel Deposito i pezzi restano a occupare una casella ciascuno (F-100) o la sezione "Pezzi" non occupa slot? | invariato: una casella ciascuno | utente |
+| Q82 | Frequenza dei Monoliti per area (Pianure da 0 a 0,6) e numero atteso di Monoliti/ora; effetto della pietà `rift_stone.pity_kills` 300 | 0,6 | QA, M15-08 |
+
 ## Chiuse
 
 | # | Domanda | Decisione | Data |

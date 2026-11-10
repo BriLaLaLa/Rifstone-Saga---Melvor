@@ -231,7 +231,16 @@ Obiettivo 15-55% rispettato dalla stat principale del materiale; nessun set ragg
 
 B1: livello 99 in **319,6 ore** (obiettivo 250-350; prima della taratura 175), 12 ore offline dal 50: **+12** livelli (limite 12).
 
-## M15+: Seconda classe, dungeon, altri boss (dopo l'Alpha)
+## M15: Monoliti da Metin, pezzi nel bottino, combattimento affollato (R-06)
+**Fonte**: decisioni Z1-Z9 (`DECISIONS_LOG.md`, 2026-11-10), riportate da M15-01; `01_GDD.md` §24b, §10.13-10.14, `02_FORMULAS.md` §5f (F-125…F-128), `04_DATA_SCHEMA.md` §22, `05_INTERFACES.md` §5.25 e §6 (save v6). `METIN.md` resta come storico.
+**Contenuto**: Monoliti di un tipo ogni 5 livelli con pool per area (Pianure 5-10-15); PV da F-125, impulso fisso da 1 danno, ondate di evocati al primo colpo e a 75/50/25%; bottino con pezzo garantito di rarità aumentata e un Progetto;
+**pezzi nel Bottino** (non più direttamente nell'Armeria) e sezione "Pezzi" nel Deposito; **vista compatta** con 30+ nemici; impostazione "Salta i Monoliti fino al livello X" (stato dello slot).
+**Giocabile**: appare un Monolito del livello giusto, si combatte con ondate di mostri, se ne ricava un pezzo; si raccolgono i pezzi dal Bottino; con tanti nemici la pagina resta leggibile e veloce; si possono saltare i Monoliti bassi.
+**Uscita** (`07_TASKS.md` M15-08/09): suite verde; tasso di Monoliti per area tarato (Q78, Q82); 30 mostri offline senza rallentamenti; conservazione degli oggetti con il Bottino; migrazione v5 → v6 testata.
+**Task** M15-01…M15-09 (`07_TASKS.md`); tag `m15-done`. Domande Q78-Q82 (`OPEN_QUESTIONS.md`). Miniboss rimandati (Z8).
+**Stato**: M15-01 DONE (documenti); M15-02…M15-09 TODO.
+
+## M16+: Seconda classe, dungeon, altri boss (dopo M15)
 Seconda classe con le sue armi (es. arco o bastone, con i suoi progetti e componenti del Falegname), supporti delle abilità,
 altri boss, dungeon a ondate, oggetti unici, elementi e resistenze.
 

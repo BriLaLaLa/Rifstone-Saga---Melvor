@@ -16,6 +16,14 @@ Se la sessione si interrompe, si riparte da qui.
 - Descrizioni di tratti e abilità generate da effetti, parametri e ricarica (`ui/pages/character/loadout_describe.gd`, il campo `description` dei dati non si mostra più); stat `damage_reduction` ora si chiama "Armatura" (solo testo in `stats.json`).
 - Aperto di P-01 chiuso da P-03 (`player_renamed`).
 
+## Ripartenza (inizio M15, R-06 riportata, 2026-11-10)
+- **Stato**: **M15-01 DONE**: il design di `METIN.md` (Z1-Z9) è nei documenti: `01_GDD.md` §24b, §10.13-10.14; `02_FORMULAS.md` §5f (F-125…F-128 con esempi = test) e chiavi `metin.*`, `combat.crowd_threshold`, `combat.skip_stone_level` in §9;
+  `04_DATA_SCHEMA.md` §22; `05_INTERFACES.md` §5.25 e §6 (save **v6**, migrazione v5 → v6); `06_ROADMAP.md` M15 (la vecchia "M15+" è ora M16+); `DECISIONS_LOG.md` (Z1-Z9 e scelte del Reviewer); `OPEN_QUESTIONS.md` Q78-Q82.
+  Hash: `git log --grep "M15-01"`. Codice e dati **non** toccati.
+- **Scelte del Reviewer da conoscere**: `combat.skip_stone_level` in balance = solo default del nuovo slot; `hp`/`pulse_damage`/`summon_pack` tolti dai dati dei Monoliti; un Monolito per (area, livello) scelto alla comparsa (`stone_id` nel save); `auto_loot` manda i pezzi subito nel Deposito.
+- **Prossimo passo**: catena A: M15-02 (DATA) → 03 → 05 → 06; catena B: M15-04 → 07 (max 2 agenti insieme); poi M15-08 (QA), M15-09 (REV, tag `m15-done`).
+
+
 ## Ripartenza (fine M14, Alpha, 2026-11-09)
 - **Stato**: **M14 Alpha completata** (M14-01…M14-11 DONE nei documenti). I documenti sono allineati al codice e ai dati veri (commit `docs: M14-11 allineamento documenti Alpha`, `git log --grep "M14-11"`): `02_FORMULAS.md` §8.5 (mostri ritarati, `combat.kill_xp_mult` 0,064, F-28), F-120 (boss 0,6%, 1,8% a vittoria, Monoliti 0,3%), F-121 (`loot.equipment.chance_pct` 2,9), `NOMI.md`, `OPEN_QUESTIONS.md` (Q66-Q77 chiuse), `05_INTERFACES.md` §5.24 ("Aggiunte di fine M14") e §7.u, `07_TASKS.md`, `06_ROADMAP.md`, `CLAUDE.md`. Tag `m14-alpha` e `m14-done` e push li fa l'Orchestratore dopo `run_checks.ps1` su main.
 - **Hash** (merge su main): M14-01/02 `71a7c3a`, M14-03/04 `919b617`, M14-05 `f3b7a3e`, M14-07/08/09 core `1e88a33`, M14-06 e UI di 07/08/09 `b20981c`, M14-10 `74f5d38`, M14-11 = commit di allineamento (vedi sopra).

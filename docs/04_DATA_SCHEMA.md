@@ -717,3 +717,15 @@ una sola `blueprint` per base; solo basi `masterwork`. I progetti per `blueprint
 **Guida (§19)**: nessuna pagina di oggetto cambia nei file `data/guide/*.json`; la Guida filtra per `discoveries` (F-124). Nuove pagine a mano: `guide_equipment` (armi, armature, Armatura/Barriera), `guide_masterwork_legendary` (Capolavori e leggendari: cosa sono, non da dove vengono), `guide_discovery` (come funzionano le scoperte), `guide_mastery_step` (bonus ogni 10 livelli); testi con segnaposto `{balance:...}`.
 
 **Nomi**: solo `name` e `description` (Q52); i nomi di `NOMI.md` (sezione Alpha) li controlla un test dei dati.
+
+## 22. Aggiunte di M15 (Monoliti da Metin; Z1-Z9, F-125…F-128)
+
+- `data/combat/rift_stones.json` (**riscritto, generato da `tools/gen_metin.gd`**, nessuna riga a mano): `{"rift_stones": [{"id", "name", "description", "icon", "area", "level", "xp", "pulse_ms", "shards": [min, max],
+  "wave_packs" (array di indici di `packs` dell'area, o `null` = tutti), "loot_tables" (facoltativo), "drops": [...]}]}`. **Un Monolito per (area, livello)**: l'id è libero (convenzione `<area>_stone_<level>`) e unico. Campi
+  **tolti**: `hp` (F-125), `pulse_damage` (`metin.pulse_damage`), `summon_pack` (sostituito da `wave_packs`). Vincoli del validatore: `level` multiplo di 5 e ≥ 5; per ogni area i livelli presenti sono **esattamente** il pool di Z2
+  (multipli di 5 da `ceil5(requirements.character)`, almeno 5, al massimo il livello massimo dell'area = minimo della successiva − 1, ultima area: `character_curve.max_level`; Pianure 5-10-15); nessun duplicato (area, level);
+  `wave_packs` con indici validi; `xp` ≥ 0; `pulse_ms` ≥ `combat.min_attack_interval_ms`; `icon` esistente; `drops` ≤ 8 voci (materiali; pezzi e progetti cadono con F-127, non dai `drops`); `shards` come oggi.
+  Classe `RiftStoneDef` (`level: int`, `wave_packs: Array[int]`; tolti `hp`, `pulse_damage`, `summon_pack`); `GameData.rift_stones_for_area(area_id) -> Array[RiftStoneDef]` sostituisce `rift_stone_for_area`.
+- `data/config/balance.json`: nuove chiavi `metin.{hp_base, hp_per_level, pulse_damage, wave_size, wave_thresholds, rarity_bonus_pct, guaranteed_pieces}`, `combat.crowd_threshold`, `combat.skip_stone_level` (§9 di `02_FORMULAS.md`).
+  Validatore: tutte numeriche, `hp_base` ≥ 1, `hp_per_level` ≥ 0, `wave_size` 1..30, `wave_thresholds` strettamente decrescente in 1..99, `crowd_threshold` ≥ 1, `skip_stone_level` in 0..99.
+- `data/combat/areas.json`: `rift_stone_chance_pct` delle Pianure sale da 0 a 0,6 (Z5, Q82).
