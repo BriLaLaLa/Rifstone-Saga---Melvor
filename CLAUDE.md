@@ -78,6 +78,11 @@ Agenti: `.claude/agents/` (un file per ruolo di `08_TEAM.md`).
 7. **Parallelismo**: massimo **2** agenti insieme.
 8. **Sessioni per milestone**: dopo lo stop di fine milestone l'utente apre una sessione nuova che riparte da
    `docs/STATUS.md`. STATUS.md va tenuto sempre aggiornato (stato di ogni task, hash, prossimo passo).
+   Filtro GUT per gli agenti: `... -s addons/gut/gut_cmdln.gd -gdir=res://tests/<cartella> -ginclude_subdirs -glog=0 2>&1 | grep -E "Failed|FAILED|ERROR|Tests |Passing|Pending|All tests passed" | head -40`.
+   In un worktree nuovo prima `--headless --path . --import 2>&1 | tail -3` (crash sui font: cancella `.godot/imported/*.tmp`, ripeti).
+   Task sui dati: anche `-s tools/validate_data.gd 2>&1 | tail -5`; molte righe toccate: `tools/check_file_sizes.gd | tail -5`.
+9. **Contenuti ripetitivi** (gradi, tabelle) si generano con uno script in `tools/`, non si scrivono a mano.
+10. **Test solo per logica e formule**; per la UI un solo smoke test per pagina, niente test su testi esatti o semi casuali.
 
 ## Comandi
 Godot: `C:\Users\Davide\Desktop\GODOT\Godot_v4.5-stable_win64_console.exe` (variabile `$env:GODOT`).
@@ -108,9 +113,4 @@ Il **primo import di una checkout nuova può andare in crash sui font** (segfaul
 l'import è innocuo.
 
 ## Stato
-M0 (Setup) completata, tag `m0-done`. M1 (Prima skill completa, Selvicoltura) completata, tag `m1-done`. M2 (Maestria a nodi e raccolta completa)
-completata, tag `m2-done`. M3 (Artigianato, shop, equipaggiamento) completata, tag `m3-done`. Visione v2 approvata e
-riportata nei documenti (R-00, fonte `docs/VISIONE_V2.md`). M4 (Riforma: personaggio e Armeria) completata, tag
-`m4-done`. M5 (Combattimento a gruppi) completata, tag `m5-done`. M6 (Abilità e tratti) completata, tag `m6-done`. M7 (Bottino) completata, tag `m7-done`. M8 (Legatura del Rift) completata, tag `m8-done`.
-M9 (Offline e polish) completata, tag `m9-mvp` e `m9-done`: **l'MVP è rilasciato**. M10 (Riforma del bottino e dei nomi: progetti, attrezzi unici, kit iniziale, nomi nuovi, bilanciamento B1-B5) completata, tag `m10-done`. M11 (Guida in gioco) completata, tag `m11-done`. Riforma 2 (Deposito unico e borse, aiutanti, maestria per risorsa, Incisore, nomi nuovi; decisioni W1-W7) riportata nei documenti (R-03, fonte `docs/RIFORMA_2.md`): **M12 Riforma 2 completata**, tag `m12-done` (task M12-01…M12-09 in `docs/07_TASKS.md`, salvataggio v4). Fratture come mappe (decisioni X1-X4, R-04 riportata nei documenti, fonte storica `docs/FRATTURE.md`): **M13 completata**, tag `m13-done` (task M13-01…M13-07 in `docs/07_TASKS.md`; la Frattura si apre con una Carta di grado 1-10, 16 gruppi più un boss, morte = si perdono Carta e bottino della Frattura; niente più Frattura a tempo). **M14 Alpha completata**, tag `m14-alpha` e `m14-done` (equipaggiamento vero: armi con danno min-max, armature Piastre/Cuoio/Tessuto runico con Armatura e Barriera, 15 gradi, Capolavori dai progetti, 39 leggendari, drop di tutti gli slot, Guida a scoperta, maestria ogni 10 livelli, ritocchi UI; decisioni Y1-Y9, R-05 riportata nei documenti, fonte storica `docs/ALPHA.md`; task M14-01…M14-11 in `docs/07_TASKS.md`, salvataggio v5, domande Q66-Q77). Prossimo: **M15+**, il resto (seconda classe, dungeon; le corsie parallele sono eliminate: le sostituiscono gli aiutanti). Sessione nuova da `docs/STATUS.md`. Checklist di rilascio in `docs/RELEASE_CHECKLIST_MVP.md`.
-Avanzamento dei task in `docs/STATUS.md`.
+Ultima milestone: m14-alpha. Storia e dettagli in docs/STATUS.md

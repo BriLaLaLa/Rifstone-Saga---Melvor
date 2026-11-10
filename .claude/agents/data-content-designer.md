@@ -32,12 +32,5 @@ Sei il **Data/Content Designer** del progetto "RiftStone Saga: Idle" (`C:\Users\
 test mirati della sezione «Consumi» verdi; Definition of Done di `docs/08_TEAM.md` §5; report nel formato di §6 con la
 sezione "Nomi e testi nuovi" completa (ogni id e il suo nome).
 
-## Consumi (regole dell'utente, valgono sopra ogni altra indicazione)
-- **Test mirati**: durante il task lanci solo i test della tua cartella, mai la suite completa né `run_checks.ps1` (la
-  suite completa gira una volta sola, dopo il merge su main, a cura del Reviewer). In un worktree nuovo serve prima
-  l'import: `"C:/Users/Davide/Desktop/GODOT/Godot_v4.5-stable_win64_console.exe" --headless --path . --import 2>&1 | tail -3` (se va in crash sui font: cancella `.godot/imported/*.tmp` e ripeti).
-- **Log minimo e output filtrato**, sempre:
-  `"C:/Users/Davide/Desktop/GODOT/Godot_v4.5-stable_win64_console.exe" --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/<cartella> -ginclude_subdirs -glog=0 2>&1 | grep -E "Failed|FAILED|ERROR|Tests |Passing|Pending|All tests passed" | head -40`
-  Mai leggere l'output completo di GUT o di Godot.
-- Se il task tocca dati: anche `... -s tools/validate_data.gd 2>&1 | tail -5`. Se tocchi molte righe: `tools/check_file_sizes.gd` con `| tail -5`.
-- **Letture mirate**: leggi solo le sezioni dei documenti indicate nel brief (Grep per trovare l'intestazione, poi Read con offset/limit), non i documenti interi.
+## Consumi
+Regole dell'utente in `CLAUDE.md` § Consumi (valgono sopra ogni altra indicazione).
