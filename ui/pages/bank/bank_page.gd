@@ -109,6 +109,7 @@ func bind(session: GameSession) -> void:
 	_session.events.bags_changed.connect(_on_events_bags_changed)
 	_session.events.equipment_changed.connect(_on_events_equipment_changed)
 	_session.events.food_changed.connect(_on_events_food_changed)
+	_session.events.loot_bag_changed.connect(_on_events_loot_bag_changed)
 	_redraw()
 
 
@@ -118,13 +119,18 @@ func unbind() -> void:
 		var events: GameEvents = _session.events
 		for connection: Array in [[events.bank_changed, _on_events_bank_changed],
 				[events.deposit_changed, _on_events_deposit_changed], [events.bags_changed, _on_events_bags_changed],
-				[events.equipment_changed, _on_events_equipment_changed], [events.food_changed, _on_events_food_changed]]:
+				[events.equipment_changed, _on_events_equipment_changed], [events.food_changed, _on_events_food_changed],
+				[events.loot_bag_changed, _on_events_loot_bag_changed]]:
 			var event: Signal = connection[0]
 			if event.is_connected(connection[1]):
 				event.disconnect(connection[1])
 	_session = null
 	if _item_panel != null:
 		_item_panel.clear()
+
+
+func _on_events_loot_bag_changed(_used: int, _capacity: int) -> void:
+	_tabs.redraw(_session)
 
 
 func _exit_tree() -> void:

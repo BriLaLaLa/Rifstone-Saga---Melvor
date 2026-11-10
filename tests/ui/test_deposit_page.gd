@@ -127,3 +127,15 @@ func _named(path: String, prefix: String) -> int:
 func _count_named(node: Node, prefix: String) -> int:
 	return node.get_children().filter(
 			func(n: Node) -> bool: return not n.is_queued_for_deletion() and String(n.name).begins_with(prefix)).size()
+
+
+func test_waiting_piece_shows_in_the_pieces_section() -> void:
+	_open()
+	var piece: ItemInstance = ItemInstance.new()
+	piece.base_id = SWORD
+	piece.rarity = &"common"
+	_session.combat.loot.add_piece(piece)
+	var section: Control = _tabs().find_child("PendingSection", true, false) as Control
+	assert_true(section.visible)
+	_session.combat.loot.collect_all()
+	assert_false(section.visible)

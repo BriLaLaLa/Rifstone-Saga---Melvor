@@ -9,6 +9,9 @@ extends TabContainer
 const OBJECTS_TITLE: String = "Oggetti"
 const EQUIPMENT_TITLE: String = "Equipaggiamento"
 const EQUIPMENT_HINT: String = "Questi pezzi usano le stesse caselle degli oggetti. Si equipaggiano dalla pagina Equipaggiamento."
+const PENDING_TITLE: String = "Pezzi"
+const PENDING_HINT: String = "In attesa nel Bottino: \"Raccogli tutto\" li sposta nell'Armeria."
+const PENDING_CELL_NAME: String = "PendingPiece%d"
 const EMPTY_TEXT: String = "Nessun pezzo non indossato."
 const OCCUPIED_TOOLTIP: String = "Casella usata dall'altra scheda."
 const PIECE_CELL_NAME: String = "PieceCell%d"
@@ -18,6 +21,8 @@ const CELL_SCENE: PackedScene = preload("res://ui/pages/equipment/inventory_cell
 
 var _grid: HFlowContainer = null
 var _empty_label: Label = null
+var _pending_box: VBoxContainer = null
+var _pending_grid: HFlowContainer = null
 
 
 func _ready() -> void:
@@ -32,6 +37,20 @@ func _ready() -> void:
 	hint.theme_type_variation = &"MutedLabel"
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(hint)
+	_pending_box = VBoxContainer.new()
+	_pending_box.name = "PendingSection"
+	var pending_title: Label = Label.new()
+	pending_title.text = PENDING_TITLE
+	_pending_box.add_child(pending_title)
+	var pending_hint: Label = Label.new()
+	pending_hint.text = PENDING_HINT
+	pending_hint.theme_type_variation = &"MutedLabel"
+	_pending_box.add_child(pending_hint)
+	_pending_grid = HFlowContainer.new()
+	_pending_grid.name = "PendingGrid"
+	_pending_grid.add_theme_constant_override("h_separation", UiStyle.BANK_GRID_SEPARATION)
+	_pending_box.add_child(_pending_grid)
+	box.add_child(_pending_box)
 	_empty_label = Label.new()
 	_empty_label.name = "EmptyLabel"
 	_empty_label.text = EMPTY_TEXT
@@ -64,6 +83,7 @@ func redraw(session: GameSession) -> void:
 	for child: Node in _grid.get_children():
 		_grid.remove_child(child)
 		child.queue_free()
+	_redraw_pending(session)
 	var shown: int = 0
 	for inst: ItemInstance in session.armory.instances():
 		var base: ItemDef = session.data.item(inst.base_id)
@@ -81,6 +101,24 @@ func redraw(session: GameSession) -> void:
 		_add_placeholder(OCCUPIED_CELL % index, true)
 	for index: int in session.deposit.free_slots():
 		_add_placeholder(EMPTY_CELL % index, false)
+
+
+## The "Pezzi" section: the pieces waiting in the loot bag (read from `combat.loot`, hidden when there are none).
+func _redraw_pending(session: GameSession) -> void:
+	for child: Node in _pending_grid.get_children():
+		_pending_grid.remove_child(child)
+		child.queue_free()
+	var waiting: Array[ItemInstance] = session.combat.loot.pieces()
+	_pending_box.visible = not waiting.is_empty()
+	for index: int in waiting.size():
+		var base: ItemDef = session.data.item(waiting[index].base_id)
+		if base == null:
+			continue
+		var cell: InventoryCell = CELL_SCENE.instantiate() as InventoryCell
+		cell.name = PENDING_CELL_NAME % index
+		_pending_grid.add_child(cell)
+		cell.set_piece(waiting[index], base, false)
+		cell.tooltip_text = base.name
 
 
 func _add_placeholder(cell_name: String, occupied: bool) -> void:

@@ -223,3 +223,12 @@ func test_running_buff_shows_remaining_time() -> void:
 			"abilities": [{"id": &"test_strike", "timer_ms": 5000, "cooldown_ms": 8000, "enabled": true}],
 			"buffs": {&"test_strike": 3000}})
 	assert_eq(player.ability_state_text(0), CombatTexts.BUFF_ACTIVE_TEXT % "3,0")
+
+
+func test_waiting_piece_is_listed_in_the_loot_strip() -> void:
+	var piece: ItemInstance = ItemInstance.new()
+	piece.base_id = &"emberbronze_sword"
+	piece.rarity = &"rare"
+	_session.combat.loot.add_piece(piece)
+	assert_false((_page.get_node("%CollectButton") as Button).disabled)
+	assert_gte(_page.get_node("%LootList").get_child_count(), 1)
