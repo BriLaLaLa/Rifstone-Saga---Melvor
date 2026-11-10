@@ -17,6 +17,7 @@ const SKILL: StringName = BlueprintCraft.SKILL
 const INTERVAL_STAT: StringName = &"skill_interval_pct"
 
 var _data: GameData = null
+var _session: GameSession = null  # last session given to `redraw`, to refresh after a local selection
 var _rows: Dictionary[StringName, Button] = {}
 ## Presentation: the blueprint shown in the detail and the affix chosen for it ("" = random).
 var _selected: StringName = &""
@@ -79,6 +80,7 @@ func setup(data: GameData) -> void:
 func redraw(session: GameSession) -> void:
 	if _data == null:
 		return
+	_session = session
 	var state: Dictionary = session.actions.blueprint_state()
 	var running: StringName = state.get("blueprint", &"")
 	var any_shown: bool = false
@@ -212,6 +214,8 @@ func _redraw_affix(blueprint: ItemDef, level: int, required: int, is_running: bo
 
 func _on_row_pressed(blueprint_id: StringName) -> void:
 	select(blueprint_id)
+	if _session != null:
+		redraw(_session)  # the detail (inputs, level, affix list) must follow the new selection at once
 
 
 func _on_affix_selected(index: int) -> void:

@@ -14,7 +14,7 @@ const SAVE_NAME_TEXT: String = "Salva"
 const MARGIN: int = 16
 const SECTION_SEPARATION: int = 12
 ## Key of CombatTexts.STAT_NAME_SOURCES for each line of `final_stat_lines`; damage (empty) has no stat, so no tooltip.
-const STAT_LINE_KEYS: Array[StringName] = [&"accuracy", &"evasion", &"", &"max_hp"]
+const STAT_LINE_KEYS: Array[StringName] = [&"accuracy", &"evasion", &"", &"max_hp", &"armor", &"barrier"]
 
 var _session: GameSession = null
 

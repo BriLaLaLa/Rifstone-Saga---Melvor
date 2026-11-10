@@ -68,7 +68,7 @@ func test_yield_window_singular_minute() -> void:
 func test_equipment_stats_start_with_the_character_page_lines() -> void:
 	var text: String = EquipmentStatsText.totals(_session)
 	var lines: Array[String] = CombatTexts.final_stat_lines(_session)
-	assert_eq(lines.size(), 4)
+	assert_eq(lines.size(), 6)
 	for line: String in lines:
 		assert_string_contains(text, line)
 	assert_true(text.begins_with(lines[0]), "final values come first")

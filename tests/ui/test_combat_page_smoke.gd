@@ -164,7 +164,7 @@ func test_character_page_shows_the_base_values_of_f70() -> void:
 	var stats: CombatantStats = CombatantStats.for_player(_session)
 	assert_eq(page.get_node("%StatsTitle").text, CombatTexts.STATS_TITLE)
 	var list: Node = page.get_node("%StatsList")
-	assert_eq(list.get_child_count(), 4)
+	assert_eq(list.get_child_count(), 6)
 	assert_eq((list.get_child(0) as Label).text, "%s: %s" % [_data_stat_name(&"accuracy_bonus"), NumberFormat.format_int(stats.accuracy)])
 	assert_eq((list.get_child(3) as Label).text, "%s: %s" % [_data_stat_name(&"max_hp_flat"), NumberFormat.format_int(stats.max_hp)])
 	page.free()

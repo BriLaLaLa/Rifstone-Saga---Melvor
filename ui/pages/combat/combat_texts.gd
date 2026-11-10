@@ -43,6 +43,7 @@ const DEFEAT_TEXT: String = "Sei stato sconfitto: il bottino della borsa è anda
 const STAT_LINE_TEXT: String = "%s: %s"
 const STAT_NAME_SOURCES: Dictionary[StringName, StringName] = {
 	&"accuracy": &"accuracy_bonus", &"evasion": &"evasion_bonus", &"max_hp": &"max_hp_flat",
+	&"armor": &"armor", &"barrier": &"barrier",
 }
 const STAT_DAMAGE_TEXT: String = "Danno: %s - %s"
 ## Combat page, GDR layout (docs/UI_GDR.md §2).
@@ -162,4 +163,6 @@ static func final_stat_lines(session: GameSession) -> Array[String]:
 		stat_line(session.data, &"evasion", stats.evasion),
 		STAT_DAMAGE_TEXT % [NumberFormat.format_int(stats.min_hit), NumberFormat.format_int(stats.max_hit)],
 		stat_line(session.data, &"max_hp", stats.max_hp),
+		stat_line(session.data, &"armor", stats.armor),
+		stat_line(session.data, &"barrier", stats.barrier),
 	]

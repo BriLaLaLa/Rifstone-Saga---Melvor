@@ -13,6 +13,11 @@ var _yield: CombatYield = null
 var _area_ids: Array[StringName] = []
 var _yield_values: Dictionary[StringName, Label] = {}
 var _log_open: bool = false
+## Presentation kept while another page is shown (the page is freed on navigation): yield window and log view of the
+## session last drawn. Derived readings only, never saved.
+static var _kept_session: GameSession = null
+static var _kept_yield: CombatYield = null
+static var _kept_log_open: bool = false
 ## Presentation: whether MessageLabel shows the no-food warning (B2).
 var _food_warning: bool = false
 ## Presentation: the state line without the Fracture boss part, and the link to the Fractures page.
@@ -80,7 +85,14 @@ func bind(session: GameSession) -> void:
 	unbind()
 	_session = session
 	HelpButton.attach(_area_label.get_parent(), session.data, &"combat")
-	_yield = CombatYield.new(_session.play_time_ms)
+	if _kept_session == _session and _kept_yield != null:
+		_yield = _kept_yield
+		_log_open = _kept_log_open
+	else:
+		_yield = CombatYield.new(_session.play_time_ms)
+		_log_open = false
+	_kept_session = _session
+	_kept_yield = _yield
 	var events: GameEvents = _session.events
 	var resync: Callable = _redraw_all
 	var static_resync: Callable = _refresh_static
@@ -271,6 +283,7 @@ func _on_collect_pressed() -> void:
 
 func _on_log_pressed() -> void:
 	_log_open = not _log_open
+	_kept_log_open = _log_open
 	if _session != null:
 		_refresh_log()
 
