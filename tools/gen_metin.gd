@@ -84,7 +84,7 @@ func _init() -> void:
 	_write_stones(stones)
 	_patch_balance()
 	_patch_areas()
-	print("gen_metin: %d stones written" % stones.size())
+	Log.info("gen_metin", "%d stones written" % stones.size())
 	quit()
 
 
