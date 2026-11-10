@@ -429,8 +429,7 @@ del bersaglio e il conteggio; elenco scorrevole; nessuna carta per nemico. Numer
 
 ### 10.14 Bottino con i pezzi (M15, Z1)
 Un pezzo di equipaggiamento che cade (da mostro o Monolito, fuori dalla Frattura) finisce nel **Bottino**, non più direttamente nell'Armeria. "Raccogli tutto" lo sposta nel Deposito (§7), dove compare nella sezione **Pezzi**; la pagina
-Equipaggiamento mostra **solo** i pezzi. Un pezzo nel Bottino non è indossabile. Con la tasca del Bottino automatico (`auto_loot`, §7) il pezzo va subito nel Deposito. Il filtro (§25) agisce alla caduta (il pezzo scartato è smantellato e
-non entra nel Bottino). Bottino pieno: il pezzo si perde con `loot_lost`; la morte perde tutto il Bottino, pezzi compresi. La fonte di verità resta una (Armeria, F-100): il Bottino tiene i pezzi in attesa, la UI non copia dati.
+Equipaggiamento mostra **solo** i pezzi. Un pezzo nel Bottino non è indossabile. Con la tasca del Bottino automatico (`auto_loot`, §7) il pezzo va subito nel Deposito. Il filtro (§25) agisce **al collect**, non alla caduta (il pezzo scartato è smantellato quando viene raccolto). Nessun limite di pezzi nel Bottino e nessun `loot_lost` per Bottino pieno; la morte perde tutto il Bottino, pezzi compresi. Offline i pezzi sono messi al sicuro nell'Armeria a ogni blocco da 60 s, mentre online la morte li perde (Q83 aperta). La fonte di verità resta una (Armeria, F-100): il Bottino tiene i pezzi in attesa, la UI non copia dati.
 Nella Frattura non cambia (il sacco della Frattura tiene già i pezzi, F-116). Aperto: caselle del Bottino e del Deposito (Q80, Q81).
 
 ## 11. Incisore e Altare del Rift (M8; riscritta in M12, W5-W6)

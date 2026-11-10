@@ -1816,9 +1816,9 @@ I nomi e i testi di gioco vengono da `NOMI.md` (sezione Alpha); nulla da Melvor 
 - **Ruolo** REV · **Stima** S · **Dipendenze** M14-06, M14-10 · **Stato** IN_PROGRESS (allineamento documenti fatto; suite, tag `m14-alpha`/`m14-done` e push all'Orchestratore)
 - **Descrizione** Merge, checklist di `06_ROADMAP.md` (M14 "Uscita"), `docs/RELEASE_CHECKLIST_MVP.md` aggiornata (sezione Alpha), `docs/STATUS.md`, tag `m14-alpha` (e `m14-done`), report di milestone. Il push lo fa l'Orchestratore.
 
-## M15+ (dopo M14)
+## M16+ (dopo M15)
 
-- M15+ · Seconda classe, dungeon, altri boss, quarti leggendari per slot: da definire.
+- M16+ · Seconda classe, dungeon, altri boss, quarti leggendari per slot, miniboss dei Monoliti (Z8, rimandati): da definire.
 - Le **corsie parallele** (ex M13, `01_GDD.md` §18, F-51, nota N12) sono **eliminate**: le sostituiscono gli aiutanti di M12.
 
 ## Note ereditate dai task superati
@@ -1861,7 +1861,7 @@ I nomi e i testi di gioco vengono da `NOMI.md` (sezione Alpha); nulla da Melvor 
   `skill_in_other_lane`; lo stop del combattimento resta solo per la corsia main.
 
 ## M15 — Monoliti da Metin, pezzi nel bottino, combattimento affollato (R-06, fonte `docs/METIN.md`)
-Max 2 agenti insieme. Catena A: 01 → 02 → 03 → 05 → 06. Catena B: 01 → 04 → 07. 08 dopo A e B, 09 ultimo.
+**Stato: M15-01…M15-09 DONE, M15 completata** (merge: 02 `50f4b36`, 04 `096fb19`, 07 `8cbbcb4`, 03/05 `9dcc4d6`, 06 `45f7588`, 08 `01baa38`; tag `m15-done` dell'Orchestratore). Max 2 agenti insieme. Catena A: 01 → 02 → 03 → 05 → 06. Catena B: 01 → 04 → 07. 08 dopo A e B, 09 ultimo.
 | ID | Titolo | Ruolo | Dipende | Accettazione |
 |---|---|---|---|---|
 | M15-01 | Riportare R-06 nei documenti (F-125…F-128, schema, interfacce, save v6, Z1-Z9) | REV | — | documenti coerenti con `docs/METIN.md`; domande aperte registrate |

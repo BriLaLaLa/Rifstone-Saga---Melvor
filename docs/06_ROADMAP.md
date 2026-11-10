@@ -238,7 +238,7 @@ B1: livello 99 in **319,6 ore** (obiettivo 250-350; prima della taratura 175), 1
 **Giocabile**: appare un Monolito del livello giusto, si combatte con ondate di mostri, se ne ricava un pezzo; si raccolgono i pezzi dal Bottino; con tanti nemici la pagina resta leggibile e veloce; si possono saltare i Monoliti bassi.
 **Uscita** (`07_TASKS.md` M15-08/09): suite verde; tasso di Monoliti per area tarato (Q78, Q82); 30 mostri offline senza rallentamenti; conservazione degli oggetti con il Bottino; migrazione v5 → v6 testata.
 **Task** M15-01…M15-09 (`07_TASKS.md`); tag `m15-done`. Domande Q78-Q82 (`OPEN_QUESTIONS.md`). Miniboss rimandati (Z8).
-**Stato**: M15-01 DONE (documenti); M15-02…M15-09 TODO.
+**Stato**: **M15-01…M15-09 DONE, M15 completata** (tag `m15-done` dell'Orchestratore). Misure: Q78 chiusa con PV invariati (tempi da 182 s Pianure L10 a 54 s Soglia L80, ritaratura rimandata); Q82 chiusa (1-2 Monoliti/h per area, Pianure 0,6, pietà 300); ore al 99 con i Monoliti ≈ 369. Aperte Q79-Q81, Q83. Prossimo: M16+, miniboss rimandati.
 
 ## M16+: Seconda classe, dungeon, altri boss (dopo M15)
 Seconda classe con le sue armi (es. arco o bastone, con i suoi progetti e componenti del Falegname), supporti delle abilità,

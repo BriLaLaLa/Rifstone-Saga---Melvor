@@ -133,16 +133,17 @@ I documenti sono già scritti con questi default. I numeri non presenti nella fo
 
 | # | Domanda | Default | Chi/quando |
 |---|---|---|---|
-| Q78 | Taratura dei PV del Monolito (`metin.hp_base` 200, `metin.hp_per_level` 0,25): obiettivo ~60-90 s con il DPS atteso a ogni livello | valori di partenza di F-125 | QA, M15-08 (sim) |
 | Q79 | Livello e forza degli evocati: oggi solo i livelli sono quelli del Monolito (PV, danno, ricompense invariati); serve una scala in più (come F-110 con `hp_mult`)? | solo livelli, `min(99, L)` | QA, M15-08 |
-| Q80 | I pezzi nel Bottino occupano una casella del Bottino (F-33) come un tipo di oggetto? Con 28 mostri e molti pezzi il Bottino può riempirsi | sì, una casella ciascuno | utente / QA |
+| Q80 | I pezzi nel Bottino occupano una casella del Bottino (F-33) come un tipo di oggetto? Con 28 mostri e molti pezzi il Bottino può riempirsi | no, come implementato: nessun limite di pezzi nel Bottino (M15-04) | utente / QA |
 | Q81 | Nel Deposito i pezzi restano a occupare una casella ciascuno (F-100) o la sezione "Pezzi" non occupa slot? | invariato: una casella ciascuno | utente |
-| Q82 | Frequenza dei Monoliti per area (Pianure da 0 a 0,6) e numero atteso di Monoliti/ora; effetto della pietà `rift_stone.pity_kills` 300 | 0,6 | QA, M15-08 |
+| Q83 | Pezzi nel Bottino: online la morte li perde, offline sono messi al sicuro a ogni blocco da 60 s (`collect_pieces`). Va allineato (online al sicuro, o offline a rischio)? | invariato (differenza accettata) | utente |
 
 ## Chiuse
 
 | # | Domanda | Decisione | Data |
 |---|---|---|---|
+| Q78 | Taratura dei PV del Monolito | Decisione utente: PV invariati (`metin.hp_base` 200, `metin.hp_per_level` 0,25) anche se i tempi variano da 182 s (Pianure L10) a 54 s (Soglia L80); ritaratura rimandata | 2026-11-10 (M15-09) |
+| Q82 | Frequenza dei Monoliti per area e pietà | 1-2 Monoliti/h per area, Pianure 0,6, pietà `rift_stone.pity_kills` 300 confermati | 2026-11-10 (M15-09) |
 | Q26 | Nodi della maestria di Minatore e Pescatore uguali a quelli del Boscaiolo? | Chiusa dalla decisione W4: albero dei nodi diverso per ogni mestiere di raccolta, più 3 traguardi propri per ogni risorsa (`02_FORMULAS.md` §8.8, §8.8b) | 2026-11-08 (R-03) |
 | Q55 | Nomi delle valute in `NOMI.md` scambiati rispetto ai dati | `NOMI.md` corretto, i dati restano | 2026-11-08 (P-04) |
 | Q6 | Munizioni per Mira e rune/consumabili per Arcano? | Niente munizioni né rune; la classe dell'MVP usa solo spade (D6); archi e bastoni tornano con le loro classi | 2026-11-03 (`VISIONE_V2.md` §8) |

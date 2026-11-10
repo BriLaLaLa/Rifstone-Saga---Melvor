@@ -272,7 +272,7 @@ func hide_tooltip() -> void
 | `player_died` | — | CombatEngine | |
 | `food_eaten` | `item_id: StringName, healed: int` | AutoEat | |
 | `loot_bag_changed` | `used: int, capacity: int` | LootBag | |
-| `loot_lost` | `item_id: StringName, qty: int` | LootBag | borsa piena o morte |
+| `loot_lost` | `item_id: StringName, qty: int` | LootBag | impilati a borsa piena, o morte (anche i pezzi); mai per un pezzo (M15) |
 | `shop_purchased` | `entry_id: StringName, count: int` | Shop | `count` = acquisti totali della voce |
 | `item_sold` | `item_id: StringName, qty: int, gold: int` | Shop | |
 | `infusion_socketed` | `socket_index: int, item_id: StringName` | RiftAltar | |
@@ -955,7 +955,8 @@ func used() -> int
 func capacity() -> int                     # F-33
 func add(item_id: StringName, qty: int) -> bool    # con auto_loot prova prima la bank; false = perso (loot_lost)
 func pieces() -> Array[ItemInstance]       # M15 (Z1): pezzi in attesa nel Bottino (sola lettura; uid 0)
-func add_piece(inst: ItemInstance) -> bool # M15: vedi §5.25
+func add_piece(inst: ItemInstance) -> void # M15: vedi §5.25
+func collect_pieces() -> void              # M15-08: solo i pezzi nell'Armeria (come collect_all); lo usano collect_all e OfflineSimulator a ogni blocco
     # M5-02: qty ≤ 0 → true, nulla; auto_loot (T ≥ 1): bank se can_add e add riesce, altrimenti la borsa; tipo nuovo
     # a borsa piena → loot_lost(item, qty) e false; altrimenti somma e loot_bag_changed(used, capacity)
 func collect_all() -> CommandResult        # bank_full se qualcosa resta
@@ -1622,7 +1623,7 @@ static func roll(source_type: StringName, source_id: StringName, data: GameData,
 ```
 - Il giocatore applica la riduzione in `CombatFight`: `rid = ArmorMath.reduction_pct(armor o barrier, attacker.power_level, data)` secondo lo stile del mostro (F-117); `armor_pierce_pct` solo per il giocatore.
 - **Effetti dei leggendari**: `Equipment.item_effects() -> Array[ItemEffectDef]` (effetti dei leggendari indossati, con sorgente `equipment:<slot>`); `EffectSet` li costruisce come i tratti (F-81) e aggiunge i tipi di F-120 e gli agganci `on_block` (in `CombatFight` alla parata, F-75), `on_gather` (in `GatheringResolver`, solo giocatore) e `on_monolith` (alla morte del Monolito). Il motore non conosce i leggendari per nome.
-- **Fonti**: alla vittoria sul boss `FractureSystem` tira `LegendaryRoller.roll(&"boss", boss_id)` e mette i pezzi nella borsa della Frattura (F-116); alla morte di un Monolito il combattimento tira `LegendaryRoller.roll(&"monolith", rift_stone_id)` e li passa a `LootBag.add_piece` (M15). Il Deposito pieno perde il pezzo con `armory_rejected` (notifica e riepilogo offline).
+- **Fonti**: alla vittoria sul boss `FractureSystem` tira `LegendaryRoller.roll(&"boss", boss_id)` e mette i pezzi nella borsa della Frattura (F-116); alla morte di un Monolito il combattimento tira `LegendaryRoller.roll(&"monolith", area_id)` (fonte = id di area) e li passa a `LootBag.add_piece` (M15). Il Deposito pieno perde il pezzo con `armory_rejected` (notifica e riepilogo offline).
 - `MapCardRoller` (F-123): `static func risk_points(mod: MapModDef, step: int, data: GameData) -> float`, `static func risk_cap(grade: int, data: GameData) -> float`; la scelta del modificatore riduce lo `step` come in F-123 (stesso ordine dei tiri su `rng`).
 
 **Armeria ed equipaggiamento**
@@ -1692,11 +1693,11 @@ func sources_visible(item_id: StringName, discoveries: Object) -> Array[GuideRef
 **LootBag** (pezzi nel Bottino, Z1; `systems/combat/loot_bag.gd`)
 ```
 func pieces() -> Array[ItemInstance]
-func add_piece(inst: ItemInstance) -> bool
-    # item_obtained(base, 1). Ordine: filtro (Armory.is_filtered → smantellato, item_salvaged auto, true); con auto_loot (T ≥ 1) → armory.add(inst) (uid assegnato);
-    # altrimenti nel Bottino come voce nuova (occupa una casella, F-33; Q80); Bottino pieno → loot_lost(base, 1) e false; poi loot_bag_changed(used, capacity)
-func collect_all() -> CommandResult    # come oggi per gli impilati; poi ogni pezzo con armory.add(inst) (nessun filtro); restano nel Bottino quelli che non entrano:
-    # armory_full (oltre a bank_full per gli impilati); armory_changed e loot_bag_changed alla fine; il pezzo raccolto riceve il suo uid
+func add_piece(inst: ItemInstance) -> void
+    # nessun filtro e nessun limite di pezzi (niente loot_lost per Bottino pieno): con auto_loot (T ≥ 1) → armory.add_drop(inst) subito; altrimenti il pezzo attende in lista; loot_bag_changed
+func collect_pieces() -> void          # ogni pezzo con armory.add_drop(inst): il filtro (Armory.is_filtered) agisce QUI (scartato = smantellato, item_salvaged); Armeria piena → smantellato, leggendario → armory_rejected;
+    # i pezzi lasciano sempre il Bottino; loot_bag_changed alla fine. Usato da collect_all e dall'OfflineSimulator a ogni blocco da 60 s
+func collect_all() -> CommandResult    # collect_pieces + impilati nella bank; bank_full se qualcosa degli impilati resta
 func lose_all() -> void                # morte: un loot_lost per tipo e per pezzo
 func to_save() -> Dictionary           # {"stacks": [{"item", "qty"}], "pieces": [ItemInstance.to_dict() senza uid]}; from_save tollerante (voci non valide saltate con Log.warn; accetta anche l'Array v5)
 ```
@@ -1706,13 +1707,14 @@ func to_save() -> Dictionary           # {"stacks": [{"item", "qty"}], "pieces":
 
 **Monolito a ondate** (`systems/combat/`; il motore resta `CombatEngine`, la logica nuova in classi di supporto, es. `StoneFight`)
 - `GameData.rift_stones_for_area(area_id) -> Array[RiftStoneDef]` (pool ordinato per `level`); alla comparsa (F-87) il motore sceglie un Monolito con `rng` e salva `stone_id`; `rift_stone_appeared(stone_id)` invariato.
-- PV massimi F-125 (non nel dato), impulso fisso `metin.pulse_damage` che **non** passa da F-25/F-75, ondate F-126 (`StoneFight.waves_crossed(hp_after: int, hp_max: int, fired: Array[int]) -> Array[int]`, pura e testabile),
-  bottino F-127 (`MonolithLoot.guaranteed_piece(level: int, rng, ctx) -> ItemInstance`, puro), salto F-128.
+- PV massimi F-125 (non nel dato), impulso fisso `metin.pulse_damage` che **non** passa da F-25/F-75, ondate F-126 (`StoneFight.waves_crossed(hp_after: int, hp_max: int, fired: Array[int], thresholds_list: Array[int]) -> Array[int]`, pura e testabile),
+  bottino F-127 (`MonolithLoot.guaranteed_piece(level: int, rng: RngService, session: GameSession) -> ItemInstance`, puro), salto F-128.
+- `RiftStone.reward(loot: LootSink, def: RiftStoneDef, loot_mult: float = 1.0) -> void` consegna il bottino del Monolito; la **fonte del leggendario** è l'**id di area** (`LegendaryRoller.drops(SOURCE_MONOLITH, def.area_id, …)`), non l'id del Monolito.
 - Nuovi segnali (CombatEngine): `rift_stone_wave(stone_id: StringName, threshold: int, count: int)` (`threshold` 100 = primo colpo, poi 75, 50, 25), `rift_stone_skipped(stone_id: StringName)` (Monolito scartato da F-128),
   `skip_stone_changed(level: int)`.
 - Impostazione di salto (**stato dello slot**, modulo `combat`): `func skip_stone_level() -> int`; `func set_skip_stone_level(level: int) -> CommandResult` (`invalid_choice` se fuori da 0..99, nessun cambio). Il nuovo slot
   parte da `balance.combat.skip_stone_level`.
-- `CombatEngine.get_state()` espone per la UI (sola lettura): `stone = {"id", "level", "hp", "max_hp", "fired": [int]}` (`{}` fuori dal Monolito), `skip_stone_level`, il numero dei nemici vivi (la UI confronta con
+- `CombatEngine.get_state()` espone per la UI (sola lettura): `stone = {"id", "level", "hp", "max_hp", "fired": [int]}` (`{}` fuori dal Monolito), `skip_stone_level`, `enemies_alive: int` (nemici vivi; la UI confronta con
   `combat.crowd_threshold`) e `enemies[i].summoned`. Nessuno stato di gioco nella UI.
 - **UI (M15-06/07)**: vista compatta con gruppi per tipo dal solo `get_state()`; sezione "Pezzi" del Deposito e pagina Equipaggiamento (solo pezzi) leggono `loot.pieces()` e `armory`; comandi solo
   `combat.set_skip_stone_level` e `combat.loot.collect_all`.
@@ -1963,7 +1965,7 @@ func unbind() -> void                            # anche in _exit_tree
 class_name CombatantCard extends PanelContainer  # ui/pages/combat/combatant_card.gd (+ .tscn), carta di un combattente, senza stato
 func setup(title: String, subtitle: String) -> void
 func redraw(hp: int, max_hp: int, timer_ms: int, interval_ms: int, is_target: bool) -> void
-func show_hit(hit: bool, damage: int, blocked: bool, color: Color) -> void   # danno, CombatTexts.MISS_TEXT o BLOCKED_TEXT, dissolvenza sul posto
+func show_hit(hit: bool, damage: int, blocked: bool, color: Color) -> void   # (EnemyZone.show_hit(index, text, color, big, flash, damage: int = 0): damage opzionale per i numeri aggregati) danno, CombatTexts.MISS_TEXT o BLOCKED_TEXT, dissolvenza sul posto
 func hit_text() -> String; func shown_hp() -> int; func is_highlighted() -> bool; func shown_timer() -> float   # per i test
 
 class_name CombatTexts extends RefCounted        # ui/pages/combat/combat_texts.gd, testi fissi della pagina (come ArmoryTexts/MasteryTexts)

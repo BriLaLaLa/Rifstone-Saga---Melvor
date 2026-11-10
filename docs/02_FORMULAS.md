@@ -219,6 +219,7 @@ Ogni nemico ucciso dà al personaggio `base_xp = floor(xp del mostro × combat.k
 suo `xp` con la stessa regola. Valori: tabella §8.5 (`xp = 4 × PV`, tranne le Miniere Crepate a 3,2 × PV, tarate da B1);
 **B1 (M10-07, ritarato in M14-10)**: `combat.kill_xp_mult` = **0,064** (era 0,11; dopo i nuovi mostri e le armi con forbice), tarato con `tools/sim_combat.gd` e `tools/sim_progress.gd`: livello 99 in circa
 320 h (319,6) nell'area giusta (la più alta consentita dal livello; offline compreso, stesso motore) e una notte offline (12 h) dal 50
+**M15 (Monoliti da Metin, M15-08)**: con i Monoliti (1-2/h per area, bottino e XP) il livello 99 si raggiunge in circa **369 ore**; banda del test di bilanciamento **250-380 ore**.
 dà al massimo +12 livelli (Q54). Con 1,0 si ottiene la regola dell'MVP.
 Esempi (mult 0,064): `plains_boar` (xp 80) → base 5; +25% → 6; gruppo di 3 `plains_boar` → 15; `redrock_raider` (200) → 12;
 Pietra con xp 240 → 15. Con mult 1,0: 80, 100, 240. Test: `tests/systems/combat/test_combat_engine.gd::test_kill_grants_character_xp`.
