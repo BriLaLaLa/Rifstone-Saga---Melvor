@@ -99,6 +99,8 @@
       }
     },
     "min_attack_interval_ms": 800,
+    "crowd_threshold": 8,
+    "skip_stone_level": 0,
     "unarmed": {
       "style": "blade",
       "attack_interval_ms": 2400,
@@ -234,6 +236,15 @@
       "palecinnabar_plate", "emberheart_plate", "riftite_plate"],
     "handle_items": ["redbirch_handle", "ashpine_handle", "thornalder_handle", "duskelm_handle", "shardcedar_handle",
       "veilcypress_handle", "emberlarch_handle", "riftspruce_handle"]
+  },
+  "metin": {
+    "hp_base": 200,
+    "hp_per_level": 0.25,
+    "pulse_damage": 1,
+    "wave_size": 7,
+    "wave_thresholds": [75, 50, 25],
+    "rarity_bonus_pct": 100,
+    "guaranteed_pieces": 1
   },
   "rift_stone": {"chance_pct": 0.5, "pity_kills": 300},
   "salvage": {
