@@ -323,6 +323,8 @@ static func legendary_lines(session: GameSession, base: ItemDef) -> PackedString
 		if info.source_type == LegendaryInfo.SOURCE_BOSS:
 			var boss: BossDef = session.data.boss(info.source_id)
 			source_name = LEGENDARY_SOURCE_BOSS_TEXT % (boss.name if boss != null else source_name)
+		elif session.data.has_area(info.source_id):  # M15: a Monolith source is the id of an area
+			source_name = LEGENDARY_SOURCE_MONOLITH_TEXT % session.data.area(info.source_id).name
 		elif session.data.has_rift_stone(info.source_id):
 			source_name = LEGENDARY_SOURCE_MONOLITH_TEXT % session.data.rift_stone(info.source_id).name
 		lines.append(COLOR_TAG % [UiStyle.TEXT_2.to_html(false), LEGENDARY_SOURCE_TEXT % [

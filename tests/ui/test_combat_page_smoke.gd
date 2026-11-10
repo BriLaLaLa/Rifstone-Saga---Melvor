@@ -232,3 +232,52 @@ func test_waiting_piece_is_listed_in_the_loot_strip() -> void:
 	_session.combat.loot.add_piece(piece)
 	assert_false((_page.get_node("%CollectButton") as Button).disabled)
 	assert_gte(_page.get_node("%LootList").get_child_count(), 1)
+
+
+func _crowded_state(count: int) -> Dictionary:
+	_session.combat.start(AREA_ID)
+	var state: Dictionary = _session.combat.get_state()
+	var enemy: Dictionary = (state["enemies"] as Array)[0]
+	var enemies: Array = []
+	for i: int in count:
+		enemies.append(enemy.duplicate())
+	state["enemies"] = enemies
+	state["enemies_alive"] = count
+	state["target"] = 0
+	return state
+
+
+func test_crowd_switches_to_compact_view_and_back() -> void:
+	var zone: EnemyZone = _zone()
+	zone.refresh(_session, _crowded_state(12))
+	assert_true(zone.is_compact())
+	assert_true(zone.crowd_view().visible)
+	assert_eq(zone.crowd_view().row_count(), 1, "one row per type")
+	assert_null(zone.queue_card(0), "no card per enemy")
+	zone.show_hit(0, "-5", Color.WHITE, false, true, 5)
+	zone.show_hit(3, "-7", Color.WHITE, false, true, 7)
+	zone.refresh(_session, _crowded_state(12))
+	zone.refresh(_session, _crowded_state(2))
+	assert_false(zone.is_compact())
+	assert_false(zone.crowd_view().visible)
+	assert_not_null(zone.queue_card(1))
+
+
+func test_skip_stone_setting_uses_the_command() -> void:
+	var spin: SpinBox = _find_spin(_page)
+	assert_not_null(spin)
+	spin.value = 12
+	assert_eq(_session.combat.skip_stone_level(), 12)
+	_session.combat.set_skip_stone_level(0)
+	_session.events.skip_stone_changed.emit(0)
+	assert_eq(int(spin.value), 0)
+
+
+func _find_spin(node: Node) -> SpinBox:
+	if node is SpinBox:
+		return node as SpinBox
+	for child: Node in node.get_children():
+		var found: SpinBox = _find_spin(child)
+		if found != null:
+			return found
+	return null

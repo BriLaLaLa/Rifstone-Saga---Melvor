@@ -23,6 +23,9 @@ var _food_warning: bool = false
 ## Presentation: the state line without the Fracture boss part, and the link to the Fractures page.
 var _state_base: String = ""
 var _fracture_link: Button = null
+var _skip_control: SkipStoneControl = null
+## Feedback of the combat events (numbers, counters, log lines), made in `bind`.
+var _feed: CombatFeed = null
 
 @onready var _margin: MarginContainer = %Margin
 @onready var _main: VBoxContainer = %Main
@@ -69,6 +72,9 @@ func _ready() -> void:
 	_stop_button.text = CombatTexts.STOP_TEXT
 	_fracture_link = CombatFracture.add_link(_stop_button.get_parent())
 	_collect_button.text = CombatTexts.COLLECT_TEXT
+	_skip_control = SkipStoneControl.new()
+	_stop_button.get_parent().add_child(_skip_control)
+	_skip_control.result_given.connect(_show_result)
 	_message_label.add_theme_color_override("font_color", UiStyle.BAD)
 	_message_label.visible = false
 	_yield_values = CombatYield.build_grid(_yield_grid)
@@ -93,6 +99,8 @@ func bind(session: GameSession) -> void:
 		_log_open = false
 	_kept_session = _session
 	_kept_yield = _yield
+	_feed = CombatFeed.new(_session, _yield, _zone, _player)
+	_skip_control.bind(_session)
 	var events: GameEvents = _session.events
 	var resync: Callable = _redraw_all
 	var static_resync: Callable = _refresh_static
@@ -118,6 +126,7 @@ func bind(session: GameSession) -> void:
 	_connect(events.trait_triggered, _on_trait_triggered)
 	_connect(events.character_xp_gained, _on_xp_gained)
 	_connect(events.gold_changed, _on_gold_changed)
+	_connect(events.skip_stone_changed, _skip_control.refresh.unbind(1))
 	_message_label.visible = false
 	_refresh_static()
 	_redraw_all()
@@ -151,6 +160,8 @@ func _process(_delta: float) -> void:
 		if CombatFracture.is_in(state):  # the ability timer and the shield move between events
 			_state_label.text = CombatFracture.state_text(state["fracture"], _state_base, _session.data)
 		_redraw_yield()
+		if _feed.flush():  # compact view: the lines added up per type
+			_refresh_log()
 
 
 func _connect(source: Signal, callable: Callable) -> void:
@@ -292,37 +303,12 @@ func _on_log_pressed() -> void:
 
 ## `attacker` / `target`: -1 = the player, 0..n-1 = position of the enemy (05_INTERFACES.md §3).
 func _on_combat_hit(attacker: int, target: int, hit: bool, damage: int, blocked: bool) -> void:
-	var state: Dictionary = _session.combat.get_state()
-	if attacker == CombatEngine.PLAYER:
-		var strong: bool = hit and damage >= CombatTexts.strong_hit_threshold(_session.combat.player_stats().max_hit)
-		var text: String = CombatTexts.HIT_TEXT % NumberFormat.format_int(damage) if hit else CombatTexts.MISS_TEXT
-		_zone.show_hit(target, text, UiStyle.GOLD_LIGHT if strong else UiStyle.TEXT, strong, hit)
-		_log_hit(CombatTexts.LOG_PLAYER_HIT_TEXT, CombatTexts.LOG_PLAYER_MISS_TEXT, _enemy_name(state, target), hit, damage)
-		if hit:
-			_yield.hits += 1
-			_yield.record(CombatYield.DAMAGE, damage, _session.play_time_ms)
-	elif target == CombatEngine.PLAYER:
-		_zone.play_attack(attacker)
-		var text: String = CombatTexts.BLOCKED_TEXT if blocked else (
-				CombatTexts.HIT_TEXT % NumberFormat.format_int(damage) if hit else CombatTexts.MISS_TEXT)
-		_player.show_hit(text, UiStyle.TEXT_2 if blocked else UiStyle.BAD, false, hit and not blocked)
-		var who: String = _enemy_name(state, attacker)
-		if blocked:
-			_yield.blocks += 1
-			_yield.add_log(CombatTexts.LOG_BLOCK_TEXT % who)
-		else:
-			_log_hit(CombatTexts.LOG_ENEMY_HIT_TEXT, CombatTexts.LOG_ENEMY_MISS_TEXT, who, hit, damage)
+	_feed.hit(attacker, target, hit, damage, blocked)
 	_refresh_log()
 
 
-func _log_hit(hit_line: String, miss_line: String, who: String, hit: bool, damage: int) -> void:
-	_yield.add_log(hit_line % [who, NumberFormat.format_int(damage)] if hit else miss_line % who)
-
-
 func _on_monster_killed(index: int, _monster_id: StringName) -> void:
-	_zone.play_death(index)
-	_yield.record(CombatYield.KILLS, 1, _session.play_time_ms)
-	_yield.add_log(CombatTexts.LOG_KILL_TEXT % _enemy_name(_session.combat.get_state(), index))
+	_feed.kill(index)
 	_redraw_all()
 
 
@@ -388,13 +374,6 @@ func _on_combat_stopped(_reason: StringName) -> void:
 	_player.clear_effects()
 	_zone.clear_effects()
 	_redraw_all()
-
-
-func _enemy_name(state: Dictionary, index: int) -> String:
-	var enemies: Array = state["enemies"]
-	if index < 0 or index >= enemies.size():
-		return ""
-	return EnemyView.name_of(_session.data, enemies[index]["monster"])
 
 
 # Feedback of the loadout: a line in the log and a flash on the card or chip (05 §3 `ability_used`, `trait_triggered`).

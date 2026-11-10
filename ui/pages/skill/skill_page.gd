@@ -24,22 +24,10 @@ const TOOL_PANEL_SCENE: PackedScene = preload("res://ui/pages/skill/tool_upgrade
 const TOOL_SKILLS: Array[StringName] = [&"forestry", &"quarrying", &"angling"]
 const HELPER_ROW_SCENE: PackedScene = preload("res://ui/pages/skill/helper_row.tscn")
 const LOG_CATEGORY: String = "ui"
-const LANE_ACTION_KEY: String = "action"
 const LEVEL_TEXT: String = "Livello %s"
-const IDLE_TEXT: String = "Nessuna azione in corso"
-const RUNNING_TEXT: String = "In corso: %s"
-const RUNNING_OTHER_TEXT: String = "In corso: %s (%s)"
 ## Italian text of each refusal of `actions.start`; other reasons use REFUSED_TEXT_DEFAULT.
-const REFUSED_TEXTS: Dictionary[StringName, String] = {
-	Reasons.LEVEL_TOO_LOW: "Livello troppo basso per questa azione.",
-	Reasons.UNKNOWN_ID: "Questa azione non è ancora disponibile.",
-	Reasons.MISSING_INPUTS: "Materiali insufficienti.",
-	Reasons.BANK_FULL: "Il deposito è pieno.",
-	Reasons.LANE_UNAVAILABLE: "Corsia non disponibile.",
-	Reasons.SKILL_IN_OTHER_LANE: "Questa skill è già attiva in un'altra corsia.",
-	Reasons.COMBAT_ACTIVE: "Combattimento in corso.",
-}
-const REFUSED_TEXT_DEFAULT: String = "Impossibile avviare l'azione."
+const REFUSED_TEXTS: Dictionary[StringName, String] = SkillHeader.REFUSED_TEXTS
+const REFUSED_TEXT_DEFAULT: String = SkillHeader.REFUSED_TEXT_DEFAULT
 
 var _session: GameSession = null
 var _skill: SkillDef = null
@@ -204,19 +192,11 @@ func _redraw_header() -> void:
 
 
 func _redraw_status() -> void:
-	var running_id: StringName = _running_action_id()
-	if running_id == &"":
-		_status_label.text = IDLE_TEXT
-		return
-	var action: ActionDef = _session.data.action(running_id)
-	if action.skill_id == _skill.id:
-		_status_label.text = RUNNING_TEXT % action.name
-	else:
-		_status_label.text = RUNNING_OTHER_TEXT % [action.name, _session.data.skill(action.skill_id).name]
+	_status_label.text = SkillHeader.status_text(_session, _skill.id)
 
 
 func _running_action_id() -> StringName:
-	return _session.actions.get_lane().get(LANE_ACTION_KEY, &"")
+	return SkillHeader.running_action_id(_session)
 
 
 func _show_refusal(reason: StringName) -> void:
@@ -407,22 +387,10 @@ func _show_refusal_text(text: String) -> void:
 
 
 func _build_pool_bar() -> void:
-	if _pool_bar != null or not _skill.has_mastery:
-		return
-	_pool_bar = ProgressBar.new()
-	_pool_bar.name = "PoolBar"
-	_pool_bar.show_percentage = false
-	_pool_bar.min_value = 0.0
-	_pool_bar.max_value = 1.0
-	_pool_bar.custom_minimum_size = Vector2(0, 6)
-	_pool_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_xp_bar.add_sibling(_pool_bar)
+	if _pool_bar == null and _skill.has_mastery:
+		_pool_bar = SkillHeader.build_pool_bar(_xp_bar)
 
 
 func _redraw_pool_bar() -> void:
-	if _pool_bar == null:
-		return
-	var cap: int = _session.mastery.get_pool_cap(_skill.id)
-	_pool_bar.value = float(_session.mastery.get_pool(_skill.id)) / float(cap) if cap > 0 else 0.0
-	_pool_bar.tooltip_text = "Pool di maestria: %s / %s XP" % [NumberFormat.format_int(_session.mastery.get_pool(_skill.id)),
-			NumberFormat.format_int(cap)]
+	if _pool_bar != null:
+		SkillHeader.redraw_pool_bar(_pool_bar, _session, _skill.id)

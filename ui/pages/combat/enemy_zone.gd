@@ -15,6 +15,9 @@ var _ids: Array[StringName] = []
 var _cards: Array[EnemyCard] = []
 var _target_card: EnemyCard = null
 var _shown_index: int = -2
+## Presentation: the compact view (docs/METIN.md Z6) is shown instead of the cards.
+var _compact: bool = false
+var _crowd: CrowdView = null
 
 @onready var _title: Label = %TargetTitle
 @onready var _count: Label = %CountLabel
@@ -22,6 +25,7 @@ var _shown_index: int = -2
 @onready var _empty: Label = %EmptyLabel
 @onready var _queue_title: Label = %QueueTitle
 @onready var _queue: HFlowContainer = %QueueFlow
+@onready var _queue_scroll: ScrollContainer = %QueueScroll
 
 
 func _ready() -> void:
@@ -36,11 +40,20 @@ func _ready() -> void:
 	_target_holder.add_child(_target_card)
 	_target_card.visible = false
 	_queue.resized.connect(_fit_cards)
+	_crowd = CrowdView.new()
+	_crowd.name = "CrowdView"
+	_crowd.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_crowd.visible = false
+	_queue_scroll.get_parent().add_child(_crowd)
 
 
 ## Redraws from `state` (`combat.get_state()`); `session` gives the data and the player's style.
 func refresh(session: GameSession, state: Dictionary) -> void:
 	var enemies: Array = state["enemies"]
+	if _set_compact(session, state):
+		_crowd.refresh(session, state)
+		_count.text = CombatTexts.ENEMY_COUNT_TEXT % [int(state["enemies_alive"]), enemies.size()]
+		return
 	var ids: Array[StringName] = []
 	for enemy: Dictionary in enemies:
 		ids.append(enemy["monster"])
@@ -65,6 +78,33 @@ func refresh(session: GameSession, state: Dictionary) -> void:
 	_fit_cards()
 	_empty.text = CombatTexts.STATE_TEXTS.get(state["state"], CombatTexts.STATE_TEXT_DEFAULT) \
 			if enemies.is_empty() else CombatTexts.NO_TARGET_TEXT
+
+
+## Switches between cards and compact view: more living enemies than `combat.crowd_threshold`. The cards are dropped
+## while compact (none is built for a crowd) and rebuilt when the group is small again.
+func _set_compact(session: GameSession, state: Dictionary) -> bool:
+	var compact: bool = int(state.get("enemies_alive", 0)) > int(session.data.balance_value("combat.crowd_threshold"))
+	if compact != _compact:
+		_compact = compact
+		_target_holder.visible = not compact
+		_empty.visible = not compact
+		_queue_title.visible = not compact
+		_queue_scroll.visible = not compact
+		_crowd.visible = compact
+		_target_card.clear_effects()
+		if compact:
+			_rebuild(session.data, [] as Array[StringName])
+		else:
+			_crowd.clear_effects()
+	return compact
+
+
+func is_compact() -> bool:
+	return _compact
+
+
+func crowd_view() -> CrowdView:
+	return _crowd
 
 
 func _redraw_target(session: GameSession, enemies: Array, target: int, player_style: StringName) -> void:
@@ -122,7 +162,10 @@ func _fit_cards() -> void:
 
 
 ## Floating number on the enemy at `index` (and on the big card if it shows that enemy); flash if it was really hit.
-func show_hit(index: int, text: String, color: Color, big: bool, flash: bool) -> void:
+func show_hit(index: int, text: String, color: Color, big: bool, flash: bool, damage: int = 0) -> void:
+	if _compact:
+		_crowd.add_hit(index, damage)  # one number per type and frame
+		return
 	if index < 0 or index >= _cards.size():
 		return
 	_cards[index].show_hit(text, color, big)
@@ -153,6 +196,7 @@ func play_death(index: int) -> void:
 ## Removes numbers and animations everywhere (end of the combat).
 func clear_effects() -> void:
 	_target_card.clear_effects()
+	_crowd.clear_effects()
 	for card: EnemyCard in _cards:
 		card.clear_effects()
 
