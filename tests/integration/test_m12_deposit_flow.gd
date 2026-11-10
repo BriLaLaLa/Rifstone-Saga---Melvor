@@ -158,7 +158,7 @@ func test_save_v4_round_trip_keeps_bags_capacity_and_is_idempotent() -> void:
 	var capacity: int = _s.deposit.capacity()
 	var used: int = _s.deposit.used()
 	var saved: Dictionary = _s.to_save(NOW_MS)
-	assert_eq(saved["format_version"], 5)
+	assert_eq(saved["format_version"], 6)
 	assert_false((saved["modules"] as Dictionary)["deposit"].has("capacity"), "capacity is derived, never saved")
 	var other: GameSession = autofree(TestFactory.session_no_kit(SEED + 1, TestFactory.real_data()))
 	var loaded: CommandResult = other.from_save(SaveCodec.decode(SaveCodec.encode(saved)))

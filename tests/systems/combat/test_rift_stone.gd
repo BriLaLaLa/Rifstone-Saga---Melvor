@@ -216,6 +216,7 @@ func test_stone_pieces_use_the_stone_rarity_and_the_area_item_level() -> void:
 		while s.combat.state() == CombatEngine.STATE_RIFTSTONE and guard < 100:
 			s.combat.advance(100)
 			guard += 1
+		s.combat.loot.collect_all()
 	var better: int = 0
 	var total: int = s.armory.used()
 	for inst: ItemInstance in s.armory.instances():

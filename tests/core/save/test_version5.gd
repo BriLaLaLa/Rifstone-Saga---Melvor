@@ -5,8 +5,8 @@ extends GutTest
 func test_current_version_is_5_and_the_save_has_the_discoveries_module() -> void:
 	var s: GameSession = autofree(TestFactory.session_no_kit(1, TestFactory.real_data()))
 	var saved: Dictionary = s.to_save(1)
-	assert_eq(SaveMigrator.CURRENT_VERSION, 5)
-	assert_eq(saved["format_version"], 5)
+	assert_eq(SaveMigrator.CURRENT_VERSION, 6)
+	assert_eq(saved["format_version"], 6)
 	assert_true((saved["modules"] as Dictionary).has("discoveries"))
 	assert_true(((saved["modules"] as Dictionary)["discoveries"] as Dictionary).has("items"))
 

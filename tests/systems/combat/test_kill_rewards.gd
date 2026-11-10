@@ -24,6 +24,7 @@ func _drop(item: StringName, chance: float, qty_min: int, qty_max: int) -> Array
 
 func test_piece_drop_creates_instances_in_the_armory() -> void:
 	KillRewards.roll_drops(_session, _session.combat.loot, _drop(BLADE, 100.0, 2, 2), ItemRoller.SOURCE_MONSTER, 7)
+	_session.combat.loot.collect_all()
 	var pieces: Array[ItemInstance] = _session.armory.instances()
 	assert_eq(pieces.size(), 2, "qty 2 -> two instances")
 	assert_ne(pieces[0].uid, pieces[1].uid)
@@ -65,6 +66,7 @@ func test_drop_below_the_filter_is_salvaged_at_once() -> void:
 	assert_true(_session.armory.set_filter(&"weapon", &"rare", 1).ok)
 	watch_signals(_session.events)
 	KillRewards.roll_drops(_session, _session.combat.loot, _drop(BLADE, 100.0, 1, 1), ItemRoller.SOURCE_MONSTER, 1)
+	_session.combat.loot.collect_all()
 	var inst_count: int = _session.armory.used()
 	if inst_count == 0:
 		assert_signal_emitted(_session.events, "item_salvaged")
@@ -77,6 +79,7 @@ func test_same_seed_same_drops() -> void:
 	for s: GameSession in [_session, other]:
 		for i: int in 10:
 			KillRewards.roll_drops(s, s.combat.loot, _drop(BLADE, 100.0, 1, 1), ItemRoller.SOURCE_MONSTER, 20)
+			s.combat.loot.collect_all()
 	var a: Array[ItemInstance] = _session.armory.instances()
 	var b: Array[ItemInstance] = other.armory.instances()
 	assert_eq(a.size(), b.size())

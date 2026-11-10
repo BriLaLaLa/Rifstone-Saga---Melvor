@@ -117,6 +117,7 @@ func test_kill_rewards_use_the_pool_and_give_no_piece_from_the_drops() -> void:
 	var bag := LootBag.new(s)
 	for i: int in 3000:
 		KillRewards.grant(s, bag, monster)
+	bag.collect_all()
 	assert_gt(s.armory.instances().size(), before, "pieces came out of the pool (chance_pct of 3000 kills)")
 	for inst: ItemInstance in s.armory.instances():
 		assert_true(_data.is_equipment_pool_base(inst.base_id), "only pool bases")

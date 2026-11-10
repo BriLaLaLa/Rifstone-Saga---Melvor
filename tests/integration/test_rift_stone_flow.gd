@@ -109,6 +109,7 @@ func test_killing_the_stone_pays_xp_shards_and_the_stone_drops() -> void:
 	assert_true(s.combat.start(AREA).ok)
 	assert_eq(s.combat.state(), CombatEngine.STATE_RIFTSTONE, "a pending stone is the first encounter")
 	_run_until(s, func() -> bool: return _stone_kills > 0, 100)
+	s.combat.loot.collect_all()
 	var mult: float = float(s.data.balance_value("combat.kill_xp_mult"))
 	assert_eq(s.character.get_xp() - xp_before, floori(STONE_XP * mult), "F-28: the XP of the stone times kill_xp_mult, nothing else")
 	assert_eq(s.wallet.get_gold(), gold_before, "no gold from a stone")
@@ -134,19 +135,20 @@ func test_killing_the_stone_pays_xp_shards_and_the_stone_drops() -> void:
 
 
 func test_loot_of_the_stone_survives_death_rules_like_any_loot() -> void:
-	# The Seal waits in the loot bag until collected, and a death loses it like every bag item (not the pieces).
+	# The Seal and the pieces wait in the loot bag until collected, and a death loses them.
 	var s: GameSession = _session(_data())
 	_set_stone(s, 0, true)
 	s.combat.start(AREA)
 	_run_until(s, func() -> bool: return _stone_kills > 0, 100)
-	var pieces: int = s.armory.used()
+	var pieces: int = s.combat.loot.pieces().size()
 	assert_eq(pieces, 2)
 	assert_true(s.combat.loot.used() > 0)
 	var lost: Array[StringName] = []
 	s.events.loot_lost.connect(func(item: StringName, _q: int) -> void: lost.append(item))
 	s.combat.loot.lose_all()
 	assert_true(lost.has(SEAL) and lost.has(SHARD), "shards and Seal are bag items")
-	assert_eq(s.armory.used(), pieces, "pieces went straight to the Armory: a death does not touch them")
+	assert_eq(s.armory.used(), 0, "pieces wait in the bag (M15-04): a death loses them, the Armory is untouched")
+	assert_eq(s.combat.loot.pieces().size(), 0)
 
 
 func test_pulse_hits_every_pulse_ms_for_the_data_damage() -> void:

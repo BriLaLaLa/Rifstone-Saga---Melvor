@@ -554,7 +554,7 @@ func test_idle_save_is_normalized_after_stop() -> void:
 	_session.combat.advance(1000)
 	_session.combat.stop()
 	_assert_idle_roundtrip(_session, "after stop")
-	assert_eq(_session.combat.to_save()["loot"].size(), 1, "the bag is kept")
+	assert_eq(_session.combat.to_save()["loot"]["stacks"].size(), 1, "the bag is kept")
 
 
 func test_idle_save_is_normalized_after_death() -> void:

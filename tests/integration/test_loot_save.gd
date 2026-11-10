@@ -139,6 +139,7 @@ func _kill_boars_with_drops(s: GameSession, data_drop: StringName, kills: int) -
 	var guard: int = 0
 	while count[0] < kills and guard < 20000:
 		s.advance(500)
+		s.combat.loot.collect_all()
 		guard += 1
 	var out: Array[ItemInstance] = []
 	for inst: ItemInstance in s.armory.instances():
