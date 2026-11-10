@@ -1,12 +1,12 @@
 {
   "rift_stones": [
     {"id": "test_stone", "name": "Pietra di prova", "description": "Pietra per i test.",
-     "icon": "res://assets/icons/monsters/plains_boar.svg", "area": "test_stone_area", "hp": 60, "xp": 240,
-     "pulse_damage": 7, "pulse_ms": 3000, "summon_pack": null, "shards": [2, 4],
+     "icon": "res://assets/icons/monsters/plains_boar.svg", "area": "test_stone_area", "level": 5, "xp": 240,
+     "pulse_ms": 3000, "wave_packs": null, "shards": [2, 4],
      "drops": [{"item": "test_log", "chance_pct": 100, "qty": [2, 2]}]},
     {"id": "test_loot_stone", "name": "Pietra del bottino", "description": "Pietra con tabelle.",
-     "icon": "res://assets/icons/monsters/plains_boar.svg", "area": "test_loot_area", "hp": 60, "xp": 10,
-     "pulse_damage": 7, "pulse_ms": 3000, "summon_pack": null, "shards": [1, 1], "drops": [],
+     "icon": "res://assets/icons/monsters/plains_boar.svg", "area": "test_loot_area", "level": 5, "xp": 10,
+     "pulse_ms": 3000, "wave_packs": null, "shards": [1, 1], "drops": [],
      "loot_tables": ["test_stone_loot"]}
   ]
 }

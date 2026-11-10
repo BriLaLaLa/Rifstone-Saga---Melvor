@@ -10,8 +10,6 @@ const FIXED: Dictionary = {
 	"currency_spark": "Cristallo del risveglio", "currency_crown": "Cristallo dell'ascesa", "currency_flux": "Cristallo del mutamento",
 	"bag_canvas": "Borsa di tela", "bag_leather": "Borsa di cuoio", "bag_reinforced": "Borsa rinforzata",
 	"bag_wayfarer": "Borsa del viandante", "bag_runic": "Borsa runica",
-	"redrock_stone": "Monolito di Roccarossa", "whisper_stone": "Monolito dei Sussurri", "mine_stone": "Monolito delle Miniere",
-	"threshold_stone": "Monolito della Soglia",
 	"contract_forestry_journeyman": "Contratto: Garzone boscaiolo", "contract_quarrying_apprentice": "Contratto: Apprendista minatore",
 	"contract_angling_expert": "Contratto: Esperto pescatore", "contract_forestry_master": "Contratto: Maestro boscaiolo",
 	"stone_ember_heart": "Pietra perfetta di forza", "stone_eye_chip": "Scheggia di precisione",

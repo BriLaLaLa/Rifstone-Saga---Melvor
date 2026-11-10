@@ -41,7 +41,7 @@ var _areas: Dictionary[StringName, AreaDef] = {}
 var _area_list: Array[AreaDef] = []
 var _monsters: Dictionary[StringName, MonsterDef] = {}
 var _stones: Dictionary[StringName, RiftStoneDef] = {}
-var _stone_by_area: Dictionary[StringName, RiftStoneDef] = {}
+var _stones_by_area: Dictionary[StringName, Array] = {}  # area id -> Array[RiftStoneDef], by level
 var _shop: Dictionary[StringName, ShopEntryDef] = {}
 var _shop_list: Array[ShopEntryDef] = []
 var _character_table: XpTable = null
@@ -233,21 +233,18 @@ func monster(id: StringName) -> MonsterDef: return _find(_monsters, id, "monster
 
 ## Existence checks without `push_error` (docs/05_INTERFACES.md §4).
 func has_area(id: StringName) -> bool: return _areas.has(id)
-
-
 func has_monster(id: StringName) -> bool: return _monsters.has(id)
 func has_action(id: StringName) -> bool: return _actions.has(id)  # M14
 func has_balance(path: String) -> bool: return DataValidator.lookup(_balance, path) != null  # M14: no error when absent
 
 
 func has_rift_stone(id: StringName) -> bool: return _stones.has(id)
-
-
 func rift_stone(id: StringName) -> RiftStoneDef: return _find(_stones, id, "rift stone") as RiftStoneDef
 
 
-## The Rift Stone of an area (F-87), null (no error) when the area has none: no stone ever appears there.
-func rift_stone_for_area(area_id: StringName) -> RiftStoneDef: return _stone_by_area.get(area_id) as RiftStoneDef
+## The Rift Stones of an area (F-87, M15), ordered by `level`; empty (no error) when the area has none.
+func rift_stones_for_area(area_id: StringName) -> Array[RiftStoneDef]:
+	return Array(_stones_by_area.get(area_id, []) as Array, TYPE_OBJECT, &"RefCounted", RiftStoneDef)
 
 
 func shop_entry(id: StringName) -> ShopEntryDef: return _find(_shop, id, "shop entry") as ShopEntryDef
@@ -349,7 +346,10 @@ func _build(raw: Dictionary) -> void:
 		for d: Dictionary in DataBuildUtil.list(raw["rift_stones"][path], "rift_stones"):
 			_add(RiftStoneDef.from_dict(d), _stones, [], path, "rift stone", d)
 			if _stones.has(StringName(d["id"] as String)):
-				_stone_by_area[StringName(d["area"] as String)] = _stones[StringName(d["id"] as String)]
+				var stone: RiftStoneDef = _stones[StringName(d["id"] as String)]
+				(_stones_by_area.get_or_add(stone.area_id, []) as Array).append(stone)
+	for list: Array in _stones_by_area.values():
+		list.sort_custom(func(a: RiftStoneDef, b: RiftStoneDef) -> bool: return a.level < b.level)
 	for path: String in raw["shop"]:
 		for d: Dictionary in DataBuildUtil.list(raw["shop"][path], "entries"):
 			_add(ShopEntryDef.from_dict(d), _shop, _shop_list, path, "shop entry", d)
@@ -383,7 +383,7 @@ func _add(def: RefCounted, table: Dictionary, list: Array, path: String, kind: S
 
 # With a Def that could not be built the data is not valid: nothing stays half-loaded.
 func _clear() -> void:
-	for table: Dictionary in [_items, _skills, _actions, _nodes, _areas, _monsters, _stones, _stone_by_area, _shop, _classes,
+	for table: Dictionary in [_items, _skills, _actions, _nodes, _areas, _monsters, _stones, _stones_by_area, _shop, _classes,
 			_blueprint_by_base, _unique_tools, _affixes, _hints]:
 		table.clear()
 	_guide.clear()

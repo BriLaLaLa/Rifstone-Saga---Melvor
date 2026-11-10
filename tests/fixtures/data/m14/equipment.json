@@ -56,13 +56,13 @@
      "value": 10, "sort_order": 980, "description": "Leggendario di prova: monolith_loot_mult.",
      "equip": {"slot": "ring", "grade": 3, "requirements": {},
                "modifiers": [{"stat": "evasion_bonus", "value": 5}],
-               "legendary": {"source": {"type": "monolith", "id": "test_loot_stone", "chance_pct": 100},
+               "legendary": {"source": {"type": "monolith", "id": "test_loot_area", "chance_pct": 100},
                              "effects": [{"type": "monolith_loot_mult", "mult": 2}]}}},
     {"id": "fx_leg_cards", "name": "Collo delle Carte", "category": "equipment", "icon": "res://assets/icons/items/test_helm.png",
      "value": 10, "sort_order": 990, "description": "Leggendario di prova: card_drop_mult.",
      "equip": {"slot": "neck", "grade": 3, "requirements": {},
                "modifiers": [{"stat": "evasion_bonus", "value": 5}],
-               "legendary": {"source": {"type": "monolith", "id": "test_loot_stone", "chance_pct": 100},
+               "legendary": {"source": {"type": "monolith", "id": "test_loot_area", "chance_pct": 100},
                              "effects": [{"type": "card_drop_mult", "mult": 2}]}}}
   ]
 }

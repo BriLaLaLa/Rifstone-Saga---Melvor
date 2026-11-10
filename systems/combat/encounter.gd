@@ -54,6 +54,7 @@ static func spawn(area: AreaDef, data: GameData, rng: RngService) -> Encounter:
 ## is known.
 static func from_save(entries: Array, data: GameData, run: FractureRun = null) -> Encounter:
 	var result := Encounter.new()
+	var stone_level: int = _saved_stone_level(entries, data) if run == null else 0  # M15: the summoned of a stone share its level
 	for entry: Variant in entries:
 		if not (entry is Dictionary):
 			return null
@@ -64,6 +65,8 @@ static func from_save(entries: Array, data: GameData, run: FractureRun = null) -
 			return null
 		var enemy: Enemy = null
 		if def != null:
+			if stone_level > 0 and d.get("summoned") == true:
+				def = StoneFight.scaled(def, stone_level)
 			enemy = Enemy.new(def, data)
 		else:
 			enemy = RiftStone.enemy(data.rift_stone(monster_id), data)
@@ -72,6 +75,16 @@ static func from_save(entries: Array, data: GameData, run: FractureRun = null) -
 		enemy.timer_ms = clampi(int(d.get("timer_ms", enemy.timer_ms)), 0, enemy.stats.attack_interval_ms)
 		result.enemies.append(enemy)
 	return result
+
+
+# The level of the Rift Stone among the saved `entries` (it keeps its slot, dead or alive), 0 if there is none.
+static func _saved_stone_level(entries: Array, data: GameData) -> int:
+	for entry: Variant in entries:
+		if entry is Dictionary:
+			var id := StringName(str((entry as Dictionary).get("monster", "")))
+			if not data.has_monster(id) and data.has_rift_stone(id):
+				return data.rift_stone(id).level
+	return 0
 
 
 # The monster (scaled inside a Fracture) or the boss of the run; null for a Rift Stone or an unknown id.
@@ -154,14 +167,20 @@ func target(rule: StringName) -> int:
 
 
 ## The attack of `enemy` against `defender`: a monster rolls F-23, F-75, F-22, F-24, F-25 (`roll_attack`); a Rift Stone
-## pulses (`roll_pulse`).
+## pulses (`stone_pulse`, F-125: fixed damage, no roll).
 static func roll_enemy_attack(enemy: Enemy, defender: CombatantStats, rng: RngService, data: GameData) -> Dictionary:
 	if enemy.is_stone():
-		return roll_pulse(enemy.pulse_damage, defender, defender.block_chance, rng, data, enemy.stats.level)
+		return stone_pulse(enemy.pulse_damage)
 	return roll_attack(enemy.stats, defender, defender.block_chance, rng, data)
 
 
-## F-87: the pulse of a Rift Stone or a Fracture never misses, is reduced by F-25 (neutral relation: the plain
+## F-125: the pulse of a Rift Stone: always hits, fixed `damage` that ignores Armour and Barrier (no F-25, F-117, F-118) and
+## cannot be blocked (no F-75). No random draw. Same result shape as `roll_attack`.
+static func stone_pulse(damage: int) -> Dictionary:
+	return {"hit": true, "blocked": false, "damage": damage}
+
+
+## F-111: the pulse of a Fracture never misses, is reduced by F-25 (neutral relation: the plain
 ## reduction; F-117: no style, so it counts as `combat.unarmed.style`, i.e. Armour) and can be blocked (F-75, the only
 ## roll). `attacker_level` is the L_att of F-117 (-1 = the level of the defender). Same result shape as `roll_attack`.
 static func roll_pulse(damage: int, defender: CombatantStats, block_chance: float, rng: RngService, data: GameData,

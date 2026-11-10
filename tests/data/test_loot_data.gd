@@ -32,16 +32,16 @@ func test_warding_seal_is_the_balance_seal() -> void:
 	assert_eq(_items[seal]["category"], "material")
 
 
-func test_one_stone_per_area_with_explicit_summon() -> void:
-	assert_eq(_stones.size(), _areas.size())
+func test_stones_belong_to_areas_with_explicit_wave_packs() -> void:
 	var seen: Dictionary = {}
 	for s: Dictionary in _stones:
 		assert_true(_areas.has(s["area"]), "%s area" % s["id"])
-		assert_false(seen.has(s["area"]), "two stones in %s" % s["area"])
-		seen[s["area"]] = true
-		assert_true(s.has("summon_pack"), "%s summon_pack is explicit" % s["id"])
-		if s["summon_pack"] != null:
-			assert_between(int(s["summon_pack"]), 0, (_areas[s["area"]]["packs"] as Array).size() - 1)
+		assert_false(seen.has([s["area"], s["level"]]), "two stones of the same level in %s" % s["area"])
+		seen[[s["area"], s["level"]]] = true
+		assert_true(s.has("wave_packs"), "%s wave_packs is explicit" % s["id"])
+		if s["wave_packs"] != null:
+			for index: Variant in (s["wave_packs"] as Array):
+				assert_between(int(index), 0, (_areas[s["area"]]["packs"] as Array).size() - 1)
 
 
 func test_stone_numbers() -> void:
@@ -49,8 +49,6 @@ func test_stone_numbers() -> void:
 	var min_interval: int = int(balance["combat"]["min_attack_interval_ms"])
 	for s: Dictionary in _stones:
 		assert_gte(int(s["pulse_ms"]), min_interval, "%s pulse_ms" % s["id"])
-		assert_gte(int(s["pulse_damage"]), 1, "%s pulse_damage" % s["id"])
-		assert_gte(int(s["hp"]), 1)
 		assert_true(FileAccess.file_exists(s["icon"]), "icon %s" % s["icon"])
 		assert_between((s["drops"] as Array).size(), 1, 4)
 		for d: Dictionary in s["drops"]:

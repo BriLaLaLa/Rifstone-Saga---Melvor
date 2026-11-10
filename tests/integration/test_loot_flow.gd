@@ -35,6 +35,7 @@ var _rejected: int = 0
 func _drop_data() -> GameData:
 	var data: GameData = GameData.load_from_dirs(TestFactory.REAL_CONTENT_ROOT, TestFactory.CONFIG_ROOT)
 	assert_true(data.is_valid(), "real data valid")
+	data.area(AREA).rift_stone_chance_pct = 0.0  # M15: no Rift Stone (it brings its own piece and called monsters) in the count
 	for monster_id: StringName in data.area(AREA).monster_ids:
 		var list: Array[DropEntry] = []
 		for item_id: StringName in [SWORD, RING]:

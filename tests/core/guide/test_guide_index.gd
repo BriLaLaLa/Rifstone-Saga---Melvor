@@ -88,7 +88,7 @@ func test_real_stone_sources() -> void:
 	var stone: GuideRef = _find(_real_index.sources_of(&"warding_seal"), GuideRef.KIND_RIFT_STONE,
 			&"area:redrock_plains")
 	assert_not_null(stone)
-	assert_eq(stone.label, _real.rift_stone(&"redrock_stone").name)
+	assert_eq(stone.label, _real.rift_stones_for_area(&"redrock_plains")[0].name)
 	assert_not_null(_find(_real_index.sources_of(&"rift_shard"), GuideRef.KIND_RIFT_STONE))
 
 

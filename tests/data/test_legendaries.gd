@@ -7,10 +7,10 @@ const SLOTS: Array[String] = ["sword", "greatsword", "shield", "head", "body", "
 	"tool_forestry", "tool_quarrying", "tool_angling"]
 const BOSSES: Array[String] = ["boss_grade_1", "boss_grade_2", "boss_grade_3", "boss_grade_4", "boss_grade_5",
 	"boss_grade_6", "boss_grade_7", "boss_grade_8", "boss_grade_9", "boss_grade_10"]
-const MONOLITHS: Array[String] = ["redrock_stone", "whisper_stone", "mine_stone", "threshold_stone"]
+const MONOLITHS: Array[String] = ["redrock_plains", "whisper_wood", "cracked_mines", "rift_threshold"]  # M15: the area id is the source
 ## Tool modifiers per Monolith: [skill_interval_pct, double_item_chance] (NOMI.md, starting values).
-const TOOL_STATS: Dictionary = {"redrock_stone": [-26.0, 3.0], "whisper_stone": [-28.0, 4.0], "mine_stone": [-30.0, 5.0],
-	"threshold_stone": [-35.0, 7.0]}
+const TOOL_STATS: Dictionary = {"redrock_plains": [-26.0, 3.0], "whisper_wood": [-28.0, 4.0], "cracked_mines": [-30.0, 5.0],
+	"rift_threshold": [-35.0, 7.0]}
 const F120_TYPES: Array[StringName] = [&"block_heal_pct", &"kill_heal_pct", &"armor_pierce_pct", &"hit_cap_pct", &"stat_convert",
 	&"double_hit_pct", &"execute_mult", &"monolith_loot_mult", &"gather_bonus_item", &"gather_grade_up_pct", &"byproduct_mult",
 	&"card_drop_mult"]
@@ -34,10 +34,10 @@ func _kind(item: ItemDef) -> String:
 	return String(item.equip.kind) if item.equip.kind != &"" else String(item.equip.slot)
 
 
-func _ids(path: String, key: String) -> Dictionary:
+func _ids(path: String, key: String, field: String = "id") -> Dictionary:
 	var ids: Dictionary = {}
 	for e: Dictionary in (JSON.parse_string(FileAccess.get_file_as_string(path)) as Dictionary)[key]:
-		ids[e["id"]] = true
+		ids[e[field]] = true
 	return ids
 
 
@@ -52,7 +52,7 @@ func test_39_legendaries_3_for_each_of_the_13_slots() -> void:
 
 func test_every_legendary_has_a_valid_source_and_an_effect() -> void:
 	var bosses: Dictionary = _ids("res://data/maps/bosses.json", "bosses")
-	var stones: Dictionary = _ids("res://data/combat/rift_stones.json", "rift_stones")
+	var stones: Dictionary = _ids("res://data/combat/rift_stones.json", "rift_stones", "area")  # M15: a Monolith source is an area id
 	for item: ItemDef in _legendaries:
 		var leg: LegendaryInfo = item.equip.legendary
 		assert_gt(leg.effects.size(), 0, "%s has an effect" % item.id)

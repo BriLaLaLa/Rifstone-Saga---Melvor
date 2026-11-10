@@ -1,7 +1,7 @@
 extends GutTest
-## F-87 Rift Stones in the CombatEngine: the pity counter and the chance, the stone encounter, the pulse (F-25, F-75),
+## F-87 Rift Stones in the CombatEngine: the pity counter and the chance, the stone encounter, the fixed pulse (F-125),
 ## the rewards (F-28, F-84), the save and the equivalence of the steps. Fixture data: `test_stone_area` (monster A only)
-## has the stone `test_stone` (60 hp, xp 240, pulse 7 every 3000 ms, 2-4 shards, 2 test_log). Seeds are fixed.
+## has the stone `test_stone` (level 5: 450 hp by F-125, xp 240, pulse 1 every 3000 ms, 2-4 shards, 2 test_log). Seeds are fixed.
 
 const PreRun := preload("res://tests/helpers/gut_pre_run.gd")
 const CONFIG_ROOT: String = "res://data/config"
@@ -54,7 +54,7 @@ func _stone_save(stone_hp: int, player_hp: int, player_timer_ms: int, stone_time
 	return {"state": "riftstone", "area": String(AREA), "player_hp": player_hp, "player_timer_ms": player_timer_ms,
 		"hand": 0, "between_ms": 0, "loot": [], "kills": {}, "deaths": 0, "food_eaten": 0,
 		"enemies": [{"monster": String(STONE), "hp": stone_hp, "timer_ms": stone_timer_ms}],
-		"stone": {"since": 0, "pending": false}}
+		"stone": {"since": 0, "pending": false, "stone_id": ""}}
 
 
 func _total_kills(s: GameSession) -> int:
@@ -116,7 +116,7 @@ func test_area_without_stone_changes_nothing() -> void:
 	var s: GameSession = _session(_data(100.0, 1))
 	_hero(s)
 	var d: Dictionary = s.combat.to_save()
-	d["stone"] = {"since": 299, "pending": false}
+	d["stone"] = {"since": 299, "pending": false, "stone_id": ""}
 	s.combat.from_save(d)
 	s.combat.start(&"test_area")
 	var guard: int = 0
@@ -124,21 +124,21 @@ func test_area_without_stone_changes_nothing() -> void:
 		s.combat.advance(1000)
 		guard += 1
 	assert_false(s.combat.total_kills().is_empty())
-	assert_eq(_stone_state(s), {"since": 299, "pending": false}, "no counting and no roll in an area without stone")
+	assert_eq(_stone_state(s), {"since": 299, "pending": false, "stone_id": ""}, "no counting and no roll in an area without stone")
 
 
 func test_pending_is_the_next_encounter_and_the_counter_survives_stop() -> void:
 	var s: GameSession = _session(_data(0.0, 300))
 	var d: Dictionary = s.combat.to_save()
-	d["stone"] = {"since": 41, "pending": true}
+	d["stone"] = {"since": 41, "pending": true, "stone_id": "test_stone"}
 	s.combat.from_save(d)
 	s.combat.start(AREA)
 	assert_eq(s.combat.state(), CombatEngine.STATE_RIFTSTONE, "a pending stone is the next encounter")
-	assert_eq(_stone_state(s), {"since": 41, "pending": false})
+	assert_eq(_stone_state(s), {"since": 41, "pending": false, "stone_id": ""})
 	s.combat.stop()
 	assert_eq(_stone_state(s)["since"], 41, "stop keeps the counter")
 	s.combat.new_game()
-	assert_eq(_stone_state(s), {"since": 0, "pending": false})
+	assert_eq(_stone_state(s), {"since": 0, "pending": false, "stone_id": ""})
 
 
 func test_pulse_hits_every_pulse_ms_and_ignores_the_player_timer() -> void:
@@ -148,14 +148,14 @@ func test_pulse_hits_every_pulse_ms_and_ignores_the_player_timer() -> void:
 	s.combat.advance(2999)
 	assert_eq(s.combat.get_state()["player_hp"], 60)
 	s.combat.advance(1)
-	assert_eq(s.combat.get_state()["player_hp"], 53, "pulse_damage 7")
+	assert_eq(s.combat.get_state()["player_hp"], 59, "pulse_damage 1")
 	s.combat.advance(3000)
-	assert_eq(s.combat.get_state()["player_hp"], 46)
+	assert_eq(s.combat.get_state()["player_hp"], 58)
 
 
 func test_pulse_can_kill_the_player_and_loses_only_the_bag() -> void:
 	var s: GameSession = _session(_data(0.0, 300))
-	var save: Dictionary = _stone_save(60, 7, 999999)
+	var save: Dictionary = _stone_save(60, 1, 999999)
 	save["loot"] = [{"item": "test_log", "qty": 3}]
 	s.combat.from_save(save)
 	watch_signals(s.events)
@@ -166,14 +166,19 @@ func test_pulse_can_kill_the_player_and_loses_only_the_bag() -> void:
 	assert_eq(s.combat.deaths(), 1)
 
 
-func test_roll_pulse_dr_and_block() -> void:
+func test_stone_pulse_is_fixed_and_draws_nothing() -> void:
+	var rng := RngService.new(1)
+	var before: Dictionary = rng.to_save()
+	assert_eq(Encounter.stone_pulse(1), {"hit": true, "blocked": false, "damage": 1})
+	assert_eq(rng.to_save(), before, "no random draw")
+
+
+func test_the_pulse_of_the_fracture_still_rolls_dr_and_block() -> void:  # F-111, unchanged by M15
 	var me := CombatantStats.new()
 	me.damage_reduction = 50.0
 	var rng := RngService.new(1)
 	var hit: Dictionary = Encounter.roll_pulse(7, me, 0.0, rng, TestFactory.real_data())
 	assert_eq(hit, {"hit": true, "blocked": false, "damage": 3}, "F-25: floor(7 x 0.5), never misses")
-	me.damage_reduction = 0.0
-	assert_eq(Encounter.roll_pulse(7, me, 0.0, rng, TestFactory.real_data())["damage"], 7)
 	var blocked: Dictionary = Encounter.roll_pulse(7, me, 100.0, rng, TestFactory.real_data())
 	assert_eq(blocked, {"hit": true, "blocked": true, "damage": 0}, "F-75: a block stops the pulse")
 
@@ -206,7 +211,7 @@ func test_stone_pieces_use_the_stone_rarity_and_the_area_item_level() -> void:
 	drop.chance_pct = 100.0
 	drop.qty_min = 1
 	drop.qty_max = 1
-	data.rift_stone_for_area(AREA).drops = [drop] as Array[DropEntry]
+	data.rift_stone(STONE).drops = [drop] as Array[DropEntry]
 	var s: GameSession = _session(data)
 	_hero(s)
 	TestFactory.make_roomy(s)
@@ -220,28 +225,34 @@ func test_stone_pieces_use_the_stone_rarity_and_the_area_item_level() -> void:
 	var better: int = 0
 	var total: int = s.armory.used()
 	for inst: ItemInstance in s.armory.instances():
-		assert_eq(inst.ilvl, 1, "the highest combat level of the monsters of the area")
+		# the drop of the stone: the highest combat level of the monsters of the area; the guaranteed piece (F-127): the level 5 of the stone
+		assert_true(inst.ilvl == 1 or inst.ilvl == 5, "item level %d" % inst.ilvl)
 		if inst.rarity != &"common":
 			better += 1
 	assert_gt(total, 250, "a piece per stone (hits can miss the 1 hp stone, so not all 300)")
 	assert_gt(float(better) / float(total), 0.4, "40% magic + 12% rare = 52% (monsters: 23%)")
 
 
-func test_summoned_pack_fights_with_the_stone() -> void:
+func test_the_stone_comes_alone_and_summons_with_the_first_hit() -> void:
 	var data: GameData = _data(0.0, 300)
-	data.rift_stone_for_area(AREA).summon_pack = 0
 	var s: GameSession = _session(data)
 	var d: Dictionary = s.combat.to_save()
-	d["stone"] = {"since": 0, "pending": true}
+	d["stone"] = {"since": 0, "pending": true, "stone_id": "test_stone"}
 	s.combat.from_save(d)
 	s.combat.start(AREA)
 	var enemies: Array = s.combat.get_state()["enemies"]
-	assert_eq(enemies.size(), 2)
+	assert_eq(enemies.size(), 1, "M15: the stone alone")
 	assert_eq(enemies[0]["monster"], STONE)
-	assert_eq(enemies[1]["monster"], MONSTER_A)
+	assert_eq(enemies[0]["max_hp"], StoneFight.max_hp(5, data), "F-125")
+	var guard: int = 0
+	while s.combat.get_state()["enemies"].size() == 1 and guard < 100:  # until the first hit that lands
+		s.combat.advance(500)
+		guard += 1
+	enemies = s.combat.get_state()["enemies"]
+	assert_eq(enemies.size(), 1 + int(data.balance_value("metin.wave_size")), "the first hit calls the first wave")
 	var other: GameSession = _session(data)
 	other.combat.from_save(s.combat.to_save())
-	assert_eq(other.combat.to_save(), s.combat.to_save(), "save -> load -> save with the stone and its pack")
+	assert_eq(other.combat.to_save(), s.combat.to_save(), "save -> load -> save with the stone and its wave")
 	assert_eq(other.combat.state(), CombatEngine.STATE_RIFTSTONE)
 
 

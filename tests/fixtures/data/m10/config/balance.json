@@ -74,6 +74,8 @@
     "grade_mult": [1, 2, 3, 4, 5]
   },
   "combat": {
+    "crowd_threshold": 8,
+    "skip_stone_level": 0,
     "acc_level_offset": 8,
     "acc_bonus_offset": 50,
     "maxhit_level_offset": 10,
@@ -218,6 +220,15 @@
       {"min_level": 80, "grade": 7, "plates": 5, "handles": 2, "gold": 20000},
       {"min_level": 90, "grade": 8, "plates": 6, "handles": 3, "gold": 40000}
     ]
+  },
+  "metin": {
+    "hp_base": 200,
+    "hp_per_level": 0.25,
+    "pulse_damage": 1,
+    "wave_size": 7,
+    "wave_thresholds": [75, 50, 25],
+    "rarity_bonus_pct": 100,
+    "guaranteed_pieces": 1
   },
   "rift_stone": {"chance_pct": 0.5, "pity_kills": 300},
   "salvage": {

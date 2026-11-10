@@ -43,11 +43,11 @@ const LEGENDARIES: Dictionary = {
 	"Scheggia di Ossidiana Viva": "boss_grade_8", "Cappello dell'Occhio Vitreo": "boss_grade_8", "Sandali del Colosso Lieve": "boss_grade_8",
 	"Annuncio dell'Eclissi": "boss_grade_9", "Veste dell'Araldo": "boss_grade_9", "Mitene dell'Ombra Lunga": "boss_grade_9",
 	"Sigillo del Primo Frammento": "boss_grade_10", "Brache dell'Origine": "boss_grade_10", "Frammento Originario": "boss_grade_10",
-	"Accetta del Taglialegna Paziente": "redrock_stone", "Canna del Pescatore Sereno": "redrock_stone",
-	"Accetta della Radura Cantante": "whisper_stone", "Piccone del Cercatore": "whisper_stone",
-	"Piccone della Vena Profonda": "mine_stone", "Canna dei Pozzi Neri": "mine_stone",
-	"Accetta del Bosco Perduto": "threshold_stone", "Piccone dell'Ultima Galleria": "threshold_stone",
-	"Canna del Leviatano Dormiente": "threshold_stone",
+	"Accetta del Taglialegna Paziente": "redrock_plains", "Canna del Pescatore Sereno": "redrock_plains",
+	"Accetta della Radura Cantante": "whisper_wood", "Piccone del Cercatore": "whisper_wood",
+	"Piccone della Vena Profonda": "cracked_mines", "Canna dei Pozzi Neri": "cracked_mines",
+	"Accetta del Bosco Perduto": "rift_threshold", "Piccone dell'Ultima Galleria": "rift_threshold",
+	"Canna del Leviatano Dormiente": "rift_threshold",
 }
 ## Names of other games that must not appear (clean room): fragments, lower case.
 const FORBIDDEN: Array[String] = ["melvor", "metin", "path of exile", "excalibur", "mithril", "adamant", "scimitar", "rune sword",

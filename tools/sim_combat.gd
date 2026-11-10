@@ -286,7 +286,8 @@ static func measure(data: Object, area: Object, scope: String, opts: Dictionary)
 ## [seconds to kill the stone of the area, % of the player's hp lost to its pulses meanwhile] for the current gear,
 ## from the average hit (no abilities, no food): the same F-22..F-25 steps the engine uses. [0, 0] without a stone.
 static func stone_estimate(data: Object, area: Object, session: Object) -> Array[float]:
-	var def: Object = data.call("rift_stone_for_area", area.id)
+	var pool: Array = data.call("rift_stones_for_area", area.id)  # M15: the stone in the middle of the pool
+	var def: Object = pool[pool.size() / 2] if not pool.is_empty() else null
 	if def == null:
 		return [0.0, 0.0]
 	var math: GDScript = load("res://systems/combat/combat_math.gd") as GDScript
@@ -296,12 +297,8 @@ static func stone_estimate(data: Object, area: Object, session: Object) -> Array
 	var avg: int = int(math.call("triangle_damage", int((me.min_hit + me.max_hit) / 2), relation, data))
 	avg = int(math.call("damage_after_dr", avg, math.call("effective_dr", stone.stats.damage_reduction, relation, data)))
 	var dps: float = float(math.call("hit_chance", me.accuracy, stone.stats.evasion, data)) * avg / (me.attack_interval_ms / 1000.0)
-	var ttk: float = float(def.hp) / maxf(dps, 0.001)
-	var back: StringName = math.call("triangle", stone.stats.style, me.style, data)
-	# M14: the player reduces with Armour (the pulse is neutral style, F-117), L_att = power_level of the stone.
-	var neutral: StringName = StringName(str(data.call("balance_value", "combat.unarmed.style")))
-	var my_dr: float = float(me.call("reduction_against", neutral, stone.stats.level, data))
-	var pulse: int = int(math.call("damage_after_dr", def.pulse_damage, math.call("effective_dr", my_dr, back, data)))
+	var ttk: float = float((load("res://systems/combat/stone_fight.gd") as GDScript).call("max_hp", def.level, data)) / maxf(dps, 0.001)
+	var pulse: int = int(data.call("balance_value", "metin.pulse_damage"))  # M15 (F-125): fixed, ignores Armour and Barrier
 	return [ttk, ttk / (def.pulse_ms / 1000.0) * pulse * 100.0 / me.max_hp]
 
 

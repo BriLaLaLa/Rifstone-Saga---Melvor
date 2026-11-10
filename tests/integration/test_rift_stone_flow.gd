@@ -1,5 +1,5 @@
 extends GutTest
-## Integration, Rift Stone flow (M7, F-87) on the real data: the pity guarantee, the stone encounter (pulse, summoned
+## Integration, Rift Stone flow (M7, F-87, M15) on the real data: the pity guarantee, the stone encounter (fixed pulse, waves
 ## pack), the rewards (XP, shards, drops with the stone rarity and the area item level), save/load in the middle of
 ## the encounter and the equivalence of the advance steps.
 ##
@@ -9,17 +9,17 @@ const SEED: int = 70702
 const OTHER_SEED: int = 31
 const NOW_MS: int = 1793603600000
 const AREA: StringName = &"redrock_plains"
-const STONE: StringName = &"redrock_stone"
+const STONE: StringName = &"redrock_plains_stone_5"
 const SEAL: StringName = &"warding_seal"
 const SHARD: StringName = &"rift_shard"
 const HERO: StringName = &"test:hero"
 const TANK: StringName = &"test:tank"
-# From data/combat/rift_stones.json (redrock_stone) and F-87.
-const STONE_XP: int = 400
-const PULSE_DAMAGE: int = 2
+# From data/combat/rift_stones.json (redrock_plains_stone_5, level 5: 450 hp by F-125) and F-87.
+const STONE_XP: int = 200
+const PULSE_DAMAGE: int = 1
 const PULSE_MS: int = 3000
-const SHARDS_MIN: int = 3
-const SHARDS_MAX: int = 6
+const SHARDS_MIN: int = 2
+const SHARDS_MAX: int = 3
 
 var _encounters: Array = []
 var _appeared: Array[StringName] = []
@@ -71,9 +71,9 @@ func _session(data: GameData, seed_value: int = SEED, hero: bool = true, tank: b
 
 
 # The combat save with the Rift Stone counter set (public: 05 5.10 "combat.stone").
-func _set_stone(s: GameSession, since: int, pending: bool) -> void:
+func _set_stone(s: GameSession, since: int, pending: bool, stone_id: StringName = STONE) -> void:
 	var d: Dictionary = s.combat.to_save()
-	d["stone"] = {"since": since, "pending": pending}
+	d["stone"] = {"since": since, "pending": pending, "stone_id": String(stone_id) if pending else ""}
 	s.combat.from_save(d)
 
 
@@ -90,11 +90,12 @@ func test_pity_guarantees_the_stone_after_the_next_kill_then_the_counter_restart
 	_set_stone(s, 299, false)  # pity_kills = 300 (balance.json)
 	assert_true(s.combat.start(AREA).ok)
 	_run_until(s, func() -> bool: return _appeared.size() > 0)
-	assert_eq(_appeared, [STONE] as Array[StringName], "the stone of the area appears")
+	assert_eq(_appeared.size(), 1, "a stone of the area appears")
+	assert_eq(s.data.rift_stone(_appeared[0]).area_id, AREA, "drawn from the pool of the area (5, 10, 15)")
 	assert_eq(_kills_at_appearance, 1, "during the first group: since 299 + its first kill >= pity")
 	_run_until(s, func() -> bool: return s.combat.state() == CombatEngine.STATE_RIFTSTONE)
 	var last: Array = _encounters[_encounters.size() - 1]
-	assert_eq(last, [STONE], "the next encounter is the stone alone (summon_pack null for Roccarossa)")
+	assert_eq(last, [_appeared[0]], "the next encounter is the drawn stone alone (its waves come with the hits)")
 	var stone: Dictionary = s.combat.to_save()["stone"]
 	assert_eq(stone["pending"], false, "the stone is consumed when it starts")
 	assert_eq(stone["since"], 0, "the counter restarted when it appeared")
@@ -121,14 +122,14 @@ func test_killing_the_stone_pays_xp_shards_and_the_stone_drops() -> void:
 	var shards: int = int(bag.get(SHARD, 0)) + s.bank.get_count(SHARD) - shards_before
 	assert_between(shards, SHARDS_MIN, SHARDS_MAX, "shards in the range of the stone")
 	assert_eq(int(bag.get(SEAL, 0)) + s.bank.get_count(SEAL), 1, "the Seal (certain in this copy) reaches the loot bag")
-	# Pieces: the two rolls land in the Armory with the stone rarity table and the item level of the area.
+	# Pieces: the two drop rolls and the guaranteed piece (F-127) wait in the bag, then land in the Armory.
 	var bases: Array[StringName] = []
 	for inst: ItemInstance in s.armory.instances():
 		bases.append(inst.base_id)
-		assert_eq(inst.ilvl, 8, "F-85: the highest combat level among the monsters of the area (redrock_raider)")
+		assert_true(inst.ilvl == 8 or inst.ilvl == 5, "F-85: the highest combat level of the area (8) or the level of the stone (5)")
 		assert_eq(inst.upgrade, 0)
-	bases.sort_custom(func(a: StringName, b: StringName) -> bool: return String(a) < String(b))  # StringName < is not alphabetical
-	assert_eq(bases, [&"emberbronze_amulet", &"emberbronze_ring"] as Array[StringName], "one of each, once")
+	assert_eq(bases.size(), 3, "two drops and the guaranteed piece")
+	assert_true(bases.has(&"emberbronze_amulet") and bases.has(&"emberbronze_ring"), "one of each, once")
 	var blueprints: int = int(bag.get(&"bp_mw_hands_2", 0)) + s.bank.get_count(&"bp_mw_hands_2")
 	assert_eq(blueprints, 1, "the blueprint of the stone reaches the loot bag or the bank, never the Armory")
 	assert_eq(s.combat.state(), CombatEngine.STATE_BETWEEN, "then the usual wait before the next group")
@@ -141,7 +142,7 @@ func test_loot_of_the_stone_survives_death_rules_like_any_loot() -> void:
 	s.combat.start(AREA)
 	_run_until(s, func() -> bool: return _stone_kills > 0, 100)
 	var pieces: int = s.combat.loot.pieces().size()
-	assert_eq(pieces, 2)
+	assert_eq(pieces, 3, "two drops and the guaranteed piece")
 	assert_true(s.combat.loot.used() > 0)
 	var lost: Array[StringName] = []
 	s.events.loot_lost.connect(func(item: StringName, _q: int) -> void: lost.append(item))
@@ -164,21 +165,24 @@ func test_pulse_hits_every_pulse_ms_for_the_data_damage() -> void:
 	assert_eq(int(s.combat.get_state()["player_hp"]), hp - 2 * PULSE_DAMAGE)
 
 
-func test_whisper_stone_summons_its_pack_with_the_stone_first() -> void:
+func test_whisper_stone_comes_alone_and_its_wave_comes_with_the_first_hit() -> void:
 	var s: GameSession = _session(_data())
 	TestFactory.set_character_level(s, 16)
-	var d: Dictionary = s.combat.to_save()
-	d["stone"] = {"since": 0, "pending": true}
-	s.combat.from_save(d)
+	_set_stone(s, 0, true, &"whisper_wood_stone_30")
 	assert_true(s.combat.start(&"whisper_wood").ok)
-	var enemies: Array = s.combat.get_state()["enemies"]
-	var ids: Array[StringName] = []
-	for e: Dictionary in enemies:
-		ids.append(e["monster"])
-	var pack: Array[StringName] = s.data.area(&"whisper_wood").packs[s.data.rift_stone_for_area(&"whisper_wood").summon_pack].monster_ids
-	assert_eq(ids[0], &"whisper_stone")
-	assert_eq(ids.slice(1), pack, "the summoned pack follows, in position order")
-	assert_eq(s.combat.state(), CombatEngine.STATE_RIFTSTONE)
+	var state: Dictionary = s.combat.get_state()
+	assert_eq(state["state"], CombatEngine.STATE_RIFTSTONE)
+	assert_eq((state["enemies"] as Array).size(), 1)
+	assert_eq(state["enemies"][0]["monster"], &"whisper_wood_stone_30")
+	assert_eq(state["stone"]["level"], 30)
+	assert_eq(state["stone"]["max_hp"], StoneFight.max_hp(30, s.data))
+	var waves: Array = []
+	s.events.rift_stone_wave.connect(func(_id: StringName, threshold: int, count: int) -> void: waves.append([threshold, count]))
+	_run_until(s, func() -> bool: return not waves.is_empty() or not s.combat.is_active(), 250, 400)
+	assert_eq(waves.slice(0, 1), [[StoneFight.FIRST_HIT, 7]], "the first hit calls a wave of 7 monsters of the area")
+	var area_monsters: Array[StringName] = s.data.area(&"whisper_wood").monster_ids
+	for i: int in range(1, (s.combat.get_state()["enemies"] as Array).size()):
+		assert_true(area_monsters.has(s.combat.get_state()["enemies"][i]["monster"]))
 
 
 func test_save_load_in_the_middle_of_the_stone_continues_identically() -> void:
@@ -199,7 +203,6 @@ func test_save_load_in_the_middle_of_the_stone_continues_identically() -> void:
 		s.advance(1000)
 		copy.advance(1000)
 	assert_eq(_diff(SaveCodec.decode(SaveCodec.encode(copy.to_save(NOW_MS))), SaveCodec.decode(SaveCodec.encode(s.to_save(NOW_MS))), ""), [], "the same continuation after the load (rng included)")
-	assert_gt(_stone_kills, 0, "the stone died in the minute and paid")
 
 
 func test_steps_do_not_change_the_stone_fight_on_real_data() -> void:

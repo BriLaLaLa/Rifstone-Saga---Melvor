@@ -26,6 +26,7 @@ var _hits: Array[Array] = []
 var _eaten: Array[Array] = []
 var _lost: Array[Array] = []
 var _killed: int = 0
+var _called: int = 0  # M15: monsters called by the waves of the Rift Stones (killed, but no counted kills)
 var _died: int = 0
 var _stops: Array[StringName] = []
 
@@ -43,12 +44,14 @@ func _geared(seed_value: int, hp_flat: float = 0.0) -> GameSession:
 	_eaten = []
 	_lost = []
 	_killed = 0
+	_called = 0
 	_died = 0
 	_stops = []
 	s.events.combat_hit.connect(func(a: int, t: int, h: bool, d: int, b: bool) -> void: _hits.append([a, t, h, d, b]))
 	s.events.food_eaten.connect(func(item: StringName, healed: int) -> void: _eaten.append([item, healed]))
 	s.events.loot_lost.connect(func(item: StringName, qty: int) -> void: _lost.append([item, qty]))
 	s.events.monster_killed.connect(func(_i: int, _m: StringName) -> void: _killed += 1)
+	s.events.rift_stone_wave.connect(func(_id: StringName, _t: int, count: int) -> void: _called += count)
 	s.events.player_died.connect(func() -> void: _died += 1)
 	s.events.combat_stopped.connect(func(reason: StringName) -> void: _stops.append(reason))
 	return s
@@ -98,7 +101,7 @@ func test_fight_gives_xp_gold_loot_and_a_parry_that_does_no_damage() -> void:
 	for n: int in s.combat.total_kills().values():
 		total += n
 	# a defeated Rift Stone (M7-04) emits monster_killed but is not counted as a monster kill
-	assert_between(_killed - total, 0, 3, "the counters match the monster_killed signals (less the stones)")
+	assert_between(_killed - total, 0, 3 + _called, "the counters match the monster_killed signals (less the stones and their called monsters)")
 	assert_gt(s.character.get_xp(), xp_before, "F-28 xp")
 	assert_gt(s.wallet.get_gold(), gold_before, "F-31 gold")
 	assert_gt(s.combat.loot.items().size(), 0, "F-32 drops land in the loot bag")

@@ -1,13 +1,13 @@
 extends RefCounted
 ## Not a test (GUT only runs `test_*.gd`): GameData of the main fixtures (res://tests/fixtures/data, the real
 ## configuration) plus the M14 content of res://tests/fixtures/data/m14: one legendary per effect type of F-120 (every
-## source has chance_pct 100, bosses boss_grade_1..5 and the Monoliths test_stone / test_loot_stone), three legendary tools
+## source has chance_pct 100, bosses boss_grade_1..5 and the Monolith sources test_stone_area / test_loot_area (M15: an area id)), three legendary tools
 ## and the three gathering skills of their slots (forestry, quarrying, angling; actions `<skill>_a` level 1 -> test_twig
 ## and `<skill>_b` level 10 -> test_log). The content is copied once per run to user:// (below PreRun.test_dir).
 ##
 ## Legendaries by source: boss_grade_1 fx_leg_blockheal, fx_leg_killheal; boss_grade_2 fx_leg_pierce, fx_leg_cap,
 ## fx_leg_convert; boss_grade_3 fx_leg_double, fx_leg_execute; boss_grade_4 fx_leg_timer; boss_grade_5 fx_leg_hatchet;
-## test_stone fx_leg_rod, fx_leg_pick; test_loot_stone fx_leg_monolith, fx_leg_cards.
+## test_stone_area fx_leg_rod, fx_leg_pick; test_loot_area fx_leg_monolith, fx_leg_cards.
 
 const PreRun := preload("res://tests/helpers/gut_pre_run.gd")
 const MAIN_ROOT: String = "res://tests/fixtures/data"

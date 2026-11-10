@@ -47,7 +47,7 @@ func _played() -> GameSession:
 	assert_true(s.armory.set_filter(&"weapon", &"magic", 3).ok)
 	assert_true(s.armory.set_filter(&"ring", &"common", 2).ok)
 	var combat: Dictionary = s.combat.to_save()
-	combat["stone"] = {"since": 123, "pending": true}
+	combat["stone"] = {"since": 123, "pending": true, "stone_id": "redrock_plains_stone_5"}
 	s.combat.from_save(combat)
 	return s
 
@@ -79,7 +79,7 @@ func test_filter_refinement_and_stone_survive_save_load_save() -> void:
 	assert_eq(copy.equipment.get_uid(&"weapon"), s.equipment.get_uid(&"weapon"), "the refined sword is still worn")
 	assert_eq(copy.modifiers.total(&"power_bonus"), s.modifiers.total(&"power_bonus"),
 			"and its refined modifiers are rebuilt after the load")
-	assert_eq(copy.combat.to_save()["stone"], {"since": 123, "pending": true}, "the Rift Stone counter")
+	assert_eq(copy.combat.to_save()["stone"], {"since": 123, "pending": true, "stone_id": "redrock_plains_stone_5"}, "the Rift Stone counter")
 	assert_eq(copy.armory.to_save()["next_uid"], s.armory.to_save()["next_uid"])
 
 
@@ -105,7 +105,7 @@ func test_saves_without_the_additive_keys_load_as_keep_everything() -> void:
 	var copy: GameSession = _session(OTHER_SEED)
 	assert_true(copy.from_save(SaveCodec.decode(SaveCodec.encode(saved))).ok)
 	assert_eq(copy.armory.filter_rules(), {}, "no filter key: keep everything")
-	assert_eq(copy.combat.to_save()["stone"], {"since": 0, "pending": false}, "no stone key: counter 0")
+	assert_eq(copy.combat.to_save()["stone"], {"since": 0, "pending": false, "stone_id": ""}, "no stone key: counter 0")
 	assert_eq(copy.armory.instances().size(), s.armory.instances().size(), "the pieces are untouched")
 
 
@@ -126,7 +126,7 @@ func test_a_new_game_resets_the_filter_the_stone_and_the_refinement() -> void:
 	var s: GameSession = _played()
 	s.new_game()
 	assert_eq(s.armory.filter_rules(), {})
-	assert_eq(s.combat.to_save()["stone"], {"since": 0, "pending": false})
+	assert_eq(s.combat.to_save()["stone"], {"since": 0, "pending": false, "stone_id": ""})
 	# a new game gives the starting kit (3 pieces + 3 unique tools), nothing else
 	var kit: int = (s.data.balance_value("start.armory") as Array).size() + (s.data.balance_value("start.tools") as Array).size()
 	assert_eq(s.armory.instances().size(), kit, "only the starting kit")

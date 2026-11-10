@@ -153,7 +153,7 @@ func _stone_refs(refs: Array[GuideRef], stone: RiftStoneDef) -> void:
 	_tables_of(refs, KIND_STONE, stone.loot_tables)
 	if stone.shards_max > 0:
 		_put(refs, KIND_STONE, SHARD_ITEM, -1.0)
-	_legendaries(refs, LegendaryInfo.SOURCE_MONOLITH, stone.id)
+	_legendaries(refs, LegendaryInfo.SOURCE_MONOLITH, stone.area_id)  # M15: a Monolith source is the area id
 
 
 func _boss_def(id: StringName) -> BossDef:
@@ -192,9 +192,10 @@ func _legendary_ref(item_id: StringName, info: LegendaryInfo) -> GuideRef:
 		var boss: BossDef = _boss_def(info.source_id)
 		return GuideRef.make(GuideRef.KIND_BOSS, GuideIndex.entry(&"page", &"guide_fractures"),
 				boss.name if boss != null else String(info.source_id), "Boss, %s%%" % pct, item_id, info.chance_pct)
-	var stone: RiftStoneDef = _data.rift_stone(info.source_id) if _data.has_rift_stone(info.source_id) else null
-	var target: StringName = GuideIndex.entry(&"area", stone.area_id) if stone != null else &""
-	return GuideRef.make(GuideRef.KIND_RIFT_STONE, target, stone.name if stone != null else String(info.source_id),
+	# M15: the source of a Monolith legendary is an area id (any Monolith of that area)
+	var area: AreaDef = _data.area(info.source_id) if _data.has_area(info.source_id) else null
+	var target: StringName = GuideIndex.entry(&"area", area.id) if area != null else &""
+	return GuideRef.make(GuideRef.KIND_RIFT_STONE, target, area.name if area != null else String(info.source_id),
 			"Monolito, %s%%" % pct, item_id, info.chance_pct)
 
 

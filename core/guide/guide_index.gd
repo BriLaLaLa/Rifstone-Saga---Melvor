@@ -155,8 +155,7 @@ func _build_sources() -> void:
 	for area: AreaDef in _data.areas():
 		for monster_id: StringName in area.monster_ids:
 			_add_monster_sources(area, _data.monster(monster_id))
-		var stone: RiftStoneDef = _data.rift_stone_for_area(area.id)
-		if stone != null:
+		for stone: RiftStoneDef in _data.rift_stones_for_area(area.id):
 			_add_stone_sources(area, stone)
 	for skill: SkillDef in _data.skills():
 		for action: ActionDef in _data.actions_for_skill(skill.id):

@@ -6,7 +6,7 @@ extends GutTest
 const KILLS_PER_HOUR: Dictionary = {&"redrock_plains": 206.0, &"whisper_wood": 108.0, &"cracked_mines": 82.0, &"rift_threshold": 60.0}
 ## F-113: the grades of the Cards in the tables of each area and Monolito.
 const AREA_GRADES: Dictionary = {&"redrock_plains": [1], &"whisper_wood": [1, 2], &"cracked_mines": [1, 2, 3], &"rift_threshold": [2, 3]}
-const MONOLITH_GRADES: Dictionary = {&"redrock_stone": [1], &"whisper_stone": [1, 2], &"mine_stone": [2, 3], &"threshold_stone": [3, 4]}
+const MONOLITH_GRADES: Dictionary = {&"redrock_plains": [1], &"whisper_wood": [1, 2], &"cracked_mines": [2, 3], &"rift_threshold": [3, 4]}  # M15: by area
 const HOURS_MIN: float = 2.0
 const HOURS_MAX: float = 4.0
 
@@ -43,8 +43,9 @@ func test_areas_drop_the_cards_of_their_grades() -> void:
 
 
 func test_monoliths_drop_the_cards_of_their_grades() -> void:
-	for stone_id: StringName in MONOLITH_GRADES:
-		assert_eq(_card_grades(_data.rift_stone(stone_id).loot_tables), MONOLITH_GRADES[stone_id] as Array, String(stone_id))
+	for area_id: StringName in MONOLITH_GRADES:
+		for stone: RiftStoneDef in _data.rift_stones_for_area(area_id):
+			assert_eq(_card_grades(stone.loot_tables), MONOLITH_GRADES[area_id] as Array, String(stone.id))
 
 
 func test_cards_of_grades_one_to_four_drop_somewhere() -> void:

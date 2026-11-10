@@ -31,9 +31,10 @@ func before_all() -> void:
 	_areas = _read("res://data/combat/areas.json")["areas"]
 	for m: Dictionary in _read("res://data/combat/monsters.json")["monsters"]:
 		_monsters[m["id"]] = m
-	for path: String in ["materials", "equipment", "blueprints"]:
-		for m: Dictionary in _read("res://data/items/%s.json" % path)["items"]:
-			_items[m["id"]] = m
+	for file: String in DirAccess.get_files_at("res://data/items"):  # the item files are split by kind (M14)
+		if file.ends_with(".json"):
+			for m: Dictionary in _read("res://data/items/%s" % file)["items"]:
+				_items[m["id"]] = m
 
 
 func _read(path: String) -> Dictionary:

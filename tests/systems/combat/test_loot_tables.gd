@@ -86,7 +86,7 @@ func test_monsters_without_tables_keep_their_rolls() -> void:
 func test_the_rift_stone_uses_only_its_own_tables() -> void:
 	var stone := RiftStone.new(_session)
 	var loot: LootBag = _session.combat.loot
-	stone.reward(loot, AREA)
+	stone.reward(loot, _session.data.rift_stone(&"test_loot_stone"))
 	assert_eq(_count(_session, STONE_ITEM), 1)
 	assert_eq(_count(_session, DUST), 0, "not the tables of the area")
 	assert_eq(_count(_session, CRYSTAL), 0, "not the tables of the monsters")

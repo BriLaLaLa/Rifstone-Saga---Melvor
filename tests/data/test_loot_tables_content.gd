@@ -3,8 +3,8 @@ extends GutTest
 ## the starting values of the formulas. Starting values: M12-07 may retune them in the data.
 
 const AREAS: Array[String] = ["redrock_plains", "whisper_wood", "cracked_mines", "rift_threshold"]
-const MONOLITHS: Dictionary = {"redrock_stone": "loot_monolith_redrock", "whisper_stone": "loot_monolith_whisper",
-		"mine_stone": "loot_monolith_mine", "threshold_stone": "loot_monolith_threshold"}
+const MONOLITHS: Dictionary = {"redrock_plains": "loot_monolith_redrock", "whisper_wood": "loot_monolith_whisper",  # M15: by area (every stone of an area shares its table)
+		"cracked_mines": "loot_monolith_mine", "rift_threshold": "loot_monolith_threshold"}
 const FAMILIES: Array[String] = ["ember", "eye", "shade", "root"]
 const TRADES: Array[String] = ["forestry", "quarrying", "angling"]
 ## The contract grade of each area: the highest one dropped there and the grade of its Monolito.
@@ -35,8 +35,9 @@ func test_every_area_and_monolith_has_its_table() -> void:
 	assert_eq(_data.loot_tables().size(), 8)
 	for area_id: String in AREAS:
 		assert_eq(_data.area(StringName(area_id)).loot_tables, [StringName("loot_area_" + area_id)] as Array[StringName], area_id)
-	for stone_id: String in MONOLITHS:
-		assert_eq(_data.rift_stone(StringName(stone_id)).loot_tables, [StringName(MONOLITHS[stone_id])] as Array[StringName], stone_id)
+	for area_id: String in MONOLITHS:
+		for stone: RiftStoneDef in _data.rift_stones_for_area(StringName(area_id)):
+			assert_eq(stone.loot_tables, [StringName(MONOLITHS[area_id])] as Array[StringName], stone.id)
 
 
 func test_area_tables_follow_8_5b() -> void:

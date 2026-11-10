@@ -71,7 +71,7 @@ static func tag_text(data: GameData, id: StringName, player_style: StringName) -
 static func info_text(data: GameData, id: StringName) -> String:
 	if is_stone(data, id):
 		var stone: RiftStoneDef = data.rift_stone(id)
-		return STONE_INFO_TEXT % [CombatTexts.seconds_text(stone.pulse_ms), NumberFormat.format_int(stone.pulse_damage)]
+		return STONE_INFO_TEXT % [CombatTexts.seconds_text(stone.pulse_ms), NumberFormat.format_int(StoneFight.pulse_damage(data))]  # M15: the pulse comes from metin.pulse_damage
 	var def: MonsterDef = monster_of(data, id)
 	if def == null:
 		return ""

@@ -28,6 +28,7 @@ func before_all() -> void:
 	DirAccess.make_dir_recursive_absolute(_tmp_config)
 	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_ROOT.path_join("balance.json")))
 	(balance["combat"] as Dictionary)["respawn_ms"] = 0
+	(balance["rift_stone"] as Dictionary)["pity_kills"] = 1000000  # M15: a Rift Stone (450 hp, waves) is not the F-34 setup
 	_write("balance.json", JSON.stringify(balance))
 	_write("stats.json", FileAccess.get_file_as_string(CONFIG_ROOT.path_join("stats.json")))
 	_data = GameData.load_from_dirs(CONTENT_ROOT, _tmp_config)
@@ -35,6 +36,7 @@ func before_all() -> void:
 	# The test area: only the first pack, a single plains_boar (the area belongs to this private GameData).
 	var area: AreaDef = _data.area(AREA)
 	area.packs = area.packs.slice(0, 1)
+	area.rift_stone_chance_pct = 0.0
 
 
 func after_all() -> void:

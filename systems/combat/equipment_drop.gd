@@ -16,6 +16,11 @@ static func candidate_grades(monster_level: int, data: GameData) -> Array[int]:
 static func roll(monster_level: int, data: GameData, rng: RngService) -> StringName:
 	if not rng.roll_pct(float(data.balance_value(EquipmentPool.EQUIPMENT_KEY + ".chance_pct"))):
 		return &""
+	return pick(monster_level, data, rng)
+
+
+## F-121 steps 2-3 without the probability roll (F-127 guaranteed piece): type, material (armour and shield only), grade.
+static func pick(monster_level: int, data: GameData, rng: RngService) -> StringName:
 	var kinds: Array[StringName] = EquipmentPool.kinds(data)
 	var kind: StringName = kinds[rng.pick_weighted(EquipmentPool.weights(kinds, data))]
 	var materials: Array[StringName] = EquipmentPool.materials_of(kind, data)

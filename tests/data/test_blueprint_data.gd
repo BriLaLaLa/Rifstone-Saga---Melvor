@@ -181,8 +181,9 @@ func test_every_drop_material_has_a_source() -> void:
 		for monster_id: StringName in _area_monster_ids(a):
 			for drop: DropEntry in _data.monster(monster_id).drops:
 				dropped[drop.item_id] = true
-		for drop: DropEntry in _data.rift_stone_for_area(StringName(AREAS[a])).drops:
-			dropped[drop.item_id] = true
+		for stone: RiftStoneDef in _data.rift_stones_for_area(StringName(AREAS[a])):
+			for drop: DropEntry in stone.drops:
+				dropped[drop.item_id] = true
 	# M12: the raw materials of the loot tables and the byproducts of the milestones are sources of their own
 	for table: LootTableDef in _data.loot_tables():
 		for entry: DropEntry in table.entries:

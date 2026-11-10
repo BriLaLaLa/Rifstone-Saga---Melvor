@@ -117,7 +117,7 @@ static func _convert_stats(v: DataValidatorRules, effect: Dictionary, prefix: St
 static func validate_sources(v: DataValidatorRules, items: Dictionary[String, Dictionary],
 		bosses: Dictionary[String, Dictionary], stones: Dictionary[String, Dictionary]) -> void:
 	var boss_ids: Dictionary[String, bool] = _ids(bosses, "bosses")
-	var stone_ids: Dictionary[String, bool] = _ids(stones, "rift_stones")
+	var stone_ids: Dictionary[String, bool] = _ids(stones, "rift_stones", "area")  # M15: a Monolith source is an area id
 	var per_boss: Dictionary[String, int] = {}
 	var blueprint_bases: Dictionary[String, bool] = {}
 	var masterworks: Array[String] = []
@@ -161,11 +161,11 @@ static func _check_source(v: DataValidatorRules, source: Dictionary, boss_ids: D
 		v.fail("field 'equip.legendary.source.id': unknown Monolith '%s'" % id)
 
 
-static func _ids(files: Dictionary[String, Dictionary], key: String) -> Dictionary[String, bool]:
+static func _ids(files: Dictionary[String, Dictionary], key: String, id_field: String = "id") -> Dictionary[String, bool]:
 	var result: Dictionary[String, bool] = {}
 	for path: String in files:
 		var list: Variant = files[path].get(key)
 		for e: Variant in (list as Array if list is Array else []):
-			if e is Dictionary and (e as Dictionary).get("id") is String:
-				result[(e as Dictionary)["id"] as String] = true
+			if e is Dictionary and (e as Dictionary).get(id_field) is String:
+				result[(e as Dictionary)[id_field] as String] = true
 	return result

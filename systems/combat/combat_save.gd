@@ -27,7 +27,10 @@ static func write(snapshot: Dictionary) -> Dictionary:
 		"buffs": {} if idle else snapshot["buffs"],
 		"loot": snapshot["loot"], "kills": kills_out, "deaths": snapshot["deaths"],
 		"food_eaten": snapshot["food_eaten"], "stone": snapshot["stone"],
+		"skip_stone_level": snapshot.get("skip_stone_level", 0),  # M15 (F-128): a slot setting, saved also when idle
 	}
+	if not idle and snapshot.get("wave") is Dictionary and not (snapshot["wave"] as Dictionary).is_empty():  # M15 (F-126)
+		result["wave"] = snapshot["wave"]
 	if not idle and snapshot.get("fracture") is Dictionary and not (snapshot["fracture"] as Dictionary).is_empty():  # M13
 		result["fracture"] = snapshot["fracture"]
 	return result
@@ -41,7 +44,7 @@ static func read(d: Dictionary, data: GameData, run: FractureRun = null) -> Dict
 		"state": CombatEngine.STATE_IDLE, "area": &"", "encounter": null, "player_hp": 0, "player_timer_ms": 0,
 		"hand": 0, "between_ms": 0, "effects": {}, "abilities": {}, "buffs": {}, "fracture": {},
 		"kills": _read_kills(d, data), "deaths": maxi(0, _int(d, "deaths")),
-		"food_eaten": maxi(0, _int(d, "food_eaten")),
+		"food_eaten": maxi(0, _int(d, "food_eaten")), "skip_stone_level": _skip_level(d, data),
 	}
 	var saved_state := StringName(str(d.get("state", "idle")))
 	if not [CombatEngine.STATE_ENCOUNTER, CombatEngine.STATE_RIFTSTONE, CombatEngine.STATE_BETWEEN].has(saved_state):
@@ -93,6 +96,17 @@ static func _read_kills(d: Dictionary, data: GameData) -> Dictionary[StringName,
 			continue
 		kills[id] = int(count)
 	return kills
+
+
+# F-128: an integer in 0..99; malformed or out of range = 0, absent = the value of a new slot (`combat.skip_stone_level`).
+static func _skip_level(d: Dictionary, data: GameData) -> int:
+	var saved: Variant = d.get("skip_stone_level")
+	if (saved is int or saved is float) and float(saved) == floorf(float(saved)) and int(saved) >= 0 and int(saved) <= 99:
+		return int(saved)
+	if d.has("skip_stone_level"):
+		Log.warn(LOG_CATEGORY, "saved skip_stone_level %s is not 0..99: reset to 0" % JSON.stringify(saved))
+		return 0
+	return int(data.balance_value("combat.skip_stone_level"))
 
 
 static func _int(d: Dictionary, key: String) -> int:

@@ -173,7 +173,7 @@ func test_three_legendaries_for_every_slot_with_effect_and_source() -> void:
 			assert_not_null(_data.boss(info.source_id), "%s: the boss exists" % def.id)
 		else:
 			assert_eq(info.source_type, LegendaryInfo.SOURCE_MONOLITH)
-			assert_true(_data.has_rift_stone(info.source_id), "%s: the Monolith exists" % def.id)
+			assert_false(_data.rift_stones_for_area(info.source_id).is_empty(), "%s: the area of the Monolith source has stones" % def.id)  # M15: area id
 	for kind: StringName in EquipmentPool.kinds(_data):
 		assert_gte(per_slot.get(kind, 0), 3, "3 legendaries of type %s" % kind)
 	for slot: StringName in TOOL_SLOTS:

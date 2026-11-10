@@ -26,7 +26,7 @@ func test_chance_100_gives_every_legendary_of_the_source_in_order() -> void:
 	var data: GameData = M14Data.data()
 	var rolled: Array[StringName] = LegendaryRoller.roll(&"boss", &"boss_grade_2", data, RngService.new(3))
 	assert_eq(rolled, [&"fx_leg_pierce", &"fx_leg_cap", &"fx_leg_convert"] as Array[StringName])
-	assert_eq(LegendaryRoller.roll(&"monolith", &"test_stone", data, RngService.new(3)),
+	assert_eq(LegendaryRoller.roll(&"monolith", &"test_stone_area", data, RngService.new(3)),
 			[&"fx_leg_rod", &"fx_leg_pick"] as Array[StringName])
 
 

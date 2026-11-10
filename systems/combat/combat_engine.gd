@@ -96,6 +96,22 @@ func eat() -> CommandResult:
 	return CommandResult.success()
 
 
+## F-128: the slot setting "skip the Rift Stones up to level X" (0 = off).
+func skip_stone_level() -> int:
+	return _stone.skip_level
+
+
+## F-128: invalid_choice if `level` is outside 0..`character_curve.max_level` (nothing changes). A stone already fought is not
+## touched; the next one at or under `level` is discarded.
+func set_skip_stone_level(level: int) -> CommandResult:
+	if level < 0 or level > int(_session.data.balance_value("character_curve.max_level")):
+		return CommandResult.fail(Reasons.INVALID_CHOICE)
+	if level != _stone.skip_level:
+		_stone.skip_level = level
+		_session.events.skip_stone_changed.emit(level)
+	return CommandResult.success()
+
+
 func state() -> StringName:
 	return _state
 
@@ -135,7 +151,8 @@ func enemy_stats(index: int) -> CombatantStats:
 func get_state() -> Dictionary:
 	return CombatView.build(self, _encounter, _abilities, {"state": _state, "area": _area_id, "hand": _hand,
 		"player_hp": _player_hp, "player_timer_ms": _player_timer_ms, "between_ms": _between_ms,
-		"rule": _fx.target_rule(), "fracture": _frac.view() if _frac.active() else {}})
+		"rule": _fx.target_rule(), "fracture": _frac.view() if _frac.active() else {},
+		"stone": _stone.view(_encounter) if _state == STATE_RIFTSTONE else {}, "skip_stone_level": _stone.skip_level})
 
 
 ## Jumps to the next timer that expires, resolves that instant (F-76), repeats; the rest stays in the timers.
@@ -177,7 +194,8 @@ func to_save() -> Dictionary:
 		"hand": _hand, "between_ms": _between_ms, "enemies": _encounter.to_save(), "effects": _fx.to_save(),
 		"abilities": _abilities.timers_save(), "buffs": _abilities.buffs_save(),
 		"loot": loot.to_save(), "stone": _stone.to_save(), "kills": _kills, "deaths": _deaths, "food_eaten": _food_eaten,
-		"fracture": _frac.to_save() if _frac.active() else {},
+		"fracture": _frac.to_save() if _frac.active() else {}, "skip_stone_level": _stone.skip_level,
+		"wave": _stone.wave_to_save() if _state == STATE_RIFTSTONE else {},
 	})
 
 
@@ -196,6 +214,9 @@ func from_save(d: Dictionary) -> void:
 		_frac.begin(_session.fractures.run())
 		_frac.from_save(parsed["fracture"])
 	_stone.from_save(d.get("stone"))
+	_stone.skip_level = parsed["skip_stone_level"]
+	if _state == STATE_RIFTSTONE:
+		_stone.wave_from_save(d.get("wave"))
 	_fx.from_save(parsed["effects"])
 	_abilities.from_save(parsed["abilities"], parsed["buffs"])
 

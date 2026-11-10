@@ -290,6 +290,24 @@ func _hurt_enemy(index: int, damage: int) -> void:
 	_session.events.monster_hp_changed.emit(index, enemy.hp, enemy.stats.max_hp)
 	if enemy.hp == 0:
 		_kill(index, enemy)
+	elif enemy.is_stone():
+		_stone_waves(enemy)
+
+
+# F-126: the thresholds that this hit took the stone under (the first hit included) each summon a wave, in descending order.
+func _stone_waves(stone: Encounter.Enemy) -> void:
+	var def: RiftStoneDef = _session.data.rift_stone(stone.def.id)
+	for threshold: int in _stone.crossed(stone):
+		var created: Array[int] = []
+		for monster: MonsterDef in StoneFight.wave_defs(def, _session.data, _session.rng):
+			var fresh := Encounter.Enemy.new(monster, _session.data)
+			fresh.summoned = true
+			_encounter.enemies.append(fresh)
+			created.append(_encounter.enemies.size() - 1)
+		for position: int in created:
+			var fresh: Encounter.Enemy = _encounter.enemies[position]
+			_session.events.monster_hp_changed.emit(position, fresh.hp, fresh.stats.max_hp)
+		_session.events.rift_stone_wave.emit(def.id, threshold, created.size())
 
 
 # Kill (05 §5.10): xp (F-28), then gold (F-31), drops in data order (F-32), shard (F-07); last enemy ends the encounter.
@@ -304,9 +322,11 @@ func _kill(index: int, enemy: Encounter.Enemy) -> void:
 	if enemy.is_stone():
 		var monolith: EffectContext = _ctx()  # F-120 monolith_loot_mult
 		_fx.monolith(monolith)
-		_stone.reward(loot, _area_id, monolith.loot_mult)
+		_stone.reward(loot, _session.data.rift_stone(enemy.def.id), monolith.loot_mult)
 	elif _frac.active():
 		counts = _frac.reward(enemy, kill_ctx.card_mult)
+	elif enemy.summoned:  # M15 (F-126): the monsters called by a stone give no xp, gold or drops and are no kills
+		counts = false
 	else:
 		KillRewards.grant(_session, loot, enemy.def, _area_id)
 	if counts:

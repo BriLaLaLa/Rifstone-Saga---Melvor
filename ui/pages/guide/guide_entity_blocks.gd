@@ -106,8 +106,7 @@ func _area(id: StringName) -> Array[Dictionary]:
 	blocks.append({"type": "table", "source": GuideTables.PREFIX_AREA_MONSTERS + String(id)})
 	blocks.append(_heading(HEADING_DROPS))
 	blocks.append(_drops_block(GuideNav.KIND_AREA, id))
-	var stone: RiftStoneDef = _data.rift_stone_for_area(id)
-	if stone != null:
+	for stone: RiftStoneDef in _data.rift_stones_for_area(id):  # M15: only the compile fix; the page is reworked by the UI task
 		blocks.append(_heading(HEADING_STONE % stone.name))
 		blocks.append(_drops_block(GuideRef.KIND_RIFT_STONE, stone.id))
 	return blocks

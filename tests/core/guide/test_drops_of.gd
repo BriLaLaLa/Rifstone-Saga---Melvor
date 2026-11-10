@@ -66,13 +66,13 @@ func test_an_area_gathers_what_its_monsters_can_give() -> void:
 func test_a_rift_stone_lists_its_drops_and_its_legendaries() -> void:
 	var stone: RiftStoneDef = null
 	for area: AreaDef in _data.areas():
-		var candidate: RiftStoneDef = _data.rift_stone_for_area(area.id)
-		if candidate != null and not _data.legendaries_from(&"monolith", candidate.id).is_empty():
+		var candidate: RiftStoneDef = _data.rift_stones_for_area(area.id)[0] if not _data.rift_stones_for_area(area.id).is_empty() else null
+		if candidate != null and not _data.legendaries_from(&"monolith", candidate.area_id).is_empty():
 			stone = candidate
 			break
 	assert_not_null(stone)
 	var refs: Array[GuideRef] = _index.drops_of(&"rift_stone", stone.id)
-	for legendary: ItemDef in _data.legendaries_from(&"monolith", stone.id):
+	for legendary: ItemDef in _data.legendaries_from(&"monolith", stone.area_id):
 		var ref: GuideRef = _ref_of(refs, legendary.id)
 		assert_not_null(ref, String(legendary.id))
 		assert_eq(ref.chance_pct, legendary.equip.legendary.chance_pct)

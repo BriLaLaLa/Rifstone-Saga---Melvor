@@ -102,6 +102,8 @@ const EXPECTED_BALANCE: Dictionary = {
 	"combat.auto_eat_tiers.3.target_pct": 90.0,
 	"combat.respawn_ms": 1500.0,
 	"combat.loot_bag_base_slots": 12.0,
+	"combat.crowd_threshold": 8.0,
+	"combat.skip_stone_level": 0.0,
 	"combat.kill_xp_mult": 0.064,
 	"character_curve.base": 70.0,
 	"character_curve.growth": 1.1,
@@ -228,9 +230,9 @@ func _flatten_without_loot(out: Dictionary) -> void:
 	for key: String in out.keys():
 		if key.begins_with("upgrade.") or key.begins_with("salvage.") or key.begins_with("tool_upgrade.") \
 				or key.begins_with("fracture.") or key.begins_with("equipment.") or key.begins_with("combat.armor.") \
-				or key.begins_with("loot.") or key.begins_with("mastery.step."):
+				or key.begins_with("loot.") or key.begins_with("mastery.step.") or key.begins_with("metin."):
 			# fracture.* is covered by tests/core/data/test_map_data_validation.gd, equipment.* and combat.armor.* (M14) by
-			# tests/systems/combat/test_armor_math.gd and tests/core/data/test_weapon_validation.gd, loot.* (M14-05) by tests/data/test_loot_data.gd; mastery.step.* (M14-08) by tests/systems/mastery/test_mastery_step.gd
+			# tests/systems/combat/test_armor_math.gd and tests/core/data/test_weapon_validation.gd, loot.* (M14-05) by tests/data/test_loot_data.gd, metin.* (M15) by tests/data/test_metin_data.gd; mastery.step.* (M14-08) by tests/systems/mastery/test_mastery_step.gd
 			out.erase(key)
 
 

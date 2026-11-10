@@ -55,6 +55,9 @@ signal combat_stopped(reason: StringName)
 signal encounter_started(monster_ids: Array[StringName])
 signal encounter_cleared()
 signal rift_stone_appeared(stone_id: StringName)  # M7
+signal rift_stone_wave(stone_id: StringName, threshold: int, count: int)  # M15 (F-126): threshold 100 = first hit, then 75, 50, 25
+signal rift_stone_skipped(stone_id: StringName)  # M15 (F-128)
+signal skip_stone_changed(level: int)  # M15 (F-128)
 signal combat_hit(attacker: int, target: int, hit: bool, damage: int, blocked: bool)
 signal player_hp_changed(hp: int, max_hp: int)
 signal monster_hp_changed(index: int, hp: int, max_hp: int)

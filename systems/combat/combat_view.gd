@@ -21,6 +21,9 @@ static func build(engine: CombatEngine, encounter: Encounter, abilities: Ability
 		"player_interval_ms": engine.player_stats(snapshot["hand"]).attack_interval_ms, "hand": snapshot["hand"],
 		"between_ms": snapshot["between_ms"], "enemies": enemies, "target": encounter.target(snapshot["rule"]),
 		"abilities": abilities.view(), "buffs": abilities.buffs(),
+		# M15 (05 §5.25): the stone of the fight ({} outside it), the skip setting and the number of living enemies
+		"stone": snapshot.get("stone", {}), "skip_stone_level": snapshot.get("skip_stone_level", 0),
+		"enemies_alive": encounter.alive_count(),
 	}
 	if not (snapshot.get("fracture", {}) as Dictionary).is_empty():  # M13: only inside a Fracture
 		view["fracture"] = snapshot["fracture"]

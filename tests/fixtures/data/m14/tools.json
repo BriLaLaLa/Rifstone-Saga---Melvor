@@ -12,13 +12,13 @@
      "value": 10, "sort_order": 920, "description": "Leggendario di prova: gather_grade_up_pct.",
      "equip": {"slot": "tool_angling", "grade": 1, "requirements": {"angling": 1},
                "modifiers": [{"stat": "skill_interval_pct", "value": -28, "scope": "skill:angling"}],
-               "legendary": {"source": {"type": "monolith", "id": "test_stone", "chance_pct": 100},
+               "legendary": {"source": {"type": "monolith", "id": "test_stone_area", "chance_pct": 100},
                              "effects": [{"type": "gather_grade_up_pct", "pct": 100}]}}},
     {"id": "fx_leg_pick", "name": "Piccone leggendario di prova", "category": "tool", "icon": "res://assets/icons/items/unique_pick.svg",
      "value": 10, "sort_order": 930, "description": "Leggendario di prova: byproduct_mult.",
      "equip": {"slot": "tool_quarrying", "grade": 1, "requirements": {"quarrying": 20},
                "modifiers": [{"stat": "skill_interval_pct", "value": -30, "scope": "skill:quarrying"}],
-               "legendary": {"source": {"type": "monolith", "id": "test_stone", "chance_pct": 100},
+               "legendary": {"source": {"type": "monolith", "id": "test_stone_area", "chance_pct": 100},
                              "effects": [{"type": "byproduct_mult", "mult": 3}]}}}
   ]
 }

@@ -87,9 +87,9 @@ const MATERIAL_WORDS: Dictionary = {
 	"cloth": "Tessuto inciso di rune: poca Armatura, molta Barriera.",
 }
 
-# Boss ids (data/maps/bosses.json) and Monolith ids (data/combat/rift_stones.json).
+# Boss ids (data/maps/bosses.json) and Monolith sources (M15: an area id = any Monolith of that area, data/combat/rift_stones.json).
 const B: String = "boss_grade_"
-const MONOLITHS: Dictionary = {"plains": "redrock_stone", "wood": "whisper_stone", "mines": "mine_stone", "threshold": "threshold_stone"}
+const MONOLITHS: Dictionary = {"plains": "redrock_plains", "wood": "whisper_wood", "mines": "cracked_mines", "threshold": "rift_threshold"}
 
 ## Legendary pieces: [slot, material, grade, name, boss grade, effect, description].
 const LEGENDARY_PIECES: Array = [
