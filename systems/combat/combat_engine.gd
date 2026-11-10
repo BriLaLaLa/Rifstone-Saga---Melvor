@@ -162,7 +162,7 @@ func new_game() -> void:
 	_abilities.reset()
 	_frac.end()
 	_resume_area = &""
-	loot.from_save([])
+	loot.from_save({})
 	_stone.reset()
 
 
@@ -185,7 +185,7 @@ func to_save() -> Dictionary:
 ## A saved Fracture fight resumes on the run that `FractureSystem` loaded first; without it the engine is idle (05 §5.23).
 func from_save(d: Dictionary) -> void:
 	new_game()
-	if d.get("loot") is Array:
+	if d.get("loot") is Dictionary or d.get("loot") is Array:
 		loot.from_save(d["loot"])
 	var parsed: Dictionary = CombatSave.read(d, _session.data, _session.fractures.run())
 	_apply(parsed)

@@ -44,9 +44,9 @@ func after_each() -> void:
 
 # --- version ----------------------------------------------------------------------------------------------------
 
-func test_format_version_is_5() -> void:
-	assert_eq(SaveMigrator.CURRENT_VERSION, 5)
-	assert_eq(int(_session().to_save(NOW_MS)["format_version"]), 5)
+func test_format_version_is_6() -> void:
+	assert_eq(SaveMigrator.CURRENT_VERSION, 6)
+	assert_eq(int(_session().to_save(NOW_MS)["format_version"]), 6)
 
 
 func test_v1_file_is_refused_and_left_untouched() -> void:
@@ -75,7 +75,7 @@ func test_new_game_over_a_v1_slot_writes_v4() -> void:
 	_write_raw_v1()
 	assert_true(_game.new_game(SLOT_A, "Nuova").ok, "a new game overwrites the old slot")
 	_game.end_session(true)
-	assert_eq(int(SaveCodec.decode(_slot_text(SLOT_A))["format_version"]), 5)
+	assert_eq(int(SaveCodec.decode(_slot_text(SLOT_A))["format_version"]), 6)
 	assert_true((await _game.continue_game(SLOT_A)).ok)
 
 
@@ -324,7 +324,7 @@ func test_v4_round_trip_keeps_the_bags_and_the_capacity() -> void:
 	assert_true(source.bank.equip_bag(2, &"test_bag_large").ok)
 	TestFactory.give(source, &"test_log", 5)
 	var saved: Dictionary = source.to_save(NOW_MS)
-	assert_eq(int(saved["format_version"]), 5)
+	assert_eq(int(saved["format_version"]), 6)
 	assert_eq((saved["modules"] as Dictionary)["deposit"], {"bags": ["test_bag_small", "", "test_bag_large", "", "", ""]})
 	var copy: GameSession = autofree(TestFactory.session(12))
 	var decoded: Dictionary = SaveCodec.decode(SaveCodec.encode(saved))

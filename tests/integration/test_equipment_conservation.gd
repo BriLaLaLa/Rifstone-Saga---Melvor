@@ -29,6 +29,7 @@ func _hero() -> GameSession:
 	s.modifiers.set_source(HERO, [Modifier.make(&"power_bonus", 100000.0), Modifier.make(&"max_hp_flat", 100000.0),
 			Modifier.make(&"armor", 100000.0), Modifier.make(&"barrier", 100000.0), Modifier.make(&"evasion_bonus", 80000.0)])
 	TestFactory.make_roomy(s)
+	s.modifiers.set_source(&"test:auto_loot", [Modifier.make(&"auto_loot", 1.0)] as Array[Modifier])
 	_obtained = {}
 	_added = 0
 	_removed = 0

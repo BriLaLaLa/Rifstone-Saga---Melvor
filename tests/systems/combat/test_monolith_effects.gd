@@ -53,6 +53,7 @@ func test_the_ring_doubles_the_stacks_of_the_loot() -> void:
 func test_the_monolith_gives_its_legendaries_directly_to_the_armory() -> void:
 	_s = _hero_session(5)
 	_kill_the_stone(_s)
+	_s.combat.loot.collect_all()
 	var bases: Array[StringName] = []
 	for inst: ItemInstance in _s.armory.instances():
 		bases.append(inst.base_id)
@@ -66,6 +67,7 @@ func test_the_legendaries_of_the_stone_are_not_multiplied_by_the_ring() -> void:
 	_s = _hero_session(5)
 	LegendaryKit.wear(_s, &"fx_leg_monolith")
 	_kill_the_stone(_s)
+	_s.combat.loot.collect_all()
 	var count: int = 0
 	for inst: ItemInstance in _s.armory.instances():
 		if inst.base_id == &"fx_leg_rod":
@@ -80,6 +82,7 @@ func test_with_a_full_deposit_the_legendary_of_the_monolith_is_lost_with_a_notif
 	fill[0] = _s.deposit.free_slots()
 	watch_signals(_s.events)
 	_kill_the_stone(_s)
+	_s.combat.loot.collect_all()
 	assert_signal_emitted_with_parameters(_s.events, "armory_rejected", [&"fx_leg_rod", 1], 0)
 	assert_signal_emitted_with_parameters(_s.events, "armory_rejected", [&"fx_leg_pick", 1], 1)
 	assert_signal_not_emitted(_s.events, "item_salvaged")
@@ -90,8 +93,10 @@ func test_one_big_step_equals_many_small_steps_with_the_ring() -> void:
 	var big: GameSession = _equivalence_session()
 	var small: GameSession = _equivalence_session()
 	big.advance(30000)
+	big.combat.loot.collect_all()
 	for i: int in 300:
 		small.advance(100)
+	small.combat.loot.collect_all()
 	var bases: Array[StringName] = []
 	for inst: ItemInstance in big.armory.instances():
 		bases.append(inst.base_id)
