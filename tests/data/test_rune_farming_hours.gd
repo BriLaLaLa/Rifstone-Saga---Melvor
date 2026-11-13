@@ -53,7 +53,7 @@ func _drops_per_hour(material: StringName) -> float:
 func _runes() -> Array[ActionDef]:
 	var out: Array[ActionDef] = []
 	for action: ActionDef in _data.actions_for_skill(&"riftbinding"):
-		if str(action.id).begins_with("engrave_"):
+		if str(action.id).begins_with("engrave_") and not str(action.id).begins_with("engrave_minor_"):  # M18-01: single grade
 			out.append(action)
 	return out
 

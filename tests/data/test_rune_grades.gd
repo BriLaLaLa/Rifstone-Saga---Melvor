@@ -49,7 +49,7 @@ func test_f107_examples_of_the_game_runes() -> void:
 	var runes: int = 0
 	var families: Dictionary = {}
 	for item: ItemDef in data.items():
-		if item.is_infusion():
+		if item.is_infusion() and not String(item.id).begins_with("inf_minor_"):  # M18-01: minor runes have one grade
 			runes += 1
 			families[item.infusion_family] = int(families.get(item.infusion_family, 0)) + 1
 	assert_eq(runes, 45, "9 families x 5 grades")

@@ -8,6 +8,8 @@ extends RefCounted
 
 const RATIO_KEY: String = "salvage.component_ratio"
 const SHARDS_KEY: String = "salvage.shards_by_rarity"
+const XP_KEY: String = "salvage.engraver_xp_per_grade"
+const ENGRAVER_SKILL: StringName = &"riftbinding"
 const EPSILON: float = 1e-9
 
 
@@ -52,6 +54,20 @@ static func fits(paid_items: Dictionary[StringName, int], bank: Bank) -> bool:
 		if bank.get_count(item_id) == 0:
 			new_stacks += 1
 	return new_stacks <= bank.free_boxes()
+
+
+## F-95b: Engraver XP of salvaging a piece = salvage.engraver_xp_per_grade x piece grade x (1 + shards_by_rarity[rarity]).
+static func engraver_xp(inst: ItemInstance, data: GameData) -> int:
+	var by_rarity: Dictionary = data.balance_value(SHARDS_KEY) as Dictionary
+	var per_grade: int = int(data.balance_value(XP_KEY))
+	return per_grade * data.item(inst.base_id).equip.grade * (1 + int(by_rarity.get(String(inst.rarity), 0)))
+
+
+## Pays the yield into the bank (`pay`) and gives the Engraver its XP (F-95b); manual and automatic salvage both use it.
+static func settle(inst: ItemInstance, paid_items: Dictionary[StringName, int], bank: Bank, skills: SkillsSystem,
+		data: GameData) -> void:
+	pay(paid_items, bank)
+	skills.add_xp(ENGRAVER_SKILL, engraver_xp(inst, data))
 
 
 ## Adds `paid` to the bank. Bank.add reports a full bank with bank_rejected, so a lost yield is never silent.

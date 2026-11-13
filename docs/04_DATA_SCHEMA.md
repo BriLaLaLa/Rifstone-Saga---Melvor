@@ -120,7 +120,7 @@ di `data/classes/`. `rarity.affix_count.*` sono coppie `[min, max]` di interi 0.
 Chiavi aggiunte dopo (dal task che le usa, `02_FORMULAS.md` §9): `traits`, `abilities` (M6); `rarity.drop`,
 `rarity.rift_stone`, `upgrade`, `rift_stone`, `salvage` (M7); `sockets` (M8).
 **Riforma M10 (R1-R3, B1-B2)**: `start` si estende (sotto); `rarity.craft` **tolta**; aggiunte `blueprint`, `tool_upgrade` e
-`combat.kill_xp_mult` (> 0, ≤ 1, B1); `salvage.ingot_ratio` diventa `salvage.component_ratio`. Nell'esempio sopra `<…>` sta per
+`combat.kill_xp_mult` (> 0, ≤ 1, B1); `salvage.ingot_ratio` diventa `salvage.component_ratio`; M18-01: `salvage.engraver_xp_per_grade` (numero, F-95b). Nell'esempio sopra `<…>` sta per
 l'id della base nei dati. Regole del validatore: `start.armory[].base` è una base `equipment` di grado 1 (rarità comune,
 senza affissi), `equip` è uno slot compatibile con la base o `""`; `start.tools[].base` è un attrezzo unico (uno per slot
 `tool_*`, tutti e tre); `start.purchases` è `{id voce dello shop: n ≤ max_purchases}`; `start.food` è un cibo presente in

@@ -264,7 +264,7 @@ func salvage(uid: int) -> CommandResult:
 	_items.erase(uid)
 	_events.armory_changed.emit(uid, CHANGE_REMOVED)
 	_deposit.notify_changed()
-	Salvage.pay(paid, _bank)
+	Salvage.settle(inst, paid, _bank, _skills, _data)
 	_events.item_salvaged.emit(uid, inst.base_id, false)
 	return CommandResult.success()
 
@@ -282,7 +282,7 @@ func add_drop(inst: ItemInstance) -> int:
 		return add(inst)
 	var uid: int = _next_uid
 	_next_uid += 1
-	Salvage.pay(Salvage.paid(inst, _data), _bank)
+	Salvage.settle(inst, Salvage.paid(inst, _data), _bank, _skills, _data)
 	_events.item_obtained.emit(inst.base_id, 1)  # F-124: seen even when the filter sells it
 	_events.item_salvaged.emit(uid, inst.base_id, true)
 	return 0

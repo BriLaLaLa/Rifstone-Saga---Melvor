@@ -112,3 +112,39 @@ func test_full_bank_blocks_the_salvage() -> void:
 	assert_false(result.ok)
 	assert_eq(result.reason, Reasons.BANK_FULL)
 	assert_true(_session.armory.has(uid), "nothing lost")
+	assert_eq(_session.skills.get_xp(&"riftbinding"), 0, "no XP for a salvage that did not happen")
+
+
+## F-95b: Engraver XP = engraver_xp_per_grade (2) x grade x (1 + shards_by_rarity): common 1x, magic 2x, rare 4x.
+func test_engraver_xp_formula() -> void:
+	var inst := ItemInstance.new()
+	inst.base_id = GREATSWORD
+	inst.rarity = &"common"
+	assert_eq(Salvage.engraver_xp(inst, _data), 2, "2 x grade 1 x 1")
+	inst.rarity = &"magic"
+	assert_eq(Salvage.engraver_xp(inst, _data), 4)
+	inst.rarity = &"rare"
+	assert_eq(Salvage.engraver_xp(inst, _data), 8)
+
+
+func test_manual_salvage_gives_engraver_xp() -> void:
+	var uid: int = _piece(GREATSWORD, &"rare")
+	assert_eq(_session.skills.get_xp(&"riftbinding"), 0)
+	assert_true(_session.armory.salvage(uid).ok)
+	assert_eq(_session.skills.get_xp(&"riftbinding"), 8)
+
+
+func test_rejected_salvage_gives_no_xp() -> void:
+	var locked: int = _piece(BLADE, &"magic", 0, true)
+	assert_false(_session.armory.salvage(locked).ok)
+	assert_eq(_session.skills.get_xp(&"riftbinding"), 0)
+
+
+func test_auto_salvage_by_the_filter_gives_engraver_xp() -> void:
+	assert_true(_session.armory.set_filter(&"weapon", &"rare", 1).ok)
+	var inst := ItemInstance.new()
+	inst.base_id = BLADE
+	inst.rarity = &"magic"
+	inst.ilvl = 1
+	assert_eq(_session.armory.add_drop(inst), 0, "salvaged by the filter")
+	assert_eq(_session.skills.get_xp(&"riftbinding"), 4, "magic 2 x grade 1 x 2")

@@ -42,7 +42,7 @@ const REQUIRED_BALANCE_KEYS: PackedStringArray = [
 	"rift.sockets", "offline.cap_ms", "offline.min_ms",
 	"offline.chunk_ms", "traits.slot_levels", "abilities.slot_levels",
 	"upgrade.levels", "upgrade.downgrade_from", "upgrade.mod_pct_per_level", "upgrade.seal_item", "upgrade.ingot_items",
-	"salvage.component_ratio", "salvage.shards_by_rarity", "rift_stone.chance_pct", "rift_stone.pity_kills",
+	"salvage.component_ratio", "salvage.shards_by_rarity", "salvage.engraver_xp_per_grade", "rift_stone.chance_pct", "rift_stone.pity_kills",
 	"sockets.by_rarity", "sockets.bonus_at_upgrade", "combat.kill_xp_mult",
 	"blueprint.duration_base_min", "blueprint.duration_per_grade_min", "blueprint.xp_mult", "blueprint.rare_base_pct",
 	"blueprint.rare_per_forging_level", "blueprint.choose_affix_level", "blueprint.chosen_affix_tier",

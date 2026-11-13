@@ -496,6 +496,12 @@ frammenti: `salvage.shards_by_rarity[rarity] × grado + N` (comune 0, magico 1, 
 impugnature, 3 frammenti; corpo grado 3 → 4 piastre; spadone grado 8 raro +2 → 4 piastre di Riftite, 0 impugnature, 26
 frammenti; anello grado 5 raro → 0 componenti, 15 frammenti. Test: `tests/systems/armory/test_salvage.gd`.
 
+### F-95b XP dell'Incisore dallo smantellamento (M18-01, V6)
+Ogni smantellamento di un pezzo (manuale `Armory.salvage`, filtro automatico o Armeria piena in `add_drop`) dà XP all'Incisore
+(`riftbinding`) tramite `SkillsSystem.add_xp` (F-02): `xp = salvage.engraver_xp_per_grade × grado del pezzo × (1 + salvage.shards_by_rarity[rarità])`
+(`grado` = `equip.grade` 1…15, non il grado del materiale). Nessun XP se lo smantellamento è rifiutato. Fondere (F-105) dava già XP (campo `xp`
+dell'azione): non cambia. Esempi: comune grado 1 → 2; magico grado 1 → 4; raro grado 1 → 8; raro grado 15 → 120. Test: `tests/systems/armory/test_salvage.gd`.
+
 ## 5d. Deposito, aiutanti, maestria per risorsa e Incisore (F-100…F-108, M12, Riforma 2)
 
 Fonte: decisioni W1-W7 (`DECISIONS_LOG.md`). Tutti i valori sono **valori di partenza** (chiavi di `balance.json` in §9) da
@@ -1078,6 +1084,9 @@ da tarare in M12-07. Le valute di sola uscita (`currency_*`) restano nei dati co
 | 65 | `inf_hearthfire` | Chitina di ragno (Miniere) | `food_healing_pct +10` | 330 | 5500 |
 | 75 | `inf_riftsense` (unica) | Velo dello spettro (Soglia) | `rift_shard_chance +0.5` | 420 | 5500 |
 | 85 | `inf_bulwark` | Placca del caduto (Soglia) | `max_hp_flat +60` | 520 | 6000 |
+**Ricette facili (M18-01, V6)** (generate da `tools/gen_engraver_minor.gd`): `make_minor_slab` (livello 1, 2 Polvere del Rift → 1 Lastra minore `minor_slab`, XP 4, 2500 ms)
+e tre rune minori di un solo grado (famiglia = id, nessun grado II-V, non potenziabili), ognuna = 1 Lastra minore + drop comune della Pianura:
+`inf_minor_vigor` (livello 2, `max_hp_flat +10`, XP 10), `inf_minor_aim` (livello 4, `accuracy_pct +1`, XP 16), `inf_minor_guard` (livello 6, `armor +4`, XP 24).
 Nomi: "Runa della rapidità" … "Runa del baluardo" + grado in cifre romane ("Runa della rapidità III"). Togliere una runa
 dall'incavo la distrugge (invariato).
 
@@ -1207,6 +1216,7 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | `upgrade.{levels, downgrade_from, mod_pct_per_level, seal_item, ingot_items}` (M7) | tabella F-86, 4, 10, id del Sigillo, 8 id dei lingotti T1-T8 | F-86 |
 | `rift_stone.{chance_pct, pity_kills}` (M7) | 0.5, 300 | F-87; `chance_pct` è il default delle aree senza `rift_stone_chance_pct` (Q46) |
 | `salvage.{component_ratio, shards_by_rarity}` (M7; M10: `ingot_ratio` rinominata `component_ratio`) | 0.4, `{"common":0,"magic":1,"rare":3}` | F-95 |
+| `salvage.engraver_xp_per_grade` (M18-01) | 2 | F-95b |
 | `sockets.{by_rarity, bonus_at_upgrade}` (M8; M14: + masterwork, legendary) | `{"common":0,"magic":1,"rare":2,"masterwork":2,"legendary":2}`, 7 | F-89 |
 | `rift.sockets` (già presente, usata in M8) | `[{"level":1},{"level":20},{"level":40},{"level":60},{"level":80}]` | 11 |
 | `offline.{cap_ms, min_ms, chunk_ms}` | 43200000, 60000, 60000 | F-40, F-41 |
