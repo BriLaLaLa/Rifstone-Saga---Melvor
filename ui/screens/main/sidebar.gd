@@ -25,6 +25,7 @@ const SECTIONS: Array[Dictionary] = [
 	{"page": &"rift", "text": RiftTexts.TITLE_TEXT, "icon": "sparkles"},
 	{"page": &"bank", "text": "Deposito", "icon": "box"},
 	{"page": &"shop", "text": "Shop", "icon": "building-store"},
+	{"page": &"village", "text": VillageTexts.TITLE_TEXT, "icon": "coins"},
 	{"page": &"guide", "text": "Guida", "icon": "star"},
 ]
 ## Skill categories (04_DATA_SCHEMA.md §3) and their section titles, in order (combat skills no longer exist).
