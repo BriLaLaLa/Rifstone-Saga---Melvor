@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/pages/village/village_box.gd" id="1_box"]
+
+[node name="VillageBox" type="PanelContainer"]
+custom_minimum_size = Vector2(290, 0)
+size_flags_horizontal = 3
+theme_type_variation = &"HudPanel"
+script = ExtResource("1_box")
