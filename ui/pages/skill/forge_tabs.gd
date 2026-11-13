@@ -9,11 +9,18 @@ const TAB_PLATES: StringName = &"plates"
 const TAB_BLUEPRINTS: StringName = &"blueprints"
 const TAB_BENCH: StringName = &"bench"
 const TABS: Array[Dictionary] = [
-	{"id": TAB_INGOTS, "label": "Lingotti"},
-	{"id": TAB_PLATES, "label": "Piastre"},
-	{"id": TAB_BLUEPRINTS, "label": "Progetti"},
-	{"id": TAB_BENCH, "label": "Banco del fabbro"},
+	{"id": TAB_INGOTS, "label": ForgeTexts.TAB_INGOTS_LABEL},
+	{"id": TAB_PLATES, "label": ForgeTexts.TAB_PLATES_LABEL},
+	{"id": TAB_BLUEPRINTS, "label": ForgeTexts.TAB_BLUEPRINTS_LABEL},
+	{"id": TAB_BENCH, "label": ForgeTexts.TAB_BENCH_LABEL},
 ]
+## One caption per tab, in the order of the production chain.
+const CAPTIONS: Dictionary[StringName, String] = {
+	TAB_INGOTS: ForgeTexts.CAPTION_INGOTS,
+	TAB_PLATES: ForgeTexts.CAPTION_PLATES,
+	TAB_BLUEPRINTS: ForgeTexts.CAPTION_BLUEPRINTS,
+	TAB_BENCH: ForgeTexts.CAPTION_BENCH,
+}
 const INGOT_PREFIX: String = "smelt_"
 
 
