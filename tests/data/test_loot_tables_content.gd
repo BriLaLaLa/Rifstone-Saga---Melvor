@@ -41,7 +41,7 @@ func _areas_of_tier(tier: int) -> Array[String]:
 
 
 func test_every_area_and_monolith_has_its_table() -> void:
-	assert_eq(_data.loot_tables().size(), 20)
+	assert_eq(_data.loot_tables().size(), 21, "10 areas, 10 Monoliti, the Monkey Den (M22-03)")
 	for area_id: String in TIERS:
 		assert_eq(_data.area(StringName(area_id)).loot_tables, [StringName("loot_area_" + area_id)] as Array[StringName], area_id)
 		for stone: RiftStoneDef in _data.rift_stones_for_area(StringName(area_id)):  # every stone of an area shares its table

@@ -45,7 +45,7 @@ func test_counts_of_the_new_categories() -> void:
 	assert_eq(_count(&"blueprint"), 120, "8 bases x 15 grades")
 	assert_eq(_count(&"component"), 32, "8 plates, 8 grips, 8 shield cores, 8 handles")
 	assert_eq(_count(&"tool"), 12, "3 unique tools and 9 legendary tools")
-	assert_eq(_count(&"equipment"), 480, "30 weapons, 30 jewels, 270 armour pieces, 120 Masterworks, 30 legendaries")
+	assert_eq(_count(&"equipment"), 486, "30 weapons, 30 jewels, 270 armour pieces, 120 Masterworks, 36 legendaries")
 	assert_eq(_data.blueprints().size(), 120)
 
 

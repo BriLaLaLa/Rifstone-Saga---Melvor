@@ -110,6 +110,22 @@ const AREAS: Array = [
 			["riftborn_colossus", "Colosso del Rift", 99, "brute", "marksmanship", "riftborn_colossus", "Si è staccato dalla crepa un pezzo per volta, e continua a crescere."]]},
 ]
 
+## The miniboss of each area (F-139, M22-03), in the order of AREAS: [name, description]. It has the level, role, style and icon of the
+## strongest monster of its area (the last of the list); its multipliers (`balance.json` `miniboss`) apply when it is spawned, not here.
+## The id is `miniboss_<area id>`.
+const MINIBOSSES: Array = [
+	["Rocciatesta, l'Ariete Antico", "Ha cozzato contro ogni masso delle Pianure e ne porta le schegge incastrate nelle corna: nessuna roccia gli resiste."],
+	["Cornargento, il Cervo Re", "Le sue corna sono cariche di licheni e di anni: quando le abbassa, il bosco intero trattiene il fiato."],
+	["Ventoglio, la Viverna Tempesta", "Sale dalle dune portando il vento secco sulle ali, e ogni suo passaggio taglia come sabbia lanciata."],
+	["Madrepietra, la Strega Cieca", "Ha perso gli occhi in fondo alla miniera e da allora vede solo le crepe dove sta per aprirsi il Rift."],
+	["Fangonero, il Titano Zoppo", "Trascina una gamba di torba e un rancore di cenere: dove cade, la palude si apre."],
+	["Lacrima Nera, Custode del Pianto", "Ha pianto così a lungo che le sue lacrime sono diventate vetro, e il vetro taglia."],
+	["Portaferro, il Guardiano Spezzato", "Regge ancora la soglia con metà armatura e tutta l'ostinazione: nessuno passa se lui non vuole."],
+	["Vetrospina, il Leviatano", "Nuota nelle dune come in un mare nero e porta sulla schiena il vetro di cento carovane."],
+	["Cancelliere Muto, Sigillo degli Abissi", "Non parla più da secoli, ma firma ancora: e ogni firma è una sentenza."],
+	["Battito Primo, il Colosso Ardente", "Il primo pezzo staccato dalla crepa: pulsa più forte di tutto il resto e non si ferma."],
+]
+
 ## Materials that are rare components of the projects (higher drop chance is not wanted: lower, with qty 1).
 const RARE_MATERIALS: Array[String] = ["boar_tusk", "scorched_fur", "wolf_fang", "troll_moss", "hollow_arrowhead",
 	"golem_core", "crawler_carapace", "witch_charm", "wraith_veil", "knight_plate", "colossus_shard"]

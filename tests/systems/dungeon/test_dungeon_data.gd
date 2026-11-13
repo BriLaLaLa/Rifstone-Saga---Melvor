@@ -1,7 +1,7 @@
 extends GutTest
 ## The data of the dungeons (docs/04_DATA_SCHEMA.md §27): the Defs built from the fixture dungeon and the rules of
 ## DataValidatorDungeon (each test breaks one thing in a copy of the fixture data and expects the error), the area
-## `miniboss` and the tickets. The real data has no dungeon yet (STRICT_REAL_DATA is false until M22-03).
+## `miniboss` and the tickets. The real data (the Monkey Den) is checked in tests/data/test_dungeon_data.gd.
 
 const V: GDScript = preload("res://tests/core/data/test_data_validator.gd")
 const DEN_PATH: String = "res://tests/fixtures/data/dungeons/test_den.json"
@@ -106,8 +106,8 @@ func test_its_monsters_are_ordinary_monsters_of_the_game() -> void:
 	assert_false(king.is_miniboss)
 
 
-func test_real_data_is_valid_while_the_dungeon_data_is_transitional() -> void:
-	assert_true(GameData.load_from_dirs().is_valid(), "the real data loads (STRICT_REAL_DATA false until M22-03)")
+func test_real_data_is_valid_with_the_strict_dungeon_rules() -> void:
+	assert_true(GameData.load_from_dirs().is_valid(), "the real data loads (STRICT_REAL_DATA true since M22-03)")
 
 
 # --- the rules of the dungeon file ---------------------------------------------------------------------------------

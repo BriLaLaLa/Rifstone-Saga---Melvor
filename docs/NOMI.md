@@ -351,3 +351,47 @@ Boss di riferimento: i dieci di "Fratture come mappe" (grado 1…10). Distribuzi
 | Guida | casella bloccata "???"; "Si ottiene da" visibile solo dopo la scoperta; toast "Nuovo: <oggetto>" |
 | Maestria | "Bonus attuali", "Al livello N: …" |
 | Affisso nuovo | `runeward`: "Schermato" (Barriera); `warded` resta il nome attuale (ora Armatura) |
+
+## Dungeon delle scimmie e miniboss di area (M22-03, V12; F-139, F-143)
+Nomi originali, generati dai dati (`tools/gen_dungeon.gd`, `tools/gen_areas.gd`, `tools/gen_equipment.gd`). **Gorom, Ziki e Uuk-Maar** (provvisori in M22-01) sono confermati: nessun omonimo noto in Melvor Idle. Icone: i mostri riusano quelle esistenti di `assets/icons/monsters/` (segnaposto dichiarati); nuove sono solo `ui/dungeon.svg`, `items/dungeon_ticket_monkey_den.svg` e le sei dei leggendari (segnaposto di `gen_equipment_icons.gd`).
+
+### Dungeon, Biglietto, mostri
+| Id | Nome |
+|---|---|
+| `monkey_den` | Covo delle Scimmie |
+| `dungeon_ticket_monkey_den` | Biglietto del Covo delle Scimmie |
+| `monkey_imp` | Monello del branco |
+| `monkey_grunt` | Scimmia predona |
+| `monkey_slinger` | Lanciatrice di noci |
+| `monkey_shaman` | Scimmia sciamana |
+| `monkey_guard` | Guardia dei rami |
+| `monkey_gorilla` | Gorilla guardiano |
+| `monkey_packlead` | Capobranco |
+| `monkey_gorom` | Gorom, il Braccio Destro (stadio 1, id `right_hand`, "Il Braccio Destro") |
+| `monkey_ziki` | Ziki, la Stratega (stadio 2, id `strategist`, "La Stratega") |
+| `monkey_king` | Uuk-Maar, il Re delle Scimmie (stadio 3, id `king`, "Il Re delle Scimmie") |
+Tipi di stanza (id fissi, testi di `rooms.types[].hint`): `pack` Branco, `horde` Orda, `elite` Guardiano, `miniboss` Capobranco, `trap` Trappola, `rest` Riposo; trappole `darts`, `pit`, `vines`; scelte degli eventi: "Attraversa di corsa", "Aggira", "Riposa", "Fruga" (testi in UI, M22-06).
+
+### Miniboss di area (id `miniboss_<area>`)
+| Id | Nome |
+|---|---|
+| `miniboss_redrock_plains` | Rocciatesta, l'Ariete Antico |
+| `miniboss_whisper_wood` | Cornargento, il Cervo Re |
+| `miniboss_dry_uplands` | Ventoglio, la Viverna Tempesta |
+| `miniboss_cracked_mines` | Madrepietra, la Strega Cieca |
+| `miniboss_ash_marsh` | Fangonero, il Titano Zoppo |
+| `miniboss_weeping_gorge` | Lacrima Nera, Custode del Pianto |
+| `miniboss_rift_threshold` | Portaferro, il Guardiano Spezzato |
+| `miniboss_black_glass_desert` | Vetrospina, il Leviatano |
+| `miniboss_sunken_citadel` | Cancelliere Muto, Sigillo degli Abissi |
+| `miniboss_rift_heart` | Battito Primo, il Colosso Ardente |
+
+### Leggendari del Covo (fonte `dungeon`, `monkey_den`, 3,5%; grado 11, livello 50)
+| Id | Nome | Effetto |
+|---|---|---|
+| `leg_sword_monkey` | Lama della Liana Spezzata | `double_hit_pct` 12 |
+| `leg_greatsword_monkey` | Randello del Re dei Rami | `execute_mult` sotto 25% dei PV, ×1,8 |
+| `leg_shield_monkey` | Scudo di Gusci di Cocco | `block_heal_pct` 8 |
+| `leg_ring_monkey` | Anello della Scimmia Avida | `kill_heal_pct` 2 |
+| `leg_neck_monkey` | Amuleto della Stratega | `stat_convert` Barriera → Armatura 40% |
+| `leg_hands_monkey` | Guanti da Cima d'Albero | `on_kill_timer_cut` 60 |

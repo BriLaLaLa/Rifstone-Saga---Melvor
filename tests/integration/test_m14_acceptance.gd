@@ -171,6 +171,8 @@ func test_three_legendaries_for_every_slot_with_effect_and_source() -> void:
 		assert_gt(info.chance_pct, 0.0, "%s has a drop chance" % def.id)
 		if info.source_type == LegendaryInfo.SOURCE_BOSS:
 			assert_not_null(_data.boss(info.source_id), "%s: the boss exists" % def.id)
+		elif info.source_type == LegendaryInfo.SOURCE_DUNGEON:  # M22-03: the Monkey Den
+			assert_not_null(_data.dungeon(info.source_id), "%s: the dungeon exists" % def.id)
 		else:
 			assert_eq(info.source_type, LegendaryInfo.SOURCE_MONOLITH)
 			assert_false(_data.rift_stones_for_area(info.source_id).is_empty(), "%s: the area of the Monolith source has stones" % def.id)  # M15: area id

@@ -3,6 +3,9 @@
   "items": [
     {"id": "rift_shard", "name": "Frammento del Rift", "category": "misc",
      "icon": "res://assets/icons/items/rift_shard.svg", "value": 0, "sort_order": 10,
-     "description": "Una scheggia caduta dai Monoliti del Rift, ancora calda al tatto."}
+     "description": "Una scheggia caduta dai Monoliti del Rift, ancora calda al tatto."},
+    {"id": "dungeon_ticket_monkey_den", "name": "Biglietto del Covo delle Scimmie", "category": "misc",
+     "icon": "res://assets/icons/items/dungeon_ticket_monkey_den.svg", "value": 0, "sort_order": 20, "dungeon": "monkey_den",
+     "description": "Un pezzo di corteccia inciso e annodato: chi lo porta può entrare una volta nel Covo delle Scimmie."}
   ]
 }

@@ -7,7 +7,7 @@ extends RefCounted
 ## Transitional (M22-02): with `false` the real data may have no `data/dungeons/` and no area `miniboss` (the rules apply
 ## to every file that exists); M22-03 brings the data and sets it to `true`. The fixtures (areas in the old format, without
 ## `level_min`) never need a dungeon or a miniboss unless they have one: what they have is always checked in full.
-const STRICT_REAL_DATA: bool = false
+const STRICT_REAL_DATA: bool = true
 const FIELDS: PackedStringArray = ["id", "name", "description", "icon", "order", "requirements", "recommended_level",
 	"ticket", "map", "monsters", "rooms", "stages", "boss", "loot_table"]
 const ICON_DIR: String = "res://assets/icons/"
