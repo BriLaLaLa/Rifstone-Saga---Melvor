@@ -925,3 +925,39 @@ nessun potere di combattimento diretto, nessun timer, nessuna risorsa da gestire
 - Pagina **Bacheca** (`noticeboard`, sidebar dopo Villaggio): una **riga** per casella (nome e descrizione dell'incarico, barra `progresso/obiettivo`, ricompensa, pulsanti **Riscuoti** e **Abbandona**; riga vuota "Nessun incarico disponibile"). Se la Bacheca non è costruita: un solo messaggio.
 - Pagina Villaggio: i box del Mercato e della Bacheca diventano costruibili come gli altri (la Bacheca mostra "+1 incarico", il Mercato "Sblocca nuove bancarelle"). Pagina Shop: bancarella **Mercato** con le voci bloccate e il motivo ("Richiede Mercato n").
 - La UI non tiene stato; testi in `*_texts.gd`. Notifica quando un incarico raggiunge l'obiettivo (`quest_completed`).
+
+## 32. Mappa del Villaggio (M21; decisione V7 punto 6, `M21_MAPPA.md`; nessuna formula, nessuna stat)
+
+**Idea.** La pagina Villaggio (§30) ha due **viste** dello stesso stato: **Mappa** (predefinita) ed **Elenco** (la griglia di box di M19-M20, invariata). La mappa mostra
+i 7 edifici come **nodi cliccabili** posizionati su un campo (come le aree di combattimento, §8.5, ma dentro la pagina, non in una finestra sovrapposta). **Nessuna
+nuova meccanica**: costruire, migliorare, costi, requisiti, effetti ed eventi sono quelli di §30-§31; nessuna stat, nessuna formula, **nessun cambio di save**.
+
+**Nodo.** Ogni edificio ha la posizione `map_pos` nei dati (`buildings.json`, §26 dello schema). Il nodo mostra icona, nome e una riga di stato, con il bordo colorato
+per stato (derivato, mai salvato, stessi dati di §30):
+| Stato del nodo | Condizione | Riga di stato |
+|---|---|---|
+| `locked` (bloccato) | livello 0 e primo motivo di `can_upgrade` = `level_too_low` | "Richiede Falegname n" |
+| `unbuilt` (da costruire) | livello 0, altri motivi (oro, materiali) | "Da costruire" |
+| `ready` (pronto) | `can_upgrade` ok (livello 0 o 1…7): si può pagare ora | "Costruibile" / "Migliorabile" |
+| `built` (costruito) | livello 1…7, prossimo livello non ancora pagabile | "Livello n/8" |
+| `maxed` | livello massimo | "Livello massimo" |
+| `placeholder` | `buildable = false` (oggi nessuno) | "In arrivo" |
+`ready` ha la precedenza su `built`; per i livelli 1…7 `locked` non esiste (il nodo resta `built`).
+
+**Selezione e dettaglio.** Un clic su un nodo lo **seleziona** (stato di sola presentazione, non salvato; all'apertura è selezionato il primo edificio per `order`). A
+destra della mappa un **pannello di dettaglio** mostra il box di §30 dell'edificio selezionato (livello, effetto attuale e successivo, costo con posseduti, requisito
+del Falegname, **Costruisci/Migliora** con il motivo): è lo stesso componente della vista Elenco. Costruire dalla mappa non cambia vista né selezione; il nodo si
+aggiorna (stato e livello) con gli stessi eventi della pagina.
+
+**Accesso alle pagine.** Gli edifici con pagina propria hanno nei dati il campo `page` (`noticeboard` → pagina Bacheca, `market` → pagina Shop). Nel pannello di dettaglio
+compare il pulsante **Apri** (testo "Apri Bacheca" / "Apri Mercato"): **abilitato solo se l'edificio è costruito** (livello ≥ 1), altrimenti disabilitato con "Costruiscilo
+per usarlo". Il clic emette `page_requested(page)` e la schermata principale mostra la pagina (stessa via della barra laterale). Gli altri edifici non hanno `page`.
+
+**Vista e persistenza.** La vista scelta (Mappa/Elenco) e la selezione vivono nella pagina e si perdono alla chiusura: non sono stato di gioco, non entrano nel save
+né in `settings.cfg`. Nessun caso offline (il Villaggio non ha tempo). Lo stato della mappa si legge dal modulo `village` (livelli, `can_upgrade`) e dal Magazzino/Banca come il box.
+
+**Clean room.** Un campo con nodi fissi e nessuna cosa che si muova, cresca o richieda cura (nessun terreno, strada o abitante da piazzare: il Township di Melvor non è un
+modello). Le posizioni sono scelte dal design e non le cambia il giocatore.
+
+**Layout** (1280×720, barra laterale inclusa): campo a sinistra (circa 680×500), pannello di dettaglio a destra (circa 340 px, scorre se il box è alto); nodi 150×72.
+**Icone**: quelle già in `assets/icons/ui` (campo `icon` di §24; se manca il file la UI mostra `missing`, nessun asset nuovo). Testi in `village_texts.gd`.

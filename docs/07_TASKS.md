@@ -1963,3 +1963,25 @@ Max 2 agenti insieme. **Prima ondata: M20-02 e M20-03 in parallelo** (file disti
 - **Leggere**: `01_GDD.md` §30 e §31.2-31.3, `05_INTERFACES.md` §5.27, §5.28 (voce Shop) e §7.s, `ui/pages/village/` e `ui/pages/shop/`.
 - **Ownership**: `res://ui/pages/village/**` (box: effetto della Bacheca e testo fisso del Mercato; il box segnaposto resta per `buildable == false`), `res://ui/pages/shop/**` (bancarella `mercato`, voci bloccate con "Richiede Mercato n"), `res://tests/ui/test_village_page_smoke.gd`, `res://tests/ui/test_shop_page_smoke.gd` (solo i casi nuovi), `res://tests/helpers/village_stub.gd` (due edifici costruibili in più).
 - **Accettazione**: negli smoke test: 7 box costruibili e nessun segnaposto; una voce del Mercato con `req_village` non soddisfatto mostra il pulsante disabilitato e il motivo; con il requisito soddisfatto il pulsante è abilitato; nessuno stato di gioco nella UI; layout a 1280×720 (7 box).
+
+## M21 — Mappa del Villaggio (V7; fonte `docs/M21_MAPPA.md`, `01_GDD.md` §32, `04_DATA_SCHEMA.md` §26, `05_INTERFACES.md` §5.27 e §7.r)
+Max 2 agenti insieme. **M21-02 e M21-03 in parallelo** (file distinti; contratto fisso da M21-01: la UI legge `map_pos` e `page` dalle definizioni e nello smoke test usa lo stub); M21-04 alla fine.
+
+| ID | Titolo | Ruolo | Dip. | Accettazione |
+|---|---|---|---|---|
+| M21-01 | Design: GDD §32, schema §26, contratto §7.r, task, `M21_MAPPA.md` | REV | M20-06 | **DONE**: nessuna formula né stat, save invariato; riuso di `combat_map.gd` per copia dello schema (nessun refactor) |
+| M21-02 | `map_pos` e `page` nei dati degli edifici: validatore, definizione, generatore, fixture | DATA, CORE | 01 | i 7 edifici hanno `map_pos` e (Bacheca, Mercato) `page` come da §26; il validatore rifiuta `map_pos` mancante/fuori 0..1/sovrapposto e `page` su un segnaposto; `gen_village.gd` rigenera il file identico (i `levels` non cambiano); `validate_data` verde (fixture e dati veri) |
+| M21-03 | Vista Mappa nella pagina Villaggio: `VillageMap`, `VillageNodeState`, dettaglio, viste Mappa/Elenco, pulsante "Apri" | UI | 01 | smoke test unico con lo stub (vedi §7.r) più il test di tabella dello stato; layout a 1280×720; nessuno stato di gioco nella UI; `combat_map.gd` intatto |
+| M21-04 | QA e integrazione: smoke su sessione vera, screenshot, `run_checks`, tag `m21-done` | QA, REV | 02, 03 | `run_checks.ps1` verde dopo il merge; la mappa si apre con i dati veri (7 nodi, posizioni da `buildings.json`); "Apri" porta a Bacheca e Mercato; screenshot a 1280×720 (`tools/shot_ui.gd`) senza sovrapposizioni; STATUS aggiornato dall'Orchestratore |
+
+### M21-02 — dettaglio
+- **Leggere**: `04_DATA_SCHEMA.md` §24 e §26, `01_GDD.md` §32 (nodo e accesso alle pagine), `05_INTERFACES.md` §5.27.
+- **Ownership**: `res://data/village/buildings.json` (solo i campi `map_pos` e `page`: i `levels` non cambiano), `res://tools/gen_village.gd` (conserva e scrive i due campi), `res://core/data/data_validator_village.gd` (regole di §26; se supera 330 righe estrarre `data_validator_village_map.gd`), `res://core/data/defs/village_building_def.gd` e il suo caricamento in `res://core/data/village_index.gd`, `res://tests/systems/village/test_village_data.gd` (casi nuovi), `res://tests/fixtures/data/**` (solo le fixture degli edifici).
+- **Test**: `map_pos` e `page` letti in `VillageBuildingDef` (valori di §26); errori del validatore (mancante, un solo numero, fuori 0..1, due edifici troppo vicini, `page` su un segnaposto, `page` con maiuscole); rigenerazione di `gen_village.gd` = file attuale.
+- **Fuori ownership**: `ui/**`, `systems/village/village.gd`, `balance.json`, `stats.json`, il save.
+
+### M21-03 — dettaglio
+- **Leggere**: `01_GDD.md` §30 (stati) e §32, `05_INTERFACES.md` §5.27, §7.t e §7.r, `ui/pages/village/` e, come modello di schema (sola lettura), `ui/pages/combat/combat_map.gd`.
+- **Ownership**: `res://ui/pages/village/village_map.gd`, `village_node_state.gd` (nuovi, con i `.uid`), `village_page.gd`, `village_page.tscn`, `village_texts.gd`, `res://ui/screens/main/page_host.gd` (solo il collegamento di `page_requested`, poche righe), `res://tests/ui/test_village_page_smoke.gd`, `res://tests/ui/test_village_node_state.gd`, `res://tests/helpers/village_stub.gd` (`map_pos` e `page` sulle definizioni dello stub, coerenti con §26).
+- **Accettazione**: come §7.r; nessun numero di design nel codice (posizioni dai dati; dimensioni del nodo = costanti di presentazione); testi in italiano in `village_texts.gd`; ogni file < 400 righe (`village_page.gd` ha 130 righe: se supera ~300, spostare il dettaglio in `village_detail.gd`).
+- **Fuori ownership**: `ui/pages/combat/**`, `core/data/**`, `data/**`, `systems/**`, `sidebar.gd`.

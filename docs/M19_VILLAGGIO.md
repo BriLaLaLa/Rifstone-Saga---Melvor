@@ -30,7 +30,7 @@ Rift, solo se serve). Livello dell'edificio richiede un livello del Falegname.
 | M19-03 | Pagina Villaggio a box (livello, costo, effetto, Costruisci/Migliora), voce nella sidebar | UI |
 | M19-04 | Sim di bilanciamento (ore per livello), QA, `run_checks`, tag `m19-done` | QA, REV |
 | M20 | Bacheca e quest con ricompense, shop esclusivi del Mercato (nuova migrazione) | da progettare in M20-01 |
-| M21 | Mappa del Villaggio (schema di `combat_map.gd`) | da progettare |
+| M21 | Mappa del Villaggio (schema di `combat_map.gd`) | progettata da M21-01 (`M21_MAPPA.md`) |
 
 M19-02 e M19-03 partono in parallelo solo dopo M19-01 (contratto fissato). Max 2 agenti insieme.
 

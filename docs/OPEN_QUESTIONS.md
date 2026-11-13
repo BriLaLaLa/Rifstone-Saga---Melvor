@@ -147,6 +147,7 @@ I documenti sono già scritti con questi default. I numeri non presenti nella fo
 | Q87 | Ritratto e layout a 1280x720 della pagina di combattimento (M17-05/07: mappa cliccabile, gruppi fino a 8, effetti) da verificare a schermo | nessun cambio finché non verificato da una persona | utente / QA |
 | Q88 | Incarichi di Frattura (vincere una Frattura di grado ≥ g) e di Monolite (spezzare N Monoliti): servono sistemi che il giocatore sblocca tardi e `fracture_finished`/`rift_stone_*` hanno altre dipendenze | Non in M20 (solo `kill`, `gather`, `craft`); riaprire se il giro degli incarichi risulta ripetitivo, aggiungendo un tipo e le voci generate | M20-06 / utente |
 | Q89 | Rinnovo degli incarichi senza timer: l'abbandono è gratuito e illimitato (si può scegliere l'incarico preferito abbandonando); basta o serve un costo (oro) o un limite? | Gratuito: l'oro degli incarichi è un bonus basso (F-134) e la memoria dei 6 recenti evita i ripetuti | M20-06 (a gioco) |
+| Q90 | Ricordare la vista del Villaggio (Mappa/Elenco) e la selezione tra le sessioni, ed estrarre un componente di mappa comune a combattimento e Villaggio se ne nasce un terzo uso? | No: la vista non è stato di gioco (nessun campo nel save, nessuna chiave in `settings.cfg`) e lo schema si copia (~12 righe). Rivedere solo con un terzo uso o su richiesta del giocatore | M21 | utente |
 
 ## Chiuse
 

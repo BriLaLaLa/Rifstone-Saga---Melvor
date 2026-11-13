@@ -807,3 +807,16 @@ Il validatore controlla: `type` coerente con i campi presenti/assenti, `skill` e
 **`data/shop/shop.json`**: `category` aggiunge `market` (`SHOP_CATEGORIES`), `vendor` aggiunge `mercato` (`SHOP_VENDORS`, bancarella "Mercato"); `requires` aggiunge `village` (oggetto `{building_id: livello}`, `building_id` di un edificio costruibile **con `unlocks_shop`**, livello 1..`village.max_level`). Le 15 voci di F-136 usano solo modificatori con `scope` dove serve (`skill:<mestiere>`), nessun `effect.item`. `ShopEntryDef` espone `req_village: Dictionary[StringName, int]`.
 
 **`stats.json`**: una stat nuova, `quest_slots` (`name` "Incarichi della Bacheca", `format` `flat`, min 0, max 8, `description` "Numero di incarichi attivi della Bacheca.", `formula` `F-135`, `test` `tests/systems/quests/test_quests.gd::test_slots_follow_quest_slots`). Le stat delle voci del Mercato esistono già con il loro test.
+
+## 26. Mappa del Villaggio (M21; V7, `01_GDD.md` §32)
+
+Estensione di `data/village/buildings.json` (§24): **due campi nuovi per edificio**, scritti a mano nella sorgente (come `order` e `icon`); `tools/gen_village.gd` li **conserva**
+(rigenera solo `levels`). Nessun'altra modifica di schema, nessuna chiave di `balance.json`.
+| Campo | Tipo | Vincoli |
+|---|---|---|
+| `map_pos` | `[x, y]` | **obbligatorio** per ogni edificio (anche segnaposto): due float in 0..1, posizione del nodo sulla mappa (solo presentazione). Due edifici non si sovrappongono: `|dx| ≥ 0,22` **oppure** `|dy| ≥ 0,16` (il nodo 150×72 nel campo 680×500 occupa circa 0,22×0,15) |
+| `page` | String | **facoltativo**: id di pagina (`noticeboard`, `shop`) che il pulsante **Apri** mostra; stesso formato degli id (regola comune); solo se `buildable`. Il validatore non conosce le pagine della UI: un id sconosciuto lo segnala `PageHost` (`Log.warn`, nessun cambio) |
+
+Posizioni fissate da M21-01 (campo normalizzato; il campo è in colonne): `storehouse` [0,14, 0,22], `loot_shed` [0,14, 0,76], `noticeboard` [0,50, 0,14], `market` [0,50, 0,50],
+`sawmill` [0,50, 0,86], `inn` [0,86, 0,22], `forge` [0,86, 0,76]; `page`: `noticeboard` → `noticeboard`, `market` → `shop`.
+`VillageBuildingDef` guadagna `map_pos: Vector2` e `page: StringName` (`&""` se assente). Il validatore (`DataValidatorVillage`) controlla i due campi con messaggi come per `areas` (§8) e le fixture dei test li includono.

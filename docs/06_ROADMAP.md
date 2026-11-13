@@ -266,7 +266,8 @@ B1: livello 99 in **319,6 ore** (obiettivo 250-350; prima della taratura 175), 1
 **Giocabile**: costruire la Bacheca e il Mercato, completare incarichi e riscuotere le ricompense, comprare le voci del Mercato; ogni incarico richiede al massimo 0,49 h, ogni livello dei due edifici al massimo 0,80 h (sim).
 
 ## M21: Mappa del Villaggio
-Mappa dell'insediamento sullo schema di `combat_map.gd`; si progetta in M21-01.
+Progettata da M21-01 (`M21_MAPPA.md`, `01_GDD.md` §32, `04_DATA_SCHEMA.md` §26, `05_INTERFACES.md` §7.r): la pagina Villaggio ha due viste, **Mappa** (7 nodi cliccabili alle `map_pos` dei dati, stato locked/unbuilt/ready/built/maxed, pannello di dettaglio con il box e il pulsante "Apri" per Bacheca e Mercato) ed **Elenco** (i box attuali). Nessuna meccanica, stat o formula nuova; save invariato (v7). Task M21-02..04.
+**Giocabile**: si apre il Villaggio su una mappa, si vedono a colpo d'occhio gli edifici costruiti, quelli pronti e quelli bloccati, si costruisce dal dettaglio e si salta a Bacheca e Mercato.
 
 ## M22+: Seconda classe, dungeon, altri boss (dopo M21; era M19+)
 Seconda classe con le sue armi (es. arco o bastone, con i suoi progetti e componenti del Falegname), supporti delle abilità,
