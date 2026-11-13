@@ -35,6 +35,7 @@ func set_piece(inst: ItemInstance, base: ItemDef, selected: bool) -> void:
 	(%Icon as TextureRect).texture = ItemSlotView.icon_of(base.icon)
 	(%UpgradeLabel as Label).text = ArmoryTexts.UPGRADE_TEXT % inst.upgrade if inst.upgrade > 0 else ""
 	(%LockMarker as ColorRect).visible = inst.locked
+	LevelBadge.show_on(self, inst.ilvl)  # M16-04: item level, bottom right ("+N" sits at the top right)
 	var bg: Color = UiStyle.GOLD_FAINT if selected else UiStyle.BG_FIELD
 	add_theme_stylebox_override("panel", UiStyle.flat(bg, UiStyle.rarity_color(inst.rarity),
 			UiStyle.ARMORY_RARITY_BORDER, 3.0))

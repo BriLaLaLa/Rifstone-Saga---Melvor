@@ -37,6 +37,7 @@ var _session: GameSession = null
 var _group: ButtonGroup = ButtonGroup.new()
 var _rows: Dictionary[StringName, Button] = {}
 var _level_labels: Dictionary[StringName, Label] = {}
+var _dots: Dictionary[StringName, ActiveDot] = {}
 
 @onready var _entries: VBoxContainer = %Entries
 @onready var _row_template: Button = $Scroll/Entries/RowTemplate
@@ -72,14 +73,21 @@ func bind(session: GameSession, is_available: Callable) -> void:
 			_level_labels[skill.id] = row.get_node("Side") as Label
 			_redraw_level(skill.id)
 	_session.events.level_up.connect(_on_events_level_up)
+	for sig: Signal in _work_signals(_session.events):
+		sig.connect(_on_work_changed)
+	_refresh_dots()
 
 
 ## Disconnects from the session's events; the rows stay as they are.
 func unbind() -> void:
 	if _session == null:
 		return
-	if is_instance_valid(_session) and _session.events.level_up.is_connected(_on_events_level_up):
-		_session.events.level_up.disconnect(_on_events_level_up)
+	if is_instance_valid(_session):
+		if _session.events.level_up.is_connected(_on_events_level_up):
+			_session.events.level_up.disconnect(_on_events_level_up)
+		for sig: Signal in _work_signals(_session.events):
+			if sig.is_connected(_on_work_changed):
+				sig.disconnect(_on_work_changed)
 	_session = null
 
 
@@ -101,6 +109,7 @@ func _clear_rows() -> void:
 		child.queue_free()
 	_rows.clear()
 	_level_labels.clear()
+	_dots.clear()
 
 
 func _add_section_title(text: String) -> void:
@@ -124,6 +133,9 @@ func _add_row(page_id: StringName, text: String, icon: Texture2D, available: boo
 		(row.get_node("Side") as Label).text = COMING_SOON_TEXT
 		row.tooltip_text = COMING_SOON_TEXT
 	_entries.add_child(row)
+	var dot := ActiveDot.new()
+	row.add_child(dot)
+	_dots[page_id] = dot
 	_rows[page_id] = row
 	return row
 
@@ -138,6 +150,33 @@ func _skill_icon(skill: SkillDef) -> Texture2D:
 
 func _redraw_level(skill_id: StringName) -> void:
 	_level_labels[skill_id].text = LEVEL_TEXT % NumberFormat.format_int(_session.skills.get_level(skill_id))
+
+
+## The events after which the work in progress may have changed (M16-06, V9).
+func _work_signals(events: GameEvents) -> Array[Signal]:
+	return [events.action_started, events.action_stopped, events.combat_started, events.combat_stopped,
+			events.encounter_started]  # combat_started comes before the state changes, encounter_started after
+
+
+func _on_work_changed(_a: Variant = null, _b: Variant = null, _c: Variant = null) -> void:
+	_refresh_dots()
+
+
+## Lights the dot of the skill in progress (main lane) and of the combat, reading both from the session.
+func _refresh_dots() -> void:
+	if _session == null:
+		return
+	var running: StringName = StringName(_session.actions.get_lane().get("skill", &""))
+	var skill_page: StringName = StringName(PageHost.ROUTE_SKILL + PageHost.ROUTE_SEPARATOR + running) \
+			if running != &"" else &""
+	for page_id: StringName in _dots:
+		var on: bool = page_id == skill_page or (page_id == &"combat" and _session.combat.is_active())
+		_dots[page_id].set_active(on)
+
+
+## True when the dot of the entry `page_id` is lit, for tests.
+func is_working(page_id: StringName) -> bool:
+	return _dots.has(page_id) and _dots[page_id].visible
 
 
 func _on_row_pressed(page_id: StringName) -> void:

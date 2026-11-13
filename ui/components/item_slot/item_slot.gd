@@ -36,6 +36,14 @@ func set_item(item: ItemDef, count: int, locked: bool = false) -> void:
 	_count_label().text = NumberFormat.format_compact(count) if count > 0 else ""
 	_lock_marker().visible = locked
 	_lock_marker().tooltip_text = LOCKED_TEXT if locked else ""
+	LevelBadge.show_on(self, equip_level(item), count > 0)  # M16-04: equipment level, small, bottom right
+
+
+## Equipment level of an item definition: the character level its `equip.requirements` ask for; 0 for non-equipment.
+static func equip_level(item: ItemDef) -> int:
+	if item == null or item.equip == null:
+		return 0
+	return int(item.equip.requirements.get(&"character", 0))
 
 
 ## Empty cell.
@@ -45,6 +53,7 @@ func clear() -> void:
 	_icon().texture = null
 	_count_label().text = ""
 	_lock_marker().visible = false
+	LevelBadge.show_on(self, 0)
 
 
 ## Id of the item drawn now; `&""` if the cell is empty.

@@ -34,6 +34,7 @@ func show_piece(inst: ItemInstance, base: ItemDef) -> void:
 	_uid = inst.uid
 	_icon.texture = ItemSlotView.icon_of(base.icon)
 	_icon.modulate = Color.WHITE
+	LevelBadge.show_on(self, inst.ilvl)
 	_style(UiStyle.rarity_color(inst.rarity))
 
 
@@ -42,6 +43,7 @@ func show_empty() -> void:
 	var path: String = EquipmentSlotView.SLOT_ICON_DIR % _slot
 	_icon.texture = load(path) as Texture2D if ResourceLoader.exists(path) else null
 	_icon.modulate = EquipmentSlotView.EMPTY_ICON_TINT
+	LevelBadge.show_on(self, 0)
 	_style(UiStyle.COMBAT_EMPTY_BORDER)
 
 

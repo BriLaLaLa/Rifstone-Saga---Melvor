@@ -32,7 +32,7 @@ func test_two_tabs_with_their_titles() -> void:
 	var tabs: DepositTabs = _tabs()
 	assert_eq(tabs.get_tab_count(), 2)
 	assert_eq(tabs.get_tab_title(0), "Oggetti")
-	assert_eq(tabs.get_tab_title(1), "Equipaggiamento")
+	assert_eq(tabs.get_tab_title(1), DepositTabs.EQUIPMENT_TITLE)
 
 
 func test_both_tabs_draw_the_whole_capacity() -> void:
