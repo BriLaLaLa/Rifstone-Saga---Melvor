@@ -51,8 +51,8 @@ func run(args: PackedStringArray) -> int:
 		return 1
 	var params: Dictionary = _params()
 	var worst: float = 0.0
-	print("| building | level | woodwright | materials h | gold h | total h | cumulative h |")
-	print("|---|---|---|---|---|---|---|")
+	print_rich("| building | level | woodwright | materials h | gold h | total h | cumulative h |")
+	print_rich("|---|---|---|---|---|---|---|")
 	for building: Dictionary in _buildings():
 		var cumulative: float = 0.0
 		for level: int in range(1, int(params["max_level"]) + 1):
@@ -63,9 +63,9 @@ func run(args: PackedStringArray) -> int:
 			var total: float = mat_h + gold_h
 			cumulative += total
 			worst = maxf(worst, total)
-			print("| %s | %d | %d | %.2f | %.2f | %.2f | %.2f |" % [building["id"], level,
+			print_rich("| %s | %d | %d | %.2f | %.2f | %.2f | %.2f |" % [building["id"], level,
 					int(params["woodwright_levels"][level - 1]), mat_h, gold_h, total, cumulative])
-	print("worst single level: %.2f h (cap %.2f h)" % [worst, cap])
+	print_rich("worst single level: %.2f h (cap %.2f h)" % [worst, cap])
 	return 1 if worst > cap else 0
 
 

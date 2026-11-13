@@ -27,14 +27,14 @@ func _initialize() -> void:
 	var text: String = result["text"] as String
 	var current: String = FileAccess.get_file_as_string(BUILDINGS_PATH)
 	if check_only:
-		print("gen_village: " + ("up to date" if text == current else "OUT OF DATE (rerun tools/gen_village.gd)"))
+		print_rich("gen_village: " + ("up to date" if text == current else "OUT OF DATE (rerun tools/gen_village.gd)"))
 		quit(0 if text == current else 1)
 		return
 	if text != current:
 		var file: FileAccess = FileAccess.open(BUILDINGS_PATH, FileAccess.WRITE)
 		file.store_string(text)
 		file.close()
-	print("gen_village: %s" % ("written" if text != current else "unchanged"))
+	print_rich("gen_village: %s" % ("written" if text != current else "unchanged"))
 	quit(0)
 
 
