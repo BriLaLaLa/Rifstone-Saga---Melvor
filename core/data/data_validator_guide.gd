@@ -13,7 +13,7 @@ const BLOCK_TYPES: PackedStringArray = ["text", "heading", "table", "links"]
 ## Generated tables a `table` block may use: GuideTables.ids() (single definition) plus the families
 ## `actions:<skill>`, `area_monsters:<area>`, `monster_drops:<monster>`, `mastery_milestones:<skill>` for an existing skill, area or monster.
 ## Game pages the "?" can open (PageHost routes, plus `skill:<id>` for an existing skill).
-const ROUTES: PackedStringArray = ["bank", "shop", "equipment", "armory", "character", "combat", "rift", "fractures", "altar", "settings", "village", "noticeboard"]
+const ROUTES: PackedStringArray = ["bank", "shop", "equipment", "armory", "character", "combat", "rift", "fractures", "altar", "settings", "village", "noticeboard", "dungeon"]
 const SKILL_ROUTE_PREFIX: String = "skill:"
 const EXCEPTION_KEYS: PackedStringArray = ["no_source", "no_use"]
 const INDEX_SCRIPT: String = "res://core/guide/guide_index.gd"

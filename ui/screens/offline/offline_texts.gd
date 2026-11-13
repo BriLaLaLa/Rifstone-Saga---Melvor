@@ -20,6 +20,7 @@ const SECTION_STOPS := "INTERRUZIONI"
 const SECTION_FRACTURES := "FRATTURE"
 const FRACTURE_LINE := "Frattura di grado %d %s: %d gruppi superati"
 const FRACTURE_LOOT_SEPARATOR := ", "
+const SECTION_DUNGEON := "DUNGEON"
 
 const CHARACTER_NAME := "Personaggio"
 const XP_LINE := "%s: +%s XP"
@@ -78,6 +79,11 @@ static func fracture_line(entry: Dictionary) -> String:
 	if outcome == &"won" and loot != "":
 		line += FRACTURE_LOOT_SEPARATOR + loot
 	return line
+
+
+## The line of a dungeon run that was in progress while away (`OfflineSummary.dungeon_frozen`): the run did not advance.
+static func dungeon_line() -> String:
+	return DungeonTexts.OFFLINE_LINE
 
 
 static func reason_text(reason: StringName) -> String:

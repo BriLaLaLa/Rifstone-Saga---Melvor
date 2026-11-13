@@ -22,6 +22,8 @@ const LABEL_CONTRACT: String = "Assumi un aiutante"
 const PAGE_DEPOSIT: StringName = &"guide_deposit"
 const PAGE_HELPERS: StringName = &"guide_helpers"
 const PAGE_FRACTURES: StringName = &"guide_fractures"
+const PAGE_DUNGEON: StringName = &"guide_dungeon"
+const LABEL_DUNGEON_OPEN: String = "Apri il dungeon"
 const LABEL_FRACTURE_SOURCE: String = "Mostri e boss delle Fratture"
 const LABEL_FRACTURE_OPEN: String = "Apri una Frattura"
 
@@ -302,6 +304,8 @@ func _add_item_kind_uses(def: ItemDef) -> void:
 				"+%d caselle" % def.bag_slots))
 	if def.is_map():
 		_add(_uses, def.id, GuideRef.make(GuideRef.KIND_FRACTURE, entry(&"page", PAGE_FRACTURES), LABEL_FRACTURE_OPEN))
+	if def.dungeon != &"":
+		_add(_uses, def.id, GuideRef.make(GuideRef.KIND_DUNGEON, entry(&"page", PAGE_DUNGEON), LABEL_DUNGEON_OPEN))
 	if def.is_contract():
 		_add(_uses, def.id, GuideRef.make(GuideRef.KIND_CONTRACT, entry(&"page", PAGE_HELPERS), LABEL_CONTRACT))
 	if def.is_currency():

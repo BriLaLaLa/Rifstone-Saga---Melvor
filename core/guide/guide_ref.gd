@@ -19,6 +19,7 @@ const KIND_MILESTONE: StringName = &"milestone"
 const KIND_BAG: StringName = &"bag"
 const KIND_CONTRACT: StringName = &"contract"
 const KIND_FRACTURE: StringName = &"fracture"
+const KIND_DUNGEON: StringName = &"dungeon"
 const KIND_POOL: StringName = &"pool"  # M14: the drop pool of equipment and blueprints (F-121), by area
 const KIND_BOSS: StringName = &"boss"  # M14: a Fracture boss (legendaries, F-120)
 const KIND_ACTION: StringName = &"action"  # M14: the output of a gathering or crafting action
