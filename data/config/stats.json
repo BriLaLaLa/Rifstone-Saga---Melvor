@@ -239,6 +239,16 @@
       "description": "Aumenta la probabilità di riuscita della raffinazione.",
       "formula": "F-86",
       "test": "tests/systems/armory/test_upgrade.gd::test_upgrade_success_pct"
+    },
+    {
+      "id": "deposit_slots",
+      "name": "Caselle del Villaggio",
+      "format": "flat",
+      "min": 0,
+      "max": 1000,
+      "description": "Aggiunge caselle al Deposito.",
+      "formula": "F-133",
+      "test": "tests/systems/deposit/test_deposit.gd::test_capacity_uses_deposit_slots"
     }
   ]
 }

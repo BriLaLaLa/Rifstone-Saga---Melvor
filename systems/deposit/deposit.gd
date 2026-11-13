@@ -2,7 +2,7 @@ class_name Deposit
 extends RefCounted
 ## The single capacity shared by the Bank and the Armory (docs/01_GDD.md §7, F-100) and the bag slots that raise it.
 ##
-## `capacity = deposit.base_slots + Σ bag.slots of the bags in the bag slots`. `used` is the sum of the registered
+## `capacity = deposit.base_slots + Σ bag.slots of the bags in the bag slots + floor(T(deposit_slots))` (M19, F-133: the Village). `used` is the sum of the registered
 ## occupants (the Bank: item types; the Armory: pieces not worn). Bags in the slots occupy no place. The commands that
 ## move a bag between the Bank and a slot live in Bank (`equip_bag`, `unequip_bag`); this class never knows Bank.
 ## Signals go to the session EventBus after the state changed: `bags_changed` when a slot changes, `deposit_changed` from
@@ -13,9 +13,11 @@ const LOG_CATEGORY: String = "deposit"
 const BASE_SLOTS_KEY: String = "deposit.base_slots"
 const BAG_SLOTS_KEY: String = "deposit.bag_slots"
 const BAG_CATEGORY: StringName = &"bag"
+const VILLAGE_STAT: StringName = &"deposit_slots"
 
 var _data: GameData
 var _events: GameEvents
+var _modifiers: ModifierService
 var _base_slots: int = 0
 var _bag_slots: Array[StringName] = []
 # occupant id -> used_fn (() -> int).
@@ -29,13 +31,15 @@ func _init(session: GameSession) -> void:
 	assert(session != null, "Deposit needs a session")
 	_data = session.data
 	_events = session.events
+	_modifiers = session.modifiers
 	_base_slots = int(_data.balance_value(BASE_SLOTS_KEY))
+	_events.modifiers_changed.connect(_on_modifiers_changed)
 	_clear()
 
 
-## F-100.
+## F-100 + F-133 (`deposit_slots` of the Village: no place used, never lost).
 func capacity() -> int:
-	return _base_slots + extra_slots()
+	return _base_slots + extra_slots() + floori(_modifiers.total(VILLAGE_STAT))
 
 
 func used() -> int:
@@ -142,6 +146,13 @@ func from_save(d: Dictionary) -> void:
 			_bag_slots[index] = StringName(str(entry))
 		else:
 			Log.warn(LOG_CATEGORY, "bag slot %d: %s is not a bag, slot left empty" % [index, str(entry)])
+
+
+# F-133: a modifier change that moves the capacity is announced (only after a first announcement, so new_game and
+# from_save stay silent).
+func _on_modifiers_changed() -> void:
+	if _known_capacity >= 0 and capacity() != _known_capacity:
+		notify_changed()
 
 
 func _clear() -> void:

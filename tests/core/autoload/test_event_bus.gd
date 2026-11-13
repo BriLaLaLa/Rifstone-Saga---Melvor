@@ -63,6 +63,7 @@ const EXPECTED: Dictionary = {
 	"ability_used": [["ability_id", SN, ""], ["targets", TYPE_ARRAY, ""]],
 	"shop_purchased": [["entry_id", SN, ""], ["count", I, ""]],
 	"item_sold": [["item_id", SN, ""], ["qty", I, ""], ["gold", I, ""]],
+	"village_upgraded": [["building_id", SN, ""], ["new_level", I, ""]],
 	"infusion_socketed": [["socket_index", I, ""], ["item_id", SN, ""]],
 	"infusion_removed": [["socket_index", I, ""], ["item_id", SN, ""]],
 	"offline_started": [["elapsed_ms", I, ""], ["capped", B, ""]],

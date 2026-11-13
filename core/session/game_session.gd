@@ -42,6 +42,7 @@ var shop: Shop
 var rift: RiftAltar
 var hints: HintsSystem
 var discoveries: Discoveries  # M14-07
+var village: Village  # M19-02
 # The other system fields of docs/05_INTERFACES.md §5.3 are declared by the task that creates each system.
 var slot: int = -1
 var player_name: String = ""
@@ -171,6 +172,8 @@ func _create_systems() -> void:
 	_tick(_PHASE_COMBAT, combat.advance)
 	shop = Shop.new(self)
 	_join(Shop.SAVE_KEY, shop.new_game, shop.to_save, shop.from_save, shop.rebuild_modifiers)
+	village = Village.new(self)
+	_join(Village.SAVE_KEY, village.new_game, village.to_save, village.from_save, village.rebuild_modifiers)
 	rift = RiftAltar.new(self)
 	_join(RiftAltar.SAVE_KEY, rift.new_game, rift.to_save, rift.from_save, rift.rebuild_modifiers)
 	hints = HintsSystem.new(self)

@@ -24,6 +24,7 @@ const CLOSED_FORMULAS: Array[String] = [
 	"F-20", "F-21", "F-22", "F-25", "F-26", "F-27", "F-29", "F-30", "F-31", "F-33", "F-75", "10.6",
 	"F-78", "F-79", "F-80", "F-81",
 	"F-86", "F-84", "F-87", "F-85", "F-88", "F-117",  # M14-02: Armour and Barrier
+	"F-133",  # M19-02: Village deposit slots
 ]
 # The stats whose effect M1 delivers: they must be covered by the closed formulas above.
 const M1_STATS: Array[StringName] = [

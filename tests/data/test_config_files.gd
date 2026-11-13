@@ -197,6 +197,7 @@ const EXPECTED_STATS: Dictionary = {
 	"item_rarity_pct": [0.0, 1000.0, "F-84"],
 	"block_chance": [0.0, 50.0, "F-75"],
 	"upgrade_success_pct": [0.0, 300.0, "F-86"],
+	"deposit_slots": [0.0, 1000.0, "F-133"],  # M19
 }
 
 const STAT_FIELDS: Array[String] = ["id", "name", "format", "min", "max", "description", "formula", "test"]
@@ -244,9 +245,9 @@ func _flatten_without_loot(out: Dictionary) -> void:
 	for key: String in out.keys():
 		if key.begins_with("upgrade.") or key.begins_with("salvage.") or key.begins_with("tool_upgrade.") \
 				or key.begins_with("fracture.") or key.begins_with("equipment.") or key.begins_with("combat.armor.") \
-				or key.begins_with("loot.") or key.begins_with("mastery.step.") or key.begins_with("metin."):
+				or key.begins_with("loot.") or key.begins_with("mastery.step.") or key.begins_with("metin.") or key.begins_with("village."):
 			# fracture.* is covered by tests/core/data/test_map_data_validation.gd, equipment.* and combat.armor.* (M14) by
-			# tests/systems/combat/test_armor_math.gd and tests/core/data/test_weapon_validation.gd, loot.* (M14-05) by tests/data/test_loot_data.gd, metin.* (M15) by tests/data/test_metin_data.gd; mastery.step.* (M14-08) by tests/systems/mastery/test_mastery_step.gd
+			# tests/systems/combat/test_armor_math.gd and tests/core/data/test_weapon_validation.gd, loot.* (M14-05) by tests/data/test_loot_data.gd, metin.* (M15) by tests/data/test_metin_data.gd; mastery.step.* (M14-08) by tests/systems/mastery/test_mastery_step.gd, village.* (M19) by tests/systems/village/test_village_cost.gd
 			out.erase(key)
 
 
@@ -298,9 +299,9 @@ func test_balance_has_no_later_milestone_sections() -> void:
 		assert_false(root.has(key), "balance.json has no '%s' section (M7+)" % key)
 
 
-func test_stats_has_exactly_24_stats() -> void:
+func test_stats_has_exactly_25_stats() -> void:
 	var stats: Array = _stats()
-	assert_eq(stats.size(), 24, "stats.json lists the 25 stats of M1-M7 minus bank_slots and armory_slots (M12), plus barrier (M14)")
+	assert_eq(stats.size(), 25, "stats.json lists the 25 stats of M1-M7 minus bank_slots and armory_slots (M12), plus barrier (M14), plus deposit_slots (M19)")
 	var ids: Array[String] = []
 	for entry: Variant in stats:
 		if entry is Dictionary:

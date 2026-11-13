@@ -72,6 +72,7 @@ signal ability_used(ability_id: StringName, targets: Array[int])
 # Shop and Rift Altar
 signal shop_purchased(entry_id: StringName, count: int)
 signal item_sold(item_id: StringName, qty: int, gold: int)
+signal village_upgraded(building_id: StringName, new_level: int)  # M19: after the modifiers are rebuilt
 signal infusion_socketed(socket_index: int, item_id: StringName)
 signal infusion_removed(socket_index: int, item_id: StringName)
 
