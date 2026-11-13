@@ -86,6 +86,8 @@ func _enter_tree() -> void:
 	_bound_events.mastery_milestone_reached.connect(_on_events_milestone_reached)
 	_bound_events.helper_blocked.connect(_on_events_helper_blocked)
 	_bound_events.fracture_finished.connect(_on_events_fracture_finished)
+	_bound_events.dungeon_finished.connect(_on_events_dungeon_finished)
+	_bound_events.dungeon_trap_triggered.connect(_on_events_dungeon_trap_triggered)
 	_bound_events.card_rejected.connect(_on_events_card_rejected)
 	_bound_events.item_discovered.connect(_on_events_item_discovered)
 
@@ -102,6 +104,8 @@ func _exit_tree() -> void:
 	_bound_events.mastery_milestone_reached.disconnect(_on_events_milestone_reached)
 	_bound_events.helper_blocked.disconnect(_on_events_helper_blocked)
 	_bound_events.fracture_finished.disconnect(_on_events_fracture_finished)
+	_bound_events.dungeon_finished.disconnect(_on_events_dungeon_finished)
+	_bound_events.dungeon_trap_triggered.disconnect(_on_events_dungeon_trap_triggered)
 	_bound_events.card_rejected.disconnect(_on_events_card_rejected)
 	_bound_events.item_discovered.disconnect(_on_events_item_discovered)
 	_bound_events = null
@@ -185,6 +189,16 @@ func _on_events_helper_blocked(skill_id: StringName, blocked: bool) -> void:
 ## "Frattura vinta! ..." / "Frattura persa: bottino perduto" / "Frattura abbandonata" (texts: FractureTexts).
 func _on_events_fracture_finished(outcome: StringName, _grade: int, _groups: int, cards: int, pieces: int) -> void:
 	push(FractureTexts.toast_text(outcome, cards, pieces), KIND_SUCCESS if outcome == &"won" else KIND_WARNING)
+
+
+## "Covo superato!" / "Sei caduto nel Covo: bottino perduto" / "Sei fuggito: ..." / "Sei uscito dal Covo" (DungeonTexts).
+func _on_events_dungeon_finished(outcome: StringName, _rooms: int, pieces: int) -> void:
+	push(DungeonTexts.toast_text(outcome, pieces), KIND_SUCCESS if outcome == &"won" else KIND_WARNING)
+
+
+## "Una trappola ti costa N PV".
+func _on_events_dungeon_trap_triggered(_trap_kind: StringName, hp_lost: int) -> void:
+	push(DungeonTexts.TOAST_TRAP_TEXT % NumberFormat.format_int(hp_lost), KIND_WARNING)
 
 
 ## "Nuovo: <oggetto>" the first time an item is obtained (not for the starting kit, not offline).

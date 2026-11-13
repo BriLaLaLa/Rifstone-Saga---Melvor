@@ -1,0 +1,22 @@
+{
+  "pages": [
+    {"id": "guide_dungeon", "section": "character", "title": "Dungeon", "order": 22,
+     "help_for": ["dungeon"],
+     "blocks": [
+       {"type": "text", "text": "Il Covo delle Scimmie si apre con {link:item:dungeon_ticket_monkey_den|il Biglietto del Covo}, consumato all'ingresso. Il combattimento è automatico: scegli solo la direzione ai bivi."},
+       {"type": "text", "text": "Ogni bivio ha da due a quattro strade e non vedi la mappa. A volte una stanza lascia un indizio, ma può mentire. In fondo c'è la tana del boss."},
+       {"type": "heading", "text": "Tipi di stanza"},
+       {"type": "text", "text": "Trappola e Riposo sono eventi con due scelte: non uccidono e non danno potere permanente."},
+       {"type": "table", "source": "dungeon_rooms"},
+       {"type": "heading", "text": "Il boss in tre atti"},
+       {"type": "table", "source": "dungeon_stages"},
+       {"type": "heading", "text": "Bottino del boss"},
+       {"type": "table", "source": "dungeon_loot"},
+       {"type": "heading", "text": "Rischio"},
+       {"type": "text", "text": "La borsa del dungeon arriva al Deposito se vinci o se esci a un bivio, rinunciando al boss. Se muori o fuggi è persa. Lontano dal gioco la run resta ferma e riparte con Riprendi."},
+       {"type": "heading", "text": "Dove trovare i Biglietti"},
+       {"type": "text", "text": "Cadono dai miniboss delle aree e dai Monoliti del Rift delle aree più alte."},
+       {"type": "links", "targets": ["page:guide_fractures", "page:guide_packs"]}
+     ]}
+  ]
+}

@@ -69,6 +69,7 @@ func _redraw() -> void:
 	_section(OfflineTexts.SECTION_ITEMS, _item_lines())
 	_section(OfflineTexts.SECTION_COMBAT, _combat_lines())
 	_section(OfflineTexts.SECTION_FRACTURES, _fracture_lines())
+	_section(OfflineTexts.SECTION_DUNGEON, _dungeon_lines())
 	_section(OfflineTexts.SECTION_ARMORY, _armory_lines())
 	_section(OfflineTexts.SECTION_STOPS, _stop_lines(), UiStyle.OFFLINE_WARNING_COLOR)
 
@@ -129,6 +130,13 @@ func _fracture_lines() -> PackedStringArray:
 	var lines: PackedStringArray = PackedStringArray()
 	for entry: Dictionary in _summary.fractures:
 		lines.append(OfflineTexts.fracture_line(entry))
+	return lines
+
+
+func _dungeon_lines() -> PackedStringArray:
+	var lines: PackedStringArray = PackedStringArray()
+	if _summary.dungeon_frozen:
+		lines.append(OfflineTexts.dungeon_line())
 	return lines
 
 

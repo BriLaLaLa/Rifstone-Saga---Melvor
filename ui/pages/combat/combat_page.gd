@@ -22,6 +22,7 @@ var _food_warning: bool = false
 ## Presentation: the state line without the Fracture boss part, and the link to the Fractures page.
 var _state_base: String = ""
 var _fracture_link: Button = null
+var _dungeon_link: Button = null
 var _skip_control: SkipStoneControl = null
 ## Feedback of the combat events (numbers, counters, log lines), made in `bind`.
 var _feed: CombatFeed = null
@@ -70,6 +71,7 @@ func _ready() -> void:
 	_eat_button.text = CombatTexts.EAT_TEXT
 	_stop_button.text = CombatTexts.STOP_TEXT
 	_fracture_link = CombatFracture.add_link(_stop_button.get_parent())
+	_dungeon_link = DungeonCombatNotice.add_link(_stop_button.get_parent())
 	_collect_button.text = CombatTexts.COLLECT_TEXT
 	_skip_control = SkipStoneControl.new()
 	_stop_button.get_parent().add_child(_skip_control)
@@ -187,8 +189,12 @@ func _redraw_all() -> void:
 	_state_base = CombatTexts.HEADER_ENEMIES_TEXT % [state_text, CombatTexts.group_size_text(enemy_count)] \
 			if enemy_count > 0 else state_text
 	_state_label.text = _state_base
-	_map_button.visible = not in_fracture
+	var in_dungeon: bool = DungeonCombatNotice.is_in(_session)
+	_map_button.visible = not in_fracture and not in_dungeon
 	_fracture_link.visible = in_fracture
+	_dungeon_link.visible = in_dungeon
+	if in_dungeon:
+		_area_label.text = DungeonTexts.COMBAT_NOTICE_TEXT
 	if in_fracture:
 		_area_label.text = CombatFracture.header_text(_session, state["fracture"])
 		_state_label.text = CombatFracture.state_text(state["fracture"], _state_base, _session.data)
