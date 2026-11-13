@@ -1,6 +1,6 @@
 {
   "buildings": [
-    {"id": "storehouse", "name": "Magazzino", "description": "Un deposito più grande per tutto ciò che raccogli.", "icon": "building-warehouse", "order": 1, "buildable": true,
+    {"id": "storehouse", "name": "Magazzino", "description": "Un deposito più grande per tutto ciò che raccogli.", "icon": "building-warehouse", "order": 1, "buildable": true, "map_pos": [0.14, 0.22],
      "effect": {"per_level":4.0,"scope":"global","stat":"deposit_slots"},
      "cost_spec": {"food":0.0,"gold_weight":1.0,"plate":0.5,"wood":[{"component":"shieldcore","weight":0.5}]},
      "levels": [
@@ -13,7 +13,7 @@
       {"level":7,"requires_woodwright":75,"gold":2260,"items":[{"item":"emberlarch_shieldcore","qty":80},{"item":"emberheart_plate","qty":16}],"effect_value":28.0},
       {"level":8,"requires_woodwright":90,"gold":3160,"items":[{"item":"riftspruce_shieldcore","qty":90},{"item":"riftite_plate","qty":18}],"effect_value":32.0}
      ]},
-    {"id": "inn", "name": "Locanda", "description": "Un pasto caldo cura di più.", "icon": "tools-kitchen-2", "order": 2, "buildable": true,
+    {"id": "inn", "name": "Locanda", "description": "Un pasto caldo cura di più.", "icon": "tools-kitchen-2", "order": 2, "buildable": true, "map_pos": [0.86, 0.22],
      "effect": {"per_level":3.0,"scope":"global","stat":"food_healing_pct"},
      "cost_spec": {"food":1.0,"gold_weight":0.8,"plate":0.0,"wood":[{"component":"grip","weight":0.5}]},
      "levels": [
@@ -26,7 +26,7 @@
       {"level":7,"requires_woodwright":75,"gold":1810,"items":[{"item":"emberlarch_grip","qty":80},{"item":"seared_ember_sturgeon","qty":52}],"effect_value":21.0},
       {"level":8,"requires_woodwright":90,"gold":2530,"items":[{"item":"riftspruce_grip","qty":90},{"item":"seared_riftmaw","qty":58}],"effect_value":24.0}
      ]},
-    {"id": "forge", "name": "Fucina", "description": "Una fucina del villaggio: il Fabbro impara più in fretta.", "icon": "hammer", "order": 3, "buildable": true,
+    {"id": "forge", "name": "Fucina", "description": "Una fucina del villaggio: il Fabbro impara più in fretta.", "icon": "hammer", "order": 3, "buildable": true, "map_pos": [0.86, 0.76],
      "effect": {"per_level":3.0,"scope":"skill:forging","stat":"skill_xp_pct"},
      "cost_spec": {"food":0.0,"gold_weight":1.0,"plate":1.0,"wood":[{"component":"handle","weight":0.5}]},
      "levels": [
@@ -39,7 +39,7 @@
       {"level":7,"requires_woodwright":75,"gold":2260,"items":[{"item":"emberlarch_handle","qty":80},{"item":"emberheart_plate","qty":32}],"effect_value":21.0},
       {"level":8,"requires_woodwright":90,"gold":3160,"items":[{"item":"riftspruce_handle","qty":90},{"item":"riftite_plate","qty":36}],"effect_value":24.0}
      ]},
-    {"id": "sawmill", "name": "Segheria", "description": "Travi pronte e seghe affilate: il Falegname lavora più veloce.", "icon": "saw", "order": 4, "buildable": true,
+    {"id": "sawmill", "name": "Segheria", "description": "Travi pronte e seghe affilate: il Falegname lavora più veloce.", "icon": "saw", "order": 4, "buildable": true, "map_pos": [0.5, 0.86],
      "effect": {"per_level":-2.0,"scope":"skill:woodwright","stat":"skill_interval_pct"},
      "cost_spec": {"food":0.0,"gold_weight":0.6,"plate":0.0,"wood":[{"component":"grip","weight":0.75},{"component":"handle","weight":0.75}]},
      "levels": [
@@ -52,7 +52,7 @@
       {"level":7,"requires_woodwright":75,"gold":1360,"items":[{"item":"emberlarch_grip","qty":120},{"item":"emberlarch_handle","qty":120}],"effect_value":-14.0},
       {"level":8,"requires_woodwright":90,"gold":1900,"items":[{"item":"riftspruce_grip","qty":135},{"item":"riftspruce_handle","qty":135}],"effect_value":-16.0}
      ]},
-    {"id": "loot_shed", "name": "Rimessa del bottino", "description": "Più spazio per il bottino dei combattimenti.", "icon": "package", "order": 5, "buildable": true,
+    {"id": "loot_shed", "name": "Rimessa del bottino", "description": "Più spazio per il bottino dei combattimenti.", "icon": "package", "order": 5, "buildable": true, "map_pos": [0.14, 0.76],
      "effect": {"per_level":2.0,"scope":"global","stat":"loot_bag_slots"},
      "cost_spec": {"food":0.0,"gold_weight":0.8,"plate":0.5,"wood":[{"component":"handle","weight":0.5}]},
      "levels": [
@@ -65,7 +65,7 @@
       {"level":7,"requires_woodwright":75,"gold":1810,"items":[{"item":"emberlarch_handle","qty":80},{"item":"emberheart_plate","qty":16}],"effect_value":14.0},
       {"level":8,"requires_woodwright":90,"gold":2530,"items":[{"item":"riftspruce_handle","qty":90},{"item":"riftite_plate","qty":18}],"effect_value":16.0}
      ]},
-    {"id": "market", "name": "Mercato", "description": "Bancarelle esclusive del villaggio.", "icon": "building-store", "order": 6, "buildable": true,
+    {"id": "market", "name": "Mercato", "description": "Bancarelle esclusive del villaggio.", "icon": "building-store", "order": 6, "buildable": true, "map_pos": [0.5, 0.5], "page": "shop",
      "unlocks_shop": true,
      "cost_spec": {"wood":[{"component":"shieldcore","weight":0.5}],"plate":0.25,"food":0.25,"gold_weight":1.0},
      "levels": [
@@ -78,7 +78,7 @@
       {"level":7,"requires_woodwright":75,"gold":2260,"items":[{"item":"emberlarch_shieldcore","qty":80},{"item":"emberheart_plate","qty":8},{"item":"seared_ember_sturgeon","qty":13}],"effect_value":0.0},
       {"level":8,"requires_woodwright":90,"gold":3160,"items":[{"item":"riftspruce_shieldcore","qty":90},{"item":"riftite_plate","qty":9},{"item":"seared_riftmaw","qty":15}],"effect_value":0.0}
      ]},
-    {"id": "noticeboard", "name": "Bacheca", "description": "Incarichi e ricompense dagli abitanti.", "icon": "clipboard-list", "order": 7, "buildable": true,
+    {"id": "noticeboard", "name": "Bacheca", "description": "Incarichi e ricompense dagli abitanti.", "icon": "clipboard-list", "order": 7, "buildable": true, "map_pos": [0.5, 0.14], "page": "noticeboard",
      "effect": {"stat":"quest_slots","scope":"global","per_level":1.0},
      "cost_spec": {"wood":[{"component":"grip","weight":0.5},{"component":"shieldcore","weight":0.5}],"plate":0.0,"food":0.0,"gold_weight":0.7},
      "levels": [

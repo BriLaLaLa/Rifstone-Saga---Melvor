@@ -54,6 +54,7 @@ func test_a_placeholder_with_an_effect_is_rejected() -> void:
 		b["milestone"] = 20
 		b["levels"] = []
 		b.erase("cost_spec")
+		b.erase("page")
 		b["effect"] = {"stat": "armor", "scope": "global", "per_level": 1})
 	assert_eq(errors.size(), 1, str(errors))
 	assert_true(errors[0].contains("placeholder"), errors[0])
@@ -118,3 +119,68 @@ func test_the_woodwright_levels_must_increase() -> void:
 		(village["woodwright_levels"] as Array)[3] = 5)
 	assert_gt(errors.size(), 0)
 	assert_true(str(errors).contains("woodwright_levels"), str(errors))
+
+
+func test_map_pos_and_page_are_read_from_the_real_data() -> void:
+	var data: GameData = TestFactory.real_data()
+	assert_eq(data.village_building(&"storehouse").map_pos, Vector2(0.14, 0.22))
+	assert_eq(data.village_building(&"loot_shed").map_pos, Vector2(0.14, 0.76))
+	assert_eq(data.village_building(&"noticeboard").map_pos, Vector2(0.5, 0.14))
+	assert_eq(data.village_building(&"market").map_pos, Vector2(0.5, 0.5))
+	assert_eq(data.village_building(&"sawmill").map_pos, Vector2(0.5, 0.86))
+	assert_eq(data.village_building(&"inn").map_pos, Vector2(0.86, 0.22))
+	assert_eq(data.village_building(&"forge").map_pos, Vector2(0.86, 0.76))
+	assert_eq(data.village_building(&"noticeboard").page, &"noticeboard")
+	assert_eq(data.village_building(&"market").page, &"shop")
+	assert_eq(data.village_building(&"storehouse").page, &"")
+
+
+func test_a_missing_map_pos_is_rejected() -> void:
+	var errors: PackedStringArray = _errors(func(raw: Dictionary) -> void: (_first(raw)[0] as Dictionary).erase("map_pos"))
+	assert_true(str(errors).contains("map_pos"), str(errors))
+
+
+func test_a_map_pos_with_one_number_is_rejected() -> void:
+	var errors: PackedStringArray = _errors(func(raw: Dictionary) -> void: (_first(raw)[0] as Dictionary)["map_pos"] = [0.5])
+	assert_true(str(errors).contains("map_pos"), str(errors))
+
+
+func test_a_map_pos_outside_0_1_is_rejected() -> void:
+	var errors: PackedStringArray = _errors(func(raw: Dictionary) -> void: (_first(raw)[0] as Dictionary)["map_pos"] = [1.2, 0.5])
+	assert_true(str(errors).contains("map_pos"), str(errors))
+
+
+func test_two_buildings_too_close_are_rejected() -> void:
+	var errors: PackedStringArray = _errors(func(raw: Dictionary) -> void: (_first(raw)[1] as Dictionary)["map_pos"] = [0.30, 0.30])
+	assert_true(str(errors).contains("overlaps"), str(errors))
+
+
+func test_two_buildings_in_the_same_row_but_far_apart_are_valid() -> void:
+	var errors: PackedStringArray = _errors(func(raw: Dictionary) -> void: (_first(raw)[1] as Dictionary)["map_pos"] = [0.86, 0.14])
+	assert_eq(errors.size(), 0, str(errors))
+
+
+func test_page_on_a_placeholder_is_rejected() -> void:
+	var errors: PackedStringArray = _errors(func(raw: Dictionary) -> void:
+		var b: Dictionary = _first(raw)[6] as Dictionary
+		b["buildable"] = false
+		b["milestone"] = 20
+		b["levels"] = []
+		b.erase("cost_spec")
+		b.erase("effect"))
+	assert_eq(errors.size(), 1, str(errors))
+	assert_true(errors[0].contains("page"), errors[0])
+
+
+func test_a_page_with_capitals_is_rejected() -> void:
+	var errors: PackedStringArray = _errors(func(raw: Dictionary) -> void: (_first(raw)[6] as Dictionary)["page"] = "Noticeboard")
+	assert_true(str(errors).contains("page"), str(errors))
+
+
+func test_the_generator_reproduces_the_current_file() -> void:
+	var gen: GDScript = load("res://tools/gen_village.gd") as GDScript
+	var source: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(PATH)) as Dictionary
+	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/config/balance.json")) as Dictionary
+	var result: Dictionary = gen.call("generate", source, balance["village"], gen.call("item_ids")) as Dictionary
+	assert_eq((result["errors"] as PackedStringArray).size(), 0)
+	assert_eq(result["text"] as String, FileAccess.get_file_as_string(PATH))

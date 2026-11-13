@@ -80,6 +80,11 @@ static func _render(b: Dictionary, levels: Array[String]) -> String:
 	var head: String = ('    {"id": %s, "name": %s, "description": %s, "icon": %s, "order": %d, "buildable": %s' % [
 			JSON.stringify(b["id"]), JSON.stringify(b["name"]), JSON.stringify(b["description"]), JSON.stringify(b["icon"]),
 			int(b["order"]), str(bool(b["buildable"])).to_lower()])
+	# M21: hand-written presentation fields, kept as they are
+	var pos: Array = b["map_pos"] as Array
+	head += ', "map_pos": [%s, %s]' % [str(float(pos[0])), str(float(pos[1]))]
+	if b.has("page"):
+		head += ', "page": %s' % JSON.stringify(b["page"])
 	if not bool(b["buildable"]):
 		return head + ', "milestone": %d, "levels": []}' % int(b["milestone"])
 	if bool(b.get("unlocks_shop", false)):  # M20: no `effect`, the level opens shop entries
