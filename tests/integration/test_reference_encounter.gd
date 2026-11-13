@@ -56,7 +56,8 @@ func test_the_reference_setup_is_the_one_of_f34() -> void:
 	var player: CombatantStats = session.combat.player_stats()
 	assert_eq([player.accuracy, player.max_hit, player.attack_interval_ms, player.max_hp], [450, 11, 2400, 60])
 	var boar: CombatantStats = session.combat.enemy_stats(0)
-	assert_eq([boar.max_hit, boar.attack_interval_ms, boar.max_hp], [11, 2800, 20])
+	# M17-04b: the Plains monsters attack 2.4 times slower (tools/gen_areas.gd INTERVAL_SCALE): the boar's 2800 ms is now 6700.
+	assert_eq([boar.max_hit, boar.attack_interval_ms, boar.max_hp], [11, 6700, 20])
 	assert_almost_eq(CombatMath.hit_chance(player.accuracy, boar.evasion, _data), 0.5, 0.0001)
 	assert_almost_eq(CombatMath.hit_chance(boar.accuracy, player.evasion, _data), 0.5, 0.0001)
 	session.free()
