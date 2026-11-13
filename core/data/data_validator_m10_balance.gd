@@ -39,6 +39,48 @@ static func validate_balance(v: DataValidatorRules, balance: Dictionary) -> void
 			v.fail("key '%s' was removed in M10" % key)
 
 
+## M17 (F-130, V4, V11): `combat.pack_size_weights` (one non-negative integer per pack size 1..`max_pack_size`, summing to
+## 100), `combat.xp_level`, `combat.monster_xp` and `combat.summon_drop_pct`. Wrong types are already reported.
+static func validate_m17_combat(v: DataValidatorRules, combat: Variant) -> void:
+	if not combat is Dictionary:
+		return
+	var c: Dictionary = combat as Dictionary
+	var weights: Variant = c.get("pack_size_weights")
+	if weights is Array:
+		var total: float = 0.0
+		var valid: bool = true
+		for w: Variant in weights as Array:
+			if not DataValidatorRules.is_int(w) or float(w) < 0.0:
+				valid = false
+			else:
+				total += float(w)
+		var expected: Variant = c.get("max_pack_size")
+		if valid and DataValidatorRules.is_number(expected) and (weights as Array).size() != int(expected):
+			v.fail("key 'combat.pack_size_weights' must have max_pack_size (%d) entries" % int(expected))
+		elif not valid:
+			v.fail("key 'combat.pack_size_weights' must hold integers >= 0")
+		elif total != 100.0:
+			v.fail("key 'combat.pack_size_weights' must sum to 100, got %s" % total)
+	var xp_level: Variant = c.get("xp_level")
+	if xp_level is Dictionary:
+		var x: Dictionary = xp_level as Dictionary
+		if DataValidatorRules.is_number(x.get("zero_gap")):
+			v.integer(x, "zero_gap", 1, 99, "combat.xp_level")
+		if DataValidatorRules.is_number(x.get("up_per_level")):
+			v.number(x, "up_per_level", 0.0, DataValidatorRules.NO_LIMIT, "combat.xp_level", true)
+		if DataValidatorRules.is_number(x.get("up_cap")):
+			v.number(x, "up_cap", 1.0, DataValidatorRules.NO_LIMIT, "combat.xp_level")
+	var monster_xp: Variant = c.get("monster_xp")
+	if monster_xp is Dictionary:
+		var m: Dictionary = monster_xp as Dictionary
+		if DataValidatorRules.is_number(m.get("base")):
+			v.integer(m, "base", 1, DataValidatorRules.NO_LIMIT, "combat.monster_xp")
+		if DataValidatorRules.is_number(m.get("growth")):
+			v.number(m, "growth", 1.0, DataValidatorRules.NO_LIMIT, "combat.monster_xp")
+	if DataValidatorRules.is_number(c.get("summon_drop_pct")):
+		v.number(c, "summon_drop_pct", 0.0, 100.0, "combat")
+
+
 static func _blueprint_keys(v: DataValidatorRules, blueprint: Dictionary) -> void:
 	for key: String in BLUEPRINT_NUMBERS:
 		if DataValidatorRules.is_number(blueprint.get(key)):

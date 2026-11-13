@@ -10,14 +10,31 @@ const RARITY_STAT: StringName = &"item_rarity_pct"
 const EPSILON: float = 1e-9
 
 
-## F-28: floor(xp x combat.kill_xp_mult); F-71 is applied afterwards by `CharacterSystem.add_xp`.
-static func base_xp(session: GameSession, xp: int) -> int:
-	return floori(float(xp) * float(session.data.balance_value("combat.kill_xp_mult")) + EPSILON)
+## F-28 with F-130: floor(xp x kill_xp_mult x xp_level_mult(monster_level - character level)), one rounding; F-71 is
+## applied afterwards by `CharacterSystem.add_xp`. `monster_level` <= 0 means no multiplier (as in a Fracture).
+static func base_xp(session: GameSession, xp: int, monster_level: int = 0) -> int:
+	var mult: float = float(session.data.balance_value("combat.kill_xp_mult"))
+	if monster_level > 0:
+		mult *= CombatMath.xp_level_mult(monster_level - session.character.get_level(), session.data)
+	return floori(float(xp) * mult + EPSILON)
+
+
+## V11 (M17-06): a monster summoned by a Monolith gives no xp, gold, shard or pool piece; only its drops and loot tables,
+## each with the chance scaled by `combat.summon_drop_pct` (percent of the normal chance).
+static func grant_summoned(session: GameSession, loot: LootSink, def: MonsterDef, area_id: StringName) -> void:
+	var mult: float = float(session.data.balance_value("combat.summon_drop_pct")) / 100.0
+	var ilvl: int = monster_ilvl(def)
+	roll_drops(session, loot, def.drops, ItemRoller.SOURCE_MONSTER, ilvl, mult)
+	if area_id != &"":
+		roll_tables(session, loot, session.data.area(area_id).loot_tables, ItemRoller.SOURCE_MONSTER, ilvl, mult)
+	roll_tables(session, loot, def.loot_tables, ItemRoller.SOURCE_MONSTER, ilvl, mult)
 
 
 ## `area_id` is the area of the fight: its loot tables are rolled after the own drops, then those of the monster (M12, 05 §5.22).
-static func grant(session: GameSession, loot: LootSink, def: MonsterDef, area_id: StringName = &"") -> void:
-	session.character.add_xp(base_xp(session, def.xp))
+## `level_mult` false (Fracture, F-130) leaves the xp without the level multiplier.
+static func grant(session: GameSession, loot: LootSink, def: MonsterDef, area_id: StringName = &"",
+		level_mult: bool = true) -> void:
+	session.character.add_xp(base_xp(session, def.xp, monster_ilvl(def) if level_mult else 0))
 	var gold_pct: float = session.modifiers.total(&"gold_drop_pct")
 	var rolled: int = session.rng.randi_range(def.gold_min, def.gold_max)
 	session.wallet.add_gold(int(floor(float(rolled) * (1.0 + gold_pct / 100.0) + EPSILON)))
@@ -44,11 +61,11 @@ static func roll_pool(session: GameSession, loot: LootSink, def: MonsterDef, sou
 
 
 ## F-32 / F-84. `source` is the rarity source of `ItemRoller.drop_chances`, `ilvl` the item level of the pieces.
-static func roll_drops(session: GameSession, loot: LootSink, drops: Array[DropEntry], source: StringName, ilvl: int
-) -> void:
+static func roll_drops(session: GameSession, loot: LootSink, drops: Array[DropEntry], source: StringName, ilvl: int,
+		chance_mult: float = 1.0) -> void:
 	for drop: DropEntry in drops:
 		var base: ItemDef = session.data.item(drop.item_id)
-		if not session.rng.roll_pct(loot.drop_chance(base, drop.chance_pct)):
+		if not session.rng.roll_pct(loot.drop_chance(base, drop.chance_pct) * chance_mult):
 			continue
 		var qty: int = session.rng.randi_range(drop.qty_min, drop.qty_max)
 		if base.is_map():  # M13: a Card never goes to the loot bag (the sink decides; a full Deposit = card_rejected)
@@ -77,7 +94,7 @@ static func monster_ilvl(def: MonsterDef) -> int:
 
 ## M12: the entries of the loot tables `table_ids`, in order, each rolled like a drop (F-32): a probability roll, then a
 ## quantity roll. Tables hold no equipment, so the items go to the loot bag. No table, no roll.
-static func roll_tables(session: GameSession, loot: LootSink, table_ids: Array[StringName], source: StringName, ilvl: int
-) -> void:
+static func roll_tables(session: GameSession, loot: LootSink, table_ids: Array[StringName], source: StringName, ilvl: int,
+		chance_mult: float = 1.0) -> void:
 	for table_id: StringName in table_ids:
-		roll_drops(session, loot, session.data.loot_table(table_id).entries, source, ilvl)
+		roll_drops(session, loot, session.data.loot_table(table_id).entries, source, ilvl, chance_mult)

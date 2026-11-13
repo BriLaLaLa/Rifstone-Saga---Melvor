@@ -134,13 +134,13 @@ func test_area_pack_weight_and_size() -> void:
 	var raw: Dictionary = V.fixture_raw()
 	var area: Dictionary = V.entry_of(raw, "areas", AREAS, "areas", 0)
 	area["packs"] = [{"weight": 0, "monsters": ["test_monster_a", "test_monster_a", "test_monster_a",
-			"test_monster_a", "test_monster_a", "test_monster_a", "test_monster_a"]}]
+			"test_monster_a", "test_monster_a", "test_monster_a", "test_monster_a", "test_monster_a", "test_monster_a"]}]
 	_expect(raw, [AREAS, "area 'test_area'", "field 'packs[0].weight' must be >= 1"])
-	_expect(raw, [AREAS, "area 'test_area'", "field 'packs[0].monsters' has 7 monsters, at most 6"])
+	_expect(raw, [AREAS, "area 'test_area'", "field 'packs[0].monsters' has 9 monsters, at most 8"])
 	(area["packs"] as Array)[0]["monsters"] = ["test_monster_a", "test_monster_a", "test_monster_a",
-			"test_monster_a", "test_monster_a", "test_monster_a"]
+			"test_monster_a", "test_monster_a", "test_monster_a", "test_monster_a", "test_monster_a"]
 	(area["packs"] as Array)[0]["weight"] = 1
-	assert_eq(V.validate(raw), PackedStringArray(), "6 monsters, repeats allowed")
+	assert_eq(V.validate(raw), PackedStringArray(), "8 monsters, repeats allowed")
 
 
 func test_area_order_is_unique_and_requirements_are_checked() -> void:

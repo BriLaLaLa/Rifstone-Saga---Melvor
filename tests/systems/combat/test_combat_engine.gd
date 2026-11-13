@@ -572,5 +572,8 @@ func test_new_game_save_is_normalized() -> void:
 	_assert_idle_roundtrip(_session, "new game")
 
 
+## F-28 x F-130 for a character at level 1 (the level of a fresh session).
 func _kill_xp(monster_id: StringName) -> int:
-	return floori(float(_session.data.monster(monster_id).xp) * float(_session.data.balance_value("combat.kill_xp_mult")) + 1e-9)
+	var def: MonsterDef = _session.data.monster(monster_id)
+	var mult: float = CombatMath.xp_level_mult(EquipmentPool.monster_level(def) - 1, _session.data)
+	return floori(float(def.xp) * float(_session.data.balance_value("combat.kill_xp_mult")) * mult + 1e-9)

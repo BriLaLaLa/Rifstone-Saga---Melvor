@@ -210,6 +210,7 @@ static func validate_balance(v: DataValidatorRules, balance: Dictionary) -> void
 	var combat: Variant = DataValidator.lookup(balance, "combat")
 	if combat is Dictionary and DataValidatorRules.is_number((combat as Dictionary).get("max_pack_size")):
 		v.integer(combat as Dictionary, "max_pack_size", 1, DataValidator.PACK_SIZE_MAX, "combat")
+	DataValidatorM10Balance.validate_m17_combat(v, combat)
 	var deposit: Variant = DataValidator.lookup(balance, "deposit")
 	if deposit is Dictionary:
 		if DataValidatorRules.is_number((deposit as Dictionary).get("base_slots")):

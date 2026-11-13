@@ -51,6 +51,27 @@ static func hit_chance(accuracy: int, evasion: int, data: GameData) -> float:
 	return clampf(raw, _num(data, "combat.hit_chance_min"), _num(data, "combat.hit_chance_max"))
 
 
+## F-129: the hit chance as a whole percent for the UI: floor(100 x hit + 0.5). The roll uses the unrounded F-23 value.
+static func hit_pct(accuracy: int, evasion: int, data: GameData) -> int:
+	return int(floor(100.0 * hit_chance(accuracy, evasion, data) + 0.5 + EPSILON))
+
+
+## F-130: xp multiplier of the level difference `diff` = monster level - character level (`combat.xp_level`): 0 at
+## `-zero_gap` or lower, linear below 0, then 1 + diff x up_per_level capped at up_cap.
+static func xp_level_mult(diff: int, data: GameData) -> float:
+	var zero_gap: float = _num(data, "combat.xp_level.zero_gap")
+	if float(diff) <= -zero_gap:
+		return 0.0
+	if diff < 0:
+		return 1.0 - float(-diff) / zero_gap
+	return minf(1.0 + float(diff) * _num(data, "combat.xp_level.up_per_level"), _num(data, "combat.xp_level.up_cap"))
+
+
+## F-130: base xp of a monster of level `level`: round(base x growth^(level - 1)).
+static func monster_xp(level: int, data: GameData) -> int:
+	return int(round(_num(data, "combat.monster_xp.base") * pow(_num(data, "combat.monster_xp.growth"), float(level - 1))))
+
+
 ## F-24: relation from the attacker point of view (`combat.triangle.beats`: key beats value).
 static func triangle(attacker_style: StringName, defender_style: StringName, data: GameData) -> StringName:
 	var beats: Dictionary = data.balance_value("combat.triangle.beats") as Dictionary

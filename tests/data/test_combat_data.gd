@@ -64,7 +64,6 @@ func test_monsters_follow_table_8_5() -> void:
 		assert_eq(float(m["damage_reduction"]), float(row[9]), "%s dr" % row[0])
 		assert_eq([int(m["gold"][0]), int(m["gold"][1])], [row[10], row[11]], "%s gold" % row[0])
 		assert_eq(float(m["rift_shard_chance"]), row[12], "%s shard" % row[0])
-		assert_eq(int(m["xp"]), row[13], "%s xp" % row[0])
 
 
 
@@ -161,8 +160,11 @@ func test_slot_and_class_icons_exist() -> void:
 	assert_true(FileAccess.file_exists(cls["icon"]), "class icon %s" % cls["icon"])
 
 
-func test_xp_is_four_times_hp_except_the_mines_tuned_by_b1() -> void:
-	# M10-07 (Q54): Miniere Crepate give 0.8 x (4 x hp) so that a night offline from level 50 stays within +12 levels.
+func test_xp_follows_f130_generator() -> void:
+	# M17-03: xp = round(monster_xp.base x monster_xp.growth^(L - 1)), written by tools/gen_monster_xp.gd.
+	var spec: Dictionary = _read("res://data/config/balance.json")["combat"]["monster_xp"]
 	for m: Dictionary in _monsters.values():
-		var factor: float = 3.2 if m["id"] in ["crack_golem", "deep_crawler", "vein_witch"] else 4.0
-		assert_eq(int(m["xp"]), int(float(m["hp"]) * factor), "%s xp" % m["id"])
+		var level: int = maxi(int(m["attack_level"]), maxi(int(m["power_level"]), int(m["defence_level"])))
+		var expected: int = int(round(float(spec["base"]) * pow(float(spec["growth"]), float(level - 1))))
+		assert_eq(int(m["xp"]), expected, "%s xp" % m["id"])
+

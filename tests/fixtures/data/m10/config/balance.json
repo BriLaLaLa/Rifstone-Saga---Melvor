@@ -115,7 +115,11 @@
     },
     "hp_base": 50,
     "hp_per_level": 10,
-    "max_pack_size": 6,
+    "max_pack_size": 8,
+    "pack_size_weights": [4, 12, 22, 26, 18, 10, 5, 3],
+    "xp_level": {"zero_gap": 9, "up_per_level": 0.05, "up_cap": 1.5},
+    "monster_xp": {"base": 80, "growth": 1.085},
+    "summon_drop_pct": 25,
     "auto_eat_tiers": [
       null,
       {

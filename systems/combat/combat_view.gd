@@ -7,10 +7,15 @@ extends RefCounted
 static func build(engine: CombatEngine, encounter: Encounter, abilities: AbilityRunner,
 		snapshot: Dictionary) -> Dictionary:
 	var me: CombatantStats = engine.player_stats()
+	var data: GameData = snapshot["data"]
+	var player_acc: int = engine.player_stats(snapshot["hand"]).accuracy
 	var enemies: Array[Dictionary] = []
 	for enemy: Encounter.Enemy in encounter.enemies:
+		# F-129: "hit_pct" = whole % of the player on this enemy, "enemy_hit_pct" = of this enemy on the player
 		var entry: Dictionary = {"monster": enemy.def.id, "hp": enemy.hp, "max_hp": enemy.stats.max_hp,
-			"timer_ms": enemy.timer_ms, "interval_ms": enemy.stats.attack_interval_ms}
+			"timer_ms": enemy.timer_ms, "interval_ms": enemy.stats.attack_interval_ms,
+			"hit_pct": CombatMath.hit_pct(player_acc, enemy.stats.evasion, data),
+			"enemy_hit_pct": CombatMath.hit_pct(enemy.stats.accuracy, me.evasion, data)}
 		if enemy.summoned:
 			entry["summoned"] = true
 		enemies.append(entry)

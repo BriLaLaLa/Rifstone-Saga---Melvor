@@ -133,3 +133,27 @@ func test_f25_player_defender_examples() -> void:
 	# F-117 + F-25: roll 40, monster level 20, Armour 100 -> 25; arcane level 30, Barrier 121 -> 26.
 	assert_eq(CombatMath.damage_after_dr(40, ArmorMath.reduction_pct(100, 20, _d)), 25)
 	assert_eq(CombatMath.damage_after_dr(40, ArmorMath.reduction_pct(121, 30, _d)), 26)
+
+
+func test_hit_pct_display() -> void:
+	# F-129: floor(100 x hit + 0.5), the examples of docs/02_FORMULAS.md.
+	assert_eq(CombatMath.hit_pct(450, 450, _d), 50)
+	assert_eq(CombatMath.hit_pct(900, 1260, _d), 42)
+	assert_eq(CombatMath.hit_pct(1260, 900, _d), 58)
+	assert_eq(CombatMath.hit_pct(2900, 5220, _d), 36)
+	assert_eq(CombatMath.hit_pct(100, 10000, _d), 5, "minimum cap")
+	assert_eq(CombatMath.hit_pct(10000, 100, _d), 95, "maximum cap")
+
+
+func test_xp_level_mult() -> void:
+	# F-130: zero_gap 9, up_per_level 0.05, up_cap 1.5; 1000 xp x kill_xp_mult 0.064 = 64 at d = 0.
+	var expected: Dictionary = {0: 64, 5: 80, 10: 96, 20: 96, -1: 56, -3: 42, -8: 7, -9: 0, -15: 0}
+	for diff: int in expected:
+		assert_eq(floori(1000.0 * 0.064 * CombatMath.xp_level_mult(diff, _d) + 1e-9), expected[diff], "d = %d" % diff)
+
+
+func test_monster_xp_by_level() -> void:
+	# F-130: round(80 x 1.085^(L - 1)).
+	var expected: Dictionary = {1: 80, 2: 87, 10: 167, 20: 377, 30: 852, 50: 4357, 75: 33488, 99: 237249}
+	for level: int in expected:
+		assert_eq(CombatMath.monster_xp(level, _d), expected[level], "L%d" % level)

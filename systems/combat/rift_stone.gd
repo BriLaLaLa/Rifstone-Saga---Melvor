@@ -111,7 +111,7 @@ func view(encounter: Encounter) -> Dictionary:
 ## item level of the highest monster of the area, the loot tables, the legendaries of the area (F-120), then the guaranteed
 ## piece and the Blueprint roll (F-127).
 func reward(loot: LootSink, def: RiftStoneDef, loot_mult: float = 1.0) -> void:
-	_session.character.add_xp(KillRewards.base_xp(_session, def.xp))
+	_session.character.add_xp(KillRewards.base_xp(_session, def.xp, def.level))  # F-130: level of the stone
 	var sink: LootSink = ScaledSink.new(loot, loot_mult) if loot_mult != 1.0 else loot  # F-120 monolith_loot_mult
 	sink.add(SHARD_ITEM, _session.rng.randi_range(def.shards_min, def.shards_max))
 	var ilvl: int = _area_ilvl(def.area_id)
