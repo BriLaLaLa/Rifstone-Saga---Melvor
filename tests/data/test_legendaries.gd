@@ -1,10 +1,12 @@
 extends GutTest
-## M14-05: the 39 legendaries of the real data (F-120, 01_GDD.md §28.5, docs/NOMI.md): 3 per slot (10 piece slots and
+## M14-05, M22-03: the 45 legendaries (39 + the 6 of the Monkey Den) of the real data (F-120, 01_GDD.md §28.5, docs/NOMI.md): 3 per slot (10 piece slots and
 ## the 3 tools), a declared source and effect each, statistics of the model of their slot, grade and material, every boss
 ## and every Monolith with its sources.
 
 const SLOTS: Array[String] = ["sword", "greatsword", "shield", "head", "body", "legs", "feet", "hands", "ring", "neck",
 	"tool_forestry", "tool_quarrying", "tool_angling"]
+## The slots with a legendary of the Monkey Den (F-143, source `dungeon`): a fourth piece each.
+const DUNGEON_SLOTS: Array[String] = ["sword", "greatsword", "shield", "hands", "ring", "neck"]
 const BOSSES: Array[String] = ["boss_grade_1", "boss_grade_2", "boss_grade_3", "boss_grade_4", "boss_grade_5",
 	"boss_grade_6", "boss_grade_7", "boss_grade_8", "boss_grade_9", "boss_grade_10"]
 const MONOLITHS: Array[String] = ["redrock_plains", "whisper_wood", "cracked_mines", "rift_threshold"]  # M15: the area id is the source
@@ -41,13 +43,13 @@ func _ids(path: String, key: String, field: String = "id") -> Dictionary:
 	return ids
 
 
-func test_39_legendaries_3_for_each_of_the_13_slots() -> void:
-	assert_eq(_legendaries.size(), 39)
+func test_45_legendaries_3_for_each_of_the_13_slots_and_6_more_from_the_dungeon() -> void:
+	assert_eq(_legendaries.size(), 45)
 	var per_slot: Dictionary = {}
 	for item: ItemDef in _legendaries:
 		per_slot[_kind(item)] = int(per_slot.get(_kind(item), 0)) + 1
 	for slot: String in SLOTS:
-		assert_eq(int(per_slot.get(slot, 0)), 3, "legendaries of %s" % slot)
+		assert_eq(int(per_slot.get(slot, 0)), 4 if DUNGEON_SLOTS.has(slot) else 3, "legendaries of %s" % slot)
 
 
 func test_every_legendary_has_a_valid_source_and_an_effect() -> void:
@@ -60,7 +62,11 @@ func test_every_legendary_has_a_valid_source_and_an_effect() -> void:
 		assert_false(item.equip.unique, item.id)
 		assert_true(FileAccess.file_exists(item.icon), item.icon)
 		assert_false(item.description.is_empty(), item.id)
-		if leg.source_type == LegendaryInfo.SOURCE_BOSS:
+		if leg.source_type == LegendaryInfo.SOURCE_DUNGEON:
+			assert_not_null(_data.dungeon(leg.source_id), "%s: dungeon %s exists" % [item.id, leg.source_id])
+			assert_eq(leg.chance_pct, 3.5, "%s: dungeon chance (F-143)" % item.id)
+			assert_true(DUNGEON_SLOTS.has(_kind(item)), "%s: a piece of the Monkey Den" % item.id)
+		elif leg.source_type == LegendaryInfo.SOURCE_BOSS:
 			assert_true(bosses.has(String(leg.source_id)), "%s: boss %s exists" % [item.id, leg.source_id])
 			assert_eq(leg.chance_pct, 0.6, "%s: boss chance (Q76)" % item.id)
 			assert_false(String(item.equip.slot).begins_with("tool_"), "%s: the tools come from the Monoliths" % item.id)
@@ -157,3 +163,15 @@ func test_legendaries_never_drop_from_lists() -> void:
 	for table: LootTableDef in _data.loot_tables():
 		for entry: DropEntry in table.entries:
 			assert_false(ids.has(entry.item_id), "%s in %s" % [entry.item_id, table.id])
+
+
+func test_the_monkey_den_has_six_legendaries_one_per_slot_of_grade_11() -> void:
+	var from_den: Array[ItemDef] = _data.legendaries_from(LegendaryInfo.SOURCE_DUNGEON, &"monkey_den")
+	assert_eq(from_den.size(), 6)
+	var slots: Dictionary = {}
+	for item: ItemDef in from_den:
+		slots[_kind(item)] = true
+		assert_eq(item.equip.grade, 11, item.id)
+		assert_eq(item.equip.requirements[&"character"], 50, item.id)
+		assert_true(String(item.id).ends_with("_monkey"), item.id)
+	assert_eq(slots.keys().size(), 6, "six different slots")

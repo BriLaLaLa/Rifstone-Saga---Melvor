@@ -4,7 +4,7 @@
   "no_use": [
     "redrock_flint", "whisper_resin", "mine_dust", "threshold_ash",
     "pine_cone", "oak_acorn", "elm_samara", "yew_berry", "ebony_knot", "ember_coal", "rift_bark", "iron_slag",
-    "dark_iron_clod", "black_iron_graphite", "silver_flake", "obsidian_geode", "astrite_glow", "riftite_vein",
+    "dungeon_ticket_monkey_den", "dark_iron_clod", "black_iron_graphite", "silver_flake", "obsidian_geode", "astrite_glow", "riftite_vein",
     "perch_gill", "carp_bone", "pike_fin", "eel_roe", "sturgeon_caviar", "lantern_lure", "leviathan_pearl"
   ]
 }

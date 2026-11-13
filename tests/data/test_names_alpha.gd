@@ -33,6 +33,8 @@ const MODELS: Dictionary = {
 }
 ## Legendary name -> [source id (boss or Monolith)].
 const LEGENDARIES: Dictionary = {
+	"Lama della Liana Spezzata": "monkey_den", "Randello del Re dei Rami": "monkey_den", "Scudo di Gusci di Cocco": "monkey_den",
+	"Anello della Scimmia Avida": "monkey_den", "Amuleto della Stratega": "monkey_den", "Guanti da Cima d'Albero": "monkey_den",
 	"Cimiero del Cinghiale Bianco": "boss_grade_1", "Zoccoli del Gran Cinghiale": "boss_grade_1", "Zanna d'Argento": "boss_grade_1",
 	"Pelliccia di Cenere": "boss_grade_2", "Artigli del Capobranco": "boss_grade_2", "Zanna Grigia": "boss_grade_2",
 	"Cosciali del Fango Antico": "boss_grade_3", "Talismano della Palude": "boss_grade_3", "Spaccapalude": "boss_grade_3",
@@ -107,11 +109,11 @@ func test_masterworks_are_the_type_plus_the_mark_and_the_blueprint_follows() -> 
 	assert_eq(_name_of(_masterworks, "shield:plate:10"), "Scudo di Luna Forgiata")
 
 
-func test_the_39_legendaries_have_their_names_and_sources() -> void:
+func test_the_45_legendaries_have_their_names_and_sources() -> void:
 	var found: Dictionary = {}
 	for item: ItemDef in _data.legendaries():
 		found[item.name] = String(item.equip.legendary.source_id)
-	assert_eq(found.size(), 39)
+	assert_eq(found.size(), 45)
 	for legendary_name: String in LEGENDARIES:
 		assert_true(found.has(legendary_name), "legendary %s" % legendary_name)
 		assert_eq(found.get(legendary_name, ""), LEGENDARIES[legendary_name], "source of %s" % legendary_name)

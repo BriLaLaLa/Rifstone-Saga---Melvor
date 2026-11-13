@@ -42,6 +42,16 @@ const DEFAULT_QTY: int = 5
 ## Kills per hour of each area as `tools/sim_combat.gd deposit=1 scope=all` measures them (sword and shield, gear of the level).
 const DESIGN_KILLS_H: Array[float] = [223.0, 222.0, 207.0, 249.0, 239.0, 232.0, 171.0, 152.0, 231.0, 140.0]
 const DROP_COMMON_PCT: int = 12
+## Miniboss (F-139, M22-03): the commons of the kit drop from it with this chance and quantity; the ticket of the Monkey Den drops in the
+## areas from level TICKET_MIN_LEVEL (areas 4-10) from the miniboss and from the Monoliti (percentages of F-139).
+const MINIBOSS_COMMON_PCT: int = 40
+const MINIBOSS_COMMON_QTY: Array = [2, 4]
+const TICKET_ITEM: String = "dungeon_ticket_monkey_den"
+const TICKET_MIN_LEVEL: int = 31
+const TICKET_MINIBOSS_PCT: float = 25.0
+const TICKET_MONOLITH_PCT: float = 20.0
+## The table of the monsters of the Monkey Den (F-142): dust, the four chips, a leather bag; no Cards, no Contracts.
+const DUNGEON_TABLE_ID: String = "loot_dungeon_monkey_den"
 const TRADES: Array[String] = ["forestry", "quarrying", "angling"]
 const FAMILIES: Array[String] = ["ember", "eye", "shade", "root"]
 ## Contract grades dropped by each tier of areas (and by the Monoliti): [grade, area chance, Monolith chance].
@@ -76,10 +86,15 @@ func _init() -> void:
 		var drops: Dictionary = _area_drops(area, i, area_json["packs"] as Array)
 		for m: Array in area["monsters"]:
 			monster_lines.append("    " + JSON.stringify(_monster(m, i, drops), "", false))
+		var boss: Array = miniboss_row(i)
+		var boss_monster: Dictionary = _monster(boss, i, {boss[0]: _miniboss_drops(area, i)})
+		boss_monster["miniboss"] = true
+		monster_lines.append("    " + JSON.stringify(boss_monster, "", false))
 		area_lines.append("    " + JSON.stringify(area_json, "", false))
 		tables.append("    " + JSON.stringify(_area_table(area), "", false))
 	for area: Dictionary in Data.AREAS:
 		tables.append("    " + JSON.stringify(_monolith_table(area), "", false))
+	tables.append("    " + JSON.stringify(_dungeon_table(), "", false))
 	_save(AREAS_PATH, "{\n  \"areas\": [\n%s\n  ]\n}\n" % ",\n".join(area_lines))
 	_save(MONSTERS_PATH, "{\n  \"monsters\": [\n%s\n  ]\n}\n" % ",\n".join(monster_lines))
 	var doc: String = "Tabelle di drop (04_DATA_SCHEMA.md §8b, 02_FORMULAS.md §8.5b), generate da tools/gen_areas.gd (M17-04): una tabella per area (vale per ogni mostro dell'area) e una per i Monoliti dell'area."
@@ -94,7 +109,28 @@ func _area(area: Dictionary, index: int, ids: Array[String]) -> Dictionary:
 		"id": area["id"], "loot_tables": ["loot_area_" + (area["id"] as String)], "name": area["name"], "order": index + 1,
 		"description": area["desc"], "level_min": level_min, "level_max": level_max_of(index),
 		"map_pos": area["pos"], "requirements": {"character": level_min},
-		"rift_stone_chance_pct": STONE_CHANCE[int(area["tier"])], "packs": _packs(ids)}
+		"rift_stone_chance_pct": STONE_CHANCE[int(area["tier"])], "packs": _packs(ids),
+		"miniboss": {"monster": miniboss_row(index)[0], "escorts": int((_balance["miniboss"] as Dictionary)["escorts"])}}
+
+
+## The monster row of the miniboss of area `index` (the format of the rows of Data.AREAS): the strongest monster of the area, a new id,
+## name, text and the same icon.
+static func miniboss_row(index: int) -> Array:
+	var area: Dictionary = Data.AREAS[index] as Dictionary
+	var strongest: Array = (area["monsters"] as Array)[-1] as Array
+	var text: Array = Data.MINIBOSSES[index] as Array
+	return ["miniboss_" + (area["id"] as String), text[0], strongest[2], strongest[3], strongest[4], strongest[5], text[1]]
+
+
+## Drops of a miniboss: the common materials of the kit, and from the areas of level TICKET_MIN_LEVEL on the ticket of the Monkey Den.
+func _miniboss_drops(area: Dictionary, index: int) -> Array:
+	var drops: Array = []
+	for item: String in area["kit"]:
+		if not Data.RARE_MATERIALS.has(item):
+			drops.append({"item": item, "chance_pct": MINIBOSS_COMMON_PCT, "qty": MINIBOSS_COMMON_QTY})
+	if level_min_of(index) >= TICKET_MIN_LEVEL:
+		drops.append(_entry(TICKET_ITEM, TICKET_MINIBOSS_PCT))
+	return drops
 
 
 static func level_min_of(index: int) -> int:
@@ -290,7 +326,18 @@ func _monolith_table(area: Dictionary) -> Dictionary:
 	for card: Array in CARDS[tier]:
 		if float(card[2]) > 0.0:
 			entries.append(_entry(card[0], card[2]))
+	if level_min_of(Data.AREAS.find(area)) >= TICKET_MIN_LEVEL:
+		entries.append(_entry(TICKET_ITEM, TICKET_MONOLITH_PCT))
 	return {"id": "loot_monolith_" + (area["id"] as String), "entries": entries}
+
+
+## The table of the monsters of the Monkey Den (F-142): no Card and no Contract.
+func _dungeon_table() -> Dictionary:
+	var entries: Array = [_entry("rift_dust", 6)]
+	for family: String in FAMILIES:
+		entries.append(_entry("stone_%s_chip" % family, 1))
+	entries.append(_entry("bag_leather", 0.05))
+	return {"id": DUNGEON_TABLE_ID, "entries": entries}
 
 
 func _save(path: String, text: String) -> void:

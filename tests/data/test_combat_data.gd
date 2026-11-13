@@ -42,9 +42,9 @@ func _area_monsters(area: Dictionary) -> Array[String]:
 	return ids
 
 
-func test_ten_areas_and_fifty_monsters() -> void:
+func test_ten_areas_and_sixty_monsters() -> void:
 	assert_eq(_areas.size(), 10)
-	assert_eq(_monsters.size(), 50)
+	assert_eq(_monsters.size(), 60, "50 of the packs and 10 minibosses (M22-03)")
 
 
 func test_areas_order_levels_and_requirements() -> void:
@@ -74,7 +74,7 @@ func test_every_area_has_four_or_more_own_monsters_inside_its_levels() -> void:
 			near_max = near_max or absi(level - int(a["level_max"])) <= 1
 		assert_true(near_min, "%s has a monster at level_min +-1" % a["id"])
 		assert_true(near_max, "%s has a monster at level_max +-1" % a["id"])
-	assert_eq(owner.size(), _monsters.size(), "every monster is in some pack")
+	assert_eq(owner.size(), _monsters.size() - _a_miniboss_count(), "every monster except the minibosses is in some pack")
 
 
 func test_packs_have_every_size_with_the_weights_of_the_balance() -> void:
@@ -172,3 +172,10 @@ func test_no_level_without_xp() -> void:
 					best = maxi(best, _level(_monsters[id]) - level)
 		assert_gt(best, -zero_gap, "level %d has a monster with xp" % level)
 		assert_gte(best, -8, "level %d: d >= -8" % level)
+
+
+func _a_miniboss_count() -> int:
+	var count: int = 0
+	for m: Dictionary in _monsters.values():
+		count += 1 if m.get("miniboss", false) == true else 0
+	return count

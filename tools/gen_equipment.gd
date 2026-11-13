@@ -1,11 +1,9 @@
 extends SceneTree
 ## Generates the equipment catalogue of the Alpha (M14-05): 15 grades of every slot and material (docs/02_FORMULAS.md
-## §8.4, F-118), the Masterwork bases and their blueprints (F-119), the 39 legendaries (F-120) and the placeholder icons.
+## §8.4, F-118), the Masterwork bases and their blueprints (F-119), the legendaries (F-120; the six of the Monkey Den come from tools/gen_dungeon_legendaries.gd) and the placeholder icons.
 ## The numbers come from data/config/balance.json (`equipment.*`, `combat.armor.materials`); the names are those of
 ## docs/NOMI.md (section Alpha). The output is committed: the game never runs this script.
-##
 ## Usage: godot --headless --path . -s tools/gen_equipment.gd
-##
 ## Ids: grades 1-8 of Plate armour, weapons, rings and amulets keep the ids of the old catalogue (`emberbronze_sword`, ...)
 ## because tests and the starting kit refer to them; every other piece is `<slot>_<material>_<grade>` (`body_leather_9`),
 ## `sword_9`, `ring_9`; Masterworks `mw_<slot>_<grade>`, blueprints `bp_mw_<slot>_<grade>`, legendaries `leg_<slot>_<n>`.
@@ -124,7 +122,8 @@ const LEGENDARY_PIECES: Array = [
 	["legs", "cloth", 15, "Brache dell'Origine", 10, {"type": "leech_pct", "pct": 4}, "Recuperi il 4% del danno inflitto."],
 	["neck", "", 15, "Frammento Originario", 10, {"type": "reflect_pct", "pct": 30}, "Il 30% del danno subito torna a chi ti colpisce."],
 ]
-const CHIPS: Array[String] = ["stone_ember_chip", "stone_eye_chip", "stone_shade_chip", "stone_root_chip"]
+const Monkey := preload("res://tools/gen_dungeon_legendaries.gd")
+const CHIPS: Array[String] =["stone_ember_chip", "stone_eye_chip", "stone_shade_chip", "stone_root_chip"]
 ## Legendary tools: [tool kind, name, skill level, Monolith key, effect, description].
 const LEGENDARY_TOOLS: Array = [
 	["hatchet", "Accetta del Taglialegna Paziente", 10, "plains", {"type": "byproduct_mult", "mult": 3}, "I sottoprodotti della maestria escono 3 volte più spesso."],
@@ -184,6 +183,7 @@ func _write_catalogue() -> void:
 	for row: Array in LEGENDARY_PIECES:
 		counters[row[0]] = int(counters.get(row[0], 0)) + 1
 		legendaries.append(_legendary_piece(row, int(counters[row[0]])))
+	for row: Array in Monkey.MONKEY_PIECES: legendaries.append(_legendary_piece(row, int(counters[row[0]]) + 1))
 	var tools: Array = []
 	var tool_counters: Dictionary = {}
 	for row: Array in LEGENDARY_TOOLS:
@@ -195,7 +195,7 @@ func _write_catalogue() -> void:
 	_write("equipment_leather.json", "Armature di Cuoio e rotelle, 15 gradi (F-118): Armatura media, Schivata. Generato da tools/gen_equipment.gd.", "items", by_material["leather"] as Array)
 	_write("equipment_cloth.json", "Armature di Tessuto runico e sigilli, 15 gradi (F-118): Barriera alta. Generato da tools/gen_equipment.gd.", "items", by_material["cloth"] as Array)
 	_write("equipment_masterwork.json", "Basi dei Capolavori (F-119): 8 tipi di Piastre x 15 gradi, solo da progetti. Generato da tools/gen_equipment.gd.", "items", masterworks)
-	_write("equipment_legendary.json", "Leggendari (F-120): 30 pezzi, 3 per slot. Fonte ed effetto di NOMI.md. Generato da tools/gen_equipment.gd.", "items", legendaries)
+	_write("equipment_legendary.json", "Leggendari (F-120, F-143): 30 pezzi dei boss, 3 per slot, e 6 del Covo delle Scimmie. Fonte ed effetto di NOMI.md. Generato da tools/gen_equipment.gd.", "items", legendaries)
 	_write("tools_legendary.json", "Attrezzi leggendari (F-120): 9, sostituiscono l'attrezzo unico. Generato da tools/gen_equipment.gd.", "items", tools)
 	_write("blueprints.json", "Progetti (F-119): uno per base di Capolavoro, 8 tipi x 15 gradi = 120; costo x3 piu due componenti rari. Generato da tools/gen_equipment.gd.", "items", blueprints)
 	print_rich("gen_equipment: %d weapons, %d jewels, %d armour, %d masterworks, %d blueprints, %d legendary pieces, %d legendary tools" % [
@@ -351,8 +351,9 @@ func _legendary_piece(row: Array, n: int) -> Dictionary:
 	for key: String in ["slot", "kind", "grade", "material", "requirements", "modifiers", "weapon"]:
 		if equip.has(key):
 			ordered[key] = equip[key]
-	ordered["legendary"] = {"source": {"type": "boss", "id": "%s%d" % [B, int(row[4])], "chance_pct": 0.6}, "effects": [row[5]]}
-	var id: String = "leg_%s_%d" % [slot, n]
+	var boss_source: Dictionary = Monkey.source_of(row[4]) if row[4] is String else {"type": "boss", "id": "%s%d" % [B, int(row[4])], "chance_pct": 0.6}
+	ordered["legendary"] = {"source": boss_source, "effects": [row[5]]}
+	var id: String = "leg_%s_monkey" % slot if row[4] is String else "leg_%s_%d" % [slot, n]
 	return _item(id, row[3], _icon_for(slot, material if material != "" else "plate", "legendary", id), 5 * int(base["value"]),
 			1700 + floori(float(SLOT_ORDER[slot]) / 10.0) + n, row[6], ordered)
 

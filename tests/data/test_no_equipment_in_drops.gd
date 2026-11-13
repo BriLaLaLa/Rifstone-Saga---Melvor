@@ -31,6 +31,11 @@ func test_monsters_drop_no_pieces_and_no_blueprints() -> void:
 func test_bosses_and_monoliths_drop_no_pieces_and_no_blueprints() -> void:
 	for b: Dictionary in _raw("res://data/maps/bosses.json")["bosses"]:
 		_assert_clean(b["id"] as String, b["drops"] as Array)
+	for f: String in DirAccess.get_files_at("res://data/dungeons"):  # M22: the monsters and the boss of a dungeon
+		var den: Dictionary = _raw("res://data/dungeons/%s" % f)
+		_assert_clean(String(den["id"]) + " boss", (den["boss"] as Dictionary)["drops"] as Array)
+		for m: Dictionary in den["monsters"]:
+			_assert_clean(m["id"] as String, m["drops"] as Array)
 	for s: Dictionary in _raw("res://data/combat/rift_stones.json")["rift_stones"]:
 		_assert_clean(s["id"] as String, s["drops"] as Array)
 
@@ -50,6 +55,10 @@ func test_every_loot_table_is_used() -> void:
 	for m: Dictionary in _raw("res://data/combat/monsters.json")["monsters"]:
 		for id: Variant in m.get("loot_tables", []):
 			used[id] = true
+	for d: String in DirAccess.get_files_at("res://data/dungeons"):  # M22: the tables of the monsters of a dungeon
+		for m: Dictionary in _raw("res://data/dungeons/%s" % d)["monsters"]:
+			for id: Variant in m.get("loot_tables", []):
+				used[id] = true
 	for s: Dictionary in _raw("res://data/combat/rift_stones.json")["rift_stones"]:
 		for id: Variant in s.get("loot_tables", []):
 			used[id] = true
