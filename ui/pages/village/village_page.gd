@@ -4,8 +4,13 @@ extends Page
 ## `village.buildings()` (the buildable ones and the "In arrivo" placeholders) in a grid that wraps.
 ## The upgrade is the `village.upgrade` command (one call per click); a refusal shows its reason in Italian.
 ## The page redraws from the village, bank, wallet and skills getters on `village_upgraded`, `bank_changed`,
-## `gold_changed` and `level_up`; it keeps only references to its own nodes.
+## `gold_changed` and `level_up`. Two views of the same state (docs/01_GDD.md §32): Map (default; `VillageMap` and a
+## detail panel with the box of the selected building) and List (the grid). The view and the selection are local to
+## the page and not saved; "Apri" asks for the building's page with `page_requested`. Only references to own nodes.
 
+signal page_requested(page_id: StringName)
+
+const OPEN_BUTTON_NAME: String = "OpenButton"
 const BOX_SCENE: PackedScene = preload("res://ui/pages/village/village_box.tscn")
 const VILLAGE_FIELD: StringName = &"village"
 const UPGRADED_SIGNAL: StringName = &"village_upgraded"
@@ -18,12 +23,23 @@ var _session: GameSession = null
 ## can also be bound to a stub with the same signatures.
 var _village: Object = null
 var _boxes: Dictionary[StringName, VillageBox] = {}
+var _definitions: Object = null
+## View state (not game state): the selected building and the detail widgets.
+var _selected: StringName = &""
+var _detail_box: VillageBox = null
+var _open_button: Button = null
 
 @onready var _margin: MarginContainer = %Margin
 @onready var _content: VBoxContainer = %Content
 @onready var _title_label: Label = %TitleLabel
 @onready var _gold_label: Label = %GoldLabel
 @onready var _message_label: Label = %MessageLabel
+@onready var _map_button: Button = %MapButton
+@onready var _list_button: Button = %ListButton
+@onready var _map_view: HBoxContainer = %MapView
+@onready var _map: VillageMap = %Map
+@onready var _detail: VBoxContainer = %Detail
+@onready var _list_scroll: ScrollContainer = %Scroll
 @onready var _grid: GridContainer = %Grid
 
 
@@ -35,6 +51,15 @@ func _ready() -> void:
 	_grid.add_theme_constant_override("v_separation", GRID_SEPARATION)
 	_title_label.text = VillageTexts.TITLE_TEXT
 	_message_label.add_theme_color_override("font_color", UiStyle.BAD)
+	var group: ButtonGroup = ButtonGroup.new()
+	_map_button.button_group = group
+	_list_button.button_group = group
+	_map_button.text = VillageTexts.VIEW_MAP_TEXT
+	_list_button.text = VillageTexts.VIEW_LIST_TEXT
+	_map_button.button_pressed = true
+	_map_button.pressed.connect(_show_view.bind(true))
+	_list_button.pressed.connect(_show_view.bind(false))
+	_map.building_selected.connect(_on_building_selected)
 
 
 ## Draws the village of `session` (nothing if the session has none yet) and follows its changes.
@@ -56,7 +81,12 @@ func bind_with(session: GameSession, village: Object, definitions: Object) -> vo
 	events.level_up.connect(_on_level_up)
 	if events.has_signal(UPGRADED_SIGNAL):
 		events.connect(UPGRADED_SIGNAL, _on_village_upgraded)
+	_definitions = definitions
 	_build_boxes(definitions)
+	var ids: Array[StringName] = _village.buildings()
+	_map.setup(definitions, ids)
+	_selected = ids[0] if not ids.is_empty() else &""
+	_build_detail()
 	_refresh()
 
 
@@ -74,6 +104,7 @@ func unbind() -> void:
 			events.disconnect(UPGRADED_SIGNAL, _on_village_upgraded)
 	_session = null
 	_village = null
+	_definitions = null
 
 
 func _exit_tree() -> void:
@@ -102,6 +133,12 @@ func _refresh() -> void:
 	_gold_label.text = VillageTexts.GOLD_TEXT % NumberFormat.format_int(_session.wallet.get_gold())
 	for box: VillageBox in _boxes.values():
 		box.refresh(_village, _session)
+	_map.refresh(_village, _session, _selected)
+	if _detail_box != null:
+		_detail_box.refresh(_village, _session)
+	if _open_button != null:
+		_open_button.disabled = _village.level(_selected) < 1
+		_open_button.tooltip_text = VillageTexts.OPEN_LOCKED_TEXT if _open_button.disabled else ""
 
 
 func _on_upgrade_requested(building_id: StringName) -> void:
@@ -128,3 +165,42 @@ func _on_gold_changed(_new_amount: int, _delta: int) -> void:
 
 func _on_level_up(_skill_id: StringName, _new_level: int) -> void:
 	_refresh()
+
+
+func _show_view(map_view: bool) -> void:
+	_map_view.visible = map_view
+	_list_scroll.visible = not map_view
+
+
+func _on_building_selected(building_id: StringName) -> void:
+	_selected = building_id
+	_build_detail()
+	_refresh()
+
+
+## Recreates the detail panel for `_selected`: a VillageBox (same component as the list) and, for a building with a
+## page, the "Apri" button.
+func _build_detail() -> void:
+	for child: Node in _detail.get_children():
+		_detail.remove_child(child)
+		child.queue_free()
+	_detail_box = null
+	_open_button = null
+	var def: Object = _definitions.call("village_building", _selected) if _definitions != null else null
+	if def == null:
+		return
+	_detail_box = BOX_SCENE.instantiate()
+	_detail.add_child(_detail_box)
+	_detail_box.setup(def)
+	_detail_box.name = "Detail_%s" % _selected
+	_detail_box.upgrade_requested.connect(_on_upgrade_requested)
+	var raw_page: Variant = def.get("page")
+	var page: StringName = StringName(raw_page) if raw_page != null else &""
+	if page == &"":
+		return
+	_open_button = Button.new()
+	_open_button.name = OPEN_BUTTON_NAME
+	_open_button.focus_mode = Control.FOCUS_NONE
+	_open_button.text = VillageTexts.OPEN_TEXTS.get(page, VillageTexts.OPEN_DEFAULT_TEXT)
+	_open_button.pressed.connect(func() -> void: page_requested.emit(page))
+	_detail.add_child(_open_button)

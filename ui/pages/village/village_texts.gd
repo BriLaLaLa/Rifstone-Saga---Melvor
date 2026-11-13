@@ -28,6 +28,15 @@ const REFUSED_TEXTS: Dictionary[StringName, String] = {
 	&"not_enough_gold": "Oro insufficiente.",
 	&"not_enough_items": "Materiali insufficienti.",
 }
+## Map view (docs/01_GDD.md §32).
+const VIEW_MAP_TEXT: String = "Mappa"
+const VIEW_LIST_TEXT: String = "Elenco"
+const NODE_UNBUILT_TEXT: String = "Da costruire"
+const NODE_BUILDABLE_TEXT: String = "Costruibile"
+const NODE_UPGRADABLE_TEXT: String = "Migliorabile"
+const OPEN_TEXTS: Dictionary[StringName, String] = {&"noticeboard": "Apri Bacheca", &"shop": "Apri Mercato"}
+const OPEN_DEFAULT_TEXT: String = "Apri"
+const OPEN_LOCKED_TEXT: String = "Costruiscilo per usarlo"
 const REFUSED_TEXT_DEFAULT: String = "Costruzione non riuscita."
 
 

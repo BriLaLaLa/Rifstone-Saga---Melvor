@@ -8,6 +8,13 @@ extends RefCounted
 const MAX_LEVEL: int = 2
 const BUILDABLE: Array[StringName] = [&"storehouse", &"inn", &"forge", &"sawmill", &"loot_shed", &"market", &"noticeboard"]
 const PLACEHOLDERS: Array[StringName] = []
+## Map positions (04_DATA_SCHEMA §26: 0..1, |dx| >= 0.22 or |dy| >= 0.16 between any two) and pages (Market -> shop).
+const MAP_POS: Dictionary[StringName, Vector2] = {
+	&"storehouse": Vector2(0.15, 0.2), &"inn": Vector2(0.5, 0.2), &"forge": Vector2(0.85, 0.2),
+	&"sawmill": Vector2(0.15, 0.8), &"loot_shed": Vector2(0.5, 0.5), &"market": Vector2(0.85, 0.8),
+	&"noticeboard": Vector2(0.5, 0.85),
+}
+const PAGES: Dictionary[StringName, StringName] = {&"noticeboard": &"noticeboard", &"market": &"shop"}
 const PER_LEVEL: float = 4.0
 const GOLD_PER_LEVEL: int = 100
 
@@ -26,6 +33,9 @@ class StubDef:
 	var icon: String = ""
 	var buildable: bool = true
 	var effect_stat: StringName = &"food_healing_pct"
+	var order: int = 0
+	var map_pos: Vector2 = Vector2(-1.0, -1.0)
+	var page: StringName = &""
 
 
 func _init(session: GameSession) -> void:
@@ -40,6 +50,9 @@ func village_building(building_id: StringName) -> StubDef:
 	def.name = "Edificio %s" % building_id
 	def.description = "Descrizione di prova."
 	def.buildable = BUILDABLE.has(building_id)
+	def.order = BUILDABLE.find(building_id) + 1
+	def.map_pos = MAP_POS.get(building_id, Vector2(-1.0, -1.0))
+	def.page = PAGES.get(building_id, &"")
 	if building_id == &"market":
 		def.effect_stat = &""
 	elif building_id == &"noticeboard":

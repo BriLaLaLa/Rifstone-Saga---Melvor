@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://ui/pages/village/village_page.gd" id="1_page"]
+[ext_resource type="Script" path="res://ui/pages/village/village_map.gd" id="2_map"]
 
 [node name="VillagePage" type="Control"]
 layout_mode = 3
@@ -38,6 +39,18 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"TitleLabel"
 
+[node name="MapButton" type="Button" parent="Margin/Content/Header/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+toggle_mode = true
+
+[node name="ListButton" type="Button" parent="Margin/Content/Header/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+toggle_mode = true
+
 [node name="GoldLabel" type="Label" parent="Margin/Content/Header/Row"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -50,7 +63,33 @@ visible = false
 layout_mode = 2
 autowrap_mode = 3
 
+[node name="MapView" type="HBoxContainer" parent="Margin/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="Map" type="Control" parent="Margin/Content/MapView"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(480, 380)
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("2_map")
+
+[node name="DetailScroll" type="ScrollContainer" parent="Margin/Content/MapView"]
+custom_minimum_size = Vector2(340, 0)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="Detail" type="VBoxContainer" parent="Margin/Content/MapView/DetailScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
 [node name="Scroll" type="ScrollContainer" parent="Margin/Content"]
+unique_name_in_owner = true
+visible = false
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0

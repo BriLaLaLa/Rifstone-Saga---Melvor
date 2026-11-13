@@ -63,6 +63,8 @@ func show_page(page_id: StringName) -> void:
 	assert(page != null, "the scene of route '%s' must extend Page" % route_of(page_id))
 	page.page_id = page_id
 	page.name = "Page"
+	if page.has_signal(&"page_requested"):
+		page.connect(&"page_requested", show_page)
 	add_child(page)
 	page.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_page = page
