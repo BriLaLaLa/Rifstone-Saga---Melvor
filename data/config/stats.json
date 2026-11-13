@@ -191,6 +191,16 @@
       "test": "tests/systems/combat/test_loot_bag.gd::test_capacity_uses_loot_bag_slots"
     },
     {
+      "id": "quest_slots",
+      "name": "Incarichi della Bacheca",
+      "format": "flat",
+      "min": 0,
+      "max": 8,
+      "description": "Numero di incarichi attivi della Bacheca.",
+      "formula": "F-135",
+      "test": "tests/systems/quests/test_quests.gd::test_slots_follow_quest_slots"
+    },
+    {
       "id": "auto_loot",
       "name": "Raccolta automatica del bottino",
       "format": "flag",

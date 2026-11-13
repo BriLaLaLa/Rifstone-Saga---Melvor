@@ -249,6 +249,16 @@
       "description": "Aggiunge caselle al Deposito.",
       "formula": "F-133",
       "test": "tests/systems/deposit/test_deposit.gd::test_capacity_uses_deposit_slots"
+    },
+    {
+      "id": "quest_slots",
+      "name": "Incarichi della Bacheca",
+      "format": "flat",
+      "min": 0,
+      "max": 8,
+      "description": "Numero di incarichi attivi della Bacheca.",
+      "formula": "F-135",
+      "test": "tests/systems/quests/test_quests.gd::test_slots_follow_quest_slots"
     }
   ]
 }

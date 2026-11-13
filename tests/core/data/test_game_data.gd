@@ -74,7 +74,7 @@ func test_xp_tables_come_from_the_curves() -> void:
 
 func test_stats_registry_is_built() -> void:
 	assert_true(_data.stats.has(&"skill_interval_pct"))
-	assert_eq(_data.stats.ids().size(), 25)  # M14: armor + barrier replace damage_reduction; M19: deposit_slots
+	assert_eq(_data.stats.ids().size(), 26)  # M14: armor + barrier replace damage_reduction; M19: deposit_slots; M20: quest_slots
 
 
 func test_item_lookup() -> void:

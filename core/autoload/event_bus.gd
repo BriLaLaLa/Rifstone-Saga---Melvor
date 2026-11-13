@@ -73,6 +73,9 @@ signal ability_used(ability_id: StringName, targets: Array[int])
 signal shop_purchased(entry_id: StringName, count: int)
 signal item_sold(item_id: StringName, qty: int, gold: int)
 signal village_upgraded(building_id: StringName, new_level: int)  # M19: after the modifiers are rebuilt
+signal quests_changed()  # M20: a Noticeboard slot was assigned, freed or changed (never for progress alone)
+signal quest_progress(slot: int, progress: int, target: int)  # M20: every change of a quest progress
+signal quest_completed(quest_id: StringName, slot: int)  # M20: once, when the progress reaches the target
 signal infusion_socketed(socket_index: int, item_id: StringName)
 signal infusion_removed(socket_index: int, item_id: StringName)
 

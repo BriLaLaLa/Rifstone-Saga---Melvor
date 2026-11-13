@@ -64,6 +64,19 @@
       "food": {"base": 10, "per_level": 6}
     }
   },
+  "quest": {
+    "tier_levels": [1, 10, 20, 30, 45, 60, 75, 90],
+    "tier_window": 3,
+    "recent_memory": 6,
+    "gold_by_tier": [80, 250, 340, 380, 600, 800, 950, 1030],
+    "xp_unit_by_tier": [10, 18, 28, 40, 58, 80, 108, 145],
+    "kill_food_qty": 20,
+    "types": {
+      "kill": {"base": 40, "per_tier": 8, "gold_mult": 1.0},
+      "gather": {"base": 150, "per_tier": 15, "gold_mult": 0.8, "xp_cycles": 40},
+      "craft": {"base": 30, "per_tier": 4, "gold_mult": 1.0, "xp_cycles": 60, "mult": {"forging": 1, "hearthcraft": 3, "woodwright": 4}}
+    }
+  },
   "helper": {
     "xp_pct": 25,
     "mastery_pct": 25,
