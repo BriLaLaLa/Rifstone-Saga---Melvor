@@ -13,14 +13,12 @@ const REWARD_GOLD_TEXT: String = "%s oro"
 const REWARD_XP_TEXT: String = "%s XP %s"
 const REWARD_ITEM_TEXT: String = "%s x%s"
 const REWARD_SEPARATOR: String = ", "
-## Reason of an incomplete quest (Reasons.QUEST_INCOMPLETE from M20-02; named here so the UI compiles before it).
-const INCOMPLETE_REASON: StringName = &"quest_incomplete"
 ## Reason of `can_claim` / `claim` -> text; other reasons: REFUSED_TEXT_DEFAULT.
 const REFUSED_TEXTS: Dictionary[StringName, String] = {
-	&"unknown_id": "Incarico sconosciuto.",
-	&"slot_empty": "Nessun incarico in questa casella.",
-	&"quest_incomplete": "Incarico non ancora completato.",
-	&"bank_full": "Deposito pieno: fai spazio per la ricompensa.",
+	Reasons.UNKNOWN_ID: "Incarico sconosciuto.",
+	Reasons.SLOT_EMPTY: "Nessun incarico in questa casella.",
+	Reasons.QUEST_INCOMPLETE: "Incarico non ancora completato.",
+	Reasons.BANK_FULL:"Deposito pieno: fai spazio per la ricompensa.",
 }
 const REFUSED_TEXT_DEFAULT: String = "Operazione non riuscita."
 

@@ -110,7 +110,7 @@ func refresh(quests: Object, definitions: Object) -> void:
 	_claim_button.tooltip_text = reason_text
 	# An incomplete quest is already visible from the bar: the reason is written only for the other refusals.
 	_reason_label.text = reason_text
-	_reason_label.visible = not can.ok and can.reason != NoticeboardTexts.INCOMPLETE_REASON
+	_reason_label.visible = not can.ok and can.reason != Reasons.QUEST_INCOMPLETE
 
 
 func _draw_reward(def: Object, definitions: Object) -> void:

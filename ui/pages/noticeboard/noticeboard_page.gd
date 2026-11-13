@@ -8,8 +8,6 @@ extends Page
 
 const ROW_SCENE: PackedScene = preload("res://ui/pages/noticeboard/quest_row.tscn")
 const QUESTS_FIELD: StringName = &"quests"
-## Signals of M20-02 looked up by name, so the page also works before they exist in the EventBus.
-const OPTIONAL_SIGNALS: Array[StringName] = [&"quests_changed", &"quest_progress", &"village_upgraded", &"character_level_up"]
 const MARGIN: int = 16
 const SECTION_SEPARATION: int = 12
 const ROWS_SEPARATION: int = 8
@@ -55,9 +53,10 @@ func bind_with(session: GameSession, quests: Object, definitions: Object) -> voi
 		return
 	var events: GameEvents = _session.events
 	events.bank_changed.connect(_on_bank_changed)
-	for signal_name: StringName in OPTIONAL_SIGNALS:
-		if events.has_signal(signal_name):
-			events.connect(signal_name, _on_any_signal)
+	events.quests_changed.connect(_on_any_signal)
+	events.quest_progress.connect(_on_any_signal)
+	events.village_upgraded.connect(_on_any_signal)
+	events.character_level_up.connect(_on_any_signal)
 	_rebuild()
 
 
@@ -67,9 +66,9 @@ func unbind() -> void:
 		var events: GameEvents = _session.events
 		if events.bank_changed.is_connected(_on_bank_changed):
 			events.bank_changed.disconnect(_on_bank_changed)
-		for signal_name: StringName in OPTIONAL_SIGNALS:
-			if events.has_signal(signal_name) and events.is_connected(signal_name, _on_any_signal):
-				events.disconnect(signal_name, _on_any_signal)
+		for sig: Signal in [events.quests_changed, events.quest_progress, events.village_upgraded, events.character_level_up]:
+			if sig.is_connected(_on_any_signal):
+				sig.disconnect(_on_any_signal)
 	_session = null
 	_quests = null
 	_definitions = null
