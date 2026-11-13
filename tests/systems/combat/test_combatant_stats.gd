@@ -94,7 +94,7 @@ func test_monster_stats() -> void:
 	var data: GameData = TestFactory.real_data()
 	var boar: CombatantStats = CombatantStats.for_monster(data.monster(&"plains_boar"), data)
 	assert_eq([boar.accuracy, boar.evasion, boar.max_hit, boar.min_hit], [450, 450, 11, 1])
-	assert_eq([boar.max_hp, boar.attack_interval_ms, boar.style, boar.block_chance], [20, 2800, &"blade", 0.0])
+	assert_eq([boar.max_hp, boar.attack_interval_ms, boar.style, boar.block_chance], [20, 6700, &"blade", 0.0])
 	var raider: CombatantStats = CombatantStats.for_monster(data.monster(&"redrock_raider"), data)
 	assert_eq(raider.damage_reduction, 1.0, "M17-04: generated curve, 0.27 x (L - 1) x 0.5 in steps of 0.5")
 	assert_eq(raider.style, &"marksmanship")

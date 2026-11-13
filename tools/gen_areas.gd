@@ -27,10 +27,12 @@ const HP_CURVE: Array = [[1, 20], [10, 62], [20, 105], [30, 150], [40, 200], [50
 ## Power level as a fraction of the monster level, per area (the first areas hit softer: their packs are as wide as the others).
 ## Multiplier of the hp curve per area (1.0 = the curve; tuned with tools/sim_combat.gd so that the kills per hour stay even, M17-04).
 const HP_SCALE: Array[float] = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.8, 1.0, 1.0]
-const POWER_SCALE: Array[float] = [0.35, 0.6, 0.75, 0.8, 0.85, 0.85, 0.85, 0.85, 0.85, 0.85]
+const POWER_SCALE: Array[float] = [0.1, 0.6, 0.75, 0.8, 0.85, 0.85, 0.85, 0.85, 0.85, 0.85]
 ## `rift_stone_chance_pct` of each tier of areas (F-87, Z5).
 const STONE_CHANCE: Array[float] = [0.6, 0.6, 1.0, 1.2]
 const AREA_SPAN: int = 10
+## Multiplier of the attack interval of the monsters per area (the first area hits slower: a level 1 hero faces packs of up to 8, M17-04b).
+const INTERVAL_SCALE: Array[float] = [2.4, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
 const RUNES_PATH: String = "res://data/actions/riftbinding.json"
 const DROP_RARE_MIN_PCT: float = 15.0  # tests/data/test_blueprint_data.gd: 15-40% for the rare components
 const DROP_RARE_MAX_PCT: float = 40.0
@@ -142,7 +144,7 @@ func _monster(m: Array, index: int, drops: Dictionary) -> Dictionary:
 	var xp_spec: Dictionary = (_balance["combat"] as Dictionary)["monster_xp"] as Dictionary
 	return {
 		"id": m[0], "name": m[1], "icon": ICON_DIR + (m[5] as String) + ".svg", "description": m[6], "hp": hp,
-		"style": m[4] if m[4] != "" else role[0], "attack_interval_ms": role[1],
+		"style": m[4] if m[4] != "" else role[0], "attack_interval_ms": roundi(float(role[1]) * INTERVAL_SCALE[index] / 100.0) * 100,
 		"attack_level": level, "power_level": maxi(1, roundi(level * scale)), "defence_level": level,
 		"accuracy_bonus": roundi(up * 1.15 * float(role[3])), "power_bonus": roundi(up * 0.9 * float(role[4]) * scale),
 		"evasion_bonus": roundi(up * 1.2 * float(role[5])),
