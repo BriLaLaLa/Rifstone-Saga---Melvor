@@ -258,7 +258,7 @@ Nell'Alpha la maestria deve essere **chiara e utile**. Vale per ogni azione con 
 **Regole**
 - Il Deposito è l'**unico** contenitore degli oggetti posseduti (materiali, cibo, rune, pietre, valute, borse, contratti, progetti, componenti; esclusi la borsa del
   bottino e gli incavi dell'Altare) **, dei pezzi dell'Armeria** non indossati (§21) **e delle Carte della Frattura** (§17, M13). Ha **una sola capienza** (F-100) e **due schede**, Oggetti ed
-  Equipaggiamento: sono solo una vista (i moduli `bank` e `armory` e gli id restano). L'inventario della pagina Equipaggiamento mostra gli stessi pezzi della scheda.
+  Equipaggiamento: sono solo una vista (i moduli `bank` e `armory` e gli id restano). L'inventario della pagina Equipaggiamento mostra gli stessi pezzi della scheda. **V10 (M16)**: i pezzi sono sempre visibili nel Deposito (sezione Pezzi) *e* la pagina Equipaggiamento mostra solo pezzi; entrambe sono viste di `Armory` (e `LootBag` per i pezzi non raccolti), nessuna copia dei dati.
   Un tipo di oggetto impilato occupa **una** casella (quantità illimitata, intero a 64 bit); un pezzo o una Carta occupa una casella come un tipo di oggetto.
 - Capienza = `deposit.base_slots` (60) + le caselle delle borse negli **slot borsa** (`deposit.bag_slots` = 6, in cima al Deposito). Le caselle vuote sono visibili fino alla capienza.
 - **Borse** (`category: bag`, `bag.slots`): oggetti che si mettono in uno slot e aggiungono le loro caselle. Sono: Borsa di tela +6 (ricetta del Falegname), Borsa di cuoio +10
@@ -431,6 +431,14 @@ del bersaglio e il conteggio; elenco scorrevole; nessuna carta per nemico. Numer
 Un pezzo di equipaggiamento che cade (da mostro o Monolito, fuori dalla Frattura) finisce nel **Bottino**, non più direttamente nell'Armeria. "Raccogli tutto" lo sposta nel Deposito (§7), dove compare nella sezione **Pezzi**; la pagina
 Equipaggiamento mostra **solo** i pezzi. Un pezzo nel Bottino non è indossabile. Con la tasca del Bottino automatico (`auto_loot`, §7) il pezzo va subito nel Deposito. Il filtro (§25) agisce **al collect**, non alla caduta (il pezzo scartato è smantellato quando viene raccolto). Nessun limite di pezzi nel Bottino e nessun `loot_lost` per Bottino pieno; la morte perde tutto il Bottino, pezzi compresi. Offline i pezzi sono messi al sicuro nell'Armeria a ogni blocco da 60 s, mentre online la morte li perde (Q83 aperta). La fonte di verità resta una (Armeria, F-100): il Bottino tiene i pezzi in attesa, la UI non copia dati.
 Nella Frattura non cambia (il sacco della Frattura tiene già i pezzi, F-116). Aperto: caselle del Bottino e del Deposito (Q80, Q81).
+
+### 10.15 Precisione, XP per livello, aree strette, gruppi 1-8 (M16-M18, V1-V4, V11; **numeri in M17-01**)
+- **Precisione visibile (V1)**: nella pagina Combattimento si mostra la % di colpire del giocatore sul bersaglio e quella dei nemici sul giocatore (formula F-129, segnaposto).
+- **XP per differenza di livello (V2)**: l'XP di un'uccisione (§10.4) è moltiplicata per un fattore che dipende da livello del mostro meno livello del personaggio: cala se il mostro è molto più basso, vale zero oltre una soglia, sale se è più alto (F-130, segnaposto; tabella nei dati).
+- **Aree strette (V3)**: ogni area copre circa 10 livelli e ha gruppi di mostri propri; la scelta dell'area è una **mappa cliccabile** (non più un menu). I Monoliti (§24b) seguono il livello massimo della nuova area (Z2).
+- **Gruppi (V4)**: 1-8 nemici (`combat.max_pack_size`); il singolo e gli 8 sono rari, la media sta in mezzo.
+- **Evocati dei Monoliti (V11)**: droppano poco (riduzione in `balance.json`, valore in M17-06); restano senza XP (Z3).
+- Il drop di equipaggiamento (V5) non cambia finché M17-02 non ne misura il tasso reale.
 
 ## 11. Incisore e Altare del Rift (M8; riscritta in M12, W5-W6)
 
@@ -656,6 +664,8 @@ tutti i pezzi); `uid` duplicato o base sconosciuta nel save (`Log.warn`, pezzo s
 - Rarità dei **progetti**: sempre Capolavoro (M14); cresce con il livello del Fabbro la probabilità di avere 2 affissi invece di 1 (F-91 rivista; era: almeno magica, probabilità di raro; sostituisce
   F-83, sostituita). Rarità nei drop (M7): soglie per fonte (F-84). I drop × `(1 + item_rarity_pct/100)`. Il kit iniziale è comune.
 - Anelli e amuleti: **solo da drop** (Q30, M7).
+
+- **Nomi degli affissi (V8, M16-07)**: i testi di tutti gli affissi sono in stile Path of Exile, in italiano ("+X alla Vita massima"); solo `name`/testi, id, stat e valori invariati.
 
 ## 23. Raffinazione +0…+9 (M7)
 

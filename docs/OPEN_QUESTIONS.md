@@ -137,6 +137,8 @@ I documenti sono già scritti con questi default. I numeri non presenti nella fo
 | Q80 | I pezzi nel Bottino occupano una casella del Bottino (F-33) come un tipo di oggetto? Con 28 mostri e molti pezzi il Bottino può riempirsi | no, come implementato: nessun limite di pezzi nel Bottino (M15-04) | utente / QA |
 | Q81 | Nel Deposito i pezzi restano a occupare una casella ciascuno (F-100) o la sezione "Pezzi" non occupa slot? | invariato: una casella ciascuno | utente |
 | Q83 | Pezzi nel Bottino: online la morte li perde, offline sono messi al sicuro a ogni blocco da 60 s (`collect_pieces`). Va allineato (online al sicuro, o offline a rischio)? | invariato (differenza accettata) | utente |
+| Q84 | Falegname (V7): quale integrazione con gli altri sistemi? Rimandato | nessun task in M16-M18 | utente |
+| Q85 | Tasso di drop equip (V5): ritarare o no dopo la misura di M17-02? | decide l'utente sui numeri | utente / QA |
 
 ## Chiuse
 

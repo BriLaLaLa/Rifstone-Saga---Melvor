@@ -16,6 +16,10 @@ Se la sessione si interrompe, si riparte da qui.
 - Descrizioni di tratti e abilità generate da effetti, parametri e ricarica (`ui/pages/character/loadout_describe.gd`, il campo `description` dei dati non si mostra più); stat `damage_reduction` ora si chiama "Armatura" (solo testo in `stats.json`).
 - Aperto di P-01 chiuso da P-03 (`player_renamed`).
 
+## Ripartenza (inizio M16, R-07 riportata, 2026-11-11)
+- **Stato**: **M16-01 DONE**: V1-V11 (`M16_M18.md`) nei documenti: `DECISIONS_LOG.md` (V1-V11 e R-07), `01_GDD.md` §10.15, §7, §22, `02_FORMULAS.md` §5g (F-129 precisione e F-130 XP per livello: **segnaposto senza numeri**, li fissa M17-01), `04_DATA_SCHEMA.md` §23, `05_INTERFACES.md` §5.26 (V10 non cambia contratti), `06_ROADMAP.md` (M16-M18; il vecchio M16+ è M19+), `07_TASKS.md` (M16-01…M18-03), `OPEN_QUESTIONS.md` Q84-Q85. Codice e dati non toccati. Hash: `git log --grep "M16-01"`.
+- **Prossimo passo**: M16-02 (CORE, bug con test prima) con M16-07 (DATA); poi UI 03-06; M16-08 (QA, REV, tag `m16-done`).
+
 ## Ripartenza (fine M15, 2026-11-10)
 - **Stato**: **M15 completata** (M15-01…M15-09 DONE; tag `m15-done` dell'Orchestratore). Documenti allineati al codice (`docs: M15-09`): `05_INTERFACES.md` §5.25 (`LootBag.collect_pieces`, `add_piece` void, filtro al collect, fonte leggendario = id di area), `01_GDD.md` §10.14.
 - **Hash**: M15-02 `50f4b36`, M15-04 `096fb19`, M15-07 `8cbbcb4`, M15-03/05 `9dcc4d6`, M15-06 `45f7588`, M15-08 `01baa38`.

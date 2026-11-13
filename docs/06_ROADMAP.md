@@ -240,7 +240,20 @@ B1: livello 99 in **319,6 ore** (obiettivo 250-350; prima della taratura 175), 1
 **Task** M15-01…M15-09 (`07_TASKS.md`); tag `m15-done`. Domande Q78-Q82 (`OPEN_QUESTIONS.md`). Miniboss rimandati (Z8).
 **Stato**: **M15-01…M15-09 DONE, M15 completata** (tag `m15-done` dell'Orchestratore). Misure: Q78 chiusa con PV invariati (tempi da 182 s Pianure L10 a 54 s Soglia L80, ritaratura rimandata); Q82 chiusa (1-2 Monoliti/h per area, Pianure 0,6, pietà 300); ore al 99 con i Monoliti ≈ 369. Aperte Q79-Q81, Q83. Prossimo: M16+, miniboss rimandati.
 
-## M16+: Seconda classe, dungeon, altri boss (dopo M15)
+## M16: Bug e ritocchi del primo giorno di alpha (R-07)
+**Fonte**: `M16_M18.md` (V1-V11), riportate da M16-01 in `DECISIONS_LOG.md`, `01_GDD.md` §10.15, `02_FORMULAS.md` §5g, `04_DATA_SCHEMA.md` §23, `05_INTERFACES.md` §5.26.
+**Contenuto**: bug della corazza di Roccamartello / potenziamento / progetto non consumato; mostri morti visibili con i Monoliti; livello dell'item e del mostro; artigianato con prodotti posseduti e riepilogo maestria; pallino del lavoro in corso; pezzi sempre visibili nel Deposito; nomi degli affissi in stile PoE.
+**Task** M16-01…M16-08 (`07_TASKS.md`); tag `m16-done`.
+
+## M17: Combattimento (precisione, XP, aree strette, mappa)
+**Contenuto**: formula di precisione (F-129) e XP per differenza di livello (F-130) fissate da M17-01; misura del drop equip (V5); aree strette con gruppi 1-8 e Monoliti per area; mappa cliccabile e % di colpire; drop ridotto agli evocati; più peso visivo al combattimento.
+**Task** M17-01…M17-08 (`07_TASKS.md`); tag `m17-done`.
+
+## M18: Incisore e Fabbro (Falegname rimandato, V7)
+**Contenuto**: ricette di basso livello dell'Incisore e XP da disincantare/fondere; riordino della sottoscheda del Fabbro.
+**Task** M18-01…M18-03 (`07_TASKS.md`); tag `m18-done`. Falegname: nessun task finché non c'è la decisione (Q84).
+
+## M19+: Seconda classe, dungeon, altri boss (dopo M18; era M16+)
 Seconda classe con le sue armi (es. arco o bastone, con i suoi progetti e componenti del Falegname), supporti delle abilità,
 altri boss, dungeon a ondate, oggetti unici, elementi e resistenze.
 

@@ -692,6 +692,16 @@ pendente: se `S ≠ 0` e `level ≤ S` il Monolito è **scartato**: nessun incon
 se il suo livello è ≤ `S`. Cambiare `S` non tocca un Monolito già in combattimento.
 Esempi: `S` 10 e Monolito di livello 10 → scartato; livello 15 → combattuto; `S` 0 → mai scartato; `S` 99 → scartati tutti. Test: `tests/systems/combat/test_metin_skip.gd` (anche salvataggio e caricamento).
 
+## 5g. Precisione visibile e XP per differenza di livello (F-129, F-130; M16-M18, V1-V2) — **segnaposto**
+
+I numeri e gli esempi (= test) li fissa **M17-01**; fino ad allora nessun codice né dato li usa. Non inventare valori.
+
+### F-129 Precisione e probabilità di colpire (V1)
+Da definire in M17-01: formula standard di precisione contro elusione con tetto minimo e massimo (adattata, senza copiare un gioco), usata sia per la % mostrata sia per il tiro di F-23. Chiavi di `balance.json` e stat del registro da dichiarare in M17-01. Esempi e test: M17-01 / M17-03.
+
+### F-130 Moltiplicatore di XP per differenza di livello (V2)
+Da definire in M17-01: moltiplicatore sull'`xp` del mostro in funzione di (livello mostro − livello personaggio): scende se il mostro è molto più basso, **zero** oltre una soglia, sale se è più alto; tabella nei dati (non nel codice). Si compone con F-28. Esempi e test: M17-01 / M17-03.
+
 ## 6. Offline
 
 ### F-40 Tempo offline

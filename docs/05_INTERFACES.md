@@ -1720,6 +1720,10 @@ func to_save() -> Dictionary           # {"stacks": [{"item", "qty"}], "pieces":
   `combat.set_skip_stone_level` e `combat.loot.collect_all`.
 - **Chiavi lette dal codice**: `metin.*`, `combat.crowd_threshold` (solo UI), `combat.skip_stone_level` (default del nuovo slot).
 
+### 5.26 Aggiunte di M16-M18 (R-07)
+- **V10**: nessun cambiamento di contratto. La sezione Pezzi del Deposito e la pagina Equipaggiamento leggono entrambe `Armory` (pezzi non indossati) e `LootBag` (pezzi non raccolti); nessuna copia, nessun segnale o metodo nuovo.
+- **V1, V2, V11**: le firme (precisione visibile, moltiplicatore XP, riduzione del drop degli evocati) le fissa M17-01 dopo F-129/F-130; fino ad allora valgono le firme esistenti. Save `format_version` 6 invariata.
+
 ## 6. Formato del salvataggio (`user://saves/slot_<n>.json`)
 
 Versione **6 da M15** (v5 da M14, migrata; vedi sotto); v5 da M14 (v4 da M12, v3 da M10, v2 da M4-03, D3). Un save v1, v2, v3 o **v4 non si carica** (`version_unsupported`, nessuna migrazione: nessun giocatore reale ancora; M14 cambia il significato di `damage_reduction`, le basi dei pezzi e aggiunge `discoveries`). `SaveMigrator.CURRENT_VERSION` = 5.

@@ -729,3 +729,10 @@ una sola `blueprint` per base; solo basi `masterwork`. I progetti per `blueprint
 - `data/config/balance.json`: nuove chiavi `metin.{hp_base, hp_per_level, pulse_damage, wave_size, wave_thresholds, rarity_bonus_pct, guaranteed_pieces}`, `combat.crowd_threshold`, `combat.skip_stone_level` (§9 di `02_FORMULAS.md`).
   Validatore: tutte numeriche, `hp_base` ≥ 1, `hp_per_level` ≥ 0, `wave_size` 1..30, `wave_thresholds` strettamente decrescente in 1..99, `crowd_threshold` ≥ 1, `skip_stone_level` in 0..99.
 - `data/combat/areas.json`: `rift_stone_chance_pct` delle Pianure sale da 0 a 0,6 (Z5, Q82).
+
+## 23. Aggiunte di M16-M18 (R-07; **segnaposto**, schema fissato da M17-01)
+- V2/F-130: tabella dell'XP per differenza di livello (in `balance.json`, chiave da definire in M17-01).
+- V3/V4: `areas.json` con aree strette (~10 livelli) e gruppi 1-8, generati con script in `tools/` (M17-04); campi di posizione sulla mappa se servono, da definire in M17-01.
+- V11: riduzione del drop degli evocati in `balance.json` (M17-06).
+- V8 (M16-07): solo i testi degli affissi in `affixes.json`; nessun campo nuovo.
+- V10: nessun cambiamento di schema.

@@ -1816,9 +1816,9 @@ I nomi e i testi di gioco vengono da `NOMI.md` (sezione Alpha); nulla da Melvor 
 - **Ruolo** REV · **Stima** S · **Dipendenze** M14-06, M14-10 · **Stato** IN_PROGRESS (allineamento documenti fatto; suite, tag `m14-alpha`/`m14-done` e push all'Orchestratore)
 - **Descrizione** Merge, checklist di `06_ROADMAP.md` (M14 "Uscita"), `docs/RELEASE_CHECKLIST_MVP.md` aggiornata (sezione Alpha), `docs/STATUS.md`, tag `m14-alpha` (e `m14-done`), report di milestone. Il push lo fa l'Orchestratore.
 
-## M16+ (dopo M15)
+## M19+ (dopo M18; era M16+)
 
-- M16+ · Seconda classe, dungeon, altri boss, quarti leggendari per slot, miniboss dei Monoliti (Z8, rimandati): da definire.
+- M19+ · Seconda classe, dungeon, altri boss, quarti leggendari per slot, miniboss dei Monoliti (Z8, rimandati): da definire.
 - Le **corsie parallele** (ex M13, `01_GDD.md` §18, F-51, nota N12) sono **eliminate**: le sostituiscono gli aiutanti di M12.
 
 ## Note ereditate dai task superati
@@ -1873,3 +1873,37 @@ I nomi e i testi di gioco vengono da `NOMI.md` (sezione Alpha); nulla da Melvor 
 | M15-07 | UI: pezzi nel Bottino, sezione "Pezzi" nel Deposito, Equipaggiamento solo pezzi | UI | 04 | smoke test per pagina |
 | M15-08 | QA: tasso Monoliti per area, prestazioni offline con 30 mostri, regressione | QA | 06, 07 | suite verde; nessun bug aperto |
 | M15-09 | Integrazione e tag `m15-done` | REV | 08 | `run_checks.ps1` verde dopo il merge |
+
+## M16 — Bug e ritocchi del primo giorno di alpha (R-07, fonte `docs/M16_M18.md`)
+**Stato: M16-01 DONE.** Max 2 agenti insieme. Decisioni V1-V11 in `DECISIONS_LOG.md`. M16-02 (CORE) e M16-07 (DATA) hanno file diversi; le UI (03-06) in sequenza se toccano gli stessi file.
+| ID | Titolo | Ruolo | Dipende | Accettazione |
+|---|---|---|---|---|
+| M16-01 | Riportare R-07 nei documenti | REV | — | documenti coerenti con `docs/M16_M18.md`; F-129/F-130 segnaposto |
+| M16-02 | Bug: corazza di Roccamartello non compare in Equipaggiamento/Deposito; potenziamento che non cambia le stat; progetto non consumato | CORE | 01 | ogni bug riprodotto con un test che fallisce prima della correzione, poi verde |
+| M16-03 | Mostri morti spariscono con i Monoliti (vista compatta e carte) | UI | 01 | smoke test; i morti restano visibili |
+| M16-04 | Livello item piccolo in basso a destra dell'icona; livello del mostro in combattimento | UI | 01 | smoke test |
+| M16-05 | Artigianato: prodotti finiti posseduti; etichetta "Bonus" con riepilogo maestria; via le scritte sopra "Avvia" | UI | 01 | smoke test |
+| M16-06 | Pallino animato del lavoro in corso nel menu; pezzi sempre visibili nel Deposito (V9, V10) | UI | 02 | smoke test; nessuna copia dei pezzi nella UI |
+| M16-07 | Nomi affissi in stile PoE (V8; script in `tools/` se ripetitivo) | DATA | 01 | `validate_data` verde; solo testi cambiati |
+| M16-08 | QA e integrazione, tag `m16-done` | QA, REV | 02…07 | `run_checks.ps1` verde dopo il merge |
+
+## M17 — Combattimento (precisione, XP, aree strette, mappa)
+| ID | Titolo | Ruolo | Dipende | Accettazione |
+|---|---|---|---|---|
+| M17-01 | Documenti: formula precisione F-129 (V1), tabella XP per differenza di livello F-130 (V2), aree strette e gruppi 1-8 (V3, V4) | REV | M16-08 | numeri ed esempi fissati nei documenti |
+| M17-02 | Misura del tasso di drop equip con `sim_combat` e report (V5) | QA | M16-08 | report con i numeri; la ritaratura si decide sui numeri |
+| M17-03 | Precisione e XP: codice e test | COMBAT | 01 | esempi di F-129 e F-130 = test |
+| M17-04 | Aree strette: dati generati con script, gruppi nuovi, Monoliti per area | DATA | 01 | `validate_data` verde; nessuna riga scritta a mano |
+| M17-05 | Mappa cliccabile e % di colpire in combattimento | UI | 03, 04 | smoke test |
+| M17-06 | Drop ridotto agli evocati (V11) | COMBAT | 01 | test; valore in `balance.json` |
+| M17-07 | Più peso visivo al combattimento (sfondo per area, mostri più grandi, effetti sui colpi) | UI | 05 | smoke test |
+| M17-08 | QA e integrazione, tag `m17-done` | QA, REV | 02…07 | `run_checks.ps1` verde dopo il merge |
+
+## M18 — Incisore, Fabbro (Falegname rimandato, V7)
+| ID | Titolo | Ruolo | Dipende | Accettazione |
+|---|---|---|---|---|
+| M18-01 | Incisore: ricette di basso livello e XP da disincantare/fondere (V6) | DATA, CORE | M17-08 | test; `validate_data` verde |
+| M18-02 | Fabbro: riordino della sottoscheda | UI | M17-08 | smoke test |
+| M18-03 | QA e integrazione, tag `m18-done` | QA, REV | 01, 02 | `run_checks.ps1` verde dopo il merge |
+
+Falegname (V7): nessun task finché non c'è la decisione.
