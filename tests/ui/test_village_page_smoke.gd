@@ -26,15 +26,22 @@ func after_each() -> void:
 	await wait_physics_frames(1)
 
 
-func test_five_buildable_boxes_and_two_placeholders() -> void:
+func test_seven_buildable_boxes_and_no_placeholder() -> void:
+	assert_eq(VillageStub.BUILDABLE.size(), 7)
 	for id: StringName in VillageStub.BUILDABLE:
 		assert_not_null(_page.find_child("Box_%s" % id, true, false), "box %s" % id)
 		assert_not_null(_button(id), "button %s" % id)
-	for id: StringName in VillageStub.PLACEHOLDERS:
-		var box: Node = _page.find_child("Box_%s" % id, true, false)
-		assert_not_null(box, "placeholder %s" % id)
-		assert_null(box.find_child("UpgradeButton", true, false))
-		assert_not_null(box.find_child("ComingSoonLabel", true, false))
+	assert_null(_page.find_child("ComingSoonLabel", true, false))
+	assert_lte(_page.get_combined_minimum_size().x, 1280.0, "layout fits 1280x720")
+
+
+func test_market_shows_the_fixed_effect_and_noticeboard_the_stat() -> void:
+	var market: Node = _page.find_child("Box_market", true, false)
+	assert_eq((market.find_child("EffectNowLabel", true, false) as Label).text,
+			VillageTexts.EFFECT_NOW_TEXT % VillageTexts.FIXED_EFFECT_TEXT)
+	assert_false((market.find_child("EffectNextLabel", true, false) as Label).visible)
+	var board: Node = _page.find_child("Box_noticeboard", true, false)
+	assert_true((board.find_child("EffectNextLabel", true, false) as Label).visible)
 
 
 func test_button_follows_can_upgrade_and_upgrade_is_called_once_per_click() -> void:

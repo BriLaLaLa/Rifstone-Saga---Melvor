@@ -18,7 +18,9 @@ const REQUIRES_TEXT: String = "Richiede: %s"
 const REQ_SKILL_TEXT: String = "%s livello %s"
 const REQ_TOTAL_TEXT: String = "livello totale %s"
 const REQ_CHARACTER_TEXT: String = "livello del personaggio %s"
+const REQ_VILLAGE_TEXT: String = "%s livello %s"
 const REQ_SEPARATOR: String = ", "
+const MARKET_VENDOR: StringName = &"mercato"
 const COMING_SOON_TEXT: String = "In arrivo"
 const VENDOR_TEXTS: Dictionary[StringName, String] = {
 	&"bottegaia": "Bottegaia",
@@ -26,6 +28,7 @@ const VENDOR_TEXTS: Dictionary[StringName, String] = {
 	&"deposito": "Deposito",
 	&"armaiolo": "Armaiolo",
 	&"mercante_armature": "Mercante d'armature",
+	&"mercato": "Mercato",
 }
 ## Reason of `can_buy` / `buy` -> text; other reasons: REFUSED_TEXT_DEFAULT.
 const REFUSED_TEXTS: Dictionary[StringName, String] = {
@@ -116,7 +119,10 @@ func _build_rows() -> void:
 		child.queue_free()
 	_rows.clear()
 	var sections: Dictionary[StringName, VBoxContainer] = {}
-	for vendor: String in DataValidatorItems.SHOP_VENDORS:
+	var vendors: PackedStringArray = DataValidatorItems.SHOP_VENDORS.duplicate()
+	if not vendors.has(MARKET_VENDOR):  # the Market stall is always listed, last (M20-05)
+		vendors.append(MARKET_VENDOR)
+	for vendor: String in vendors:
 		sections[StringName(vendor)] = _new_section(StringName(vendor))
 	for entry: ShopEntryDef in _session.data.shop_entries():
 		_rows[entry.id] = _new_row(sections[entry.vendor], entry)
@@ -239,7 +245,23 @@ func _missing_requirements(entry: ShopEntryDef) -> String:
 		parts.append(REQ_TOTAL_TEXT % entry.req_total_level)
 	if entry.req_character > _session.character.get_level():
 		parts.append(REQ_CHARACTER_TEXT % entry.req_character)
+	var req_village: Variant = entry.get(&"req_village")  # ShopEntryDef.req_village (M20-04), {building_id: level}
+	if req_village is Dictionary:
+		parts.append_array(missing_village(req_village))
 	return REQ_SEPARATOR.join(parts)
+
+
+## The Village requirements ({building_id: level}) not met now, each as "<Building name> <level>" (read from
+## `session.village.level` and the building definitions).
+func missing_village(required: Dictionary) -> Array[String]:
+	var parts: Array[String] = []
+	for building_id: StringName in required:
+		var level: int = int(required[building_id])
+		if _session.village != null and _session.village.level(building_id) >= level:
+			continue
+		var def: VillageBuildingDef = _session.data.village_building(building_id)
+		parts.append(REQ_VILLAGE_TEXT % [def.name if def != null else String(building_id), level])
+	return parts
 
 
 func _on_buy_pressed(entry_id: StringName) -> void:
