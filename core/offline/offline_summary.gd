@@ -19,6 +19,7 @@ var pieces_stored: int = 0  # pieces that entered the Armory
 var pieces_dismantled: int = 0  # pieces salvaged by the Armory filter (item_salvaged with auto = true)
 var pieces_rejected: int = 0  # pieces lost because the Armory was full (armory_rejected)
 var bank_rejected: Dictionary[StringName, int] = {}  # yields that did not fit the bank (also auto-salvage yields)
+var dungeon_frozen: bool = false  # M22: a dungeon run was in progress; it did not advance (F-144 rule 2)
 var fractures: Array[Dictionary] = []  # M13: one {"grade", "outcome", "groups", "cards", "pieces"} per Fracture that ended
 
 
@@ -46,7 +47,7 @@ func is_empty() -> bool:
 	return (xp.is_empty() and levels.is_empty() and items.is_empty() and gold_delta == 0 and kills.is_empty()
 		and deaths == 0 and food_eaten == 0 and stop_reasons.is_empty() and pieces_stored == 0
 		and pieces_dismantled == 0 and pieces_rejected == 0 and bank_rejected.is_empty()
-		and fractures.is_empty())
+		and fractures.is_empty() and not dungeon_frozen)
 
 
 # after - before for every key, zero differences left out.

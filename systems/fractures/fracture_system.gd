@@ -44,6 +44,8 @@ func state() -> Dictionary:
 func open(card_uid: int) -> CommandResult:
 	if not _session.cards.has(card_uid):
 		return CommandResult.fail(Reasons.UNKNOWN_ID)
+	if _session.dungeon.is_active():
+		return CommandResult.fail(Reasons.DUNGEON_ACTIVE)  # M22: one instance at a time
 	if _run != null or _session.combat.in_fracture():
 		return CommandResult.fail(Reasons.FRACTURE_ACTIVE)
 	if has_pending():
