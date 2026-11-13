@@ -72,6 +72,46 @@ func test_unbind_disconnects_events() -> void:
 	assert_false(_session.events.bank_changed.is_connected(_page._on_bank_changed))
 
 
+func test_map_view_nodes_states_selection_open_and_views() -> void:
+	var map: VillageMap = _page.find_child("Map", true, false) as VillageMap
+	for id: StringName in VillageStub.BUILDABLE:
+		var node: Button = map.node(id)
+		assert_not_null(node, "node %s" % id)
+		var pos: Vector2 = VillageStub.MAP_POS[id]
+		assert_almost_eq(node.anchor_left, pos.x, 0.001)
+		assert_almost_eq(node.anchor_top, pos.y, 0.001)
+	assert_eq(map.state_of(&"inn"), VillageNodeState.UNBUILT)
+	_stub.forced_reason = &"level_too_low"
+	_session.wallet.add_gold(1)
+	assert_eq(map.state_of(&"inn"), VillageNodeState.LOCKED)
+	_stub.forced_reason = &""
+	_session.wallet.add_gold(1000)
+	_session.bank.add(_stub.cost_item, 10)
+	assert_eq(map.state_of(&"inn"), VillageNodeState.READY)
+	# selecting a node changes the detail box; "Apri" is disabled at level 0 and enabled once built
+	map.node(&"market").pressed.emit()
+	assert_not_null(_page.find_child("Detail_market", true, false))
+	var open: Button = _page.find_child("OpenButton", true, false) as Button
+	assert_not_null(open)
+	assert_true(open.disabled)
+	var requested: Array[StringName] = []
+	_page.page_requested.connect(func(page_id: StringName) -> void: requested.append(page_id))
+	(_page.find_child("Detail_market", true, false).find_child("UpgradeButton", true, false) as Button).pressed.emit()
+	assert_false((_page.find_child("OpenButton", true, false) as Button).disabled)
+	(_page.find_child("OpenButton", true, false) as Button).pressed.emit()
+	assert_eq(requested, [&"shop"] as Array[StringName])
+	map.node(&"inn").pressed.emit()
+	assert_null(_page.find_child("OpenButton", true, false))
+	# view switch
+	var map_view: Control = _page.find_child("MapView", true, false)
+	var list: Control = _page.find_child("Scroll", true, false)
+	assert_true(map_view.visible)
+	assert_false(list.visible)
+	(_page.find_child("ListButton", true, false) as Button).pressed.emit()
+	assert_false(map_view.visible)
+	assert_true(list.visible)
+
+
 func _button(id: StringName) -> Button:
 	return _page.find_child("Box_%s" % id, true, false).find_child("UpgradeButton", true, false) as Button
 
