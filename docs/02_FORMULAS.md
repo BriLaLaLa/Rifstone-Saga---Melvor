@@ -860,7 +860,7 @@ Esempio (= test dei dati e `sim_dungeon`): 300 uccisioni/ora, 4,07 mostri per in
 `tests/systems/combat/test_miniboss.gd` (con `chance_pct` 100: ogni incontro normale è seguito dal miniboss; con 0 mai; con un Monolito pending la precedenza è del Monolito).
 
 ### F-140 Eventi (Trappola e Riposo)
-All'ingresso in una stanza `trap` o `rest` la run entra nella fase `event` (nessun nemico, nessun timer) con due scelte. Parametri (dati del dungeon): `trap.dash_hp_pct` = 20, `trap.ambush` = 3 (mostri da `monkey_grunt` 4, `monkey_slinger` 2), `rest.heal_pct` = 35, `rest.forage_pack` = 4, `rest.forage_dust` = [8, 14], `rest.forage_crystal_pct` = 30.
+All'ingresso in una stanza `trap` o `rest` la run entra nella fase `event` (nessun nemico, nessun timer) con due scelte. Parametri (dati del dungeon): `trap.dash_hp_pct` = 20, `trap.ambush` = 3 (mostri da `monkey_grunt` 4, `monkey_slinger` 2), `rest.heal_pct` = 35, `rest.forage_pack` = 4 (stesso pool dell'imboscata), `rest.forage_dust` = [8, 14], `rest.forage_crystal_pct` = 30.
 - Trappola, **"Attraversa di corsa"** (`dash`): `loss = max(0, min(hp − 1, floor(max_hp × dash_hp_pct/100)))`; i PV scendono di `loss` (segnale `dungeon_trap_triggered(kind, loss)`), poi la stanza è superata (fase `await`). Un PV non scende mai sotto 1: la trappola non uccide.
 - Trappola, **"Aggira"** (`detour`): nessuna perdita; si combatte l'imboscata (`ambush` mostri), poi la stanza è superata.
 - Riposo, **"Riposa"** (`rest`): `heal = min(max_hp − hp, floor(max_hp × heal_pct/100))`; poi la stanza è superata. **"Fruga"** (`forage`): si combatte `forage_pack` mostri; alla fine `randi_range(forage_dust)` Polvere del Rift e `roll_pct(forage_crystal_pct)` per un Cristallo (uniforme sui tre), nella borsa.
@@ -890,7 +890,7 @@ Il premio non dipende dalla via scelta: le stanze più pericolose rendono di pi�
 ### F-143 Bottino del boss ("loot pool")
 Alla vittoria sul Re (stadio 3), nella borsa del dungeon, in quest'ordine (un tiro per voce):
 1. oro `randi_range(boss.gold)` = [3.000, 5.000] nel portafoglio;
-2. Polvere `randi_range(boss.dust)` = [40, 60] × `(1 + dust_pct/100)` (F-115);
+2. Polvere `randi_range(boss.dust)` = [40, 60], **senza bonus** (`dust_pct` non si applica in M22: nessun modificatore nel dungeon);
 3. **due pezzi**: il primo di rarità **rara** garantita, il secondo almeno **magico** (F-121 punti 2-3 con `L_m` 54; affissi F-85 con `ilvl` del boss; rarità del secondo come sopra);
 4. **due Cristalli** (due tiri indipendenti, uniformi sui tre tipi);
 5. una **Carta** con `roll_pct(boss.card_pct)` = 60: grado `boss.card_grade` = 4, rarità F-109;

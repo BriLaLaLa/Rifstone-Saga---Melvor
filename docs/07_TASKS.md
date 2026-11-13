@@ -2033,12 +2033,15 @@ Max 2 agenti insieme. **Ordine**: M22-02 → (**M22-03 ∥ M22-04**) → (**M22-
   **evocati** della Stratega mai oltre 4, senza XP né drop; morte = borsa persa e ritorno all'area differito a fine istante; `stop()` in dungeon = `flee`; salvataggio e ricaricamento a metà stanza e a metà intro (stessa mano di nemici e timer); il miniboss con `chance_pct` 100/0 e con un Monolito in attesa (F-139); nessun cambio di tratti o abilità in dungeon.
 - **Fuori ownership**: `systems/dungeon/**`, `systems/fractures/**`, `core/data/**`, `data/**`, `ui/**`.
 
+- **Contratto deciso dal Reviewer (dopo M22-04)**: `dungeon_finished(&"won"|&"left", …)` lo emette `DungeonSystem` e il motore vi reagisce tornando a `run.return_area` (o fermandosi con `DUNGEON_WON`); `died`/`fled` li emette il motore. Tipizzare la chiamata a `start_dungeon` via `engine()`. `Miniboss.pack` applica i moltiplicatori di `balance.json` una sola volta. Vedi §5.29.
+
 ### M22-06 — dettaglio
 - **Leggere**: `01_GDD.md` §33.7, `05_INTERFACES.md` §5.29 (`state()`), §7.q e §7.v (modello: pagina Fratture), `ui/pages/fractures/` e `ui/pages/combat/` (componenti da riusare, sola lettura), `ui/screens/main/sidebar.gd`, `page_host.gd`, `docs/UI_GDR.md` (tema).
 - **Ownership**: `res://ui/pages/dungeon/**` (nuova cartella: `dungeon_page.gd/.tscn`, `dungeon_entry_view.gd`, `dungeon_choice_view.gd`, `dungeon_fight_view.gd`, `dungeon_intro_card.gd`, `dungeon_texts.gd`, `.uid`), `res://ui/screens/main/sidebar.gd` e `page_host.gd` (la voce e la rotta `dungeon`), `res://ui/pages/combat/combat_page.gd` (solo il riquadro "Sei nel Covo", poche righe),
   `res://ui/screens/**` per il toast di `dungeon_finished` e la riga del riepilogo offline (`OfflineSummaryView`), `res://core/guide/guide_index.gd` e `guide_tables.gd` (solo `PAGE_DUNGEON` e le tabelle `dungeon_rooms`, `dungeon_stages`, `dungeon_loot`), `res://data/guide/dungeon.json`, `res://tests/ui/test_dungeon_page_smoke.gd`, `res://tests/helpers/dungeon_stub.gd`, `res://tests/data/test_guide_dungeon.gd`.
 - **Accettazione**: smoke test unico (§7.q); nessun numero di design nel codice (tutto da `state()` e dai dati); testi in `dungeon_texts.gd`; la UI non apre mai `DungeonMap` e non mostra il tipo di una uscita (solo direzione e indizio); layout a 1280×720 senza sovrapposizioni; ogni file < 400 righe (se `dungeon_page.gd` supera ~300, spostare in viste); componenti di combattimento **riusati, non copiati**.
-- **Fuori ownership**: `core/data/**` (salvo guida), `systems/**`, `data/**` (salvo `data/guide/dungeon.json`), `tools/**`.
+- **Anche**: `ui/screens/offline/offline_texts.gd` (`dungeon_line()` per `OfflineSummary.dungeon_frozen`); togliere `dungeon_ticket_monkey_den` da `no_use` in `data/guide/exceptions.json` quando la Guida lo dichiara.
+- **Fuori ownership**: `core/data/**` (salvo guida), `systems/**`, `data/**` (salvo `data/guide/**`), `tools/**`.
 
 ### M22-07 — dettaglio
 - **Leggere**: `02_FORMULAS.md` F-139, F-142, F-143, F-144, `tools/sim_combat.gd` e `tools/sim_fracture.gd` (modelli), `05_INTERFACES.md` §8 (strumenti).
