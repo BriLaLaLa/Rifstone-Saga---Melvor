@@ -128,7 +128,7 @@ func rebuild_modifiers() -> void:
 	_modifiers.begin_batch()
 	for def: VillageBuildingDef in _defs.values():
 		var source: StringName = StringName(SOURCE_PREFIX + String(def.id))
-		if not def.buildable or level(def.id) < 1:
+		if not def.buildable or level(def.id) < 1 or def.unlocks_shop:  # the Market has no modifier (M20)
 			_modifiers.clear_source(source)
 			continue
 		var mod: Modifier = Modifier.from_dict({"stat": def.effect_stat, "scope": def.effect_scope,

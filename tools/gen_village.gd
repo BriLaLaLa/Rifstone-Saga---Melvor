@@ -82,5 +82,9 @@ static func _render(b: Dictionary, levels: Array[String]) -> String:
 			int(b["order"]), str(bool(b["buildable"])).to_lower()])
 	if not bool(b["buildable"]):
 		return head + ', "milestone": %d, "levels": []}' % int(b["milestone"])
-	return "%s,\n     \"effect\": %s,\n     \"cost_spec\": %s,\n     \"levels\": [\n%s\n     ]}" % [head,
-			JSON.stringify(b["effect"], "", false), JSON.stringify(b["cost_spec"], "", false), ",\n".join(levels)]
+	if bool(b.get("unlocks_shop", false)):  # M20: no `effect`, the level opens shop entries
+		head += ',\n     "unlocks_shop": true'
+	else:
+		head += ",\n     \"effect\": %s" % JSON.stringify(b["effect"], "", false)
+	return "%s,\n     \"cost_spec\": %s,\n     \"levels\": [\n%s\n     ]}" % [head,
+			JSON.stringify(b["cost_spec"], "", false), ",\n".join(levels)]

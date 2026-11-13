@@ -65,7 +65,31 @@
       {"level":7,"requires_woodwright":75,"gold":1810,"items":[{"item":"emberlarch_handle","qty":80},{"item":"emberheart_plate","qty":16}],"effect_value":14.0},
       {"level":8,"requires_woodwright":90,"gold":2530,"items":[{"item":"riftspruce_handle","qty":90},{"item":"riftite_plate","qty":18}],"effect_value":16.0}
      ]},
-    {"id": "market", "name": "Mercato", "description": "Bancarelle esclusive del villaggio.", "icon": "building-store", "order": 6, "buildable": false, "milestone": 20, "levels": []},
-    {"id": "noticeboard", "name": "Bacheca", "description": "Incarichi e ricompense dagli abitanti.", "icon": "clipboard-list", "order": 7, "buildable": false, "milestone": 20, "levels": []}
+    {"id": "market", "name": "Mercato", "description": "Bancarelle esclusive del villaggio.", "icon": "building-store", "order": 6, "buildable": true,
+     "unlocks_shop": true,
+     "cost_spec": {"wood":[{"component":"shieldcore","weight":0.5}],"plate":0.25,"food":0.25,"gold_weight":1.0},
+     "levels": [
+      {"level":1,"requires_woodwright":1,"gold":300,"items":[{"item":"redbirch_shieldcore","qty":20},{"item":"emberbronze_plate","qty":2},{"item":"seared_brookfin","qty":4}],"effect_value":0.0},
+      {"level":2,"requires_woodwright":10,"gold":420,"items":[{"item":"ashpine_shieldcore","qty":30},{"item":"ashlead_plate","qty":3},{"item":"seared_ashgill","qty":6}],"effect_value":0.0},
+      {"level":3,"requires_woodwright":20,"gold":590,"items":[{"item":"thornalder_shieldcore","qty":40},{"item":"stormzinc_plate","qty":4},{"item":"seared_redscale","qty":7}],"effect_value":0.0},
+      {"level":4,"requires_woodwright":30,"gold":820,"items":[{"item":"duskelm_shieldcore","qty":50},{"item":"duskcobalt_plate","qty":5},{"item":"seared_dusk_eel","qty":9}],"effect_value":0.0},
+      {"level":5,"requires_woodwright":45,"gold":1150,"items":[{"item":"shardcedar_shieldcore","qty":60},{"item":"glimmerite_plate","qty":6},{"item":"seared_shard_gar","qty":10}],"effect_value":0.0},
+      {"level":6,"requires_woodwright":60,"gold":1610,"items":[{"item":"veilcypress_shieldcore","qty":70},{"item":"palecinnabar_plate","qty":7},{"item":"seared_mist_barbel","qty":12}],"effect_value":0.0},
+      {"level":7,"requires_woodwright":75,"gold":2260,"items":[{"item":"emberlarch_shieldcore","qty":80},{"item":"emberheart_plate","qty":8},{"item":"seared_ember_sturgeon","qty":13}],"effect_value":0.0},
+      {"level":8,"requires_woodwright":90,"gold":3160,"items":[{"item":"riftspruce_shieldcore","qty":90},{"item":"riftite_plate","qty":9},{"item":"seared_riftmaw","qty":15}],"effect_value":0.0}
+     ]},
+    {"id": "noticeboard", "name": "Bacheca", "description": "Incarichi e ricompense dagli abitanti.", "icon": "clipboard-list", "order": 7, "buildable": true,
+     "effect": {"stat":"quest_slots","scope":"global","per_level":1.0},
+     "cost_spec": {"wood":[{"component":"grip","weight":0.5},{"component":"shieldcore","weight":0.5}],"plate":0.0,"food":0.0,"gold_weight":0.7},
+     "levels": [
+      {"level":1,"requires_woodwright":1,"gold":210,"items":[{"item":"redbirch_grip","qty":20},{"item":"redbirch_shieldcore","qty":20}],"effect_value":1.0},
+      {"level":2,"requires_woodwright":10,"gold":290,"items":[{"item":"ashpine_grip","qty":30},{"item":"ashpine_shieldcore","qty":30}],"effect_value":2.0},
+      {"level":3,"requires_woodwright":20,"gold":410,"items":[{"item":"thornalder_grip","qty":40},{"item":"thornalder_shieldcore","qty":40}],"effect_value":3.0},
+      {"level":4,"requires_woodwright":30,"gold":580,"items":[{"item":"duskelm_grip","qty":50},{"item":"duskelm_shieldcore","qty":50}],"effect_value":4.0},
+      {"level":5,"requires_woodwright":45,"gold":810,"items":[{"item":"shardcedar_grip","qty":60},{"item":"shardcedar_shieldcore","qty":60}],"effect_value":5.0},
+      {"level":6,"requires_woodwright":60,"gold":1130,"items":[{"item":"veilcypress_grip","qty":70},{"item":"veilcypress_shieldcore","qty":70}],"effect_value":6.0},
+      {"level":7,"requires_woodwright":75,"gold":1580,"items":[{"item":"emberlarch_grip","qty":80},{"item":"emberlarch_shieldcore","qty":80}],"effect_value":7.0},
+      {"level":8,"requires_woodwright":90,"gold":2210,"items":[{"item":"riftspruce_grip","qty":90},{"item":"riftspruce_shieldcore","qty":90}],"effect_value":8.0}
+     ]}
   ]
 }

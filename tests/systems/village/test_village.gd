@@ -22,10 +22,11 @@ func _fund_storehouse_1() -> void:
 	TestFactory.give(_session, &"emberbronze_plate", 4)
 
 
-func test_buildings_in_order_with_placeholders() -> void:
+func test_buildings_in_order_all_buildable() -> void:
 	assert_eq(_village.buildings(), [&"storehouse", &"inn", &"forge", &"sawmill", &"loot_shed", &"market", &"noticeboard"] as Array[StringName])
 	assert_true(_village.is_buildable(&"inn"))
-	assert_false(_village.is_buildable(&"market"))
+	assert_true(_village.is_buildable(&"market"))
+	assert_true(_village.is_buildable(&"noticeboard"), "M20: no placeholder left")
 	assert_false(_village.is_buildable(&"nothing"))
 	assert_eq(_village.max_level(), 8)
 	assert_eq(_village.level(&"nothing"), 0)
@@ -36,13 +37,12 @@ func test_next_cost_is_the_next_level() -> void:
 	assert_eq(cost["gold"], 300)
 	assert_eq(cost["requires_woodwright"], 1)
 	assert_eq((cost["items"] as Array)[0], {"item": &"redbirch_shieldcore", "qty": 20})
-	assert_eq(_village.next_cost(&"market"), {})
+	assert_eq(_village.next_cost(&"market")["gold"], 300, "M20: the Market is buildable")
 	assert_eq(_village.next_cost(&"nothing"), {})
 
 
 func test_can_upgrade_reasons_in_order() -> void:
 	assert_eq(_village.can_upgrade(&"nothing").reason, Reasons.UNKNOWN_ID)
-	assert_eq(_village.can_upgrade(&"market").reason, Reasons.NOT_BUILDABLE)
 	# Woodwright 1 is the minimum: level 2 needs 10.
 	_village.from_save({"levels": {"storehouse": 1}})
 	assert_eq(_village.can_upgrade(&"storehouse").reason, Reasons.LEVEL_TOO_LOW, "before gold and items")
@@ -100,8 +100,12 @@ func test_failed_upgrade_changes_nothing() -> void:
 	assert_false(_session.modifiers.has_source(&"village:storehouse"))
 
 
-func test_placeholder_cannot_be_built() -> void:
-	assert_eq(_village.upgrade(&"noticeboard").reason, Reasons.NOT_BUILDABLE)
+func test_a_non_buildable_building_cannot_be_built() -> void:
+	var def: VillageBuildingDef = _session.data.village_building(&"noticeboard")
+	def.buildable = false  # no placeholder is left in the real data (M20): simulate one, then restore the shared def
+	var reason: StringName = _village.upgrade(&"noticeboard").reason
+	def.buildable = true
+	assert_eq(reason, Reasons.NOT_BUILDABLE)
 	assert_eq(_village.level(&"noticeboard"), 0)
 
 
@@ -130,7 +134,7 @@ func test_session_save_and_load_rebuilds_the_modifiers() -> void:
 func test_from_save_is_tolerant() -> void:
 	_village.from_save({"levels": [1, 2]})
 	assert_eq(_village.to_save(), {"levels": {}}, "not an object: all 0")
-	_village.from_save({"levels": {"inn": 99, "market": 2, "nothing": 1, "forge": 0, "sawmill": -1, "storehouse": "3",
+	_village.from_save({"levels": {"inn": 99, "market": 2.5, "nothing": 1, "forge": 0, "sawmill": -1, "storehouse": "3",
 			"loot_shed": 2.5}})
 	assert_eq(_village.level(&"inn"), 8, "capped at max_level")
 	for id: StringName in [&"market", &"nothing", &"forge", &"sawmill", &"storehouse", &"loot_shed"]:

@@ -33,9 +33,9 @@ const RIFT_SHARD_ID: StringName = &"rift_shard"
 const RIFT_SHARD_CATEGORY: String = "misc"
 const ACTION_FIELDS: PackedStringArray = ["id", "name", "level", "interval_ms", "xp", "mastery", "inputs",
 	"outputs", "icon", "single", "milestones", "kind"]
-const SHOP_CATEGORIES: PackedStringArray = ["bank", "combat", "tools", "materials"]  # M8 adds "lanes"
+const SHOP_CATEGORIES: PackedStringArray = ["bank", "combat", "tools", "materials", "market"]  # M8 adds "lanes"
 ## Vendors (stalls) the shop page groups the entries under; the page lists them in this order (P-04).
-const SHOP_VENDORS: PackedStringArray = ["bottegaia", "fabbro", "armaiolo", "mercante_armature"]  # M12: "deposito" has no entries
+const SHOP_VENDORS: PackedStringArray = ["bottegaia", "fabbro", "armaiolo", "mercante_armature", "mercato"]  # M12: "deposito" has no entries
 const SHOP_FIELDS: PackedStringArray = ["id", "name", "description", "category", "vendor", "cost", "max_purchases",
 	"requires", "effect"]
 
@@ -202,7 +202,8 @@ static func validate_actions(v: DataValidatorRules, files: Dictionary[String, Di
 			DataValidatorEngraver.action(v, e, skill)
 
 
-static func validate_shop(v: DataValidatorRules, files: Dictionary[String, Dictionary]) -> void:
+static func validate_shop(v: DataValidatorRules, files: Dictionary[String, Dictionary],
+		unlockers: Dictionary[String, int] = {}) -> void:
 	var seen: Dictionary[StringName, bool] = {}
 	for path: String in files:
 		v.at_file(path)
@@ -219,11 +220,13 @@ static func validate_shop(v: DataValidatorRules, files: Dictionary[String, Dicti
 			if e.get("cost") is Dictionary:
 				v.integer(cost, "gold", 1, DataValidatorRules.NO_LIMIT, "cost")
 			var req: Dictionary = v.object(e, "requires")
-			v.keys(req, ["entries", "skills", "total_level", "character"], "requires")
+			v.keys(req, ["entries", "skills", "total_level", "character", "village"], "requires")
 			if req.has("entries"):
 				v.id_list(req, "entries", v.shop_entries, "shop entry", 0, "requires")
 			if req.has("skills"):
 				v.level_map(req, "skills", "requires")
+			if req.has("village"):
+				_village_requirement(v, req, unlockers)
 			if req.has("character"):
 				v.integer(req, "character", 1, v.max_character_level, "requires")
 			if req.has("total_level"):
@@ -247,3 +250,14 @@ static func _one_of_two(v: DataValidatorRules, e: Dictionary, key: String, a: St
 		v.fail("field '%s' needs exactly one of '%s' and '%s'" % [key, a, b])
 		return {}
 	return d
+
+
+# `requires.village`: {building id: level}; the building must be buildable with `unlocks_shop` (M20, docs/04 §25).
+static func _village_requirement(v: DataValidatorRules, req: Dictionary, unlockers: Dictionary[String, int]) -> void:
+	var map: Dictionary = v.object(req, "village", "requires")
+	for building: Variant in map:
+		var id: String = str(building)
+		if not unlockers.has(id):
+			v.fail("field 'requires.village.%s': the building does not exist or has no 'unlocks_shop'" % id)
+		else:
+			v.integer(map, id, 1, unlockers[id], "requires.village")

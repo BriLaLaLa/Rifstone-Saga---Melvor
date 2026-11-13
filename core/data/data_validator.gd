@@ -118,7 +118,7 @@ static func validate(raw: Dictionary, errors: PackedStringArray) -> void:
 			[_files(raw, "bosses"), "bosses", "boss"]])
 	DataValidatorHints.validate(v, _files(raw, "hints"))
 	DataValidatorGuide.validate(v, raw)
-	DataValidatorItems.validate_shop(v, _files(raw, "shop"))
+	DataValidatorItems.validate_shop(v, _files(raw, "shop"), DataValidatorVillage.shop_unlockers(_files(raw, "village"), _files(raw, "balance")))
 	DataValidatorVillage.validate(v, _files(raw, "village"), _files(raw, "balance"))
 	DataValidatorQuests.validate(v, _files(raw, "quests"), _files(raw, "balance"), _files(raw, "items"), _files(raw, "actions"))
 	errors.append_array(v.errors)

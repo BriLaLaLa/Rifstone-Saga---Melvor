@@ -19,6 +19,7 @@ var req_entries: Array[StringName] = []
 var req_skills: Dictionary[StringName, int] = {}
 var req_total_level: int = 0
 var req_character: int = 0  # character level, 0 = no requirement
+var req_village: Dictionary[StringName, int] = {}  # M20: building id -> minimum level (only `unlocks_shop` buildings)
 var effect_modifiers: Array[Modifier] = []
 var effect_item: ItemQty = null
 
@@ -57,6 +58,8 @@ static func _read_requires(def: ShopEntryDef, requires: DefReader, parent: DefRe
 		def.req_skills = requires.level_map("skills")
 	if requires.has("total_level"):
 		def.req_total_level = requires.integer("total_level")
+	if requires.has("village"):
+		def.req_village = requires.level_map("village")
 	if requires.has("character"):
 		def.req_character = requires.integer("character")
 	parent.absorb(requires.ok)

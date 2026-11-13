@@ -22,6 +22,7 @@ var _wallet: Wallet
 var _skills: SkillsSystem
 var _character: CharacterSystem
 var _armory: Armory
+var _session: GameSession  # for the Village, created after the Shop (M20)
 # Entry id -> definition, built once (the data is immutable).
 var _entries: Dictionary[StringName, ShopEntryDef] = {}
 # Entry id -> number of purchases (only entries bought at least once).
@@ -38,6 +39,7 @@ func _init(session: GameSession) -> void:
 	_skills = session.skills
 	_character = session.character
 	_armory = session.armory
+	_session = session
 	for entry: ShopEntryDef in _data.shop_entries():
 		_entries[entry.id] = entry
 
@@ -194,6 +196,9 @@ func from_save(d: Dictionary) -> void:
 
 
 func _requirements_met(entry: ShopEntryDef) -> bool:
+	for building: StringName in entry.req_village:
+		if _session.village == null or _session.village.level(building) < entry.req_village[building]:
+			return false
 	for required: StringName in entry.req_entries:
 		if purchase_count(required) < 1:
 			return false

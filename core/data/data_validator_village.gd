@@ -9,8 +9,8 @@ const METALS: PackedStringArray = ["emberbronze", "ashlead", "stormzinc", "duskc
 const FISH: PackedStringArray = ["brookfin", "ashgill", "redscale", "dusk_eel", "shard_gar", "mist_barbel", "ember_sturgeon", "riftmaw"]
 const COMPONENTS: PackedStringArray = ["grip", "handle", "shieldcore"]
 const QTY_KINDS: PackedStringArray = ["wood", "plate", "food"]
-const BUILDING_FIELDS: PackedStringArray = ["id", "name", "description", "icon", "order", "buildable", "milestone", "effect",
-	"cost_spec", "levels"]
+const BUILDING_FIELDS: PackedStringArray = ["id", "name", "description", "icon", "order", "buildable", "milestone", "unlocks_shop",
+	"effect", "cost_spec", "levels"]
 const SPEC_FIELDS: PackedStringArray = ["wood", "plate", "food", "gold_weight"]
 const LEVEL_FIELDS: PackedStringArray = ["level", "requires_woodwright", "gold", "items", "effect_value"]
 const FORBIDDEN_CATEGORIES: PackedStringArray = ["equipment", "tool", "map"]  # they live in the Armory, not in the Deposit
@@ -37,10 +37,11 @@ static func levels_for(spec: Dictionary, params: Dictionary, level: int) -> Dict
 	if float(cost["food"]) > 0.0:
 		items.append({"item": "seared_%s" % FISH[level - 1], "qty": _ceil(float(cost["food"]) * _base(qty, "food", level))})
 	var gold: float = float(params["gold_base"]) * pow(float(params["gold_growth"]), level - 1) * float(cost["gold_weight"])
-	var effect: Dictionary = spec["effect"] as Dictionary
+	var effect_value: float = 0.0  # a building with `unlocks_shop` has no effect
+	if spec.has("effect"):
+		effect_value = float((spec["effect"] as Dictionary)["per_level"]) * float(level)
 	return {"level": level, "requires_woodwright": int((params["woodwright_levels"] as Array)[level - 1]),
-			"gold": int(floorf(gold / 10.0 + 0.5)) * 10, "items": items,
-			"effect_value": float(effect["per_level"]) * float(level)}
+			"gold": int(floorf(gold / 10.0 + 0.5)) * 10, "items": items, "effect_value": effect_value}
 
 
 static func validate_balance(v: DataValidatorRules, balance: Dictionary) -> void:
@@ -96,7 +97,12 @@ static func validate(v: DataValidatorRules, files: Dictionary[String, Dictionary
 static func _buildable(v: DataValidatorRules, e: Dictionary, params: Dictionary, effect_keys: Dictionary[String, bool]) -> void:
 	if e.has("milestone"):
 		v.fail("field 'milestone' is only for placeholders (buildable false)")
-	var effect_ok: bool = _effect(v, e, effect_keys)
+	var effect_ok: bool = true
+	if _unlocks_shop(v, e):
+		if e.has("effect"):
+			v.fail("field 'effect' and 'unlocks_shop' exclude each other")
+	else:
+		effect_ok = _effect(v, e, effect_keys)
 	var spec_ok: bool = _cost_spec(v, e)
 	var levels: Array[Dictionary] = v.object_list(e, "levels")
 	if params.is_empty():
@@ -108,9 +114,16 @@ static func _buildable(v: DataValidatorRules, e: Dictionary, params: Dictionary,
 			_level(v, levels[index], levels_for(e, params, index + 1), index + 1)
 
 
+# True if `unlocks_shop` is present and true (a non-bool is reported).
+static func _unlocks_shop(v: DataValidatorRules, e: Dictionary) -> bool:
+	if not e.has("unlocks_shop"):
+		return false
+	return v.flag(e, "unlocks_shop") and e["unlocks_shop"] as bool
+
+
 static func _placeholder(v: DataValidatorRules, e: Dictionary) -> void:
 	v.integer(e, "milestone", 1.0)
-	for key: String in ["effect", "cost_spec"]:
+	for key: String in ["effect", "cost_spec", "unlocks_shop"]:
 		if e.has(key):
 			v.fail("field '%s' is not allowed on a placeholder (buildable false)" % key)
 	if not e.get("levels") is Array or not (e["levels"] as Array).is_empty():
@@ -226,3 +239,17 @@ static func _base(qty: Dictionary, kind: String, level: int) -> float:
 
 static func _ceil(x: float) -> int:
 	return ceili(x - WEIGHT_EPSILON)
+
+
+## M20: the buildings whose level can be required by a shop entry (`buildable` with `unlocks_shop`): id -> max level.
+static func shop_unlockers(files: Dictionary[String, Dictionary], balance_files: Dictionary[String, Dictionary]) -> Dictionary[String, int]:
+	var found: Dictionary[String, int] = {}
+	var params: Dictionary = _valid_params(balance_files)
+	var max_level: int = int(params["max_level"]) if not params.is_empty() else 99
+	for path: String in files:
+		var list: Variant = files[path].get("buildings")
+		for e: Variant in list as Array if list is Array else []:
+			if e is Dictionary and (e as Dictionary).get("buildable") == true and (e as Dictionary).get("unlocks_shop") == true \
+					and (e as Dictionary).get("id") is String:
+				found[(e as Dictionary)["id"] as String] = max_level
+	return found
