@@ -68,7 +68,7 @@ func test_level_zero_has_no_source() -> void:
 
 func test_every_building_stat_has_its_source_and_value() -> void:
 	for id: StringName in _village.buildings():
-		if not _village.is_buildable(id):
+		if not _village.is_buildable(id) or _session.data.village_building(id).unlocks_shop:
 			continue
 		var def: VillageBuildingDef = _session.data.village_building(id)
 		_set_level(id, 3)

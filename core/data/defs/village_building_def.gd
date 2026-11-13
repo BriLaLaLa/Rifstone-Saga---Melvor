@@ -14,6 +14,7 @@ var icon: String = ""
 var order: int = 0
 var buildable: bool = false
 var milestone: int = 0
+var unlocks_shop: bool = false  # M20: the level opens shop entries (`requires.village`); no modifier effect
 var effect_stat: StringName = &""
 var effect_scope: String = "global"
 var effect_per_level: float = 0.0
@@ -32,6 +33,8 @@ static func from_dict(d: Dictionary) -> VillageBuildingDef:
 	def.buildable = r.flag("buildable")
 	if r.has("milestone"):
 		def.milestone = r.integer("milestone")
+	if r.has("unlocks_shop"):
+		def.unlocks_shop = r.flag("unlocks_shop")
 	if r.has("effect") and r.is_dict("effect"):
 		var effect := DefReader.new(r.dict("effect"), r.context() + " effect")
 		def.effect_stat = effect.id("stat")

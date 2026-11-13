@@ -37,9 +37,10 @@ func test_accessors_of_the_real_data() -> void:
 	assert_eq(storehouse.effect_stat, &"deposit_slots")
 	assert_eq(storehouse.effect_per_level, 4.0)
 	assert_eq(storehouse.levels.size(), 8)
-	assert_eq(data.village_building(&"market").levels.size(), 0)
-	assert_eq(data.village_building(&"market").milestone, 20)
-	assert_false(data.village_building(&"market").buildable)
+	assert_eq(data.village_building(&"market").levels.size(), 8)
+	assert_true(data.village_building(&"market").unlocks_shop)
+	assert_eq(data.village_building(&"noticeboard").effect_stat, &"quest_slots")
+	assert_true(data.village_building(&"market").buildable)
 
 
 func test_empty_file_is_valid_on_the_fixtures() -> void:
@@ -48,9 +49,46 @@ func test_empty_file_is_valid_on_the_fixtures() -> void:
 
 func test_a_placeholder_with_an_effect_is_rejected() -> void:
 	var errors: PackedStringArray = _errors(func(raw: Dictionary) -> void:
-		(_first(raw)[5] as Dictionary)["effect"] = {"stat": "armor", "scope": "global", "per_level": 1})
+		var b: Dictionary = _first(raw)[6] as Dictionary
+		b["buildable"] = false
+		b["milestone"] = 20
+		b["levels"] = []
+		b.erase("cost_spec")
+		b["effect"] = {"stat": "armor", "scope": "global", "per_level": 1})
 	assert_eq(errors.size(), 1, str(errors))
 	assert_true(errors[0].contains("placeholder"), errors[0])
+
+
+func test_effect_and_unlocks_shop_exclude_each_other() -> void:
+	var errors: PackedStringArray = _errors(func(raw: Dictionary) -> void:
+		(_first(raw)[5] as Dictionary)["effect"] = {"stat": "armor", "scope": "global", "per_level": 1})
+	assert_true(str(errors).contains("exclude each other"), str(errors))
+
+
+func test_the_effect_is_required_without_unlocks_shop() -> void:
+	var errors: PackedStringArray = _errors(func(raw: Dictionary) -> void:
+		(_first(raw)[5] as Dictionary).erase("unlocks_shop"))
+	assert_gt(errors.size(), 0, "the Market without `unlocks_shop` needs an effect")
+
+
+func _shop_first(raw: Dictionary) -> Array:
+	return (raw["shop"]["res://data/shop/shop.json"] as Dictionary)["entries"] as Array
+
+
+func test_requires_village_needs_an_unlocks_shop_building() -> void:
+	var errors: PackedStringArray = _errors(func(raw: Dictionary) -> void:
+		var shop: Array = _shop_first(raw)
+		var entry: Dictionary = shop[shop.size() - 1] as Dictionary
+		entry["requires"] = {"village": {"storehouse": 1}})
+	assert_eq(errors.size(), 1, str(errors))
+	assert_true(errors[0].contains("unlocks_shop"), errors[0])
+
+
+func test_requires_village_level_is_limited_to_max_level() -> void:
+	var errors: PackedStringArray = _errors(func(raw: Dictionary) -> void:
+		var shop: Array = _shop_first(raw)
+		(shop[shop.size() - 1] as Dictionary)["requires"] = {"village": {"market": 9}})
+	assert_eq(errors.size(), 1, str(errors))
 
 
 func test_a_buildable_with_a_wrong_number_of_levels_is_rejected() -> void:
