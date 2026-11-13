@@ -149,7 +149,8 @@ func _set_slot(slot_index: int, id: StringName, is_trait: bool) -> CommandResult
 
 # Combat check, the change, the modifiers and the signal.
 func _commit(slots: Array[StringName], slot_index: int, id: StringName) -> CommandResult:
-	if _session.combat != null and (_session.combat.in_encounter() or _session.combat.in_fracture()):
+	if _session.combat != null and (_session.combat.in_encounter() or _session.combat.in_fracture() \
+			or _session.combat.in_dungeon()):  # M22: no change between the rooms of a dungeon either
 		return CommandResult.fail(Reasons.COMBAT_ACTIVE)
 	if slots[slot_index] == id:
 		return CommandResult.success()

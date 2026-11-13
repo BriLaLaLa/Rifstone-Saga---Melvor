@@ -1,107 +1,22 @@
 class_name CombatFight
-extends RefCounted
-## The fight mechanics under `CombatEngine` (docs/01_GDD.md §10, docs/05_INTERFACES.md §5.10): state, timers, attacks, kills and
-## the end of a Fracture. Split from the engine for size: the public API, the commands and the save live in `CombatEngine`.
-## Randomness from `session.rng`. Helpers: EffectSet, AbilityRunner, RiftStone, FractureCombat.
-
-const STATE_IDLE: StringName = &"idle"
-const STATE_ENCOUNTER: StringName = &"encounter"
-const STATE_BETWEEN: StringName = &"between"
-const STATE_RIFTSTONE: StringName = &"riftstone"  # M7
-const PLAYER: int = -1
-
-var loot: LootBag
-var advance_offset_ms: int = 0  # ms of the running `advance` already consumed (B3: dates an event in a block); 0 outside
-
-var _session: GameSession
-var _stone: RiftStone
-var _state: StringName = STATE_IDLE
-var _area_id: StringName = &""
-var _encounter: Encounter = Encounter.new()
-var _player_hp: int = 0
-var _player_timer_ms: int = 0
-var _hand: int = 0
-var _struck_hand: int = 0  # the hand of the last base attack (F-120 double_hit_pct)
-var _between_ms: int = 0
-var _fx: EffectSet
-var _abilities: AbilityRunner
-var _frac: FractureCombat  # M13: the Fracture in progress, if any
-var _resume_area: StringName = &""  # M13: the area to go back to once the instant being resolved is over
-var _kills: Dictionary[StringName, int] = {}
-var _deaths: int = 0
-var _food_eaten: int = 0
-var _stop_log: Array[StringName] = []
-var _stats: Array[CombatantStats] = [null, null]
-
-
-func _init(session: GameSession) -> void:
-	_session = session
-	loot = LootBag.new(session)
-	_stone = RiftStone.new(session)
-	_fx = EffectSet.new(session)
-	_abilities = AbilityRunner.new(session)
-	_frac = FractureCombat.new(session)
-	session.events.modifiers_changed.connect(_on_stats_source_changed)
-	session.events.equipment_changed.connect(_on_loadout_changed.unbind(2))
-	session.events.character_level_up.connect(_on_stats_source_changed.unbind(1))
-	session.events.traits_changed.connect(_on_loadout_changed)
-
-## Overridden by CombatEngine (the commands live there).
-func start(_area: StringName) -> CommandResult:
-	return CommandResult.fail(Reasons.UNKNOWN_ID)
-
-
-func stop(_reason: StringName = Reasons.STOPPED_BY_USER) -> void:
-	pass
-
-
-func is_active() -> bool:
-	return _state != STATE_IDLE
-
-
-func in_encounter() -> bool:
-	return _state == STATE_ENCOUNTER or _state == STATE_RIFTSTONE
-
-
-## Stats of the player's hand (F-70, F-74), cached until something that feeds them changes.
-func player_stats(hand: int = 0) -> CombatantStats:
-	var index: int = clampi(hand, 0, 1)
-	if _stats[index] == null:
-		var stats: CombatantStats = CombatantStats.for_player(_session, index)
-		_fx.modify_stats(stats)
-		_stats[index] = stats
-	return _stats[index]
-
-
-# The end of a Fracture (win, death, abandon): fracture_finished, which makes FractureSystem deliver or lose the bag, and
-# then the way back (05 §5.23). Back to the area is deferred to `_resume` so that the rest of the instant sees no fight.
-func _end_fracture(outcome: StringName, reason: StringName, to_area: bool) -> void:
-	var run: FractureRun = _frac.run
-	var counts: Dictionary = run.bag.counts()
-	_frac.end()
-	_session.events.fracture_finished.emit(outcome, run.grade, run.groups_cleared, counts["cards"], counts["pieces"])
-	if not to_area or run.return_area == &"":
-		stop(reason)
-		return
-	_state = STATE_IDLE  # not announced: the area starts at once
-	_encounter = Encounter.new()
-	_resume_area = run.return_area
-
-
-func _resume() -> void:
-	if _resume_area == &"":
-		return
-	var area: StringName = _resume_area
-	_resume_area = &""
-	_abilities.reset()
-	start(area)
+extends CombatState
+## The fight mechanics under `CombatEngine` (docs/01_GDD.md §10, docs/05_INTERFACES.md §5.10): timers, attacks, kills and the end
+## of an encounter. The values and the ways out of a Fracture or a dungeon are in `CombatState`; the public API, the commands and
+## the save in `CombatEngine`. Randomness from `session.rng`. Helpers: EffectSet, AbilityRunner, RiftStone, FractureCombat,
+## DungeonCombat (M22).
 
 
 func _next_timer() -> int:
+	if _dg.run != null:  # M22: the pause of a dungeon, `await` and the scene of a stage
+		var held: int = _dg.held_timer(_state)
+		if held >= 0:
+			return held
 	if _state == STATE_BETWEEN:
 		return _between_ms
 	var next: int = mini(mini(_player_timer_ms, _frac.next_pulse_ms()), _abilities.next_ms(_player_hp, player_stats().max_hp))
 	next = mini(next, _frac.next_boss_ms())
+	if _dg.fighting:
+		next = mini(next, _dg.next_ability_ms(_encounter))
 	for enemy: Encounter.Enemy in _encounter.enemies:
 		if enemy.alive():
 			next = mini(next, enemy.timer_ms)
@@ -109,7 +24,7 @@ func _next_timer() -> int:
 
 
 func _consume(ms: int) -> void:
-	if ms <= 0:
+	if ms <= 0 or (_dg.run != null and _dg.hold(_state, ms)):
 		return
 	_abilities.tick(ms)
 	if _state == STATE_BETWEEN:
@@ -117,6 +32,8 @@ func _consume(ms: int) -> void:
 		return
 	_player_timer_ms -= ms
 	_frac.tick(ms)
+	if _dg.fighting:
+		_dg.tick(ms)
 	for enemy: Encounter.Enemy in _encounter.enemies:
 		if enemy.alive():
 			enemy.timer_ms -= ms
@@ -124,6 +41,9 @@ func _consume(ms: int) -> void:
 
 # F-76: player base attack, then the enemies by position; whoever dies (or ends the encounter) stops the rest.
 func _resolve_instant() -> void:
+	if _state == STATE_INTRO:  # M22 (F-141): the scene is over, the stage fights
+		_start_stage()
+		return
 	if _state == STATE_BETWEEN:
 		if _between_ms <= 0:
 			_begin_encounter()
@@ -137,7 +57,7 @@ func _resolve_instant() -> void:
 		var enemy: Encounter.Enemy = _encounter.enemies[i]
 		if enemy.alive() and enemy.timer_ms <= 0:
 			_enemy_attack(i, enemy)
-		if in_encounter() and _frac.ability_due(enemy):  # F-112: right after the base attack of the boss
+		if in_encounter() and (_frac.ability_due(enemy) or (_dg.fighting and _dg.ability_due(enemy))):  # F-112: right after the base attack of the boss
 			_boss_ability(i, enemy)
 	if in_encounter() and _frac.active() and _frac.next_pulse_ms() <= 0:  # F-111 `pulse`, after the enemies
 		var pulse: Dictionary = _frac.pulse_attack(player_stats())
@@ -147,17 +67,40 @@ func _resolve_instant() -> void:
 
 
 func _begin_encounter() -> void:
-	_encounter = _frac.next_encounter() if _frac.active() else _stone.next_encounter(_area_id)  # F-50 / a pending stone (F-87)
+	_encounter = _frac.next_encounter() if _frac.active() else _area_encounter()  # F-50 / a miniboss / a pending stone (F-87)
 	_state = STATE_RIFTSTONE if _encounter.has_stone() else STATE_ENCOUNTER
 	if _frac.active() and _encounter.enemies.is_empty():  # no pack or no boss in the data: nothing to fight
 		Log.error("combat", "Fracture grade %d has nothing to fight: counted as won" % _frac.run.grade)
 		_end_fracture(&"won", Reasons.FRACTURE_WON, true)
 		return
+	_open_encounter()
+
+
+# The timers and the effects of a fight that starts now (`_encounter` and `_state` are already set).
+func _open_encounter() -> void:
 	_player_timer_ms = player_stats(_hand).attack_interval_ms
 	var ctx: EffectContext = _ctx()
 	_fx.encounter_start(ctx)
 	_player_timer_ms = ctx.player_timer_ms
 	_session.events.encounter_started.emit(_encounter.monster_ids())
+
+
+# F-139: the miniboss of the area if one waits (a pending Rift Stone goes first), else a pack or the stone (F-77, F-87).
+func _area_encounter() -> Encounter:
+	if _miniboss_pending and not _stone.pending:
+		_miniboss_pending = false
+		var pack: Array[MonsterDef] = Miniboss.pack(_session.data.area(_area_id), _session.rng, _session.data)
+		if not pack.is_empty():
+			return Encounter.of_defs(pack, _session.data)
+	return _stone.next_encounter(_area_id)
+
+
+# F-141: the scene of the stage is over: its monsters appear (the boss ability timer starts) and the stage begins.
+func _start_stage() -> void:
+	_encounter = _dg.stage_encounter()
+	_state = STATE_ENCOUNTER
+	_open_encounter()
+	_session.events.dungeon_stage_started.emit(_dg.stage_index, _dg.stage.monster.id)
 
 
 # Base attack: effects may widen it (F-81) or change its damage. Rolls first (position order), then hand and timer, then outcomes.
@@ -235,10 +178,12 @@ func _enemy_attack(index: int, enemy: Encounter.Enemy) -> void:
 	_hurt_player(index, attack["damage"])
 
 
-# F-112: the ability of the boss at `index`. A heavy strike hits like an attack; a summon announces the new positions.
+# F-112: the ability of the boss at `index` (of a Fracture or of a dungeon stage). A heavy strike hits like an attack; a summon
+# announces the new positions.
 func _boss_ability(index: int, enemy: Encounter.Enemy) -> void:
 	var summoned: Array[int] = []
-	var attack: Dictionary = _frac.use_ability(enemy, _encounter, player_stats(), summoned)
+	var attack: Dictionary = _dg.use_ability(enemy, _encounter, player_stats(), summoned) if _dg.active() \
+			else _frac.use_ability(enemy, _encounter, player_stats(), summoned)
 	if not attack.is_empty():
 		_session.events.combat_hit.emit(index, PLAYER, attack["hit"], attack["damage"], attack["blocked"])
 		_on_block(attack)
@@ -262,14 +207,16 @@ func _hurt_player(source: int, damage: int) -> void:
 	var me: CombatantStats = player_stats()
 	damage = _fx.damage_taken(_ctx(), damage)  # F-120 hit_cap_pct
 	_set_hp(maxi(0, _player_hp - damage))
-	if _player_hp <= 0:  # death: only the loot bag is lost (inside a Fracture, the bag of the Fracture instead)
-		if not _frac.active():
+	if _player_hp <= 0:  # death: only the loot bag is lost (inside a Fracture or a dungeon, the bag of the run instead)
+		if not _frac.active() and not _dg.active():
 			loot.lose_all()
 		_deaths += 1
 		_set_hp(me.max_hp)
 		_session.events.player_died.emit()
 		if _frac.active():
 			_end_fracture(&"died", Reasons.PLAYER_DIED, true)
+		elif _dg.active():
+			_end_dungeon(&"died", Reasons.PLAYER_DIED, true)
 		else:
 			stop(Reasons.PLAYER_DIED)
 		return
@@ -286,7 +233,10 @@ func _hurt_player(source: int, damage: int) -> void:
 
 func _hurt_enemy(index: int, damage: int) -> void:
 	var enemy: Encounter.Enemy = _encounter.enemies[index]
-	enemy.hp = maxi(0, enemy.hp - _frac.absorb(enemy, damage))  # the shield of a boss takes it first (F-112)
+	var dealt: int = _frac.absorb(enemy, damage)  # the shield of a boss takes it first (F-112)
+	if _dg.fighting:
+		dealt = _dg.absorb(enemy, dealt)
+	enemy.hp = maxi(0, enemy.hp - dealt)
 	_session.events.monster_hp_changed.emit(index, enemy.hp, enemy.stats.max_hp)
 	if enemy.hp == 0:
 		_kill(index, enemy)
@@ -311,7 +261,8 @@ func _stone_waves(stone: Encounter.Enemy) -> void:
 
 
 # Kill (05 §5.10): xp (F-28), then gold (F-31), drops in data order (F-32), shard (F-07); last enemy ends the encounter.
-# In a Fracture the rewards go to its bag (F-111, F-113), a summoned enemy gives none, and no stone is rolled (F-50).
+# In a Fracture or a dungeon the rewards go to the bag of the run (F-111, F-113, F-142), a summoned enemy gives none, and no
+# stone is rolled (F-50).
 func _kill(index: int, enemy: Encounter.Enemy) -> void:
 	var counts: bool = not enemy.is_stone()  # a stone, a boss and a summoned enemy are not kills of a monster of the data
 	var kill_ctx: EffectContext = _ctx()  # F-81 on_kill_timer_cut, F-120 kill_heal_pct and card_drop_mult come first
@@ -325,6 +276,8 @@ func _kill(index: int, enemy: Encounter.Enemy) -> void:
 		_stone.reward(loot, _session.data.rift_stone(enemy.def.id), monolith.loot_mult)
 	elif _frac.active():
 		counts = _frac.reward(enemy, kill_ctx.card_mult)
+	elif _dg.active():
+		counts = _dg.reward(enemy, kill_ctx.card_mult)  # F-142: always false, the monsters of a dungeon are not kills of an area
 	elif enemy.summoned:  # M15 (F-126): the monsters called by a stone give no xp or gold and are no kills; V11: few drops
 		counts = false
 		KillRewards.grant_summoned(_session, loot, enemy.def, _area_id)
@@ -339,43 +292,35 @@ func _kill(index: int, enemy: Encounter.Enemy) -> void:
 	if verdict == FractureCombat.VERDICT_WON:
 		_end_fracture(&"won", Reasons.FRACTURE_WON, true)
 	elif verdict == FractureCombat.VERDICT_CLEARED:
-		_encounter = Encounter.new()
-		_state = STATE_BETWEEN
-		_between_ms = int(_session.data.balance_value("combat.respawn_ms"))
-		_session.events.encounter_cleared.emit()
+		_cleared()
 
 
-## What the effect hooks see of the fight right now.
-func _ctx() -> EffectContext:
-	var ctx := EffectContext.new()
-	ctx.player_hp = _player_hp
-	ctx.player_max_hp = player_stats().max_hp
-	ctx.player_timer_ms = _player_timer_ms
-	ctx.rng = _session.rng
-	return ctx
-
-
-func _set_hp(hp: int) -> void:
-	if hp == _player_hp:
+# The last enemy of the encounter is dead. In a dungeon the run waits for DungeonSystem; in an area the next encounter comes after
+# `BETWEEN`, and after a normal one (not a stone, a Fracture or a miniboss) the miniboss of the area may be next (F-139).
+func _cleared() -> void:
+	if _dg.active():
+		_dungeon_cleared()
 		return
-	_player_hp = hp
-	_session.events.player_hp_changed.emit(hp, player_stats().max_hp)
+	var normal: bool = _state == STATE_ENCOUNTER and not _frac.active() and not _encounter.has_miniboss()
+	_encounter = Encounter.new()
+	_state = STATE_BETWEEN
+	_between_ms = int(_session.data.balance_value("combat.respawn_ms"))
+	if normal and not _stone.pending and not _miniboss_pending:
+		_miniboss_pending = Miniboss.roll(_session.data.area(_area_id), _session.rng, _session.data)
+	_session.events.encounter_cleared.emit()
 
 
-func _food_count() -> int:
-	var food: StringName = _session.equipment.get_food()
-	return _session.bank.get_count(food) if food != &"" else 0
-
-
-func _on_loadout_changed() -> void:
-	_fx.invalidate()
-	_on_stats_source_changed()
-
-
-# Derived stats are stale: drop them; the current hp never exceeds the new maximum (docs/01_GDD.md §10.9).
-func _on_stats_source_changed() -> void:
-	_stats = [null, null]
-	if _state != STATE_IDLE and _player_hp > player_stats().max_hp:
-		_set_hp(player_stats().max_hp)
-
-
+# F-141: a room or a stage of the dungeon is beaten: the engine waits, then tells DungeonSystem (it acts at once). The signals
+# come last: the state is already final when the system reacts (a new scene, a fork, the end of the run).
+func _dungeon_cleared() -> void:
+	var stage: int = _dg.stage_index if _dg.fighting else 0
+	var layer: int = _dg.room_layer
+	var kind: StringName = _dg.room_kind
+	_dg.end_fight()
+	_encounter = Encounter.new()
+	_state = STATE_AWAIT
+	_session.events.encounter_cleared.emit()
+	if stage > 0:
+		_session.events.dungeon_stage_cleared.emit(stage)
+	else:
+		_session.events.dungeon_room_cleared.emit(layer, kind)
