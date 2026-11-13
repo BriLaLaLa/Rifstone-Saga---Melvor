@@ -112,7 +112,7 @@ func test_killing_the_stone_pays_xp_shards_and_the_stone_drops() -> void:
 	_run_until(s, func() -> bool: return _stone_kills > 0, 100)
 	s.combat.loot.collect_all()
 	var mult: float = float(s.data.balance_value("combat.kill_xp_mult"))
-	assert_eq(s.character.get_xp() - xp_before, floori(STONE_XP * mult), "F-28: the XP of the stone times kill_xp_mult, nothing else")
+	assert_eq(s.character.get_xp() - xp_before, floori(STONE_XP * mult * 1.2 + 1e-9), "F-28 x F-130: stone level 5 vs character level 1 (d +4, x1.2)")
 	assert_eq(s.wallet.get_gold(), gold_before, "no gold from a stone")
 	assert_eq(_kills, 0, "a stone is not a counted monster kill")
 	assert_true(s.combat.total_kills().is_empty())

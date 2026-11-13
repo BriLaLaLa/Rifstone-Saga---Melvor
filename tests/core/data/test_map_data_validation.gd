@@ -141,7 +141,7 @@ func test_intensity_ranges() -> void:
 
 func test_type_limits() -> void:
 	var raw: Dictionary = V.fixture_raw()
-	(_mods(raw)[4] as Dictionary)["risk"]["max"] = 6  # pack_bonus above combat.max_pack_size - 1
+	(_mods(raw)[4] as Dictionary)["risk"]["max"] = 8  # pack_bonus above combat.max_pack_size - 1
 	(_mods(raw)[2] as Dictionary)["risk"]["max"] = 150  # food_heal_pct above 100
 	(_mods(raw)[1] as Dictionary)["risk"]["max"] = 95  # monster_speed_pct above 90
 	_expect(raw, "pack_bonus must be <= combat.max_pack_size - 1")

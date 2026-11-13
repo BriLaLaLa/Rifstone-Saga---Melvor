@@ -149,7 +149,7 @@ func enemy_stats(index: int) -> CombatantStats:
 
 ## Copy for the UI (docs/05_INTERFACES.md §5.10). `player_hp` is the maximum while idle.
 func get_state() -> Dictionary:
-	return CombatView.build(self, _encounter, _abilities, {"state": _state, "area": _area_id, "hand": _hand,
+	return CombatView.build(self, _encounter, _abilities, {"data": _session.data, "state": _state, "area": _area_id, "hand": _hand,
 		"player_hp": _player_hp, "player_timer_ms": _player_timer_ms, "between_ms": _between_ms,
 		"rule": _fx.target_rule(), "fracture": _frac.view() if _frac.active() else {},
 		"stone": _stone.view(_encounter) if _state == STATE_RIFTSTONE else {}, "skip_stone_level": _stone.skip_level})

@@ -31,7 +31,9 @@ const REQUIRED_BALANCE_KEYS: PackedStringArray = [
 	"combat.triangle.defender_dr_mult", "combat.triangle.beats.blade", "combat.triangle.beats.arcana",
 	"combat.triangle.beats.marksmanship", "combat.min_attack_interval_ms", "combat.unarmed.style",
 	"combat.unarmed.attack_interval_ms", "combat.hp_base", "combat.hp_per_level", "combat.dual_wield.interval_mult",
-	"combat.max_pack_size", "combat.auto_eat_tiers",
+	"combat.max_pack_size", "combat.auto_eat_tiers", "combat.pack_size_weights", "combat.summon_drop_pct",
+	"combat.xp_level.zero_gap", "combat.xp_level.up_per_level", "combat.xp_level.up_cap",
+	"combat.monster_xp.base", "combat.monster_xp.growth",
 	"combat.respawn_ms", "combat.loot_bag_base_slots",
 	"character_curve.base", "character_curve.growth", "character_curve.linear", "character_curve.max_level",
 	"character_curve.xp_cap", "character.start_class",
@@ -48,6 +50,7 @@ const REQUIRED_BALANCE_KEYS: PackedStringArray = [
 ]
 ## Balance keys holding an array, a combat style or a class id; every other required key holds a number.
 const BALANCE_LIST_KEYS: PackedStringArray = [
+	"combat.pack_size_weights",
 	"start.items", "combat.auto_eat_tiers", "rift.sockets", "traits.slot_levels", "abilities.slot_levels", "rarity.affix_count.magic", "rarity.affix_count.rare",
 	"upgrade.levels", "upgrade.ingot_items", "tool_upgrade.levels",
 	"helper.grades", "rune.grade_mult",
@@ -61,7 +64,7 @@ const BALANCE_TEXT_KEYS: PackedStringArray = ["upgrade.seal_item"]  # M7: an ite
 const BALANCE_OBJECT_KEYS: PackedStringArray = ["salvage.shards_by_rarity", "sockets.by_rarity"]
 const AFFIX_COUNT_KEYS: PackedStringArray = ["rarity.affix_count.magic", "rarity.affix_count.rare"]
 const AFFIX_COUNT_MAX: int = 6
-const PACK_SIZE_MAX: int = 6  # format limit of combat.max_pack_size
+const PACK_SIZE_MAX: int = 8  # format limit of combat.max_pack_size
 const DEPOSIT_BAG_SLOTS_MAX: int = 12  # format limit of deposit.bag_slots (docs/04_DATA_SCHEMA.md §3)
 const START_ITEM_FORBIDDEN_CATEGORIES: PackedStringArray = ["equipment", "tool", "map"]  # they live in the Armory only
 ## Sections made of one file (the others are folders, possibly empty).

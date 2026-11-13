@@ -22,6 +22,34 @@ func _drop(item: StringName, chance: float, qty_min: int, qty_max: int) -> Array
 	return list
 
 
+func test_base_xp_applies_the_level_difference() -> void:
+	# F-130 with one rounding: floor(xp x kill_xp_mult x xp_level_mult(monster level - character level)).
+	var mult: float = float(_session.data.balance_value("combat.kill_xp_mult"))
+	TestFactory.set_character_level(_session, 10)
+	var cases: Dictionary = {10: 1.0, 15: 1.25, 20: 1.5, 40: 1.5, 9: 8.0 / 9.0, 7: 2.0 / 3.0, 2: 1.0 / 9.0, 1: 0.0}
+	for level: int in cases:
+		assert_eq(KillRewards.base_xp(_session, 1000, level), floori(1000.0 * mult * float(cases[level]) + 1e-9), "monster level %d" % level)
+	assert_eq(KillRewards.base_xp(_session, 1000), floori(1000.0 * mult + 1e-9), "no level (Fracture): multiplier 1")
+
+
+func test_summoned_monster_gives_only_reduced_drops() -> void:
+	# V11: the chance of each drop is scaled by combat.summon_drop_pct (25 in the data); no xp, no gold.
+	var pct: float = float(_session.data.balance_value("combat.summon_drop_pct"))
+	var hits: int = 0
+	for _i: int in 400:
+		var before: int = _session.combat.loot.used()
+		KillRewards.roll_drops(_session, _session.combat.loot, _drop(LOG_ITEM, 100.0, 1, 1), ItemRoller.SOURCE_MONSTER, 1, pct / 100.0)
+		hits += _session.combat.loot.used() - before
+		_session.combat.loot.collect_all()
+	assert_between(hits, 70, 130, "about 25% of 400")
+	var def: MonsterDef = _session.data.monster(&"test_monster_a")
+	var xp: int = _session.character.get_xp()
+	var gold: int = _session.wallet.get_gold()
+	KillRewards.grant_summoned(_session, _session.combat.loot, def, &"")
+	assert_eq(_session.character.get_xp(), xp, "no xp")
+	assert_eq(_session.wallet.get_gold(), gold, "no gold")
+
+
 func test_piece_drop_creates_instances_in_the_armory() -> void:
 	KillRewards.roll_drops(_session, _session.combat.loot, _drop(BLADE, 100.0, 2, 2), ItemRoller.SOURCE_MONSTER, 7)
 	_session.combat.loot.collect_all()

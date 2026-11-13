@@ -95,5 +95,5 @@ func test_total_sums_risk_and_reward_of_a_type() -> void:
 func test_pack_size_is_capped_at_the_maximum() -> void:
 	var effects: Array[Dictionary] = [_effect(&"pack_bonus", 2.0)]
 	assert_eq(FractureScaler.pack_size(2, effects, _data), 4)
-	assert_eq(FractureScaler.pack_size(5, effects, _data), int(_data.balance_value("combat.max_pack_size")))
+	assert_eq(FractureScaler.pack_size(7, effects, _data), int(_data.balance_value("combat.max_pack_size")))
 	assert_eq(FractureScaler.pack_size(3, _none, _data), 3)

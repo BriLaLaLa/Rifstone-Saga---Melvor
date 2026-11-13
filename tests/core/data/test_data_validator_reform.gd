@@ -328,12 +328,23 @@ func test_dual_wield_mult_is_a_fraction() -> void:
 	assert_eq(V.validate(raw), PackedStringArray())
 
 
-func test_max_pack_size_is_an_integer_up_to_6() -> void:
+func test_max_pack_size_is_an_integer_up_to_8() -> void:
 	var raw: Dictionary = V.fixture_raw()
 	var combat: Dictionary = _balance(raw)["combat"] as Dictionary
-	for bad: Variant in [0, 7, 2.5]:
+	for bad: Variant in [0, 9, 2.5]:
 		combat["max_pack_size"] = bad
 		_expect(raw, ["balance.json", "field 'combat.max_pack_size' must be"])
+
+
+func test_pack_size_weights_sum_to_100_with_one_entry_per_size() -> void:
+	var raw: Dictionary = V.fixture_raw()
+	var combat: Dictionary = _balance(raw)["combat"] as Dictionary
+	combat["pack_size_weights"] = [4, 12, 22, 26, 18, 10, 5, 4]
+	_expect(raw, ["balance.json", "pack_size_weights", "sum to 100"])
+	combat["pack_size_weights"] = [50, 50]
+	_expect(raw, ["balance.json", "pack_size_weights", "max_pack_size (8) entries"])
+	combat["pack_size_weights"] = [4, 12, 22, 26, 18, 10, 5, 3]
+	assert_eq(V.validate(raw), PackedStringArray())
 
 
 func test_pack_size_limit_comes_from_balance() -> void:

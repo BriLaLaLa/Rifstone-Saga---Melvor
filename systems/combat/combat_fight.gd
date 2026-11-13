@@ -325,8 +325,9 @@ func _kill(index: int, enemy: Encounter.Enemy) -> void:
 		_stone.reward(loot, _session.data.rift_stone(enemy.def.id), monolith.loot_mult)
 	elif _frac.active():
 		counts = _frac.reward(enemy, kill_ctx.card_mult)
-	elif enemy.summoned:  # M15 (F-126): the monsters called by a stone give no xp, gold or drops and are no kills
+	elif enemy.summoned:  # M15 (F-126): the monsters called by a stone give no xp or gold and are no kills; V11: few drops
 		counts = false
+		KillRewards.grant_summoned(_session, loot, enemy.def, _area_id)
 	else:
 		KillRewards.grant(_session, loot, enemy.def, _area_id)
 	if counts:

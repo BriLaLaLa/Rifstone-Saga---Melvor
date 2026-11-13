@@ -163,7 +163,7 @@ func reward(enemy: Encounter.Enemy, card_mult: float = 1.0) -> bool:
 	if enemy.summoned:
 		return false
 	_sink.card_mult = 1.0 if is_boss(enemy) else card_mult  # F-120 card_drop_mult: the monsters of the data, not the boss
-	KillRewards.grant(_session, _sink, enemy.def)
+	KillRewards.grant(_session, _sink, enemy.def, &"", false)  # F-130: no level multiplier in a Fracture
 	if is_boss(enemy):  # F-115: the piece and the dust, then the Card of F-113 (no `card_chance_pct` on the boss)
 		BossRewards.grant(_session, _sink, run, enemy.def)
 		_roll_card(&"boss_pct", &"boss_delta", 0.0)
