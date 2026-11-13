@@ -23,6 +23,7 @@ const SCALE_TEXT := "Scala interfaccia"
 const FPS_TEXT := "Limite FPS"
 const VSYNC_TEXT := "VSync"
 const VOLUME_TEXT := "Volume"
+const REDUCED_FX_TEXT := "Effetti visivi ridotti"
 const LOG_LEVEL_TEXT := "Livello dei log"
 const AUTO_SCALE_TEXT := "Automatica"
 const NO_LIMIT_TEXT := "Nessun limite"
@@ -46,6 +47,7 @@ var _size: OptionButton
 var _scale: OptionButton
 var _fps: OptionButton
 var _vsync: CheckBox
+var _reduced_fx: CheckBox
 var _volume: HSlider
 var _log_level: OptionButton
 var _apply_button: Button
@@ -111,6 +113,7 @@ func _build_video(column: VBoxContainer) -> void:
 	var fps_index: int = GameSettings.FPS_LIMITS.find(int(GameSettings.get_value(GameSettings.KEY_FPS_LIMIT)))
 	_fps = _option(grid, FPS_TEXT, limits, fps_index)
 	_vsync = _check(grid, VSYNC_TEXT, bool(GameSettings.get_value(GameSettings.KEY_VSYNC)))
+	_reduced_fx = _check(grid, REDUCED_FX_TEXT, bool(GameSettings.get_value(GameSettings.KEY_REDUCED_FX)))
 	_label(grid, VOLUME_TEXT)
 	_volume = HSlider.new()
 	_volume.min_value = 0.0
@@ -163,6 +166,7 @@ func _apply() -> void:
 	GameSettings.set_value(GameSettings.KEY_UI_SCALE, GameSettings.UI_SCALES[_scale.selected])
 	GameSettings.set_value(GameSettings.KEY_FPS_LIMIT, GameSettings.FPS_LIMITS[_fps.selected])
 	GameSettings.set_value(GameSettings.KEY_VSYNC, _vsync.button_pressed)
+	GameSettings.set_value(GameSettings.KEY_REDUCED_FX, _reduced_fx.button_pressed)
 	GameSettings.set_value(GameSettings.KEY_VOLUME, _volume.value)
 	GameSettings.set_value(GameSettings.KEY_LOG_LEVEL, _log_level.selected)
 	GameSettings.save()

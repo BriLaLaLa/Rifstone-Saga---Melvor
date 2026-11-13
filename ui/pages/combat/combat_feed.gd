@@ -37,7 +37,9 @@ func hit(attacker: int, target: int, hit_done: bool, damage: int, blocked: bool)
 		_zone.play_attack(attacker)
 		var text: String = CombatTexts.BLOCKED_TEXT if blocked else (
 				CombatTexts.HIT_TEXT % NumberFormat.format_int(damage) if hit_done else CombatTexts.MISS_TEXT)
-		_player.show_hit(text, UiStyle.TEXT_2 if blocked else UiStyle.BAD, false, hit_done and not blocked)
+		var heavy: bool = hit_done and not blocked and float(damage) >= float(state["player_max_hp"]) * UiStyle.COMBAT_HEAVY_TAKEN_FRACTION
+		_player.show_hit(text, UiStyle.COMBAT_PARRY_COLOR if blocked else UiStyle.BAD, heavy, hit_done and not blocked,
+				_zone.is_compact())
 		if blocked:
 			_yield.blocks += 1
 			_yield.add_log(CombatTexts.LOG_BLOCK_TEXT % enemy_name(state, attacker))

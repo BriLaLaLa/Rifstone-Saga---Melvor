@@ -10,7 +10,7 @@ const STACK_GAP_PX: float = 2.0
 
 
 ## Shows `text` over `holder` (a plain Control, not a container). Returns the label.
-static func spawn(holder: Control, text: String, color: Color, big: bool) -> Label:
+static func spawn(holder: Control, text: String, color: Color, big: bool, huge: bool = false) -> Label:
 	var label := Label.new()
 	label.name = NODE_NAME
 	label.text = text
@@ -21,7 +21,7 @@ static func spawn(holder: Control, text: String, color: Color, big: bool) -> Lab
 	label.add_theme_constant_override("outline_size", 4)
 	label.add_theme_font_override("font", UiStyle.font_bold())
 	label.add_theme_font_size_override("font_size",
-			UiStyle.COMBAT_HIT_BIG_FONT_SIZE if big else UiStyle.COMBAT_HIT_FONT_SIZE)
+			UiStyle.COMBAT_HIT_HUGE_FONT_SIZE if huge else (UiStyle.COMBAT_HIT_BIG_FONT_SIZE if big else UiStyle.COMBAT_HIT_FONT_SIZE))
 	_trim(holder, CombatTexts.MAX_HIT_NUMBERS - 1)
 	var ys: Array[float] = []
 	for other: Node in holder.get_children():
@@ -33,6 +33,11 @@ static func spawn(holder: Control, text: String, color: Color, big: bool) -> Lab
 	label.position = Vector2(0.0, free_y(ys, holder.size.y * START_FRACTION, height + STACK_GAP_PX))
 	var tween: Tween = label.create_tween()
 	tween.set_parallel(true)
+	if (big or huge) and not CombatFx.reduced():
+		# Strong hits "pop": they start larger and settle (the label pivots on its centre).
+		label.pivot_offset = label.size / 2.0
+		label.scale = Vector2.ONE * UiStyle.COMBAT_HIT_POP_SCALE
+		tween.tween_property(label, "scale", Vector2.ONE, UiStyle.COMBAT_LUNGE_SEC * 2.0).set_trans(Tween.TRANS_BACK)
 	tween.tween_property(label, "position:y", label.position.y - UiStyle.COMBAT_HIT_RISE, UiStyle.COMBAT_HIT_FADE_SEC)
 	tween.tween_property(label, "modulate:a", 0.0, UiStyle.COMBAT_HIT_FADE_SEC)
 	tween.chain().tween_callback(label.queue_free)
