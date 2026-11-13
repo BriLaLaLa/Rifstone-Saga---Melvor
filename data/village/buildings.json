@@ -1,0 +1,71 @@
+{
+  "buildings": [
+    {"id": "storehouse", "name": "Magazzino", "description": "Un deposito più grande per tutto ciò che raccogli.", "icon": "building-warehouse", "order": 1, "buildable": true,
+     "effect": {"per_level":4.0,"scope":"global","stat":"deposit_slots"},
+     "cost_spec": {"food":0.0,"gold_weight":1.0,"plate":0.5,"wood":[{"component":"shieldcore","weight":0.5}]},
+     "levels": [
+      {"level":1,"requires_woodwright":1,"gold":300,"items":[{"item":"redbirch_shieldcore","qty":20},{"item":"emberbronze_plate","qty":4}],"effect_value":4.0},
+      {"level":2,"requires_woodwright":10,"gold":420,"items":[{"item":"ashpine_shieldcore","qty":30},{"item":"ashlead_plate","qty":6}],"effect_value":8.0},
+      {"level":3,"requires_woodwright":20,"gold":590,"items":[{"item":"thornalder_shieldcore","qty":40},{"item":"stormzinc_plate","qty":8}],"effect_value":12.0},
+      {"level":4,"requires_woodwright":30,"gold":820,"items":[{"item":"duskelm_shieldcore","qty":50},{"item":"duskcobalt_plate","qty":10}],"effect_value":16.0},
+      {"level":5,"requires_woodwright":45,"gold":1150,"items":[{"item":"shardcedar_shieldcore","qty":60},{"item":"glimmerite_plate","qty":12}],"effect_value":20.0},
+      {"level":6,"requires_woodwright":60,"gold":1610,"items":[{"item":"veilcypress_shieldcore","qty":70},{"item":"palecinnabar_plate","qty":14}],"effect_value":24.0},
+      {"level":7,"requires_woodwright":75,"gold":2260,"items":[{"item":"emberlarch_shieldcore","qty":80},{"item":"emberheart_plate","qty":16}],"effect_value":28.0},
+      {"level":8,"requires_woodwright":90,"gold":3160,"items":[{"item":"riftspruce_shieldcore","qty":90},{"item":"riftite_plate","qty":18}],"effect_value":32.0}
+     ]},
+    {"id": "inn", "name": "Locanda", "description": "Un pasto caldo cura di più.", "icon": "tools-kitchen-2", "order": 2, "buildable": true,
+     "effect": {"per_level":3.0,"scope":"global","stat":"food_healing_pct"},
+     "cost_spec": {"food":1.0,"gold_weight":0.8,"plate":0.0,"wood":[{"component":"grip","weight":0.5}]},
+     "levels": [
+      {"level":1,"requires_woodwright":1,"gold":240,"items":[{"item":"redbirch_grip","qty":20},{"item":"seared_brookfin","qty":16}],"effect_value":3.0},
+      {"level":2,"requires_woodwright":10,"gold":340,"items":[{"item":"ashpine_grip","qty":30},{"item":"seared_ashgill","qty":22}],"effect_value":6.0},
+      {"level":3,"requires_woodwright":20,"gold":470,"items":[{"item":"thornalder_grip","qty":40},{"item":"seared_redscale","qty":28}],"effect_value":9.0},
+      {"level":4,"requires_woodwright":30,"gold":660,"items":[{"item":"duskelm_grip","qty":50},{"item":"seared_dusk_eel","qty":34}],"effect_value":12.0},
+      {"level":5,"requires_woodwright":45,"gold":920,"items":[{"item":"shardcedar_grip","qty":60},{"item":"seared_shard_gar","qty":40}],"effect_value":15.0},
+      {"level":6,"requires_woodwright":60,"gold":1290,"items":[{"item":"veilcypress_grip","qty":70},{"item":"seared_mist_barbel","qty":46}],"effect_value":18.0},
+      {"level":7,"requires_woodwright":75,"gold":1810,"items":[{"item":"emberlarch_grip","qty":80},{"item":"seared_ember_sturgeon","qty":52}],"effect_value":21.0},
+      {"level":8,"requires_woodwright":90,"gold":2530,"items":[{"item":"riftspruce_grip","qty":90},{"item":"seared_riftmaw","qty":58}],"effect_value":24.0}
+     ]},
+    {"id": "forge", "name": "Fucina", "description": "Una fucina del villaggio: il Fabbro impara più in fretta.", "icon": "hammer", "order": 3, "buildable": true,
+     "effect": {"per_level":3.0,"scope":"skill:forging","stat":"skill_xp_pct"},
+     "cost_spec": {"food":0.0,"gold_weight":1.0,"plate":1.0,"wood":[{"component":"handle","weight":0.5}]},
+     "levels": [
+      {"level":1,"requires_woodwright":1,"gold":300,"items":[{"item":"redbirch_handle","qty":20},{"item":"emberbronze_plate","qty":8}],"effect_value":3.0},
+      {"level":2,"requires_woodwright":10,"gold":420,"items":[{"item":"ashpine_handle","qty":30},{"item":"ashlead_plate","qty":12}],"effect_value":6.0},
+      {"level":3,"requires_woodwright":20,"gold":590,"items":[{"item":"thornalder_handle","qty":40},{"item":"stormzinc_plate","qty":16}],"effect_value":9.0},
+      {"level":4,"requires_woodwright":30,"gold":820,"items":[{"item":"duskelm_handle","qty":50},{"item":"duskcobalt_plate","qty":20}],"effect_value":12.0},
+      {"level":5,"requires_woodwright":45,"gold":1150,"items":[{"item":"shardcedar_handle","qty":60},{"item":"glimmerite_plate","qty":24}],"effect_value":15.0},
+      {"level":6,"requires_woodwright":60,"gold":1610,"items":[{"item":"veilcypress_handle","qty":70},{"item":"palecinnabar_plate","qty":28}],"effect_value":18.0},
+      {"level":7,"requires_woodwright":75,"gold":2260,"items":[{"item":"emberlarch_handle","qty":80},{"item":"emberheart_plate","qty":32}],"effect_value":21.0},
+      {"level":8,"requires_woodwright":90,"gold":3160,"items":[{"item":"riftspruce_handle","qty":90},{"item":"riftite_plate","qty":36}],"effect_value":24.0}
+     ]},
+    {"id": "sawmill", "name": "Segheria", "description": "Travi pronte e seghe affilate: il Falegname lavora più veloce.", "icon": "saw", "order": 4, "buildable": true,
+     "effect": {"per_level":-2.0,"scope":"skill:woodwright","stat":"skill_interval_pct"},
+     "cost_spec": {"food":0.0,"gold_weight":0.6,"plate":0.0,"wood":[{"component":"grip","weight":0.75},{"component":"handle","weight":0.75}]},
+     "levels": [
+      {"level":1,"requires_woodwright":1,"gold":180,"items":[{"item":"redbirch_grip","qty":30},{"item":"redbirch_handle","qty":30}],"effect_value":-2.0},
+      {"level":2,"requires_woodwright":10,"gold":250,"items":[{"item":"ashpine_grip","qty":45},{"item":"ashpine_handle","qty":45}],"effect_value":-4.0},
+      {"level":3,"requires_woodwright":20,"gold":350,"items":[{"item":"thornalder_grip","qty":60},{"item":"thornalder_handle","qty":60}],"effect_value":-6.0},
+      {"level":4,"requires_woodwright":30,"gold":490,"items":[{"item":"duskelm_grip","qty":75},{"item":"duskelm_handle","qty":75}],"effect_value":-8.0},
+      {"level":5,"requires_woodwright":45,"gold":690,"items":[{"item":"shardcedar_grip","qty":90},{"item":"shardcedar_handle","qty":90}],"effect_value":-10.0},
+      {"level":6,"requires_woodwright":60,"gold":970,"items":[{"item":"veilcypress_grip","qty":105},{"item":"veilcypress_handle","qty":105}],"effect_value":-12.0},
+      {"level":7,"requires_woodwright":75,"gold":1360,"items":[{"item":"emberlarch_grip","qty":120},{"item":"emberlarch_handle","qty":120}],"effect_value":-14.0},
+      {"level":8,"requires_woodwright":90,"gold":1900,"items":[{"item":"riftspruce_grip","qty":135},{"item":"riftspruce_handle","qty":135}],"effect_value":-16.0}
+     ]},
+    {"id": "loot_shed", "name": "Rimessa del bottino", "description": "Più spazio per il bottino dei combattimenti.", "icon": "package", "order": 5, "buildable": true,
+     "effect": {"per_level":2.0,"scope":"global","stat":"loot_bag_slots"},
+     "cost_spec": {"food":0.0,"gold_weight":0.8,"plate":0.5,"wood":[{"component":"handle","weight":0.5}]},
+     "levels": [
+      {"level":1,"requires_woodwright":1,"gold":240,"items":[{"item":"redbirch_handle","qty":20},{"item":"emberbronze_plate","qty":4}],"effect_value":2.0},
+      {"level":2,"requires_woodwright":10,"gold":340,"items":[{"item":"ashpine_handle","qty":30},{"item":"ashlead_plate","qty":6}],"effect_value":4.0},
+      {"level":3,"requires_woodwright":20,"gold":470,"items":[{"item":"thornalder_handle","qty":40},{"item":"stormzinc_plate","qty":8}],"effect_value":6.0},
+      {"level":4,"requires_woodwright":30,"gold":660,"items":[{"item":"duskelm_handle","qty":50},{"item":"duskcobalt_plate","qty":10}],"effect_value":8.0},
+      {"level":5,"requires_woodwright":45,"gold":920,"items":[{"item":"shardcedar_handle","qty":60},{"item":"glimmerite_plate","qty":12}],"effect_value":10.0},
+      {"level":6,"requires_woodwright":60,"gold":1290,"items":[{"item":"veilcypress_handle","qty":70},{"item":"palecinnabar_plate","qty":14}],"effect_value":12.0},
+      {"level":7,"requires_woodwright":75,"gold":1810,"items":[{"item":"emberlarch_handle","qty":80},{"item":"emberheart_plate","qty":16}],"effect_value":14.0},
+      {"level":8,"requires_woodwright":90,"gold":2530,"items":[{"item":"riftspruce_handle","qty":90},{"item":"riftite_plate","qty":18}],"effect_value":16.0}
+     ]},
+    {"id": "market", "name": "Mercato", "description": "Bancarelle esclusive del villaggio.", "icon": "building-store", "order": 6, "buildable": false, "milestone": 20, "levels": []},
+    {"id": "noticeboard", "name": "Bacheca", "description": "Incarichi e ricompense dagli abitanti.", "icon": "clipboard-list", "order": 7, "buildable": false, "milestone": 20, "levels": []}
+  ]
+}

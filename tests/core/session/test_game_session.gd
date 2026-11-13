@@ -7,7 +7,7 @@ extends GutTest
 const NOW_MS: int = 1793603600000
 const SOURCE_STAT: StringName = &"loot_bag_slots"
 const SESSION_SOURCE: String = "res://core/session/game_session.gd"
-const MAX_SESSION_LINES: int = 210  # M13-01: + the CardStore (4 lines)
+const MAX_SESSION_LINES: int = 213  # M13-01: + the CardStore (4 lines); M19-02: + the Village (3 lines)
 
 
 ## Fake SaveParticipant with an advance and a modifier source; every call is written to a shared log.

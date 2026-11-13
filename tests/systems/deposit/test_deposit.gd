@@ -73,6 +73,29 @@ func test_used_sums_every_occupant() -> void:
 
 # --- unequip_bag examples of F-100 ---------------------------------------------------------------------------------
 
+func test_capacity_uses_deposit_slots() -> void:
+	_give_and_equip(0, SMALL)
+	_give_and_equip(1, LARGE)
+	_session.modifiers.set_source(&"village:storehouse", [Modifier.make(&"deposit_slots", 12.0)] as Array[Modifier])
+	assert_eq(_session.deposit.capacity(), 88, "F-133 example: 60 + 16 + 12")
+	_session.modifiers.set_source(&"village:storehouse", [Modifier.make(&"deposit_slots", 12.9)] as Array[Modifier])
+	assert_eq(_session.deposit.capacity(), 88, "floor of the stat")
+	_extra_used = 80
+	assert_false(_session.bank.unequip_bag(1).ok, "the capacity' includes the Village slots: 81 > 88 - 10")
+	_extra_used = 77
+	assert_true(_session.bank.unequip_bag(1).ok, "78 <= 78")
+
+
+func test_deposit_slots_change_is_announced_once_without_occupying() -> void:
+	watch_signals(_session.events)
+	_session.modifiers.set_source(&"village:storehouse", [Modifier.make(&"deposit_slots", 4.0)] as Array[Modifier])
+	assert_signal_emit_count(_session.events, "deposit_changed", 1)
+	assert_signal_emitted_with_parameters(_session.events, "deposit_changed", [0, 64])
+	assert_eq(_session.deposit.used(), 0, "the Village slots occupy nothing")
+	_session.modifiers.set_source(&"test:other", [Modifier.make(&"armor", 1.0)] as Array[Modifier])
+	assert_signal_emit_count(_session.events, "deposit_changed", 1, "capacity unchanged: no signal")
+
+
 func test_unequip_large_bag_with_used_66_is_refused() -> void:
 	_give_and_equip(0, SMALL)
 	_give_and_equip(1, LARGE)

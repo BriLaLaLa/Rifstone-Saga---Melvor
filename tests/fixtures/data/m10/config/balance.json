@@ -53,6 +53,17 @@
     "base_slots": 60,
     "bag_slots": 6
   },
+  "village": {
+    "max_level": 8,
+    "woodwright_levels": [1, 10, 20, 30, 45, 60, 75, 90],
+    "gold_base": 300,
+    "gold_growth": 1.4,
+    "qty": {
+      "wood": {"base": 20, "per_level": 20},
+      "plate": {"base": 4, "per_level": 4},
+      "food": {"base": 10, "per_level": 6}
+    }
+  },
   "helper": {
     "xp_pct": 25,
     "mastery_pct": 25,
