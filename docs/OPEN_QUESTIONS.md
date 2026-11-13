@@ -137,7 +137,7 @@ I documenti sono già scritti con questi default. I numeri non presenti nella fo
 | Q80 | I pezzi nel Bottino occupano una casella del Bottino (F-33) come un tipo di oggetto? Con 28 mostri e molti pezzi il Bottino può riempirsi | no, come implementato: nessun limite di pezzi nel Bottino (M15-04) | utente / QA |
 | Q81 | Nel Deposito i pezzi restano a occupare una casella ciascuno (F-100) o la sezione "Pezzi" non occupa slot? | invariato: una casella ciascuno | utente |
 | Q83 | Pezzi nel Bottino: online la morte li perde, offline sono messi al sicuro a ogni blocco da 60 s (`collect_pieces`). Va allineato (online al sicuro, o offline a rischio)? | invariato (differenza accettata) | utente |
-| Q84 | Falegname (V7): quale integrazione con gli altri sistemi? Rimandato | nessun task in M16-M18 | utente |
+| Q84 | Falegname (V7): RISOLTA 2026-11-13 → Villaggio (DECISIONS_LOG V7, brief in `M19_VILLAGGIO.md`) | M19 | utente |
 
 ## Aperte da M17
 
