@@ -53,7 +53,7 @@ func _bind(action_id: StringName, cycles: int = 1, spare: int = 1) -> void:
 
 func test_every_engraver_recipe_yields_its_item_with_xp_and_mastery() -> void:
 	var actions: Array[ActionDef] = _s.data.actions_for_skill(SKILL)
-	assert_eq(actions.size(), 57, "slab + 8 fuse + 3 crystallize + 9 engrave + 36 upgrade")
+	assert_eq(actions.size(), 61, "2 slab + 8 fuse + 3 crystallize + 12 engrave (3 minor) + 36 upgrade")
 	var categories: Dictionary[StringName, int] = {}
 	for action: ActionDef in actions:
 		_s.free()
@@ -172,7 +172,7 @@ func test_every_infusion_effect_reaches_its_formula() -> void:
 	var forest: ModifierContext = ModifierContext.for_skill(FORESTRY)
 	var forest_action: ActionDef = _s.data.actions_for_skill(FORESTRY)[0]
 	var infusions: Array[ItemDef] = _items_of(&"infusion")
-	assert_eq(infusions.size(), 45, "9 families x 5 grades")
+	assert_eq(infusions.size(), 48, "9 families x 5 grades + 3 minor runes")
 	for def: ItemDef in infusions:
 		_s.rift.clear_socket(0)
 		TestFactory.give(_s, def.id, 1)

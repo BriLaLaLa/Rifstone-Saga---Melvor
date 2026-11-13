@@ -44,4 +44,4 @@ func test_salvage_values() -> void:
 	var shards: Dictionary = salvage["shards_by_rarity"]
 	assert_eq([int(shards["common"]), int(shards["magic"]), int(shards["rare"])], [0, 1, 3])
 	assert_eq([int(shards["masterwork"]), int(shards["legendary"])], [3, 3], "M14: the default of Q-Alpha")
-	assert_eq(salvage.size(), 2, "no other key")
+	assert_eq(salvage.size(), 3, "no other key (M18-01: engraver_xp_per_grade)")

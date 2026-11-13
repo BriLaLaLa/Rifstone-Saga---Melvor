@@ -58,6 +58,10 @@
     {"id":"upgrade_bulwark_2","name":"Potenziare runa del baluardo a II","level":90,"interval_ms":6000,"xp":1040,"mastery":true,"inputs":[{"item":"inf_bulwark","qty":3}],"outputs":[{"item":"inf_bulwark_2","qty":1}]},
     {"id":"upgrade_bulwark_3","name":"Potenziare runa del baluardo a III","level":95,"interval_ms":6000,"xp":1560,"mastery":true,"inputs":[{"item":"inf_bulwark_2","qty":3}],"outputs":[{"item":"inf_bulwark_3","qty":1}]},
     {"id":"upgrade_bulwark_4","name":"Potenziare runa del baluardo a IV","level":99,"interval_ms":6000,"xp":2080,"mastery":true,"inputs":[{"item":"inf_bulwark_3","qty":3}],"outputs":[{"item":"inf_bulwark_4","qty":1}]},
-    {"id":"upgrade_bulwark_5","name":"Potenziare runa del baluardo a V","level":99,"interval_ms":6000,"xp":2600,"mastery":true,"inputs":[{"item":"inf_bulwark_4","qty":3}],"outputs":[{"item":"inf_bulwark_5","qty":1}]}
+    {"id":"upgrade_bulwark_5","name":"Potenziare runa del baluardo a V","level":99,"interval_ms":6000,"xp":2600,"mastery":true,"inputs":[{"item":"inf_bulwark_4","qty":3}],"outputs":[{"item":"inf_bulwark_5","qty":1}]},
+    {"id":"make_minor_slab","name":"Preparare lastra minore","level":1,"interval_ms":2500,"xp":4,"mastery":true,"inputs":[{"item":"rift_dust","qty":2}],"outputs":[{"item":"minor_slab","qty":1}]},
+    {"id":"engrave_minor_vigor","name":"Incidere runa minore del vigore","level":2,"interval_ms":3000,"xp":10,"mastery":true,"inputs":[{"item":"minor_slab","qty":1},{"item":"scorched_fur","qty":3}],"outputs":[{"item":"inf_minor_vigor","qty":1}]},
+    {"id":"engrave_minor_aim","name":"Incidere runa minore della mira","level":4,"interval_ms":3000,"xp":16,"mastery":true,"inputs":[{"item":"minor_slab","qty":1},{"item":"boar_tusk","qty":3}],"outputs":[{"item":"inf_minor_aim","qty":1}]},
+    {"id":"engrave_minor_guard","name":"Incidere runa minore della guardia","level":6,"interval_ms":3500,"xp":24,"mastery":true,"inputs":[{"item":"minor_slab","qty":1},{"item":"boar_tusk","qty":4}],"outputs":[{"item":"inf_minor_guard","qty":1}]}
   ]
 }

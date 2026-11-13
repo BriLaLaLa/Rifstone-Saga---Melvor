@@ -237,6 +237,7 @@
   "rift_stone": {"chance_pct": 0.5, "pity_kills": 300},
   "salvage": {
     "component_ratio": 0.4,
+    "engraver_xp_per_grade": 2,
     "shards_by_rarity": {"common": 0, "magic": 1, "rare": 3, "masterwork": 3, "legendary": 3}
   },
   "rift": {

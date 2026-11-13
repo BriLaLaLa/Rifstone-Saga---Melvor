@@ -21,7 +21,7 @@ func test_real_recipes_of_the_engraver_follow_8_7() -> void:
 		assert_false(String(a.id).begins_with("bind_"), "the old binding recipes are gone: %s" % a.id)
 		var prefix: String = String(a.id).get_slice("_", 0)
 		by_prefix[prefix] = int(by_prefix.get(prefix, 0)) + 1
-	assert_eq(by_prefix, {"make": 1, "fuse": 8, "crystallize": 3, "engrave": 9, "upgrade": 36})
+	assert_eq(by_prefix, {"make": 2, "fuse": 8, "crystallize": 3, "engrave": 12, "upgrade": 36})
 	var slab: ActionDef = data.action(&"make_rune_slab")
 	assert_eq([slab.level, slab.interval_ms, slab.xp], [1, 3000, 6])
 	assert_eq([slab.inputs[0].item_id, slab.inputs[0].qty, slab.inputs[1].item_id, slab.inputs[1].qty],
@@ -49,6 +49,21 @@ func test_real_crystallize_fuse_and_engrave_recipes() -> void:
 	assert_eq([engrave.level, engrave.xp, engrave.interval_ms], [45, 200, 5000])
 	assert_eq([engrave.inputs[0].item_id, engrave.inputs[0].qty, engrave.inputs[1].item_id, engrave.inputs[1].qty, engrave.outputs[0].item_id],
 			[&"rune_slab", 1, &"troll_moss", 8, &"inf_stoneskin"])
+
+
+## M18-01 (V6): easy recipes at the bottom: Minor slab from 2 Rift dust, three single-grade minor runes at levels 2-6.
+func test_minor_recipes_are_low_level_and_cheap() -> void:
+	var data: GameData = TestFactory.real_data()
+	var slab: ActionDef = data.action(&"make_minor_slab")
+	assert_eq([slab.level, slab.inputs[0].item_id, slab.inputs[0].qty, slab.outputs[0].item_id], [1, &"rift_dust", 2, &"minor_slab"])
+	var expected: Dictionary = {&"engrave_minor_vigor": [2, &"inf_minor_vigor"], &"engrave_minor_aim": [4, &"inf_minor_aim"],
+			&"engrave_minor_guard": [6, &"inf_minor_guard"]}
+	for id: StringName in expected:
+		var a: ActionDef = data.action(id)
+		assert_eq([a.level, a.outputs[0].item_id, a.inputs[0].item_id], [expected[id][0], expected[id][1], &"minor_slab"], str(id))
+		assert_lte(a.level, 6)
+		assert_eq(data.item(a.outputs[0].item_id).category, &"infusion")
+	assert_eq(data.item(&"inf_minor_vigor").infusion_modifiers[0].value, 10.0)
 
 
 func test_real_upgrade_recipes_follow_f106() -> void:

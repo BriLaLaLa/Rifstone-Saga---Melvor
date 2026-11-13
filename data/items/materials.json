@@ -75,6 +75,7 @@
     {"id":"eel_roe","name":"Ovaia","category":"material","icon":"res://assets/icons/items/eel_roe.svg","value":0,"sort_order":1025,"description":"Uova minuscole, scure e lucide."},
     {"id":"sturgeon_caviar","name":"Caviale","category":"material","icon":"res://assets/icons/items/sturgeon_caviar.svg","value":0,"sort_order":1026,"description":"Perle nere e salate, un lusso delle acque fredde."},
     {"id":"lantern_lure","name":"Esca","category":"material","icon":"res://assets/icons/items/lantern_lure.svg","value":0,"sort_order":1027,"description":"L'organo luminoso del pesce lanterna, brilla nell'acqua."},
-    {"id":"leviathan_pearl","name":"Perla","category":"material","icon":"res://assets/icons/items/leviathan_pearl.svg","value":0,"sort_order":1028,"description":"Una perla viola, nata nelle pozze del Rift."}
+    {"id":"leviathan_pearl","name":"Perla","category":"material","icon":"res://assets/icons/items/leviathan_pearl.svg","value":0,"sort_order":1028,"description":"Una perla viola, nata nelle pozze del Rift."},
+    {"id":"minor_slab","name":"Lastra minore","category":"material","icon":"res://assets/icons/items/rune_slab.svg","value":0,"sort_order":971,"description":"Una lastretta grezza: basta per incidere una runa minore."}
   ]
 }
