@@ -19,6 +19,7 @@ const CONTENT_FILES: Dictionary[String, String] = {
 	"hints": "hints/hints.json", "loot_tables": LootIndex.FILE,  # M12: mandatory
 	"map_mods": MapIndex.MODS_FILE, "bosses": MapIndex.BOSSES_FILE,  # M13: mandatory (may be empty)
 	"village": VillageIndex.FILE,  # M19: mandatory (may be empty)
+	"quests": "quests/quests.json",  # M20: mandatory (may be empty)
 }
 const CONTENT_DIRS: Dictionary[String, String] = {
 	"items": "items", "actions": "actions", "mastery": "mastery", "classes": "classes",
@@ -57,6 +58,8 @@ var _helper: HelperIndex = HelperIndex.new()  # M12
 var _loot: LootIndex = LootIndex.new()  # M12
 var _maps: MapIndex = MapIndex.new()  # M13
 var _village: VillageIndex = VillageIndex.new()  # M19
+var _quests: Dictionary[StringName, QuestDef] = {}  # M20
+var _quest_list: Array[QuestDef] = []
 var _blueprint_list: Array[ItemDef] = []
 var _blueprint_by_base: Dictionary[StringName, ItemDef] = {}
 var _unique_tools: Dictionary[StringName, ItemDef] = {}  # slot -> unique tool (M10)
@@ -228,6 +231,10 @@ func shop_entries() -> Array[ShopEntryDef]: return _shop_list.duplicate()
 func village_building(id: StringName) -> VillageBuildingDef: return _find(_village.by_id, id, "village building") as VillageBuildingDef
 func village_buildings() -> Array[VillageBuildingDef]: return _village.list.duplicate()
 
+## M20 (docs/04_DATA_SCHEMA.md §25): a quest by id (null and an error if unknown); all of them, in file order.
+func quest(id: StringName) -> QuestDef: return _find(_quests, id, "quest") as QuestDef
+func quests() -> Array[QuestDef]: return _quest_list.duplicate()
+
 func hint(id: StringName) -> HintDef: return _find(_hints, id, "hint") as HintDef
 
 ## Every hint, in file order.
@@ -323,6 +330,9 @@ func _build(raw: Dictionary) -> void:
 	_loot.build(raw["loot_tables"] as Dictionary, errors)
 	_maps.build(_item_list, raw["map_mods"] as Dictionary, raw["bosses"] as Dictionary, _balance, errors)
 	_village.build(raw["village"] as Dictionary, errors)
+	for path: String in raw["quests"]:
+		for d: Dictionary in DataBuildUtil.list(raw["quests"][path], "quests"):
+			_add(QuestDef.from_dict(d), _quests, _quest_list, path, "quest", d)
 	_skill_list.sort_custom(func(a: SkillDef, b: SkillDef) -> bool: return a.order < b.order)
 	_area_list.sort_custom(func(a: AreaDef, b: AreaDef) -> bool: return a.order < b.order)
 	_class_list.sort_custom(func(a: ClassDef, b: ClassDef) -> bool: return a.order < b.order)
@@ -345,7 +355,7 @@ func _add(def: RefCounted, table: Dictionary, list: Array, path: String, kind: S
 # With a Def that could not be built the data is not valid: nothing stays half-loaded.
 func _clear() -> void:
 	for table: Dictionary in [_items, _skills, _actions, _nodes, _areas, _monsters, _stones, _stones_by_area, _shop, _classes,
-			_blueprint_by_base, _unique_tools, _affixes, _hints]:
+			_blueprint_by_base, _unique_tools, _affixes, _hints, _quests]:
 		table.clear()
 	_guide.clear()
 	_helper.clear()
@@ -353,7 +363,7 @@ func _clear() -> void:
 	_maps.clear()
 	_village.clear()
 	for list: Array in [_item_list, _skill_list, _action_list, _node_list, _area_list, _shop_list, _class_list,
-			_affix_list, _hint_list, _blueprint_list]:
+			_affix_list, _hint_list, _blueprint_list, _quest_list]:
 		list.clear()
 	_xp_table = null
 	_mastery_table = null

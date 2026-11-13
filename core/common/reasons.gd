@@ -61,3 +61,4 @@ const FRACTURE_WON := &"fracture_won"  # M13: combat stop reason after a won Fra
 const FRACTURE_ABANDONED := &"fracture_abandoned"  # M13: same, for an abandoned Fracture
 const NOT_BUILDABLE := &"not_buildable"  # M19: a Village placeholder (market, noticeboard) cannot be built
 const MAX_LEVEL := &"max_level"  # M19: the Village building is at its highest level
+const QUEST_INCOMPLETE := &"quest_incomplete"  # M20: the quest objective is not reached yet
