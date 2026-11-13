@@ -111,7 +111,7 @@ const COMBAT_MARGIN: int = 16
 const COMBAT_SECTION_SEPARATION: int = 12
 const COMBAT_PLAYER_WIDTH: int = 380
 const COMBAT_PORTRAIT_SIDE: int = 96
-const COMBAT_TARGET_PORTRAIT_SIDE: int = 120
+const COMBAT_TARGET_PORTRAIT_SIDE: int = 156
 const COMBAT_QUEUE_CARD_WIDTH: int = 104
 const COMBAT_QUEUE_ICON_SIDE: int = 48
 const COMBAT_GEAR_COLUMNS: int = 6
@@ -151,6 +151,28 @@ const COMBAT_STONE_BG := Color("17121f")
 const COMBAT_STONE_TEXT := Color("cdb4ff")
 const COMBAT_FLASH_COLOR := Color(1.0, 0.45, 0.4)
 const COMBAT_EMPTY_BORDER := Color("4a4030")
+## M17-07 atmosphere and effects (CombatFx).
+const COMBAT_AREA_HUE_START: float = 0.02
+const COMBAT_AREA_HUE_STEP: float = 0.618
+const COMBAT_AREA_SATURATION: float = 0.55
+const COMBAT_AREA_VALUE: float = 0.3
+const COMBAT_BREATH_SCALE: float = 1.05
+const COMBAT_BREATH_SEC: float = 1.6
+const COMBAT_HALO_ALPHA_MIN: float = 0.25
+const COMBAT_HALO_ALPHA_MAX: float = 0.85
+const COMBAT_HALO_SEC: float = 0.9
+const COMBAT_SHAKE_DEGREES: float = 0.8
+const COMBAT_SHAKE_SEC: float = 0.04
+## A hit taken is "heavy" (shake, bigger number) from this share of the player's maximum HP.
+const COMBAT_HEAVY_TAKEN_FRACTION: float = 0.15
+const COMBAT_BAR_EASE_SPEED: float = 8.0
+const COMBAT_PLAYER_BAR_HEIGHT: int = 24
+const COMBAT_LOW_HP_FRACTION: float = 0.25
+const COMBAT_LOW_HP_COLOR := Color("ff4d4d")
+const COMBAT_LOW_HP_SEC: float = 0.35
+const COMBAT_HIT_POP_SCALE: float = 1.5
+const COMBAT_HIT_HUGE_FONT_SIZE: int = 42
+const COMBAT_PARRY_COLOR := Color("7fb8ff")
 
 # Offline screens (M9-02).
 const OFFLINE_DIM := Color(0.02, 0.015, 0.03, 0.82)

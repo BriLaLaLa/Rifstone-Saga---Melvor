@@ -27,6 +27,8 @@ const KEY_VSYNC: String = "vsync"
 const KEY_FPS_LIMIT: String = "fps_limit"
 const KEY_VOLUME: String = "volume"
 const KEY_LOG_LEVEL: String = "log_level"
+## Reduced visual effects of the combat page (no breathing, pulses, shake, bar easing).
+const KEY_REDUCED_FX: String = "reduced_fx"
 
 const AUTO_SCALE_REFERENCE_HEIGHT: float = 1080.0
 const AUTO_SCALE_STEP: float = 0.25
@@ -43,6 +45,7 @@ const DEFAULTS: Dictionary[String, Variant] = {
 	KEY_FPS_LIMIT: 0,
 	KEY_VOLUME: 0.8,
 	KEY_LOG_LEVEL: 1,
+	KEY_REDUCED_FX: false,
 }
 
 ## Path of the settings file; tests point it to a scratch folder.
@@ -185,7 +188,7 @@ static func _is_valid(key: String, value: Variant) -> bool:
 			return value is int and int(value) >= 0 and int(value) < WINDOW_SIZES.size()
 		KEY_UI_SCALE:
 			return (value is float or value is int) and UI_SCALES.has(float(value))
-		KEY_VSYNC:
+		KEY_VSYNC, KEY_REDUCED_FX:
 			return value is bool
 		KEY_FPS_LIMIT:
 			return value is int and FPS_LIMITS.has(int(value))

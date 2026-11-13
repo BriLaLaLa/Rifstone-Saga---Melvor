@@ -7,6 +7,8 @@ extends PanelContainer
 ## HP numbers and the info line. The small variant is a column of the queue. The page passes the values read from
 ## `combat.get_state()` and the data; the card keeps only its nodes and a few presentation flags.
 
+const HALO_MARGIN: float = 8.0
+
 var large: bool = false
 
 var _fade: Tween = null
@@ -16,6 +18,12 @@ var _dead: bool = false
 var _last_hit_text: String = ""
 var _stone: bool = false
 var _hit_label: Label = null
+var _breath: Tween = null
+var _halo_tween: Tween = null
+var _halo: Panel = null
+## Presentation: HP bar value being eased towards the real one (large card only); -1 = snap on the next draw.
+var _hp_eased: float = -1.0
+var _hp_target: int = 0
 
 @onready var _box: BoxContainer = %Box
 @onready var _portrait: Control = %Portrait
@@ -62,6 +70,21 @@ func _ready() -> void:
 	UiStyle.style_bar(_hp_bar, UiStyle.HP)
 	UiStyle.style_bar(_timer_bar, UiStyle.COMBAT_TIMER_COLOR)
 	_icon.pivot_offset = _portrait.custom_minimum_size / 2.0
+	if large:
+		_halo = Panel.new()
+		_halo.name = "Halo"
+		_halo.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_halo.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		_halo.offset_left = -HALO_MARGIN
+		_halo.offset_top = -HALO_MARGIN
+		_halo.offset_right = HALO_MARGIN
+		_halo.offset_bottom = HALO_MARGIN
+		var glow: Color = UiStyle.COMBAT_STONE_BORDER
+		glow.a = 0.3
+		_halo.add_theme_stylebox_override("panel", UiStyle.flat(glow, UiStyle.COMBAT_STONE_BORDER, 3, 16.0))
+		_halo.visible = false
+		_portrait.add_child(_halo)
+		_portrait.move_child(_halo, 0)
 
 
 ## Width of a small card (the zone widens the cards to fill its row).
@@ -109,7 +132,12 @@ func set_hit_pct(player_pct: int, enemy_pct: int) -> void:
 ## Draws the values read from the session; `timer_ms` counts down to the attack.
 func redraw(hp: int, max_hp: int, timer_ms: int, interval_ms: int) -> void:
 	_hp_bar.max_value = maxf(1.0, max_hp)
-	_hp_bar.value = hp
+	_hp_target = hp
+	if large:  # the big card eases the bar (CombatFx.ease_bar); the small ones snap
+		_hp_eased = CombatFx.ease_bar(_hp_eased, float(hp), get_process_delta_time())
+		_hp_bar.value = _hp_eased
+	else:
+		_hp_bar.value = hp
 	_hp_label.text = CombatTexts.HP_TEXT % [NumberFormat.format_int(hp), NumberFormat.format_int(max_hp)]
 	var progress: float = 0.0
 	if interval_ms > 0 and hp > 0:
@@ -129,7 +157,7 @@ func redraw(hp: int, max_hp: int, timer_ms: int, interval_ms: int) -> void:
 ## Floating number or word over the portrait.
 func show_hit(text: String, color: Color, big: bool) -> void:
 	_last_hit_text = text
-	HitNumbers.spawn(_floaters, text, color, big)
+	HitNumbers.spawn(_floaters, text, color, big, big and large)
 
 
 ## Lunge towards the player when this enemy attacks.
@@ -158,11 +186,34 @@ func play_death() -> void:
 	_fade.tween_property(self, "modulate:a", UiStyle.COMBAT_DEAD_ALPHA, UiStyle.COMBAT_DEATH_FADE_SEC)
 
 
+## Starts the ambient loops of the big card: the breathing icon and the pulsing halo of a Monolith. Not in the compact
+## view (the caller does not show the card) and not with reduced effects.
+func start_ambient() -> void:
+	stop_ambient()
+	if not large:
+		return
+	_breath = CombatFx.breathe(_icon)
+	_halo.visible = _stone
+	if _stone:
+		_halo_tween = CombatFx.pulse(_halo)
+
+
+func stop_ambient() -> void:
+	for tween: Tween in [_breath, _halo_tween]:
+		if tween != null and tween.is_valid():
+			tween.kill()
+	_icon.scale = Vector2.ONE
+	if _halo != null:
+		_halo.visible = false
+
+
 ## Stops animations and removes the numbers (end of the combat, or another enemy shown in this card).
 func clear_effects() -> void:
 	for tween: Tween in [_fade, _lunge, _flash]:
 		if tween != null and tween.is_valid():
 			tween.kill()
+	stop_ambient()
+	_hp_eased = -1.0
 	_icon.position.x = 0.0
 	_icon.modulate = Color.WHITE
 	modulate.a = UiStyle.COMBAT_DEAD_ALPHA if _dead else 1.0
@@ -186,7 +237,7 @@ func floater_count() -> int:
 
 ## HP bar value, for tests.
 func shown_hp() -> int:
-	return int(_hp_bar.value)
+	return _hp_target
 
 
 ## Attack bar fraction (0..1), for tests.

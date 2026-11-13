@@ -18,6 +18,8 @@ var _shown_index: int = -2
 ## Presentation: the compact view (docs/METIN.md Z6) is shown instead of the cards.
 var _compact: bool = false
 var _crowd: CrowdView = null
+var _backdrop: TextureRect = null
+var _atmosphere_area: StringName = &"?"
 
 @onready var _title: Label = %TargetTitle
 @onready var _count: Label = %CountLabel
@@ -34,6 +36,9 @@ func _ready() -> void:
 	_title.text = CombatTexts.TARGET_TITLE
 	_title.add_theme_color_override("font_color", UiStyle.COMBAT_TARGET_BORDER_COLOR)
 	_queue_title.add_theme_color_override("font_color", UiStyle.COMBAT_TARGET_BORDER_COLOR)
+	_backdrop = CombatFx.make_backdrop()
+	add_child(_backdrop)
+	move_child(_backdrop, 0)
 	_target_card = CARD_SCENE.instantiate() as EnemyCard
 	_target_card.large = true
 	_target_card.name = "TargetCard"
@@ -50,6 +55,7 @@ func _ready() -> void:
 ## Redraws from `state` (`combat.get_state()`); `session` gives the data and the player's style.
 func refresh(session: GameSession, state: Dictionary) -> void:
 	var enemies: Array = state["enemies"]
+	_set_atmosphere(session, StringName(state.get("area", &"")))
 	if _set_compact(session, state):
 		_crowd.refresh(session, state)
 		_count.text = CombatTexts.ENEMY_COUNT_TEXT % [int(state["enemies_alive"]), enemies.size()]
@@ -104,6 +110,19 @@ func _set_compact(session: GameSession, state: Dictionary) -> bool:
 	return compact
 
 
+## Gradient and tint of the zone from the rank of the running area in the ordered list of areas (no tween, no cost).
+func _set_atmosphere(session: GameSession, area_id: StringName) -> void:
+	if area_id == _atmosphere_area:
+		return
+	_atmosphere_area = area_id
+	var tint: Color = UiStyle.COMBAT_ENEMY_BG
+	var areas: Array[AreaDef] = session.data.areas()
+	for i: int in areas.size():
+		if areas[i].id == area_id:
+			tint = CombatFx.area_tint(i)
+	(_backdrop.texture as GradientTexture2D).gradient.colors = PackedColorArray([tint, UiStyle.COMBAT_ENEMY_BG])
+
+
 func is_compact() -> bool:
 	return _compact
 
@@ -123,6 +142,7 @@ func _redraw_target(session: GameSession, enemies: Array, target: int, player_st
 		_target_card.setup(EnemyView.name_of(session.data, id), EnemyView.icon_of(session.data, id), "",
 				EnemyView.info_text(session.data, id))
 		_target_card.set_stone(EnemyView.is_stone(session.data, id))
+		_target_card.start_ambient()
 		_shown_index = target
 	var enemy: Dictionary = enemies[target]
 	_target_card.redraw(enemy["hp"], enemy["max_hp"], enemy["timer_ms"], enemy["interval_ms"])

@@ -31,7 +31,7 @@ func test_defaults_without_file() -> void:
 func test_keys_are_the_contract_ones() -> void:
 	var keys: Array = GameSettings.DEFAULTS.keys()
 	keys.sort()
-	assert_eq(keys, ["fps_limit", "log_level", "ui_scale", "volume", "vsync", "window_mode", "window_size"])
+	assert_eq(keys, ["fps_limit", "log_level", "reduced_fx", "ui_scale", "volume", "vsync", "window_mode", "window_size"])
 
 
 func test_save_and_reload_round_trip() -> void:

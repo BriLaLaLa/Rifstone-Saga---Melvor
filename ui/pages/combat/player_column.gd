@@ -4,9 +4,8 @@ extends PanelContainer
 ## triangle reminder, HP and attack bars, ability slots with their cooldown, trait slots and the 12-slot equipment
 ## grid with the shared piece tooltip.
 ##
-## `refresh_static` rereads names, loadout and equipment (called on the matching signals); `tick` moves the bars and the
-## cooldowns every frame from `combat.get_state()`. The column keeps only its nodes (the cards of the ability slots by
-## position) and a flag for the tooltip; abilities and traits come from `session.loadout`.
+## `refresh_static` rereads names, loadout, equipment (on the matching signals); `tick` moves bars and cooldowns every
+## frame from `combat.get_state()`. Keeps only its nodes and presentation flags; abilities and traits: `session.loadout`.
 
 var _session: GameSession = null
 var _gear: Dictionary[StringName, GearCell] = {}
@@ -18,6 +17,12 @@ var _entry_flash: Dictionary[StringName, Tween] = {}
 var _hovering: bool = false
 var _flash: Tween = null
 var _last_hit_text: String = ""
+## Presentation: eased HP bar value (-1 = snap on the next draw), low-HP state, effect tweens.
+var _hp_eased: float = -1.0
+var _hp_target: int = 0
+var _low_hp: bool = false
+var _low_tween: Tween = null
+var _shake: Tween = null
 
 @onready var _portrait: Control = %Portrait
 @onready var _frame: Panel = %Frame
@@ -53,7 +58,7 @@ func _ready() -> void:
 	_abilities_title.text = CombatTexts.ABILITIES_TITLE
 	_traits_title.text = CombatTexts.TRAITS_TITLE
 	_gear_title.text = CombatTexts.GEAR_TITLE
-	_hp_bar.custom_minimum_size.y = UiStyle.COMBAT_BAR_HEIGHT
+	_hp_bar.custom_minimum_size.y = UiStyle.COMBAT_PLAYER_BAR_HEIGHT
 	_timer_bar.custom_minimum_size.y = UiStyle.COMBAT_TIMER_BAR_HEIGHT
 	_hp_bar.show_percentage = false
 	_timer_bar.show_percentage = false
@@ -101,7 +106,10 @@ func tick(state: Dictionary) -> void:
 	var hp: int = state["player_hp"]
 	var max_hp: int = state["player_max_hp"]
 	_hp_bar.max_value = maxf(1.0, max_hp)
-	_hp_bar.value = hp
+	_hp_target = hp
+	_hp_eased = CombatFx.ease_bar(_hp_eased, float(hp), get_process_delta_time())
+	_hp_bar.value = _hp_eased
+	_set_low_hp(max_hp > 0 and hp > 0 and float(hp) / float(max_hp) < UiStyle.COMBAT_LOW_HP_FRACTION)
 	_hp_label.text = CombatTexts.HP_NUMBERS_TEXT % [NumberFormat.format_int(hp), NumberFormat.format_int(max_hp)]
 	var interval: int = state["player_interval_ms"]
 	_atk_label.text = CombatTexts.SECONDS_TEXT % CombatTexts.seconds_text(interval)
@@ -134,9 +142,14 @@ func _tick_ability(card: Dictionary, entry: Dictionary, buffs: Dictionary) -> vo
 # --- Hits on the player ---
 
 ## Floating number over the portrait, with a red flash when the hit really landed.
-func show_hit(text: String, color: Color, big: bool, flash: bool) -> void:
+## `big`: heavy hit taken (bigger number and a small shake of the panel, unless `compact` or reduced effects).
+func show_hit(text: String, color: Color, big: bool, flash: bool, compact: bool = false) -> void:
 	_last_hit_text = text
-	HitNumbers.spawn(_floaters, text, color, big)
+	HitNumbers.spawn(_floaters, text, color, big, big)
+	if big and flash and not compact:
+		CombatFx.kill(_shake)
+		rotation = 0.0
+		_shake = CombatFx.shake(self)
 	if flash:
 		if _flash != null and _flash.is_valid():
 			_flash.kill()
@@ -145,9 +158,19 @@ func show_hit(text: String, color: Color, big: bool, flash: bool) -> void:
 		_flash.tween_property(_icon, "modulate", Color.WHITE, UiStyle.COMBAT_FLASH_SEC)
 
 
+func _set_low_hp(low: bool) -> void:
+	if low != _low_hp:
+		_low_hp = low
+		CombatFx.kill(_low_tween)
+		_low_tween = CombatFx.low_hp_pulse(_hp_bar, low)
+
+
 func clear_effects() -> void:
-	if _flash != null and _flash.is_valid():
-		_flash.kill()
+	CombatFx.kill(_shake)
+	CombatFx.kill(_flash)
+	rotation = 0.0
+	_hp_eased = -1.0
+	_set_low_hp(false)
 	_icon.modulate = Color.WHITE
 	HitNumbers.clear(_floaters)
 
@@ -324,7 +347,7 @@ func hit_text() -> String:
 
 
 func shown_hp() -> int:
-	return int(_hp_bar.value)
+	return _hp_target
 
 
 func shown_timer() -> float:
