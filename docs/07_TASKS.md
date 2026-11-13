@@ -1907,3 +1907,24 @@ I nomi e i testi di gioco vengono da `NOMI.md` (sezione Alpha); nulla da Melvor 
 | M18-03 | QA e integrazione, tag `m18-done` | QA, REV | 01, 02 | `run_checks.ps1` verde dopo il merge |
 
 Falegname (V7): nessun task finché non c'è la decisione.
+
+## M19 — Villaggio: edifici a box (V7; fonte `docs/M19_VILLAGGIO.md`, `01_GDD.md` §30, `02_FORMULAS.md` §5h, `04_DATA_SCHEMA.md` §24, `05_INTERFACES.md` §5.27 e §7.t)
+Max 2 agenti insieme. **M19-02 e M19-03 vanno in parallelo** (file distinti, contratto fisso da M19-01); la UI si sviluppa contro lo stub del contratto, REV collega i due in M19-04.
+| ID | Titolo | Ruolo | Dipende | Accettazione |
+|---|---|---|---|---|
+| M19-01 | Design: GDD §30, F-131…F-133, schema §24, contratto `Village`, `tools/sim_village.gd`, task | REV | M18-03 | **DONE**: numeri fissati; sim: massimo 0,84 h per livello, 4,0 h per edificio (tabella in `02_FORMULAS.md` F-131) |
+| M19-02 | Modulo `Village`, dati edifici generati, stat `deposit_slots`, `Deposit` con F-133, save, composizione | CORE, DATA | 01 | esempi di F-131, F-132, F-133 = test; `validate_data` verde (fixture e dati veri); `tools/sim_village.gd` (che ora legge i dati veri) esce 0; salvataggio e caricamento; nessun file > 400 righe |
+| M19-03 | Pagina Villaggio a box, voce nella sidebar | UI | 01 | smoke test con lo stub del contratto; nessuno stato di gioco nella UI; layout a 1280×720 |
+| M19-04 | QA e integrazione, smoke su sessione vera, `run_checks`, tag `m19-done` | QA, REV | 02, 03 | `run_checks.ps1` verde dopo il merge; sim eseguita sui dati veri e tabella ore/livello confermata (cap 1,0 h per livello) |
+
+### M19-02 — dettaglio
+- **Leggere**: `01_GDD.md` §30, `02_FORMULAS.md` §5h e §8.1/§8.2 (id), `04_DATA_SCHEMA.md` §24, `05_INTERFACES.md` §5.2, §5.3, §5.11 (Shop come modello), §5.20 (Deposit), §5.27, §6.
+- **Ownership**: `res://systems/village/village.gd`; `res://core/data/defs/village_building_def.gd`, `res://core/data/data_validator_village.gd`, `res://core/data/game_data.gd` (accessori + caricamento del file), `res://core/data/data_validator.gd` (solo la riga che chiama il validatore nuovo), `res://core/common/reasons.gd` (`NOT_BUILDABLE`, `MAX_LEVEL`), `res://core/autoload/event_bus.gd` (`village_upgraded`), `res://core/session/game_session.gd` (campo e due righe di composizione), `res://systems/deposit/deposit.gd` (F-133),
+  `res://data/village/buildings.json` (generato), `res://data/config/balance.json` (solo `village`), `res://data/config/stats.json` (solo `deposit_slots`), `res://tools/gen_village.gd`, `res://tests/systems/village/**`, `res://tests/systems/deposit/test_deposit.gd` (solo il test nuovo), `res://tests/fixtures/data/**` (solo le fixture del Villaggio), i test di `tests/data/` strettamente necessari.
+- **Test**: `test_village_cost.gd` (esempi di F-131 e rigenerazione = file), `test_village_effects.gd` (esempi di F-132: ogni stat letta con la sorgente `village:<id>`), `test_village.gd` (ogni motivo di `can_upgrade` nell'ordine; `upgrade` atomico; effetto e `village_upgraded`; a livello massimo `max_level`; segnaposto `not_buildable`; salvataggio e caricamento tollerante), `test_deposit.gd::test_capacity_uses_deposit_slots` (88 = 60 + 16 + 12).
+- **Fuori ownership** (chi li tocca lo segnala): `ui/**`, `tools/sim_village.gd` (resta quello di M19-01; se serve cambiarlo, richiesta al Reviewer).
+
+### M19-03 — dettaglio
+- **Leggere**: `01_GDD.md` §30, `05_INTERFACES.md` §5.27 e §7.t, `09_CONVENTIONS.md` (UI), un `*_page.gd` esistente (es. `ui/pages/shop/`) come modello.
+- **Ownership**: `res://ui/pages/village/**` (`village_page.gd/.tscn`, `village_box.gd/.tscn`, `village_texts.gd`), `res://ui/screens/main/page_host.gd` (solo la voce `village`), `res://ui/screens/main/sidebar.gd` (solo la voce Villaggio), `res://tests/ui/test_village_page_smoke.gd`, `res://tests/ui/pages/village/**`, `res://tests/helpers/village_stub.gd` (stub con le **stesse firme** di `Village`, 5.27, per lo smoke test; dati finti a due livelli).
+- **Accettazione**: un solo smoke test per la pagina (con lo stub): 5 box costruibili e 2 segnaposto; il pulsante è disabilitato con il motivo quando `can_upgrade` non è ok, abilitato altrimenti; `upgrade` chiamato una volta per clic; nessun testo esatto verificato. Nessun accesso a `Village` oltre le firme di 5.27; nessuna copia di stato. Se `GameSession.village` non esiste ancora (M19-02 non mergiata) la pagina non viene aperta dalla sidebar nei test.

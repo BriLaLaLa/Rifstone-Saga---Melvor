@@ -578,6 +578,7 @@ var shop: Shop; var rift: RiftAltar   # rift: M8
 var hints: HintsSystem            # M9 (null prima)
 var deposit: Deposit; var helpers: HelperSystem   # M12-01 / M12-02 (null prima)
 var cards: CardStore; var fractures: FractureSystem   # M13-01 / M13-02 (null prima)
+var village: Village              # M19-02 (null prima): edifici del Villaggio, 5.27
 var slot: int; var player_name: String; var created_at_unix_ms: int; var play_time_ms: int
 func _init(game_data: GameData, game_events: GameEvents, rng_seed: int) -> void
 func new_game() -> void                                  # stato iniziale 01_GDD §1.1 + rebuild_modifiers
@@ -1376,6 +1377,7 @@ func unequip_bag(slot_index: int) -> CommandResult
 - `used()` conta anche le borse non messe negli slot (sono oggetti della Bank). Le borse negli slot non occupano caselle.
 - Save (§6): `{"bags": [id | "", …]}` con esattamente `bag_slot_count()` voci. `from_save` tollerante: `bags` non lista → tutto vuoto; voce non stringa, id sconosciuto o non `bag` → `Log.warn` e slot vuoto; lista più lunga → troncata, più corta → completata con vuoti. Non controlla la capienza (le caselle già occupate non si perdono). Nessun segnale; `new_game` = slot vuoti.
 - Ordine in `_create_systems()`: `wallet`, **`deposit`**, `bank` (si registra come occupante), … `armory` (si registra come occupante). `from_save` ricarica `deposit` prima di `bank`.
+- **M19 (F-133)**: `Deposit` riceve il `ModifierService` e somma `floor(total(deposit_slots))` a `capacity()`; ascolta `modifiers_changed` e chiama `notify_changed()`. Dettagli in 5.27.
 
 ### 5.21 HelperSystem (`systems/helpers/helper_system.gd`, M12; F-101, F-102) — dipendenze: data, events, modifiers, bank, deposit, skills, mastery, rng
 ```gdscript
@@ -1728,9 +1730,46 @@ func to_save() -> Dictionary           # {"stacks": [{"item", "qty"}], "pieces":
 - **V10**: nessun cambiamento di contratto. La sezione Pezzi del Deposito e la pagina Equipaggiamento leggono entrambe `Armory` (pezzi non indossati) e `LootBag` (pezzi non raccolti); nessuna copia, nessun segnale o metodo nuovo.
 - **V1, V2, V11**: le firme (precisione visibile, moltiplicatore XP, riduzione del drop degli evocati) le fissa M17-01 dopo F-129/F-130; fino ad allora valgono le firme esistenti. Save `format_version` 6 invariata.
 
+### 5.27 Village (`systems/village/village.gd`, M19; `01_GDD.md` §30, `02_FORMULAS.md` F-131…F-133, `04_DATA_SCHEMA.md` §24) — dipendenze: data, events, modifiers, bank, wallet, skills
+```gdscript
+class_name Village extends RefCounted
+const SAVE_KEY := &"village"
+func _init(session: GameSession) -> void                       # come Shop: legge data, events, modifiers, bank, wallet, skills dalla sessione
+func buildings() -> Array[StringName]                          # id di tutti gli edifici, compresi i segnaposto, in ordine di `order`
+func is_buildable(building_id: StringName) -> bool             # false per i segnaposto (market, noticeboard) e per id sconosciuti
+func level(building_id: StringName) -> int                     # 0 = non costruito; 0 per id sconosciuti
+func max_level() -> int                                        # balance village.max_level
+func effect_at(building_id: StringName, at_level: int) -> float   # F-132: per_level × at_level (0 se at_level < 1 o id non costruibile)
+func next_cost(building_id: StringName) -> Dictionary          # costo del livello successivo: {"gold": int, "items": [{"item": StringName, "qty": int}], "requires_woodwright": int}; {} se al massimo, segnaposto o sconosciuto
+func can_upgrade(building_id: StringName) -> CommandResult     # in ordine: unknown_id, not_buildable, max_level, level_too_low, not_enough_gold, not_enough_items
+func upgrade(building_id: StringName) -> CommandResult         # stessi controlli; poi spende l'oro, toglie gli oggetti dal Bank (anche se bloccati), level + 1, rebuild della sorgente, village_upgraded
+func rebuild_modifiers() -> void                               # sorgente `village:<id>` per ogni edificio con livello ≥ 1: un Modifier {stat, value = effect_at(id, level), scope}; nessuna sorgente a livello 0
+func new_game() -> void; func to_save() -> Dictionary; func from_save(d: Dictionary) -> void
+```
+- **Un solo comando** per costruire e migliorare (`upgrade`): costruire è il passaggio 0 → 1. Nessun timer, nessun `advance`, nessun caso offline, nessuna demolizione. I controlli di `can_upgrade` non cambiano nulla;
+  `upgrade` è atomico: dopo `can_upgrade` ok non può fallire a metà (oro con `Wallet.spend`, poi `Bank.remove` per ogni riga; se una riga fallisse comunque, `push_error` e oro restituito: caso non raggiungibile da `can_upgrade` ok).
+- `level_too_low`: `skills.get_level(&"woodwright") < requires_woodwright`. `max_level`: `level(id) ≥ max_level()` (motivo nuovo, §Reasons). `not_buildable`: nuovo motivo. `not_enough_gold`/`not_enough_items` esistono già in `Reasons`.
+- I costi e gli effetti vengono dai livelli generati in `buildings.json` (`levels[n−1]`), non si ricalcolano a runtime; il test di coerenza con F-131 sta nel validatore e in `test_village_cost.gd`.
+- **Segnale** nuovo in `EventBus`: `signal village_upgraded(building_id: StringName, new_level: int)` (emesso dopo i modificatori). `modifiers_changed` lo emette già il `ModifierService`. Nessun altro segnale (la UI si aggiorna anche con `bank_changed`, `gold_changed`, `level_up`).
+- **Reasons nuovi** (`core/common/reasons.gd`): `NOT_BUILDABLE := &"not_buildable"`, `MAX_LEVEL := &"max_level"`.
+- **Save** (§6): `modules.village = {"levels": {building_id: int}}`, solo gli edifici con livello ≥ 1. `from_save` tollerante, con `Log.warn`: `levels` non oggetto → tutto a 0; id sconosciuto o segnaposto → scartato; valore non intero o ≤ 0 → scartato; valore oltre `max_level` → limitato. Chiave assente = partita nuova (nessun edificio).
+  **Nessuna migrazione e `format_version` invariata (7)**: è un modulo nuovo e additivo, come `discoveries` e `cards` (§6, "chiavi assenti in `modules` = stato di partita nuova"); un save v7 senza `village` si carica con tutti gli edifici a 0 e un save con `village` caricato da una build che non lo conosce lo scarta con `Log.warn` (modulo sconosciuto, §5.3). M20 (Mercato, Bacheca) aggiungerà i suoi dati con la stessa regola o con una migrazione se cambia un formato esistente.
+- **Composizione** in `GameSession` (§5.3): campo `var village: Village` (null prima di M19-02). In `_create_systems()`, dopo `shop` (dipende da bank, wallet, skills): `village = Village.new(self)` e
+  `_join(Village.SAVE_KEY, village.new_game, village.to_save, village.from_save, village.rebuild_modifiers)`. `rebuild_modifiers` va dopo `skills` e `deposit`; `_tick`: nessuno. La chiave `village` non è usata dai `FakeSystem` dei test. `game_session.gd` resta ≤ 200 righe (due righe di composizione).
+- **Dati**: `GameData.village_building(id) -> VillageBuildingDef` e `village_buildings() -> Array[VillageBuildingDef]` (ordine di `order`); campi di `VillageBuildingDef`: `id`, `name`, `description`, `icon`, `order`, `buildable`, `milestone`, `effect_stat`, `effect_scope`, `effect_per_level`, `levels: Array[Dictionary]` (voci di §24 con `items` come `[{item: StringName, qty: int}]`). La UI usa solo `Village` e i `*Def` per nome, descrizione, icona e testi.
+- **Deposit** (modifica a 5.20): `Deposit.capacity()` = `deposit.base_slots + extra_slots() + floor(modifiers.total(&"deposit_slots"))` (F-133). Il costruttore o un `bind_modifiers(m: ModifierService) -> void` (chiamato da `GameSession` prima di `bank`) dà a `Deposit` il `ModifierService` (dipendenza nuova: `modifiers`; resta senza dipendenze da `Bank`/`Armory`/`Village`). `Deposit` ascolta `events.modifiers_changed` e chiama `notify_changed()` (emette `deposit_changed` solo se `capacity` è cambiata). `unequip_bag` usa la `capacity'` che include `deposit_slots`.
+- **UI** (§7.t, sola lettura e comandi): la pagina legge `session.village`, `session.data`, `session.skills`, `session.wallet`, `session.bank`; nessuna copia di stato; si aggiorna con `village_upgraded`, `bank_changed`, `gold_changed`, `level_up`.
+
+### 7.t UI del Villaggio (M19-03; nessuno stato di gioco nella UI, solo letture e comandi; `01_GDD.md` §30)
+- Cartella `ui/pages/village/`: `village_page.gd/.tscn`, `village_box.gd/.tscn` (un box per edificio), `village_texts.gd` (testi italiani: nomi dei motivi di `can_upgrade`, "Costruisci", "Migliora", "In arrivo", "Livello n/8", "Richiede Falegname n", "Mancano k" per riga); ogni file < 400 righe.
+- `page_host.gd`: voce `&"village"` → `res://ui/pages/village/village_page.tscn`; `sidebar.gd`: voce `{"page": &"village", "text": "Villaggio", "icon": ...}` dopo `shop`.
+- Il box mostra: nome, `Livello n/8`, effetto attuale e del livello successivo (da `Village.effect_at`), costo (`Village.next_cost`) riga per riga con "posseduti/richiesti" (da `Bank.get_count`), oro, requisito del Falegname, e il pulsante (`Costruisci` se livello 0, `Migliora` altrimenti, nascosto a livello massimo con la scritta "Livello massimo"); disabilitato se `can_upgrade` non è ok, con il motivo accanto. I segnaposto sono box grigi "In arrivo" senza pulsante.
+- Layout leggibile a 1280×720 (Q87): 5 + 2 box in una griglia che va a capo.
+
+
 ## 6. Formato del salvataggio (`user://saves/slot_<n>.json`)
 
-Versione **7 da M17** (v6 da M15 e v5 da M14 si migrano; vedi sotto); v5 da M14 (v4 da M12, v3 da M10, v2 da M4-03, D3). Un save v1, v2, v3 o **v4 non si carica** (`version_unsupported`, nessuna migrazione: nessun giocatore reale ancora; M14 cambia il significato di `damage_reduction`, le basi dei pezzi e aggiunge `discoveries`). `SaveMigrator.CURRENT_VERSION` = 5.
+Versione **7 da M17** (M19: il modulo `village` è additivo, versione invariata) (v6 da M15 e v5 da M14 si migrano; vedi sotto); v5 da M14 (v4 da M12, v3 da M10, v2 da M4-03, D3). Un save v1, v2, v3 o **v4 non si carica** (`version_unsupported`, nessuna migrazione: nessun giocatore reale ancora; M14 cambia il significato di `damage_reduction`, le basi dei pezzi e aggiunge `discoveries`). `SaveMigrator.CURRENT_VERSION` = 5.
 **Save v7 e migrazione v6 → v7 (M17-04, `core/save/migrations/migration_6_to_7.gd`)**: `SaveMigrator.CURRENT_VERSION` = 7; v5 e v6 si migrano in catena, v1-v4 restano `version_unsupported`. Le 10 aree strette sostituiscono le 4 larghe (`02_FORMULAS.md` §8.5). Nessuna chiave nuova, cambiano i valori in `modules`:
 - `combat.area` e `fractures.run.return_area`: se non nomina più un'area esistente diventa **l'area che contiene il livello del personaggio** (la più alta il cui `level_min` non supera il livello; livello 1 se manca l'XP); un'area ancora esistente resta.
 - Incontro in corso (`encounter`, `riftstone`, `between`): riparte come `between` con `enemies = []` ed `effects = {}` (i mostri vecchi hanno altre statistiche); `wave` rimosso; il Monolito in attesa è annullato e il contatore riparte (`stone` = `{since: 0, pending: false, stone_id: ""}`). Bottino, uccisioni, morti, cibo e stato delle Fratture restano.
@@ -1780,7 +1819,8 @@ Versione **7 da M17** (v6 da M15 e v5 da M14 si migrano; vedi sotto); v5 da M14 
     "hints": {"seen": ["first_action"]},
     "cards": {"next_uid": 3, "items": [{"uid": 2, "base": "fracture_card_2", "rarity": "magic", "mods": [{"mod": "sturdy", "step": 5}], "locked": false}]},
     "fractures": {"run": {}, "pending": {}},
-    "discoveries": {"items": ["redbirch_log", "emberbronze_sword"]}
+    "discoveries": {"items": ["redbirch_log", "emberbronze_sword"]},
+    "village": {"levels": {"storehouse": 3, "forge": 1}}
   }
 }
 ```

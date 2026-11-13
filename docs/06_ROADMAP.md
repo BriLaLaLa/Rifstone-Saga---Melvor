@@ -251,9 +251,21 @@ B1: livello 99 in **319,6 ore** (obiettivo 250-350; prima della taratura 175), 1
 
 ## M18: Incisore e Fabbro (Falegname rimandato, V7)
 **Contenuto**: ricette di basso livello dell'Incisore e XP da disincantare/fondere; riordino della sottoscheda del Fabbro.
-**Task** M18-01…M18-03 (`07_TASKS.md`); tag `m18-done`. Falegname: nessun task finché non c'è la decisione (Q84).
+**Task** M18-01…M18-03 (`07_TASKS.md`); tag `m18-done`. Falegname: Villaggio in M19 (Q84 risolta).
 
-## M19+: Seconda classe, dungeon, altri boss (dopo M18; era M16+)
+## M19: Villaggio, edifici a box (V7)
+**Fonte**: `M19_VILLAGGIO.md`; design in `01_GDD.md` §30, `02_FORMULAS.md` §5h (F-131…F-133), `04_DATA_SCHEMA.md` §24, `05_INTERFACES.md` §5.27 e §7.t.
+**Contenuto**: pagina Villaggio con 5 edifici unici a 8 livelli (Magazzino, Locanda, Fucina, Segheria, Rimessa del bottino), pagati con oro e componenti di Falegname, Fabbro e Cuoco; effetti solo di comodità via `ModifierService`; costruzione istantanea; segnaposto di Mercato e Bacheca.
+**Task** M19-01…M19-04 (`07_TASKS.md`); M19-02 (CORE+DATA) e M19-03 (UI) in parallelo; tag `m19-done`.
+**Giocabile**: costruire e migliorare gli edifici con i materiali dei legni 1-8; ogni livello costa al massimo 0,84 h di raccolta e oro (sim).
+
+## M20: Bacheca, quest e Mercato
+Bacheca con quest e ricompense, shop esclusivi del Mercato (i due segnaposto di M19 diventano costruibili); si progetta in M20-01 (REV). Può aggiungere un modulo al save (regola additiva, o una migrazione se cambia un formato).
+
+## M21: Mappa del Villaggio
+Mappa dell'insediamento sullo schema di `combat_map.gd`; si progetta in M21-01.
+
+## M22+: Seconda classe, dungeon, altri boss (dopo M21; era M19+)
 Seconda classe con le sue armi (es. arco o bastone, con i suoi progetti e componenti del Falegname), supporti delle abilità,
 altri boss, dungeon a ondate, oggetti unici, elementi e resistenze.
 

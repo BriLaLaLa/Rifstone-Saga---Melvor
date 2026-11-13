@@ -508,7 +508,7 @@ Fonte: decisioni W1-W7 (`DECISIONS_LOG.md`). Tutti i valori sono **valori di par
 tarare in M12-07 con `tools/sim_combat.gd` (Q58-Q61); gli esempi sono casi di test e cambiano insieme ai valori.
 
 ### F-100 Capienza del Deposito
-`capacity = deposit.base_slots + Σ slots delle borse negli slot borsa` (`deposit.base_slots = 60`, `deposit.bag_slots = 6`;
+`capacity = deposit.base_slots + Σ slots delle borse negli slot borsa + floor(T(deposit_slots))` (M19, F-133) (`deposit.base_slots = 60`, `deposit.bag_slots = 6`;
 una borsa è un oggetto `category: bag` con `bag.slots`, §8.6b). `used = caselle della Bank (un tipo di oggetto impilato = 1)
 + pezzi dell'Armeria non indossati (1 ciascuno) + Carte della Frattura (M13, 1 ciascuna)`; `free = capacity − used`. Le borse messe negli slot borsa **non** occupano
 caselle; una borsa fuori dagli slot è un oggetto della Bank (1 casella). Il solo scopo della capienza è accettare o rifiutare
@@ -728,6 +728,42 @@ Esempi (= test), `xp` 1.000 e `kill_xp_mult` 0,05 (50 a `d = 0`): `d = 0` → **
 `d = −8` (0,1111) → **5**; `d = −9` → **0**; `d = −15` → **0**. Con pct +25 di `skill_xp_pct`: `d = +5` → floor(62 × 1,25) = **77**.
 Test (M17-03): `tests/systems/combat/test_combat_engine.gd::test_kill_xp_level_diff` e `tests/systems/combat/test_combat_math.gd::test_xp_level_mult`, `test_monster_xp_by_level`.
 Effetto sul gioco: restare in un'area di livelli molto più bassi non dà più XP (zero oltre 9 livelli sotto); le aree più alte del proprio livello premiano (fino a +50%) e sono l'incentivo a salire.
+
+## 5h. Villaggio (F-131…F-133; M19, V7; numeri fissati da M19-01 con `tools/sim_village.gd`)
+
+Parametri in `balance.json` sotto `village` (§9). Il livello di un edificio `n` ∈ 1…`village.max_level` (8) ha **gradino** `n` (1…8): il legno, il metallo e il pesce
+del gradino `n` di §8.1 (id nelle liste sotto; i livelli del Falegname sono quelli dei gradini). Nessun esempio qui dipende da un arrotondamento diverso da quelli scritti.
+
+### F-131 Costo di un livello
+`wood_base(n) = qty.wood.base + qty.wood.per_level × n`, `plate_base(n) = qty.plate.base + qty.plate.per_level × n`, `food_base(n) = qty.food.base + qty.food.per_level × n`
+(valori `20+20n`, `4+4n`, `10+6n`). Ogni edificio ha in `cost_spec` (`04_DATA_SCHEMA.md` §24) i **pesi**: righe di legno `{component, weight}`, `plate`, `food`, `gold_weight` (0 = riga assente).
+- Riga di legno: `qty = max(1, ceil(weight × wood_base(n)))` dell'oggetto `<legno_n>_<component>`; riga piastre: `ceil(plate × plate_base(n))` di `<metallo_n>_plate`; riga cibo: `ceil(food × food_base(n))` di `seared_<pesce_n>`.
+- Oro: `gold(n) = round10(gold_base × gold_growth^(n−1) × gold_weight)` con `gold_base = 300`, `gold_growth = 1,4`, `round10(x) = floor(x / 10 + 0,5) × 10`.
+- Requisito: livello del Falegname `woodwright_levels[n−1]` = 1, 10, 20, 30, 45, 60, 75, 90.
+- Legni: redbirch, ashpine, thornalder, duskelm, shardcedar, veilcypress, emberlarch, riftspruce. Metalli: emberbronze, ashlead, stormzinc, duskcobalt, glimmerite, palecinnabar, emberheart, riftite. Pesci: brookfin, ashgill, redscale, dusk_eel, shard_gar, mist_barbel, ember_sturgeon, riftmaw.
+- Gli id dei componenti sono quelli dei dati (verificati); il generatore `tools/gen_village.gd` deve fallire se un oggetto non esiste.
+
+Tabelle generate: `gold(n)` base (peso 1): **300, 420, 590, 820, 1.150, 1.610, 2.260, 3.160**; `wood_base`: 40, 60, 80, 100, 120, 140, 160, 180; `plate_base`: 8, 12, 16, 20, 24, 28, 32, 36; `food_base`: 16, 22, 28, 34, 40, 46, 52, 58.
+Pesi (valori di partenza, in `buildings.json`): Magazzino: `shieldcore` 0,5, `plate` 0,5, `gold_weight` 1,0; Locanda: `grip` 0,5, `food` 1,0, `gold_weight` 0,8; Fucina: `handle` 0,5, `plate` 1,0, `gold_weight` 1,0; Segheria: `grip` 0,75 e `handle` 0,75, `gold_weight` 0,6; Rimessa del bottino: `handle` 0,5, `plate` 0,5, `gold_weight` 0,8.
+
+Esempi (= test, `tests/systems/village/test_village_cost.gd`):
+- Magazzino livello 3: 40 `thornalder_shieldcore` (⌈0,5 × 80⌉), 8 `stormzinc_plate` (⌈0,5 × 16⌉), oro 590 (588 → 590), Falegname 20.
+- Locanda livello 8: 90 `riftspruce_grip` (⌈0,5 × 180⌉), 58 `seared_riftmaw` (⌈1,0 × 58⌉), oro 2.530 (0,8 × 3.162,4 = 2.529,9 → 2.530), Falegname 90.
+- Fucina livello 1: 20 `redbirch_handle` (⌈0,5 × 40⌉), 8 `emberbronze_plate`, oro 300, Falegname 1.
+- Segheria livello 5: 90 `shardcedar_grip` e 90 `shardcedar_handle` (⌈0,75 × 120⌉), oro 690 (0,6 × 1.152,48 = 691,5 → 690), Falegname 45.
+- Rimessa livello 2: 30 `ashpine_handle`, 6 `ashlead_plate`, oro 340 (0,8 × 420 = 336 → 340), Falegname 10.
+
+**Ore per livello (`tools/sim_village.gd`, tassi dei dati senza aiutanti né maestria, oro con l'oro/h di `sim_combat`; M19-01).** Materiali + oro per livello 1…8 (ore): Magazzino 0,39 · 0,28 · 0,30 · 0,52 · 0,46 · 0,54 · 0,66 · 0,84 (somma 4,00); Locanda 0,31 · 0,22 · 0,23 · 0,40 · 0,34 · 0,40 · 0,48 · 0,60 (2,97);
+Fucina 0,39 · 0,28 · 0,31 · 0,52 · 0,46 · 0,54 · 0,66 · 0,83 (3,99); Segheria 0,27 · 0,23 · 0,26 · 0,42 · 0,42 · 0,50 · 0,61 · 0,75 (3,46); Rimessa 0,31 · 0,22 · 0,23 · 0,40 · 0,34 · 0,40 · 0,49 · 0,61 (2,99).
+Massimo di un livello 0,84 h (soglia della sim: 1,0 h); un edificio al massimo 4,0 h; i cinque insieme circa 17 h, spesi mentre si sale di livello. I valori esatti si rigenerano con la sim (arrotondati a 0,01 h dall'output della sim).
+
+### F-132 Effetto di un livello
+`effect(b, n) = building.effect.per_level × n` (lineare, nessuna curva); la sorgente `village:<b>` ha un modificatore `{stat, value = effect, scope}` per ogni edificio con `n ≥ 1` (livello 0: nessuna sorgente).
+Valori: Magazzino `deposit_slots` +4/livello; Locanda `food_healing_pct` +3; Fucina `skill_xp_pct` +3 (`skill:forging`); Segheria `skill_interval_pct` −2 (`skill:woodwright`); Rimessa `loot_bag_slots` +2. Il totale resta limitato dai limiti della stat (§11).
+Esempi (= test, `tests/systems/village/test_village_effects.gd`): Magazzino 5 → `T(deposit_slots) = 20`; Locanda 8 → `T(food_healing_pct) = 24` (+ equipaggiamento: si somma, F-05); Fucina 4 → `T(skill_xp_pct, for_skill(forging)) = 12`, `T(skill_xp_pct, for_skill(forestry)) = 0`; Segheria 8 → `T(skill_interval_pct, for_skill(woodwright)) = −16`; Rimessa 8 → `T(loot_bag_slots) = 16`, quindi F-33: 12 + 16 = **28** caselle.
+
+### F-133 Capienza del Deposito con il Villaggio
+Aggiunge a F-100: `capacity = deposit.base_slots + Σ slots delle borse + floor(T(deposit_slots))`. Esempio: 60 base, borse +6 e +10, Magazzino 3 (+12) → 60 + 16 + 12 = **88**. Le caselle del Villaggio non occupano nulla e non si tolgono (i livelli non scendono): `unequip_bag` usa la `capacity'` che le include. Test: `tests/systems/deposit/test_deposit.gd::test_capacity_uses_deposit_slots`.
 
 ## 6. Offline
 
@@ -1230,6 +1266,7 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | `mastery.step.{every_levels, gathering, crafting}` (M14, Y8, Q70) | 10, `[{"stat":"skill_interval_pct","value":-2},{"stat":"double_item_chance","value":1}]`, `[{"stat":"preservation_chance","value":2},{"stat":"skill_interval_pct","value":-2}]` | F-122 |
 | `fracture.{risk_cap, risk_unit}` (M14, Q72) | `{"base":40,"per_grade":10}`, `{"pack_bonus":20,"pulse":5}` | F-123 |
 | `metin.{hp_base, hp_per_level, pulse_damage, wave_size, wave_thresholds, rarity_bonus_pct, guaranteed_pieces}` (M15, Z3-Z4) | 200, 0,25, 1, 7, `[75, 50, 25]`, 100, 1 | F-125…F-127 (Q78) |
+| `village.{max_level, woodwright_levels, gold_base, gold_growth, qty.{wood,plate,food}.{base,per_level}}` (M19, V7) | 8, `[1,10,20,30,45,60,75,90]`, 300, 1,4, `{20,20}` `{4,4}` `{10,6}` | F-131 (obbligatorie; i pesi per edificio stanno in `data/village/buildings.json`) |
 | `combat.crowd_threshold` (M15, Z6) | 8 | `01_GDD.md` §10.13 (solo UI) |
 | `combat.skip_stone_level` (M15, Z7) | 0 | F-128: **valore iniziale** del nuovo slot; il valore in uso è stato dello slot |
 | `rift_stone_chance_pct` Pianure (M15, Z5) | 0 → 0,6 (dati dell'area) | F-87 (Q82) |
@@ -1280,6 +1317,7 @@ sezione (`auto_loot`: `"10.6"` = `01_GDD §10.6`; `04_DATA_SCHEMA.md` §2). Con 
 | `item_rarity_pct` (M4) | 0 | 1000 | probabilità di pezzi magici e rari | F-84, F-91 (M10: `formula` di `stats.json` passa da F-83 a F-84) | `tests/systems/items/test_item_roller.gd::test_item_rarity_pct` |
 | `block_chance` (M5) | 0 | 50 | probabilità di parare un colpo con lo scudo (Q40) | F-75 | `tests/systems/combat/test_combat_engine.gd::test_block_chance` |
 | `upgrade_success_pct` (M7) | 0 | 300 | probabilità di riuscita della raffinazione | F-86, F-93 (M10: sorgente `skill_level:forging`) | `tests/systems/armory/test_upgrade.gd::test_upgrade_success_pct` |
+| `deposit_slots` (M19, V7) | 0 | 1000 | caselle di Deposito aggiunte dal Villaggio (Magazzino) | F-133 | `tests/systems/deposit/test_deposit.gd::test_capacity_uses_deposit_slots` |
 
 Stat **tolta in M13 (R-04)**: `fracture_duration_pct` (le Fratture non hanno più durata). Stat **tolte in M12** (nessuna stat decorativa: la capienza viene dalle borse, F-100; le corsie non esistono): `bank_slots`, `armory_slots`, `parallel_lanes`.
 Nessuna stat nuova in M12: aiutanti, traguardi e Incisore usano stat esistenti (`skill_interval_pct`, `double_item_chance`, `skill_xp_pct`, `rift_shard_chance`, `mastery_xp_pct`).

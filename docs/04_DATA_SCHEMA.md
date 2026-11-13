@@ -747,3 +747,35 @@ una sola `blueprint` per base; solo basi `masterwork`. I progetti per `blueprint
 - **V11** (M17-06): `combat.summon_drop_pct` (numero, default 25) in `balance.json`: percentuale della chance normale dei drop e delle tabelle dei mostri evocati da un Monolito (`KillRewards.grant_summoned`); gli evocati non danno XP, oro, frammento né pezzi del pool. Obbligatoria.
 - **V8** (M16-07): solo i testi degli affissi in `affixes.json`; nessun campo nuovo.
 - **V10**: nessun cambiamento di schema.
+
+## 24. Villaggio (M19; V7, `01_GDD.md` §30, `02_FORMULAS.md` F-131/F-132)
+
+**`balance.json`**, chiave `village` (obbligatoria, validata): `max_level` int 1..99 (8); `woodwright_levels` array di `max_level` interi 1..99 **strettamente crescenti** (`[1,10,20,30,45,60,75,90]`);
+`gold_base` int ≥ 1 (300); `gold_growth` float ≥ 1 (1,4); `qty` oggetto con `wood`, `plate`, `food`, ciascuno `{base: int ≥ 0, per_level: int ≥ 0}` e `base + per_level ≥ 1` (20/20, 4/4, 10/6).
+
+**`data/village/buildings.json`** (nuovo; caricato da `GameData`, accessori `village_building(id)` e `village_buildings()` in ordine di `order`; classe `VillageBuildingDef`). `{"buildings": [ ... ]}`:
+| Campo | Tipo | Vincoli |
+|---|---|---|
+| `id` | String | regola comune; unico |
+| `name`, `description` | String | italiano, non vuoti |
+| `icon` | String | nome dell'icona (stesso formato della sidebar, es. `building-warehouse`) |
+| `order` | int | ≥ 1, unico |
+| `buildable` | bool | `false` solo per i segnaposto |
+| `milestone` | int | solo se `buildable = false` (20): campo obbligatorio per i segnaposto, vietato negli altri |
+| `effect` | oggetto | solo se `buildable`: `{stat, scope, per_level}` (`stat` in `stats.json`, `scope` come nel §1, `per_level` ≠ 0) |
+| `cost_spec` | oggetto | solo se `buildable`: `{wood: [{component: grip|handle|shieldcore, weight}], plate: float ≥ 0, food: float ≥ 0, gold_weight: float > 0}`; `wood` può essere `[]`; almeno una riga di costo in oggetti; pesi > 0 |
+| `levels` | array | `buildable`: esattamente `village.max_level` voci, nell'ordine; segnaposto: `[]` |
+
+Voce di `levels` (**generata**): `{"level": n, "requires_woodwright": int, "gold": int, "items": [{"item", "qty"}], "effect_value": float}`. Il validatore controlla: `level` = indice + 1;
+`requires_woodwright` = `woodwright_levels[n−1]`; `items` esistenti, `qty ≥ 1`, senza ripetizioni; `gold ≥ 0`; `effect_value` = `per_level × n`; **e che tutto coincida con la
+rigenerazione F-131** (un livello scritto a mano che diverge è un errore: stessa funzione pura del generatore). `stat` di un edificio costruibile deve essere unica tra gli edifici
+con lo stesso `scope`. Gli oggetti usati devono essere nel Deposito (`category` materiale, componente o cibo).
+
+**Generatore `tools/gen_village.gd`** (lo scrive M19-02; non si scrive a mano nessun livello): legge `balance.json` `village` e le sole parti `id`, `name`, `description`, `icon`, `order`,
+`buildable`, `milestone`, `effect`, `cost_spec` di `data/village/buildings.json` (la "fonte" a mano), e riscrive `levels` con F-131/F-132: quantità e oro come in F-131, id degli oggetti
+`<legno_n>_<component>`, `<metallo_n>_plate`, `seared_<pesce_n>` (liste in F-131; il generatore **fallisce** se un id non esiste in `data/items/`). Espone una funzione statica pura
+`levels_for(spec, params, level) -> Dictionary` usata anche dal validatore e dal test (`tests/systems/village/test_village_cost.gd`); è idempotente: rilanciarlo non cambia il file.
+
+**`stats.json`**: una stat nuova, `deposit_slots` (`name` "Caselle del Villaggio", `format` `flat`, min 0, max 1000, `description` "Aggiunge caselle al Deposito.", `formula` `F-133`,
+`test` `tests/systems/deposit/test_deposit.gd::test_capacity_uses_deposit_slots`). Le altre stat degli edifici (`food_healing_pct`, `skill_xp_pct`, `skill_interval_pct`,
+`loot_bag_slots`) esistono già con il loro test; un test di copertura (`tests/systems/village/test_village_effects.gd`) verifica che ognuna sia letta dal sistema giusto con la sorgente `village:<id>`.

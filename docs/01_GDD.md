@@ -846,3 +846,46 @@ Cade meno (8% per uccisione, 1 pezzo; `02_FORMULAS.md` §8.5b) e serve a più co
 
 **Accettazione dell'Alpha** (`07_TASKS.md` M14): armi con danno min-max, velocità e danno al secondo; armature con materiali, Armatura % e Barriera %; 15 gradi per slot; Capolavori solo dai progetti; almeno 3 leggendari per slot (attrezzi compresi) con effetto e fonte; la sim dà 3-5 pezzi ogni 30 minuti nell'area giusta, 1 magico ogni 30 minuti, 1 raro ogni 2-3 ore;
 la Guida nasconde oggetti e drop finché non trovati e nessun tooltip dice "Si ottiene da"; maestria con bonus visibili e prossimo bonus; tutti i ritocchi di §29.
+
+## 30. Villaggio (M19; decisione V7, `M19_VILLAGGIO.md`; formule F-131, F-132, F-133)
+
+**Idea.** Una pagina **Villaggio** con pochi **edifici unici**. Ognuno ha una sola riga di **livelli** (1…8); si costruisce (livello 0 → 1) e si migliora pagando
+**oro e materiali**: componenti del Falegname (impugnature, manici, telai dello scudo dei legni 1-8), piastre del Fabbro e cibo cotto del Cuoco. Dà uno scopo ai
+legni alti e lega le skill di artigianato. Gli effetti sono solo di **comodità** (caselle, bottino, XP di un mestiere, velocità di un mestiere, cibo): **nessun potere
+di combattimento diretto**. Nel Falegname non c'è un'"asse": i componenti sono quelli del §5 (id reali `<legno>_grip`, `<legno>_handle`, `<legno>_shieldcore`).
+
+**Clean room.** Niente popolazione, felicità, istruzione, salute, tasse o risorse da gestire (il Township di Melvor non è un modello): nessun contatore che
+cresce o cala da solo, nessun timer. Costruire è **istantaneo**: nessun caso offline.
+
+**Edifici di M19** (5, ordine della pagina; formule in `02_FORMULAS.md` F-131/F-132, parametri in `data/village/buildings.json` e `balance.json` `village`):
+| Id | Nome | Effetto per livello (livelli 1…8) | Stat (scope) |
+|---|---|---|---|
+| `storehouse` | Magazzino | +4 caselle di Deposito (massimo +32) | `deposit_slots` (globale) |
+| `inn` | Locanda | +3% di cura del cibo (massimo +24%) | `food_healing_pct` (globale) |
+| `forge` | Fucina | +3% di XP del Fabbro (massimo +24%) | `skill_xp_pct` (`skill:forging`) |
+| `sawmill` | Segheria | −2% di intervallo del Falegname (massimo −16%) | `skill_interval_pct` (`skill:woodwright`) |
+| `loot_shed` | Rimessa del bottino | +2 caselle della borsa del bottino (massimo +16) | `loot_bag_slots` (globale) |
+
+**Segnaposto M20** (visibili nella pagina come box grigi "In arrivo", **non costruibili**, nessun effetto, nessun costo): **Mercato** (`market`, shop esclusivi) e
+**Bacheca** (`noticeboard`, quest). Stanno nei dati con `buildable: false` e `milestone: 20`. Il Santuario del Rift della proposta non serve in M19 (nessuna
+comodità che non sia già coperta): rimandato.
+
+**Regole**
+- Ogni edificio parte a **livello 0** (non costruito, nessun effetto). Il livello massimo è `village.max_level` (8). Il livello `n` richiede **livello del Falegname**
+  `village.woodwright_levels[n−1]` (1, 10, 20, 30, 45, 60, 75, 90: il livello del gradino di legno `n`, `02_FORMULAS.md` §8.1) e il costo di F-131 (oro + materiali
+  dei gradi `n`: legno, metallo e pesce del gradino `n`).
+- **Costruisci** (livello 0) e **Migliora** sono lo stesso comando `upgrade`: controlla i requisiti, toglie oro e materiali **insieme** (o niente), sale di un livello,
+  ricostruisce gli effetti e annuncia `village_upgraded`. Non si può saltare un livello né tornare indietro (nessuna demolizione, nessun rimborso).
+- Gli effetti sono **fissi** (F-132) e valgono finché l'edificio esiste, anche mentre si combatte o si fa altro; passano dal `ModifierService` (sorgente
+  `village:<id>`). La capienza del Deposito include `deposit_slots` (F-133): non occupa nulla e non si perde mai (i livelli non scendono).
+- **Stati** di un edificio per la UI (derivati, mai salvati): `locked_placeholder` (M20), `unbuilt` (livello 0), `built` (1 ≤ livello < massimo), `maxed`. Per i
+  primi tre il box mostra anche **perché** il prossimo livello non è acquistabile (primo motivo di `can_upgrade`).
+- **Casi limite**: materiali insufficienti → `not_enough_items` (nessun cambiamento; il box mostra quanti ne mancano); oro insufficiente → `not_enough_gold`;
+  Falegname sotto il livello richiesto → `level_too_low` (il box mostra il livello richiesto); livello massimo → `max_level`; segnaposto → `not_buildable`; id
+  sconosciuto → `unknown_id`. Gli oggetti **bloccati** (§7) si possono spendere (il blocco impedisce solo di venderli). Gli oggetti dei costi non finiscono in
+  nessuna "riserva": si pagano dal Deposito. Nessun rischio di casella piena: pagare libera caselle, non ne occupa.
+- **Offline**: il Villaggio non ha tempo; lo stato non cambia offline. Gli effetti valgono nella simulazione offline (sono modificatori come gli altri).
+- **Bilanciamento** (`tools/sim_village.gd`, nessuna ora di farm obbligata): un livello costa al massimo 0,84 h di raccolta dei suoi materiali e dell'oro (livello 8 del
+  Magazzino); un edificio al massimo 4,0 h, tutti e cinque circa 17 h su ~295 h di gioco. Tabella nel commit di M19-01 e in `02_FORMULAS.md` F-131.
+- **UI**: pagina `village` nella sidebar; un **box** per edificio (livello `n/8`, effetto attuale e del livello successivo, costo con quantità possedute e livello del
+  Falegname richiesto, pulsante **Costruisci**/**Migliora**, disabilitato con il motivo). Testi in `*_texts.gd`. La UI non tiene stato.
