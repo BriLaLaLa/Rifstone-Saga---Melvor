@@ -86,7 +86,9 @@ static func finish(session: GameSession, blueprint_id: StringName, chosen_affix:
 static func consume(session: GameSession, blueprint_id: StringName) -> void:
 	var needed: Dictionary[StringName, int] = _needed(session.data.item(blueprint_id))
 	for item_id: StringName in needed:
-		assert(session.bank.remove(item_id, needed[item_id]).ok, "bank.remove failed after the inputs check")
+		# Not inside assert(): asserts are stripped from release builds and the removal would never run.
+		var removed: CommandResult = session.bank.remove(item_id, needed[item_id])
+		assert(removed.ok, "bank.remove failed after the inputs check")
 
 
 ## Gives the blueprint and its materials back (a stop before the end). An item that does not fit is lost
