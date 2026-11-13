@@ -21,7 +21,7 @@
                {"min_ilvl": 20, "min": 3, "max": 4},
                {"min_ilvl": 45, "min": 5, "max": 6},
                {"min_ilvl": 75, "min": 7, "max": 9}]},
-    {"id": "swift", "name": "Velocità di attacco aumentata", "stat": "attack_interval_pct", "slots": ["weapon", "hands", "feet"], "weight": 4,
+    {"id": "swift", "name": "Intervallo di attacco ridotto", "stat": "attack_interval_pct", "slots": ["weapon", "hands", "feet"], "weight": 4,
      "tiers": [{"min_ilvl": 1, "min": -2, "max": -1},
                {"min_ilvl": 20, "min": -3, "max": -2},
                {"min_ilvl": 45, "min": -4, "max": -3},
