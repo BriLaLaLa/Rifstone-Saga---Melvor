@@ -4,6 +4,7 @@ extends RefCounted
 ## only the cards and sections of the picked tab. Presentation only and not saved; the SkillPage owns the nodes.
 
 var _bar: SubTabBar = null
+var _caption: Label = null
 var _skill_id: StringName = &""
 var _extras: Container = null
 var _cards: Dictionary[StringName, ActionCard] = {}
@@ -40,6 +41,13 @@ func build(skill_id: StringName, extras: Container, cards: Dictionary[StringName
 	extras.get_parent().add_child(_bar)
 	extras.get_parent().move_child(_bar, 0)
 	_bar.setup(tabs)
+	if skill_id == ForgeTabs.SKILL:
+		_caption = Label.new()
+		_caption.name = "TabCaption"
+		_caption.theme_type_variation = &"MutedLabel"
+		_caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		extras.get_parent().add_child(_caption)
+		extras.get_parent().move_child(_caption, 1)
 	_bar.tab_selected.connect(show_tab)
 	show_tab(_bar.current())
 
@@ -50,12 +58,18 @@ func clear() -> void:
 		_bar.get_parent().remove_child(_bar)
 		_bar.queue_free()
 	_bar = null
+	if _caption != null and is_instance_valid(_caption):
+		_caption.get_parent().remove_child(_caption)
+		_caption.queue_free()
+	_caption = null
 
 
 func show_tab(tab_id: StringName) -> void:
 	if _skill_id == EngraverSections.SKILL:
 		EngraverSections.show_tab(_extras, tab_id)
 		return
+	if _caption != null:
+		_caption.text = ForgeTabs.CAPTIONS.get(tab_id, "")
 	for action_id: StringName in _cards:
 		_cards[action_id].visible = ForgeTabs.tab_of(_data.action(action_id)) == tab_id
 	if _blueprints != null:

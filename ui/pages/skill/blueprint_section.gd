@@ -45,6 +45,7 @@ var _choice_key: String = ""
 
 func _ready() -> void:
 	_title.text = BlueprintTexts.SECTION_TITLE
+	_title.visible = false  # the sub-tab already names the section
 	_empty_label.text = BlueprintTexts.EMPTY_TEXT
 	_affix_label.text = BlueprintTexts.AFFIX_LABEL
 	_start_button.text = BlueprintTexts.START_TEXT

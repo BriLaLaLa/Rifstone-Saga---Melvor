@@ -8,8 +8,6 @@ extends VBoxContainer
 ## It keeps the session reference and presentation state only (the uid picked). Every redraw reads the armory, the
 ## equipment and the bank; the redraw is driven by the events connected in `bind` and disconnected in `unbind`.
 
-const TITLE_TEXT: String = "Banco del fabbro"
-const HINT_TEXT: String = "Scegli un pezzo, indossato o nell'Armeria: poi raffinalo, incastona le pietre o usa le valute."
 const WORN_TEXT: String = "Indossati"
 const ARMORY_TEXT: String = "Nell'Armeria"
 const EMPTY_TEXT: String = "Nessun pezzo da lavorare: forgia o compra dei pezzi."
@@ -27,6 +25,7 @@ var _worn_grid: HFlowContainer = null
 var _armory_title: Label = null
 var _armory_grid: HFlowContainer = null
 var _empty_label: Label = null
+var _work_title: Label = null
 var _piece_name: Label = null
 var _piece_subtitle: Label = null
 var _tabs: TabContainer = null
@@ -38,13 +37,13 @@ var _message_label: Label = null
 
 func _ready() -> void:
 	add_theme_constant_override("separation", SEPARATION)
-	_add_label(TITLE_TEXT, &"TitleLabel")
-	_add_label(HINT_TEXT, &"MutedLabel")
+	_add_label(ForgeTexts.BENCH_PICK_TITLE, &"TitleLabel")
 	_worn_title = _add_label(WORN_TEXT, &"HeaderLabel")
 	_worn_grid = _add_grid()
 	_armory_title = _add_label(ARMORY_TEXT, &"HeaderLabel")
 	_armory_grid = _add_grid()
 	_empty_label = _add_label(EMPTY_TEXT, &"MutedLabel")
+	_work_title = _add_label(ForgeTexts.BENCH_WORK_TITLE, &"TitleLabel")
 	_piece_name = _add_label("", &"HeaderLabel")
 	_piece_name.name = "PieceName"
 	_piece_subtitle = _add_label("", &"MutedLabel")
@@ -124,6 +123,8 @@ func _redraw() -> void:
 	_armory_title.visible = in_armory > 0
 	_armory_grid.visible = in_armory > 0
 	_empty_label.visible = worn + in_armory == 0
+	_work_title.visible = worn + in_armory > 0
+	_piece_name.visible = worn + in_armory > 0
 	var inst: ItemInstance = _session.armory.get_instance(_uid) if _uid != 0 else null
 	var base: ItemDef = _session.data.item(inst.base_id) if inst != null else null
 	if base == null or base.equip == null or _is_unique_tool(_uid):
