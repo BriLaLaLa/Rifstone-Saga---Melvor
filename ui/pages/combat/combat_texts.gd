@@ -47,8 +47,14 @@ const STAT_NAME_SOURCES: Dictionary[StringName, StringName] = {
 }
 const STAT_DAMAGE_TEXT: String = "Danno: %s - %s"
 ## Combat page, GDR layout (docs/UI_GDR.md §2).
-const AREA_LABEL_TEXT: String = "Area"
-const AREA_REQUIREMENT_TEXT: String = "%s (%s)"
+const MAP_BUTTON_TEXT: String = "Mappa"
+const MAP_TITLE: String = "Mappa delle aree"
+const MAP_LEVELS_TEXT: String = "Liv %d-%d"
+const MAP_LOCKED_TEXT: String = "Bloccata"
+const MAP_AVAILABLE_TEXT: String = "Disponibile"
+const MAP_RUNNING_TEXT: String = "In corso"
+const HIT_PCT_TEXT: String = "Colpisci %d%%"
+const ENEMY_HIT_PCT_TEXT: String = "Ti colpisce %d%%"
 const HEADER_ENEMIES_TEXT: String = "%s · %s"
 const ENEMY_COUNT_TEXT: String = "%d / %d in campo"
 const GROUP_SIZE_TEXT: String = "%d nemici"
@@ -166,3 +172,8 @@ static func final_stat_lines(session: GameSession) -> Array[String]:
 		stat_line(session.data, &"armor", stats.armor),
 		stat_line(session.data, &"barrier", stats.barrier),
 	]
+
+
+## "Colpisci 85% · Ti colpisce 70%": the F-129 percentages read from the state, whole numbers.
+static func hit_line(player_pct: int, enemy_pct: int) -> String:
+	return HIT_PCT_TEXT % player_pct + " · " + ENEMY_HIT_PCT_TEXT % enemy_pct

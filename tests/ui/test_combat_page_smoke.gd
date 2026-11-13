@@ -33,10 +33,8 @@ func after_each() -> void:
 	await wait_physics_frames(1)
 
 
-func test_idle_page_lists_areas_and_has_no_enemy_cards() -> void:
-	var option: OptionButton = _page.get_node("%AreaOption") as OptionButton
-	assert_eq(option.item_count, _session.data.areas().size())
-	assert_true(option.get_item_text(0).begins_with(_session.data.area(AREA_ID).name))
+func test_idle_page_has_a_map_button_and_no_enemy_cards() -> void:
+	assert_true((_page.get_node("%MapButton") as Button).visible)
 	assert_eq(_label("%AreaLabel").text, CombatTexts.NO_AREA_TEXT)
 	assert_eq(_zone().queue_card(0), null)
 	assert_false(_zone().target_card().visible)
@@ -45,7 +43,7 @@ func test_idle_page_lists_areas_and_has_no_enemy_cards() -> void:
 
 
 func test_area_choice_starts_combat_and_cards_follow_the_state() -> void:
-	(_page.get_node("%AreaOption") as OptionButton).item_selected.emit(0)
+	(_page.get_node("CombatMap") as CombatMap).area_chosen.emit(&"test_area")
 	assert_true(_session.combat.is_active())
 	assert_eq(_label("%AreaLabel").text, _session.data.area(AREA_ID).name)
 	_page._process(0.0)

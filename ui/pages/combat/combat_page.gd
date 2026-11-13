@@ -10,7 +10,6 @@ var _session: GameSession = null
 ## Signal, callable pairs connected in `bind` (disconnected in `unbind`).
 var _connections: Array[Array] = []
 var _yield: CombatYield = null
-var _area_ids: Array[StringName] = []
 var _yield_values: Dictionary[StringName, Label] = {}
 var _log_open: bool = false
 ## Presentation kept while another page is shown (the page is freed on navigation): yield window and log view of the
@@ -26,13 +25,14 @@ var _fracture_link: Button = null
 var _skip_control: SkipStoneControl = null
 ## Feedback of the combat events (numbers, counters, log lines), made in `bind`.
 var _feed: CombatFeed = null
+## The clickable map of the areas (overlay, built in `_ready`).
+var _map: CombatMap = null
 
 @onready var _margin: MarginContainer = %Margin
 @onready var _main: VBoxContainer = %Main
 @onready var _area_label: Label = %AreaLabel
 @onready var _state_label: Label = %StateLabel
-@onready var _area_choice_label: Label = %AreaChoiceLabel
-@onready var _area_option: OptionButton = %AreaOption
+@onready var _map_button: Button = %MapButton
 @onready var _food_label: Label = %FoodLabel
 @onready var _eat_button: Button = %EatButton
 @onready var _stop_button: Button = %StopButton
@@ -65,7 +65,6 @@ func _ready() -> void:
 	_vs_top.color = UiStyle.COMBAT_PLAYER_BORDER
 	_vs_bottom.color = UiStyle.COMBAT_ENEMY_BORDER
 	_vs_label.text = CombatTexts.VS_TEXT
-	_area_choice_label.text = CombatTexts.AREA_LABEL_TEXT
 	_loot_title.text = CombatTexts.LOOT_TITLE
 	_yield_title.text = CombatTexts.YIELD_TITLE
 	_eat_button.text = CombatTexts.EAT_TEXT
@@ -82,7 +81,12 @@ func _ready() -> void:
 	_stop_button.pressed.connect(_on_stop_pressed)
 	_collect_button.pressed.connect(_on_collect_pressed)
 	_log_button.pressed.connect(_on_log_pressed)
-	_area_option.item_selected.connect(_on_area_selected)
+	_map_button.text = CombatTexts.MAP_BUTTON_TEXT
+	_map_button.pressed.connect(_on_map_pressed)
+	_map = CombatMap.new()
+	_map.name = "CombatMap"
+	add_child(_map)
+	_map.area_chosen.connect(_on_area_chosen)
 	set_process(false)
 
 
@@ -169,34 +173,6 @@ func _connect(source: Signal, callable: Callable) -> void:
 	_connections.append([source, callable])
 
 
-# --- Header ---------------------------------------------------------------------------------------------------
-
-## One entry per area of the data; the requirements are rechecked on level up.
-func _refresh_area_option() -> void:
-	_area_option.clear()
-	_area_ids.clear()
-	for area: AreaDef in _session.data.areas():
-		var unlocked: bool = _session.character.meets_requirements(area.requirements)
-		var text: String = area.name
-		if not unlocked:
-			text = CombatTexts.AREA_REQUIREMENT_TEXT % [area.name,
-					ItemTooltipLines.CHARACTER_REQUIREMENT_TEXT % area.requirements.get(&"character", 1)]
-		_area_option.add_item(text)
-		var index: int = _area_option.item_count - 1
-		_area_option.set_item_disabled(index, not unlocked)
-		_area_option.set_item_tooltip(index, area.description)
-		_area_ids.append(area.id)
-	_sync_area_choice()
-
-
-## Shows the running area in the choice (the placeholder when idle); no item is rebuilt.
-func _sync_area_choice() -> void:
-	var current: StringName = _session.combat.area_id() if _session.combat.is_active() else &""
-	_area_option.select(_area_ids.find(current))
-	if current == &"":
-		_area_option.text = CombatTexts.NO_AREA_TEXT
-
-
 ## Rereads the combat state and redraws header, food and loot (the cards follow every frame).
 func _redraw_all() -> void:
 	if _session == null:
@@ -211,8 +187,7 @@ func _redraw_all() -> void:
 	_state_base = CombatTexts.HEADER_ENEMIES_TEXT % [state_text, CombatTexts.group_size_text(enemy_count)] \
 			if enemy_count > 0 else state_text
 	_state_label.text = _state_base
-	_area_choice_label.visible = not in_fracture
-	_area_option.visible = not in_fracture
+	_map_button.visible = not in_fracture
 	_fracture_link.visible = in_fracture
 	if in_fracture:
 		_area_label.text = CombatFracture.header_text(_session, state["fracture"])
@@ -222,13 +197,12 @@ func _redraw_all() -> void:
 	_redraw_food()
 	LootStrip.redraw(_session, _loot_list, _loot_count, _collect_button)
 	_refresh_log()
-	_sync_area_choice()
 
 
 ## Rereads what changes only on level, loadout and equipment: area choice, player names, slots, gear.
 func _refresh_static() -> void:
 	if _session != null:
-		_refresh_area_option()
+		_map.refresh(_session)
 		_player.refresh_static(_session)
 
 
@@ -269,9 +243,16 @@ func _show_result(result: CommandResult) -> void:
 	_redraw_all()
 
 
-func _on_area_selected(index: int) -> void:
-		_show_result(_session.combat.start(_area_ids[index]))
-		_refresh_area_option()
+func _on_map_pressed() -> void:
+	if _session != null:
+		_map.open(_session)
+
+
+## A click on an available area of the map: starts the fight there (a refusal is shown like any other).
+func _on_area_chosen(area_id: StringName) -> void:
+	_map.close()
+	if _session != null and not (_session.combat.is_active() and _session.combat.area_id() == area_id):
+		_show_result(_session.combat.start(area_id))
 
 
 func _on_stop_pressed() -> void:

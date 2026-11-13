@@ -86,6 +86,7 @@ func refresh(session: GameSession, state: Dictionary) -> void:
 					EnemyView.level_of(session.data, id))
 		label.add_theme_color_override("font_color",
 				UiStyle.COMBAT_TARGET_BORDER_COLOR if front[id] == target else UiStyle.COMBAT_ENEMY_TEXT)
+		(row["hit"] as Label).text = CombatTexts.hit_line(int(enemy["hit_pct"]), int(enemy["enemy_hit_pct"]))
 		var bar: ProgressBar = row["bar"]
 		bar.max_value = maxf(1.0, float(enemy["max_hp"]))
 		bar.value = float(enemy["hp"])
@@ -161,6 +162,10 @@ func _rebuild(order: Array[StringName]) -> void:
 		var label := Label.new()
 		label.custom_minimum_size.x = 240.0
 		row.add_child(label)
+		var hit := Label.new()
+		hit.theme_type_variation = &"MutedLabel"
+		hit.custom_minimum_size.x = 260.0
+		row.add_child(hit)
 		var slot := Control.new()
 		slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		slot.custom_minimum_size.y = GROUP_ROW_HEIGHT
@@ -175,7 +180,7 @@ func _rebuild(order: Array[StringName]) -> void:
 		floaters.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		row.add_child(slot)
 		_list.add_child(row)
-		_rows[id] = {"name": label, "bar": bar, "floaters": floaters}
+		_rows[id] = {"name": label, "hit": hit, "bar": bar, "floaters": floaters}
 
 
 ## One number per type and frame: the sum of the hits of the frame.

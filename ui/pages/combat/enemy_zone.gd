@@ -69,6 +69,7 @@ func refresh(session: GameSession, state: Dictionary) -> void:
 		var card: EnemyCard = _cards[i]
 		card.visible = i != target and not (hide_dead and int(enemy["hp"]) <= 0)
 		card.redraw(enemy["hp"], enemy["max_hp"], enemy["timer_ms"], enemy["interval_ms"])
+		card.set_hit_pct(int(enemy["hit_pct"]), int(enemy["enemy_hit_pct"]))
 		if int(enemy["hp"]) > 0:
 			alive += 1
 			card.set_tag(EnemyView.tag_text(session.data, _ids[i], player_style))
@@ -125,6 +126,7 @@ func _redraw_target(session: GameSession, enemies: Array, target: int, player_st
 		_shown_index = target
 	var enemy: Dictionary = enemies[target]
 	_target_card.redraw(enemy["hp"], enemy["max_hp"], enemy["timer_ms"], enemy["interval_ms"])
+	_target_card.set_hit_pct(int(enemy["hit_pct"]), int(enemy["enemy_hit_pct"]))
 	_target_card.set_tag(EnemyView.tag_text(session.data, id, player_style))
 
 

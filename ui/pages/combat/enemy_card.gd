@@ -15,6 +15,7 @@ var _flash: Tween = null
 var _dead: bool = false
 var _last_hit_text: String = ""
 var _stone: bool = false
+var _hit_label: Label = null
 
 @onready var _box: BoxContainer = %Box
 @onready var _portrait: Control = %Portrait
@@ -47,6 +48,12 @@ func _ready() -> void:
 	if large:
 		_name.theme_type_variation = &"TitleLabel"
 	_info.visible = large
+	_hit_label = Label.new()
+	_hit_label.name = "HitLabel"
+	_hit_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_hit_label.theme_type_variation = &"MutedLabel"
+	_details.add_child(_hit_label)
+	_details.move_child(_hit_label, _tag.get_index() + 1)
 	_hp_label.visible = large
 	_hp_bar.custom_minimum_size.y = UiStyle.COMBAT_TARGET_BAR_HEIGHT if large else UiStyle.COMBAT_BAR_HEIGHT - 6
 	_timer_bar.custom_minimum_size.y = UiStyle.COMBAT_TIMER_BAR_HEIGHT if large else 5
@@ -94,6 +101,11 @@ func set_tag(tag_text: String) -> void:
 	_tag.text = tag_text
 
 
+## F-129 as read from the state: whole % of the player on this enemy and of this enemy on the player.
+func set_hit_pct(player_pct: int, enemy_pct: int) -> void:
+	_hit_label.text = CombatTexts.hit_line(player_pct, enemy_pct)
+
+
 ## Draws the values read from the session; `timer_ms` counts down to the attack.
 func redraw(hp: int, max_hp: int, timer_ms: int, interval_ms: int) -> void:
 	_hp_bar.max_value = maxf(1.0, max_hp)
@@ -104,6 +116,7 @@ func redraw(hp: int, max_hp: int, timer_ms: int, interval_ms: int) -> void:
 		progress = clampf(1.0 - float(timer_ms) / float(interval_ms), 0.0, 1.0)
 	_timer_bar.value = progress
 	_dead = hp <= 0
+	_hit_label.visible = not _dead
 	if _dead:
 		_tag.text = CombatTexts.DEFEATED_TEXT
 		if _fade == null or not _fade.is_running():

@@ -35,15 +35,14 @@ func _open(grade: int = 1) -> void:
 
 
 func test_outside_a_fracture_the_page_is_unchanged() -> void:
-	assert_true((_page.get_node("%AreaOption") as Control).visible)
+	assert_true((_page.get_node("%MapButton") as Control).visible)
 	assert_false((_page.find_child("FractureLinkButton", true, false) as Control).visible)
 
 
 func test_header_tells_grade_and_group_in_place_of_the_area() -> void:
 	_open(2)
 	assert_eq(_label("%AreaLabel").text, FractureTexts.COMBAT_HEADER_TEXT % [2, 1, 3])
-	assert_false((_page.get_node("%AreaOption") as Control).visible, "no area choice in a Fracture")
-	assert_false((_page.get_node("%AreaChoiceLabel") as Control).visible)
+	assert_false((_page.get_node("%MapButton") as Control).visible, "no area choice in a Fracture")
 	assert_true((_page.find_child("FractureLinkButton", true, false) as Control).visible)
 
 
@@ -70,7 +69,7 @@ func test_boss_has_its_name_and_ability() -> void:
 func test_normal_page_returns_when_the_fracture_ends() -> void:
 	_open()
 	assert_true(_s.fractures.abandon().ok)
-	assert_true((_page.get_node("%AreaOption") as Control).visible)
+	assert_true((_page.get_node("%MapButton") as Control).visible)
 	assert_false((_page.find_child("FractureLinkButton", true, false) as Control).visible)
 	assert_eq(_label("%AreaLabel").text, CombatTexts.NO_AREA_TEXT)
 

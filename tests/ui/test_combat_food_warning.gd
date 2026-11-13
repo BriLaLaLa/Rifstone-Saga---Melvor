@@ -28,7 +28,7 @@ func after_each() -> void:
 
 func test_start_without_food_warns_and_still_starts() -> void:
 	assert_eq(_session.equipment.get_food(), &"")
-	(_page.get_node("%AreaOption") as OptionButton).item_selected.emit(0)
+	(_page.get_node("CombatMap") as CombatMap).area_chosen.emit(&"test_area")
 	assert_true(_session.combat.is_active())
 	var message: Label = _page.get_node("%MessageLabel") as Label
 	assert_true(message.visible)
@@ -36,14 +36,14 @@ func test_start_without_food_warns_and_still_starts() -> void:
 
 
 func test_choosing_food_removes_the_warning() -> void:
-	(_page.get_node("%AreaOption") as OptionButton).item_selected.emit(0)
+	(_page.get_node("CombatMap") as CombatMap).area_chosen.emit(&"test_area")
 	TestFactory.give(_session, FOOD_ID, 5)
 	assert_true(_session.equipment.set_food(FOOD_ID).ok)
 	assert_false((_page.get_node("%MessageLabel") as Label).visible)
 
 
 func test_stop_removes_the_warning() -> void:
-	(_page.get_node("%AreaOption") as OptionButton).item_selected.emit(0)
+	(_page.get_node("CombatMap") as CombatMap).area_chosen.emit(&"test_area")
 	_session.combat.stop()
 	assert_false((_page.get_node("%MessageLabel") as Label).visible)
 
@@ -51,6 +51,6 @@ func test_stop_removes_the_warning() -> void:
 func test_start_with_food_shows_no_warning() -> void:
 	TestFactory.give(_session, FOOD_ID, 5)
 	assert_true(_session.equipment.set_food(FOOD_ID).ok)
-	(_page.get_node("%AreaOption") as OptionButton).item_selected.emit(0)
+	(_page.get_node("CombatMap") as CombatMap).area_chosen.emit(&"test_area")
 	assert_true(_session.combat.is_active())
 	assert_false((_page.get_node("%MessageLabel") as Label).visible)
