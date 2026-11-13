@@ -32,4 +32,6 @@ static func build(engine: CombatEngine, encounter: Encounter, abilities: Ability
 	}
 	if not (snapshot.get("fracture", {}) as Dictionary).is_empty():  # M13: only inside a Fracture
 		view["fracture"] = snapshot["fracture"]
+	if not (snapshot.get("dungeon", {}) as Dictionary).is_empty():  # M22: only inside a dungeon
+		view["dungeon"] = snapshot["dungeon"]
 	return view

@@ -85,7 +85,7 @@ func open(dungeon_id: StringName) -> CommandResult:
 		return CommandResult.fail(Reasons.NO_DUNGEON)
 	_session.bank.remove(def.ticket, 1)
 	_run = DungeonRun.create(def, _session.rng.randi_range(1, SEED_MAX), _session.combat.area_id(), _session.data)
-	var started: CommandResult = engine().start_dungeon(_run)
+	var started: CommandResult = _session.combat.start_dungeon(_run) if _engine == null else _engine.start_dungeon(_run)
 	if not started.ok:
 		_run = null
 		_session.bank.add(def.ticket, 1)

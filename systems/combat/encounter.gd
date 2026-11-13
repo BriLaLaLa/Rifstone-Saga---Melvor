@@ -96,7 +96,10 @@ static func _saved_def(monster_id: StringName, data: GameData, run: FractureRun)
 		if data.has_monster(monster_id):
 			return FractureScaler.scale_monster(data.monster(monster_id), run.grade, run.effects, data)
 		return null
-	return data.monster(monster_id) if data.has_monster(monster_id) else null
+	if not data.has_monster(monster_id):
+		return null
+	var def: MonsterDef = data.monster(monster_id)
+	return Miniboss.scale(def, data) if def.is_miniboss else def  # M22 (F-139): rebuilt from the data, scaled once
 
 
 func to_save() -> Array:
@@ -137,6 +140,14 @@ func alive_indices() -> Array[int]:
 func has_stone() -> bool:
 	for enemy: Enemy in enemies:
 		if enemy.is_stone():
+			return true
+	return false
+
+
+## M22 (F-139): true if one of the enemies is the miniboss of an area.
+func has_miniboss() -> bool:
+	for enemy: Enemy in enemies:
+		if enemy.def.is_miniboss:
 			return true
 	return false
 

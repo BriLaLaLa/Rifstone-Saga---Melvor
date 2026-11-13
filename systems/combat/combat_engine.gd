@@ -6,10 +6,13 @@ extends CombatFight
 const SAVE_KEY: StringName = &"combat"
 
 
-## unknown_id, requirement_not_met (character level), fracture_active. Stops the main-lane action. The area already fought: no change.
+## unknown_id, requirement_not_met (character level), fracture_active, dungeon_active. Stops the main-lane action. The area already
+## fought: no change.
 func start(area_id: StringName) -> CommandResult:
 	if _frac.active():
 		return CommandResult.fail(Reasons.FRACTURE_ACTIVE)
+	if _dg.active():
+		return CommandResult.fail(Reasons.DUNGEON_ACTIVE)
 	if not _session.data.has_area(area_id):
 		return CommandResult.fail(Reasons.UNKNOWN_ID)
 	var area: AreaDef = _session.data.area(area_id)
@@ -37,6 +40,9 @@ func stop(reason: StringName = Reasons.STOPPED_BY_USER) -> void:
 	if _frac.active():  # a stop during a Fracture is an abandon (01 §17.5): the bag is lost and the fight stops
 		_end_fracture(&"abandoned", reason, false)
 		return
+	if _dg.active():  # a stop during a dungeon is a flight (05 §5.29): the bag is lost and the fight stops
+		_end_dungeon(&"fled", reason, false)
+		return
 	_state = STATE_IDLE
 	_area_id = &""
 	_encounter = Encounter.new()
@@ -53,6 +59,8 @@ func stop(reason: StringName = Reasons.STOPPED_BY_USER) -> void:
 func start_fracture(run: FractureRun) -> CommandResult:
 	if _frac.active():
 		return CommandResult.fail(Reasons.FRACTURE_ACTIVE)
+	if _dg.active():
+		return CommandResult.fail(Reasons.DUNGEON_ACTIVE)
 	run.return_area = _area_id
 	stop(Reasons.REPLACED)
 	_session.actions.stop(ActionRunner.MAIN, Reasons.REPLACED)
@@ -81,6 +89,83 @@ func in_fracture() -> bool:
 
 func fracture_run() -> FractureRun:
 	return _frac.run
+
+
+## M22 (05 §5.29), only `DungeonSystem.open`: dungeon_active, fracture_active. The fight in the area stops (REPLACED) with the
+## action (`run.return_area` is already the area being fought); full hp, hand 0; `await` until the first room begins.
+func start_dungeon(run: DungeonRun) -> CommandResult:
+	if _dg.active():
+		return CommandResult.fail(Reasons.DUNGEON_ACTIVE)
+	if _frac.active():
+		return CommandResult.fail(Reasons.FRACTURE_ACTIVE)
+	stop(Reasons.REPLACED)
+	_session.actions.stop(ActionRunner.MAIN, Reasons.REPLACED)
+	_dg.begin(run)
+	_area_id = &""
+	_hand = 0
+	_fx.reset()
+	_encounter = Encounter.new()
+	_state = STATE_AWAIT
+	_player_hp = player_stats().max_hp
+	_session.events.combat_started.emit(&"")
+	_session.events.player_hp_changed.emit(_player_hp, _player_hp)
+	return CommandResult.success()
+
+
+## Only `DungeonSystem`: the room `layer` of `kind` begins with `defs` in the row (no respawn); the hp of the player stay.
+func begin_dungeon_room(defs: Array[MonsterDef], layer: int, kind: StringName) -> void:
+	if not _dg.active():
+		return
+	_dg.begin_room(layer, kind)
+	_encounter = Encounter.of_defs(defs, _session.data)
+	if _encounter.enemies.is_empty():  # nothing to fight: the room is beaten at once
+		Log.error("combat", "dungeon room '%s' has no monsters: counted as cleared" % kind)
+		_dungeon_cleared()
+		return
+	_state = STATE_ENCOUNTER
+	_open_encounter()
+
+
+## Only `DungeonSystem`: the scene of a boss stage (nothing attacks, only `intro_ms` runs), then its fight (F-141).
+func begin_dungeon_stage(stage: DungeonStageDef) -> void:
+	if not _dg.active():
+		return
+	_dg.begin_stage(stage)
+	_encounter = Encounter.new()
+	_state = STATE_INTRO
+
+
+## F-140: the hp change by `delta`, never under `floor_hp` (unless already lower) or over the maximum. Returns the real change.
+func dungeon_adjust_hp(delta: int, floor_hp: int = 1) -> int:
+	if not _dg.active():
+		return 0
+	var target: int = clampi(_player_hp + delta, mini(floor_hp, _player_hp), player_stats().max_hp)
+	var change: int = target - _player_hp
+	_set_hp(target)
+	return change
+
+
+## Only `DungeonSystem.resume`: while paused `advance` consumes nothing.
+func set_dungeon_paused(paused: bool) -> void:
+	if _dg.active():
+		_dg.paused = paused
+
+
+## Only `DungeonSystem.flee` (`fled`): like a death, without the death; then back to the area at the end of the instant.
+func abandon_dungeon(outcome: StringName) -> void:
+	if not _dg.active():
+		return
+	_end_dungeon(outcome, Reasons.DUNGEON_FLED, true)
+	if not _resolving:
+		_resume()
+
+
+func in_dungeon() -> bool:
+	return _dg.active()
+
+
+func dungeon_run() -> DungeonRun:
+	return _dg.run
 
 
 ## Manual meal (F-29): no_food, not_running.
@@ -152,7 +237,8 @@ func get_state() -> Dictionary:
 	return CombatView.build(self, _encounter, _abilities, {"data": _session.data, "state": _state, "area": _area_id, "hand": _hand,
 		"player_hp": _player_hp, "player_timer_ms": _player_timer_ms, "between_ms": _between_ms,
 		"rule": _fx.target_rule(), "fracture": _frac.view() if _frac.active() else {},
-		"stone": _stone.view(_encounter) if _state == STATE_RIFTSTONE else {}, "skip_stone_level": _stone.skip_level})
+		"stone": _stone.view(_encounter) if _state == STATE_RIFTSTONE else {}, "skip_stone_level": _stone.skip_level,
+			"dungeon": _dg.view(_state) if _dg.active() else {}})
 
 
 ## Jumps to the next timer that expires, resolves that instant (F-76), repeats; the rest stays in the timers.
@@ -166,7 +252,9 @@ func advance(delta_ms: int) -> void:
 		_consume(next)
 		remaining -= next
 		advance_offset_ms = delta_ms - remaining
+		_resolving = true
 		_resolve_instant()
+		_resolving = false
 		_resume()
 	advance_offset_ms = 0
 
@@ -178,7 +266,9 @@ func new_game() -> void:
 	_fx.reset()
 	_abilities.reset()
 	_frac.end()
+	_dg.end()
 	_resume_area = &""
+	_miniboss_pending = false
 	loot.from_save({})
 	_stone.reset()
 
@@ -196,17 +286,23 @@ func to_save() -> Dictionary:
 		"loot": loot.to_save(), "stone": _stone.to_save(), "kills": _kills, "deaths": _deaths, "food_eaten": _food_eaten,
 		"fracture": _frac.to_save() if _frac.active() else {}, "skip_stone_level": _stone.skip_level,
 		"wave": _stone.wave_to_save() if _state == STATE_RIFTSTONE else {},
+		"dungeon": _dg.to_save() if _dg.active() else {}, "miniboss_pending": _miniboss_pending,
 	})
 
 
 ## Tolerant: an unknown area or monster, or a malformed fight, leaves the engine idle (bag and counters are kept).
-## A saved Fracture fight resumes on the run that `FractureSystem` loaded first; without it the engine is idle (05 §5.23).
+## A saved Fracture fight resumes on the run that `FractureSystem` loaded first; without it the engine is idle (05 §5.23). The same
+## for a dungeon fight and `DungeonSystem` (05 §5.29); the run is paused (F-144).
 func from_save(d: Dictionary) -> void:
 	new_game()
 	if d.get("loot") is Dictionary or d.get("loot") is Array:
 		loot.from_save(d["loot"])
-	var parsed: Dictionary = CombatSave.read(d, _session.data, _session.fractures.run())
+	var parsed: Dictionary = CombatSave.read(d, _session.data, _session.fractures.run(), _session.dungeon.run())
 	_apply(parsed)
+	_miniboss_pending = d.get("miniboss_pending") == true
+	if not (parsed["dungeon"] as Dictionary).is_empty():
+		_dg.begin(_session.dungeon.run())
+		_dg.from_save(parsed["dungeon"], _state)
 	if (parsed["fracture"] as Dictionary).is_empty():
 		if _session.fractures.is_active():
 			_session.fractures.drop_orphan_run()
