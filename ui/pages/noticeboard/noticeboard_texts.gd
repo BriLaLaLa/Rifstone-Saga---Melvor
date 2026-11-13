@@ -1,0 +1,29 @@
+class_name NoticeboardTexts
+extends RefCounted
+## Italian texts of the Noticeboard page (docs/01_GDD.md §31, docs/05_INTERFACES.md §7.s). Presentation only: no game number here.
+
+const TITLE_TEXT: String = "Bacheca"
+const CLAIM_TEXT: String = "Riscuoti"
+const ABANDON_TEXT: String = "Abbandona"
+const EMPTY_SLOT_TEXT: String = "Nessun incarico disponibile"
+const NO_BOARD_TEXT: String = "Costruisci la Bacheca al Villaggio"
+const PROGRESS_TEXT: String = "%s / %s"
+const REWARD_TITLE_TEXT: String = "Ricompensa:"
+const REWARD_GOLD_TEXT: String = "%s oro"
+const REWARD_XP_TEXT: String = "%s XP %s"
+const REWARD_ITEM_TEXT: String = "%s x%s"
+const REWARD_SEPARATOR: String = ", "
+## Reason of an incomplete quest (Reasons.QUEST_INCOMPLETE from M20-02; named here so the UI compiles before it).
+const INCOMPLETE_REASON: StringName = &"quest_incomplete"
+## Reason of `can_claim` / `claim` -> text; other reasons: REFUSED_TEXT_DEFAULT.
+const REFUSED_TEXTS: Dictionary[StringName, String] = {
+	&"unknown_id": "Incarico sconosciuto.",
+	&"slot_empty": "Nessun incarico in questa casella.",
+	&"quest_incomplete": "Incarico non ancora completato.",
+	&"bank_full": "Deposito pieno: fai spazio per la ricompensa.",
+}
+const REFUSED_TEXT_DEFAULT: String = "Operazione non riuscita."
+
+
+static func refused(reason: StringName) -> String:
+	return REFUSED_TEXTS.get(reason, REFUSED_TEXT_DEFAULT)

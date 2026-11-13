@@ -1,0 +1,11 @@
+{
+  "pages": [
+    {"id": "guide_noticeboard", "section": "first_steps", "title": "Bacheca", "order": 5,
+     "help_for": ["noticeboard"],
+     "blocks": [
+       {"type": "text", "text": "La Bacheca offre incarichi: uccidere mostri, raccogliere o produrre un oggetto. Compare quando costruisci la Bacheca al Villaggio, e ogni livello aggiunge una casella."},
+       {"type": "text", "text": "Il progresso conta solo da quando l'incarico è attivo. Quando la barra è piena, Riscuoti paga oro, esperienza o cibo; se il Deposito è pieno la ricompensa aspetta. Abbandona scarta l'incarico senza premio e ne assegna un altro."},
+       {"type": "links", "targets": ["page:guide_village", "page:guide_deposit"]}
+     ]}
+  ]
+}
