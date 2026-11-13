@@ -287,7 +287,7 @@ func test_unique_tools_follow_8_4_and_f94() -> void:
 
 func test_shop_follows_8_6() -> void:
 	var shop: Dictionary = _by_id("shop", "entries")
-	assert_eq(shop.size(), 5)
+	assert_eq(shop.size(), 5 + 15, "five base entries plus the 15 Market entries (M20-04)")
 	assert_false(shop.has("bank_slot"))
 	assert_false(shop.has("armory_slot"))
 	var gold: Array[Array] = [
