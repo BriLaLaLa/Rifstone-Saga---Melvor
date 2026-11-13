@@ -3,6 +3,7 @@
 Aggiornato dall'Orchestratore (unico che modifica questo file). Stati: TODO / IN_PROGRESS / REVIEW / DONE / BLOCKED.
 Se la sessione si interrompe, si riparte da qui.
 
+- **M18 (2026-11-13)**: M18-01 Incisore: XP da smantellamento (F-95b, `salvage.engraver_xp_per_grade` 2), Lastra minore e 3 rune minori (`tools/gen_engraver_minor.gd`); Fondere dava gia' XP. M18-02 Fabbro: didascalia per sottoscheda e Banco in due passi (`forge_texts.gd`). `run_checks` verde (2980 test). Icone riusate; XP da tarare.
 - **P-02 Scheda pezzo, Banco del fabbro, slot Cibo (2026-11-08, merge 55730ff)**: scheda del pezzo, Banco del fabbro nella pagina Fabbro, slot Cibo nella bambola, drag reale (fix a `EquipmentInventory.rebuild_grid`).
 - P-02 aperto: layout non verificato a schermo; manca l'icona `food.svg`; il tipo del pezzo mostra il nome dello slot.
 - P-02 nessun cambio di dati.
@@ -18,7 +19,7 @@ Se la sessione si interrompe, si riparte da qui.
 
 ## Ripartenza (fine M17, 2026-11-13)
 - **Stato**: **M17-01…M17-08 DONE, M17 completata** (suite e tag `m17-done` dell'Orchestratore). Storia in fondo a questo file.
-- **Prossimo passo**: M18 (Incisore: XP da disincantare/fondere e ricette di basso livello, Fabbro: riordino della sottoscheda; Falegname rimandato, Q84). Decidere prima Q86 (cibo fuori dalle Pianure) e verificare Q87 (layout 1280x720). Sessione nuova da questo file.
+- **Prossimo passo**: decidere Q86 (cibo fuori dalle Pianure), Q84 (Falegname) e verificare Q87 (layout 1280x720); icone dedicate per Lastra minore e rune minori. Sessione nuova da questo file.
 
 ## Ripartenza (inizio M16, R-07 riportata, 2026-11-11)
 - **Stato**: **M16-01 DONE**: V1-V11 (`M16_M18.md`) nei documenti: `DECISIONS_LOG.md` (V1-V11 e R-07), `01_GDD.md` §10.15, §7, §22, `02_FORMULAS.md` §5g (F-129 precisione e F-130 XP per livello: **segnaposto senza numeri**, li fissa M17-01), `04_DATA_SCHEMA.md` §23, `05_INTERFACES.md` §5.26 (V10 non cambia contratti), `06_ROADMAP.md` (M16-M18; il vecchio M16+ è M19+), `07_TASKS.md` (M16-01…M18-03), `OPEN_QUESTIONS.md` Q84-Q85. Codice e dati non toccati. Hash: `git log --grep "M16-01"`.
