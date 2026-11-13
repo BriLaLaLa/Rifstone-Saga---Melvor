@@ -215,6 +215,7 @@ static func _validate_balance(v: DataValidatorRules, files: Dictionary[String, D
 		v.max_pack_size = _limit(balance, "combat.max_pack_size")
 		if v.max_pack_size < 1.0:
 			v.max_pack_size = DataValidatorRules.NO_LIMIT
+		DataValidatorAreas.collect_pack_weights(v, balance)
 		DataValidatorClasses.validate_balance(v, balance)
 		DataValidatorLoot.validate_balance(v, balance)
 		DataValidatorHelper.validate_balance(v, balance)

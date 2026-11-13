@@ -125,7 +125,7 @@
     "max_pack_size": 8,
     "pack_size_weights": [4, 12, 22, 26, 18, 10, 5, 3],
     "xp_level": {"zero_gap": 9, "up_per_level": 0.05, "up_cap": 1.5},
-    "monster_xp": {"base": 80, "growth": 1.065},
+    "monster_xp": {"base": 80, "growth": 1.051},
     "summon_drop_pct": 25,
     "auto_eat_tiers": [
       null,
@@ -284,16 +284,16 @@
     "card_drop": {"monster_pct": 0.5, "boss_pct": 70, "monster_delta": [70, 27, 3], "boss_delta": [20, 70, 10]},
     "salvage": {"dust_per_grade": 5, "rarity_mult": {"common": 1, "magic": 1.5, "rare": 2}},
     "grades": [
-      {"areas": ["cracked_mines"], "level_bonus": 0, "hp_mult": 4.8, "damage_mult": 1.0, "reward_mult": 4.8, "piece_grade": 5, "recommended_level": 45},
-      {"areas": ["cracked_mines"], "level_bonus": 4, "hp_mult": 5.5, "damage_mult": 1.08, "reward_mult": 6.4, "piece_grade": 5, "recommended_level": 50},
-      {"areas": ["cracked_mines"], "level_bonus": 8, "hp_mult": 5.9, "damage_mult": 1.16, "reward_mult": 7.7, "piece_grade": 6, "recommended_level": 56},
-      {"areas": ["rift_threshold"], "level_bonus": 0, "hp_mult": 3.6, "damage_mult": 1.0, "reward_mult": 5.8, "piece_grade": 6, "recommended_level": 70},
-      {"areas": ["rift_threshold"], "level_bonus": 3, "hp_mult": 4.0, "damage_mult": 1.08, "reward_mult": 7.2, "piece_grade": 7, "recommended_level": 76},
-      {"areas": ["rift_threshold"], "level_bonus": 6, "hp_mult": 4.4, "damage_mult": 1.16, "reward_mult": 8.8, "piece_grade": 7, "recommended_level": 82},
-      {"areas": ["rift_threshold"], "level_bonus": 7, "hp_mult": 4.8, "damage_mult": 1.25, "reward_mult": 11, "piece_grade": 8, "recommended_level": 88},
-      {"areas": ["rift_threshold"], "level_bonus": 7, "hp_mult": 5.5, "damage_mult": 1.35, "reward_mult": 14.6, "piece_grade": 8, "recommended_level": 94},
-      {"areas": ["rift_threshold"], "level_bonus": 7, "hp_mult": 5.8, "damage_mult": 1.35, "reward_mult": 17, "piece_grade": 8, "recommended_level": 99},
-      {"areas": ["rift_threshold"], "level_bonus": 7, "hp_mult": 7.0, "damage_mult": 1.35, "reward_mult": 22.5, "piece_grade": 8, "recommended_level": 99}
+      {"areas": ["ash_marsh"], "level_bonus": 0, "hp_mult": 3.1, "damage_mult": 1.0, "reward_mult": 4.8, "piece_grade": 5, "recommended_level": 45},
+      {"areas": ["ash_marsh"], "level_bonus": 4, "hp_mult": 4.0, "damage_mult": 1.08, "reward_mult": 6.4, "piece_grade": 5, "recommended_level": 50},
+      {"areas": ["weeping_gorge"], "level_bonus": 0, "hp_mult": 2.95, "damage_mult": 1.16, "reward_mult": 7.7, "piece_grade": 6, "recommended_level": 56},
+      {"areas": ["rift_threshold"], "level_bonus": 0, "hp_mult": 3.55, "damage_mult": 1.0, "reward_mult": 5.8, "piece_grade": 6, "recommended_level": 70},
+      {"areas": ["black_glass_desert"], "level_bonus": 0, "hp_mult": 2.4, "damage_mult": 1.08, "reward_mult": 7.2, "piece_grade": 7, "recommended_level": 76},
+      {"areas": ["black_glass_desert"], "level_bonus": 6, "hp_mult": 2.4, "damage_mult": 1.16, "reward_mult": 8.8, "piece_grade": 7, "recommended_level": 82},
+      {"areas": ["sunken_citadel"], "level_bonus": 2, "hp_mult": 3.05, "damage_mult": 1.25, "reward_mult": 11, "piece_grade": 8, "recommended_level": 88},
+      {"areas": ["sunken_citadel"], "level_bonus": 8, "hp_mult": 3.45, "damage_mult": 1.35, "reward_mult": 14.6, "piece_grade": 8, "recommended_level": 94},
+      {"areas": ["rift_heart"], "level_bonus": 4, "hp_mult": 2.45, "damage_mult": 1.35, "reward_mult": 17, "piece_grade": 8, "recommended_level": 99},
+      {"areas": ["rift_heart"], "level_bonus": 4, "hp_mult": 2.95, "damage_mult": 1.35, "reward_mult": 22.5, "piece_grade": 8, "recommended_level": 99}
     ]
   },
   "offline": {

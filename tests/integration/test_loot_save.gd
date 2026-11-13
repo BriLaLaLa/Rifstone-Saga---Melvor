@@ -168,6 +168,7 @@ func test_item_rarity_pct_changes_the_rarity_of_the_drops_end_to_end() -> void:
 	for s: GameSession in [plain, lucky]:
 		TestFactory.make_roomy(s)
 		s.modifiers.set_source(&"test:hero", [Modifier.make(&"power_bonus", 5000.0), Modifier.make(&"max_hp_flat", 100000.0)])
+		s.combat.set_skip_stone_level(99)  # M17-04: no Monolith wave among the counted kills
 	lucky.modifiers.set_source(LUCK, [Modifier.make(&"item_rarity_pct", 1000.0)])
 	var plain_pieces: Array[ItemInstance] = _kill_boars_with_drops(plain, SWORD, 60)
 	var lucky_pieces: Array[ItemInstance] = _kill_boars_with_drops(lucky, SWORD, 60)

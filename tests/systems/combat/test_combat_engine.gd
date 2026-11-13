@@ -308,11 +308,19 @@ func test_same_monster_twice_is_two_instances() -> void:
 	var real: GameSession = autofree(TestFactory.session(3, TestFactory.real_data()))
 	var area: AreaDef = real.data.area(&"redrock_plains")
 	var found: bool = false
-	for i: int in 200:
+	for i: int in 200:  # M17-04: the packs of 3-8 monsters repeat the weakest ones
 		var encounter: Encounter = Encounter.spawn(area, real.data, real.rng)
-		if encounter.enemies.size() == 2 and encounter.enemies[0].def.id == encounter.enemies[1].def.id:
-			encounter.enemies[0].hp = 1
-			assert_eq(encounter.enemies[1].hp, 20, "separate hp")
+		var first: int = -1
+		var second: int = -1
+		for a: int in encounter.enemies.size():
+			for b: int in range(a + 1, encounter.enemies.size()):
+				if first < 0 and encounter.enemies[a].def.id == encounter.enemies[b].def.id:
+					first = a
+					second = b
+		if first >= 0:
+			var full: int = encounter.enemies[second].hp
+			encounter.enemies[first].hp = 1
+			assert_eq(encounter.enemies[second].hp, full, "separate hp")
 			found = true
 			break
 	assert_true(found)

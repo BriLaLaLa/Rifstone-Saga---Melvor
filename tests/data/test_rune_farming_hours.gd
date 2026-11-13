@@ -4,9 +4,11 @@ extends GutTest
 ## rune.upgrade_ratio^(g-1) grade I runes; each grade I rune takes the engrave input quantity of the material).
 ## Hours are estimated from the data, not from the simulator: kills per hour of each area x share of the monster among
 ## the kills of the area's packs x drop chance x mean quantity. The kills per hour are the measured defaults of
-## `tools/sim_combat.gd deposit=1` (M12-07: sword and shield, level and gear of the area, collect every 10 min).
+## `tools/sim_combat.gd deposit=1 scope=all` (M12-07, M17-04: sword and shield, level and gear of the area, collect every 10 min).
 
-const KILLS_PER_HOUR: Dictionary = {&"redrock_plains": 206.0, &"whisper_wood": 108.0, &"cracked_mines": 82.0, &"rift_threshold": 60.0}
+const KILLS_PER_HOUR: Dictionary = {&"redrock_plains": 223.0, &"whisper_wood": 222.0, &"dry_uplands": 207.0, &"cracked_mines": 249.0,
+		&"ash_marsh": 239.0, &"weeping_gorge": 232.0, &"rift_threshold": 171.0, &"black_glass_desert": 152.0, &"sunken_citadel": 231.0,
+		&"rift_heart": 140.0}  # M17-04: the ten narrow areas
 const GRADE_III_H: Vector2 = Vector2(5.0, 10.0)
 const GRADE_V_H: Vector2 = Vector2(50.0, 100.0)
 ## The sim measures 10-15% fewer drops than this estimate in the upper areas: keep that much margin on both ends.

@@ -55,7 +55,7 @@ func test_auto_tier_counts_the_ration_purchases_the_level_allows() -> void:
 
 
 func test_auto_level_is_the_mean_monster_level() -> void:
-	assert_eq(Sim.auto_level(_data, _data.area(PLAINS)), 4, "(1 + 4 + 8) / 3")
+	assert_eq(Sim.auto_level(_data, _data.area(PLAINS)), 5, "(1 + 3 + 5 + 8 + 10) / 5 = 5.4")
 
 
 func test_food_for_grade_is_clamped_to_the_foods() -> void:

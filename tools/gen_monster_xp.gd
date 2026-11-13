@@ -32,16 +32,16 @@ func _init() -> void:
 		var patched: String = xp_re.sub(lines[i], "\"xp\":%d" % xp)
 		if patched != lines[i]:
 			changed += 1
-			print("%s: level %d -> xp %d" % [id_re.search(lines[i]).get_string(1), level, xp])
+			print_rich("%s: level %d -> xp %d" % [id_re.search(lines[i]).get_string(1), level, xp])
 			lines[i] = patched
 	if check_only:
-		print("%d monsters out of date" % changed)
+		print_rich("%d monsters out of date" % changed)
 		quit(1 if changed > 0 else 0)
 		return
 	var file := FileAccess.open(MONSTERS_PATH, FileAccess.WRITE)
 	file.store_string("\n".join(lines))
 	file.close()
-	print("gen_monster_xp: %d monsters updated" % changed)
+	print_rich("gen_monster_xp: %d monsters updated" % changed)
 	quit(0)
 
 

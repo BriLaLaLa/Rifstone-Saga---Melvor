@@ -103,7 +103,7 @@ const EXPECTED_BALANCE: Dictionary = {
 	"combat.xp_level.up_per_level": 0.05,
 	"combat.xp_level.up_cap": 1.5,
 	"combat.monster_xp.base": 80.0,
-	"combat.monster_xp.growth": 1.065,
+	"combat.monster_xp.growth": 1.051,
 	"combat.summon_drop_pct": 25.0,
 	"combat.hp_base": 50.0,
 	"combat.hp_per_level": 10.0,

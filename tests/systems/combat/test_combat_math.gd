@@ -153,7 +153,7 @@ func test_xp_level_mult() -> void:
 
 
 func test_monster_xp_by_level() -> void:
-	# F-130: round(80 x 1.065^(L - 1)).
-	var expected: Dictionary = {1: 80, 2: 85, 10: 141, 20: 265, 30: 497, 50: 1751, 75: 8452, 99: 38313}
+	# F-130: round(80 x 1.051 (M17-04: was 1.065)^(L - 1)).
+	var expected: Dictionary = {1: 80, 2: 84, 10: 125, 20: 206, 30: 339, 50: 915, 75: 3175, 99: 10475}
 	for level: int in expected:
 		assert_eq(CombatMath.monster_xp(level, _d), expected[level], "L%d" % level)

@@ -25,7 +25,7 @@ func test_fixtures_are_valid() -> void:
 func test_real_data_has_the_tables() -> void:
 	var data: GameData = TestFactory.real_data()
 	assert_true(data.is_valid())
-	assert_eq(data.loot_tables().size(), 8, "4 areas and 4 Monoliti (test_loot_tables_content.gd)")
+	assert_eq(data.loot_tables().size(), 20, "10 areas and 10 Monoliti (test_loot_tables_content.gd)")
 
 
 func test_the_file_is_mandatory() -> void:

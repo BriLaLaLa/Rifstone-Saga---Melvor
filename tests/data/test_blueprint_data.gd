@@ -13,7 +13,10 @@ const BASES: Array[Array] = [
 	["sword", 6, "grip", 2], ["greatsword", 10, "grip", 2], ["shield", 8, "shieldcore", 2], ["body", 10, "", 0],
 	["legs", 8, "", 0], ["head", 6, "", 0], ["feet", 4, "", 0], ["hands", 4, "", 0],
 ]
-const AREAS: PackedStringArray = ["redrock_plains", "whisper_wood", "cracked_mines", "rift_threshold"]
+## M17-04: the ten narrow areas, in order; the area of a piece grade is the one that contains the character level of the grade (`equipment.grade_levels`).
+const AREAS: PackedStringArray = ["redrock_plains", "whisper_wood", "dry_uplands", "cracked_mines", "ash_marsh", "weeping_gorge",
+		"rift_threshold", "black_glass_desert", "sunken_citadel", "rift_heart"]
+const AREA_OF_GRADE: Array[int] = [0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 6, 7, 8]
 const GRADE_LEVELS: Array[int] = [1, 10, 20, 30, 45, 60, 75, 90]
 const PLATE_XP: Array[int] = [19, 33, 52, 76, 110, 153, 206, 278]  # floor(2 x smelting xp x 1.2)
 
@@ -138,9 +141,9 @@ func test_blueprint_craft_action_and_forging_level_modifier() -> void:
 
 # --- rare components ---------------------------------------------------------------------------------------------------
 
-## The area whose monsters give the rare components of a piece grade (by the level of the grade: 1-3, 4-7, 8-11, 12-15).
+## The area whose monsters give the rare components of a piece grade (the area of the level of the grade).
 func _area_index_of_grade(g: int) -> int:
-	return 0 if g <= 3 else (1 if g <= 7 else (2 if g <= 11 else 3))
+	return AREA_OF_GRADE[g - 1]
 
 
 func test_rare_components_are_materials_dropped_in_the_area_of_their_grade() -> void:
@@ -177,7 +180,7 @@ func test_start_kit_uses_existing_grade_one_items() -> void:
 
 func test_every_drop_material_has_a_source() -> void:
 	var dropped: Dictionary = {}
-	for a: int in 4:
+	for a: int in AREAS.size():
 		for monster_id: StringName in _area_monster_ids(a):
 			for drop: DropEntry in _data.monster(monster_id).drops:
 				dropped[drop.item_id] = true

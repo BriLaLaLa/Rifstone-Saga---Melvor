@@ -1,6 +1,6 @@
 extends GutTest
 ## F-128 (docs/02_FORMULAS.md §5f): the skip setting of the Rift Stones, a state of the slot (saved in the combat module).
-## Real data (the Plains pool is 5, 10, 15); fixed seeds.
+## Real data (the Plains pool is 5, 10); fixed seeds.
 
 const AREA: StringName = &"redrock_plains"
 
@@ -52,12 +52,12 @@ func test_pending_stone_at_or_under_the_level_is_discarded() -> void:
 
 func test_pending_stone_over_the_level_is_fought() -> void:
 	var s: GameSession = _session()
-	_pending(s, "redrock_plains_stone_15", 10)
+	_pending(s, "redrock_plains_stone_10", 9)
 	watch_signals(s.events)
 	s.combat.start(AREA)
 	assert_eq(s.combat.state(), CombatEngine.STATE_RIFTSTONE)
 	assert_signal_not_emitted(s.events, "rift_stone_skipped")
-	assert_eq(s.combat.get_state()["stone"]["id"], &"redrock_plains_stone_15")
+	assert_eq(s.combat.get_state()["stone"]["id"], &"redrock_plains_stone_10")
 
 
 func test_level_zero_never_skips_and_99_skips_everything() -> void:
@@ -66,7 +66,7 @@ func test_level_zero_never_skips_and_99_skips_everything() -> void:
 	off.combat.start(AREA)
 	assert_eq(off.combat.state(), CombatEngine.STATE_RIFTSTONE, "0 = off")
 	var all: GameSession = _session()
-	_pending(all, "redrock_plains_stone_15", 99)
+	_pending(all, "redrock_plains_stone_10", 99)
 	all.combat.start(AREA)
 	assert_eq(all.combat.state(), CombatEngine.STATE_ENCOUNTER, "99 skips every stone")
 
@@ -101,9 +101,9 @@ func test_the_draw_covers_the_pool_uniformly() -> void:
 		stone.since = int(s.data.balance_value("rift_stone.pity_kills")) - 1
 		stone.on_kill(AREA)
 		counts[stone.stone_id] = counts.get(stone.stone_id, 0) + 1
-	assert_eq(counts.keys().size(), 3, "5, 10 and 15 of the Plains")
+	assert_eq(counts.keys().size(), 2, "5 and 10 of the Plains")
 	for id: Variant in counts:
-		assert_between(int(counts[id]), 140, 260, "about a third each: %s" % id)
+		assert_between(int(counts[id]), 230, 370, "about half each: %s" % id)
 
 
 func test_the_setting_is_saved_loaded_and_survives_stop() -> void:
@@ -147,7 +147,7 @@ func test_migration_5_to_6_adds_the_skip_setting_and_drops_the_old_stone() -> vo
 		"stone": {"since": 41, "pending": true}}}}
 	var combat: Dictionary = SaveMigrator.migrate(v5)["modules"]["combat"]
 	assert_eq(combat["skip_stone_level"], 0)
-	assert_eq(combat["stone"], {"since": 41, "pending": false, "stone_id": ""})
+	assert_eq(combat["stone"], {"since": 0, "pending": false, "stone_id": ""})  # the v6 -> v7 step (M17-04) restarts the counter
 	assert_eq(combat["state"], "between", "the old stone vanishes")
 	assert_eq(combat["enemies"], [])
 	assert_eq(v5["modules"]["combat"]["state"], "riftstone", "input untouched")

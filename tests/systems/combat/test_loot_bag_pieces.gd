@@ -60,7 +60,7 @@ func test_save_round_trip_keeps_pieces_and_stacks() -> void:
 func test_migration_5_to_6_wraps_the_loot_array() -> void:
 	var v5: Dictionary = {"format_version": 5, "modules": {"combat": {"loot": [{"item": "rift_shard", "qty": 4}]}}}
 	var out: Dictionary = SaveMigrator.migrate(v5)
-	assert_eq(out["format_version"], 6)
+	assert_eq(out["format_version"], SaveMigrator.CURRENT_VERSION)
 	var loot: Dictionary = out["modules"]["combat"]["loot"]
 	assert_eq(loot["stacks"], [{"item": "rift_shard", "qty": 4}])
 	assert_eq(loot["pieces"], [])

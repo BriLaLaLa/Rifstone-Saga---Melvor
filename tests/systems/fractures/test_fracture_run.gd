@@ -38,7 +38,7 @@ func test_next_pack_counts_the_groups_and_draws_with_pick_weighted() -> void:
 	for i: int in 3:
 		var pack: Array[MonsterDef] = run.next_pack(_s.rng, _s.data)
 		assert_eq(run.group, i + 1)
-		var weights: Array[int] = [3, 1]  # cracked_mines of the fixtures: [a] weight 3, [a, b] weight 1
+		var weights: Array[int] = [3, 1]  # ash_marsh of the fixtures (grade 1): [a] weight 3, [a, b] weight 1
 		ids.append(shadow.pick_weighted(weights))
 		assert_eq(pack.size(), 1 if ids[i] == 0 else 2)
 
@@ -49,7 +49,7 @@ func test_the_pack_is_scaled_by_the_grade_row() -> void:
 	var pack: Array[MonsterDef] = run.next_pack(_s.rng, _s.data)
 	var first: ScaledMonsterDef = pack[0] as ScaledMonsterDef
 	assert_eq(first.id, &"test_monster_a")
-	assert_eq(first.attack_level, 9)
+	assert_eq(first.attack_level, 1 + row.level_bonus)
 	assert_eq(first.hp, int(round(20.0 * row.hp_mult)), "round(20 x hp_mult)")
 	assert_eq(first.xp, int(round(80.0 * row.reward_mult)))
 	assert_false(first.is_boss)

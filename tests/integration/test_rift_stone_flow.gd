@@ -14,12 +14,12 @@ const SEAL: StringName = &"warding_seal"
 const SHARD: StringName = &"rift_shard"
 const HERO: StringName = &"test:hero"
 const TANK: StringName = &"test:tank"
-# From data/combat/rift_stones.json (redrock_plains_stone_5, level 5: 450 hp by F-125) and F-87.
-const STONE_XP: int = 200
+# From data/combat/rift_stones.json (redrock_plains_stone_5, level 5: 450 hp by F-125; M17-04: xp and shards of tools/gen_metin.gd) and F-87.
+const STONE_XP: int = 290
 const PULSE_DAMAGE: int = 1
 const PULSE_MS: int = 3000
 const SHARDS_MIN: int = 2
-const SHARDS_MAX: int = 3
+const SHARDS_MAX: int = 4
 
 var _encounters: Array = []
 var _appeared: Array[StringName] = []
@@ -126,7 +126,7 @@ func test_killing_the_stone_pays_xp_shards_and_the_stone_drops() -> void:
 	var bases: Array[StringName] = []
 	for inst: ItemInstance in s.armory.instances():
 		bases.append(inst.base_id)
-		assert_true(inst.ilvl == 8 or inst.ilvl == 5, "F-85: the highest combat level of the area (8) or the level of the stone (5)")
+		assert_true(inst.ilvl == 10 or inst.ilvl == 5, "F-85: the highest combat level of the area (10) or the level of the stone (5)")
 		assert_eq(inst.upgrade, 0)
 	assert_eq(bases.size(), 3, "two drops and the guaranteed piece")
 	assert_true(bases.has(&"emberbronze_amulet") and bases.has(&"emberbronze_ring"), "one of each, once")
@@ -166,21 +166,21 @@ func test_pulse_hits_every_pulse_ms_for_the_data_damage() -> void:
 
 
 func test_whisper_stone_comes_alone_and_its_wave_comes_with_the_first_hit() -> void:
-	var s: GameSession = _session(_data())
-	TestFactory.set_character_level(s, 16)
-	_set_stone(s, 0, true, &"whisper_wood_stone_30")
-	assert_true(s.combat.start(&"whisper_wood").ok)
+	var s: GameSession = _session(_data(), SEED, false, true)  # M17-04: the hero one-shots a stone of 1700 hp (no wave)
+	TestFactory.set_character_level(s, 21)
+	_set_stone(s, 0, true, &"dry_uplands_stone_30")
+	assert_true(s.combat.start(&"dry_uplands").ok)
 	var state: Dictionary = s.combat.get_state()
 	assert_eq(state["state"], CombatEngine.STATE_RIFTSTONE)
 	assert_eq((state["enemies"] as Array).size(), 1)
-	assert_eq(state["enemies"][0]["monster"], &"whisper_wood_stone_30")
+	assert_eq(state["enemies"][0]["monster"], &"dry_uplands_stone_30")
 	assert_eq(state["stone"]["level"], 30)
 	assert_eq(state["stone"]["max_hp"], StoneFight.max_hp(30, s.data))
 	var waves: Array = []
 	s.events.rift_stone_wave.connect(func(_id: StringName, threshold: int, count: int) -> void: waves.append([threshold, count]))
 	_run_until(s, func() -> bool: return not waves.is_empty() or not s.combat.is_active(), 250, 400)
 	assert_eq(waves.slice(0, 1), [[StoneFight.FIRST_HIT, 7]], "the first hit calls a wave of 7 monsters of the area")
-	var area_monsters: Array[StringName] = s.data.area(&"whisper_wood").monster_ids
+	var area_monsters: Array[StringName] = s.data.area(&"dry_uplands").monster_ids
 	for i: int in range(1, (s.combat.get_state()["enemies"] as Array).size()):
 		assert_true(area_monsters.has(s.combat.get_state()["enemies"][i]["monster"]))
 

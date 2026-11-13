@@ -49,7 +49,7 @@ func test_thresholds_come_from_the_balance() -> void:
 
 func test_a_wave_has_wave_size_monsters_at_the_level_of_the_stone() -> void:
 	var data: GameData = TestFactory.real_data()
-	var def: RiftStoneDef = data.rift_stone(&"redrock_plains_stone_15")
+	var def: RiftStoneDef = data.rift_stone(&"whisper_wood_stone_15")
 	var rng := RngService.new(77)
 	for _i: int in 20:
 		var defs: Array[MonsterDef] = StoneFight.wave_defs(def, data, rng)

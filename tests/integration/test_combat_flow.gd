@@ -8,7 +8,7 @@ extends GutTest
 
 const SEED: int = 5150
 const OTHER_SEED: int = 9
-const SEED_BETWEEN: int = 3   # a seed where the unboosted character wins the first group (M13-06 changed the drops, hence the draws)
+const SEED_BETWEEN: int = 6   # a seed where the unboosted character wins the first group (M13-06 changed the drops, hence the draws)
 const NOW_MS: int = 1793603600000
 const AREA: StringName = &"redrock_plains"
 const SWORD: StringName = &"emberbronze_sword"
@@ -234,7 +234,7 @@ func test_save_load_in_the_middle_of_a_fight_is_identical_and_continues_identica
 	var a: GameSession = _geared(SEED)
 	a.modifiers.set_source(BOOST, [] as Array[Modifier])   # only saved state: test sources are not in the save
 	TestFactory.set_character_level(a, 40)
-	TestFactory.give(a, FOOD, 6)
+	TestFactory.give(a, FOOD, 200)  # M17-04: packs of up to 8 monsters eat more
 	a.equipment.set_food(FOOD)
 	a.wallet.add_gold(2000)
 	assert_true(a.shop.buy(&"auto_eat_1").ok)

@@ -74,14 +74,24 @@ func test_fixture_uses() -> void:
 
 func test_real_drop_sources_have_area_and_percentage() -> void:
 	var refs: Array[GuideRef] = _real_index.sources_of(&"boar_tusk")
-	var monster: GuideRef = _find(refs, GuideRef.KIND_MONSTER, &"monster:plains_boar")
+	var carrier: MonsterDef = null  # M17-04: the monster that carries the tusk is generated, find it
+	for candidate: AreaDef in _real.areas():
+		for monster_id: StringName in candidate.monster_ids:
+			for entry: DropEntry in _real.monster(monster_id).drops:
+				if entry.item_id == &"boar_tusk":
+					carrier = _real.monster(monster_id)
+	assert_not_null(carrier)
+	var monster: GuideRef = _find(refs, GuideRef.KIND_MONSTER, StringName("monster:" + String(carrier.id)))
 	assert_not_null(monster)
 	var drop: DropEntry = null
-	for entry: DropEntry in _real.monster(&"plains_boar").drops:
+	for entry: DropEntry in carrier.drops:
 		if entry.item_id == &"boar_tusk":
 			drop = entry
-	assert_not_null(drop)
-	assert_eq(monster.detail, "%s, %s%%" % [_real.area(&"redrock_plains").name, GuideIndex.num(drop.chance_pct)])
+	var area: AreaDef = null
+	for candidate: AreaDef in _real.areas():
+		if candidate.monster_ids.has(carrier.id):
+			area = candidate
+	assert_eq(monster.detail, "%s, %s%%" % [area.name, GuideIndex.num(drop.chance_pct)])
 
 
 func test_real_stone_sources() -> void:

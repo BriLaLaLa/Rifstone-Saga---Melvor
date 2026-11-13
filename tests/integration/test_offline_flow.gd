@@ -92,7 +92,7 @@ func test_combat_summary_matches_the_session_after_a_two_hour_absence() -> void:
 	var kills: int = 0
 	for n: int in sum.kills.values():
 		kills += n
-	assert_gt(kills, 100)
+	assert_gt(kills, 50, "M17-04: packs of up to 8 monsters wear the hero without armour down in 6-13 minutes (94-220 kills, 8 seeds): a death ends the fight")
 	assert_lt(sum.deaths, 2, "a death stops the fight: at most one")
 	assert_eq(sum.xp.get(CharacterSystem.SAVE_KEY, 0), s.character.get_xp() - s.data.character_xp_table().xp_for_level(CHAR_LEVEL), "character xp gained = summary")
 	assert_eq(sum.gold_delta, s.wallet.get_gold() - int(s.data.balance_value("start.gold")))

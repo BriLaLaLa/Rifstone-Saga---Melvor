@@ -14,6 +14,10 @@ var rift_stone_chance_pct: float = -1.0
 var packs: Array[PackDef] = []
 var monster_ids: Array[StringName] = []
 var loot_tables: Array[StringName] = []  # M12: ids of data/combat/loot_tables.json, rolled by every monster of the area
+## M17 (V3): the levels the area covers (0 = absent, old format) and its place on the clickable map (x, y in 0..1; presentation only).
+var level_min: int = 0
+var level_max: int = 0
+var map_pos: Vector2 = Vector2(-1.0, -1.0)
 
 
 static func from_dict(d: Dictionary) -> AreaDef:
@@ -27,6 +31,11 @@ static func from_dict(d: Dictionary) -> AreaDef:
 	def.requirements = r.level_map("requirements")
 	if r.has("rift_stone_chance_pct"):
 		def.rift_stone_chance_pct = r.number("rift_stone_chance_pct")
+	if d.has("level_min"):
+		def.level_min = r.integer("level_min")
+		def.level_max = r.integer("level_max")
+	if d.get("map_pos") is Array and (d["map_pos"] as Array).size() == 2:
+		def.map_pos = Vector2(float((d["map_pos"] as Array)[0]), float((d["map_pos"] as Array)[1]))
 	if r.has("loot_tables"):
 		def.loot_tables = r.id_list("loot_tables")
 	for entry: Dictionary in r.dict_list("packs"):

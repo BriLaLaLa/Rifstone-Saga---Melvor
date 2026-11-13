@@ -2,8 +2,8 @@ extends GutTest
 ## Data checks of M15 (docs/04_DATA_SCHEMA.md §22): Rift Stone pools per area (Z2) and the new balance keys.
 
 const EXPECTED: Dictionary = {
-	"redrock_plains": [5, 10, 15], "whisper_wood": [20, 25, 30, 35], "cracked_mines": [40, 45, 50, 55, 60],
-	"rift_threshold": [65, 70, 75, 80, 85, 90, 95]}
+	"redrock_plains": [5, 10], "whisper_wood": [15, 20], "dry_uplands": [25, 30], "cracked_mines": [35, 40], "ash_marsh": [45, 50],
+	"weeping_gorge": [55, 60], "rift_threshold": [65, 70], "black_glass_desert": [75, 80], "sunken_citadel": [85, 90], "rift_heart": [95]}  # M17-04
 
 
 func _json(path: String) -> Dictionary:

@@ -29,6 +29,7 @@ var max_skill_level: float = NO_LIMIT  # limits from balance.json (NO_LIMIT or 0
 var max_mastery_level: float = NO_LIMIT
 var max_character_level: float = NO_LIMIT  # character_curve.max_level
 var max_pack_size: float = NO_LIMIT  # combat.max_pack_size
+var pack_size_weights: Array[int] = []  # combat.pack_size_weights (M17), when valid: weight of each pack size 1..max_pack_size
 var min_action_interval_ms: float = 0.0
 var helper_grade_ids: PackedStringArray = []  # helper.grades ids (M12), collected with the balance before the items
 var milestone_thresholds: Array[int] = []  # mastery.milestones byproduct_at, resource_at, trade_at (M12), when valid

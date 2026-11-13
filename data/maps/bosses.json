@@ -131,8 +131,8 @@
         "count": 1,
         "max_alive": 2,
         "monsters": [
-          "crack_golem",
-          "deep_crawler"
+          "bog_hound",
+          "ash_heron"
         ]
       },
       "rewards": {
@@ -410,8 +410,8 @@
         "count": 1,
         "max_alive": 2,
         "monsters": [
-          "shard_wraith",
-          "rift_knight"
+          "mirage_stalker",
+          "glass_serpent"
         ]
       },
       "rewards": {
@@ -620,8 +620,8 @@
         "count": 2,
         "max_alive": 3,
         "monsters": [
-          "shard_wraith",
-          "rift_knight"
+          "riftborn_scout",
+          "faceless_blade"
         ]
       },
       "rewards": {

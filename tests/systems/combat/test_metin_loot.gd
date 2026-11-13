@@ -68,9 +68,9 @@ func test_killing_a_stone_puts_the_piece_in_the_bag() -> void:
 	var s: GameSession = _session(7)
 	TestFactory.make_roomy(s)
 	s.modifiers.set_source(SOURCE, [Modifier.make(&"power_bonus", 5000.0), Modifier.make(&"max_hp_flat", 100000.0)])
-	s.combat.from_save({"state": "riftstone", "area": "whisper_wood", "player_hp": 100000, "player_timer_ms": 0, "hand": 0,
+	s.combat.from_save({"state": "riftstone", "area": "dry_uplands", "player_hp": 100000, "player_timer_ms": 0, "hand": 0,
 		"between_ms": 0, "loot": {}, "kills": {}, "deaths": 0, "food_eaten": 0,
-		"enemies": [{"monster": "whisper_wood_stone_30", "hp": 100, "timer_ms": 3000}],
+		"enemies": [{"monster": "dry_uplands_stone_30", "hp": 100, "timer_ms": 3000}],
 		"stone": {"since": 0, "pending": false, "stone_id": ""}})
 	var guard: int = 0
 	while s.combat.state() == CombatEngine.STATE_RIFTSTONE and guard < 100:

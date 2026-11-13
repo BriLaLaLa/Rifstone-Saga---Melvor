@@ -16,6 +16,16 @@
                {"weight": 1, "monsters": ["test_monster_a", "test_monster_b"]}]},
     {"id": "rift_threshold", "name": "Soglia di prova", "order": 5, "description": "Area dei gradi 4-10 delle Fratture, per i test.",
      "requirements": {},
-     "packs": [{"weight": 1, "monsters": ["test_monster_b"]}]}
+     "packs": [{"weight": 1, "monsters": ["test_monster_b"]}]},
+    {"id": "ash_marsh", "name": "Palude di prova", "order": 6, "description": "Area dei gradi 1-2 delle Fratture, per i test.",
+     "requirements": {}, "packs": [{"weight": 3, "monsters": ["test_monster_a"]}, {"weight": 1, "monsters": ["test_monster_a", "test_monster_b"]}]},
+    {"id": "weeping_gorge", "name": "Gola di prova", "order": 7, "description": "Area del grado 3 delle Fratture, per i test.",
+     "requirements": {}, "packs": [{"weight": 3, "monsters": ["test_monster_a"]}, {"weight": 1, "monsters": ["test_monster_a", "test_monster_b"]}]},
+    {"id": "black_glass_desert", "name": "Deserto di prova", "order": 8, "description": "Area dei gradi 5-6 delle Fratture, per i test.",
+     "requirements": {}, "packs": [{"weight": 1, "monsters": ["test_monster_b"]}]},
+    {"id": "sunken_citadel", "name": "Cittadella di prova", "order": 9, "description": "Area dei gradi 7-8 delle Fratture, per i test.",
+     "requirements": {}, "packs": [{"weight": 1, "monsters": ["test_monster_b"]}]},
+    {"id": "rift_heart", "name": "Cuore di prova", "order": 10, "description": "Area dei gradi 9-10 delle Fratture, per i test.",
+     "requirements": {}, "packs": [{"weight": 1, "monsters": ["test_monster_b"]}]}
   ]
 }

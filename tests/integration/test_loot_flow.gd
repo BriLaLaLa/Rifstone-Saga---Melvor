@@ -53,6 +53,7 @@ func _hero_session(data: GameData, seed_value: int = SEED) -> GameSession:
 	var s: GameSession = autofree(TestFactory.session_no_kit(seed_value, data))
 	s.modifiers.set_source(HERO, [Modifier.make(&"power_bonus", 5000.0), Modifier.make(&"max_hp_flat", 100000.0)])
 	_room = TestFactory.make_roomy(s)
+	s.combat.set_skip_stone_level(99)  # M17-04: the kills of a Monolith wave would count as kills without drops
 	_added = []
 	_auto_salvaged = []
 	_kills = 0
@@ -105,7 +106,7 @@ func test_every_drop_is_either_in_the_armory_or_salvaged_by_the_filter() -> void
 		assert_true(_added.has(inst.uid), "%d announced as added" % inst.uid)
 		if inst.base_id == SWORD:
 			assert_ne(inst.rarity, &"common", "common swords are under the weapon filter")
-		assert_true([1, 4, 8].has(inst.ilvl), "ilvl = highest combat level of the monster that dropped it (F-85): boar 1, rat 4, raider 8")
+		assert_true([1, 3, 5, 8, 10].has(inst.ilvl), "ilvl = highest combat level of the monster that dropped it (F-85): the levels of the Plains monsters")
 	assert_eq(_count_by_base(RING, _auto_salvaged), 0, "the ring has no rule: never filtered")
 	assert_gt(_count_by_base(SWORD, _auto_salvaged), 0, "with 40 kills some common sword is filtered (20+3% only)")
 	# F-88 / F-95 (M14): a piece without a blueprint (an ordinary sword) gives no components and no shard when common.

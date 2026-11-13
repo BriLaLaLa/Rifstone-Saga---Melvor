@@ -17,36 +17,38 @@ func _effect(risk_type: StringName, risk: float, reward_type: StringName = &"xp_
 	return {"mod": &"t", "risk_type": risk_type, "risk": risk, "reward_type": reward_type, "reward": reward}
 
 
-func test_crack_golem_at_grade_3() -> void:
-	var golem: ScaledMonsterDef = _scaled(&"crack_golem", 3)
+func test_crack_golem_at_grade_8() -> void:
+	# M17-04: grade 8 is the one with level_bonus 8 (the golem is level 38 in the Miniere Abbandonate: 46)
+	var golem: ScaledMonsterDef = _scaled(&"crack_golem", 8)
+	var row: FractureGradeDef = _data.fracture_grade(8)
+	assert_eq(row.level_bonus, 8)
 	assert_eq(golem.attack_level, 46)
-	assert_eq(golem.power_level, 46)
+	assert_eq(golem.power_level, mini(99, _data.monster(&"crack_golem").power_level + 8))
 	assert_eq(golem.defence_level, 46)
-	var row: FractureGradeDef = _data.fracture_grade(3)
 	assert_eq(golem.hp, int(round(float(_data.monster(&"crack_golem").hp) * row.hp_mult)), "hp x the hp_mult of the row")
-	assert_eq(golem.damage_mult, 1.16)
+	assert_eq(golem.damage_mult, row.damage_mult)
 	assert_eq(golem.xp, int(round(float(_data.monster(&"crack_golem").xp) * row.reward_mult)))
 	assert_eq(golem.id, &"crack_golem", "the id of the data")
 
 
-func test_golem_damage_is_floor_of_1_16_on_min_and_max() -> void:
+func test_golem_damage_is_floor_of_the_row_multiplier_on_min_and_max() -> void:
 	var base: CombatantStats = CombatantStats.for_monster(_data.monster(&"crack_golem"), _data)
-	var scaled: CombatantStats = CombatantStats.for_monster(_scaled(&"crack_golem", 3), _data)
+	var scaled: CombatantStats = CombatantStats.for_monster(_scaled(&"crack_golem", 8), _data)
 	# the levels grow too (F-110): compare with the stats of the monster at the scaled levels, unscaled damage
 	var plain := ScaledMonsterDef.copy_of(_data.monster(&"crack_golem"))
 	plain.attack_level = 46
-	plain.power_level = 46
+	plain.power_level = mini(99, plain.power_level + 8)
 	plain.defence_level = 46
 	var at_46: CombatantStats = CombatantStats.for_monster(plain, _data)
-	assert_eq(scaled.max_hit, maxi(1, floori(at_46.max_hit * 1.16 + 1e-9)))
-	assert_eq(scaled.min_hit, maxi(1, floori(at_46.min_hit * 1.16 + 1e-9)))
+	assert_eq(scaled.max_hit, maxi(1, floori(at_46.max_hit * _data.fracture_grade(8).damage_mult + 1e-9)))
+	assert_eq(scaled.min_hit, maxi(1, floori(at_46.min_hit * _data.fracture_grade(8).damage_mult + 1e-9)))
 	assert_gt(scaled.max_hit, base.max_hit)
 
 
-func test_vein_witch_level_63_and_wraith_unchanged_at_grade_4() -> void:
-	assert_eq(_scaled(&"vein_witch", 3).attack_level, 63)
+func test_vein_witch_level_48_and_wraith_unchanged_at_grade_4() -> void:
+	assert_eq(_scaled(&"vein_witch", 8).attack_level, 48, "level 40 + level_bonus 8")
 	var wraith: ScaledMonsterDef = _scaled(&"shard_wraith", 4)
-	assert_eq(wraith.attack_level, 65)
+	assert_eq(wraith.attack_level, 61, "level 61, level_bonus 0 at grade 4")
 	assert_eq(wraith.hp, int(round(float(_data.monster(&"shard_wraith").hp) * _data.fracture_grade(4).hp_mult)))
 	assert_eq(wraith.damage_mult, 1.0)
 
@@ -54,7 +56,7 @@ func test_vein_witch_level_63_and_wraith_unchanged_at_grade_4() -> void:
 func test_levels_are_capped_at_99() -> void:
 	var wraith: ScaledMonsterDef = _scaled(&"riftborn_colossus", 10)
 	assert_lte(wraith.attack_level, 99)
-	assert_eq(wraith.attack_level, mini(99, _data.monster(&"riftborn_colossus").attack_level + 7))
+	assert_eq(wraith.attack_level, mini(99, _data.monster(&"riftborn_colossus").attack_level + _data.fracture_grade(10).level_bonus))
 
 
 func test_the_data_monster_does_not_change() -> void:
