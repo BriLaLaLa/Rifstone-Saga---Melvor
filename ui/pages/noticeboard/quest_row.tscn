@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/pages/noticeboard/quest_row.gd" id="1_row"]
+
+[node name="QuestRow" type="PanelContainer"]
+theme_type_variation = &"HudPanel"
+script = ExtResource("1_row")
