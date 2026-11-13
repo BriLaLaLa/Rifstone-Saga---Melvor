@@ -181,11 +181,10 @@ func test_ticket_rate_is_one_every_one_and_a_half_to_two_and_a_half_hours() -> v
 
 func test_every_area_has_its_own_miniboss() -> void:
 	var seen: Dictionary = {}
-	var escorts: int = int((_balance["miniboss"] as Dictionary)["escorts"])
 	_eq(_data.areas().size(), 10)
 	for area: AreaDef in _data.areas():
 		_eq(area.miniboss_id, StringName("miniboss_%s" % area.id))
-		_eq(area.miniboss_escorts, escorts)
+		_eq(area.miniboss_escorts, 2)
 		var m: MonsterDef = _data.monster(area.miniboss_id)
 		assert_true(m.is_miniboss)
 		assert_false(seen.has(m.name), "unique name %s" % m.name)
@@ -199,7 +198,7 @@ func test_every_area_has_its_own_miniboss() -> void:
 
 func test_the_direction_bands_and_the_miniboss_balance_are_the_ones_of_the_fixtures() -> void:
 	_eq((_balance["dungeon"] as Dictionary)["direction_bands"], [-0.55, -0.30, -0.10, 0.10, 0.30, 0.55])
-	_eq(_balance["miniboss"], {"chance_pct": 1.5, "hp_mult": 4.0, "power_mult": 1.5, "xp_mult": 4.0, "gold_mult": 4.0, "escorts": 2})
+	_eq(_balance["miniboss"], {"chance_pct": 1.5, "hp_mult": 4.0, "power_mult": 1.5, "xp_mult": 4.0, "gold_mult": 4.0})
 
 
 ## JSON numbers are floats: whole numbers become integers, so that the expected values read like the file.

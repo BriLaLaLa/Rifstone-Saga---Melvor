@@ -80,9 +80,6 @@ func open(dungeon_id: StringName) -> CommandResult:
 	if reason != &"ok":
 		return CommandResult.fail(reason)
 	var def: DungeonDef = DungeonRun.find_def(dungeon_id, _session.data)
-	if not engine().has_method(&"start_dungeon"):
-		Log.error(LOG_CATEGORY, "the combat engine cannot run a dungeon yet")
-		return CommandResult.fail(Reasons.NO_DUNGEON)
 	_session.bank.remove(def.ticket, 1)
 	_run = DungeonRun.create(def, _session.rng.randi_range(1, SEED_MAX), _session.combat.area_id(), _session.data)
 	var started: CommandResult = _session.combat.start_dungeon(_run) if _engine == null else _engine.start_dungeon(_run)
@@ -141,8 +138,7 @@ func resume() -> CommandResult:
 	if not _run.paused:
 		return CommandResult.fail(Reasons.NOT_PAUSED)
 	_run.paused = false
-	if engine().has_method(&"set_dungeon_paused"):
-		engine().set_dungeon_paused(false)
+	engine().set_dungeon_paused(false)
 	_session.events.dungeon_paused_changed.emit(false)
 	return CommandResult.success()
 

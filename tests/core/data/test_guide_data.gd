@@ -187,8 +187,8 @@ func test_broken_page_link() -> void:
 
 func test_unknown_help_for_route() -> void:
 	var raw: Dictionary = _raw()
-	(_page(raw, 0)["help_for"] as Array)[0] = "dungeon"
-	_expect(raw, [PAGES, "help_for", "unknown route 'dungeon'"])
+	(_page(raw, 0)["help_for"] as Array)[0] = "nowhere"
+	_expect(raw, [PAGES, "help_for", "unknown route 'nowhere'"])
 
 
 func test_unknown_help_for_skill_route() -> void:

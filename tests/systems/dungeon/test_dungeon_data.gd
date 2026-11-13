@@ -339,4 +339,3 @@ func test_balance_values_of_f137_and_f139() -> void:
 	assert_eq(float(data.balance_value("miniboss.power_mult")), 1.5)
 	assert_eq(float(data.balance_value("miniboss.xp_mult")), 4.0)
 	assert_eq(float(data.balance_value("miniboss.gold_mult")), 4.0)
-	assert_eq(int(data.balance_value("miniboss.escorts")), 2)

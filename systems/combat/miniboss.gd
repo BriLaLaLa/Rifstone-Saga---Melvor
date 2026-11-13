@@ -14,14 +14,14 @@ static func roll(area: AreaDef, rng: RngService, data: GameData) -> bool:
 	return rng.roll_pct(float(data.balance_value(CHANCE_KEY)))
 
 
-## F-139: the miniboss (scaled) followed by `miniboss.escorts` monsters of the area, each drawn at random among its monsters.
+## F-139: the miniboss (scaled) followed by `area.miniboss_escorts` monsters (`areas.json`) of the area, each drawn at random among its monsters.
 ## Empty if the area has no miniboss.
 static func pack(area: AreaDef, rng: RngService, data: GameData) -> Array[MonsterDef]:
 	var result: Array[MonsterDef] = []
 	if area.miniboss_id == &"":
 		return result
 	result.append(scale(data.monster(area.miniboss_id), data))
-	for _i: int in int(data.balance_value("miniboss.escorts")):
+	for _i: int in area.miniboss_escorts:
 		result.append(data.monster(area.monster_ids[rng.randi_range(0, area.monster_ids.size() - 1)]))
 	return result
 

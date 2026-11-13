@@ -20,6 +20,7 @@ const AREAS_PATH: String = "res://data/combat/areas.json"
 const MONSTERS_PATH: String = "res://data/combat/monsters.json"
 const LOOT_PATH: String = "res://data/combat/loot_tables.json"
 const BALANCE_PATH: String = "res://data/config/balance.json"
+const MINIBOSS_ESCORTS: int = 2  # escorts of every area miniboss: the data lives in areas.json (F-139)
 const ICON_DIR: String = "res://assets/icons/monsters/"
 
 ## hp_curve anchors [level, hp], interpolated linearly (a role multiplies the result).
@@ -110,7 +111,7 @@ func _area(area: Dictionary, index: int, ids: Array[String]) -> Dictionary:
 		"description": area["desc"], "level_min": level_min, "level_max": level_max_of(index),
 		"map_pos": area["pos"], "requirements": {"character": level_min},
 		"rift_stone_chance_pct": STONE_CHANCE[int(area["tier"])], "packs": _packs(ids),
-		"miniboss": {"monster": miniboss_row(index)[0], "escorts": int((_balance["miniboss"] as Dictionary)["escorts"])}}
+		"miniboss": {"monster": miniboss_row(index)[0], "escorts": MINIBOSS_ESCORTS}}
 
 
 ## The monster row of the miniboss of area `index` (the format of the rows of Data.AREAS): the strongest monster of the area, a new id,

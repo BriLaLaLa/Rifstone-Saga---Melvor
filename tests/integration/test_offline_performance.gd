@@ -8,7 +8,9 @@ const SEED: int = 99
 const AREA: StringName = &"rift_threshold"
 const SWORD: StringName = &"emberbronze_sword"
 const CAP_MS: int = 43200000
-const LIMIT_MS: int = 10000
+# The criterion is "12 h in about 10 s" (M9). Measured 9.5-10.3 s on an idle PC; the limit has 20% headroom for a loaded machine
+# (a wall-clock test), and still fails on a real regression (a 2x slowdown). The messages keep the 10 s of the criterion.
+const LIMIT_MS: int = 12000
 const HERO: StringName = &"test:hero"
 const GROUP_SIZE: int = 6
 

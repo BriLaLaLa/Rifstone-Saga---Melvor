@@ -4,9 +4,9 @@ extends RefCounted
 ## delle Scimmie", the choice of the area is hidden and a link leads to the Dungeon page. No state, no rules.
 
 
-## True while the combat engine runs a dungeon (false before the engine knows dungeons).
+## True while the combat engine runs a dungeon.
 static func is_in(session: GameSession) -> bool:
-	return session.combat.has_method(&"in_dungeon") and bool(session.combat.call(&"in_dungeon"))
+	return session.combat.in_dungeon()
 
 
 ## Adds the hidden "Vai al Dungeon" button to `parent` (the header of the page).

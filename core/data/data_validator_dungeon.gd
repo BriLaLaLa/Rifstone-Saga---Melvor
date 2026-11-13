@@ -31,7 +31,7 @@ const CRYSTALS_MAX: int = 5
 const CARD_GRADE_MAX: int = 10
 const RARITIES: PackedStringArray = ["common", "magic", "rare"]
 const FORBIDDEN_TABLE_CATEGORIES: PackedStringArray = ["map", "contract"]  # no Cards and no Contracts in a dungeon table
-const MINIBOSS_KEYS: PackedStringArray = ["chance_pct", "hp_mult", "power_mult", "xp_mult", "gold_mult", "escorts"]
+const MINIBOSS_KEYS: PackedStringArray = ["chance_pct", "hp_mult", "power_mult", "xp_mult", "gold_mult"]
 const BANDS_COUNT: int = 6
 const BAND_WIDTH_MAX: float = 0.25  # F-137: rooms of a level are at least this far apart, so no band may hold two exits
 const EPSILON: float = 1e-9
@@ -61,7 +61,6 @@ static func validate_balance(v: DataValidatorRules, balance: Dictionary) -> void
 	v.number(m, "chance_pct", 0.0, 100.0, "miniboss")
 	for key: String in ["hp_mult", "power_mult", "xp_mult", "gold_mult"]:
 		v.number(m, key, 1.0, DataValidatorRules.NO_LIMIT, "miniboss")
-	v.integer(m, "escorts", 0, ESCORTS_MAX, "miniboss")
 
 
 # Six strictly increasing numbers in -1..1 whose inner bands are not wider than BAND_WIDTH_MAX (F-137).

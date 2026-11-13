@@ -61,7 +61,7 @@ func test_pack_is_the_miniboss_and_its_escorts() -> void:
 	var data: GameData = MinibossData.data(100)
 	var area: AreaDef = data.area(AREA)
 	var pack: Array[MonsterDef] = Miniboss.pack(area, RngService.new(9), data)
-	assert_eq(pack.size(), 1 + int(data.balance_value("miniboss.escorts")))
+	assert_eq(pack.size(), 1 + area.miniboss_escorts)
 	assert_eq(pack[0].id, MINIBOSS)
 	assert_eq(pack[0].hp, data.monster(MINIBOSS).hp * 4)
 	for i: int in range(1, pack.size()):

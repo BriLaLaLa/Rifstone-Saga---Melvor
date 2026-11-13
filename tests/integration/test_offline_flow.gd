@@ -13,6 +13,7 @@ const TICK_MS: int = 100
 const SLOT: int = 1
 const CHAR_LEVEL: int = 60
 const AREA: StringName = &"redrock_plains"
+const FIGHT_SEED: int = 4242  # the session seed is time based: a fixed one makes the statistical kills check reproducible
 const SWORD: StringName = &"emberbronze_sword"
 
 var _test_dir: String = PreRun.save_dir()
@@ -47,6 +48,7 @@ func _angling(s: GameSession) -> void:
 
 
 func _fighting(s: GameSession) -> void:
+	s.rng.from_save(RngService.new(FIGHT_SEED).to_save())
 	assert_true(s.equipment.equip(TestFactory.give_piece(s, SWORD)).ok)
 	TestFactory.set_character_level(s, CHAR_LEVEL)
 	assert_true(s.combat.start(AREA).ok)

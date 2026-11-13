@@ -864,7 +864,7 @@ Classi: `DungeonDef` (campi sopra), `DungeonRoomType`, `DungeonStageDef` (`id`, 
 
 **Altri dati toccati**
 - **Biglietto** (`data/items/misc.json`): `{"id": "dungeon_ticket_monkey_den", "name": "Biglietto del Covo delle Scimmie", "category": "misc", "value": 0, "dungeon": "monkey_den", …}`; campo `dungeon` facoltativo in `ItemDef` (`&""` se assente), ammesso solo per `misc`.
-- **Miniboss** (`areas.json`, §8): campo `miniboss` per area, **obbligatorio** (10 aree): `{"monster": "<id>", "escorts": 2}` con `monster` un mostro **della stessa area** marcato `"miniboss": true` (campo facoltativo dei mostri, mai in un gruppo di `packs`); un solo miniboss per area; i moltiplicatori di F-139 stanno in `balance.json` `miniboss`.
+- **Miniboss** (`areas.json`, §8): campo `miniboss` per area, **obbligatorio** (10 aree): `{"monster": "<id>", "escorts": 2}` con `monster` un mostro **della stessa area** marcato `"miniboss": true` (campo facoltativo dei mostri, mai in un gruppo di `packs`); un solo miniboss per area; i moltiplicatori di F-139 stanno in `balance.json` `miniboss`; `escorts` è definito solo qui (per area), non in `balance.json`.
   Il miniboss ha `drops` come gli altri più, nelle aree 4-10, la voce del Biglietto. `tools/gen_areas.gd` li genera.
 - **Tabelle** (`loot_tables.json`): `loot_dungeon_monkey_den` (nuova) e la voce del Biglietto (20%) nelle tabelle dei Monoliti delle aree 4-10; il Biglietto compare **solo** nei `drops` dei miniboss e nelle tabelle dei Monoliti (regola del validatore).
 - **Leggendari** (`equipment_legendary.json`, §5): `legendary.source` ammette `{"type": "dungeon", "id": "monkey_den", "chance_pct": 3.5}`; 6 nuovi pezzi (`leg_*_monkey`, F-143). Nessun tipo di effetto nuovo.
