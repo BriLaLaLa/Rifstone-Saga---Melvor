@@ -33,6 +33,7 @@ var character: CharacterSystem
 var armory: Armory
 var cards: CardStore  # M13-01
 var fractures: FractureSystem  # M13-02
+var dungeon: DungeonSystem  # M22-04
 var equipment: Equipment
 var loadout: Loadout
 var actions: ActionRunner
@@ -73,11 +74,12 @@ func new_game() -> void:
 	rebuild_modifiers()
 
 
-## One fixed step: fractures, actions, helpers, combat (only the systems that exist), then play time.
-func advance(delta_ms: int) -> void:
-	for step: Callable in _steps:
-		if step.is_valid():
-			step.call(delta_ms)
+## One fixed step: fractures, actions, helpers, combat (only the systems that exist), then play time. `freeze_combat`
+## (offline, with a dungeon run: F-144 rule 2) leaves the combat and the run where they are; the rest advances.
+func advance(delta_ms: int, freeze_combat: bool = false) -> void:
+	for phase: int in _steps.size():
+		if _steps[phase].is_valid() and not (freeze_combat and phase == _PHASE_COMBAT):
+			_steps[phase].call(delta_ms)
 	play_time_ms += delta_ms
 
 
@@ -160,6 +162,8 @@ func _create_systems() -> void:
 	_join(Equipment.SAVE_KEY, equipment.new_game, equipment.to_save, equipment.from_save, equipment.rebuild_modifiers)
 	fractures = FractureSystem.new(self)
 	_join(FractureSystem.SAVE_KEY, fractures.new_game, fractures.to_save, fractures.from_save, fractures.rebuild_modifiers)
+	dungeon = DungeonSystem.new(self)
+	_join(DungeonSystem.SAVE_KEY, dungeon.new_game, dungeon.to_save, dungeon.from_save)
 	loadout = Loadout.new(self)
 	_join(Loadout.SAVE_KEY, loadout.new_game, loadout.to_save, loadout.from_save, loadout.rebuild_modifiers)
 	actions = ActionRunner.new(self)
