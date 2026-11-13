@@ -3,6 +3,7 @@
 Aggiornato dall'Orchestratore (unico che modifica questo file). Stati: TODO / IN_PROGRESS / REVIEW / DONE / BLOCKED.
 Se la sessione si interrompe, si riparte da qui.
 
+- **M19 Villaggio (2026-11-13, tag `m19-done`, merge `62ccce4` e `86e01da`)**: M19-01 design (`dbde947`: 5 edifici da 8 livelli Magazzino/Locanda/Fucina/Segheria/Rimessa, F-131..F-133, `tools/sim_village.gd`, nessuna migrazione, `format_version` resta 7); M19-02 modulo `Village`, dati generati da `tools/gen_village.gd`, stat `deposit_slots`; M19-03 pagina Villaggio e voce in sidebar; M19-04 integrazione (pagina Guida del Villaggio, test su sessione vera). `run_checks` verde (3026 test), sim: max 0,84 h per livello. Aperto: icona sidebar `coins` provvisoria; Mercato e Bacheca segnaposto per M20. **Prossimo: M20** (Bacheca, quest, shop del Mercato, nuova migrazione), da progettare in M20-01 solo dopo l'ok dell'utente.
 - **M18 (2026-11-13)**: M18-01 Incisore: XP da smantellamento (F-95b, `salvage.engraver_xp_per_grade` 2), Lastra minore e 3 rune minori (`tools/gen_engraver_minor.gd`); Fondere dava gia' XP. M18-02 Fabbro: didascalia per sottoscheda e Banco in due passi (`forge_texts.gd`). `run_checks` verde (2980 test). Icone riusate; XP da tarare.
 - **P-02 Scheda pezzo, Banco del fabbro, slot Cibo (2026-11-08, merge 55730ff)**: scheda del pezzo, Banco del fabbro nella pagina Fabbro, slot Cibo nella bambola, drag reale (fix a `EquipmentInventory.rebuild_grid`).
 - P-02 aperto: layout non verificato a schermo; manca l'icona `food.svg`; il tipo del pezzo mostra il nome dello slot.
