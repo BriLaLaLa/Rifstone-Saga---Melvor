@@ -94,6 +94,10 @@ const ARMORY_PANEL_ICON_SIZE := Vector2(64, 64)
 const ARMORY_FILTER_WIDTH: int = 200
 const ARMORY_MARKER_SIZE: int = 8
 const ARMORY_CELL_FONT_SIZE: int = 13
+## Width of the "Bonus" summary popup of an action card (M16-05).
+const MASTERY_BONUS_POPUP_WIDTH: float = 340.0
+## Item level badge at the bottom right of item and piece cells (M16-04).
+const ITEM_LEVEL_FONT_SIZE: int = 10
 ## Mastery panel: node card size and spacing in the tree (pos = [col, row]), width of the prerequisite links, action
 ## icon side, opacity of a node card whose prerequisites are missing.
 const MASTERY_NODE_SIZE := Vector2(240, 156)

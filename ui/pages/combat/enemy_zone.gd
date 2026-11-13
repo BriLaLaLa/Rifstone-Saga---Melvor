@@ -62,17 +62,21 @@ func refresh(session: GameSession, state: Dictionary) -> void:
 	var target: int = int(state["target"])
 	var player_style: StringName = session.equipment.style()
 	var alive: int = 0
+	# M16-03: with a Monolith in the fight (`state.stone` not empty) the dead ones leave the screen; otherwise they stay dimmed.
+	var hide_dead: bool = not (state.get("stone", {}) as Dictionary).is_empty()
 	for i: int in enemies.size():
 		var enemy: Dictionary = enemies[i]
 		var card: EnemyCard = _cards[i]
-		card.visible = i != target
+		card.visible = i != target and not (hide_dead and int(enemy["hp"]) <= 0)
 		card.redraw(enemy["hp"], enemy["max_hp"], enemy["timer_ms"], enemy["interval_ms"])
 		if int(enemy["hp"]) > 0:
 			alive += 1
 			card.set_tag(EnemyView.tag_text(session.data, _ids[i], player_style))
 	_redraw_target(session, enemies, target, player_style)
-	var queued: int = _cards.size() - (1 if target >= 0 else 0)
-	_queue_title.text = CombatTexts.QUEUE_TITLE % maxi(queued, 0)
+	var queued: int = 0
+	for card: EnemyCard in _cards:
+		queued += 1 if card.visible else 0
+	_queue_title.text = CombatTexts.QUEUE_TITLE % queued
 	_count.text = CombatTexts.ENEMY_COUNT_TEXT % [alive, enemies.size()] if not enemies.is_empty() else ""
 	_empty.visible = target < 0
 	_fit_cards()

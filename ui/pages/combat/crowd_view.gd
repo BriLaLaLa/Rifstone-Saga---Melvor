@@ -82,7 +82,8 @@ func refresh(session: GameSession, state: Dictionary) -> void:
 		var row: Dictionary = _rows[id]
 		var enemy: Dictionary = enemies[front[id]]
 		var label: Label = row["name"]
-		label.text = CrowdTexts.group_text(EnemyView.name_of(session.data, id), counts[id])
+		label.text = CrowdTexts.group_text(EnemyView.name_of(session.data, id), counts[id],
+					EnemyView.level_of(session.data, id))
 		label.add_theme_color_override("font_color",
 				UiStyle.COMBAT_TARGET_BORDER_COLOR if front[id] == target else UiStyle.COMBAT_ENEMY_TEXT)
 		var bar: ProgressBar = row["bar"]

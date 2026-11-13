@@ -78,6 +78,7 @@ func show_piece(inst: ItemInstance, base: ItemDef) -> void:
 	_rarity_color = UiStyle.rarity_color(inst.rarity)
 	_icon.texture = ItemSlotView.icon_of(base.icon)
 	_icon.modulate = Color.WHITE
+	LevelBadge.show_on(self, inst.ilvl)
 	_label.text = _slot_text if inst.upgrade <= 0 else "%s %s" % [_slot_text, ArmoryTexts.UPGRADE_TEXT % inst.upgrade]
 	_fit_label()
 	_restyle()
@@ -90,6 +91,7 @@ func show_empty() -> void:
 	var path: String = SLOT_ICON_DIR % _slot
 	_icon.texture = load(path) as Texture2D if ResourceLoader.exists(path) else null
 	_icon.modulate = EMPTY_ICON_TINT
+	LevelBadge.show_on(self, 0)
 	_label.text = _slot_text
 	_fit_label()
 	_restyle()

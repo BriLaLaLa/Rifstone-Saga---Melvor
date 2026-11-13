@@ -1,15 +1,15 @@
 class_name DepositTabs
 extends TabContainer
 ## The two tabs of the Deposit page (docs/05_INTERFACES.md §7.w, docs/01_GDD.md §7): "Oggetti" (the first child, the
-## item grid built by BankPage) and "Equipaggiamento" (built here: the pieces of `armory.instances()` not worn).
+## item grid built by BankPage) and "Pezzi" (built here, V10: the pieces waiting in `combat.loot` and those of `armory.instances()` not worn; read, never copied).
 ## Both draw `deposit.capacity()` boxes: the ones of their own items, then `OccupiedCell` nodes for the boxes the other
 ## tab uses and `EmptyCell` nodes for the free ones. The cells are decorative: the numbers come from the session at
 ## every `redraw`, no data is copied. A piece cell is the same `InventoryCell` of the Equipment page.
 
 const OBJECTS_TITLE: String = "Oggetti"
-const EQUIPMENT_TITLE: String = "Equipaggiamento"
-const EQUIPMENT_HINT: String = "Questi pezzi usano le stesse caselle degli oggetti. Si equipaggiano dalla pagina Equipaggiamento."
-const PENDING_TITLE: String = "Pezzi"
+const EQUIPMENT_TITLE: String = "Pezzi"
+const EQUIPMENT_HINT: String = "I pezzi in attesa nel Bottino e quelli nell'Armeria non indossati. Usano le stesse caselle degli oggetti; si equipaggiano dalla pagina Equipaggiamento."
+const PENDING_TITLE: String = "In attesa nel Bottino"
 const PENDING_HINT: String = "In attesa nel Bottino: \"Raccogli tutto\" li sposta nell'Armeria."
 const PENDING_CELL_NAME: String = "PendingPiece%d"
 const EMPTY_TEXT: String = "Nessun pezzo non indossato."

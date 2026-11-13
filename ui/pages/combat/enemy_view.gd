@@ -7,6 +7,7 @@ extends RefCounted
 
 const STONE_TAG_TEXT: String = "Monolito del Rift"
 const STONE_INFO_TEXT: String = "Impulso ogni %s s · %s danni a impulso"
+const LEVEL_TAG_TEXT: String = "Liv %d · %s"
 const BOSS_TAG_TEXT: String = "Boss della Frattura"
 const BOSS_INFO_TEXT: String = "%s · %s"
 
@@ -34,6 +35,12 @@ static func monster_of(data: GameData, id: StringName) -> MonsterDef:
 	if data.has_monster(id):
 		return data.monster(id)
 	return boss_of(data, id)
+
+
+## Level of a monster or boss (`EquipmentPool.monster_level`: the highest of its combat levels); 0 for a Stone.
+static func level_of(data: GameData, id: StringName) -> int:
+	var def: MonsterDef = monster_of(data, id)
+	return EquipmentPool.monster_level(def) if def != null else 0
 
 
 static func name_of(data: GameData, id: StringName) -> String:
@@ -64,6 +71,7 @@ static func tag_text(data: GameData, id: StringName, player_style: StringName) -
 	var relation: StringName = CombatMath.triangle(player_style, def.style, data)
 	var text: String = CombatTexts.TAG_TEXT % [ItemTooltipLines.STYLE_NAMES.get(def.style, String(def.style)),
 			CombatTexts.RELATION_TEXTS.get(relation, "")]
+	text = LEVEL_TAG_TEXT % [level_of(data, id), text]  # M16-04: the level of the monster is always visible
 	return BOSS_TAG_TEXT + " · " + text if def is BossDef else text
 
 

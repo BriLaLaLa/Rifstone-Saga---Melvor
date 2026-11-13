@@ -32,6 +32,7 @@ var _loss_label: Label = null
 
 ## Draws the data of `action`: the base card plus one row per distinct ingredient.
 func setup(action: ActionDef, data: GameData) -> void:
+	_show_owned = true  # M16-05: finished products owned, next to the product name
 	super.setup(action, data)
 	_data = data
 	_preservation_name.text = String(data.stats.info(ArtisanResolver.PRESERVATION_STAT).get("name", ""))

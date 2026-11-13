@@ -18,11 +18,17 @@ const LOCKED_TEXT: String = "Richiede il livello %s"
 const XP_TEXT: String = "%s XP"
 const MASTERY_TEXT: String = "Liv. %s"
 const NO_MASTERY_TEXT: String = "Nessuna"
+const PRODUCT_OWNED_TEXT: String = "%s (ne hai %s)"
 const START_TEXT: String = "Avvia"
 const STOP_TEXT: String = "Ferma"
 
 var _action: ActionDef = null
-var _step_row: MasteryStepRow = null
+var _bonus_tag: MasteryBonusTag = null
+## Name label of each product (a craft card shows how many the player owns next to it).
+var _product_labels: Dictionary[StringName, Label] = {}
+var _product_names: Dictionary[StringName, String] = {}
+## Set by a craft card before `setup`: show "possiedi N" next to every product.
+var _show_owned: bool = false
 
 @onready var _icon: TextureRect = %Icon
 @onready var _name_label: Label = %NameLabel
@@ -63,12 +69,13 @@ func setup(action: ActionDef, data: GameData) -> void:
 		label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		_products.add_child(label)
+		_product_labels[item.id] = label
+		_product_names[item.id] = item.name
 	_mastery_bar.visible = action.mastery
 	if action.mastery:
-		_step_row = MasteryStepRow.new()
-		_step_row.name = "MasteryStepRow"
-		_mastery_bar.add_sibling(_step_row)
-		_step_row.setup(data)
+		_bonus_tag = MasteryBonusTag.new()  # M16-05: the mastery lines moved from above "Avvia" into this summary
+		_icon.get_parent().add_child(_bonus_tag)
+		_bonus_tag.setup(action, data)
 
 
 ## Reads level, interval, mastery and the running action from `session`.
@@ -87,10 +94,15 @@ func redraw(session: GameSession) -> void:
 	if _action.mastery:
 		_mastery_label.text = MASTERY_TEXT % NumberFormat.format_int(session.mastery.get_mastery_level(_action.id))
 		_mastery_bar.set_xp(session.data.mastery_table(), session.mastery.get_mastery_xp(_action.id))
-		if _step_row != null:
-			_step_row.show_info(session.mastery.step_info(_action.skill_id, _action.id))
+		if _bonus_tag != null:
+			_bonus_tag.show_info(session.mastery.step_info(_action.skill_id, _action.id),
+					session.mastery.get_mastery_level(_action.id))
 	else:
 		_mastery_label.text = NO_MASTERY_TEXT
+	if _show_owned:
+		for item_id: StringName in _product_labels:
+			_product_labels[item_id].text = PRODUCT_OWNED_TEXT % [_product_names[item_id],
+					NumberFormat.format_int(session.bank.get_count(item_id))]
 	_toggle_button.text = STOP_TEXT if running else START_TEXT
 	_toggle_button.disabled = not unlocked and not running
 	if running:
