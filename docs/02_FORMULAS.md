@@ -765,6 +765,48 @@ Esempi (= test, `tests/systems/village/test_village_effects.gd`): Magazzino 5 �
 ### F-133 Capienza del Deposito con il Villaggio
 Aggiunge a F-100: `capacity = deposit.base_slots + Σ slots delle borse + floor(T(deposit_slots))`. Esempio: 60 base, borse +6 e +10, Magazzino 3 (+12) → 60 + 16 + 12 = **88**. Le caselle del Villaggio non occupano nulla e non si tolgono (i livelli non scendono): `unequip_bag` usa la `capacity'` che le include. Test: `tests/systems/deposit/test_deposit.gd::test_capacity_uses_deposit_slots`.
 
+## 5i. Bacheca e Mercato (F-134…F-136; M20, V7; numeri fissati da M20-01 con `tools/sim_quests.gd` e `tools/sim_village.gd`)
+
+Parametri in `balance.json` sotto `quest` (§9). I **gradini** `t` (1…8) sono quelli di §8.1 e di F-131; `round10` è quello di F-131.
+
+### F-134 Obiettivo e ricompensa di un incarico
+`target = (type.base + type.per_tier × (t−1)) × mult(skill)` (`mult` assente = 1; solo `craft`). `gold = round10(gold_by_tier[t−1] × type.gold_mult)`. XP (solo `gather` e `craft`): `xp = type.xp_cycles × xp_unit_by_tier[t−1]`, al mestiere dell'incarico, come XP di base di F-02.
+Cibo (solo `kill`): `kill_food_qty` pezzi di `seared_<pesce_t>`.
+Parametri: `tier_levels` 1, 10, 20, 30, 45, 60, 75, 90 (livello del personaggio **e** del mestiere richiesto dal gradino); `gold_by_tier` 80, 250, 340, 380, 600, 800, 950, 1.030; `xp_unit_by_tier` 10, 18, 28, 40, 58, 80, 108, 145 (l'XP dell'azione del Boscaiolo del gradino);
+`kill_food_qty` 20; `types`: `kill {base 40, per_tier 8, gold_mult 1,0}`, `gather {base 150, per_tier 15, gold_mult 0,8, xp_cycles 40}`, `craft {base 30, per_tier 4, gold_mult 1,0, xp_cycles 60, mult {forging 1, hearthcraft 3, woodwright 4}}`.
+Tabelle generate (obiettivo; oro): `kill` 40 48 56 64 72 80 88 96 (80 250 340 380 600 800 950 1.030); `gather` 150 165 180 195 210 225 240 255 (60 200 270 300 480 640 760 820, XP 400 720 1.120 1.600 2.320 3.200 4.320 5.800);
+`craft` Fabbro 30 34 38 42 46 50 54 58, Cuoco 90 102 114 126 138 150 162 174, Falegname 120 136 152 168 184 200 216 232 (oro come `kill`; XP 600 1.080 1.680 2.400 3.480 4.800 6.480 8.700).
+Esempi (= test, `tests/systems/quests/test_quest_formulas.gd`):
+- `kill_any_t1`: 40 mostri, oro 80, 20 `seared_brookfin`, richiede personaggio 1. `kill_any_t8`: 96, oro 1.030, 20 `seared_riftmaw`, personaggio 90.
+- `gather_forestry_t5`: 210 `shardcedar_log`, oro 480 (0,8 × 600), XP Boscaiolo 2.320 (40 × 58), richiede personaggio 45 e Boscaiolo 45. `gather_angling_t1`: 150 `brookfin`, oro 60 (64 → 60), XP 400.
+- `craft_hearthcraft_t3`: 114 `seared_redscale` (3 × 38), oro 340, XP Cuoco 1.680 (60 × 28), richiede personaggio 20 e Cuoco 20. `craft_woodwright_t8`: 232 `riftspruce_grip` (4 × 58), oro 1.030, XP 8.700, personaggio 90 e Falegname 90.
+- Il file `quests.json` ha 56 voci (8 + 24 + 24) e coincide con la rigenerazione (stessa funzione pura del generatore, come F-131).
+**Misura** (`tools/sim_quests.gd`, tassi dei dati senza aiutanti né maestria; uccisioni/h da `sim_combat`): ore per incarico 0,13-0,49 (massimo 0,49 h, `kill` gradino 8); oro/h dell'incarico ≤ 0,69 volte l'oro/h del combattimento del gradino (massimo: gradino 4, area più povera). Soglie della sim: 0,6 h e 0,7.
+
+### F-135 Caselle e scelta del prossimo incarico
+`slots = floor(T(quest_slots))` (`quest_slots`: Bacheca livello `n` → `n`; massimo 8). `current_tier` = il più alto `t` con `tier_levels[t−1] ≤` livello del personaggio (0 se nessuno: non succede, `tier_levels[0] = 1`).
+Un incarico `q` è **candidato** se: (1) i suoi requisiti (`requires.character`, `requires.skills`) sono soddisfatti, (2) `q.tier ≥ current_tier − (tier_window − 1)`, (3) non è attivo in nessuna casella, (4) non è nelle ultime `recent_memory` voci di `recent`.
+Scelta: parte dall'indice `cursor` dell'elenco di `quests.json` (ordine del file: per gradino, poi `kill`, `gather` per Boscaiolo, Minatore, Pescatore, `craft` per Fabbro, Cuoco, Falegname), scorre circolarmente e prende il primo candidato; `cursor = (indice + 1) mod N`; se nessuno è candidato ripete ignorando (4); se ancora nessuno, la casella resta vuota e `cursor` non cambia.
+Dopo la scelta: `recent` accoda l'id **quando** l'incarico viene riscosso o abbandonato (si tengono gli ultimi `recent_memory` = 6); `progress = 0`.
+Progresso: `monster_killed` → ogni incarico `kill` attivo +1; `action_completed` e `helper_completed` → per ogni incarico `gather`/`craft` attivo con `item` in `outputs`: `+= outputs[item]`; sempre `min(progress, target)`.
+Esempi (= test, `tests/systems/quests/test_quests.gd`, con dati di fixture): personaggio 1, Bacheca 3 (3 caselle): `current_tier` 1, candidati solo del gradino 1 nell'ordine del file → caselle `kill_any_t1`, `gather_forestry_t1`, `gather_quarrying_t1`, cursore 3; riscossa la casella 0 → il successivo candidato è `gather_angling_t1` (non `kill_any_t1`: è in `recent`);
+personaggio 45 (`current_tier` 5, finestra dei gradini 3-5): `kill_any_t2` non è candidato (gradino 2 < 3); `gather_forestry_t5` richiede Boscaiolo 45: con Boscaiolo 44 non è candidato; un `kill` da 3 uccisioni su 3 non scende mai oltre l'obiettivo (la 4ª uccisione non cambia il progresso).
+
+### F-136 Il Mercato: sblocco e prezzi
+`requires.village = {market: n}`: la voce dello shop si compra solo se `Village.level(market) ≥ n`. Costo e livelli della Bacheca e del Mercato = F-131 con i pesi: Bacheca `grip` 0,5 + `shieldcore` 0,5, `gold_weight` 0,7; Mercato `shieldcore` 0,5, `plate` 0,25, `food` 0,25, `gold_weight` 1,0. Effetto F-132: Bacheca `quest_slots` +1 per livello (globale); Mercato nessun effetto (`unlocks_shop`).
+Esempi di costo (= test, `tests/systems/village/test_village_cost.gd`): Bacheca 1: 20 `redbirch_grip`, 20 `redbirch_shieldcore`, oro 210, Falegname 1; Bacheca 2: 30 `ashpine_grip`, 30 `ashpine_shieldcore`, oro 290 (294 → 290), Falegname 10; Bacheca 4: 50 `duskelm_grip` e 50 `duskelm_shieldcore`, oro 580 (576,2), Falegname 30; Bacheca 8: 90 `riftspruce_grip` e 90 `riftspruce_shieldcore`, oro 2.210 (2.213,7), Falegname 90.
+Mercato 1: 20 `redbirch_shieldcore`, 2 `emberbronze_plate` (⌈0,25 × 8⌉), 4 `seared_brookfin` (⌈0,25 × 16⌉), oro 300; Mercato 6: 70 `veilcypress_shieldcore`, 7 `palecinnabar_plate`, 12 `seared_mist_barbel` (⌈11,5⌉), oro 1.610, Falegname 60; Mercato 8: 90 `riftspruce_shieldcore`, 9 `riftite_plate`, 15 `seared_riftmaw` (⌈14,5⌉), oro 3.160, Falegname 90.
+**Ore per livello** (`tools/sim_village.gd` sui nuovi pesi): Bacheca 0,30 · 0,23 · 0,27 · 0,44 · 0,42 · 0,50 · 0,61 · 0,76 (somma 3,53); Mercato 0,39 · 0,27 · 0,29 · 0,51 · 0,44 · 0,52 · 0,63 · 0,80 (3,85). Massimo di un livello 0,80 h (≤ 0,84 di M19, soglia 1,0); i sette edifici insieme circa 24 h su ~295.
+Voci del Mercato (id, effetto, massimo, prezzo, livello del Mercato, requisito di catena): 
+| Id | Effetto | Max | Prezzo | Mercato | Catena |
+|---|---|---|---|---|---|
+| `market_shelf_1` … `market_shelf_4` | `deposit_slots` +4 | 1 | 2.000 · 12.000 · 24.000 · 36.000 | 1 · 3 · 5 · 7 | ognuna richiede la precedente |
+| `market_spice_1` … `market_spice_3` | `food_healing_pct` +4 | 1 | 6.000 · 16.000 · 30.000 | 2 · 4 · 6 | ognuna richiede la precedente |
+| `market_manual_forestry`, `_quarrying`, `_angling`, `_hearthcraft` | `skill_xp_pct` +5 (`skill:<mestiere>`) | 1 | 12.000 | 3 | — |
+| `market_tools_forestry`, `_quarrying`, `_angling` | `skill_interval_pct` −3 (`skill:<mestiere>`) | 1 | 30.000 | 6 | — |
+| `market_loot_pouch` | `loot_bag_slots` +6 | 1 | 50.000 | 8 | — |
+Totale 15 voci, 314.000 oro (circa 4 h di oro per voce al gradino in cui si sbloccano; nessuna è obbligatoria). Esempio (= test, `tests/systems/shop/test_shop_market.gd`): con Mercato 2, `market_shelf_2` (Mercato 3) → `requirement_not_met`; con Mercato 3 ma senza `market_shelf_1` → `requirement_not_met`; comprate `market_shelf_1` e `market_shelf_2`: `T(deposit_slots)` = 8 (capienza 60 + 8 = 68, F-133).
+
 ## 6. Offline
 
 ### F-40 Tempo offline
@@ -1267,6 +1309,7 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | `fracture.{risk_cap, risk_unit}` (M14, Q72) | `{"base":40,"per_grade":10}`, `{"pack_bonus":20,"pulse":5}` | F-123 |
 | `metin.{hp_base, hp_per_level, pulse_damage, wave_size, wave_thresholds, rarity_bonus_pct, guaranteed_pieces}` (M15, Z3-Z4) | 200, 0,25, 1, 7, `[75, 50, 25]`, 100, 1 | F-125…F-127 (Q78) |
 | `village.{max_level, woodwright_levels, gold_base, gold_growth, qty.{wood,plate,food}.{base,per_level}}` (M19, V7) | 8, `[1,10,20,30,45,60,75,90]`, 300, 1,4, `{20,20}` `{4,4}` `{10,6}` | F-131 (obbligatorie; i pesi per edificio stanno in `data/village/buildings.json`; validato da `DataValidatorVillage`, escluso da `test_config_files`) |
+| `quest.{tier_levels, tier_window, recent_memory, gold_by_tier, xp_unit_by_tier, kill_food_qty, types.{kill,gather,craft}.{base, per_tier, gold_mult, xp_cycles, mult}}` (M20, V7) | `[1,10,20,30,45,60,75,90]`, 3, 6, `[80,250,340,380,600,800,950,1030]`, `[10,18,28,40,58,80,108,145]`, 20, vedi F-134 | F-134, F-135 (obbligatorie, validate: `tier_levels` e le due tabelle di 8 voci, strettamente crescenti `tier_levels`) |
 | `combat.crowd_threshold` (M15, Z6) | 8 | `01_GDD.md` §10.13 (solo UI) |
 | `combat.skip_stone_level` (M15, Z7) | 0 | F-128: **valore iniziale** del nuovo slot; il valore in uso è stato dello slot |
 | `rift_stone_chance_pct` Pianure (M15, Z5) | 0 → 0,6 (dati dell'area) | F-87 (Q82) |
@@ -1318,6 +1361,7 @@ sezione (`auto_loot`: `"10.6"` = `01_GDD §10.6`; `04_DATA_SCHEMA.md` §2). Con 
 | `block_chance` (M5) | 0 | 50 | probabilità di parare un colpo con lo scudo (Q40) | F-75 | `tests/systems/combat/test_combat_engine.gd::test_block_chance` |
 | `upgrade_success_pct` (M7) | 0 | 300 | probabilità di riuscita della raffinazione | F-86, F-93 (M10: sorgente `skill_level:forging`) | `tests/systems/armory/test_upgrade.gd::test_upgrade_success_pct` |
 | `deposit_slots` (M19, V7) | 0 | 1000 | caselle di Deposito aggiunte dal Villaggio (Magazzino) | F-133 | `tests/systems/deposit/test_deposit.gd::test_capacity_uses_deposit_slots` |
+| `quest_slots` (M20, V7) | 0 | 8 | incarichi attivi della Bacheca (caselle) | F-135 | `tests/systems/quests/test_quests.gd::test_slots_follow_quest_slots` |
 
 Stat **tolta in M13 (R-04)**: `fracture_duration_pct` (le Fratture non hanno più durata). Stat **tolte in M12** (nessuna stat decorativa: la capienza viene dalle borse, F-100; le corsie non esistono): `bank_slots`, `armory_slots`, `parallel_lanes`.
 Nessuna stat nuova in M12: aiutanti, traguardi e Incisore usano stat esistenti (`skill_interval_pct`, `double_item_chance`, `skill_xp_pct`, `rift_shard_chance`, `mastery_xp_pct`).

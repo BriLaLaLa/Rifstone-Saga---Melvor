@@ -260,7 +260,10 @@ B1: livello 99 in **319,6 ore** (obiettivo 250-350; prima della taratura 175), 1
 **Giocabile**: costruire e migliorare gli edifici con i materiali dei legni 1-8; ogni livello costa al massimo 0,84 h di raccolta e oro (sim).
 
 ## M20: Bacheca, quest e Mercato
-Bacheca con quest e ricompense, shop esclusivi del Mercato (i due segnaposto di M19 diventano costruibili); si progetta in M20-01 (REV). Può aggiungere un modulo al save (regola additiva, o una migrazione se cambia un formato).
+**Fonte**: `M20_BACHECA.md`; design in `01_GDD.md` §31, `02_FORMULAS.md` §5i (F-134…F-136), `04_DATA_SCHEMA.md` §25, `05_INTERFACES.md` §5.28 e §7.s.
+**Contenuto**: la **Bacheca** (incarichi `kill`, `gather`, `craft` con ricompense di oro, XP di mestiere e cibo; 1-8 caselle per livello, nessun timer) e il **Mercato** (15 voci di comodità dello shop sbloccate dal suo livello) diventano edifici costruibili del Villaggio; modulo `Quests` additivo nel save (nessuna migrazione).
+**Task** M20-01…M20-06 (`07_TASKS.md`); M20-02 (CORE+DATA) e M20-03 (UI) in parallelo, poi M20-04 (CORE+DATA) e M20-05 (UI) in parallelo; tag `m20-done`.
+**Giocabile**: costruire la Bacheca e il Mercato, completare incarichi e riscuotere le ricompense, comprare le voci del Mercato; ogni incarico richiede al massimo 0,49 h, ogni livello dei due edifici al massimo 0,80 h (sim).
 
 ## M21: Mappa del Villaggio
 Mappa dell'insediamento sullo schema di `combat_map.gd`; si progetta in M21-01.

@@ -37,3 +37,6 @@ M19-02 e M19-03 partono in parallelo solo dopo M19-01 (contratto fissato). Max 2
 ## Fissato da M19-01 (2026-11-13)
 Design completo in `01_GDD.md` §30, `02_FORMULAS.md` §5h (F-131…F-133), `04_DATA_SCHEMA.md` §24, `05_INTERFACES.md` §5.27/§7.t, task M19-02…04 in `07_TASKS.md`, sim `tools/sim_village.gd`.
 Scostamenti dal brief: nessuna migrazione (modulo additivo, `format_version` 7 invariata); componenti del Falegname = impugnature/manici/telai (non esistono "assi"); Santuario rimandato.
+
+## M20
+Bacheca e Mercato: design fissato da M20-01 in `M20_BACHECA.md`.

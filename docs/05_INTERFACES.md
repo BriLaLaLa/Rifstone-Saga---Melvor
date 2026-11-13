@@ -579,6 +579,7 @@ var hints: HintsSystem            # M9 (null prima)
 var deposit: Deposit; var helpers: HelperSystem   # M12-01 / M12-02 (null prima)
 var cards: CardStore; var fractures: FractureSystem   # M13-01 / M13-02 (null prima)
 var village: Village              # M19-02 (null prima): edifici del Villaggio, 5.27
+var quests: Quests                # M20-02 (null prima): incarichi della Bacheca, 5.28
 var slot: int; var player_name: String; var created_at_unix_ms: int; var play_time_ms: int
 func _init(game_data: GameData, game_events: GameEvents, rng_seed: int) -> void
 func new_game() -> void                                  # stato iniziale 01_GDD §1.1 + rebuild_modifiers
@@ -1736,7 +1737,7 @@ class_name Village extends RefCounted
 const SAVE_KEY := &"village"
 func _init(session: GameSession) -> void                       # come Shop: legge data, events, modifiers, bank, wallet, skills dalla sessione
 func buildings() -> Array[StringName]                          # id di tutti gli edifici, compresi i segnaposto, in ordine di `order`
-func is_buildable(building_id: StringName) -> bool             # false per i segnaposto (market, noticeboard) e per id sconosciuti
+func is_buildable(building_id: StringName) -> bool             # false per i segnaposto e per id sconosciuti (M20-04: market e noticeboard sono costruibili, 5.28)
 func level(building_id: StringName) -> int                     # 0 = non costruito; 0 per id sconosciuti
 func max_level() -> int                                        # balance village.max_level
 func effect_at(building_id: StringName, at_level: int) -> float   # F-132: per_level × at_level (0 se at_level < 1 o id non costruibile)
@@ -1760,16 +1761,56 @@ func new_game() -> void; func to_save() -> Dictionary; func from_save(d: Diction
 - **Deposit** (modifica a 5.20): `Deposit.capacity()` = `deposit.base_slots + extra_slots() + floor(modifiers.total(&"deposit_slots"))` (F-133). Il costruttore `Deposit.new(session)` legge `session.modifiers` (nessun `bind_modifiers`: `GameSession` crea i `modifiers` prima della composizione) (dipendenza nuova: `modifiers`; resta senza dipendenze da `Bank`/`Armory`/`Village`). `Deposit` ascolta `events.modifiers_changed` e chiama `notify_changed()` (emette `deposit_changed` solo se `capacity` è cambiata). `unequip_bag` usa la `capacity'` che include `deposit_slots`.
 - **UI** (§7.t, sola lettura e comandi): la pagina legge `session.village`, `session.data`, `session.skills`, `session.wallet`, `session.bank`; nessuna copia di stato; si aggiorna con `village_upgraded`, `bank_changed`, `gold_changed`, `level_up`.
 
+### 5.28 Quests (`systems/quests/quests.gd`, M20; `01_GDD.md` §31, `02_FORMULAS.md` F-134, F-135, `04_DATA_SCHEMA.md` §25) — dipendenze: data, events, modifiers, bank, wallet, skills, character
+```gdscript
+class_name Quests extends RefCounted
+const SAVE_KEY := &"quests"
+func _init(session: GameSession) -> void                       # legge data, events, modifiers, bank, wallet, skills, character dalla sessione
+func slot_count() -> int                                       # F-135: floor(T(quest_slots)); 0 senza Bacheca
+func quest_at(slot: int) -> StringName                         # id dell'incarico della casella; &"" se vuota o fuori intervallo
+func progress_at(slot: int) -> int                             # 0..target; 0 se vuota
+func target_at(slot: int) -> int                               # target dell'incarico; 0 se vuota
+func is_complete(slot: int) -> bool                            # progress ≥ target (e casella occupata)
+func completed_total() -> int                                  # incarichi riscossi in tutta la partita (solo statistica)
+func can_claim(slot: int) -> CommandResult                     # in ordine: unknown_id (fuori intervallo), slot_empty, quest_incomplete, bank_full
+func claim(slot: int) -> CommandResult                         # paga oro, XP (skills.add_xp), cibo (bank.add); toglie l'incarico; assegna il successivo; recent += id
+func abandon(slot: int) -> CommandResult                       # unknown_id, slot_empty; scarta; assegna il successivo; recent += id
+func refill() -> void                                          # assegna un incarico a ogni casella libera (F-135); idempotente
+func new_game() -> void; func to_save() -> Dictionary; func from_save(d: Dictionary) -> void
+```
+- **Nessun timer, nessun `advance`.** Il modulo si registra sull'`EventBus` nel costruttore: `monster_killed`, `action_completed`, `helper_completed` (progresso, F-135), `modifiers_changed`, `character_level_up`, `level_up` (chiamano `refill()`; se non c'è nulla da fare non emettono nulla).
+  I progressi contano solo da quando l'incarico è attivo; nessun conteggio durante `from_save`. Durante la simulazione offline gli eventi arrivano come online.
+- **`claim`**: `can_claim` ok → `wallet.add(gold)`, `skills.add_xp(skill, amount)` (XP di base, F-02) se presente, `bank.add(item, qty)` per le righe di `reward.items`; poi la casella si libera, `completed += 1`, `recent` accoda l'id (si tengono `quest.recent_memory`), `refill()`; ordine dei segnali: `gold_changed`/`xp_gained`/`bank_changed` (dai moduli), poi `quests_changed`. `bank_full` solo se `bank.can_add(item)` è falso per una riga (nessun cambiamento).
+  `abandon` non paga; `recent` accoda l'id; `refill()`; `quests_changed`.
+- **Segnali** nuovi in `EventBus` (dopo `village_upgraded`): `signal quests_changed()` (casella assegnata, liberata o cambiata nella struttura; mai per il solo progresso), `signal quest_progress(slot: int, progress: int, target: int)` (a ogni variazione del progresso), `signal quest_completed(quest_id: StringName, slot: int)` (una volta, quando `progress` raggiunge `target`).
+- **Reasons nuovi** (`core/common/reasons.gd`): `QUEST_INCOMPLETE := &"quest_incomplete"`. `SLOT_EMPTY`, `UNKNOWN_ID`, `BANK_FULL` esistono già.
+- **Dati**: `GameData.quest(id) -> QuestDef` e `quests() -> Array[QuestDef]` (ordine di file); campi di `QuestDef`: `id`, `name`, `description`, `type`, `tier`, `skill`, `item`, `target`, `req_character`, `req_skills: Dictionary[StringName, int]`, `reward_gold`, `reward_xp_skill`, `reward_xp`, `reward_items: Array[ItemQty]`. La UI legge nome, descrizione, ricompensa e icona (da `item`) dai `QuestDef`.
+- **Save** (§6): `modules.quests = {"slots": [{"id": StringName, "progress": int} oppure {}], "cursor": int, "recent": [id], "completed": int}`. `slots` ha una voce per casella **già assegnata** (le caselle vuote in coda non si salvano; una vuota in mezzo è `{}`).
+  `from_save` tollerante, con `Log.warn`: `slots` non array → vuoto; voce non oggetto o con id sconosciuto → casella vuota; `progress` non intero o < 0 → 0; sopra `target` → `target`; più di 8 voci → si ignorano le altre; `cursor` fuori da 0..N−1 → `cursor mod N`; `recent` ripulito degli id sconosciuti e limitato a `recent_memory`; `completed` non intero o < 0 → 0.
+  Chiave assente = partita nuova (nessun incarico; il primo `refill` con la Bacheca costruita li assegna). **Nessuna migrazione, `format_version` invariata (7)**: modulo nuovo e additivo, come `village` (§5.27) e `discoveries`; un save v7 con `quests` caricato da una build che non lo conosce lo scarta con `Log.warn` (§5.3).
+  Nessun formato esistente cambia: `requires.village` dello shop e `unlocks_shop` degli edifici sono solo **dati**; il save di `shop` (`purchases`) e di `village` (`levels`) è invariato.
+- **Composizione** in `GameSession`: campo `var quests: Quests` (null prima di M20-02). In `_create_systems()`, dopo `village`: `quests = Quests.new(self)` e `_join(Quests.SAVE_KEY, quests.new_game, quests.to_save, quests.from_save, quests.refill)`; il `refill` dopo il caricamento gira dopo `village.rebuild_modifiers` (ordine dei `_join`). `_tick`: nessuno. La chiave `quests` non è usata dai `FakeSystem` dei test. `game_session.gd` resta ≤ 200 righe.
+- **File**: `quests.gd` ≤ 400 righe; se serve, la scelta (F-135) va in `systems/quests/quest_picker.gd` (classe `QuestPicker`, funzioni statiche pure, testabili da sole): `static func pick(quests: Array[QuestDef], cursor: int, recent: Array[StringName], active: Array[StringName], character_level: int, skill_levels: Dictionary, params: Dictionary) -> Dictionary` che restituisce `{"id": StringName, "cursor": int}` (`id` vuoto se nessun candidato; `cursor` invariato).
+- **Shop** (modifica a 5.11): `Shop.can_buy` controlla anche `requires.village` con lo stesso motivo `requirement_not_met`: per ogni `{building: n}` serve `session.village != null and session.village.level(building) ≥ n`. `Shop` legge `session.village` all'uso (non nel costruttore: `village` è creato dopo `shop`). Nessun'altra firma cambia. `Village.is_buildable(&"market")` e `Village.is_buildable(&"noticeboard")` diventano `true` (5.27 invariata).
+- **UI** (§7.s, sola lettura e comandi): la pagina legge `session.quests`, `session.data`, `session.village`; si aggiorna con `quests_changed`, `quest_progress`, `village_upgraded`, `character_level_up`.
+
 ### 7.t UI del Villaggio (M19-03; nessuno stato di gioco nella UI, solo letture e comandi; `01_GDD.md` §30)
 - Cartella `ui/pages/village/`: `village_page.gd/.tscn`, `village_box.gd/.tscn` (un box per edificio), `village_texts.gd` (testi italiani: nomi dei motivi di `can_upgrade`, "Costruisci", "Migliora", "In arrivo", "Livello n/8", "Richiede Falegname n", "Mancano k" per riga); ogni file < 400 righe.
 - `page_host.gd`: voce `&"village"` → `res://ui/pages/village/village_page.tscn`; `sidebar.gd`: voce `{"page": &"village", "text": "Villaggio", "icon": ...}` dopo `shop`.
 - Il box mostra: nome, `Livello n/8`, effetto attuale e del livello successivo (da `Village.effect_at`), costo (`Village.next_cost`) riga per riga con "posseduti/richiesti" (da `Bank.get_count`), oro, requisito del Falegname, e il pulsante (`Costruisci` se livello 0, `Migliora` altrimenti, nascosto a livello massimo con la scritta "Livello massimo"); disabilitato se `can_upgrade` non è ok, con il motivo accanto. I segnaposto sono box grigi "In arrivo" senza pulsante.
 - Layout leggibile a 1280×720 (Q87): 5 + 2 box in una griglia che va a capo.
 
+### 7.s UI della Bacheca e del Mercato (M20-03/M20-05; nessuno stato di gioco nella UI, solo letture e comandi; `01_GDD.md` §31)
+- Cartella `ui/pages/noticeboard/`: `noticeboard_page.gd/.tscn`, `quest_row.gd/.tscn` (una riga per casella, `session.quests.slot_count()` righe), `noticeboard_texts.gd` (testi italiani: "Riscuoti", "Abbandona", "Nessun incarico disponibile", "Costruisci la Bacheca al Villaggio", ricompensa); ogni file < 400 righe.
+- `page_host.gd`: voce `&"noticeboard"` → `res://ui/pages/noticeboard/noticeboard_page.tscn`; `sidebar.gd`: voce `{"page": &"noticeboard", "text": "Bacheca", "icon": ...}` dopo `village`.
+- La riga mostra nome e descrizione dell'incarico (`QuestDef`), barra `progress_at/target_at` (aggiornata con `quest_progress`), ricompensa (oro, XP del mestiere con nome da `skills`, cibo con icona); **Riscuoti** abilitato solo se `can_claim(slot).ok` (motivo accanto altrimenti, es. `bank_full`); **Abbandona** sempre abilitato se la casella è occupata. Un clic = un comando.
+- Box del Mercato e della Bacheca nella pagina Villaggio (M20-05): come gli altri box; l'effetto della Bacheca si legge da `Village.effect_at` ("+n incarichi"), quello del Mercato è il testo fisso "Sblocca nuove bancarelle" (nessuna stat). Il caso "segnaposto" di `village_box.gd` resta solo per un edificio con `buildable == false` (nessuno, dopo M20-04).
+- Pagina Shop (M20-05): bancarella `mercato` (da `ShopEntryDef.vendor`); le voci con `req_village` non soddisfatto mostrano "Richiede Mercato n" e il pulsante disabilitato (si legge `session.village.level`); nessuna nuova firma.
+
 
 ## 6. Formato del salvataggio (`user://saves/slot_<n>.json`)
 
-Versione **7 da M17** (M19: il modulo `village` è additivo, versione invariata) (v6 da M15 e v5 da M14 si migrano; vedi sotto); v5 da M14 (v4 da M12, v3 da M10, v2 da M4-03, D3). Un save v1, v2, v3 o **v4 non si carica** (`version_unsupported`, nessuna migrazione: nessun giocatore reale ancora; M14 cambia il significato di `damage_reduction`, le basi dei pezzi e aggiunge `discoveries`). `SaveMigrator.CURRENT_VERSION` = 5.
+Versione **7 da M17** (M19: il modulo `village` è additivo; M20: anche `quests`; versione invariata) (v6 da M15 e v5 da M14 si migrano; vedi sotto); v5 da M14 (v4 da M12, v3 da M10, v2 da M4-03, D3). Un save v1, v2, v3 o **v4 non si carica** (`version_unsupported`, nessuna migrazione: nessun giocatore reale ancora; M14 cambia il significato di `damage_reduction`, le basi dei pezzi e aggiunge `discoveries`). `SaveMigrator.CURRENT_VERSION` = 5.
 **Save v7 e migrazione v6 → v7 (M17-04, `core/save/migrations/migration_6_to_7.gd`)**: `SaveMigrator.CURRENT_VERSION` = 7; v5 e v6 si migrano in catena, v1-v4 restano `version_unsupported`. Le 10 aree strette sostituiscono le 4 larghe (`02_FORMULAS.md` §8.5). Nessuna chiave nuova, cambiano i valori in `modules`:
 - `combat.area` e `fractures.run.return_area`: se non nomina più un'area esistente diventa **l'area che contiene il livello del personaggio** (la più alta il cui `level_min` non supera il livello; livello 1 se manca l'XP); un'area ancora esistente resta.
 - Incontro in corso (`encounter`, `riftstone`, `between`): riparte come `between` con `enemies = []` ed `effects = {}` (i mostri vecchi hanno altre statistiche); `wave` rimosso; il Monolito in attesa è annullato e il contatore riparte (`stone` = `{since: 0, pending: false, stone_id: ""}`). Bottino, uccisioni, morti, cibo e stato delle Fratture restano.
@@ -1820,7 +1861,8 @@ Versione **7 da M17** (M19: il modulo `village` è additivo, versione invariata)
     "cards": {"next_uid": 3, "items": [{"uid": 2, "base": "fracture_card_2", "rarity": "magic", "mods": [{"mod": "sturdy", "step": 5}], "locked": false}]},
     "fractures": {"run": {}, "pending": {}},
     "discoveries": {"items": ["redbirch_log", "emberbronze_sword"]},
-    "village": {"levels": {"storehouse": 3, "forge": 1}}
+    "village": {"levels": {"storehouse": 3, "forge": 1}},
+    "quests": {"slots": [{"id": "kill_any_t1", "progress": 12}, {}], "cursor": 3, "recent": ["gather_angling_t1"], "completed": 4}
   }
 }
 ```

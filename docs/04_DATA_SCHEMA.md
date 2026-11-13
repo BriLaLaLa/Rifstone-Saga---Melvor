@@ -779,3 +779,31 @@ con lo stesso `scope`. Gli oggetti usati devono essere nel Deposito (`category` 
 **`stats.json`**: una stat nuova, `deposit_slots` (`name` "Caselle del Villaggio", `format` `flat`, min 0, max 1000, `description` "Aggiunge caselle al Deposito.", `formula` `F-133`,
 `test` `tests/systems/deposit/test_deposit.gd::test_capacity_uses_deposit_slots`). Le altre stat degli edifici (`food_healing_pct`, `skill_xp_pct`, `skill_interval_pct`,
 `loot_bag_slots`) esistono già con il loro test; un test di copertura (`tests/systems/village/test_village_effects.gd`) verifica che ognuna sia letta dal sistema giusto con la sorgente `village:<id>`.
+
+## 25. Bacheca e Mercato (M20; V7, `01_GDD.md` §31, `02_FORMULAS.md` F-134…F-136)
+
+**`balance.json`**, chiave `quest` (obbligatoria, validata): `tier_levels` array di **8** interi 1..99 strettamente crescenti (uguale in lunghezza a `village.max_level`); `tier_window` int 1..8 (3); `recent_memory` int ≥ 0 (6);
+`gold_by_tier` e `xp_unit_by_tier` array di 8 interi ≥ 1; `kill_food_qty` int ≥ 1 (20); `types` oggetto con **esattamente** `kill`, `gather`, `craft`, ciascuno `{base: int ≥ 1, per_tier: int ≥ 0, gold_mult: float > 0}`; `gather` e `craft` anche `xp_cycles` int ≥ 1; `craft` anche `mult` oggetto `{skill: int ≥ 1}` con i tre mestieri (`forging`, `hearthcraft`, `woodwright`).
+
+**`data/quests/quests.json`** (nuovo, **generato**, obbligatorio; caricato da `GameData`, accessori `quest(id)` e `quests()` in ordine di file; classe `QuestDef`). `{"quests": [ ... ]}`:
+| Campo | Tipo | Vincoli |
+|---|---|---|
+| `id` | String | regola comune; unico; schema `kill_any_t<t>`, `gather_<skill>_t<t>`, `craft_<skill>_t<t>` |
+| `name`, `description` | String | italiano, non vuoti (generati dal tipo e dal nome dell'oggetto) |
+| `type` | String | `kill`, `gather`, `craft` |
+| `tier` | int | 1..8 |
+| `skill` | String | id di skill per `gather` (`forestry`, `quarrying`, `angling`) e `craft` (`forging`, `hearthcraft`, `woodwright`); **assente** per `kill` |
+| `item` | String | oggetto da produrre (esistente in `data/items/`); **assente** per `kill` |
+| `target` | int | ≥ 1; = F-134 |
+| `requires` | oggetto | `{character: int, skills: {skill: int}}`; `character` = `tier_levels[tier−1]`; `skills` solo per `gather`/`craft` = livello dell'azione che produce `item` (letto da `data/actions/`) |
+| `reward` | oggetto | `{gold: int ≥ 0, xp: {skill, amount} o assente, items: [{item, qty}]}`; = F-134 (`kill`: `items` con il cibo, senza `xp`; `gather`/`craft`: `xp`, `items` vuoto) |
+
+Il validatore controlla: `type` coerente con i campi presenti/assenti, `skill` e `item` esistenti, `item` prodotto da un'azione di quella skill (`outputs`), e che **tutto coincida con la rigenerazione F-134** (un valore scritto a mano che diverge è un errore) più l'ordine di file (gradino, tipo, mestiere).
+**Generatore `tools/gen_quests.gd`** (lo scrive M20-02; nessuna voce a mano): legge `balance.json` `quest`, `data/actions/` e `data/items/` (nomi, e **fallisce** se un id non esiste); espone `quest_for(type, skill, tier, params, data) -> Dictionary` (funzione statica pura, usata anche da validatore e test); idempotente.
+
+**`data/village/buildings.json`**: `market` e `noticeboard` passano a `buildable: true`, perdono `milestone` e ricevono `cost_spec` (pesi di F-136) e `levels` generati. Estensioni dello schema §24: `effect` è **facoltativo** per un edificio costruibile se ha `unlocks_shop: true` (solo `market`); in quel caso `effect_value` dei livelli è `0.0`. Campo nuovo `unlocks_shop` (bool, facoltativo, default `false`; `true` esclude `effect`).
+`noticeboard.effect = {stat: quest_slots, scope: global, per_level: 1}`. Il vincolo "una stat per scope" resta. `tools/gen_village.gd` e `data_validator_village.gd` gestiscono l'effetto assente; nessun altro cambio.
+
+**`data/shop/shop.json`**: `category` aggiunge `market` (`SHOP_CATEGORIES`), `vendor` aggiunge `mercato` (`SHOP_VENDORS`, bancarella "Mercato"); `requires` aggiunge `village` (oggetto `{building_id: livello}`, `building_id` di un edificio costruibile **con `unlocks_shop`**, livello 1..`village.max_level`). Le 15 voci di F-136 usano solo modificatori con `scope` dove serve (`skill:<mestiere>`), nessun `effect.item`. `ShopEntryDef` espone `req_village: Dictionary[StringName, int]`.
+
+**`stats.json`**: una stat nuova, `quest_slots` (`name` "Incarichi della Bacheca", `format` `flat`, min 0, max 8, `description` "Numero di incarichi attivi della Bacheca.", `formula` `F-135`, `test` `tests/systems/quests/test_quests.gd::test_slots_follow_quest_slots`). Le stat delle voci del Mercato esistono già con il loro test.

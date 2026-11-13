@@ -145,6 +145,8 @@ I documenti sono già scritti con questi default. I numeri non presenti nella fo
 |---|---|---|---|
 | Q86 | Cibo con il kit iniziale fuori dalle Pianure: `sim_survival` stima 2.700-18.800 pezzi di cibo/h senza armatura ai livelli 20-60. Le aree si sbloccano con un requisito di equipaggiamento (oltre al livello), oppure il kit/il cibo scalano con l'area? | nessun cambio: oggi il solo requisito è il livello; l'armatura va forgiata prima di salire | utente / M18 |
 | Q87 | Ritratto e layout a 1280x720 della pagina di combattimento (M17-05/07: mappa cliccabile, gruppi fino a 8, effetti) da verificare a schermo | nessun cambio finché non verificato da una persona | utente / QA |
+| Q88 | Incarichi di Frattura (vincere una Frattura di grado ≥ g) e di Monolite (spezzare N Monoliti): servono sistemi che il giocatore sblocca tardi e `fracture_finished`/`rift_stone_*` hanno altre dipendenze | Non in M20 (solo `kill`, `gather`, `craft`); riaprire se il giro degli incarichi risulta ripetitivo, aggiungendo un tipo e le voci generate | M20-06 / utente |
+| Q89 | Rinnovo degli incarichi senza timer: l'abbandono è gratuito e illimitato (si può scegliere l'incarico preferito abbandonando); basta o serve un costo (oro) o un limite? | Gratuito: l'oro degli incarichi è un bonus basso (F-134) e la memoria dei 6 recenti evita i ripetuti | M20-06 (a gioco) |
 
 ## Chiuse
 

@@ -9,7 +9,7 @@ artigianato · 6 Maestria · 7 Deposito (ex Bank) · 8 Oro e shop · 9 Equipaggi
 11 Incisore e Altare del Rift (M8, M12) · 12 Progressione offline · 13 Feedback e notifiche · 14 Suggerimenti ·
 15 Modificatori e stat · 16 Impostazioni · 17 Fratture del Rift come mappe (M13) · 18 Azioni in parallelo (eliminate, M12) ·
 19 Personaggio e classe · 20 Tratti e abilità (M6) · 21 Armeria · 22 Rarità e affissi · 23 Raffinazione (M7) ·
-24 Monoliti del Rift (M7) · 25 Smantellamento e filtro (M7) · 26 Castoni e valute del Rift (M8) · 27 Guida in gioco (M11)
+24 Monoliti del Rift (M7) · 25 Smantellamento e filtro (M7) · 26 Castoni e valute del Rift (M8) · 27 Guida in gioco (M11) · 28 Equipaggiamento vero (M14) · 29 Ritocchi UI dell'Alpha · 30 Villaggio (M19) · 31 Bacheca e Mercato (M20)
 
 Direzione del gioco da M4 (decisioni D1-D6 in `DECISIONS_LOG.md`): il **combattimento è il cuore** (gruppi di mostri,
 bottino con rarità e affissi, potenziamento, build di tratti e abilità); raccolta e artigianato sono il ciclo di
@@ -866,8 +866,7 @@ cresce o cala da solo, nessun timer. Costruire è **istantaneo**: nessun caso of
 | `sawmill` | Segheria | −2% di intervallo del Falegname (massimo −16%) | `skill_interval_pct` (`skill:woodwright`) |
 | `loot_shed` | Rimessa del bottino | +2 caselle della borsa del bottino (massimo +16) | `loot_bag_slots` (globale) |
 
-**Segnaposto M20** (visibili nella pagina come box grigi "In arrivo", **non costruibili**, nessun effetto, nessun costo): **Mercato** (`market`, shop esclusivi) e
-**Bacheca** (`noticeboard`, quest). Stanno nei dati con `buildable: false` e `milestone: 20`. Il Santuario del Rift della proposta non serve in M19 (nessuna
+**Mercato e Bacheca (M20, §31)**: dalla M20 sono i due edifici **costruibili** 6 e 7 (`market`, `noticeboard`), con gli stessi livelli e costi di F-131 e un effetto proprio (§31). Fino a M20-04 stanno nei dati come segnaposto (`buildable: false`, `milestone: 20`, box grigi "In arrivo"). Il Santuario del Rift della proposta non serve in M19 (nessuna
 comodità che non sia già coperta): rimandato.
 
 **Regole**
@@ -889,3 +888,40 @@ comodità che non sia già coperta): rimandato.
   Magazzino); un edificio al massimo 4,0 h, tutti e cinque circa 17 h su ~295 h di gioco. Tabella nel commit di M19-01 e in `02_FORMULAS.md` F-131.
 - **UI**: pagina `village` nella sidebar; un **box** per edificio (livello `n/8`, effetto attuale e del livello successivo, costo con quantità possedute e livello del
   Falegname richiesto, pulsante **Costruisci**/**Migliora**, disabilitato con il motivo). Testi in `*_texts.gd`. La UI non tiene stato.
+
+## 31. Bacheca e Mercato (M20; decisione V7, `M20_BACHECA.md`; formule F-134, F-135, F-136)
+
+**Idea.** I due edifici di M19 rimasti segnaposto diventano **costruibili** (livelli 1…8, costo di F-131, requisito del Falegname come gli altri). La **Bacheca** dà
+**incarichi** (quest) con ricompense di oro, XP di un mestiere e cibo; il **Mercato** apre bancarelle con acquisti **esclusivi** di comodità. Come il resto del Villaggio:
+nessun potere di combattimento diretto, nessun timer, nessuna risorsa da gestire. Tutti gli effetti passano dal `ModifierService` (`stats.json`).
+
+### 31.1 Bacheca (`noticeboard`, effetto: stat `quest_slots`, +1 per livello)
+- **Incarichi attivi** = `floor(T(quest_slots))` = livello della Bacheca (0 se non costruita: nessun incarico, la pagina dice "Costruisci la Bacheca al Villaggio"; massimo 8). Ogni incarico occupa una **casella** (0…7) della pagina Bacheca.
+- **Tipi di obiettivo** (tutti misurabili con segnali già esistenti, nessun segnale nuovo da emettere):
+  | Tipo | Cosa conta | Segnale |
+  |---|---|---|
+  | `kill` | ogni mostro sconfitto (qualunque area, anche nei Monoliti e nelle Fratture) | `monster_killed` |
+  | `gather` | pezzi **dell'oggetto** indicato prodotti da Boscaiolo, Minatore o Pescatore (cicli del giocatore **e degli aiutanti**) | `action_completed`, `helper_completed` (`outputs[item]`) |
+  | `craft` | pezzi **dell'oggetto** indicato prodotti da Fabbro, Cuoco o Falegname | `action_completed` (`outputs[item]`) |
+  Il progresso si conta **solo mentre l'incarico è attivo** (nessun conteggio retroattivo), è un intero tra 0 e l'obiettivo e vale anche **offline** (la simulazione offline usa gli stessi segnali, §12): nessun timer, nessuna regola speciale.
+- **Quest** (`data/quests/quests.json`, **generato**, 56 voci): una per tipo, per mestiere e per **gradino** 1…8 (stessi gradini del legno di F-131). Un gradino `t` richiede **livello del personaggio** `quest.tier_levels[t−1]` (1, 10, 20, 30, 45, 60, 75, 90) e, per `gather` e `craft`,
+  il livello del mestiere dell'azione che produce l'oggetto (stesso numero). Oggetti del gradino: `gather` Boscaiolo `<legno>_log`, Minatore `<metallo>_ore`, Pescatore `<pesce>`; `craft` Fabbro `<metallo>_plate`, Cuoco `seared_<pesce>`, Falegname `<legno>_grip` (liste di F-131).
+- **Obiettivo e ricompensa** (F-134): l'obiettivo cresce con il gradino; ogni incarico paga **oro**, i `gather`/`craft` anche **XP del mestiere** dell'incarico (passa da F-02 come ogni XP, quindi ne risente `skill_xp_pct`), i `kill` anche **cibo cotto** del gradino. Niente oggetti di potere, niente pezzi dell'Armeria, niente XP del personaggio.
+- **Quali incarichi compaiono** (F-135, **nessun caso e nessun timer**): quando una casella è libera (Bacheca costruita o migliorata, incarico riscosso o abbandonato) si assegna **il successivo** nell'ordine del file a partire da un **cursore** salvato. Un incarico è **candidato** se: ne sono soddisfatti i requisiti (livello del personaggio e del mestiere),
+  il suo gradino è tra gli ultimi `quest.tier_window` (3) gradini raggiunti dal personaggio, non è già attivo, e non è tra gli ultimi `quest.recent_memory` (6) riscossi o abbandonati (se così nessuno è candidato, la memoria si ignora). Nessun candidato → la casella resta vuota ("Nessun incarico disponibile") e si riprova a ogni cambio di livello.
+- **Comandi**: **Riscuoti** (`claim`, solo se l'obiettivo è raggiunto): paga la ricompensa (oro, XP, cibo nel Deposito), toglie l'incarico, assegna il successivo nella stessa casella. **Abbandona** (`abandon`, gratuito): scarta l'incarico e il suo progresso, assegna il successivo (la memoria recente lo esclude).
+- **Casi limite**: casella vuota → `slot_empty`; obiettivo non raggiunto → `quest_incomplete`; ricompensa di cibo senza posto nel Deposito → `bank_full` (nessun cambiamento: l'oro e l'XP non si danno a metà); casella fuori intervallo → `unknown_id`. Il progresso eccedente si ferma all'obiettivo (nessun resto riportato). Il livello della Bacheca non scende: le caselle non si perdono mai.
+  Un incarico già assegnato resta anche se il personaggio sale di gradino. Un salvataggio senza `quests` riparte da zero (nessun incarico assegnato finché la Bacheca non è costruita).
+- **Offline**: nessun rinnovo a tempo; l'offline fa avanzare i progressi come il gioco normale e può completare incarichi (si riscuotono al ritorno). Non assegna nuovi incarichi se non c'è una casella libera.
+- **Ricompensa totale e bilanciamento** (`tools/sim_quests.gd`): ogni incarico richiede al massimo 0,49 h di attività; l'oro pagato per ora d'incarico resta ≤ 0,69 volte l'oro all'ora del combattimento dello stesso gradino (misura sim; l'oro è un bonus, i materiali raccolti restano al giocatore). Tabella in F-134.
+
+### 31.2 Mercato (`market`, nessuna stat: sblocca bancarelle)
+- Il Mercato non ha un effetto a modificatore: il suo **livello** sblocca voci dello shop (`data/shop/shop.json`) con la bancarella `mercato` e il requisito `requires.village = {market: n}` (livello `n` del Mercato, 1…8). Livello 0: la bancarella mostra "Costruisci il Mercato al Villaggio".
+- **Cosa vende** (solo comodità, tutte voci a **modificatore** con `max_purchases` e prezzo fisso in oro, come le altre voci dello shop): scaffali del mercante (`deposit_slots`), spezie (`food_healing_pct`), manuali di mestiere (`skill_xp_pct`), attrezzi affilati (`skill_interval_pct`), tasca del cacciatore (`loot_bag_slots`). Tabella in F-136. Nessuna voce vende oggetti, pezzi, rune o potere di combattimento (nessun `auto_*`).
+- Le voci a catena (Scaffale I-IV, Spezie I-III) usano `requires.entries` come le Razioni da campo. L'acquisto è per slot, come ogni acquisto (sorgente `shop:<id>`); i livelli del Mercato non scendono, quindi nessuna voce già comprata si "perde".
+- **Casi limite**: Mercato sotto il livello richiesto → `requirement_not_met` (la UI mostra "Richiede Mercato n"); oro insufficiente → `not_enough_gold`; massimo raggiunto → `max_purchases`.
+
+### 31.3 UI
+- Pagina **Bacheca** (`noticeboard`, sidebar dopo Villaggio): una **riga** per casella (nome e descrizione dell'incarico, barra `progresso/obiettivo`, ricompensa, pulsanti **Riscuoti** e **Abbandona**; riga vuota "Nessun incarico disponibile"). Se la Bacheca non è costruita: un solo messaggio.
+- Pagina Villaggio: i box del Mercato e della Bacheca diventano costruibili come gli altri (la Bacheca mostra "+1 incarico", il Mercato "Sblocca nuove bancarelle"). Pagina Shop: bancarella **Mercato** con le voci bloccate e il motivo ("Richiede Mercato n").
+- La UI non tiene stato; testi in `*_texts.gd`. Notifica quando un incarico raggiunge l'obiettivo (`quest_completed`).
