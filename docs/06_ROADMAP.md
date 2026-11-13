@@ -269,9 +269,13 @@ B1: livello 99 in **319,6 ore** (obiettivo 250-350; prima della taratura 175), 1
 Progettata da M21-01 (`M21_MAPPA.md`, `01_GDD.md` §32, `04_DATA_SCHEMA.md` §26, `05_INTERFACES.md` §7.r): la pagina Villaggio ha due viste, **Mappa** (7 nodi cliccabili alle `map_pos` dei dati, stato locked/unbuilt/ready/built/maxed, pannello di dettaglio con il box e il pulsante "Apri" per Bacheca e Mercato) ed **Elenco** (i box attuali). Nessuna meccanica, stat o formula nuova; save invariato (v7). Task M21-02..04.
 **Giocabile**: si apre il Villaggio su una mappa, si vedono a colpo d'occhio gli edifici costruiti, quelli pronti e quelli bloccati, si costruisce dal dettaglio e si salta a Bacheca e Mercato.
 
-## M22+: Seconda classe, dungeon, altri boss (dopo M21; era M19+)
-Seconda classe con le sue armi (es. arco o bastone, con i suoi progetti e componenti del Falegname), supporti delle abilità,
-altri boss, dungeon a ondate, oggetti unici, elementi e resistenze.
+## M22: Dungeon delle scimmie
+Progettata da M22-01 (`M22_DUNGEON.md`, `01_GDD.md` §33, `02_FORMULAS.md` F-137…F-144, `04_DATA_SCHEMA.md` §27, `05_INTERFACES.md` §5.29 e §7.q): la prima istanza **a scelte**, l'unica parte attiva del combattimento. Biglietto (dai **miniboss** di area, nuovi, e dai Monoliti), mappa nascosta a 5 bivi di 2-4 uscite con indizi,
+sei tipi di stanza (Branco, Orda, Guardiano, Capobranco, Trappola, Riposo), boss in tre stadi (Gorom, Ziki, Uuk-Maar) con entrata epica, sei **leggendari** del dungeon; tutto in autobattle tranne le scelte; stato per slot (additivo, save v7 invariato), la run si congela offline. Task M22-02…M22-08.
+**Giocabile**: si entra nel Covo con un Biglietto, si scelgono direzioni e eventi tra combattimenti automatici, si affronta il boss in tre atti e si incassa il bottino (o si perde, morendo o fuggendo); una run al livello consigliato dura 12-20 minuti (sim).
+
+## M23+: Seconda classe, altri dungeon e boss (dopo M22; era M22+)
+Seconda classe con le sue armi (es. arco o bastone, con i suoi progetti e componenti del Falegname), supporti delle abilità, altri dungeon (solo dati: il sistema di M22 è generico), livelli di difficoltà dei dungeon, altri boss, elementi e resistenze.
 
 ## Percorso critico e parallelismo
 - M14: R-05 → M14-01 → M14-02 → M14-03 → M14-04 → (M14-05 ∥ M14-07) → (M14-08 ∥ M14-09) → M14-06 → M14-10 → M14-11. I primi quattro toccano file comuni (`core/data/**`, `event_bus.gd`, `game_session.gd`, `systems/combat/**`): in sequenza; la UI (M14-06) per ultima.

@@ -807,6 +807,114 @@ Voci del Mercato (id, effetto, massimo, prezzo, livello del Mercato, requisito d
 | `market_loot_pouch` | `loot_bag_slots` +6 | 1 | 50.000 | 8 | — |
 Totale 15 voci, 314.000 oro (circa 4 h di oro per voce al gradino in cui si sbloccano; nessuna è obbligatoria). Esempio (= test, `tests/systems/shop/test_shop_market.gd`): con Mercato 2, `market_shelf_2` (Mercato 3) → `requirement_not_met`; con Mercato 3 ma senza `market_shelf_1` → `requirement_not_met`; comprate `market_shelf_1` e `market_shelf_2`: `T(deposit_slots)` = 8 (capienza 60 + 8 = 68, F-133).
 
+## 5j. Dungeon delle scimmie (F-137…F-144; M22, V12; numeri fissati da M22-01, da verificare con `tools/sim_dungeon.gd` in M22-07)
+
+Regole in `01_GDD.md` §33, dati in `04_DATA_SCHEMA.md` §27, contratto in `05_INTERFACES.md` §5.29. Tutti i numeri sono **valori di partenza** (chiavi di `data/dungeons/monkey_den.json` e di `balance.json` `dungeon` e `miniboss`, §9); gli esempi sono casi di test e cambiano insieme ai valori.
+Stat nuove: nessuna. `rng` = `RngService.new(seed)` locale, **non** il generatore dello slot: la mappa dipende solo dal seme.
+
+### F-137 Mappa nascosta
+Parametri (dati del dungeon, `map`): `forks` = 5, `width_weights` = [3, 4, 3] (larghezza 2, 3, 4), `exit_weights` = [5, 3, 2] (uscite 2, 3, 4), `hint_pct` = 45; globale (`balance.json` `dungeon.direction_bands`) = [−0,55, −0,30, −0,10, 0,10, 0,30, 0,55]. Ordine **fisso** dei tiri (stesso seme = stessa mappa):
+1. **Larghezze**: livello 0 e livello `forks + 1` (boss) hanno 1 stanza; per i livelli 1…`forks`, nell'ordine, `w = 2 + pick_weighted(width_weights)`. La stanza `k` (da 0) di un livello di `w` stanze ha posizione `x = (k + 0,5) / w`.
+2. **Uscite**: per ogni livello `i` da 0 a `forks − 1` e ogni stanza `r` in ordine, `d = min(w_(i+1), 2 + pick_weighted(exit_weights))`; le uscite sono le `d` stanze del livello dopo con `|x_next − x_r|` minima (pari merito: indice più basso), ordinate per `x` crescente (da sinistra a destra).
+   Le stanze del livello `forks` hanno come unica uscita il boss (nessun tiro). Le stanze del livello dopo **senza nessuna entrata** sono tolte (gli indici si rinumerano, le `x` restano): ne restano sempre almeno 2.
+3. **Tipi**: per ogni stanza dei livelli 1…`forks`, in ordine, `pick_weighted` sui tipi di F-138 con `min_layer ≤ livello`; se il livello ha già un `miniboss` il tipo si ritira escludendolo. Una Trappola tira anche il suo tipo (`trap_kinds`: dardi, fossa, liane, peso uguale).
+4. **Indizi**: per ogni stanza (anche non visibile), `hint = roll_pct(hint_pct)`; l'indizio è la frase fissa del suo tipo (F-138). L'indizio appartiene alla stanza: lo stesso da qualunque uscita.
+- **Direzione di un'uscita**: `dx = x_destinazione − x_attuale`; `far_left` se `dx ≤ −0,55`; `left` se `≤ −0,30`; `slight_left` se `< −0,10`; `forward` se `≤ 0,10`; `slight_right` se `< 0,30`; `right` se `< 0,55`; altrimenti `far_right`. Le uscite di una stanza hanno direzioni **sempre diverse** (le stanze di un livello distano ≥ 0,25 e ogni fascia è più stretta).
+Esempi (= test, `tests/systems/dungeon/test_dungeon_map.gd`): stanza a `x = 0,875` (livello di 4) con il livello dopo di 2 (`x` 0,25 e 0,75): uscite `far_left` (`dx` −0,625) e `slight_left` (−0,125), nessuna a destra. Stanza a `x = 0,125` con il livello dopo di 3 (0,1667, 0,5, 0,8333) e `d = 2`: `forward` (+0,0417)
+e `right` (+0,375). Stanza a `x = 0,5` (livello di 3), livello dopo di 4 (0,125, 0,375, 0,625, 0,875), `d = 3`: 0,375 e 0,625 (distanza 0,125) più, a pari distanza 0,375, la prima per indice (0,125): uscite in ordine `left` (−0,375), `slight_left` (−0,125), `slight_right` (+0,125).
+Proprietà su 1.000 semi: ogni stanza dei livelli 0…`forks − 1` ha 2-4 uscite con direzioni distinte, ogni stanza è raggiungibile dall'ingresso e raggiunge il boss, `rooms_total` = `forks + 2` = 7 livelli, la stessa mappa dallo stesso seme, nessun livello con più di un `miniboss`.
+
+### F-138 Tipi di stanza e composizioni
+Pesi e livello minimo (dati del dungeon, `rooms`); l'ingresso e il boss non si tirano.
+| Tipo | `min_layer` | Peso | Composizione (tirata all'ingresso nella stanza con il generatore dello slot) | Indizio |
+|---|---|---|---|---|
+| `pack` Branco | 1 | 30 | 3-6 mostri (uniforme) da `monkey_grunt` 4, `monkey_slinger` 3, `monkey_shaman` 2, `monkey_guard` 2 | "Rumore di rami e di risate sguaiate" |
+| `horde` Orda | 1 | 16 | 12 mostri da `monkey_imp` 8, `monkey_grunt` 2 | "Un brusio fitto, di molte voci" |
+| `elite` Guardiano | 2 | 14 | `monkey_gorilla` da solo | "Passi pesanti, uno solo" |
+| `miniboss` Capobranco | 3 | 10 | `monkey_packlead` + 2 `monkey_guard` | "Un ruggito basso che fa tremare le foglie" |
+| `trap` Trappola | 1 | 14 | nessun nemico; evento F-140 | "Una liana tesa nell'ombra" |
+| `rest` Riposo | 2 | 10 | nessun nemico; evento F-140 | "Odore di frutta matura e di acqua fresca" |
+Ingresso (`entrance`): 6 mostri da `monkey_grunt` 4, `monkey_slinger` 2, `monkey_imp` 3. Le Orde superano `combat.max_pack_size`: valgono la vista compatta e il limite del motore dei Monoliti (≥ 30 nemici).
+Esempio (= test): al livello 1 i pesi sono 30, 16, 14 (somma 60): `P(pack)` = 50%; al livello 2 si aggiungono Guardiano e Riposo (somma 84); dal livello 3 la somma è 94 e `P(miniboss)` per stanza = 10/94 = 10,6% (prima del limite di uno per livello). Test: `tests/systems/dungeon/test_room_types.gd`.
+
+### F-139 Mostri, miniboss, boss, Biglietti
+**Mostri del dungeon** (`data/dungeons/monkey_den.json`, **generati** da `tools/gen_dungeon.gd`, mai scritti a mano): le statistiche (PV, danno, precisione, evasione, intervallo, XP F-130, oro) sono quelle di un mostro di area di pari livello `L` (stesse formule di `gen_areas.gd`) × il moltiplicatore del ruolo. Valori di partenza:
+| Id | Nome | `L` | Stile | PV × | Danno × | XP, oro × | Note |
+|---|---|---|---|---|---|---|---|
+| `monkey_imp` | Monello del branco | 40 | blade | 0,5 | 0,6 | 0,5 | scimmietta d'Orda |
+| `monkey_grunt` | Scimmia predona | 44 | blade | 1,0 | 1,0 | 1 | |
+| `monkey_slinger` | Lanciatrice di noci | 45 | marksmanship | 0,8 | 1,1 | 1 | |
+| `monkey_shaman` | Scimmia sciamana | 46 | arcana | 1,0 | 1,1 | 1 | |
+| `monkey_guard` | Guardia dei rami | 46 | blade | 1,6 | 1,2 | 1,5 | |
+| `monkey_gorilla` | Gorilla guardiano | 49 | blade | 3,0 | 1,4 | 3 | stanza Guardiano |
+| `monkey_packlead` | Capobranco | 50 | blade | 4,0 | 1,5 | 4 | stanza Capobranco |
+| `monkey_gorom` | Gorom, il Braccio Destro | 50 | blade | 6,0 | 1,4 | 6 | stadio 1; `heavy_strike` ogni 9000 ms, `mult` 2,0 |
+| `monkey_ziki` | Ziki, la Stratega | 51 | arcana | 5,0 | 1,2 | 5 | stadio 2; DR ×1,3; `summon` ogni 10000 ms, `count` 2, `max_alive` 4, `monsters` [`monkey_slinger`] |
+| `monkey_king` | Uuk-Maar, il Re delle Scimmie | 54 | blade | 10,0 | 1,6 | 10 | stadio 3; `shield` ogni 14000 ms, `duration_ms` 6000, `shield_pct` 20 |
+Stadi (`stages`): 1 = `monkey_gorom` + 2 `monkey_guard` (`intro_ms` 3500); 2 = `monkey_ziki` + 3 `monkey_slinger` (3500); 3 = `monkey_king` da solo (5500, "il ruggito"). Le abilità sono quelle di F-112 (stesso schema e limiti: `max_alive + 1 ≤ combat.max_pack_size`).
+**Requisito e livello**: `requirements.character` 35; `recommended_level` 45.
+**Miniboss di area** (`balance.json` `miniboss`): `{"chance_pct": 1.5, "hp_mult": 4.0, "power_mult": 1.5, "xp_mult": 4.0, "gold_mult": 4.0, "escorts": 2}`. Il miniboss di un'area è il suo mostro di livello più alto con quei moltiplicatori (generato da `tools/gen_areas.gd`, nome proprio per area, id `miniboss_<area>`);
+dopo ogni incontro normale (non Monolito, non Frattura, non dungeon) `roll_pct(chance_pct)`; se riesce e non c'è un Monolito in attesa, il prossimo incontro (dopo `BETWEEN`) è il miniboss con `escorts` mostri dell'area (a caso tra i suoi mostri). Un solo miniboss in attesa alla volta.
+**Biglietti** (`dungeon_ticket_monkey_den`): voce di drop `{"item": "dungeon_ticket_monkey_den", "chance_pct": 25, "qty": [1, 1]}` nei `drops` dei miniboss delle aree 4-10 (`level_min ≥ 31`), voce `chance_pct` 20 nelle tabelle dei Monoliti delle stesse aree. Nessun'altra fonte.
+Esempio (= test dei dati e `sim_dungeon`): 300 uccisioni/ora, 4,07 mostri per incontro → 73,7 incontri/ora → 1,1 miniboss/ora → 0,28 Biglietti/ora; Monoliti (F-87, 0,5% a uccisione) 1,5/ora → 0,30 Biglietti/ora: **0,58 Biglietti/ora = uno ogni 1,7 ore** (obiettivo 1,5-2,5). Test: `tests/data/test_dungeon_data.gd`,
+`tests/systems/combat/test_miniboss.gd` (con `chance_pct` 100: ogni incontro normale è seguito dal miniboss; con 0 mai; con un Monolito pending la precedenza è del Monolito).
+
+### F-140 Eventi (Trappola e Riposo)
+All'ingresso in una stanza `trap` o `rest` la run entra nella fase `event` (nessun nemico, nessun timer) con due scelte. Parametri (dati del dungeon): `trap.dash_hp_pct` = 20, `trap.ambush` = 3 (mostri da `monkey_grunt` 4, `monkey_slinger` 2), `rest.heal_pct` = 35, `rest.forage_pack` = 4, `rest.forage_dust` = [8, 14], `rest.forage_crystal_pct` = 30.
+- Trappola, **"Attraversa di corsa"** (`dash`): `loss = max(0, min(hp − 1, floor(max_hp × dash_hp_pct/100)))`; i PV scendono di `loss` (segnale `dungeon_trap_triggered(kind, loss)`), poi la stanza è superata (fase `await`). Un PV non scende mai sotto 1: la trappola non uccide.
+- Trappola, **"Aggira"** (`detour`): nessuna perdita; si combatte l'imboscata (`ambush` mostri), poi la stanza è superata.
+- Riposo, **"Riposa"** (`rest`): `heal = min(max_hp − hp, floor(max_hp × heal_pct/100))`; poi la stanza è superata. **"Fruga"** (`forage`): si combatte `forage_pack` mostri; alla fine `randi_range(forage_dust)` Polvere del Rift e `roll_pct(forage_crystal_pct)` per un Cristallo (uniforme sui tre), nella borsa.
+Esempi (= test): `max_hp` 800, `hp` 800 → `dash` toglie 160 (640); `hp` 100 → `min(99, 160)` = 99 (1 PV); Riposo con `hp` 300 → +280 (580), con `hp` 700 → +100 (800). Test: `tests/systems/dungeon/test_dungeon_events.gd`.
+
+### F-141 Flusso della run
+Fasi (`DungeonRun.phase`): `fight` (incontro in corso), `event` (scelta dell'evento), `await` (scelta del bivio), `intro` (scena di ingresso del boss, `intro_ms` per stadio), `done`. La run parte con la stanza d'ingresso in `fight`. Superata la stanza di livello `i < forks` → `await` (le uscite sono quelle di F-137, ordinate da sinistra a destra, `choose(i)` con `i` in `0..n−1`);
+dopo `choose` la run entra nella stanza scelta (`fight` o `event`). Superato il livello `forks` il boss parte da sé (fase `intro` poi `fight`) senza scelta. Stadio `s` del boss superato → se `s < 3` fase `intro` dello stadio `s + 1`, altrimenti vittoria. `rooms_total` mostrato = `forks + 2` = 7 (ingresso, 5 bivi, boss; il boss si mostra come "?").
+Durante `intro` il motore avanza solo il contatore di `intro_ms` (nessun nemico attacca). Durante `await` e `event` non scorre nulla. `paused` (dopo il caricamento, regola F-144/1): nessun timer scorre finché `resume()`.
+Esempio: Covo con 5 bivi: scelte `choose` 5 volte (ingresso → livello 1 → … → livello 5), poi boss: tre `intro`, tre stadi; `dungeon_room_entered` 6 volte prima del boss (ingresso + 5), `dungeon_stage_started` 3 volte, `dungeon_finished(&"won", 7, …)`. Test: `tests/systems/dungeon/test_dungeon_flow.gd` (con motore finto), `tests/systems/combat/test_dungeon_combat.gd`.
+
+### F-142 Ricompense minori
+Ogni mostro del dungeon ha la tabella `loot_dungeon_monkey_den` (come una tabella di area 41-50: Polvere 6%, quattro Pietre 1% ciascuna, borsa di cuoio 0,05%; **nessuna** Carta né Contratto) e i suoi `drops`; tutto nella borsa del dungeon. Per i pezzi: F-121 con `L_m` reale del mostro (nessun grado scalato).
+**Premio di stanza** alla stanza superata (dati del dungeon, `room_rewards`; ogni voce è facoltativa): `gold` [min, max] nel portafoglio; `dust` [min, max]; `crystal_pct` (un Cristallo, uniforme sui tre); `piece_pct` (un pezzo di F-121 punto 2-3 con `L_m` della stanza e rarità almeno magica: F-84 con fonte `monster`, se comune diventa magica).
+| Stanza | Oro | Polvere | Cristallo % | Pezzo ≥ magico % |
+|---|---|---|---|---|
+| ingresso | 200-400 | — | — | — |
+| `pack` | — | — | — | — |
+| `horde` | 400-800 | 4-8 | — | — |
+| `elite` (`L_m` 49) | 600-1.200 | — | — | 40 |
+| `miniboss` (`L_m` 50) | 1.200-2.000 | 10-18 | 25 | 70 |
+| `trap` (dopo la scelta) | — | 3-6 | — | — |
+| stadio 1 Gorom (`L_m` 50) | 1.500-2.500 | 15-25 | 40 | 60 |
+| stadio 2 Ziki (`L_m` 51) | 1.500-2.500 | 15-25 | 40 | 60 |
+Il premio non dipende dalla via scelta: le stanze più pericolose rendono di più (Orda, Guardiano, Capobranco). Esempio (= test, semi fissi, `*_pct` 100): Capobranco → un pezzo almeno magico, un Cristallo, Polvere in 10-18, oro in 1.200-2.000. Test: `tests/systems/dungeon/test_room_rewards.gd`.
+
+### F-143 Bottino del boss ("loot pool")
+Alla vittoria sul Re (stadio 3), nella borsa del dungeon, in quest'ordine (un tiro per voce):
+1. oro `randi_range(boss.gold)` = [3.000, 5.000] nel portafoglio;
+2. Polvere `randi_range(boss.dust)` = [40, 60] × `(1 + dust_pct/100)` (F-115);
+3. **due pezzi**: il primo di rarità **rara** garantita, il secondo almeno **magico** (F-121 punti 2-3 con `L_m` 54; affissi F-85 con `ilvl` del boss; rarità del secondo come sopra);
+4. **due Cristalli** (due tiri indipendenti, uniformi sui tre tipi);
+5. una **Carta** con `roll_pct(boss.card_pct)` = 60: grado `boss.card_grade` = 4, rarità F-109;
+6. materiali del boss (`drops`: i 4 materiali rari delle aree 5-6, 50% ciascuno, 3-6 pezzi);
+7. **leggendari del dungeon**: per ognuno dei 6 della fonte `{"type": "dungeon", "id": "monkey_den", "chance_pct": 3.5}`, in ordine, `roll_pct(3,5)` (F-120). Un leggendario è un'istanza: i doppioni sono possibili. Con il Deposito pieno si perde con `armory_rejected`, come ogni leggendario.
+I sei leggendari (nomi provvisori, effetti dall'elenco chiuso di F-120, parametri di partenza; statistiche = modello di slot del grado più vicino a 50 × `rarity.legendary.base_mult`; `requirements.character` 50): Lama della Liana Spezzata (spada, `double_hit_pct` 12), Randello del Re dei Rami (spadone, `execute_mult` 25%, ×1,8),
+Scudo di Gusci di Cocco (scudo, `block_heal_pct` 8), Anello della Scimmia Avida (anello, `kill_heal_pct` 2), Amuleto della Stratega (collo, `stat_convert` `barrier` → `armor` 40%), Guanti da Cima d'Albero (mani, `on_kill_timer_cut` 60). Fonte e tooltip della Guida a scoperta.
+Probabilità: almeno un leggendario a vittoria = 1 − 0,965⁶ = **19,4%** (atteso 0,21): uno ogni **5,2 vittorie**. Esempi (= test): `chance_pct` 100 per tutti → 6 leggendari in questo ordine; `chance_pct` 0 → nessuno e nessun tiro consumato. Test: `tests/systems/dungeon/test_dungeon_boss_rewards.gd`, `tests/data/test_legendaries.gd` (fonte `dungeon`).
+
+### F-144 Bilanciamento e regole della run (soglie di `tools/sim_dungeon.gd`)
+Regole fisse: (1) **dopo il caricamento la run è in pausa** fino a `resume()`; (2) **offline la run non avanza** (nessun progresso, nessuna morte); (3) un Biglietto si consuma all'ingresso e **non** si recupera (morte, fuga, uscita); (4) la mappa è una funzione del seme (F-137), il seme è un `randi_range(1, 2147483647)` del generatore dello slot, estratto all'ingresso; (5) una sola istanza alla volta.
+**Soglie** per un personaggio del livello consigliato (45) con il set del grado di quel livello e cibo del grado (`sim_dungeon` con `policy=random`, la scelta delle uscite casuale, 500 run per punto):
+| Livello del personaggio | Vittorie | Note |
+|---|---|---|
+| 35 (minimo) | 15-45% | il minimo è una sfida, non un muro |
+| 40 | 50-75% | |
+| 45 (consigliato) | **85-97%** | la morte è rara ma possibile |
+| 55 | ≥ 98% | non banale in durata |
+- **Durata** di una run al livello consigliato: **12-20 minuti** (media; 90° percentile < 30 min). **Cibo**: usato in ≥ 70% delle run, mai oltre 25 pezzi per run (con le razioni da campo di livello 1).
+- **PV**: nelle stanze di combattimento normali (Branco, Orda) il giocatore perde in media ≤ 35% dei PV massimi senza cibo; il Capobranco e il Guardiano ≤ 50%; il boss (tre stadi) 80-130% (serve il cibo).
+- **Bottino per run vinta** (livello 45): **4-7 pezzi** in tutto (di cui ≥ 1,2 rari o meglio: uno garantito dal boss più i tiri), Polvere 70-130, 3-6 Cristalli, una Carta con 60%; oro 6.000-12.000; leggendario 19,4%. Il valore per **ora di run** (non per ora di farm del Biglietto) è ≥ 3× quello del combattimento in area.
+- **Biglietti**: uno ogni 1,5-2,5 ore di combattimento nelle aree 4-10 (F-139). **Ore di combattimento per leggendario**: 5,2 vittorie × 1,7 h ≈ **9 ore** (soglia 6-14), contro le 15-30 h dei boss di Frattura: il dungeon è la fonte più rapida di leggendari, ma limitata dai Biglietti.
+- `sim_dungeon` stampa: durata, vittorie per livello del personaggio, PV persi per tipo di stanza, cibo usato, pezzi/rari/Polvere/Cristalli/leggendari per run, Biglietti/ora e ore per leggendario. Opzioni: `level=`, `runs=`, `policy=random|cautious` (la prudente evita le uscite con indizio `miniboss`/`horde` e cerca `rest`), `seed=`.
+
 ## 6. Offline
 
 ### F-40 Tempo offline
@@ -1310,6 +1418,8 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | `metin.{hp_base, hp_per_level, pulse_damage, wave_size, wave_thresholds, rarity_bonus_pct, guaranteed_pieces}` (M15, Z3-Z4) | 200, 0,25, 1, 7, `[75, 50, 25]`, 100, 1 | F-125…F-127 (Q78) |
 | `village.{max_level, woodwright_levels, gold_base, gold_growth, qty.{wood,plate,food}.{base,per_level}}` (M19, V7) | 8, `[1,10,20,30,45,60,75,90]`, 300, 1,4, `{20,20}` `{4,4}` `{10,6}` | F-131 (obbligatorie; i pesi per edificio stanno in `data/village/buildings.json`; validato da `DataValidatorVillage`, escluso da `test_config_files`) |
 | `quest.{tier_levels, tier_window, recent_memory, gold_by_tier, xp_unit_by_tier, kill_food_qty, types.{kill,gather,craft}.{base, per_tier, gold_mult, xp_cycles, mult}}` (M20, V7) | `[1,10,20,30,45,60,75,90]`, 3, 6, `[80,250,340,380,600,800,950,1030]`, `[10,18,28,40,58,80,108,145]`, 20, vedi F-134 | F-134, F-135 (obbligatorie, validate: `tier_levels` e le due tabelle di 8 voci, strettamente crescenti `tier_levels`) |
+| `dungeon.direction_bands` (M22, V12) | `[-0.55, -0.30, -0.10, 0.10, 0.30, 0.55]` | F-137 (gli altri numeri del dungeon sono per dungeon, in `data/dungeons/<id>.json`, `04_DATA_SCHEMA.md` §27) |
+| `miniboss.{chance_pct, hp_mult, power_mult, xp_mult, gold_mult, escorts}` (M22, V12, Z8) | 1.5, 4.0, 1.5, 4.0, 4.0, 2 | F-139 |
 | `combat.crowd_threshold` (M15, Z6) | 8 | `01_GDD.md` §10.13 (solo UI) |
 | `combat.skip_stone_level` (M15, Z7) | 0 | F-128: **valore iniziale** del nuovo slot; il valore in uso è stato dello slot |
 | `rift_stone_chance_pct` Pianure (M15, Z5) | 0 → 0,6 (dati dell'area) | F-87 (Q82) |

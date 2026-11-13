@@ -81,8 +81,18 @@ const FRACTURE_BAG_PENDING := &"fracture_bag_pending"   # M13: la borsa della Fr
 const NO_FRACTURE := &"no_fracture"                     # M13: nessuna Frattura in corso (abbandona) o nessun bottino in attesa (raccogli)
 const FRACTURE_WON := &"fracture_won"                   # M13: motivo di stop del combattimento a Frattura vinta (solo se non c'era un'area a cui tornare)
 const FRACTURE_ABANDONED := &"fracture_abandoned"       # M13: idem, per l'abbandono
+const DUNGEON_ACTIVE := &"dungeon_active"               # M22: c'è già un dungeon in corso (o si apre una Frattura durante un dungeon)
+const DUNGEON_BAG_PENDING := &"dungeon_bag_pending"     # M22: la borsa del dungeon precedente non è stata consegnata del tutto
+const NO_DUNGEON := &"no_dungeon"                       # M22: nessun dungeon in corso (comandi) o nessun bottino in attesa (raccogli)
+const NOT_AWAITING := &"not_awaiting"                   # M22: la run non aspetta una scelta (choose, leave)
+const NOT_FIGHTING := &"not_fighting"                   # M22: la run non è in combattimento (flee)
+const INVALID_CHOICE := &"invalid_choice"               # M22: indice di scelta fuori intervallo
+const DUNGEON_PAUSED := &"dungeon_paused"               # M22: la run è in pausa (dopo il caricamento): serve resume
+const NOT_PAUSED := &"not_paused"                       # M22: resume su una run non in pausa
+const DUNGEON_WON := &"dungeon_won"                     # M22: motivo di stop a dungeon vinto senza area di ritorno
+const DUNGEON_FLED := &"dungeon_fled"                   # M22: idem, per la fuga
 ```
-Le costanti nuove le aggiunge il primo task che le usa (M4-01 per quelle di M4), con il test di `reasons.gd`. A fine M12 la lista chiusa conta **50** costanti; M13 ne aggiunge 5 (**55**).
+Le costanti nuove le aggiunge il primo task che le usa (M4-01 per quelle di M4), con il test di `reasons.gd`. A fine M12 la lista chiusa conta **50** costanti; M13 ne aggiunge 5 (**55**); M22 ne aggiunge 10 (`dungeon_*`, `no_dungeon`, `not_awaiting`, `not_fighting`, `invalid_choice`, `not_paused`: **65**).
 
 ## 2. Autoload
 
@@ -294,6 +304,17 @@ func hide_tooltip() -> void
 | `fracture_finished` (M13) | `outcome: StringName, grade: int, groups: int, cards: int, pieces: int` | CombatEngine | `outcome` = `&"won"`, `&"died"`, `&"abandoned"`; `groups` = gruppi superati; `cards`/`pieces` = quelli nella borsa (consegnati o persi); emesso prima della consegna (5.23) |
 | `fracture_bag_changed` (M13) | `stacks: int, pieces: int, cards: int` | FractureSystem | cambia il contenuto della borsa della Frattura in corso o in attesa |
 | `fracture_loot_lost` (M13) | `stacks: int, pieces: int, cards: int` | FractureSystem | sconfitta o abbandono: la borsa è persa (X4) |
+| `dungeon_opened` (M22) | `dungeon_id: StringName` | DungeonSystem | il Biglietto è consumato e la run parte |
+| `dungeon_room_entered` (M22) | `layer: int, kind: StringName` | DungeonSystem | si entra in una stanza (ingresso, scelta fatta); `kind` = tipo della stanza entrata |
+| `dungeon_choice_ready` (M22) | `kind: StringName, count: int` | DungeonSystem | il gioco aspetta una scelta: `kind` = `&"fork"` o `&"event"`, `count` = numero di opzioni (2-4) |
+| `dungeon_room_cleared` (M22) | `layer: int, kind: StringName` | CombatEngine | ultimo nemico di una stanza di combattimento (a fine istante) |
+| `dungeon_stage_started` (M22) | `stage: int, monster_id: StringName` | CombatEngine | parte il combattimento dello stadio 1..3 del boss (dopo l'intro) |
+| `dungeon_stage_cleared` (M22) | `stage: int` | CombatEngine | il capo dello stadio è morto |
+| `dungeon_trap_triggered` (M22) | `trap_kind: StringName, hp_lost: int` | DungeonSystem | "Attraversa di corsa" (F-140) |
+| `dungeon_paused_changed` (M22) | `paused: bool` | DungeonSystem | `resume()` (false) o caricamento di una run (true) |
+| `dungeon_finished` (M22) | `outcome: StringName, rooms: int, pieces: int` | CombatEngine (`won`, `died`, `fled`), DungeonSystem (`left`) | `rooms` = stanze superate; `pieces` = pezzi consegnati (0 se persi) |
+| `dungeon_bag_changed` (M22) | `stacks: int, pieces: int, cards: int` | DungeonSystem | cambia la borsa della run o quella in attesa |
+| `dungeon_loot_lost` (M22) | `stacks: int, pieces: int, cards: int` | DungeonSystem | morte o fuga: la borsa è persa |
 | `card_changed` (M13) | `uid: int, change: StringName` | CardStore | `change` = `&"added"`, `&"removed"`, `&"updated"` (blocco, Cristallo) |
 | `card_rejected` (M13) | `grade: int` | CardStore | Carta non aggiunta per Deposito pieno |
 | `item_obtained` (M14) | `item_id: StringName, qty: int` | Bank, LootBag, Armory, CardStore | ogni volta che un oggetto entra in possesso del giocatore (pezzi e Carte: id di base, qty 1); lo ascolta `Discoveries` (F-124) |
@@ -1596,7 +1617,7 @@ class_name WeaponInfo (aggiunte M14)  ; var dmg_min: int; var dmg_max: int      
 class_name EquipInfo  (aggiunte M14)  ; var material: StringName                              # &"plate" / &"leather" / &"cloth"; &"" se non armatura
                                         var masterwork: bool; var legendary: LegendaryInfo   # null se non leggendario; grade 1..15
 class_name LegendaryInfo extends RefCounted   # core/data/defs/legendary_info.gd
-var source_type: StringName                   # &"boss" / &"monolith"
+var source_type: StringName                   # &"boss" / &"monolith" / &"dungeon" (M22)
 var source_id: StringName; var chance_pct: float
 var effects: Array[ItemEffectDef]
 class_name ItemEffectDef extends RefCounted   # core/data/defs/item_effect_def.gd
@@ -1795,6 +1816,121 @@ func new_game() -> void; func to_save() -> Dictionary; func from_save(d: Diction
 - **Shop** (modifica a 5.11): `Shop.can_buy` controlla anche `requires.village` con lo stesso motivo `requirement_not_met`: per ogni `{building: n}` serve `session.village != null and session.village.level(building) ≥ n`. `Shop` legge `session.village` all'uso (non nel costruttore: `village` è creato dopo `shop`). Nessun'altra firma cambia. `Village.is_buildable(&"market")` e `Village.is_buildable(&"noticeboard")` diventano `true` (5.27 invariata).
 - **UI** (§7.s, sola lettura e comandi): la pagina legge `session.quests`, `session.data`, `session.village`; si aggiorna con `quests_changed`, `quest_progress`, `village_upgraded`, `character_level_up`.
 
+### 5.29 Dungeon (M22; `01_GDD.md` §33, `02_FORMULAS.md` F-137…F-144, `04_DATA_SCHEMA.md` §27) — cartella `systems/dungeon/`
+`DungeonMap`, `DungeonGenerator`, `DungeonRoom` (CORE, M22-02); `DungeonRun`, `DungeonSystem`, `DungeonRewards`, `DungeonDelivery` (CORE, M22-04); integrazione nel motore, `DungeonSink` e il miniboss di area (COMBAT, M22-05). Dipendenze di `DungeonSystem`: data, events, rng, modifiers (solo `dust_pct`), bank,
+armory, cards, combat, wallet, deposit. **Lo stato del dungeon è per slot**; nessuna stat, nessun modificatore, nessuna sorgente in `ModifierService`. La borsa della run è un `FractureBag` (§5.23) senza modifiche: nessun refactor di `FractureSystem`.
+```gdscript
+class_name DungeonRoom extends RefCounted     # systems/dungeon/dungeon_room.gd — una stanza della mappa nascosta (dati puri)
+var layer: int; var index: int; var x: float            # x = (index + 0,5) / larghezza del livello (F-137)
+var kind: StringName                                      # &"entrance", &"pack", &"horde", &"elite", &"miniboss", &"trap", &"rest", &"boss"
+var trap_kind: StringName                                 # &"" se non è una Trappola (dati: kinds)
+var hint: bool                                            # esiste un indizio (F-137 punto 4)
+var exits: Array[int]                                     # indici nel livello dopo, da sinistra a destra (2-4; [0] per il livello `forks`; [] per il boss)
+
+class_name DungeonMap extends RefCounted      # systems/dungeon/dungeon_map.gd — la mappa nascosta, ricostruibile dal seme
+var dungeon_id: StringName; var seed_value: int
+func layers() -> int                                      # forks + 2
+func width(layer: int) -> int
+func room(layer: int, index: int) -> DungeonRoom          # null se fuori intervallo
+func exits_of(layer: int, index: int, data: GameData) -> Array[Dictionary]
+    # [{"index": int, "direction": StringName, "hint": String}] da sinistra a destra; direction ∈ far_left, left, slight_left, forward, slight_right, right, far_right (F-137); hint = frase del tipo o "" se la stanza non ha indizio
+static func direction_of(dx: float, data: GameData) -> StringName       # F-137 con balance dungeon.direction_bands
+
+class_name DungeonGenerator extends RefCounted   # systems/dungeon/dungeon_generator.gd — logica pura
+static func generate(def: DungeonDef, seed_value: int, data: GameData) -> DungeonMap    # F-137: RngService.new(seed_value) locale; stesso seme = stessa mappa
+static func compose(def: DungeonDef, kind: StringName, rng: RngService) -> Array[StringName]   # F-138: id dei mostri della stanza (tirata con il generatore dello slot all'ingresso nella stanza)
+
+class_name DungeonRun extends RefCounted      # systems/dungeon/dungeon_run.gd — stato di una run (dati puri, nessun segnale)
+const PHASE_FIGHT := &"fight"; const PHASE_EVENT := &"event"; const PHASE_AWAIT := &"await"; const PHASE_INTRO := &"intro"
+var dungeon_id: StringName; var seed_value: int; var map: DungeonMap
+var layer: int; var index: int                            # stanza attuale
+var phase: StringName; var stage: int                     # stage 0 = fuori dal boss; 1..3 = stadio del boss in corso o appena superato
+var paused: bool; var path: Array[Vector2i]               # stanze già superate (solo per la UI e i test)
+var bag: FractureBag; var return_area: StringName; var cleared: int
+func to_save() -> Dictionary; static func from_save(d: Dictionary, data: GameData) -> DungeonRun   # null se non valida (dungeon o fase sconosciuti, stanza fuori dalla mappa); la mappa si rigenera dal seme
+
+class_name DungeonRewards extends RefCounted     # systems/dungeon/dungeon_rewards.gd — F-142, F-143, logica pura
+static func room_reward(reward: Dictionary, level: int, sink: LootSink, session: GameSession) -> void   # oro nel portafoglio; Polvere, Cristallo e pezzo nel sink
+static func boss_loot(session: GameSession, sink: LootSink, def: DungeonDef) -> void                    # F-143 punti 1-7
+
+class_name DungeonDelivery extends RefCounted    # systems/dungeon/dungeon_delivery.gd — copia di F-116 per la borsa del dungeon (nessun refactor di FractureSystem)
+static func deliver(session: GameSession, bag: FractureBag) -> FractureBag      # oggetti → bank, pezzi → armory.add_drop, Carte → cards.add; restituisce ciò che resta in attesa
+
+class_name DungeonSystem extends RefCounted      # systems/dungeon/dungeon_system.gd
+const SAVE_KEY := &"dungeon"
+func is_active() -> bool
+func run() -> DungeonRun                           # null fuori; il motore lo legge, non lo modifica
+func state() -> Dictionary
+    # copia per la UI, {} fuori dalla run; altrimenti {"dungeon": id, "phase": StringName, "paused": bool,
+    #  "progress": {"done": int, "total": int},               # stanze superate e `forks + 2` (il boss è l'ultima)
+    #  "room": {"layer": int, "kind": StringName, "name": String},   # kind solo del tipo della stanza attuale (mai delle uscite)
+    #  "choices": [{"id": StringName, "direction": StringName, "hint": String}],   # fase await: una voce per uscita (id = &"exit"), da sinistra a destra; fase event: due voci con id `dash`/`detour` o `rest`/`forage`, direction/hint vuoti
+    #  "stage": {"index": 1..3, "id": StringName, "title": String, "quote": String, "intro_ms": int, "intro_left_ms": int},   # solo dal boss; intro_left_ms > 0 solo in fase intro
+    #  "bag": {"stacks": int, "pieces": int, "cards": int}, "can_leave": bool, "wins": int}
+func can_open(dungeon_id: StringName) -> StringName        # &"ok" o il motivo di open (stessa precedenza)
+func open(dungeon_id: StringName) -> CommandResult
+    # in ordine: unknown_id, requirement_not_met (livello del personaggio), dungeon_active, fracture_active, dungeon_bag_pending, not_enough_items (nessun Biglietto). Effetto: toglie 1 Biglietto dalla Bank (bank.remove), seme = rng.randi_range(1, 2147483647),
+    #  DungeonMap, DungeonRun (`return_area` = area attuale), combat.start_dungeon, dungeon_opened(id), dungeon_room_entered(0, &"entrance"); la run parte in fase fight (non in pausa)
+func choose(index: int) -> CommandResult           # no_dungeon, dungeon_paused, not_awaiting (fase ≠ await/event), invalid_choice (index fuori da 0..n−1); fase await: entra nella stanza scelta (dungeon_room_entered; fight o event);
+    #  fase event: applica l'evento (F-140); mai a run in pausa
+func leave() -> CommandResult                      # no_dungeon, dungeon_paused, not_awaiting; esito &"left": consegna la borsa (F-116), nessuna ricompensa del boss, dungeon_finished(&"left", …), il motore torna all'area
+func flee() -> CommandResult                       # no_dungeon, dungeon_paused, not_fighting (solo in fase fight o intro; in await ed event vale `leave`); esito &"fled" = come la morte (combat.abandon_dungeon)
+func resume() -> CommandResult                     # no_dungeon, not_paused; toglie la pausa e riprende i timer (dungeon_paused_changed(false))
+func pending() -> Dictionary                       # {} se nulla in attesa; altrimenti {"stacks": [...], "pieces": int, "cards": int}
+func has_pending() -> bool
+func collect() -> CommandResult                    # no_dungeon (nulla in attesa); bank_full / armory_full se resta qualcosa; ciò che entra si sposta comunque (F-116)
+func tickets(dungeon_id: StringName) -> int        # Biglietti in Bank (sola lettura per la UI)
+func wins(dungeon_id: StringName = &"") -> int     # contatore di vittorie (statistica, non una stat)
+func new_game() -> void; func to_save() -> Dictionary; func from_save(d: Dictionary) -> void
+```
+- **Niente `advance`**: la run non ha timer propri (nemmeno la pausa); la fa avanzare il motore del combattimento. `GameSession.advance` e `OfflineSimulator` **non** fanno avanzare combattimento e run se `dungeon.is_active()` (F-144 regola 2): il blocco è un `if` nel simulatore, non una simulazione. `OfflineSummary` ha `var dungeon_frozen: bool` (vero se la run era attiva) e `OfflineTexts.dungeon_line()`.
+- **Reazioni a un segnale** (sincrone, come `FractureSystem`): a `dungeon_room_cleared(layer, kind)` del motore, `DungeonSystem` applica il premio di stanza (F-142) e passa a `await` (o, dal livello `forks`, avvia l'`intro` del boss, F-141); a `dungeon_stage_cleared(stage)` premio dello stadio, poi `intro` del successivo o vittoria (`DungeonRewards.boss_loot`, consegna F-116,
+  `dungeon_finished(&"won", …)`); a `dungeon_finished(&"died" | &"fled", …)` del motore la borsa è persa (`dungeon_loot_lost`). Poi il motore torna all'area (`return_area`) o si ferma con un motivo (`Reasons.DUNGEON_WON`, `DUNGEON_FLED`, `player_died`).
+- **Leggendari**: `LegendaryRoller.roll(&"dungeon", dungeon_id)` (come `&"boss"` e `&"monolith"`, F-120) alla vittoria; nella borsa del dungeon; Deposito pieno → `armory_rejected`.
+- **Una sola istanza**: `FractureSystem.open` rifiuta con `dungeon_active` se la run è attiva (due righe in `fracture_system.gd`, ownership M22-04).
+- Save (§6): `{"run": {} | DungeonRun.to_save(), "pending": {} | FractureBag.to_save(), "wins": {"monkey_den": int}}` con `DungeonRun.to_save()` = `{"dungeon", "seed", "layer", "index", "phase", "stage", "paused", "path": [[layer, index]], "return_area", "cleared", "bag": FractureBag.to_save()}`.
+  `from_save` tollerante: `run` non valida → nessuna run e la sua borsa è persa (`Log.warn`); **una run caricata è sempre `paused = true`**; `pending` non valido → vuoto; `wins` malformato → vuoto. Nessun segnale. Additivo: **chiave assente = nessuna run** (nessuna migrazione, `format_version` 7).
+
+**Motore (aggiunte a 5.10 e 5.23, COMBAT, M22-05)**:
+```gdscript
+# in CombatEngine
+const STATE_AWAIT := &"await"                      # tra le stanze: nessun timer, nessun attacco, il motore aspetta DungeonSystem
+const STATE_INTRO := &"intro"                      # scena di ingresso di uno stadio: scorre solo intro_ms
+func start_dungeon(run: DungeonRun) -> CommandResult      # solo DungeonSystem.open: dungeon_active se già in un dungeon, fracture_active se in una Frattura; ferma azione (REPLACED) e area (replaced), PV al massimo, mano 0, combat_started(&""); stato await finché la prima stanza non è avviata
+func begin_dungeon_room(defs: Array[MonsterDef], layer: int, kind: StringName) -> void   # solo DungeonSystem: nemici nella fila (senza respawn), stato encounter; i PV del giocatore restano
+func begin_dungeon_stage(stage: DungeonStageDef) -> void  # stato intro per stage.intro_ms, poi encounter con stage.monster (+ escorts, abilità F-112)
+func dungeon_adjust_hp(delta: int, floor_hp: int = 1) -> int   # F-140: cambia i PV senza uscire da `floor_hp` e dal massimo; restituisce la variazione reale
+func set_dungeon_paused(paused: bool) -> void              # in pausa `advance` non consuma nulla
+func abandon_dungeon(outcome: StringName) -> void          # `fled`: come la morte; ritorno all'area differito a fine istante
+func in_dungeon() -> bool; func dungeon_run() -> DungeonRun    # null fuori
+```
+- `get_state()` ha, in dungeon, `"dungeon": {"layer": int, "kind": StringName, "stage": int, "intro_left_ms": int, "paused": bool}` (assente fuori); `area_id()` è `&""`; in fase `intro` `enemies` è vuoto. Regole del motore in dungeon: nessun Monolito, nessun miniboss di area, nessun conteggio F-87 (`kills` normali, dei mostri non di area, non contano), nessun cambio di tratti/abilità (`combat_active`); cibo e auto-cibo come fuori; il bottino va nel sink del dungeon (`DungeonSink extends LootSink`,
+  stessa interfaccia di `FractureSink`: `add`, `add_piece`, `add_card` → `run.bag`; **nessuna** modifica di probabilità e quantità); gli evocati della Stratega non danno XP, oro né drop (F-112); `heavy_strike`, `shield`, `summon` come nella Frattura (F-112) con `BossAbility`.
+  Segnali, in quest'ordine a fine istante: **`dungeon_room_cleared(layer, kind)`** all'ultimo nemico di una stanza di combattimento (non dei boss), **`dungeon_stage_started(stage, monster_id)`** all'inizio del combattimento di uno stadio (dopo l'intro), **`dungeon_stage_cleared(stage)`** a stadio superato; morte → `dungeon_finished(&"died", …)` e `player_died`. Il ritorno all'area è **differito a fine istante**.
+- **Miniboss di area** (F-139, `systems/combat/miniboss.gd`, COMBAT): `static func roll(area: AreaDef, rng: RngService, data: GameData) -> bool` (chance di `balance.miniboss`), `static func pack(area: AreaDef, rng: RngService, data: GameData) -> Array[MonsterDef]` (miniboss con i moltiplicatori di F-139 + `escorts`); il motore, dopo ogni incontro normale e se non c'è un Monolito in attesa, tira `roll` e
+  nel caso il prossimo incontro (dopo `BETWEEN`) è `pack`; un solo miniboss in attesa; `AreaDef.miniboss_id: StringName`, `MonsterDef.is_miniboss: bool`. Save: `combat.miniboss_pending: bool` (additivo, assente = false).
+- Save di `combat` (additivo): `dungeon` = `{"room": {"layer", "kind"}, "intro_ms": int, "boss": {"ability_ms", "shield", "shield_ms"}}` (assente fuori); `from_save` risolve la stanza sul `DungeonRun` già caricato (`DungeonSystem.from_save` prima di `combat.from_save`); se `combat` dice di essere in dungeon ma `dungeon.run` manca → `idle` con `Log.warn`.
+- Ordine in `_create_systems()`: `dungeon` subito dopo `fractures` e prima di `combat` (accede a `session.combat` solo nei comandi); `from_save`: `armory`, `cards`, `equipment`, `fractures`, `dungeon`, `combat`.
+
+**Segnali** (`GameEvents`, riportati in §3): `dungeon_opened(dungeon_id)`, `dungeon_room_entered(layer, kind)`, `dungeon_choice_ready(kind, count)`, `dungeon_room_cleared(layer, kind)`, `dungeon_stage_started(stage, monster_id)`, `dungeon_stage_cleared(stage)`, `dungeon_trap_triggered(trap_kind, hp_lost)`,
+`dungeon_paused_changed(paused)`, `dungeon_finished(outcome, rooms, pieces)`, `dungeon_bag_changed(stacks, pieces, cards)`, `dungeon_loot_lost(stacks, pieces, cards)`. **Motivi** (`Reasons`, M22-02): `DUNGEON_ACTIVE`, `DUNGEON_BAG_PENDING`, `NO_DUNGEON`, `NOT_AWAITING`, `NOT_FIGHTING`, `INVALID_CHOICE`, `DUNGEON_PAUSED`, `NOT_PAUSED`, `DUNGEON_WON`, `DUNGEON_FLED`
+(motivi di stop del combattimento senza area di ritorno, come `FRACTURE_WON`).
+
+### 7.q UI del Dungeon (M22; nessuno stato di gioco nella UI, solo letture e comandi; `01_GDD.md` §33.7)
+```gdscript
+class_name DungeonPage extends Page              # ui/pages/dungeon/dungeon_page.gd (+ .tscn), rotta `dungeon` (voce "Dungeon" della sidebar, sezione Partita, dopo "Fratture"; icona di assets/icons/ui, `missing` come ripiego)
+# Una pagina, tre viste, scelte da session.dungeon.state(): ENTRATA (nessuna run): DungeonEntryView; SCELTA (fase await/event): DungeonChoiceView; COMBATTIMENTO (fase fight/intro): DungeonFightView; run in pausa: la vista della fase con un solo pulsante "Riprendi" (dungeon.resume).
+class_name DungeonEntryView extends VBoxContainer     # ui/pages/dungeon/dungeon_entry_view.gd — dungeon (nome, descrizione, livello richiesto e consigliato), Biglietti (session.dungeon.tickets), "Entra" (dungeon.open: unknown_id, requirement_not_met, dungeon_active, fracture_active, dungeon_bag_pending, not_enough_items → MessageLabel), riquadro "Bottino in attesa" con "Raccogli" (dungeon.collect), ultimo esito (testo, in memoria della pagina)
+class_name DungeonChoiceView extends VBoxContainer    # ui/pages/dungeon/dungeon_choice_view.gd — signal choice_requested(index), leave_requested; setup(state: Dictionary) → un pulsante per scelta (testo della direzione da DungeonTexts e, se c'è, l'indizio; due pulsanti per un evento), avanzamento "Stanza i di N" (il boss è "?"), "Esci dal Covo" con ConfirmDialog, borsa del dungeon
+class_name DungeonFightView extends VBoxContainer     # ui/pages/dungeon/dungeon_fight_view.gd — riusa PlayerColumn, EnemyZone, HitNumbers e CombatFeed di ui/pages/combat/ (sola lettura, come la pagina Combattimento); intestazione con nome della stanza e avanzamento; "Fuggi" con ConfirmDialog (dungeon.flee); "Mangia"; in fase intro: IntroCard
+class_name DungeonIntroCard extends PanelContainer    # ui/pages/dungeon/dungeon_intro_card.gd — scena di ingresso del boss: nome, titolo e frase dello stadio (state["stage"]), barra di scorrimento di intro_left_ms; solo presentazione
+class_name DungeonTexts extends RefCounted            # ui/pages/dungeon/dungeon_texts.gd — testi italiani: DIRECTION (le 7 direzioni), EVENT_CHOICE (dash, detour, rest, forage), REFUSED (i motivi dei comandi), outcome_text(outcome), stage_banner; nessun numero di design
+```
+- Redraw su `dungeon_opened`, `dungeon_room_entered`, `dungeon_choice_ready`, `dungeon_room_cleared`, `dungeon_stage_started`, `dungeon_stage_cleared`, `dungeon_paused_changed`, `dungeon_finished`, `dungeon_bag_changed`, `dungeon_loot_lost`, `bank_changed` (Biglietti), più i segnali di combattimento già usati dalla pagina Combattimento per la vista dei nemici.
+- **Pagina Combattimento**: con `combat.in_dungeon()` mostra un riquadro "Sei nel Covo delle Scimmie" con il rimando alla pagina Dungeon e nessuna scelta di area (come per la Frattura). **Toast**: `dungeon_finished` ("Covo superato!", "Sei caduto nel Covo: bottino perduto", "Sei fuggito: bottino perduto", "Sei uscito dal Covo"); `dungeon_trap_triggered` ("Una trappola ti costa N PV"). **Riepilogo offline**: riga `dungeon_frozen`.
+- La UI **non conosce la mappa**: nessun accesso a `DungeonMap` né a `kind` delle uscite; solo `state()["choices"]`. **Guida**: pagina `guide_dungeon` (`GuideIndex.PAGE_DUNGEON`) e le tabelle di §27 di `04_DATA_SCHEMA.md`; "?" nella pagina Dungeon.
+- Smoke test unico `tests/ui/test_dungeon_page_smoke.gd` (stub `tests/helpers/dungeon_stub.gd`): le tre viste per fase, 2-4 pulsanti di direzione, due per un evento, "Riprendi" in pausa, "Fuggi"/"Esci" con conferma, nessuno stato di gioco nella UI; layout a 1280×720.
+
 ### 7.t UI del Villaggio (M19-03; nessuno stato di gioco nella UI, solo letture e comandi; `01_GDD.md` §30)
 - Cartella `ui/pages/village/`: `village_page.gd/.tscn`, `village_box.gd/.tscn` (un box per edificio), `village_texts.gd` (testi italiani: nomi dei motivi di `can_upgrade`, "Costruisci", "Migliora", "In arrivo", "Livello n/8", "Richiede Falegname n", "Mancano k" per riga); ogni file < 400 righe.
 - `page_host.gd`: voce `&"village"` → `res://ui/pages/village/village_page.tscn`; `sidebar.gd`: voce `{"page": &"village", "text": "Villaggio", "icon": ...}` dopo `shop`.
@@ -1821,7 +1957,7 @@ func new_game() -> void; func to_save() -> Dictionary; func from_save(d: Diction
 
 ## 6. Formato del salvataggio (`user://saves/slot_<n>.json`)
 
-Versione **7 da M17** (M19: il modulo `village` è additivo; M20: anche `quests`; versione invariata) (v6 da M15 e v5 da M14 si migrano; vedi sotto); v5 da M14 (v4 da M12, v3 da M10, v2 da M4-03, D3). Un save v1, v2, v3 o **v4 non si carica** (`version_unsupported`, nessuna migrazione: nessun giocatore reale ancora; M14 cambia il significato di `damage_reduction`, le basi dei pezzi e aggiunge `discoveries`). `SaveMigrator.CURRENT_VERSION` = 5.
+Versione **7 da M17** (M19: il modulo `village` è additivo; M20: anche `quests`; M22: anche `dungeon`, additivo, §5.29; versione invariata) (v6 da M15 e v5 da M14 si migrano; vedi sotto); v5 da M14 (v4 da M12, v3 da M10, v2 da M4-03, D3). Un save v1, v2, v3 o **v4 non si carica** (`version_unsupported`, nessuna migrazione: nessun giocatore reale ancora; M14 cambia il significato di `damage_reduction`, le basi dei pezzi e aggiunge `discoveries`). `SaveMigrator.CURRENT_VERSION` = 5.
 **Save v7 e migrazione v6 → v7 (M17-04, `core/save/migrations/migration_6_to_7.gd`)**: `SaveMigrator.CURRENT_VERSION` = 7; v5 e v6 si migrano in catena, v1-v4 restano `version_unsupported`. Le 10 aree strette sostituiscono le 4 larghe (`02_FORMULAS.md` §8.5). Nessuna chiave nuova, cambiano i valori in `modules`:
 - `combat.area` e `fractures.run.return_area`: se non nomina più un'area esistente diventa **l'area che contiene il livello del personaggio** (la più alta il cui `level_min` non supera il livello; livello 1 se manca l'XP); un'area ancora esistente resta.
 - Incontro in corso (`encounter`, `riftstone`, `between`): riparte come `between` con `enemies = []` ed `effects = {}` (i mostri vecchi hanno altre statistiche); `wave` rimosso; il Monolito in attesa è annullato e il contatore riparte (`stone` = `{since: 0, pending: false, stone_id: ""}`). Bottino, uccisioni, morti, cibo e stato delle Fratture restano.
@@ -1874,6 +2010,7 @@ Versione **7 da M17** (M19: il modulo `village` è additivo; M20: anche `quests`
     "discoveries": {"items": ["redbirch_log", "emberbronze_sword"]},
     "village": {"levels": {"storehouse": 3, "forge": 1}},
     "quests": {"slots": [{"id": "kill_any_t1", "progress": 12}, {}], "cursor": 3, "recent": ["gather_angling_t1"], "completed": 4}
+    "dungeon": {"run": {"dungeon": "monkey_den", "seed": 918273, "layer": 2, "index": 1, "phase": "await", "stage": 0, "paused": true, "path": [[0, 0], [1, 1]], "return_area": "ash_marsh", "cleared": 2, "bag": {"stacks": [{"item": "rift_dust", "qty": 6}], "pieces": [], "cards": []}}, "pending": {}, "wins": {"monkey_den": 1}}
   }
 }
 ```

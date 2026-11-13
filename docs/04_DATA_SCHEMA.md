@@ -820,3 +820,53 @@ Estensione di `data/village/buildings.json` (§24): **due campi nuovi per edific
 Posizioni fissate da M21-01 (campo normalizzato; il campo è in colonne): `storehouse` [0,14, 0,22], `loot_shed` [0,14, 0,76], `noticeboard` [0,50, 0,14], `market` [0,50, 0,50],
 `sawmill` [0,50, 0,86], `inn` [0,86, 0,22], `forge` [0,86, 0,76]; `page`: `noticeboard` → `noticeboard`, `market` → `shop`.
 `VillageBuildingDef` guadagna `map_pos: Vector2` e `page: StringName` (`&""` se assente). Il validatore (`DataValidatorVillage`) controlla i due campi con messaggi come per `areas` (§8) e le fixture dei test li includono.
+
+## 27. Dungeon (M22; V12, `01_GDD.md` §33, `02_FORMULAS.md` F-137…F-144)
+
+Cartella nuova `data/dungeons/` con **un file per dungeon** (`monkey_den.json`; il nome del file = `id`); più il Biglietto in `data/items/misc.json`, il miniboss in `areas.json`, le tabelle in `loot_tables.json`, i leggendari in `equipment_legendary.json`. Il file del dungeon è **generato** da `tools/gen_dungeon.gd`
+(mostri, stadi, tabella del loot, premi); i numeri di taratura (`map`, `rooms`, premi) stanno come costanti nello script (come `gen_areas.gd`) e finiscono nel JSON, che è la fonte che il codice legge. Il validatore è `DataValidatorDungeon` (`core/data/data_validator_dungeon.gd`).
+```json
+{"id": "monkey_den", "name": "Covo delle Scimmie", "description": "…", "icon": "res://assets/icons/ui/dungeon.svg", "order": 1,
+ "requirements": {"character": 35}, "recommended_level": 45, "ticket": "dungeon_ticket_monkey_den",
+ "map": {"forks": 5, "width_weights": [3, 4, 3], "exit_weights": [5, 3, 2], "hint_pct": 45},
+ "monsters": [{"id": "monkey_grunt", "name": "Scimmia predona", "icon": "…", "description": "…", "level": 44, "hp": 0, "style": "blade", "attack_interval_ms": 0, "...": "campi dei mostri di §8"}],
+ "rooms": {
+   "entrance": {"size": 6, "pool": [{"monster": "monkey_grunt", "weight": 4}], "reward": {"gold": [200, 400]}},
+   "types": [{"id": "pack", "weight": 30, "min_layer": 1, "size": [3, 6], "pool": [{"monster": "monkey_grunt", "weight": 4}], "hint": "Rumore di rami…", "reward": {}},
+             {"id": "miniboss", "weight": 10, "min_layer": 3, "fixed": ["monkey_packlead", "monkey_guard", "monkey_guard"], "hint": "…", "reward": {"gold": [1200, 2000], "dust": [10, 18], "crystal_pct": 25, "piece_pct": 70}}],
+   "trap": {"kinds": ["darts", "pit", "vines"], "dash_hp_pct": 20, "ambush": {"size": 3, "pool": [{"monster": "monkey_grunt", "weight": 4}]}, "reward": {"dust": [3, 6]}},
+   "rest": {"heal_pct": 35, "forage": {"size": 4, "pool": [{"monster": "monkey_grunt", "weight": 1}], "dust": [8, 14], "crystal_pct": 30}}},
+ "stages": [{"id": "right_hand", "monster": "monkey_gorom", "escorts": ["monkey_guard", "monkey_guard"], "intro_ms": 3500, "title": "Il Braccio Destro", "quote": "…",
+             "reward": {"gold": [1500, 2500], "dust": [15, 25], "crystal_pct": 40, "piece_pct": 60}, "ability": {"type": "heavy_strike", "every_ms": 9000, "mult": 2.0}}],
+ "boss": {"gold": [3000, 5000], "dust": [40, 60], "pieces": [{"rarity": "rare"}, {"min_rarity": "magic"}], "crystals": 2, "card_pct": 60, "card_grade": 4,
+          "drops": [{"item": "crawler_carapace", "chance_pct": 50, "qty": [3, 6]}]},
+ "loot_table": "loot_dungeon_monkey_den"}
+```
+| Campo | Tipo | Vincoli |
+|---|---|---|
+| `id`, `name`, `description`, `icon`, `order` | | `id` unico e uguale al nome del file; `icon` in `res://assets/icons/` (se manca: `missing`); `order` ≥ 1 |
+| `requirements.character`, `recommended_level` | int | 1..99; `recommended_level ≥ requirements.character` |
+| `ticket` | String | id di un oggetto `misc` con il campo `dungeon` uguale a questo `id` (sotto) |
+| `map.forks` | int | 1..8 (5 per il Covo) |
+| `map.width_weights`, `map.exit_weights` | `[int, int, int]` | pesi ≥ 0, somma ≥ 1: larghezza 2/3/4 e uscite 2/3/4 (F-137) |
+| `map.hint_pct` | float | 0..100 |
+| `monsters[]` | array | i campi dei mostri di §8 (stesso validatore: `hp`, `style`, `attack_interval_ms`, livelli, bonus, `damage_reduction`, `gold`, `rift_shard_chance`, `xp`, `drops`, `loot_tables`) più `level` (1..99, livello di riferimento della generazione); id unici **tra tutti i mostri del gioco**; non compaiono in nessuna area |
+| `rooms.entrance` | oggetto | `size` 1..30, `pool` (`monster` esistente in `monsters`, `weight` ≥ 1), `reward` |
+| `rooms.types[]` | array | `id` ∈ `pack`, `horde`, `elite`, `miniboss`, `trap`, `rest` (elenco **chiuso**, ognuno al più una volta; `pack` obbligatorio con `min_layer` 1), `weight` ≥ 1, `min_layer` 1..`forks`, `hint` stringa non vuota; i tipi di combattimento (`pack`, `horde`, `elite`, `miniboss`) hanno `size` (intero o `[min, max]`, 1..30) con `pool`, oppure `fixed` (elenco di id di `monsters`); `trap` e `rest` non hanno composizione (la danno `rooms.trap` e `rooms.rest`) |
+| `reward` (in `rooms.entrance`, `rooms.types[]`, `rooms.trap`, `stages[]`) | oggetto | chiavi tutte facoltative: `gold` `[min, max]`, `dust` `[min, max]` (1 ≤ min ≤ max), `crystal_pct` 0..100, `piece_pct` 0..100 (F-142) |
+| `rooms.trap` | oggetto | `kinds` ≥ 1 stringhe, `dash_hp_pct` 1..50, `ambush` (`size` 1..8, `pool`), `reward` |
+| `rooms.rest` | oggetto | `heal_pct` 1..100, `forage` (`size` 1..8, `pool`, `dust` `[min, max]`, `crystal_pct` 0..100) |
+| `stages[]` | array | **esattamente 3** (braccio destro, stratega, boss; `id` unici), `monster` esistente in `monsters`, `escorts` (id di `monsters`, 0-4), `intro_ms` 1000..10000, `title`, `quote` (italiano), `ability` (`heavy_strike`, `shield`, `summon`, stessi campi e limiti di §11.3; `summon.monsters` ⊂ `monsters`), `reward`; l'ultimo stadio ha `escorts` vuoto e non ha `reward` (il suo premio è `boss`) |
+| `boss` | oggetto | `gold`, `dust` (`[min, max]`), `pieces` (lista di `{"rarity": "rare"}` o `{"min_rarity": "magic"}`, 1..3), `crystals` 0..5, `card_pct` 0..100, `card_grade` 1..10, `drops` come i mostri |
+| `loot_table` | String | id esistente in `loot_tables.json`; la tabella **non** può contenere Carte (`category: map`) né Contratti |
+Regole globali del validatore: a ogni dungeon corrisponde **un solo Biglietto** (`misc` con `dungeon`, `value` 0); `balance.json` `dungeon.direction_bands` ha 6 numeri strettamente crescenti in −1..1 con ogni fascia **più stretta di 0,25** (garanzia di direzioni diverse, F-137); `legendary.source.type` ammette **`dungeon`** con `id` di un dungeon esistente.
+Classi: `DungeonDef` (campi sopra), `DungeonRoomType`, `DungeonStageDef` (`id`, `monster: MonsterDef`, `escorts`, `intro_ms`, `title`, `quote`, `ability: BossAbilityDef`, `reward`); `GameData.dungeons()`, `GameData.dungeon(id)`, `GameData.dungeon_for_ticket(item_id)`. I mostri del dungeon sono `MonsterDef` ordinari (`GameData.monster(id)` li restituisce).
+
+**Altri dati toccati**
+- **Biglietto** (`data/items/misc.json`): `{"id": "dungeon_ticket_monkey_den", "name": "Biglietto del Covo delle Scimmie", "category": "misc", "value": 0, "dungeon": "monkey_den", …}`; campo `dungeon` facoltativo in `ItemDef` (`&""` se assente), ammesso solo per `misc`.
+- **Miniboss** (`areas.json`, §8): campo `miniboss` per area, **obbligatorio** (10 aree): `{"monster": "<id>", "escorts": 2}` con `monster` un mostro **della stessa area** marcato `"miniboss": true` (campo facoltativo dei mostri, mai in un gruppo di `packs`); un solo miniboss per area; i moltiplicatori di F-139 stanno in `balance.json` `miniboss`.
+  Il miniboss ha `drops` come gli altri più, nelle aree 4-10, la voce del Biglietto. `tools/gen_areas.gd` li genera.
+- **Tabelle** (`loot_tables.json`): `loot_dungeon_monkey_den` (nuova) e la voce del Biglietto (20%) nelle tabelle dei Monoliti delle aree 4-10; il Biglietto compare **solo** nei `drops` dei miniboss e nelle tabelle dei Monoliti (regola del validatore).
+- **Leggendari** (`equipment_legendary.json`, §5): `legendary.source` ammette `{"type": "dungeon", "id": "monkey_den", "chance_pct": 3.5}`; 6 nuovi pezzi (`leg_*_monkey`, F-143). Nessun tipo di effetto nuovo.
+- **`balance.json`**: `dungeon` `{"direction_bands": [...]}` e `miniboss` come in F-139 (`02_FORMULAS.md` §9). Nessuna stat in `stats.json`.
+- **Guida** (`data/guide/dungeon.json`, §19): pagina scritta a mano "Dungeon" (struttura, tipi di stanza, miniboss, Biglietti); tabelle generate in `GuideTables`: `dungeon_rooms` (F-138), `dungeon_stages` (F-139), `dungeon_loot` (F-143).

@@ -713,7 +713,7 @@ Dal M15 il Monolito è un incontro "a ondate" (idea ispirata alle pietre di Meti
   a una probabilità > 0 (default 0,6 come il Bosco), tarata da QA.
 - **Salto (Z7, F-128)**: impostazione nella pagina Combattimento, "Salta i Monoliti fino al livello X" (0 = disattivato). Un Monolito di livello ≤ X è scartato prima dell'incontro: non si combatte, non conta come uccisione,
   `since` si azzera e si estrae il gruppo successivo. È stato dello **slot**, non delle impostazioni (`user://settings.cfg`).
-- **Miniboss (Z8)**: rimandati, nessun lavoro in M15.
+- **Miniboss (Z8)**: rimandati in M15; fissati in M22 (§33.1, F-139): uno per area, incontro a sé tirato dopo ogni incontro normale.
 
 ## 25. Smantellamento e filtro (M7)
 
@@ -961,3 +961,67 @@ modello). Le posizioni sono scelte dal design e non le cambia il giocatore.
 
 **Layout** (1280×720, barra laterale inclusa): campo a sinistra (circa 680×500), pannello di dettaglio a destra (circa 340 px, scorre se il box è alto); nodi 150×72.
 **Icone**: quelle già in `assets/icons/ui` (campo `icon` di §24; se manca il file la UI mostra `missing`, nessun asset nuovo). Testi in `village_texts.gd`.
+
+## 33. Dungeon delle scimmie (M22; decisione V12, `M22_DUNGEON.md`; formule F-137…F-144)
+
+**Idea.** Un'istanza a **scelte**, l'unica parte del combattimento che chiede input: si entra con un **Biglietto**, si combatte in automatico (stesso motore, triangolo, tratti, abilità, cibo), e **tra una stanza e l'altra si sceglie una direzione**. Dietro le quinte il gioco
+costruisce una mappa a livelli (il giocatore non la vede, §33.2); l'ultima stanza è sempre il **boss**, preceduto da due scagnozzi (braccio destro e stratega) e da un'entrata epica. Primo dungeon: **il Covo delle Scimmie** (`monkey_den`). Idea ispirata ai dungeon
+a stanze dei giochi d'azione, solo come meccanica; nomi, testi e numeri originali. Il sistema è **generico** (`data/dungeons/`): altri dungeon sono solo dati nuovi (M23+).
+
+### 33.1 Biglietto, requisiti, miniboss
+- **Biglietto del Covo delle Scimmie** (`dungeon_ticket_monkey_den`): oggetto della categoria `misc` con il campo `dungeon` (id del dungeon, `04_DATA_SCHEMA.md` §27); impilabile nella Bank, **non vendibile**, si consuma **all'ingresso** (non si recupera).
+- **Fonti** (F-139): i **miniboss** delle aree e i **Monoliti** (tabelle di drop F-32) delle aree 4-10; mai dai mostri comuni, dalle Fratture o dallo shop (Q91). Obiettivo: un Biglietto ogni **1,5-2,5 ore** di combattimento nelle aree giuste.
+- **Requisito**: livello del personaggio 35; **consigliato 45** (aree 5-6). Nessun requisito di equipaggiamento.
+- **Miniboss (Z8, ora fissato)**: ogni area ha **un miniboss** (10, uno per area, campo `miniboss` di `areas.json`): un mostro dell'area con PV, danno e XP molto maggiori (F-139) che compare in un **incontro a sé** con due mostri dell'area di scorta. Dopo ogni incontro
+  normale si tira `miniboss.chance_pct` (1,5%): se riesce, il prossimo incontro (dopo `BETWEEN`) è quello del miniboss; non vale con un Monolito in attesa (il Monolito ha la precedenza) né dentro Fratture o dungeon. Uccisioni, XP, oro e drop come per i mostri (le uccisioni contano per F-87).
+
+### 33.2 La mappa nascosta
+- **Generata all'ingresso** da un seme (un solo numero estratto dal generatore dello slot: ricaricando si ottiene la stessa mappa) e **mai mostrata**: la UI vede solo la stanza attuale e le uscite (F-137).
+- **Struttura**: stanza d'ingresso (livello 0: un branco di scimmie), poi **5 livelli di bivio** di 2-4 stanze ciascuno, poi la **stanza del boss** (livello 6, una sola). Ogni stanza ha **2-4 uscite** verso il livello successivo (quelle del livello 5 portano
+  tutte al boss: corridoio senza scelta, quindi le **scelte vere sono 5**, una per ogni passaggio dal livello 0 al 5). Una stanza può essere raggiunta da più stanze del livello prima; non si torna indietro; non esistono vicoli ciechi.
+- **Direzioni**: le stanze di un livello hanno una posizione laterale (`x`, 0..1). Le uscite di una stanza sono le stanze del livello dopo **più vicine** alla sua posizione; la direzione mostrata dipende dallo spostamento laterale (F-137): **sinistra estrema, sinistra, leggermente a sinistra, avanti,
+  leggermente a destra, destra, destra estrema**. Chi è all'estrema sinistra non vedrà mai una "sinistra". Due uscite di una stanza hanno sempre direzioni diverse.
+- **Indizi (opzionali)**: ogni uscita ha, con probabilità `dungeon.hint_pct` (45%), un **indizio vero** sul tipo di stanza (un suono o un odore, una frase fissa per tipo, F-138); senza indizio la scelta è alla cieca. Gli indizi non mentono mai; non rivelano però il contenuto esatto.
+- **Tipi di stanza** (pesi e livello minimo in F-138): **Branco** (3-6 scimmie), **Orda** (12 scimmiette), **Guardiano** (un solo gorilla molto robusto), **Capobranco** (miniboss con due guardie), **Trappola** (evento a scelta), **Riposo** (evento a scelta). Pesi e dimensioni sono dati.
+
+### 33.3 Combattimento: tutto automatico, tranne le scelte
+- Una stanza di combattimento è un incontro come gli altri (stesso motore a eventi, triangolo, tratti, abilità, bottino): **nessuna azione del giocatore** (tratti e abilità non si cambiano, `combat_active`; il cibo e l'auto-cibo funzionano; "Mangia" resta). Uccisi tutti i nemici la stanza è
+  **superata**: nessun respawn, il gioco **si ferma e aspetta la scelta** (stato `await`, nessun timer, nessun attacco). I PV restano quelli della stanza (non si curano tra le stanze: solo il cibo, il Riposo e la Trappola li cambiano).
+- **Eventi** (Trappola, Riposo): all'ingresso la stanza non ha nemici ma **due scelte** (F-140):
+  - **Trappola** (dardi, fossa o liane: stesse regole): **"Attraversa di corsa"** toglie `trap.dash_hp_pct` (20%) dei PV massimi (mai sotto 1 PV, mai letale) e si prosegue; **"Aggira"** non costa PV, ma si combatte un'imboscata di 3 scimmie prima di proseguire.
+  - **Riposo**: **"Riposa"** cura `rest.heal_pct` (35%) dei PV massimi; **"Fruga tra i rami"** non cura, si combatte un branco di 4 scimmie e poi si trova una scorta (Polvere e a volte un Cristallo).
+  Nessun effetto di trappole o riposi dura oltre la stanza né tocca equipaggiamento, Deposito e Bank: **nessun potere permanente**.
+- Nel dungeon: nessun Monolito, nessun miniboss di area, nessun conteggio F-87. I mostri contano per le Bacheca (`monster_killed`) e per l'XP del personaggio (F-130 vale come fuori).
+- **Nessuna meccanica a fasi** oltre agli stadi del boss; le abilità di scagnozzi e boss sono quelle di F-112 (colpo pesante, evocazione, scudo).
+
+### 33.4 Il boss: entrata epica in tre atti
+La stanza finale non è un incontro solo: è una **sequenza di tre stadi**, uno dopo l'altro, senza scelte né pause di recupero (solo il cibo). Prima di ogni stadio c'è una **scena di ingresso** (`intro_ms`, F-139): nessuno attacca, la UI mostra una carta a tutto campo con
+nome, titolo e una frase del personaggio (testi nei dati). Gli stadi (`stages` del dungeon, numeri in F-139):
+1. **Gorom, il Braccio Destro**: un gorilla armato, con due **guardie**. Abilità: colpo pesante (F-112 `heavy_strike`).
+2. **Ziki, la Stratega**: una scimmia sciamana (arcana: il triangolo è dalla parte del giocatore, ma è tenace), con tre **lanciatrici**. Abilità: **evocazione** di altre lanciatrici (F-112 `summon`, mai più di quattro vive).
+3. **Uuk-Maar, il Re delle Scimmie**: il boss, **da solo** in campo, con un'entrata più lunga (il ruggito). Abilità: **scudo** a intervalli (F-112 `shield`).
+- Gli stadi 1 e 2 danno un premio minore alla morte del loro capo (F-142); il bottino principale è alla vittoria sul **Re** (F-143). Se il giocatore muore in uno stadio la run è persa (§33.5).
+- Le guardie e le lanciatrici sono mostri del dungeon con XP e oro; gli **evocati** della Stratega non danno XP, oro né drop (F-112).
+
+### 33.5 Ricompense, morte, uscita
+- **Borsa del dungeon**: tutto ciò che cade dentro (oggetti, pezzi, Carte; non l'oro e l'XP, che vanno subito al giocatore) va in una **borsa separata** (stessa classe e regole della borsa della Frattura, nessun limite di caselle); mai nella borsa del bottino normale (che resta com'era).
+- **Vittoria** sul Re: la borsa si **consegna** (F-116: oggetti nella Bank, pezzi nell'Armeria con il filtro automatico, Carte nel `CardStore`; ciò che non entra resta **in attesa** finché il giocatore non fa posto e preme "Raccogli"; finché c'è qualcosa in attesa non si entra in un altro dungeon)
+  più le ricompense garantite e i **leggendari del dungeon** (F-143).
+- **Morte**: si perdono il Biglietto (già consumato) e **tutta la borsa** (`dungeon_loot_lost`); PV al massimo; Deposito ed equipaggiamento non si toccano; oro e XP guadagnati restano (come nelle Fratture, X4).
+- **Uscita volontaria**: nei punti di scelta (bivio o evento, mai durante un combattimento) il pulsante **"Esci dal Covo"** (con conferma) chiude la run con esito `left`: la borsa si consegna, ma senza le ricompense del boss. Durante un combattimento esiste solo **"Fuggi"** (con conferma): vale come la **morte** (borsa persa).
+  Scelta di design: uscire al bivio è prudente ma costa il boss; fuggire dal combattimento è la scappatoia peggiore.
+- Dopo la fine (vittoria, morte, fuga, uscita) il combattimento torna all'**area in cui il giocatore stava combattendo** prima di entrare (se combatteva), con la sua borsa del bottino com'era; altrimenti resta fermo. L'azione del giocatore non riparte; gli **aiutanti continuano** (come nelle Fratture).
+- **Una sola istanza alla volta**: non si entra se una Frattura o un altro dungeon è in corso o c'è un bottino in attesa (`dungeon_active`, `fracture_active`, `dungeon_bag_pending`); non si apre una Frattura durante un dungeon (`dungeon_active`).
+
+### 33.6 Salvataggio e offline
+- **Stato per slot** (`dungeon`, `05_INTERFACES.md` §5.29 e §6; **additivo**: nessuna migrazione, `format_version` 7 invariata): dungeon, seme, stanza attuale (livello, indice), fase (`fight`, `await`, `event`, `intro`), stadio del boss, percorso fatto, borsa, area di ritorno, contatore di vittorie.
+  La mappa non si salva: si rigenera dal seme (test). Nemici e timer li salva il combattimento, come per le Fratture.
+- **Caricamento**: la run riprende **in pausa** (F-144, regola 1): i timer non scorrono finché il giocatore non preme **"Riprendi"** (evita di morire mentre non si guarda lo schermo).
+- **Offline: la run si congela.** Il simulatore offline non avanza né il combattimento né la run (nessun progresso, nessuna morte, nessuna scelta automatica); gli aiutanti e il resto continuano come sempre; il riepilogo "Mentre eri via…" dice solo "Il Covo delle Scimmie ti aspetta".
+  Motivo: la run è attiva per definizione (richiede input) e il bottino non deve sparire senza che il giocatore sia presente. Aperta: Q93.
+
+### 33.7 UI
+- Pagina **Dungeon** (sidebar, voce "Dungeon" dopo "Fratture"), tre stati della stessa pagina. **Ingresso** (nessuna run): il dungeon, il livello consigliato, i Biglietti posseduti, pulsante **Entra** (rifiuti con il motivo), il bottino in attesa ("Raccogli"), l'esito dell'ultima run (solo testo, in memoria).
+  **Scelta** (fase `await` o `event`): titolo della stanza superata, avanzamento ("Stanza 3 di 7"; il boss è "?"), i **pulsanti delle direzioni** (testo della direzione e, se c'è, l'indizio; sono 2-4), per un evento i due pulsanti dell'evento, "Esci dal Covo", la borsa del dungeon. **Stanza in combattimento**: gli stessi
+  componenti della pagina Combattimento (carta del giocatore, nemici, numeri dei colpi, registro), il nome della stanza, "Fuggi", "Mangia" e, per il boss, la **scena di ingresso**. Se la run è in pausa: un solo pulsante **"Riprendi"**.
+- La UI non tiene stato di gioco e non conosce la mappa: legge `DungeonSystem.state()` e invia i comandi. Notifica a vittoria, morte, fuga e uscita. **Guida**: pagina "Dungeon" (§27) con struttura, tipi di stanza e fonti dei Biglietti; bottino del boss e leggendari nella Guida a scoperta (§27.1).
