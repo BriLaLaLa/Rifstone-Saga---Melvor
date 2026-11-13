@@ -1,7 +1,7 @@
 extends GutTest
 ## M14-05: the visible names of the Alpha in the real data against docs/NOMI.md (section "Alpha"): the 15 grades of weapons,
 ## rings and amulets, the armour by material and epithet, the Masterworks and their blueprints, the 39 legendaries with
-## their sources, the affix "Schermato"; no name of another game; no duplicate name among the pieces.
+## their sources, the affix "Barriera"; no name of another game; no duplicate name among the pieces.
 
 const EPITHETS: Array[String] = ["del Novizio", "del Garzone", "del Fante", "del Mercenario", "del Soldato", "del Veterano",
 	"del Capitano", "del Campione", "del Cavaliere", "del Condottiero", "della Brace Antica", "dell'Alba Spezzata",
@@ -134,5 +134,5 @@ func test_the_new_affix_is_called_schermato() -> void:
 	var names: Dictionary = {}
 	for a: Dictionary in affixes["affixes"]:
 		names[a["id"]] = a["name"]
-	assert_eq(names["runeward"], "Schermato")
-	assert_eq(names["warded"], "Protetto")
+	assert_eq(names["runeward"], "Barriera")
+	assert_eq(names["warded"], "Armatura")
