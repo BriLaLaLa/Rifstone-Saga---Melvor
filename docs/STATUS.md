@@ -376,3 +376,6 @@ M9 (Offline e polish) completata, tag `m9-mvp` e `m9-done`: **l'MVP è rilasciat
 
 
 M15 (Monoliti da Metin, pezzi nel Bottino, combattimento affollato) completata, tag `m15-done`: Monoliti di un tipo ogni 5 livelli con pool per area, PV da F-125, impulso fisso, ondate di evocati a 100/75/50/25 %, pezzo garantito (F-127) e salto (F-128); i pezzi cadono nel Bottino (`LootBag`, save v6) e passano al Deposito con `collect_all`/`collect_pieces` (offline a ogni blocco); vista compatta con 30+ nemici; Q78 e Q82 chiuse, ore al 99 ≈ 369. Prossimo: M16+, miniboss rimandati.
+
+## M16 completata (tag m16-done)
+M16-01…07 DONE: R-07 nei documenti; `BlueprintCraft.consume` fuori dall'assert (nelle build di rilascio il progetto non veniva tolto); mostri morti nascosti con i Monoliti; livello item e mostro; "Bonus" di maestria e prodotti posseduti; pallino del lavoro in corso; sezione Pezzi nel Deposito; nomi degli affissi (V8). M16-08 (QA) assorbito da `run_checks.ps1` verde. Non verificato a schermo: popup Bonus, pallino, badge "Liv N". Segnalazioni non riprodotte (potenziamento senza effetto, corazza assente): se persistono nella build nuova, servono i passi esatti. Prossimo: M17 (combattimento), parte da M17-01 e M17-02 in docs/M16_M18.md.
