@@ -1266,7 +1266,7 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | `mastery.step.{every_levels, gathering, crafting}` (M14, Y8, Q70) | 10, `[{"stat":"skill_interval_pct","value":-2},{"stat":"double_item_chance","value":1}]`, `[{"stat":"preservation_chance","value":2},{"stat":"skill_interval_pct","value":-2}]` | F-122 |
 | `fracture.{risk_cap, risk_unit}` (M14, Q72) | `{"base":40,"per_grade":10}`, `{"pack_bonus":20,"pulse":5}` | F-123 |
 | `metin.{hp_base, hp_per_level, pulse_damage, wave_size, wave_thresholds, rarity_bonus_pct, guaranteed_pieces}` (M15, Z3-Z4) | 200, 0,25, 1, 7, `[75, 50, 25]`, 100, 1 | F-125…F-127 (Q78) |
-| `village.{max_level, woodwright_levels, gold_base, gold_growth, qty.{wood,plate,food}.{base,per_level}}` (M19, V7) | 8, `[1,10,20,30,45,60,75,90]`, 300, 1,4, `{20,20}` `{4,4}` `{10,6}` | F-131 (obbligatorie; i pesi per edificio stanno in `data/village/buildings.json`) |
+| `village.{max_level, woodwright_levels, gold_base, gold_growth, qty.{wood,plate,food}.{base,per_level}}` (M19, V7) | 8, `[1,10,20,30,45,60,75,90]`, 300, 1,4, `{20,20}` `{4,4}` `{10,6}` | F-131 (obbligatorie; i pesi per edificio stanno in `data/village/buildings.json`; validato da `DataValidatorVillage`, escluso da `test_config_files`) |
 | `combat.crowd_threshold` (M15, Z6) | 8 | `01_GDD.md` §10.13 (solo UI) |
 | `combat.skip_stone_level` (M15, Z7) | 0 | F-128: **valore iniziale** del nuovo slot; il valore in uso è stato dello slot |
 | `rift_stone_chance_pct` Pianure (M15, Z5) | 0 → 0,6 (dati dell'area) | F-87 (Q82) |

@@ -67,3 +67,22 @@ func test_unbind_disconnects_events() -> void:
 
 func _button(id: StringName) -> Button:
 	return _page.find_child("Box_%s" % id, true, false).find_child("UpgradeButton", true, false) as Button
+
+
+func test_bind_with_the_real_session_village() -> void:
+	var real: GameSession = TestFactory.session_no_kit(7, TestFactory.real_data())
+	add_child_autofree(real)
+	var page: VillagePage = SCENE.instantiate()
+	add_child_autofree(page)
+	page.bind(real)
+	for id: StringName in real.village.buildings():
+		assert_not_null(page.find_child("Box_%s" % id, true, false), "box %s" % id)
+	real.wallet.add_gold(300)
+	TestFactory.give(real, &"redbirch_shieldcore", 20)
+	TestFactory.give(real, &"emberbronze_plate", 4)
+	var button: Button = page.find_child("Box_storehouse", true, false).find_child("UpgradeButton", true, false) as Button
+	assert_false(button.disabled)
+	button.pressed.emit()
+	assert_eq(real.village.level(&"storehouse"), 1)
+	assert_eq(real.deposit.capacity(), 64)
+	page.unbind()
