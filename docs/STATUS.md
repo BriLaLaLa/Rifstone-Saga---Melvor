@@ -383,3 +383,6 @@ M15 (Monoliti da Metin, pezzi nel Bottino, combattimento affollato) completata, 
 
 ## M16 completata (tag m16-done)
 M16-01…07 DONE: R-07 nei documenti; `BlueprintCraft.consume` fuori dall'assert (nelle build di rilascio il progetto non veniva tolto); mostri morti nascosti con i Monoliti; livello item e mostro; "Bonus" di maestria e prodotti posseduti; pallino del lavoro in corso; sezione Pezzi nel Deposito; nomi degli affissi (V8). M16-08 (QA) assorbito da `run_checks.ps1` verde. Non verificato a schermo: popup Bonus, pallino, badge "Liv N". Segnalazioni non riprodotte (potenziamento senza effetto, corazza assente): se persistono nella build nuova, servono i passi esatti. Prossimo: M17 (combattimento), parte da M17-01 e M17-02 in docs/M16_M18.md.
+
+## Decisione pendente da applicare dopo M17-03 (Q85, utente: sì)
+`loot.equipment.chance_pct` 2.9 → 4.0 e `loot.blueprint.chance_pct` 0.4 → 0.5 (`balance.json`, riga F-121/§9 di `02_FORMULAS.md`). Test da aggiornare (visti rossi in prova): `tests/data` (2 asserzioni sui valori), `tests/systems/combat` ("about chance_pct of 4000", limite 160 → ricalcolare), `tests/integration` (equipment conservation, 83 contro 80), `tests/balance` (ore per leggendario di grado 10, ore al 99, kill/h Miniere e Soglia). Applicare dopo il merge di M17-03 (che ritara anche XP e balance), poi ritarare una volta sola.
