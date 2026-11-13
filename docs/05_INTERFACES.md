@@ -92,7 +92,7 @@ const NOT_PAUSED := &"not_paused"                       # M22: resume su una run
 const DUNGEON_WON := &"dungeon_won"                     # M22: motivo di stop a dungeon vinto senza area di ritorno
 const DUNGEON_FLED := &"dungeon_fled"                   # M22: idem, per la fuga
 ```
-Le costanti nuove le aggiunge il primo task che le usa (M4-01 per quelle di M4), con il test di `reasons.gd`. A fine M12 la lista chiusa conta **50** costanti; M13 ne aggiunge 5 (**55**); M22 ne aggiunge 10 (`dungeon_*`, `no_dungeon`, `not_awaiting`, `not_fighting`, `invalid_choice`, `not_paused`: **65**).
+Le costanti nuove le aggiunge il primo task che le usa (M4-01 per quelle di M4), con il test di `reasons.gd`. A fine M12 la lista chiusa conta **50** costanti; M13 ne aggiunge 5 (**55**); M22 ne aggiunge 9 (`dungeon_*`, `no_dungeon`, `not_awaiting`, `not_fighting`, `not_paused`; `invalid_choice` esisteva già): la lista chiusa conta **67** costanti.
 
 ## 2. Autoload
 
@@ -1838,7 +1838,7 @@ static func direction_of(dx: float, data: GameData) -> StringName       # F-137 
 
 class_name DungeonGenerator extends RefCounted   # systems/dungeon/dungeon_generator.gd — logica pura
 static func generate(def: DungeonDef, seed_value: int, data: GameData) -> DungeonMap    # F-137: RngService.new(seed_value) locale; stesso seme = stessa mappa
-static func compose(def: DungeonDef, kind: StringName, rng: RngService) -> Array[StringName]   # F-138: id dei mostri della stanza (tirata con il generatore dello slot all'ingresso nella stanza)
+static func compose(def: DungeonDef, kind: StringName, rng: RngService) -> Array[StringName]   # F-138: id dei mostri della stanza (accetta anche entrance/ambush/forage; lista vuota per trap/rest/boss, M22-04) (tirata con il generatore dello slot all'ingresso nella stanza)
 
 class_name DungeonRun extends RefCounted      # systems/dungeon/dungeon_run.gd — stato di una run (dati puri, nessun segnale)
 const PHASE_FIGHT := &"fight"; const PHASE_EVENT := &"event"; const PHASE_AWAIT := &"await"; const PHASE_INTRO := &"intro"

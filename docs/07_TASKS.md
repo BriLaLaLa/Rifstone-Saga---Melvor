@@ -2014,7 +2014,8 @@ Max 2 agenti insieme. **Ordine**: M22-02 → (**M22-03 ∥ M22-04**) → (**M22-
   `res://data/combat/loot_tables.json` (`loot_dungeon_monkey_den`, voce del Biglietto nei Monoliti delle aree 4-10), `res://data/config/balance.json` (`dungeon.direction_bands`, `miniboss`), `res://docs/NOMI.md` (mostri del dungeon, 10 miniboss, 6 leggendari, Biglietto), `res://core/data/data_validator_dungeon.gd` (solo `STRICT_REAL_DATA = true`), `res://assets/icons/**` (icone nuove o `missing` come ripiego), `res://tests/data/test_dungeon_data.gd` (casi sui dati veri), `res://tests/data/test_legendaries.gd` (fonte `dungeon`).
 - **Accettazione**: i dati rispettano F-139 (tabella di ruoli, stadi, abilità), F-142 (premi), F-143 (boss e sei leggendari, `chance_pct` 3,5); i 10 miniboss hanno nome proprio per area (originali: nessun nome da Melvor o da altri giochi), livello e `drops` coerenti (voce del Biglietto solo nelle aree 4-10, `chance_pct` 25; Monoliti 20); i `levels`/statistiche dei mostri sono **generati** (rigenerando i file si ottengono gli stessi byte); testi e frasi dei tre stadi in italiano, con la frase d'ingresso del Re ("il ruggito");
   nessun numero di design nel codice.
-- **Fuori ownership**: `core/**`, `systems/**`, `ui/**`, `data/guide/**` (M22-06).
+- **Nota (M22-02)**: `balance.json` ha già `dungeon.direction_bands` e `miniboss` (anche nella fixture m10): M22-03 non li ridefinisce, li verifica soltanto. `DataValidatorLootTables.CATEGORIES` non ha `misc`: M22-03 deve ammetterlo per il Biglietto nelle tabelle dei Monoliti, poi impostare `STRICT_REAL_DATA = true`.
+- **Fuori ownership**: `core/**` (salvo quanto sopra), `systems/**`, `ui/**`, `data/guide/**` (M22-06).
 
 ### M22-04 — dettaglio
 - **Leggere**: `01_GDD.md` §33.3, §33.5, §33.6, `02_FORMULAS.md` F-140…F-143, `05_INTERFACES.md` §5.29 (`DungeonRun`…`DungeonSystem`), §5.23 (`FractureBag`, `FractureSystem.open`, consegna F-116), §5.13 (offline), §6.
