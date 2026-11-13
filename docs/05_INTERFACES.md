@@ -453,6 +453,7 @@ class_name MasteryNodeDef
 class_name AreaDef    ; var id: StringName; var name: String; var description: String; var order: int
                         var requirements: Dictionary[StringName, int]; var packs: Array[PackDef]   # M4-01 (packs)
                         var monster_ids: Array[StringName]   # distinti, ricavati dai gruppi
+                        var level_min: int; var level_max: int; var map_pos: Vector2   # M17-04: livelli coperti (F-130, §8.5) e posizione 0..1 sulla mappa (M17-05)
 class_name PackDef    ; var weight: int; var monster_ids: Array[StringName]   # M4-01 (ripetibili, ordine = posizioni)
 class_name MonsterDef
   var id: StringName; var name: String; var description: String; var icon: String
@@ -925,6 +926,9 @@ static func evasion_rating(level: int, bonus: float, pct: float, data: GameData)
 static func max_hit(level: int, bonus: float, pct: float, data: GameData) -> int             # F-22
 static func min_hit(max_hit: int, data: GameData) -> int                                     # F-22
 static func hit_chance(accuracy: int, evasion: int, data: GameData) -> float                 # F-23
+static func hit_pct(accuracy: int, evasion: int, data: GameData) -> int                     # F-129 (M17-03): floor(100 x hit + 0,5)
+static func xp_level_mult(diff: int, data: GameData) -> float                                # F-130 (diff = livello mostro - livello personaggio)
+static func monster_xp(level: int, data: GameData) -> int                                    # F-130: round(base x growth^(level-1))
 static func triangle(attacker_style: StringName, defender_style: StringName, data: GameData) -> StringName   # &"advantage"/&"neutral"/&"disadvantage"
 static func triangle_damage(damage: int, relation: StringName, data: GameData) -> int        # F-24
 static func effective_dr(defender_dr: float, relation: StringName, data: GameData) -> float  # F-25 (relation dell'attaccante)
@@ -980,7 +984,7 @@ func state() -> StringName
 func area_id() -> StringName
 func get_state() -> Dictionary
     # copia per la UI: {"state", "area", "player_hp", "player_max_hp", "player_timer_ms", "player_interval_ms",
-    #  "hand", "between_ms", "enemies": [{"monster", "hp", "max_hp", "timer_ms", "interval_ms"}], "target": int,
+    #  "hand", "between_ms", "enemies": [{"monster", "hp", "max_hp", "timer_ms", "interval_ms", "hit_pct", "enemy_hit_pct"}], "target": int,
     #  "abilities": [{"id", "timer_ms", "cooldown_ms", "enabled"}] (M6), "buffs": {id: ms} (M6)}
 func rebuild_modifiers() -> void           # M6-03: rimette le sorgenti `ability:<id>` dei buff attivi dopo un load (la sessione le azzera prima)
 func eat() -> CommandResult                 # no_food, not_running
@@ -1057,7 +1061,7 @@ Comportamento (M5-03):
   sono rimossi (M6-02: `GameData.has_area`/`has_monster`, §4).
 - File di M6-02 (interni al modulo): `CombatSave` (`combat_save.gd`: `write(snapshot)`/`read(d, data)` statici del formato
   di §6; un motore `idle` scrive `player_hp`, `player_timer_ms`, `hand`, `between_ms` a 0, `area` `""`, `enemies` `[]`,
-  `effects` `{}`, così save -> load -> save è identico); `KillRewards` (`kill_rewards.gd`, `grant(session, loot, def, area_id = &"")`:
+  `effects` `{}`, così save -> load -> save è identico); `KillRewards` (`kill_rewards.gd`, `grant(session, loot, def, area_id = &"")`, `grant_summoned(session, loot, def, area_id = &"")` (M17-06: nessuna XP, oro, frammento né pezzo del pool; solo drop e tabelle con la chance × `combat.summon_drop_pct`/100) e il parametro `chance_mult: float = 1.0` di `roll_drops`/`roll_tables`:
   xp, oro, drop propri, tabelle dell'area (se `area_id` non vuoto) e del mostro, frammento; statici anche `base_xp`, `roll_drops`, `roll_tables`, `roll_piece`, `monster_ilvl`); `EffectSet` (`effects/effect_set.gd`: effetti dei tratti di `Loadout.active_traits()`,
   dispatch degli agganci, emette `trait_triggered`) e `TraitEffect` con un file per tipo di F-81. Per M6-03: i colpi
   delle abilità passano da `EffectSet.hit(ctx, damage)` (altrimenti `leech_pct` non cura).
@@ -1144,7 +1148,7 @@ static func ui_scale(window: Window) -> float  # ui_scale = 0.0 -> automatica da
 static func apply_volume() -> void             # bus Master
 static func apply_log_level() -> void          # Log.level
 static func apply_ui_scale(window: Window) -> void
-# chiavi: window_mode, window_size, ui_scale, vsync, fps_limit, volume, log_level
+# chiavi: window_mode, window_size, ui_scale, vsync, fps_limit, volume, log_level, reduced_fx (`KEY_REDUCED_FX`, bool, default false: M17-07 spegne scosse, pulsazioni e animazioni della pagina di combattimento)
 ```
 
 ### 5.15 Hint (M9) (le Fratture di M13 sono in 5.23)
@@ -1726,7 +1730,11 @@ func to_save() -> Dictionary           # {"stacks": [{"item", "qty"}], "pieces":
 
 ## 6. Formato del salvataggio (`user://saves/slot_<n>.json`)
 
-Versione **6 da M15** (v5 da M14, migrata; vedi sotto); v5 da M14 (v4 da M12, v3 da M10, v2 da M4-03, D3). Un save v1, v2, v3 o **v4 non si carica** (`version_unsupported`, nessuna migrazione: nessun giocatore reale ancora; M14 cambia il significato di `damage_reduction`, le basi dei pezzi e aggiunge `discoveries`). `SaveMigrator.CURRENT_VERSION` = 5.
+Versione **7 da M17** (v6 da M15 e v5 da M14 si migrano; vedi sotto); v5 da M14 (v4 da M12, v3 da M10, v2 da M4-03, D3). Un save v1, v2, v3 o **v4 non si carica** (`version_unsupported`, nessuna migrazione: nessun giocatore reale ancora; M14 cambia il significato di `damage_reduction`, le basi dei pezzi e aggiunge `discoveries`). `SaveMigrator.CURRENT_VERSION` = 5.
+**Save v7 e migrazione v6 → v7 (M17-04, `core/save/migrations/migration_6_to_7.gd`)**: `SaveMigrator.CURRENT_VERSION` = 7; v5 e v6 si migrano in catena, v1-v4 restano `version_unsupported`. Le 10 aree strette sostituiscono le 4 larghe (`02_FORMULAS.md` §8.5). Nessuna chiave nuova, cambiano i valori in `modules`:
+- `combat.area` e `fractures.run.return_area`: se non nomina più un'area esistente diventa **l'area che contiene il livello del personaggio** (la più alta il cui `level_min` non supera il livello; livello 1 se manca l'XP); un'area ancora esistente resta.
+- Incontro in corso (`encounter`, `riftstone`, `between`): riparte come `between` con `enemies = []` ed `effects = {}` (i mostri vecchi hanno altre statistiche); `wave` rimosso; il Monolito in attesa è annullato e il contatore riparte (`stone` = `{since: 0, pending: false, stone_id: ""}`). Bottino, uccisioni, morti, cibo e stato delle Fratture restano.
+
 **Save v6 e migrazione v5 → v6 (M15, `core/save/migrations/migration_5_to_6.gd`)**: `SaveMigrator.CURRENT_VERSION` = 6; v5 si migra, v1-v4 restano `version_unsupported`. Chiavi nuove o cambiate, tutte in `modules.combat`:
 - `loot`: da Array `[{"item","qty"}]` a `{"stacks": [...], "pieces": [ItemInstance.to_dict()]}` (pezzi in attesa nel Bottino, Z1). Migrazione: `stacks` = il vecchio array, `pieces` = `[]`.
 - `skip_stone_level`: int (Z7); migrazione: 0.
@@ -1736,7 +1744,7 @@ Versione **6 da M15** (v5 da M14, migrata; vedi sotto); v5 da M14 (v4 da M12, v3
 `from_save` tollerante: `stone_id` sconosciuto → `pending = false` con `Log.warn`; `skip_stone_level` non intero o fuori 0..99 → 0; `wave.fired` malformato → vuoto. Nessun altro modulo cambia.
 ```json
 {
-  "format_version": 6,
+  "format_version": 7,
   "game_version": "0.2.0",
   "slot": 2,
   "player_name": "Davide",

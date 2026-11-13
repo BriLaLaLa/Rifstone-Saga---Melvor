@@ -247,7 +247,7 @@ B1: livello 99 in **319,6 ore** (obiettivo 250-350; prima della taratura 175), 1
 
 ## M17: Combattimento (precisione, XP, aree strette, mappa)
 **Contenuto**: formula di precisione (F-129) e XP per differenza di livello (F-130) fissate da M17-01; misura del drop equip (V5); aree strette con gruppi 1-8 e Monoliti per area; mappa cliccabile e % di colpire; drop ridotto agli evocati; più peso visivo al combattimento.
-**Task** M17-01…M17-08 (`07_TASKS.md`); tag `m17-done`.
+**Task** M17-01…M17-08 (`07_TASKS.md`), tutti DONE; **M17 completata**, tag `m17-done`. Prossimo: M18.
 
 ## M18: Incisore e Fabbro (Falegname rimandato, V7)
 **Contenuto**: ricette di basso livello dell'Incisore e XP da disincantare/fondere; riordino della sottoscheda del Fabbro.

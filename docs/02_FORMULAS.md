@@ -219,8 +219,9 @@ Ogni nemico ucciso dà al personaggio `base_xp = floor(xp del mostro × combat.k
 suo `xp` con la stessa regola. Valori: tabella §8.5 (`xp = 4 × PV`, tranne le Miniere Crepate a 3,2 × PV, tarate da B1);
 **B1 (M10-07, ritarato in M14-10)**: `combat.kill_xp_mult` = **0,05** (M17-03b; era 0,064 in M14-10 e 0,11; dopo i nuovi mostri e le armi con forbice), tarato con `tools/sim_combat.gd` e `tools/sim_progress.gd`: livello 99 in circa
 320 h (319,6) nell'area giusta (la più alta consentita dal livello; offline compreso, stesso motore) e una notte offline (12 h) dal 50
+**B1 dopo M17-04 (aree strette, `monster_xp.growth` 1,051): il livello 99 si raggiunge in circa 295 ore** (banda 250-380 h).
 **M15 (Monoliti da Metin, M15-08)**: con i Monoliti (1-2/h per area, bottino e XP) il livello 99 si raggiunge in circa **369 ore**; banda del test di bilanciamento **250-380 ore**.
-dà al massimo +12 livelli (Q54). Con 1,0 si ottiene la regola dell'MVP. **M17-03b**: con F-130 (e `xp` dei mostri da `monster_xp`, 1,065) il livello 99 sta in circa 290 h (sim_progress, Monoliti compresi), una notte dal 50 dà +6 livelli e il livello 1 → 2 richiede 18 uccisioni; valori correnti in F-130.
+dà al massimo +12 livelli (Q54). Con 1,0 si ottiene la regola dell'MVP. **M17-03b**: con F-130 (e `xp` dei mostri da `monster_xp`, 1,065 poi 1,051) il livello 99 stava in circa 290 h (M17-03b; dal M17-04, con `growth` 1,051 e le aree strette, in circa **295 h**), una notte dal 50 dà +6 livelli e il livello 1 → 2 richiede 18 uccisioni; valori correnti in F-130.
 **M17 (V2)**: il valore ottenuto si moltiplica per `xp_level_mult(d)` di F-130 (livello mostro − livello personaggio) con un solo arrotondamento, e il campo `xp` dei mostri deriva da F-130 (non più 4 × PV).
 Esempi (mult 0,05, `d = 0`, M17-03b): `plains_boar` (xp 80) → base 4; +25% → 5; gruppo di 3 `plains_boar` → 12; `redrock_raider` (xp 124) → 6;
 Pietra con xp 240 → 12. Con mult 1,0: 80, 100, 240. Test: `tests/systems/combat/test_combat_engine.gd::test_kill_grants_character_xp`.
@@ -251,7 +252,7 @@ Test: `test_combat_engine.gd`.
 
 ### F-34 Incontro di riferimento (test di integrazione)
 Giocatore: personaggio livello 1, a mani nude, nessun tratto e nessuna abilità (AR 450, max 11, 2400 ms, 60 PV). Area
-di prova con un solo gruppo di un solo `plains_boar` (tabella §8.5: L 1, 20 PV, 0 bonus, 2800 ms, max 11). Probabilità
+di prova con un solo gruppo di un solo `plains_boar` (tabella §8.5: L 1, 20 PV, 0 bonus, 6700 ms dal M17-04b, max 11). Probabilità
 di colpire per entrambi 0,5. Danno medio per attacco del giocatore 3 → in 1.000 incontri simulati (seme fisso, senza
 attesa tra gli incontri) il tempo medio per uccisione deve stare tra **15 e 21 s** (simulazione di controllo in fase di
 design: 18,0 s). Test: `tests/integration/test_reference_encounter.gd`.
@@ -713,10 +714,10 @@ Moltiplicatore `xp_level_mult(d)` (parametri `combat.xp_level` in `balance.json`
 - `d ≥ 0` → `min(1 + d × up_per_level, up_cap)` (sale di 5% per livello, tetto +50% a `d = +10`).
 Si compone con F-28 con un solo arrotondamento: `base_xp = floor(xp × combat.kill_xp_mult × xp_level_mult(d) + 1e-9)`, poi F-71 (`skill_xp_pct` global) come oggi. Evocati: nessuna XP (Z3, invariato).
 Dentro la Frattura il moltiplicatore **non si applica** (vale 1, i mostri sono scalati da F-110/F-111).
-**XP base per livello del mostro**: `xp(L_m) = round(combat.monster_xp.base × combat.monster_xp.growth^(L_m − 1))` con `base = 80`, `growth = 1,065` (M17-03b; era 1,085). Il campo `xp` di ogni mostro in `monsters.json` si **genera** con questa formula
-(script `tools/gen_monster_xp.gd`), non si scrive a mano; sostituisce la regola "xp = 4 × PV" di §8.5. Tabella: L1 → 80; L2 → 85; L10 → 141; L20 → 265; L30 → 497; L50 → 1.751; L75 → 8.452; L99 → 38.313.
-Con `kill_xp_mult = 0,05` (M17-03b; ritarato con `sim_combat`/`sim_progress`, che applicano F-130: livello 99 in circa 290 h con i Monoliti, banda 250-380 h di F-28; **M17-04 deve ricontrollare** con le aree strette) un'uccisione a `d = 0` dà: L1 → 4; L10 → 7; L50 → 87; L99 → 1.915, cioè circa 18, 34, 90 e 379 uccisioni
-per salire un livello (F-71; il livello 2 richiede 70 XP: 18 uccisioni del cinghiale).
+**XP base per livello del mostro**: `xp(L_m) = round(combat.monster_xp.base × combat.monster_xp.growth^(L_m − 1))` con `base = 80`, `growth = 1,051` (M17-04; era 1,065 in M17-03b e 1,085 in M17-01). Il campo `xp` di ogni mostro in `monsters.json` si **genera** con questa formula
+(script `tools/gen_monster_xp.gd`), non si scrive a mano; sostituisce la regola "xp = 4 × PV" di §8.5. Tabella: L1 → 80; L10 → 125; L20 → 206; L30 → 339; L50 → 915; L75 → 3.175; L99 → 10.475 (da `growth` 1,051).
+Con `kill_xp_mult = 0,05` (M17-04, `growth` 1,051; ritarato con `sim_combat`/`sim_progress`, che applicano F-130: livello 99 in circa 295 h con i Monoliti, banda 250-380 h di F-28) un'uccisione a `d = 0` dà: L1 → 4; L10 → 6; L50 → 45; L99 → 523.
+Il livello 2 richiede 70 XP (F-71): 18 uccisioni del cinghiale.
 Esempi (= test), `xp` 1.000 e `kill_xp_mult` 0,05 (50 a `d = 0`): `d = 0` → **50**; `d = +5` (1,25) → **62**; `d = +10` → 1,5 → **75**; `d = +20` (tetto) → **75**; `d = −1` (0,8889) → **44**; `d = −3` (0,6667) → **33**;
 `d = −8` (0,1111) → **5**; `d = −9` → **0**; `d = −15` → **0**. Con pct +25 di `skill_xp_pct`: `d = +5` → floor(62 × 1,25) = **77**.
 Test (M17-03): `tests/systems/combat/test_combat_engine.gd::test_kill_xp_level_diff` e `tests/systems/combat/test_combat_math.gd::test_xp_level_mult`, `test_monster_xp_by_level`.
@@ -766,21 +767,21 @@ Per il grado `g` (1-10) la riga `fracture.grades[g]`:
 - **`ilvl`** dei pezzi caduti: come F-85, ma sui livelli **scalati** del mostro (quindi cresce con il grado, fino a 99).
 - `piece_grade` = grado della base del pezzo garantito dal boss (F-115); `recommended_level` = livello del personaggio consigliato (solo informazione per la UI, nessun blocco).
 
-Esempio: `crack_golem` (L 38, 320 PV) al grado 3 → livelli 46, PV 320 × 1,30 = 416, danno ×1,16; `vein_witch` (L 55) al grado 3 → livello 63; `shard_wraith` (L 65) al grado 4 → livello 65 e PV invariati.
+Esempio (M17-04): `peat_titan` (L 50, 344 PV) al grado 2 → livelli 54, PV 344 × 4,0 = 1.376, danno ×1,08; `marsh_leech` (L 41) al grado 2 → livello 45; `riftborn_colossus` (L 99) al grado 9 → livello 99 (tetto). Le Fratture non usano più `cracked_mines` e le vecchie aree: i gradi puntano alle aree strette di livello simile (M17-04), con PV e ricompense ritarati.
 Tabella di partenza:
 
 | g | aree | `level_bonus` | `hp_mult` | `damage_mult` | `reward_mult` | `piece_grade` | `recommended_level` |
 |---|---|---|---|---|---|---|---|
-| 1 | cracked_mines | 0 | 1,00 | 1,00 | 1,0 | 5 | 45 |
-| 2 | cracked_mines | 4 | 1,15 | 1,08 | 1,2 | 5 | 50 |
-| 3 | cracked_mines | 8 | 1,30 | 1,16 | 1,4 | 6 | 56 |
-| 4 | rift_threshold | 0 | 1,00 | 1,00 | 1,6 | 6 | 70 |
-| 5 | rift_threshold | 3 | 1,15 | 1,08 | 1,8 | 7 | 76 |
-| 6 | rift_threshold | 6 | 1,30 | 1,16 | 2,0 | 7 | 82 |
-| 7 | rift_threshold | 7 | 1,50 | 1,25 | 2,3 | 8 | 88 |
-| 8 | rift_threshold | 7 | 1,75 | 1,35 | 2,6 | 8 | 94 |
-| 9 | rift_threshold | 7 | 2,05 | 1,50 | 3,0 | 8 | 99 |
-| 10 | rift_threshold | 7 | 2,40 | 1,70 | 3,5 | 8 | 99 |
+| 1 | ash_marsh | 0 | 3,10 | 1,00 | 4,8 | 5 | 45 |
+| 2 | ash_marsh | 4 | 4,00 | 1,08 | 6,4 | 5 | 50 |
+| 3 | weeping_gorge | 0 | 2,95 | 1,16 | 7,7 | 6 | 56 |
+| 4 | rift_threshold | 0 | 3,55 | 1,00 | 5,8 | 6 | 70 |
+| 5 | black_glass_desert | 0 | 2,40 | 1,08 | 7,2 | 7 | 76 |
+| 6 | black_glass_desert | 6 | 2,40 | 1,16 | 8,8 | 7 | 82 |
+| 7 | sunken_citadel | 2 | 3,05 | 1,25 | 11 | 8 | 88 |
+| 8 | sunken_citadel | 8 | 3,45 | 1,35 | 14,6 | 8 | 94 |
+| 9 | rift_heart | 4 | 2,45 | 1,35 | 17 | 8 | 99 |
+| 10 | rift_heart | 4 | 2,95 | 1,35 | 22,5 | 8 | 99 |
 
 Test: `tests/systems/fractures/test_fracture_scaler.gd`.
 
@@ -950,7 +951,7 @@ Un **Capolavoro** (F-119) e un **leggendario** (F-120) sono basi proprie con gli
 ### 8.5 Mostri
 | Area | Id | L (att = pot = dif) | PV | Stile | Interv. ms | acc / pot / eva | DR | Oro | Frammento % | XP |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Pianure di Roccarossa | `plains_boar` | 1 | 20 | blade | 2800 | 0 / 0 / 0 | 0 | 1-4 | 0,5 | 80 |
+| Pianure di Roccarossa | `plains_boar` | 1 | 20 | blade | 6700 | 0 / 0 / 0 | 0 | 1-4 | 0,5 | 80 |
 | | `ember_rat` | 4 | 32 | arcana | 2400 | 5 / 4 / 5 | 0 | 2-6 | 0,5 | 128 |
 | | `redrock_raider` | 8 | 50 | marksmanship | 2600 | 10 / 8 / 8 | 2 | 4-10 | 0,75 | 200 |
 | Bosco dei Sussurri | `whisper_wolf` | 16 | 81 | blade | 2600 | 20 / 15 / 18 | 4 | 6-13 | 1,0 | 324 |
@@ -974,7 +975,7 @@ mostro (il più debole). Esempio (Pianure): `[plains_boar]` peso 4, `[plains_boa
 confermano con `tools/sim_combat.gd` (M5): un personaggio con il set forgiato del grado dell'area e il cibo del grado
 deve avere 0 morti in 1 ora simulata nel gruppo più facile e tenere almeno 60 uccisioni/ora nell'area.
 
-**Aree strette e gruppi 1-8 (M17-01, V3-V4; sostituiscono le 4 aree e la dimensione massima per area qui sopra, quando arriva M17-04)**: 10 aree contigue che coprono i livelli 1-99, ordinate per `order`:
+**Aree strette e gruppi 1-8 (M17-01, V3-V4; sostituiscono le 4 aree e la dimensione massima per area qui sopra; applicate in M17-04)**: 10 aree contigue che coprono i livelli 1-99, ordinate per `order`:
 | # | Livelli (`level_min`-`level_max`) | # | Livelli |
 |---|---|---|---|
 | 1 | 1-10 | 6 | 51-60 |
@@ -987,6 +988,20 @@ Il pool dei Monoliti di ogni area segue Z2 (§5f) dai suoi `level_min`/`level_ma
 **Gruppi 1-8**: `combat.max_pack_size = 8`. Distribuzione obiettivo per dimensione 1..8 in `combat.pack_size_weights` = `[4, 12, 22, 26, 18, 10, 5, 3]` (percentuali sul peso totale dell'area; media 4,07: il singolo e l'ottuplo sono rari). Ogni area ha almeno un gruppo per ogni dimensione
 1..8; la somma dei pesi dei gruppi di dimensione `s` è `pack_size_weights[s−1]` (diviso come si vuole tra più gruppi della stessa dimensione, ogni gruppo ≥ 1). Regole del validatore, per ogni area: media pesata della dimensione tra 3,0 e 5,0; peso dei gruppi da 1 e da 8 ciascuno ≤ 6%.
 Un gruppo mescola solo mostri della stessa area. La difficoltà delle prime aree (0 morti/ora nel gruppo più facile, ≥ 60 uccisioni/ora) si tara sui **mostri** (PV, danno), non sulle dimensioni: lo verifica `tools/sim_combat.gd` in M17-04.
+**Stato dopo M17-04**: le 10 aree sono in `data/combat/areas.json` (50 mostri, generati da `tools/gen_areas.gd`; tabella sopra storica, da non usare per i valori). Tarature per area nello script: `HP_SCALE` (Soglia 0,8), `POWER_SCALE` (la potenza dei mostri è `round(L × scala)`; Pianure 0,1, Bosco 0,6, Altipiani 0,75, Miniere 0,8, dalle Paludi 0,85) e `INTERVAL_SCALE` (solo le Pianure ×2,4: M17-04b, il kit iniziale mangia ≤ 600 pezzi di cibo/h; il cinghiale ha 6.700 ms).
+**Kit di materiali rari per area** (`kit` in `tools/gen_areas_data.gd`; ogni materiale ha un mostro portatore con chance F-32 fissata dal generatore per le ore di raccolta desiderate):
+| # | Area (`id`) | Kit (ordine di priorità) |
+|---|---|---|
+| 1 | Pianure di Roccarossa (`redrock_plains`) | `boar_tusk`, `scorched_fur`, `redrock_flint`, `raider_bandage` |
+| 2 | Bosco dei Sussurri (`whisper_wood`) | `wolf_fang`, `troll_moss`, `hollow_arrowhead`, `whisper_resin` |
+| 3 | Altipiani del Vento Secco (`dry_uplands`) | `hollow_arrowhead`, `wolf_fang`, `troll_moss`, `whisper_resin` |
+| 4 | Miniere Abbandonate (`cracked_mines`) | `golem_core`, `crawler_carapace`, `witch_charm`, `mine_dust` |
+| 5 | Paludi di Cenere (`ash_marsh`) | `crawler_carapace`, `witch_charm`, `golem_core`, `mine_dust` |
+| 6 | Gole dei Cristalli Piangenti (`weeping_gorge`) | `wraith_veil`, `knight_plate`, `witch_charm`, `mine_dust` |
+| 7 | Soglia del Rift (`rift_threshold`) | `wraith_veil`, `knight_plate`, `colossus_shard`, `threshold_ash` |
+| 8 | Deserto di Vetro Nero (`black_glass_desert`) | `knight_plate`, `wraith_veil`, `colossus_shard`, `threshold_ash` |
+| 9 | Cittadella Sommersa (`sunken_citadel`) | `knight_plate`, `colossus_shard`, `wraith_veil`, `threshold_ash` |
+| 10 | Cuore del Rift (`rift_heart`) | `colossus_shard`, `knight_plate`, `threshold_ash` |
 
 ### 8.5b Tabelle di drop dell'Incisore e delle borse (M12, W6, Q58)
 Pietre, valute e materia grezza **cadono dai mostri e dai Monoliti** (non si producono più da frammenti e materiali di raccolta).
@@ -1175,7 +1190,7 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | `combat.pack_size_weights` | `[4, 12, 22, 26, 18, 10, 5, 3]` (somma 100, dimensioni 1..8; media 4,07) | §8.5 gruppi (V4, M17-01) |
 | `combat.hit_chance_min`, `combat.hit_chance_max` | 0,05, 0,95 (già presenti) | F-23, F-129 |
 | `combat.xp_level.{zero_gap, up_per_level, up_cap}` | 9, 0,05, 1,5 | F-130 (V2, M17-01) |
-| `combat.monster_xp.{base, growth}` | 80, 1,065 (M17-03b, era 1,085) | F-130, generatore `tools/gen_monster_xp.gd` |
+| `combat.monster_xp.{base, growth}` | 80, 1,051 (M17-04, era 1,065) | F-130, generatore `tools/gen_monster_xp.gd` |
 | `combat.auto_eat_tiers` | `[null, {30,60}, {40,75}, {50,90}]` | F-30 |
 | `combat.{respawn_ms, loot_bag_base_slots}` | 1500, 12 | 10.1 (attesa `BETWEEN`), F-33 |
 | `character_curve.{base, growth, linear, max_level, xp_cap}` | 70, 1.1, 8, 99, 50000000 | F-71 (Q34) |
@@ -1184,7 +1199,7 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | ~~`rarity.craft.*`~~ | tolta in M10 | era F-83 (sostituita da F-91) |
 | `blueprint.{duration_base_min, duration_per_grade_min, xp_mult, rare_base_pct, rare_per_forging_level, choose_affix_level, chosen_affix_tier}` (M10) | 10, 7, 1.5, 10, 0.5, 50, 2 | F-90, F-91, F-92 (Q48, Q50; il resto da tarare, Q53) |
 | `tool_upgrade.{interval_base_pct, interval_per_level_pct, levels, plate_items, handle_items}` (M10) | 5, 2, tabella F-94 (9 voci `{min_level, grade, plates, handles, gold}`), 8 id delle piastre T1-T8, 8 id dei manici T1-T8 | F-94 |
-| `combat.kill_xp_mult` (M10, M14-10, M17-03b) | 0.05 (M17-03b, era 0.064 in M14-10 e 0.11; Q54) | F-28 |
+| `combat.kill_xp_mult` (M10, M14-10, M17-03b) | 0.05 (M17-03b, confermato in M17-04, era 0.064 in M14-10 e 0.11; Q54) | F-28 |
 | `rarity.affix_count.{magic, rare}` | `[1, 2]`, `[3, 4]` | F-85 |
 | `traits.slot_levels` (M6) | `[1, 10, 25, 50]` | F-78 (Q35) |
 | `abilities.slot_levels` (M6) | `[1, 1, 30]` | F-78 (Q36) |

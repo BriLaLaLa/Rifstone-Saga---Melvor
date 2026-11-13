@@ -75,6 +75,51 @@ Accetta, Piccone, Canna da pesca (con "+N" nel nome: "Accetta +4").
 | `shard_wraith` | Spettro di frammenti | Spettro cristallino |
 | `rift_knight` | Cavaliere del Rift | Cavaliere caduto |
 | `riftborn_colossus` | Colosso nato dal Rift | Colosso del Rift |
+| *(M17-04: 10 aree strette, vedi `02_FORMULAS.md` §8.5; qui le aree e i mostri nuovi)* | | |
+| `dry_uplands` | — | Altipiani del Vento Secco |
+| `ash_marsh` | — | Paludi di Cenere |
+| `weeping_gorge` | — | Gole dei Cristalli Piangenti |
+| `black_glass_desert` | — | Deserto di Vetro Nero |
+| `sunken_citadel` | — | Cittadella Sommersa |
+| `rift_heart` | — | Cuore del Rift |
+| `dust_jackal` | — | Sciacallo di polvere |
+| `rock_ram` | — | Ariete di roccia |
+| `bark_spider` | — | Ragno di corteccia |
+| `elder_stag` | — | Cervo antico |
+| `wind_hawk` | — | Falco del vento |
+| `canyon_lynx` | — | Lince del canyon |
+| `sand_shaman` | — | Sciamano della sabbia |
+| `dust_ogre` | — | Orco di polvere |
+| `dune_wyrm` | — | Viverna delle dune |
+| `tunnel_bat` | — | Pipistrello di galleria |
+| `lost_miner` | — | Minatore perduto |
+| `marsh_leech` | — | Sanguisuga grigia |
+| `bog_hound` | — | Segugio della palude |
+| `ash_heron` | — | Airone di cenere |
+| `mire_hag` | — | Megera del fango |
+| `peat_titan` | — | Titano di torba |
+| `glass_scorpion` | — | Scorpione di vetro |
+| `crystal_sentry` | — | Sentinella di cristallo |
+| `echo_harpy` | — | Arpia dell'eco |
+| `geode_brute` | — | Bruto di geode |
+| `tear_warden` | — | Custode del pianto |
+| `gate_hound` | — | Cane del varco |
+| `void_acolyte` | — | Accolito del vuoto |
+| `threshold_warden` | — | Guardiano della Soglia |
+| `glass_serpent` | — | Serpe di vetro |
+| `mirage_stalker` | — | Cacciatore di miraggi |
+| `obsidian_idol` | — | Idolo d'ossidiana |
+| `sun_cultist` | — | Zelota del sole nero |
+| `dune_leviathan` | — | Leviatano delle dune |
+| `drowned_sentinel` | — | Sentinella annegata |
+| `tide_wraith` | — | Spettro della marea |
+| `citadel_archer` | — | Arciere della cittadella |
+| `coral_juggernaut` | — | Colosso di corallo |
+| `abyss_chancellor` | — | Cancelliere degli abissi |
+| `riftborn_scout` | — | Esploratore del Rift |
+| `heart_leech` | — | Parassita del cuore |
+| `faceless_blade` | — | Lama senza volto |
+| `pulse_horror` | — | Orrore del battito |
 
 Drop (componenti rari dei progetti): Zanna di cinghiale, Pelliccia di ratto, Benda del predone, Selce di Roccarossa,
 Zanna di lupo, Muschio di troll, Punta di freccia, Resina del bosco, Nucleo di golem, Chitina di ragno, Feticcio della

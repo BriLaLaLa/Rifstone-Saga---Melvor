@@ -138,7 +138,13 @@ I documenti sono già scritti con questi default. I numeri non presenti nella fo
 | Q81 | Nel Deposito i pezzi restano a occupare una casella ciascuno (F-100) o la sezione "Pezzi" non occupa slot? | invariato: una casella ciascuno | utente |
 | Q83 | Pezzi nel Bottino: online la morte li perde, offline sono messi al sicuro a ogni blocco da 60 s (`collect_pieces`). Va allineato (online al sicuro, o offline a rischio)? | invariato (differenza accettata) | utente |
 | Q84 | Falegname (V7): quale integrazione con gli altri sistemi? Rimandato | nessun task in M16-M18 | utente |
-| Q85 | Tasso di drop equip (V5): ritarare o no dopo la misura di M17-02? | decide l'utente sui numeri | utente / QA |
+
+## Aperte da M17
+
+| # | Domanda | Default | Chi/quando |
+|---|---|---|---|
+| Q86 | Cibo con il kit iniziale fuori dalle Pianure: `sim_survival` stima 2.700-18.800 pezzi di cibo/h senza armatura ai livelli 20-60. Le aree si sbloccano con un requisito di equipaggiamento (oltre al livello), oppure il kit/il cibo scalano con l'area? | nessun cambio: oggi il solo requisito è il livello; l'armatura va forgiata prima di salire | utente / M18 |
+| Q87 | Ritratto e layout a 1280x720 della pagina di combattimento (M17-05/07: mappa cliccabile, gruppi fino a 8, effetti) da verificare a schermo | nessun cambio finché non verificato da una persona | utente / QA |
 
 ## Chiuse
 
@@ -146,6 +152,7 @@ I documenti sono già scritti con questi default. I numeri non presenti nella fo
 |---|---|---|---|
 | Q78 | Taratura dei PV del Monolito | Decisione utente: PV invariati (`metin.hp_base` 200, `metin.hp_per_level` 0,25) anche se i tempi variano da 182 s (Pianure L10) a 54 s (Soglia L80); ritaratura rimandata | 2026-11-10 (M15-09) |
 | Q82 | Frequenza dei Monoliti per area e pietà | 1-2 Monoliti/h per area, Pianure 0,6, pietà `rift_stone.pity_kills` 300 confermati | 2026-11-10 (M15-09) |
+| Q85 | Tasso di drop equip (V5): ritarare o no dopo la misura di M17-02? | Applicato **4,0%** (`sim_drop_rate`), progetti allo 0,5%; in M17-03b | 2026-11-12 (M17-03b) |
 | Q26 | Nodi della maestria di Minatore e Pescatore uguali a quelli del Boscaiolo? | Chiusa dalla decisione W4: albero dei nodi diverso per ogni mestiere di raccolta, più 3 traguardi propri per ogni risorsa (`02_FORMULAS.md` §8.8, §8.8b) | 2026-11-08 (R-03) |
 | Q55 | Nomi delle valute in `NOMI.md` scambiati rispetto ai dati | `NOMI.md` corretto, i dati restano | 2026-11-08 (P-04) |
 | Q6 | Munizioni per Mira e rune/consumabili per Arcano? | Niente munizioni né rune; la classe dell'MVP usa solo spade (D6); archi e bastoni tornano con le loro classi | 2026-11-03 (`VISIONE_V2.md` §8) |

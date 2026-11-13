@@ -92,7 +92,8 @@ l'elenco delle chiavi obbligatorie, `DataValidator.REQUIRED_BALANCE_KEYS`).
     "max_pack_size": 8,
     "pack_size_weights": [4, 12, 22, 26, 18, 10, 5, 3],
     "xp_level": {"zero_gap": 9, "up_per_level": 0.05, "up_cap": 1.5},
-    "monster_xp": {"base": 80, "growth": 1.085},
+    "monster_xp": {"base": 80, "growth": 1.051},
+    "summon_drop_pct": 25,
     "auto_eat_tiers": [null, {"threshold_pct": 30, "target_pct": 60},
                        {"threshold_pct": 40, "target_pct": 75}, {"threshold_pct": 50, "target_pct": 90}],
     "respawn_ms": 1500, "loot_bag_base_slots": 12,
@@ -738,11 +739,11 @@ una sola `blueprint` per base; solo basi `masterwork`. I progetti per `blueprint
 - `data/combat/areas.json`: `rift_stone_chance_pct` delle Pianure sale da 0 a 0,6 (Z5, Q82).
 
 ## 23. Aggiunte di M16-M18 (R-07; schema fissato da M17-01)
-- **V2/F-130** in `balance.json`, sotto `combat`: `xp_level {zero_gap: int 1..99, up_per_level: float > 0, up_cap: float ≥ 1}` e `monster_xp {base: int ≥ 1, growth: float ≥ 1}`; valori 9, 0,05, 1,5, 80, 1,065 (M17-03b). Entrambe obbligatorie dopo M17-03.
+- **V2/F-130** in `balance.json`, sotto `combat`: `xp_level {zero_gap: int 1..99, up_per_level: float > 0, up_cap: float ≥ 1}` e `monster_xp {base: int ≥ 1, growth: float ≥ 1}`; valori 9, 0,05, 1,5, 80, 1,051 (M17-04; 1,065 in M17-03b, 1,085 in M17-01). Entrambe obbligatorie dopo M17-03.
 - **V1/F-129**: nessuna chiave nuova (`combat.hit_chance_min`/`hit_chance_max` già esistenti).
 - **V3/V4** in `balance.json`, sotto `combat`: `max_pack_size` 8 (vincolo 1..8) e `pack_size_weights` (array di 8 interi ≥ 0 con somma 100, indice = dimensione − 1; valori iniziali `[4, 12, 22, 26, 18, 10, 5, 3]`).
   In `areas.json` (§8): campi `level_min`, `level_max`, `map_pos` e le regole sui gruppi; 10 aree contigue per i livelli 1-99 (tabella in `02_FORMULAS.md` §8.5). Il file si **genera** con uno script in `tools/` (M17-04): nessuna riga scritta a mano.
-  Gli id delle aree vecchie (`redrock_plains`, `whisper_wood`, `cracked_mines`, `rift_threshold`) cessano di esistere; la migrazione dello slot e dei riferimenti (Monoliti, Fratture, tabelle di drop) è di M17-04.
-- **V11**: riduzione del drop degli evocati in `balance.json` (M17-06).
+  Le aree sono 10 (id: `redrock_plains`, `whisper_wood`, `dry_uplands`, `cracked_mines`, `ash_marsh`, `weeping_gorge`, `rift_threshold`, `black_glass_desert`, `sunken_citadel`, `rift_heart`); i 4 id vecchi restano ma con livelli e mostri nuovi. Migrazione dello slot: `05_INTERFACES.md` §6 (v7). Tarature per area in `tools/gen_areas.gd`: `HP_SCALE`, `POWER_SCALE` (potenza = round(L × scala), da 0,1 nelle Pianure a 0,85) e `INTERVAL_SCALE` (moltiplicatore dell'intervallo di attacco: 2,4 nelle Pianure, 1,0 altrove; M17-04b); i kit dei materiali per area in `tools/gen_areas_data.gd`.
+- **V11** (M17-06): `combat.summon_drop_pct` (numero, default 25) in `balance.json`: percentuale della chance normale dei drop e delle tabelle dei mostri evocati da un Monolito (`KillRewards.grant_summoned`); gli evocati non danno XP, oro, frammento né pezzi del pool. Obbligatoria.
 - **V8** (M16-07): solo i testi degli affissi in `affixes.json`; nessun campo nuovo.
 - **V10**: nessun cambiamento di schema.
