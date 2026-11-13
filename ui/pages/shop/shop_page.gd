@@ -245,9 +245,7 @@ func _missing_requirements(entry: ShopEntryDef) -> String:
 		parts.append(REQ_TOTAL_TEXT % entry.req_total_level)
 	if entry.req_character > _session.character.get_level():
 		parts.append(REQ_CHARACTER_TEXT % entry.req_character)
-	var req_village: Variant = entry.get(&"req_village")  # ShopEntryDef.req_village (M20-04), {building_id: level}
-	if req_village is Dictionary:
-		parts.append_array(missing_village(req_village))
+	parts.append_array(missing_village(entry.req_village))
 	return REQ_SEPARATOR.join(parts)
 
 
