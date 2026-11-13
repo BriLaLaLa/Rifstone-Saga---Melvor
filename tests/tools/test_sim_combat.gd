@@ -2,6 +2,7 @@ extends GutTest
 ## tools/sim_combat.gd (M5-06): argument parsing, the scenario helpers and short, seeded measurements on real data.
 
 const Sim := preload("res://tools/sim_combat.gd")
+const SimXp := preload("res://tools/sim_xp.gd")
 const PLAINS: StringName = &"redrock_plains"
 
 var _data: GameData = null
@@ -79,7 +80,9 @@ func test_measure_is_deterministic_and_restores_the_area() -> void:
 
 func test_measure_xp_is_the_f28_xp_per_kill() -> void:
 	var row: Dictionary = Sim.measure(_data, _data.area(PLAINS), "easiest", _opts())
-	assert_eq(int(row["xp"]), int(row["kills"]) * 5, "easiest pack = one boar: floor(80 x 0.064) each (F-28)")
+	var each: int = SimXp.monster_kill_xp(_data, _data.monster(&"plains_boar"), int(row["level"]))  # F-28 with F-130
+	assert_gt(each, 0)
+	assert_eq(int(row["xp"]), int(row["kills"]) * each, "easiest pack = one boar: floor(80 x kill_xp_mult x level factor) each")
 
 
 func test_report_has_a_header_and_a_row_per_scope() -> void:

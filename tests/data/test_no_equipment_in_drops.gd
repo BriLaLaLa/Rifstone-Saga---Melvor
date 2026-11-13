@@ -69,13 +69,13 @@ func test_rift_dust_is_8_percent_times_one_in_the_area_tables() -> void:
 
 
 func test_loot_pool_keys_of_f121() -> void:
-	assert_eq(float(_data.balance_value("loot.equipment.chance_pct")), 2.9)
+	assert_eq(float(_data.balance_value("loot.equipment.chance_pct")), 4.0)
 	assert_eq(int(_data.balance_value("loot.equipment.level_ahead")), 5)
 	assert_eq(int(_data.balance_value("loot.equipment.level_window")), 15)
 	var kinds: Dictionary = _data.balance_value("loot.equipment.kind_weights") as Dictionary
 	assert_eq(kinds.size(), 10, "the 10 types of piece")
 	for kind: String in ["sword", "greatsword", "shield", "head", "body", "legs", "feet", "hands", "ring", "neck"]:
 		assert_eq(float(kinds[kind]), 1.0, kind)
-	assert_eq(float(_data.balance_value("loot.blueprint.chance_pct")), 0.4)
+	assert_eq(float(_data.balance_value("loot.blueprint.chance_pct")), 0.5)
 	assert_eq(float(_data.balance_value("rarity.drop.magic_pct")), 25.0)
 	assert_eq(float(_data.balance_value("rarity.drop.rare_pct")), 5.0)

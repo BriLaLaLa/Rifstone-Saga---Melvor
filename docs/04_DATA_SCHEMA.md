@@ -738,7 +738,7 @@ una sola `blueprint` per base; solo basi `masterwork`. I progetti per `blueprint
 - `data/combat/areas.json`: `rift_stone_chance_pct` delle Pianure sale da 0 a 0,6 (Z5, Q82).
 
 ## 23. Aggiunte di M16-M18 (R-07; schema fissato da M17-01)
-- **V2/F-130** in `balance.json`, sotto `combat`: `xp_level {zero_gap: int 1..99, up_per_level: float > 0, up_cap: float ≥ 1}` e `monster_xp {base: int ≥ 1, growth: float ≥ 1}`; valori iniziali 9, 0,05, 1,5, 80, 1,085. Entrambe obbligatorie dopo M17-03.
+- **V2/F-130** in `balance.json`, sotto `combat`: `xp_level {zero_gap: int 1..99, up_per_level: float > 0, up_cap: float ≥ 1}` e `monster_xp {base: int ≥ 1, growth: float ≥ 1}`; valori 9, 0,05, 1,5, 80, 1,065 (M17-03b). Entrambe obbligatorie dopo M17-03.
 - **V1/F-129**: nessuna chiave nuova (`combat.hit_chance_min`/`hit_chance_max` già esistenti).
 - **V3/V4** in `balance.json`, sotto `combat`: `max_pack_size` 8 (vincolo 1..8) e `pack_size_weights` (array di 8 interi ≥ 0 con somma 100, indice = dimensione − 1; valori iniziali `[4, 12, 22, 26, 18, 10, 5, 3]`).
   In `areas.json` (§8): campi `level_min`, `level_max`, `map_pos` e le regole sui gruppi; 10 aree contigue per i livelli 1-99 (tabella in `02_FORMULAS.md` §8.5). Il file si **genera** con uno script in `tools/` (M17-04): nessuna riga scritta a mano.

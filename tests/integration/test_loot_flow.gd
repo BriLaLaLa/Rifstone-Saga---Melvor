@@ -91,7 +91,12 @@ func test_every_drop_is_either_in_the_armory_or_salvaged_by_the_filter() -> void
 	assert_true(s.armory.set_filter(&"weapon", &"magic", 1).ok)
 	_fight_until_kills(s, 40)
 	var dropped: int = _kills * 2
-	assert_eq(_added.size() + _auto_salvaged.size(), dropped, "a sword and a ring per kill, none lost, none copied")
+	# M17-03b (Q85): on top of the sword and the ring of each kill the F-121 pool (loot.equipment.chance_pct, 4.0%) may add a
+	# piece per kill (83 pieces for 80 expected with the seed). So: none lost (>= dropped); the pool adds at most one per kill
+	# (<= dropped + kills); none copied is checked by the unique uids below.
+	var total: int = _added.size() + _auto_salvaged.size()
+	assert_gte(total, dropped, "a sword and a ring per kill, none lost")
+	assert_lte(total, dropped + _kills, "at most one pool piece per kill on top")
 	assert_eq(s.armory.used(), _added.size(), "the Armory holds exactly the pieces that entered")
 	var seen: Dictionary[int, bool] = {}
 	for inst: ItemInstance in s.armory.instances():

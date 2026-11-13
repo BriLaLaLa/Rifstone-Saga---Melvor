@@ -146,14 +146,14 @@ func test_hit_pct_display() -> void:
 
 
 func test_xp_level_mult() -> void:
-	# F-130: zero_gap 9, up_per_level 0.05, up_cap 1.5; 1000 xp x kill_xp_mult 0.064 = 64 at d = 0.
-	var expected: Dictionary = {0: 64, 5: 80, 10: 96, 20: 96, -1: 56, -3: 42, -8: 7, -9: 0, -15: 0}
+	# F-130: zero_gap 9, up_per_level 0.05, up_cap 1.5; 1000 xp x kill_xp_mult 0.05 = 50 at d = 0.
+	var expected: Dictionary = {0: 50, 5: 62, 10: 75, 20: 75, -1: 44, -3: 33, -8: 5, -9: 0, -15: 0}
 	for diff: int in expected:
-		assert_eq(floori(1000.0 * 0.064 * CombatMath.xp_level_mult(diff, _d) + 1e-9), expected[diff], "d = %d" % diff)
+		assert_eq(floori(1000.0 * 0.05 * CombatMath.xp_level_mult(diff, _d) + 1e-9), expected[diff], "d = %d" % diff)
 
 
 func test_monster_xp_by_level() -> void:
-	# F-130: round(80 x 1.085^(L - 1)).
-	var expected: Dictionary = {1: 80, 2: 87, 10: 167, 20: 377, 30: 852, 50: 4357, 75: 33488, 99: 237249}
+	# F-130: round(80 x 1.065^(L - 1)).
+	var expected: Dictionary = {1: 80, 2: 85, 10: 141, 20: 265, 30: 497, 50: 1751, 75: 8452, 99: 38313}
 	for level: int in expected:
 		assert_eq(CombatMath.monster_xp(level, _d), expected[level], "L%d" % level)

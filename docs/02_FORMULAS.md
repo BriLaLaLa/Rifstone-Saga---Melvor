@@ -217,13 +217,13 @@ Esempi: livello 1 → 60; livello 10 e +20 → 170; livello 99 → 1.040. Test: 
 Ogni nemico ucciso dà al personaggio `base_xp = floor(xp del mostro × combat.kill_xp_mult)` (campo `xp` del mostro,
 `04_DATA_SCHEMA.md` §8), che passa da F-71. Nessuna XP per danno, nessuna stance (D3). Una Pietra del Rift (F-87) dà il
 suo `xp` con la stessa regola. Valori: tabella §8.5 (`xp = 4 × PV`, tranne le Miniere Crepate a 3,2 × PV, tarate da B1);
-**B1 (M10-07, ritarato in M14-10)**: `combat.kill_xp_mult` = **0,064** (era 0,11; dopo i nuovi mostri e le armi con forbice), tarato con `tools/sim_combat.gd` e `tools/sim_progress.gd`: livello 99 in circa
+**B1 (M10-07, ritarato in M14-10)**: `combat.kill_xp_mult` = **0,05** (M17-03b; era 0,064 in M14-10 e 0,11; dopo i nuovi mostri e le armi con forbice), tarato con `tools/sim_combat.gd` e `tools/sim_progress.gd`: livello 99 in circa
 320 h (319,6) nell'area giusta (la più alta consentita dal livello; offline compreso, stesso motore) e una notte offline (12 h) dal 50
 **M15 (Monoliti da Metin, M15-08)**: con i Monoliti (1-2/h per area, bottino e XP) il livello 99 si raggiunge in circa **369 ore**; banda del test di bilanciamento **250-380 ore**.
-dà al massimo +12 livelli (Q54). Con 1,0 si ottiene la regola dell'MVP.
+dà al massimo +12 livelli (Q54). Con 1,0 si ottiene la regola dell'MVP. **M17-03b**: con F-130 (e `xp` dei mostri da `monster_xp`, 1,065) il livello 99 sta in circa 290 h (sim_progress, Monoliti compresi), una notte dal 50 dà +6 livelli e il livello 1 → 2 richiede 18 uccisioni; valori correnti in F-130.
 **M17 (V2)**: il valore ottenuto si moltiplica per `xp_level_mult(d)` di F-130 (livello mostro − livello personaggio) con un solo arrotondamento, e il campo `xp` dei mostri deriva da F-130 (non più 4 × PV).
-Esempi (mult 0,064, `d = 0`): `plains_boar` (xp 80) → base 5; +25% → 6; gruppo di 3 `plains_boar` → 15; `redrock_raider` (200) → 12;
-Pietra con xp 240 → 15. Con mult 1,0: 80, 100, 240. Test: `tests/systems/combat/test_combat_engine.gd::test_kill_grants_character_xp`.
+Esempi (mult 0,05, `d = 0`, M17-03b): `plains_boar` (xp 80) → base 4; +25% → 5; gruppo di 3 `plains_boar` → 12; `redrock_raider` (xp 124) → 6;
+Pietra con xp 240 → 12. Con mult 1,0: 80, 100, 240. Test: `tests/systems/combat/test_combat_engine.gd::test_kill_grants_character_xp`.
 
 ### F-29 Cura del cibo
 `heal = floor(food.heal × (1 + T(food_healing_pct)/100))`; `hp = min(max_hp, hp + heal)`.
@@ -635,13 +635,13 @@ Intervalli di formato: `pct`, `hp_pct` in (0, 100] (`hit_cap_pct` in [1, 100]); 
 
 ### F-121 Drop di equipaggiamento e progetti (Y6, Q69)
 Ogni mostro può far cadere **tutti gli slot** del grado giusto, senza liste fisse di modelli. Alla morte di ogni nemico (anche nelle Fratture, con il livello scalato), con `L_m` = massimo di `attack_level`, `power_level` e `defence_level`:
-1. `roll_pct(loot.equipment.chance_pct)` (2,9, tarato in M14-10): se riesce cade un pezzo;
+1. `roll_pct(loot.equipment.chance_pct)` (4,0: M17-03b, Q85; era 2,9 di M14-10): se riesce cade un pezzo;
 2. tipo: `pick_weighted(loot.equipment.kind_weights)` tra i 10 tipi (spada, spadone, scudo, elmo, corpo, gambe, piedi, mani, anello, collo; peso 1 ciascuno); per armature e scudo il materiale è uniforme tra Piastre, Cuoio, Tessuto runico;
 3. grado: uniforme tra i gradi `g` con `lvl(g) > L_m − loot.equipment.level_window` (15) e `lvl(g) ≤ L_m + loot.equipment.level_ahead` (5);
 4. rarità: F-84 (`rarity.drop.magic_pct` 25, `rare_pct` 5; mai Capolavoro né leggendario); `ilvl` e affissi come F-85.
 
-I **progetti** cadono con lo stesso schema: `roll_pct(loot.blueprint.chance_pct)` (0,4), tipo tra gli 8 progettabili (spada, spadone, scudo, elmo, corpo, gambe, piedi, mani; Piastre), grado come al punto 3. Anello e collo non hanno progetto (Q30).
-Esempi: mostro con `L_m` 46 → gradi con livello in (31, 51] = 35, 40, 45, 50 → gradi 8-11; `L_m` 92 → (77, 97] = 80, 90 → gradi 14-15; `L_m` 1 → gradi 1-2. Con ~300 uccisioni all'ora: 7,5 pezzi/ora (3,75 ogni 30 minuti), 0,94 magici ogni 30 minuti, un raro ogni ~2,7 ore, ~1,2 progetti/ora (Q49).
+I **progetti** cadono con lo stesso schema: `roll_pct(loot.blueprint.chance_pct)` (0,5: M17-03b, Q85; era 0,4), tipo tra gli 8 progettabili (spada, spadone, scudo, elmo, corpo, gambe, piedi, mani; Piastre), grado come al punto 3. Anello e collo non hanno progetto (Q30).
+Esempi: mostro con `L_m` 46 → gradi con livello in (31, 51] = 35, 40, 45, 50 → gradi 8-11; `L_m` 92 → (77, 97] = 80, 90 → gradi 14-15; `L_m` 1 → gradi 1-2. Con ~300 uccisioni all'ora (4,0%): 12 pezzi/ora (6 ogni 30 minuti), 1,5 magici ogni 30 minuti, un raro ogni ~1,7 ore, ~1,5 progetti/ora (Q49, Q85).
 Il pool sostituisce le voci di equipaggiamento e di progetto nei `drops` dei mostri (che restano per materiali e componenti rari). Test: `tests/systems/combat/test_equipment_drop.gd` (grado, tipo e materiale con seme fisso), `tests/integration/test_drop_rates.gd` (sim).
 
 ### F-122 Bonus di maestria ogni 10 livelli (Y8, Q70)
@@ -713,12 +713,12 @@ Moltiplicatore `xp_level_mult(d)` (parametri `combat.xp_level` in `balance.json`
 - `d ≥ 0` → `min(1 + d × up_per_level, up_cap)` (sale di 5% per livello, tetto +50% a `d = +10`).
 Si compone con F-28 con un solo arrotondamento: `base_xp = floor(xp × combat.kill_xp_mult × xp_level_mult(d) + 1e-9)`, poi F-71 (`skill_xp_pct` global) come oggi. Evocati: nessuna XP (Z3, invariato).
 Dentro la Frattura il moltiplicatore **non si applica** (vale 1, i mostri sono scalati da F-110/F-111).
-**XP base per livello del mostro**: `xp(L_m) = round(combat.monster_xp.base × combat.monster_xp.growth^(L_m − 1))` con `base = 80`, `growth = 1,085`. Il campo `xp` di ogni mostro in `monsters.json` si **genera** con questa formula
-(script in `tools/`, M17-04), non si scrive a mano; sostituisce la regola "xp = 4 × PV" di §8.5. Tabella: L1 → 80; L2 → 87; L10 → 167; L20 → 377; L30 → 852; L50 → 4.357; L75 → 33.488; L99 → 237.249.
-Con `kill_xp_mult = 0,064` (valore corrente; M17-04 lo ritara con `sim_combat`/`sim_progress` tenendo la banda 250-380 h di F-28) un'uccisione a `d = 0` dà: L1 → 5; L10 → 10; L50 → 278; L99 → 15.183, cioè circa 14, 22, 28 e 53 uccisioni
-per salire un livello (F-71).
-Esempi (= test), `xp` 1.000 e `kill_xp_mult` 0,064 (64 a `d = 0`): `d = 0` → **64**; `d = +5` (1,25) → **80**; `d = +10` → 1,5 → **96**; `d = +20` (tetto) → **96**; `d = −1` (0,8889) → **56**; `d = −3` (0,6667) → **42**;
-`d = −8` (0,1111) → **7**; `d = −9` → **0**; `d = −15` → **0**. Con pct +25 di `skill_xp_pct`: `d = +5` → 80 × 1,25 = **100**.
+**XP base per livello del mostro**: `xp(L_m) = round(combat.monster_xp.base × combat.monster_xp.growth^(L_m − 1))` con `base = 80`, `growth = 1,065` (M17-03b; era 1,085). Il campo `xp` di ogni mostro in `monsters.json` si **genera** con questa formula
+(script `tools/gen_monster_xp.gd`), non si scrive a mano; sostituisce la regola "xp = 4 × PV" di §8.5. Tabella: L1 → 80; L2 → 85; L10 → 141; L20 → 265; L30 → 497; L50 → 1.751; L75 → 8.452; L99 → 38.313.
+Con `kill_xp_mult = 0,05` (M17-03b; ritarato con `sim_combat`/`sim_progress`, che applicano F-130: livello 99 in circa 290 h con i Monoliti, banda 250-380 h di F-28; **M17-04 deve ricontrollare** con le aree strette) un'uccisione a `d = 0` dà: L1 → 4; L10 → 7; L50 → 87; L99 → 1.915, cioè circa 18, 34, 90 e 379 uccisioni
+per salire un livello (F-71; il livello 2 richiede 70 XP: 18 uccisioni del cinghiale).
+Esempi (= test), `xp` 1.000 e `kill_xp_mult` 0,05 (50 a `d = 0`): `d = 0` → **50**; `d = +5` (1,25) → **62**; `d = +10` → 1,5 → **75**; `d = +20` (tetto) → **75**; `d = −1` (0,8889) → **44**; `d = −3` (0,6667) → **33**;
+`d = −8` (0,1111) → **5**; `d = −9` → **0**; `d = −15` → **0**. Con pct +25 di `skill_xp_pct`: `d = +5` → floor(62 × 1,25) = **77**.
 Test (M17-03): `tests/systems/combat/test_combat_engine.gd::test_kill_xp_level_diff` e `tests/systems/combat/test_combat_math.gd::test_xp_level_mult`, `test_monster_xp_by_level`.
 Effetto sul gioco: restare in un'area di livelli molto più bassi non dà più XP (zero oltre 9 livelli sotto); le aree più alte del proprio livello premiano (fino a +50%) e sono l'incentivo a salire.
 
@@ -1175,7 +1175,7 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | `combat.pack_size_weights` | `[4, 12, 22, 26, 18, 10, 5, 3]` (somma 100, dimensioni 1..8; media 4,07) | §8.5 gruppi (V4, M17-01) |
 | `combat.hit_chance_min`, `combat.hit_chance_max` | 0,05, 0,95 (già presenti) | F-23, F-129 |
 | `combat.xp_level.{zero_gap, up_per_level, up_cap}` | 9, 0,05, 1,5 | F-130 (V2, M17-01) |
-| `combat.monster_xp.{base, growth}` | 80, 1,085 | F-130, generatore dei mostri (M17-04) |
+| `combat.monster_xp.{base, growth}` | 80, 1,065 (M17-03b, era 1,085) | F-130, generatore `tools/gen_monster_xp.gd` |
 | `combat.auto_eat_tiers` | `[null, {30,60}, {40,75}, {50,90}]` | F-30 |
 | `combat.{respawn_ms, loot_bag_base_slots}` | 1500, 12 | 10.1 (attesa `BETWEEN`), F-33 |
 | `character_curve.{base, growth, linear, max_level, xp_cap}` | 70, 1.1, 8, 99, 50000000 | F-71 (Q34) |
@@ -1184,7 +1184,7 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | ~~`rarity.craft.*`~~ | tolta in M10 | era F-83 (sostituita da F-91) |
 | `blueprint.{duration_base_min, duration_per_grade_min, xp_mult, rare_base_pct, rare_per_forging_level, choose_affix_level, chosen_affix_tier}` (M10) | 10, 7, 1.5, 10, 0.5, 50, 2 | F-90, F-91, F-92 (Q48, Q50; il resto da tarare, Q53) |
 | `tool_upgrade.{interval_base_pct, interval_per_level_pct, levels, plate_items, handle_items}` (M10) | 5, 2, tabella F-94 (9 voci `{min_level, grade, plates, handles, gold}`), 8 id delle piastre T1-T8, 8 id dei manici T1-T8 | F-94 |
-| `combat.kill_xp_mult` (M10, M14-10) | 0.064 (tarato in M14-10, era 0.11; Q54) | F-28 |
+| `combat.kill_xp_mult` (M10, M14-10, M17-03b) | 0.05 (M17-03b, era 0.064 in M14-10 e 0.11; Q54) | F-28 |
 | `rarity.affix_count.{magic, rare}` | `[1, 2]`, `[3, 4]` | F-85 |
 | `traits.slot_levels` (M6) | `[1, 10, 25, 50]` | F-78 (Q35) |
 | `abilities.slot_levels` (M6) | `[1, 1, 30]` | F-78 (Q36) |
@@ -1201,7 +1201,7 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | `rarity.masterwork.{base_mult, affix_count}` (M14, Y4) | 1.25, `[1, 2]` | F-119, F-91 |
 | `rarity.legendary.base_mult` (M14, Y5) | 1.4 | F-120 |
 | `blueprint.{cost_mult, extra_rare}` (M14, Q68) | 3, 2 componenti rari diversi | F-90, F-119 |
-| `loot.equipment.{chance_pct, level_ahead, level_window, kind_weights}`, `loot.blueprint.chance_pct` (M14, Y6, Q69) | 2.9, 5, 15, 1 per ciascuno dei 10 tipi di pezzo; 0.4 | F-121 |
+| `loot.equipment.{chance_pct, level_ahead, level_window, kind_weights}`, `loot.blueprint.chance_pct` (M14, Y6, Q69) | 4.0 (M17-03b, Q85; era 2.9), 5, 15, 1 per ciascuno dei 10 tipi di pezzo; 0.5 (era 0.4) | F-121 |
 | `mastery.step.{every_levels, gathering, crafting}` (M14, Y8, Q70) | 10, `[{"stat":"skill_interval_pct","value":-2},{"stat":"double_item_chance","value":1}]`, `[{"stat":"preservation_chance","value":2},{"stat":"skill_interval_pct","value":-2}]` | F-122 |
 | `fracture.{risk_cap, risk_unit}` (M14, Q72) | `{"base":40,"per_grade":10}`, `{"pack_bonus":20,"pulse":5}` | F-123 |
 | `metin.{hp_base, hp_per_level, pulse_damage, wave_size, wave_thresholds, rarity_bonus_pct, guaranteed_pieces}` (M15, Z3-Z4) | 200, 0,25, 1, 7, `[75, 50, 25]`, 100, 1 | F-125…F-127 (Q78) |

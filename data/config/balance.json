@@ -125,7 +125,7 @@
     "max_pack_size": 8,
     "pack_size_weights": [4, 12, 22, 26, 18, 10, 5, 3],
     "xp_level": {"zero_gap": 9, "up_per_level": 0.05, "up_cap": 1.5},
-    "monster_xp": {"base": 80, "growth": 1.085},
+    "monster_xp": {"base": 80, "growth": 1.065},
     "summon_drop_pct": 25,
     "auto_eat_tiers": [
       null,
@@ -144,7 +144,7 @@
     ],
     "respawn_ms": 1500,
     "loot_bag_base_slots": 12,
-    "kill_xp_mult": 0.064
+    "kill_xp_mult": 0.05
   },
   "equipment": {
     "grade_levels": [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90],
@@ -204,12 +204,12 @@
   },
   "loot": {
     "equipment": {
-      "chance_pct": 2.9,
+      "chance_pct": 4.0,
       "level_ahead": 5,
       "level_window": 15,
       "kind_weights": {"sword": 1, "greatsword": 1, "shield": 1, "head": 1, "body": 1, "legs": 1, "feet": 1, "hands": 1, "ring": 1, "neck": 1}
     },
-    "blueprint": {"chance_pct": 0.4}
+    "blueprint": {"chance_pct": 0.5}
   },
   "blueprint": {
     "duration_base_min": 10,

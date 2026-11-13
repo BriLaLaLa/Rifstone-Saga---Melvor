@@ -1,6 +1,6 @@
 extends SceneTree
 ## B1 (M10-07): hours to level 99 and levels gained in 12 h offline, from the xp/h that tools/sim_combat.gd measures.
-## The xp/h is measured in the highest area the level may enter, at sample levels, and interpolated between them; the global
+## F-130 is applied (xp_level_mult of the pinned character level, via sim_combat.kill_xp_of). The xp/h is measured in the highest area the level may enter, at sample levels, and interpolated between them; the global
 ## xp bonus and the xp of Rift Stones are ignored. Usage: godot --headless --path . -s tools/sim_progress.gd [-- hours=<n> seed=<n> loot=1]; loot=1 prints the expected drops per hour instead
 ## Output goes through print_rich/printerr, like the other tools.
 

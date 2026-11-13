@@ -435,7 +435,7 @@ Nella Frattura non cambia (il sacco della Frattura tiene già i pezzi, F-116). A
 ### 10.15 Precisione, XP per livello, aree strette, gruppi 1-8 (M16-M18, V1-V4, V11; numeri fissati in M17-01)
 - **Precisione visibile (V1)**: nella pagina Combattimento si mostra la % di colpire del giocatore sul bersaglio e quella di ogni nemico sul giocatore, intera (F-129 = la probabilità di F-23, tetti 5% e 95%).
 - **XP per differenza di livello (V2)**: l'XP di un'uccisione (§10.4) è moltiplicata per un fattore che dipende da livello del mostro meno livello del personaggio (F-130): zero a 9 o più livelli sotto, cala fino a 1 alla pari, sale del 5% per livello
-  fino a +50% (10 livelli sopra). Il livello del mostro è il più alto dei suoi tre livelli; nella Frattura il fattore non si applica. L'XP base del mostro dipende dal suo livello (80 × 1,085^(L−1), generata, mai scritta a mano).
+  fino a +50% (10 livelli sopra). Il livello del mostro è il più alto dei suoi tre livelli; nella Frattura il fattore non si applica. L'XP base del mostro dipende dal suo livello (80 × 1,065^(L−1), generata, mai scritta a mano).
 - **Aree strette (V3)**: **10 aree** di circa 10 livelli (1-10, 11-20, … 81-90, 91-99), contigue e senza buchi; ognuna ha almeno 4 mostri propri e gruppi propri; si sblocca al suo livello minimo. La scelta dell'area è una **mappa cliccabile**
   (non più un menu; ogni area ha una posizione `map_pos`). I Monoliti (§24b) seguono i livelli della nuova area (Z2): multipli di 5 tra il suo minimo e il suo massimo.
 - **Gruppi (V4)**: 1-8 nemici (`combat.max_pack_size` = 8). Distribuzione per dimensione `[4, 12, 22, 26, 18, 10, 5, 3]` %: il singolo (4%) e gli otto (3%) sono rari, la media è 4,07 (ammessa 3-5 per area).

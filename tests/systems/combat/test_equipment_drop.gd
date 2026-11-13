@@ -63,7 +63,7 @@ func test_roll_returns_a_base_of_the_right_grade_and_is_deterministic() -> void:
 	var total: int = 0
 	for id: StringName in counts:
 		total += int(counts[id])
-	assert_between(total, 50, 160, "about chance_pct of 4000 = 100")
+	assert_between(total, 100, 230, "about chance_pct (4.0%) of 4000 = 160")
 	var a := RngService.new(9)
 	var b := RngService.new(9)
 	for i: int in 200:

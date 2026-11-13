@@ -25,6 +25,7 @@ const SESSION_PATH: String = "res://core/session/game_session.gd"
 const EVENTS_PATH: String = "res://core/autoload/event_bus.gd"
 const CONFIG_ROOT: String = "res://data/config"
 const HOUR_MS: int = 3600000
+const SimXp := preload("res://tools/sim_xp.gd")
 const ARMOR_SLOTS: Array[StringName] = [&"body", &"legs", &"head", &"feet", &"hands"]
 
 const DEFAULTS: Dictionary = {
@@ -234,7 +235,7 @@ static func measure(data: Object, area: Object, scope: String, opts: Dictionary)
 	session.events.monster_killed.connect(func(_i: int, id: StringName) -> void:
 		if data.call("has_rift_stone", id):
 			tally["stone_kills"] += 1
-			tally["stone_xp"] += floori(float(data.call("rift_stone", id).xp) * float(data.call("balance_value", "combat.kill_xp_mult")) + 1e-9))
+			tally["stone_xp"] += SimXp.stone_kill_xp(data, data.call("rift_stone", id), level))
 	session.events.player_died.connect(func() -> void:
 		if tally["in_stone"]:
 			tally["stone_deaths"] += 1)
@@ -271,7 +272,7 @@ static func measure(data: Object, area: Object, scope: String, opts: Dictionary)
 	var counts: Dictionary = engine.total_kills()
 	for monster_id: Variant in counts:
 		kills += int(counts[monster_id])
-		kill_xp += int(counts[monster_id]) * floori(float(data.call("monster", monster_id).xp) * float(data.call("balance_value", "combat.kill_xp_mult")) + 1e-9)
+		kill_xp += int(counts[monster_id]) * SimXp.monster_kill_xp(data, data.call("monster", monster_id), level)
 	var row: Dictionary = {
 		"grade": grade, "level": level, "tier": tier, "ms": elapsed, "deaths": engine.deaths(),
 		"kills": kills, "xp": kill_xp + int(tally["stone_xp"]), "gold": session.wallet.get_gold() - gold_start,
