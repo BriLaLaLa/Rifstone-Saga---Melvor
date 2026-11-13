@@ -89,7 +89,10 @@ l'elenco delle chiavi obbligatorie, `DataValidator.REQUIRED_BALANCE_KEYS`).
     "unarmed": {"style": "blade", "attack_interval_ms": 2400},
     "hp_base": 50, "hp_per_level": 10,
     "dual_wield": {"interval_mult": 0.75},
-    "max_pack_size": 6,
+    "max_pack_size": 8,
+    "pack_size_weights": [4, 12, 22, 26, 18, 10, 5, 3],
+    "xp_level": {"zero_gap": 9, "up_per_level": 0.05, "up_cap": 1.5},
+    "monster_xp": {"base": 80, "growth": 1.085},
     "auto_eat_tiers": [null, {"threshold_pct": 30, "target_pct": 60},
                        {"threshold_pct": 40, "target_pct": 75}, {"threshold_pct": 50, "target_pct": 90}],
     "respawn_ms": 1500, "loot_bag_base_slots": 12,
@@ -112,7 +115,7 @@ l'elenco delle chiavi obbligatorie, `DataValidator.REQUIRED_BALANCE_KEYS`).
 Riforma di M4 (M4-01, D3): tolte `combat.hp_skill`, `combat.defence_skill`, `combat.hp_per_vitality`,
 `combat.xp_per_damage_style`, `combat.xp_per_damage_vitality`. `character.start_class` deve essere l'id di una classe
 di `data/classes/`. `rarity.affix_count.*` sono coppie `[min, max]` di interi 0..6 con min ≤ max.
-`combat.dual_wield.interval_mult` > 0 e ≤ 1. `combat.max_pack_size` intero 1..6 (limite di formato del validatore).
+`combat.dual_wield.interval_mult` > 0 e ≤ 1. `combat.max_pack_size` intero 1..8 (limite di formato del validatore; 6 fino a M17-03).
 Chiavi aggiunte dopo (dal task che le usa, `02_FORMULAS.md` §9): `traits`, `abilities` (M6); `rarity.drop`,
 `rarity.rift_stone`, `upgrade`, `rift_stone`, `salvage` (M7); `sockets` (M8).
 **Riforma M10 (R1-R3, B1-B2)**: `start` si estende (sotto); `rarity.craft` **tolta**; aggiunte `blueprint`, `tool_upgrade` e
@@ -328,9 +331,11 @@ alberi di raccolta in cui meno di 3 nodi su 6 differiscono per l'insieme `(stat,
 | Campo | Tipo | Vincoli |
 |---|---|---|
 | `id`, `name`, `description` | String | |
-| `order` | int | unico |
+| `order` | int | unico; da M17 le aree sono contigue (1..10, §23) |
+| `level_min`, `level_max` | int | **da M17** (obbligatori dopo M17-04): 1..99, `level_min ≤ level_max`, ampiezza `level_max − level_min` ≤ 9; la prima area parte da 1, ogni area parte a `level_max + 1` della precedente, l'ultima finisce a 99; il livello `L_m` (F-130) di ogni mostro dei suoi gruppi sta nell'intervallo; `requirements.character` = `level_min`; il pool dei Monoliti (Z2) si calcola da qui |
+| `map_pos` | `[x, y]` | **da M17**: due float 0..1, posizione dell'area sulla mappa cliccabile; solo presentazione; a distanza minima 0,08 l'una dall'altra |
 | `requirements` | object | `{"character": livello}`, può essere vuoto |
-| `packs` | array | almeno 1 gruppo (D5); ogni gruppo `{weight: int ≥ 1, monsters: array di id}` con 1..`combat.max_pack_size` mostri esistenti (ripetibili) |
+| `packs` | array | almeno 1 gruppo (D5); ogni gruppo `{weight: int ≥ 1, monsters: array di id}` con 1..`combat.max_pack_size` mostri esistenti (ripetibili). **Da M17**: almeno un gruppo per ogni dimensione 1..8; la somma dei pesi dei gruppi di dimensione `s` è `combat.pack_size_weights[s−1]`; media pesata della dimensione tra 3,0 e 5,0; peso dei gruppi da 1 e da 8 ciascuno ≤ 6% del totale; mostri solo di quest'area |
 | `loot_tables` | array di id | facoltativo (M12): tabelle di `loot_tables.json` (§8b) che valgono per ogni mostro dell'area; ogni id esiste |
 | `rift_stone_chance_pct` | float | facoltativo, 0..100: probabilità della Pietra del Rift dopo ogni uccisione in quest'area (F-87, Q46); assente = `rift_stone.chance_pct` di `balance.json`. La garanzia `rift_stone.pity_kills` resta globale |
 
@@ -353,7 +358,7 @@ alberi di raccolta in cui meno di 3 nodi su 6 differiscono per l'insieme `(stat,
 | `icon` | String | obbligatorio, `res://assets/icons/monsters/…`, `.svg` o `.png`; il file deve esistere (validato come le icone degli oggetti; M6-00a) |
 | `sprite` | object | facoltativo, **riservato** (nessun uso): `{idle, attack, hit, death}` con percorsi `res://assets/…`; solo schema e validatore |
 | `hp` | int | ≥ 1 |
-| `xp` | int | ≥ 0, XP del personaggio per uccisione (F-28) |
+| `xp` | int | ≥ 0, XP del personaggio per uccisione (F-28); da M17 vale `round(monster_xp.base × monster_xp.growth^(L_m − 1))` (F-130), **generato** da uno script in `tools/` e verificato dal validatore |
 | `style` | String | `blade`, `marksmanship`, `arcana` |
 | `attack_interval_ms` | int | ≥ `combat.min_attack_interval_ms` |
 | `attack_level`, `power_level`, `defence_level` | int | 1..99 |
@@ -529,7 +534,9 @@ Un file per classe (D2). Nell'MVP solo `rift_blade.json`.
 |---|---|---|
 | `id`, `name`, `description` | String | `id` uguale al nome del file |
 | `icon` | String | obbligatorio; `res://assets/icons/classes/…`, il file deve esistere (M6-00a) |
-| `order` | int | unico |
+| `order` | int | unico; da M17 le aree sono contigue (1..10, §23) |
+| `level_min`, `level_max` | int | **da M17** (obbligatori dopo M17-04): 1..99, `level_min ≤ level_max`, ampiezza `level_max − level_min` ≤ 9; la prima area parte da 1, ogni area parte a `level_max + 1` della precedente, l'ultima finisce a 99; il livello `L_m` (F-130) di ogni mostro dei suoi gruppi sta nell'intervallo; `requirements.character` = `level_min`; il pool dei Monoliti (Z2) si calcola da qui |
+| `map_pos` | `[x, y]` | **da M17**: due float 0..1, posizione dell'area sulla mappa cliccabile; solo presentazione; a distanza minima 0,08 l'una dall'altra |
 | `weapon_kinds`, `offhand_kinds` | array di String | valori di `equip.kind` (§5); `weapon_kinds` non vuoto |
 | `setups` | array | almeno 1; `id` unico nella classe e diverso da `unarmed` (riservato, F-72); `weapon` in `weapon_kinds`; `offhand` `""` o in `offhand_kinds`; coppia (`weapon`, `offhand`) unica; `alternate` bool (default `false`, ammesso solo se `offhand` è un tipo d'arma); `modifiers` (§1, scope `global`) |
 | `traits` | array | da M6 (sotto); in M4 vuoto |
@@ -730,9 +737,12 @@ una sola `blueprint` per base; solo basi `masterwork`. I progetti per `blueprint
   Validatore: tutte numeriche, `hp_base` ≥ 1, `hp_per_level` ≥ 0, `wave_size` 1..30, `wave_thresholds` strettamente decrescente in 1..99, `crowd_threshold` ≥ 1, `skip_stone_level` in 0..99.
 - `data/combat/areas.json`: `rift_stone_chance_pct` delle Pianure sale da 0 a 0,6 (Z5, Q82).
 
-## 23. Aggiunte di M16-M18 (R-07; **segnaposto**, schema fissato da M17-01)
-- V2/F-130: tabella dell'XP per differenza di livello (in `balance.json`, chiave da definire in M17-01).
-- V3/V4: `areas.json` con aree strette (~10 livelli) e gruppi 1-8, generati con script in `tools/` (M17-04); campi di posizione sulla mappa se servono, da definire in M17-01.
-- V11: riduzione del drop degli evocati in `balance.json` (M17-06).
-- V8 (M16-07): solo i testi degli affissi in `affixes.json`; nessun campo nuovo.
-- V10: nessun cambiamento di schema.
+## 23. Aggiunte di M16-M18 (R-07; schema fissato da M17-01)
+- **V2/F-130** in `balance.json`, sotto `combat`: `xp_level {zero_gap: int 1..99, up_per_level: float > 0, up_cap: float ≥ 1}` e `monster_xp {base: int ≥ 1, growth: float ≥ 1}`; valori iniziali 9, 0,05, 1,5, 80, 1,085. Entrambe obbligatorie dopo M17-03.
+- **V1/F-129**: nessuna chiave nuova (`combat.hit_chance_min`/`hit_chance_max` già esistenti).
+- **V3/V4** in `balance.json`, sotto `combat`: `max_pack_size` 8 (vincolo 1..8) e `pack_size_weights` (array di 8 interi ≥ 0 con somma 100, indice = dimensione − 1; valori iniziali `[4, 12, 22, 26, 18, 10, 5, 3]`).
+  In `areas.json` (§8): campi `level_min`, `level_max`, `map_pos` e le regole sui gruppi; 10 aree contigue per i livelli 1-99 (tabella in `02_FORMULAS.md` §8.5). Il file si **genera** con uno script in `tools/` (M17-04): nessuna riga scritta a mano.
+  Gli id delle aree vecchie (`redrock_plains`, `whisper_wood`, `cracked_mines`, `rift_threshold`) cessano di esistere; la migrazione dello slot e dei riferimenti (Monoliti, Fratture, tabelle di drop) è di M17-04.
+- **V11**: riduzione del drop degli evocati in `balance.json` (M17-06).
+- **V8** (M16-07): solo i testi degli affissi in `affixes.json`; nessun campo nuovo.
+- **V10**: nessun cambiamento di schema.

@@ -221,7 +221,8 @@ suo `xp` con la stessa regola. Valori: tabella §8.5 (`xp = 4 × PV`, tranne le 
 320 h (319,6) nell'area giusta (la più alta consentita dal livello; offline compreso, stesso motore) e una notte offline (12 h) dal 50
 **M15 (Monoliti da Metin, M15-08)**: con i Monoliti (1-2/h per area, bottino e XP) il livello 99 si raggiunge in circa **369 ore**; banda del test di bilanciamento **250-380 ore**.
 dà al massimo +12 livelli (Q54). Con 1,0 si ottiene la regola dell'MVP.
-Esempi (mult 0,064): `plains_boar` (xp 80) → base 5; +25% → 6; gruppo di 3 `plains_boar` → 15; `redrock_raider` (200) → 12;
+**M17 (V2)**: il valore ottenuto si moltiplica per `xp_level_mult(d)` di F-130 (livello mostro − livello personaggio) con un solo arrotondamento, e il campo `xp` dei mostri deriva da F-130 (non più 4 × PV).
+Esempi (mult 0,064, `d = 0`): `plains_boar` (xp 80) → base 5; +25% → 6; gruppo di 3 `plains_boar` → 15; `redrock_raider` (200) → 12;
 Pietra con xp 240 → 15. Con mult 1,0: 80, 100, 240. Test: `tests/systems/combat/test_combat_engine.gd::test_kill_grants_character_xp`.
 
 ### F-29 Cura del cibo
@@ -692,15 +693,34 @@ pendente: se `S ≠ 0` e `level ≤ S` il Monolito è **scartato**: nessun incon
 se il suo livello è ≤ `S`. Cambiare `S` non tocca un Monolito già in combattimento.
 Esempi: `S` 10 e Monolito di livello 10 → scartato; livello 15 → combattuto; `S` 0 → mai scartato; `S` 99 → scartati tutti. Test: `tests/systems/combat/test_metin_skip.gd` (anche salvataggio e caricamento).
 
-## 5g. Precisione visibile e XP per differenza di livello (F-129, F-130; M16-M18, V1-V2) — **segnaposto**
-
-I numeri e gli esempi (= test) li fissa **M17-01**; fino ad allora nessun codice né dato li usa. Non inventare valori.
+## 5g. Precisione visibile e XP per differenza di livello (F-129, F-130; M16-M18, V1-V2; numeri fissati da M17-01)
 
 ### F-129 Precisione e probabilità di colpire (V1)
-Da definire in M17-01: formula standard di precisione contro elusione con tetto minimo e massimo (adattata, senza copiare un gioco), usata sia per la % mostrata sia per il tiro di F-23. Chiavi di `balance.json` e stat del registro da dichiarare in M17-01. Esempi e test: M17-01 / M17-03.
+La formula standard "precisione contro elusione" è **già F-23**: `hit = clamp(AR / (AR + ER), hit_chance_min, hit_chance_max)`, con AR da F-20 ed ER da F-21;
+tetti `combat.hit_chance_min = 0,05` e `combat.hit_chance_max = 0,95` (già in `balance.json`; nessuna chiave nuova, nessun cambio di bilanciamento). F-129 aggiunge solo la **presentazione**:
+la UI mostra `hit_pct = floor(100 × hit + 0,5)` (intero, arrotondato per eccesso da .5) per (a) il giocatore sul bersaglio scelto e (b) ogni nemico sul giocatore. Per un gruppo, la % del giocatore è sul nemico in
+prima posizione (il bersaglio corrente). Il tiro reale resta F-23 con il valore non arrotondato: la % mostrata e la probabilità usata dal motore sono la stessa grandezza. Nessuna stat nuova nel registro.
+Esempi (= test), mani nude: giocatore livello 1 (AR 450) contro `plains_boar` (difesa 1, bonus 0, ER 450) → hit 0,5 → **50%**; giocatore livello 10 (AR 900, F-70) contro un mostro con difesa 10 e `evasion_bonus` 20
+(ER 18 × 70 = 1.260) → 900/2.160 = 0,41667 → **42%**; mostro con attacco 10 e `accuracy_bonus` 20 (AR 1.260) contro il giocatore livello 10 (ER 900) → 1.260/2.160 = 0,58333 → **58%**; giocatore livello 50 (AR 2.900)
+contro difesa 50 con `evasion_bonus` 40 (ER 58 × 90 = 5.220) → 2.900/8.120 = 0,35714 → **36%**; 100 contro 10.000 → 0,05 → **5%** (tetto minimo); 10.000 contro 100 → **95%** (tetto massimo).
+Test (M17-03): `tests/systems/combat/test_combat_math.gd::test_hit_pct_display` (gli esempi di F-23 restano invariati). La funzione di presentazione è di sola lettura; se serve una firma nuova va chiesta al Reviewer per `05_INTERFACES.md`.
 
 ### F-130 Moltiplicatore di XP per differenza di livello (V2)
-Da definire in M17-01: moltiplicatore sull'`xp` del mostro in funzione di (livello mostro − livello personaggio): scende se il mostro è molto più basso, **zero** oltre una soglia, sale se è più alto; tabella nei dati (non nel codice). Si compone con F-28. Esempi e test: M17-01 / M17-03.
+**Livello del mostro** `L_m = max(attack_level, power_level, defence_level)` (stessa regola di `EquipmentPool.monster_level`); per un Monolito è il suo `level` (multiplo di 5). **Differenza** `d = L_m − L_char`.
+Moltiplicatore `xp_level_mult(d)` (parametri `combat.xp_level` in `balance.json`: `zero_gap = 9`, `up_per_level = 0,05`, `up_cap = 1,5`):
+- `d ≤ −zero_gap` → **0** (nessuna XP);
+- `−zero_gap < d < 0` → `1 − |d| / zero_gap` (cala linearmente);
+- `d ≥ 0` → `min(1 + d × up_per_level, up_cap)` (sale di 5% per livello, tetto +50% a `d = +10`).
+Si compone con F-28 con un solo arrotondamento: `base_xp = floor(xp × combat.kill_xp_mult × xp_level_mult(d) + 1e-9)`, poi F-71 (`skill_xp_pct` global) come oggi. Evocati: nessuna XP (Z3, invariato).
+Dentro la Frattura il moltiplicatore **non si applica** (vale 1, i mostri sono scalati da F-110/F-111).
+**XP base per livello del mostro**: `xp(L_m) = round(combat.monster_xp.base × combat.monster_xp.growth^(L_m − 1))` con `base = 80`, `growth = 1,085`. Il campo `xp` di ogni mostro in `monsters.json` si **genera** con questa formula
+(script in `tools/`, M17-04), non si scrive a mano; sostituisce la regola "xp = 4 × PV" di §8.5. Tabella: L1 → 80; L2 → 87; L10 → 167; L20 → 377; L30 → 852; L50 → 4.357; L75 → 33.488; L99 → 237.249.
+Con `kill_xp_mult = 0,064` (valore corrente; M17-04 lo ritara con `sim_combat`/`sim_progress` tenendo la banda 250-380 h di F-28) un'uccisione a `d = 0` dà: L1 → 5; L10 → 10; L50 → 278; L99 → 15.183, cioè circa 14, 22, 28 e 53 uccisioni
+per salire un livello (F-71).
+Esempi (= test), `xp` 1.000 e `kill_xp_mult` 0,064 (64 a `d = 0`): `d = 0` → **64**; `d = +5` (1,25) → **80**; `d = +10` → 1,5 → **96**; `d = +20` (tetto) → **96**; `d = −1` (0,8889) → **56**; `d = −3` (0,6667) → **42**;
+`d = −8` (0,1111) → **7**; `d = −9` → **0**; `d = −15` → **0**. Con pct +25 di `skill_xp_pct`: `d = +5` → 80 × 1,25 = **100**.
+Test (M17-03): `tests/systems/combat/test_combat_engine.gd::test_kill_xp_level_diff` e `tests/systems/combat/test_combat_math.gd::test_xp_level_mult`, `test_monster_xp_by_level`.
+Effetto sul gioco: restare in un'area di livelli molto più bassi non dà più XP (zero oltre 9 livelli sotto); le aree più alte del proprio livello premiano (fino a +50%) e sono l'incentivo a salire.
 
 ## 6. Offline
 
@@ -954,6 +974,20 @@ mostro (il più debole). Esempio (Pianure): `[plains_boar]` peso 4, `[plains_boa
 confermano con `tools/sim_combat.gd` (M5): un personaggio con il set forgiato del grado dell'area e il cibo del grado
 deve avere 0 morti in 1 ora simulata nel gruppo più facile e tenere almeno 60 uccisioni/ora nell'area.
 
+**Aree strette e gruppi 1-8 (M17-01, V3-V4; sostituiscono le 4 aree e la dimensione massima per area qui sopra, quando arriva M17-04)**: 10 aree contigue che coprono i livelli 1-99, ordinate per `order`:
+| # | Livelli (`level_min`-`level_max`) | # | Livelli |
+|---|---|---|---|
+| 1 | 1-10 | 6 | 51-60 |
+| 2 | 11-20 | 7 | 61-70 |
+| 3 | 21-30 | 8 | 71-80 |
+| 4 | 31-40 | 9 | 81-90 |
+| 5 | 41-50 | 10 | 91-99 |
+`requirements.character = level_min` dell'area. Ogni area ha almeno 4 mostri propri (nuovi, nessun mostro in due aree), con `L_m` (F-130) dentro `[level_min, level_max]`, almeno uno a `level_min ± 1` e almeno uno a `level_max ± 1`; `xp` generato da F-130.
+Il pool dei Monoliti di ogni area segue Z2 (§5f) dai suoi `level_min`/`level_max`: i multipli di 5 tra `level_min` (per eccesso a 5, almeno 5) e `level_max` (area 1: 5, 10; area 2: 15, 20; … area 10: 95).
+**Gruppi 1-8**: `combat.max_pack_size = 8`. Distribuzione obiettivo per dimensione 1..8 in `combat.pack_size_weights` = `[4, 12, 22, 26, 18, 10, 5, 3]` (percentuali sul peso totale dell'area; media 4,07: il singolo e l'ottuplo sono rari). Ogni area ha almeno un gruppo per ogni dimensione
+1..8; la somma dei pesi dei gruppi di dimensione `s` è `pack_size_weights[s−1]` (diviso come si vuole tra più gruppi della stessa dimensione, ogni gruppo ≥ 1). Regole del validatore, per ogni area: media pesata della dimensione tra 3,0 e 5,0; peso dei gruppi da 1 e da 8 ciascuno ≤ 6%.
+Un gruppo mescola solo mostri della stessa area. La difficoltà delle prime aree (0 morti/ora nel gruppo più facile, ≥ 60 uccisioni/ora) si tara sui **mostri** (PV, danno), non sulle dimensioni: lo verifica `tools/sim_combat.gd` in M17-04.
+
 ### 8.5b Tabelle di drop dell'Incisore e delle borse (M12, W6, Q58)
 Pietre, valute e materia grezza **cadono dai mostri e dai Monoliti** (non si producono più da frammenti e materiali di raccolta).
 Si definiscono in `data/combat/loot_tables.json` (`04_DATA_SCHEMA.md` §8b) e si attaccano alle aree (valgono per ogni mostro
@@ -1137,7 +1171,11 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | `combat.unarmed` | `{"style":"blade","attack_interval_ms":2400,"dmg_min":0,"dmg_max":0}` (M14: senza arma il danno è solo F-22 con `min_hit_ratio`) | F-22, F-26, F-72 |
 | `combat.{hp_base, hp_per_level}` | 50, 10 | F-27 (sostituisce `hp_per_vitality`) |
 | `combat.dual_wield.interval_mult` | 0.75 | F-73 (Q39) |
-| `combat.max_pack_size` | 6 | `01_GDD.md` §10.1, §8.5 (Q38) |
+| `combat.max_pack_size` | 6 (**8 da M17-04**) | `01_GDD.md` §10.1, §10.15, §8.5 (Q38, V4) |
+| `combat.pack_size_weights` | `[4, 12, 22, 26, 18, 10, 5, 3]` (somma 100, dimensioni 1..8; media 4,07) | §8.5 gruppi (V4, M17-01) |
+| `combat.hit_chance_min`, `combat.hit_chance_max` | 0,05, 0,95 (già presenti) | F-23, F-129 |
+| `combat.xp_level.{zero_gap, up_per_level, up_cap}` | 9, 0,05, 1,5 | F-130 (V2, M17-01) |
+| `combat.monster_xp.{base, growth}` | 80, 1,085 | F-130, generatore dei mostri (M17-04) |
 | `combat.auto_eat_tiers` | `[null, {30,60}, {40,75}, {50,90}]` | F-30 |
 | `combat.{respawn_ms, loot_bag_base_slots}` | 1500, 12 | 10.1 (attesa `BETWEEN`), F-33 |
 | `character_curve.{base, growth, linear, max_level, xp_cap}` | 70, 1.1, 8, 99, 50000000 | F-71 (Q34) |

@@ -337,7 +337,7 @@ comunque e blocca solo i nuovi ingressi); oggetto sconosciuto in un salvataggio 
 ## 10. Combattimento a gruppi
 
 ### 10.1 Struttura
-- **Aree** (4 nell'MVP), ognuna con una lista di **gruppi** pesati (`packs`, 1..`combat.max_pack_size` mostri) e un
+- **Aree** (4 nell'MVP; 10 aree strette da M17, §10.15), ognuna con una lista di **gruppi** pesati (`packs`, 1..`combat.max_pack_size` mostri) e un
   requisito di livello del personaggio. Il giocatore sceglie l'area e avvia; un **incontro** è un gruppo pescato (F-77).
   Uccisi tutti i nemici, dopo `combat.respawn_ms` (stato `BETWEEN`) parte un nuovo incontro.
 - Il combattimento occupa la corsia principale (ferma l'azione in corso e viceversa).
@@ -432,13 +432,17 @@ Un pezzo di equipaggiamento che cade (da mostro o Monolito, fuori dalla Frattura
 Equipaggiamento mostra **solo** i pezzi. Un pezzo nel Bottino non è indossabile. Con la tasca del Bottino automatico (`auto_loot`, §7) il pezzo va subito nel Deposito. Il filtro (§25) agisce **al collect**, non alla caduta (il pezzo scartato è smantellato quando viene raccolto). Nessun limite di pezzi nel Bottino e nessun `loot_lost` per Bottino pieno; la morte perde tutto il Bottino, pezzi compresi. Offline i pezzi sono messi al sicuro nell'Armeria a ogni blocco da 60 s, mentre online la morte li perde (Q83 aperta). La fonte di verità resta una (Armeria, F-100): il Bottino tiene i pezzi in attesa, la UI non copia dati.
 Nella Frattura non cambia (il sacco della Frattura tiene già i pezzi, F-116). Aperto: caselle del Bottino e del Deposito (Q80, Q81).
 
-### 10.15 Precisione, XP per livello, aree strette, gruppi 1-8 (M16-M18, V1-V4, V11; **numeri in M17-01**)
-- **Precisione visibile (V1)**: nella pagina Combattimento si mostra la % di colpire del giocatore sul bersaglio e quella dei nemici sul giocatore (formula F-129, segnaposto).
-- **XP per differenza di livello (V2)**: l'XP di un'uccisione (§10.4) è moltiplicata per un fattore che dipende da livello del mostro meno livello del personaggio: cala se il mostro è molto più basso, vale zero oltre una soglia, sale se è più alto (F-130, segnaposto; tabella nei dati).
-- **Aree strette (V3)**: ogni area copre circa 10 livelli e ha gruppi di mostri propri; la scelta dell'area è una **mappa cliccabile** (non più un menu). I Monoliti (§24b) seguono il livello massimo della nuova area (Z2).
-- **Gruppi (V4)**: 1-8 nemici (`combat.max_pack_size`); il singolo e gli 8 sono rari, la media sta in mezzo.
+### 10.15 Precisione, XP per livello, aree strette, gruppi 1-8 (M16-M18, V1-V4, V11; numeri fissati in M17-01)
+- **Precisione visibile (V1)**: nella pagina Combattimento si mostra la % di colpire del giocatore sul bersaglio e quella di ogni nemico sul giocatore, intera (F-129 = la probabilità di F-23, tetti 5% e 95%).
+- **XP per differenza di livello (V2)**: l'XP di un'uccisione (§10.4) è moltiplicata per un fattore che dipende da livello del mostro meno livello del personaggio (F-130): zero a 9 o più livelli sotto, cala fino a 1 alla pari, sale del 5% per livello
+  fino a +50% (10 livelli sopra). Il livello del mostro è il più alto dei suoi tre livelli; nella Frattura il fattore non si applica. L'XP base del mostro dipende dal suo livello (80 × 1,085^(L−1), generata, mai scritta a mano).
+- **Aree strette (V3)**: **10 aree** di circa 10 livelli (1-10, 11-20, … 81-90, 91-99), contigue e senza buchi; ognuna ha almeno 4 mostri propri e gruppi propri; si sblocca al suo livello minimo. La scelta dell'area è una **mappa cliccabile**
+  (non più un menu; ogni area ha una posizione `map_pos`). I Monoliti (§24b) seguono i livelli della nuova area (Z2): multipli di 5 tra il suo minimo e il suo massimo.
+- **Gruppi (V4)**: 1-8 nemici (`combat.max_pack_size` = 8). Distribuzione per dimensione `[4, 12, 22, 26, 18, 10, 5, 3]` %: il singolo (4%) e gli otto (3%) sono rari, la media è 4,07 (ammessa 3-5 per area).
 - **Evocati dei Monoliti (V11)**: droppano poco (riduzione in `balance.json`, valore in M17-06); restano senza XP (Z3).
 - Il drop di equipaggiamento (V5) non cambia finché M17-02 non ne misura il tasso reale.
+- **Effetti collaterali da gestire in M17**: gli id delle 4 aree vecchie spariscono (migrazione dello slot: area corrente → area nuova che contiene il livello del personaggio, M17-04); i Monoliti e le Fratture che citano le aree
+  vecchie si riallineano; il limite del validatore sui gruppi passa da 6 a 8 (`05_INTERFACES.md`, nota sul validatore, già aggiornata).
 
 ## 11. Incisore e Altare del Rift (M8; riscritta in M12, W5-W6)
 

@@ -63,7 +63,7 @@ I documenti sono già scritti con questi default (R-00).
 | Q35 | Livelli di apertura degli slot dei tratti | 1, 10, 25, 50 | F-78 |
 | Q36 | Slot delle abilità | 2, il 3° al livello 30 | F-78 |
 | Q37 | Archi e bastoni restano nei dati (non equipaggiabili) o si tolgono fino alle loro classi? | Si tolgono: oggetti e ricette tornano con le classi future | M4-02 |
-| Q38 | Dimensione dei gruppi | 1-6, più grandi nelle aree alte | §8.5, `combat.max_pack_size` |
+| Q38 | Dimensione dei gruppi | **Chiusa da V4/M17-01**: 1-8, media 4,07 (`pack_size_weights`) | §8.5, `combat.max_pack_size` |
 | Q39 | Doppia spada: moltiplicatore dell'intervallo e penalità di precisione | `combat.dual_wield.interval_mult` 0,75, precisione −10% (modificatore dell'assetto), da rivedere con `tools/sim_combat.gd` | F-73, `04_DATA_SCHEMA.md` §14 |
 | Q40 | Parata con lo scudo: cosa blocca? | Tutto il danno di un colpo; `block_chance` dello scudo 5-15% per grado, massimo 50% | F-75 |
 | Q41 | XP dei mostri | **M10 (B1): vedi Q54, `combat.kill_xp_mult`.** Default 4 × PV, **confermato da M5-06 senza cambi** (decide l'utente). Tempi stimati con `tools/sim_combat.gd` per area, per arrivare al 99 (report di M5-06): Pianure circa 10-12 min, Bosco 25-45 min, Miniere 2,5-3,5 h, Soglia 36-52 h (uccisioni/ora sull'area intera al livello medio dei mostri: 213 / 115 / 80 / 62) | F-28, `02_FORMULAS.md` §8.5, M5-06 |

@@ -1875,7 +1875,7 @@ I nomi e i testi di gioco vengono da `NOMI.md` (sezione Alpha); nulla da Melvor 
 | M15-09 | Integrazione e tag `m15-done` | REV | 08 | `run_checks.ps1` verde dopo il merge |
 
 ## M16 — Bug e ritocchi del primo giorno di alpha (R-07, fonte `docs/M16_M18.md`)
-**Stato: M16-01 DONE.** Max 2 agenti insieme. Decisioni V1-V11 in `DECISIONS_LOG.md`. M16-02 (CORE) e M16-07 (DATA) hanno file diversi; le UI (03-06) in sequenza se toccano gli stessi file.
+**Stato: M16 completata, M17-01 DONE.** Max 2 agenti insieme. Decisioni V1-V11 in `DECISIONS_LOG.md`. M16-02 (CORE) e M16-07 (DATA) hanno file diversi; le UI (03-06) in sequenza se toccano gli stessi file.
 | ID | Titolo | Ruolo | Dipende | Accettazione |
 |---|---|---|---|---|
 | M16-01 | Riportare R-07 nei documenti | REV | — | documenti coerenti con `docs/M16_M18.md`; F-129/F-130 segnaposto |
@@ -1890,10 +1890,10 @@ I nomi e i testi di gioco vengono da `NOMI.md` (sezione Alpha); nulla da Melvor 
 ## M17 — Combattimento (precisione, XP, aree strette, mappa)
 | ID | Titolo | Ruolo | Dipende | Accettazione |
 |---|---|---|---|---|
-| M17-01 | Documenti: formula precisione F-129 (V1), tabella XP per differenza di livello F-130 (V2), aree strette e gruppi 1-8 (V3, V4) | REV | M16-08 | numeri ed esempi fissati nei documenti |
+| M17-01 | Documenti: formula precisione F-129 (V1), tabella XP per differenza di livello F-130 (V2), aree strette e gruppi 1-8 (V3, V4) | REV | M16-08 | **DONE**: numeri ed esempi fissati nei documenti (`02_FORMULAS.md` F-129, F-130, §8.5; `04_DATA_SCHEMA.md` §8, §23) |
 | M17-02 | Misura del tasso di drop equip con `sim_combat` e report (V5) | QA | M16-08 | report con i numeri; la ritaratura si decide sui numeri |
-| M17-03 | Precisione e XP: codice e test | COMBAT | 01 | esempi di F-129 e F-130 = test |
-| M17-04 | Aree strette: dati generati con script, gruppi nuovi, Monoliti per area | DATA | 01 | `validate_data` verde; nessuna riga scritta a mano |
+| M17-03 | Precisione e XP: codice e test | COMBAT | 01 | esempi di F-129 e F-130 = test; chiavi `combat.xp_level`, `combat.monster_xp`, `combat.pack_size_weights`, `max_pack_size` 8 in `balance.json` e nel validatore (limite 1..8); `hit_pct` di sola presentazione; nella Frattura moltiplicatore 1 |
+| M17-04 | Aree strette: dati generati con script, gruppi nuovi, Monoliti per area | DATA | 01, 03 | `validate_data` verde; nessuna riga scritta a mano; 10 aree 1-99 (`02_FORMULAS.md` §8.5), `level_min`/`level_max`/`map_pos`, gruppi 1-8 con `pack_size_weights`, `xp` dei mostri da F-130, migrazione dello slot dalle aree vecchie, `kill_xp_mult` ritarato con la sim (banda 250-380 h) |
 | M17-05 | Mappa cliccabile e % di colpire in combattimento | UI | 03, 04 | smoke test |
 | M17-06 | Drop ridotto agli evocati (V11) | COMBAT | 01 | test; valore in `balance.json` |
 | M17-07 | Più peso visivo al combattimento (sfondo per area, mostri più grandi, effetti sui colpi) | UI | 05 | smoke test |

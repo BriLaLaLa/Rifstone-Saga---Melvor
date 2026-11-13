@@ -391,7 +391,7 @@ static func file_skill(v: DataValidatorRules, content: Dictionary, path: String,
   M4-01: regole di aree, gruppi, mostri, classi, assetti, affissi e delle chiavi di M4 di `balance.json`) sono classi
   **interne** di `DataValidator`, non API per gli altri moduli. I limiti di formato dello schema (regex degli id,
   `cost_pct` ≤ 50, `pos` 0..5, max 8 drop, `name` delle stat ≤ 40, `grade` 1..8, `min_ilvl` ≤ 99, numero di affissi
-  per rarità ≤ 6, `combat.max_pack_size` ≤ 6) sono costanti di queste classi; i limiti che dipendono dal bilanciamento
+  per rarità ≤ 6, `combat.max_pack_size` ≤ 8, da M17-03) sono costanti di queste classi; i limiti che dipendono dal bilanciamento
   si leggono dai dati (`xp_curve.max_level`, `mastery_curve.max_level`, `character_curve.max_level`,
   `action.min_interval_ms`, `combat.min_attack_interval_ms`, `combat.max_pack_size`, `max` della stat
   `damage_reduction`).

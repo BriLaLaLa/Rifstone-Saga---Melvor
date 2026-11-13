@@ -16,6 +16,10 @@ Se la sessione si interrompe, si riparte da qui.
 - Descrizioni di tratti e abilità generate da effetti, parametri e ricarica (`ui/pages/character/loadout_describe.gd`, il campo `description` dei dati non si mostra più); stat `damage_reduction` ora si chiama "Armatura" (solo testo in `stats.json`).
 - Aperto di P-01 chiuso da P-03 (`player_renamed`).
 
+## Ripartenza (M17-01 DONE, 2026-11-13)
+- **Stato**: **M17-01 DONE** (solo documenti). **F-129** = F-23 (acc/(acc+eva), tetti 0,05/0,95 già in `balance.json`) + % intera mostrata; **F-130**: `d` = livello mostro (massimo dei tre livelli) − livello personaggio; zero se `d ≤ −9`, `1 − |d|/9` sotto zero, `min(1 + 0,05 d, 1,5)` da zero in su; XP base mostro `round(80 × 1,085^(L−1))` (generata); nessun moltiplicatore nella Frattura. **10 aree** contigue 1-10 … 91-99 (`level_min`, `level_max`, `map_pos`, ≥ 4 mostri propri), Monoliti dal pool Z2 di ciascuna; **gruppi 1-8**, `max_pack_size` 8, `pack_size_weights` `[4,12,22,26,18,10,5,3]` (media 4,07). Documenti toccati: `01_GDD.md` §10.15, `02_FORMULAS.md` §5g, §8.5, tabella parametri, `04_DATA_SCHEMA.md` §8, §23, bilancio, `05_INTERFACES.md` (nota validatore), `07_TASKS.md`, `OPEN_QUESTIONS.md` (Q38 chiusa), `DECISIONS_LOG.md`. Codice e dati non toccati.
+- **Prossimo passo**: M17-02 (QA, misura drop equip) e M17-03 (COMBAT) in parallelo; poi M17-04 (DATA, migrazione dello slot dalle aree vecchie), 05, 06, 07, 08.
+
 ## Ripartenza (inizio M16, R-07 riportata, 2026-11-11)
 - **Stato**: **M16-01 DONE**: V1-V11 (`M16_M18.md`) nei documenti: `DECISIONS_LOG.md` (V1-V11 e R-07), `01_GDD.md` §10.15, §7, §22, `02_FORMULAS.md` §5g (F-129 precisione e F-130 XP per livello: **segnaposto senza numeri**, li fissa M17-01), `04_DATA_SCHEMA.md` §23, `05_INTERFACES.md` §5.26 (V10 non cambia contratti), `06_ROADMAP.md` (M16-M18; il vecchio M16+ è M19+), `07_TASKS.md` (M16-01…M18-03), `OPEN_QUESTIONS.md` Q84-Q85. Codice e dati non toccati. Hash: `git log --grep "M16-01"`.
 - **Prossimo passo**: M16-02 (CORE, bug con test prima) con M16-07 (DATA); poi UI 03-06; M16-08 (QA, REV, tag `m16-done`).
