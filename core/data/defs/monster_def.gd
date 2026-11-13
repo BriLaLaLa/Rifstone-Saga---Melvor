@@ -25,6 +25,8 @@ var gold_max: int = 0
 var rift_shard_chance: float = 0.0
 var drops: Array[DropEntry] = []
 var loot_tables: Array[StringName] = []  # M12: ids of data/combat/loot_tables.json, rolled after the drops
+var is_miniboss: bool = false  # M22 (F-139): the area miniboss, never in a pack
+var dungeon: StringName = &""  # M22: the dungeon this monster belongs to (set by DungeonDef); &"" for the monsters of the areas
 
 
 static func from_dict(d: Dictionary) -> MonsterDef:
@@ -57,6 +59,8 @@ static func read_into(def: MonsterDef, d: Dictionary, kind: String) -> MonsterDe
 	def.rift_shard_chance = r.number("rift_shard_chance")
 	if r.has("loot_tables"):
 		def.loot_tables = r.id_list("loot_tables")
+	if r.has("miniboss"):
+		def.is_miniboss = r.flag("miniboss")
 	for entry: Dictionary in r.dict_list("drops"):
 		var drop: DropEntry = DropEntry.from_dict(entry)
 		r.absorb(drop != null)

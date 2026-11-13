@@ -246,9 +246,9 @@ func _flatten_without_loot(out: Dictionary) -> void:
 	for key: String in out.keys():
 		if key.begins_with("upgrade.") or key.begins_with("salvage.") or key.begins_with("tool_upgrade.") \
 				or key.begins_with("fracture.") or key.begins_with("equipment.") or key.begins_with("combat.armor.") \
-				or key.begins_with("loot.") or key.begins_with("mastery.step.") or key.begins_with("metin.") or key.begins_with("village.") or key.begins_with("quest."):
+				or key.begins_with("loot.") or key.begins_with("mastery.step.") or key.begins_with("metin.") or key.begins_with("village.") or key.begins_with("quest.") or key.begins_with("dungeon.") or key.begins_with("miniboss."):
 			# fracture.* is covered by tests/core/data/test_map_data_validation.gd, equipment.* and combat.armor.* (M14) by
-			# tests/systems/combat/test_armor_math.gd and tests/core/data/test_weapon_validation.gd, loot.* (M14-05) by tests/data/test_loot_data.gd, metin.* (M15) by tests/data/test_metin_data.gd; mastery.step.* (M14-08) by tests/systems/mastery/test_mastery_step.gd, village.* (M19) by tests/systems/village/test_village_cost.gd, quest.* (M20) by tests/systems/quests/test_quest_formulas.gd
+			# tests/systems/combat/test_armor_math.gd and tests/core/data/test_weapon_validation.gd, loot.* (M14-05) by tests/data/test_loot_data.gd, metin.* (M15) by tests/data/test_metin_data.gd; mastery.step.* (M14-08) by tests/systems/mastery/test_mastery_step.gd, village.* (M19) by tests/systems/village/test_village_cost.gd, quest.* (M20) by tests/systems/quests/test_quest_formulas.gd, dungeon.* and miniboss.* (M22) by tests/systems/dungeon/test_dungeon_data.gd
 			out.erase(key)
 
 

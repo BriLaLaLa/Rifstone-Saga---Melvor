@@ -1,10 +1,11 @@
 class_name LegendaryInfo
 extends RefCounted
 ## The `equip.legendary` object of a legendary base (docs/04_DATA_SCHEMA.md §21, F-120): where it drops and its effects.
-## `source_type` is &"boss" or &"monolith". `from_dict` returns null (after logging, see DefReader) on a bad field.
+## `source_type` is &"boss", &"monolith" or &"dungeon". `from_dict` returns null (after logging, see DefReader) on a bad field.
 
 const SOURCE_BOSS: StringName = &"boss"
 const SOURCE_MONOLITH: StringName = &"monolith"
+const SOURCE_DUNGEON: StringName = &"dungeon"  # M22 (F-143)
 
 var source_type: StringName = &""
 var source_id: StringName = &""

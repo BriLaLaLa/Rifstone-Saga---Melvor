@@ -18,6 +18,9 @@ var loot_tables: Array[StringName] = []  # M12: ids of data/combat/loot_tables.j
 var level_min: int = 0
 var level_max: int = 0
 var map_pos: Vector2 = Vector2(-1.0, -1.0)
+## M22 (F-139): the area miniboss (a monster outside the packs, `is_miniboss`) and how many escorts come with it; &"" / 0 when absent.
+var miniboss_id: StringName = &""
+var miniboss_escorts: int = 0
 
 
 static func from_dict(d: Dictionary) -> AreaDef:
@@ -38,6 +41,11 @@ static func from_dict(d: Dictionary) -> AreaDef:
 		def.map_pos = Vector2(float((d["map_pos"] as Array)[0]), float((d["map_pos"] as Array)[1]))
 	if r.has("loot_tables"):
 		def.loot_tables = r.id_list("loot_tables")
+	if r.has("miniboss") and r.is_dict("miniboss"):  # M22 (F-139)
+		var miniboss := DefReader.new(r.dict("miniboss"), r.context() + " miniboss")
+		def.miniboss_id = miniboss.id("monster")
+		def.miniboss_escorts = miniboss.integer("escorts")
+		r.absorb(miniboss.ok)
 	for entry: Dictionary in r.dict_list("packs"):
 		var pack: PackDef = PackDef.from_dict(entry)
 		r.absorb(pack != null)

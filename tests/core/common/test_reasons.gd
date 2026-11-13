@@ -4,7 +4,7 @@ extends GutTest
 
 func test_reasons_values_match_their_names() -> void:
 	var constants: Dictionary = (Reasons as Script).get_script_constant_map()
-	assert_eq(constants.size(), 58, "closed list of docs/05_INTERFACES.md §1")
+	assert_eq(constants.size(), 67, "closed list of docs/05_INTERFACES.md §1")
 	for constant_name: String in constants:
 		var value: Variant = constants[constant_name]
 		assert_typeof(value, TYPE_STRING_NAME, constant_name)
@@ -33,3 +33,15 @@ func test_m10_reasons() -> void:
 	assert_eq(Reasons.NOT_A_TOOL, &"not_a_tool")
 	assert_eq(Reasons.INVALID_CHOICE, &"invalid_choice")
 	assert_eq(Reasons.BLUEPRINT_DONE, &"blueprint_done")
+
+
+func test_m22_reasons() -> void:
+	assert_eq(Reasons.DUNGEON_ACTIVE, &"dungeon_active")
+	assert_eq(Reasons.DUNGEON_BAG_PENDING, &"dungeon_bag_pending")
+	assert_eq(Reasons.NO_DUNGEON, &"no_dungeon")
+	assert_eq(Reasons.NOT_AWAITING, &"not_awaiting")
+	assert_eq(Reasons.NOT_FIGHTING, &"not_fighting")
+	assert_eq(Reasons.DUNGEON_PAUSED, &"dungeon_paused")
+	assert_eq(Reasons.NOT_PAUSED, &"not_paused")
+	assert_eq(Reasons.DUNGEON_WON, &"dungeon_won")
+	assert_eq(Reasons.DUNGEON_FLED, &"dungeon_fled")

@@ -101,3 +101,16 @@ signal fracture_bag_changed(stacks: int, pieces: int, cards: int)
 signal fracture_loot_lost(stacks: int, pieces: int, cards: int)
 signal card_changed(uid: int, change: StringName)  # change: added, removed, updated
 signal card_rejected(grade: int)  # Deposit full
+
+# Dungeon (M22, docs/05_INTERFACES.md §3, §5.29)
+signal dungeon_opened(dungeon_id: StringName)  # the ticket is consumed and the run starts
+signal dungeon_room_entered(layer: int, kind: StringName)  # kind = the type of the room entered
+signal dungeon_choice_ready(kind: StringName, count: int)  # kind: &"fork" or &"event"; count = options (2-4)
+signal dungeon_room_cleared(layer: int, kind: StringName)  # emitted by the combat engine, at the end of the instant
+signal dungeon_stage_started(stage: int, monster_id: StringName)  # stage 1..3 of the boss, after its intro
+signal dungeon_stage_cleared(stage: int)
+signal dungeon_trap_triggered(trap_kind: StringName, hp_lost: int)  # "Attraversa di corsa" (F-140)
+signal dungeon_paused_changed(paused: bool)  # resume() (false) or a run loaded from the save (true)
+signal dungeon_finished(outcome: StringName, rooms: int, pieces: int)  # outcome: won, died, fled, left
+signal dungeon_bag_changed(stacks: int, pieces: int, cards: int)
+signal dungeon_loot_lost(stacks: int, pieces: int, cards: int)  # death or flight: the bag is lost

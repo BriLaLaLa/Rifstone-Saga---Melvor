@@ -60,6 +60,7 @@ var _maps: MapIndex = MapIndex.new()  # M13
 var _village: VillageIndex = VillageIndex.new()  # M19
 var _quests: Dictionary[StringName, QuestDef] = {}  # M20
 var _quest_list: Array[QuestDef] = []
+var _dungeons: DungeonIndex = DungeonIndex.new()  # M22
 var _blueprint_list: Array[ItemDef] = []
 var _blueprint_by_base: Dictionary[StringName, ItemDef] = {}
 var _unique_tools: Dictionary[StringName, ItemDef] = {}  # slot -> unique tool (M10)
@@ -76,6 +77,7 @@ static func load_from_dirs(content_root: String = "res://data", config_root: Str
 		raw[section] = DataBuildUtil.read_files(JsonLoader.list_json_files(content_root.path_join(CONTENT_DIRS[section]),
 				data.errors), data.errors)
 	raw["guide"] = DataBuildUtil.read_files(DataValidatorGuide.list_files(content_root, data.errors), data.errors)  # M11, optional
+	raw["dungeons"] = DataBuildUtil.read_files(DungeonIndex.list_files(content_root, data.errors), data.errors)  # M22, optional until M22-03
 	DataValidator.validate(raw, data.errors)
 	if data.errors.is_empty():
 		data._build(raw)
@@ -235,6 +237,12 @@ func village_buildings() -> Array[VillageBuildingDef]: return _village.list.dupl
 func quest(id: StringName) -> QuestDef: return _find(_quests, id, "quest") as QuestDef
 func quests() -> Array[QuestDef]: return _quest_list.duplicate()
 
+## M22 (docs/04_DATA_SCHEMA.md §27): a dungeon by id (null and an error if unknown); all of them, by `order`; the dungeon a
+## ticket item opens (null, without error, for any other item).
+func dungeon(id: StringName) -> DungeonDef: return _find(_dungeons.by_id, id, "dungeon") as DungeonDef
+func dungeons() -> Array[DungeonDef]: return _dungeons.list.duplicate()
+func dungeon_for_ticket(item_id: StringName) -> DungeonDef: return _dungeons.by_ticket.get(item_id) as DungeonDef
+
 func hint(id: StringName) -> HintDef: return _find(_hints, id, "hint") as HintDef
 
 ## Every hint, in file order.
@@ -330,6 +338,7 @@ func _build(raw: Dictionary) -> void:
 	_loot.build(raw["loot_tables"] as Dictionary, errors)
 	_maps.build(_item_list, raw["map_mods"] as Dictionary, raw["bosses"] as Dictionary, _balance, errors)
 	_village.build(raw["village"] as Dictionary, errors)
+	_dungeons.build(raw.get("dungeons", {}) as Dictionary, _monsters, errors)
 	for path: String in raw["quests"]:
 		for d: Dictionary in DataBuildUtil.list(raw["quests"][path], "quests"):
 			_add(QuestDef.from_dict(d), _quests, _quest_list, path, "quest", d)
@@ -362,6 +371,7 @@ func _clear() -> void:
 	_loot.clear()
 	_maps.clear()
 	_village.clear()
+	_dungeons.clear()
 	for list: Array in [_item_list, _skill_list, _action_list, _node_list, _area_list, _shop_list, _class_list,
 			_affix_list, _hint_list, _blueprint_list, _quest_list]:
 		list.clear()

@@ -84,6 +84,17 @@ const EXPECTED: Dictionary = {
 	"fracture_loot_lost": [["stacks", I, ""], ["pieces", I, ""], ["cards", I, ""]],
 	"card_changed": [["uid", I, ""], ["change", SN, ""]],
 	"card_rejected": [["grade", I, ""]],
+	"dungeon_opened": [["dungeon_id", SN, ""]],
+	"dungeon_room_entered": [["layer", I, ""], ["kind", SN, ""]],
+	"dungeon_choice_ready": [["kind", SN, ""], ["count", I, ""]],
+	"dungeon_room_cleared": [["layer", I, ""], ["kind", SN, ""]],
+	"dungeon_stage_started": [["stage", I, ""], ["monster_id", SN, ""]],
+	"dungeon_stage_cleared": [["stage", I, ""]],
+	"dungeon_trap_triggered": [["trap_kind", SN, ""], ["hp_lost", I, ""]],
+	"dungeon_paused_changed": [["paused", B, ""]],
+	"dungeon_finished": [["outcome", SN, ""], ["rooms", I, ""], ["pieces", I, ""]],
+	"dungeon_bag_changed": [["stacks", I, ""], ["pieces", I, ""], ["cards", I, ""]],
+	"dungeon_loot_lost": [["stacks", I, ""], ["pieces", I, ""], ["cards", I, ""]],
 }
 
 const REMOVED_SIGNALS: PackedStringArray = ["fracture_closed"]  # the timed Fracture is gone (R-04)

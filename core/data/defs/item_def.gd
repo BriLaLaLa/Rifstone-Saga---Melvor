@@ -29,6 +29,7 @@ var contract_grade: StringName = &""  # M12: `contract.grade` (an id of helper.g
 var infusion_grade: int = 1  # M12: `infusion.grade` 1..5 (F-107), 1 when absent
 var infusion_family: StringName = &""  # M12: `infusion.family` (the id of the grade I rune); the own id when absent
 var map_grade: int = 0  # M13: `map.grade` 1..10 of a category `map` item (a Fracture Card base); 0 otherwise
+var dungeon: StringName = &""  # M22: the dungeon a `misc` ticket opens (docs/04_DATA_SCHEMA.md §27); &"" for any other item
 
 
 static func from_dict(d: Dictionary) -> ItemDef:
@@ -42,6 +43,8 @@ static func from_dict(d: Dictionary) -> ItemDef:
 	def.icon = r.text("icon")
 	def.value = r.integer("value")
 	def.sort_order = r.integer("sort_order")
+	if r.has("dungeon"):
+		def.dungeon = r.id("dungeon")
 	if r.has("equip") and r.is_dict("equip"):
 		def.equip = EquipInfo.from_dict(r.dict("equip"))
 		r.absorb(def.equip != null)
