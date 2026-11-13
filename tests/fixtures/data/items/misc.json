@@ -2,6 +2,9 @@
   "items": [
     {"id": "rift_shard", "name": "Frammento del Rift", "category": "misc",
      "icon": "res://assets/icons/items/rift_shard.png", "value": 0, "sort_order": 10,
-     "description": "Una scheggia di Rift ancora calda."}
+     "description": "Una scheggia di Rift ancora calda."},
+    {"id": "test_den_ticket", "name": "Biglietto del Covo di prova", "category": "misc",
+     "icon": "res://assets/icons/items/rift_shard.png", "value": 0, "sort_order": 11, "dungeon": "test_den",
+     "description": "Apre il Covo di prova."}
   ]
 }

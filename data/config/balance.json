@@ -321,6 +321,8 @@
       {"areas": ["rift_heart"], "level_bonus": 4, "hp_mult": 2.95, "damage_mult": 1.35, "reward_mult": 22.5, "piece_grade": 8, "recommended_level": 99}
     ]
   },
+  "dungeon": {"direction_bands": [-0.55, -0.30, -0.10, 0.10, 0.30, 0.55]},
+  "miniboss": {"chance_pct": 1.5, "hp_mult": 4.0, "power_mult": 1.5, "xp_mult": 4.0, "gold_mult": 4.0, "escorts": 2},
   "offline": {
     "cap_ms": 43200000,
     "min_ms": 60000,

@@ -3,7 +3,7 @@ extends RefCounted
 ## Part of DataValidator (internal, not API for other modules): the `equip.masterwork` and `equip.legendary` rules of M14
 ## (docs/04_DATA_SCHEMA.md §21, F-119, F-120). The effects of F-81 are delegated to DataValidatorTraits.
 
-const SOURCE_TYPES: PackedStringArray = ["boss", "monolith"]
+const SOURCE_TYPES: PackedStringArray = ["boss", "monolith", "dungeon"]
 const GATHER_TYPES: PackedStringArray = ["gather_bonus_item", "gather_grade_up_pct", "byproduct_mult"]
 const RING_NECK_TYPES: PackedStringArray = ["monolith_loot_mult", "card_drop_mult"]
 const F120_TYPES: PackedStringArray = ["block_heal_pct", "kill_heal_pct", "armor_pierce_pct", "hit_cap_pct",
@@ -112,11 +112,16 @@ static func _convert_stats(v: DataValidatorRules, effect: Dictionary, prefix: St
 
 
 ## Constraints across items, after every item passed its own rules: each legendary source exists (a boss of
-## `bosses.json`, a Monolith of `rift_stones.json`), a boss has at most 5 legendaries, every Masterwork base has its
+## `bosses.json`, a Monolith of `rift_stones.json`, a dungeon of `data/dungeons/`), a boss has at most 5 legendaries, every Masterwork base has its
 ## blueprint.
 static func validate_sources(v: DataValidatorRules, items: Dictionary[String, Dictionary],
-		bosses: Dictionary[String, Dictionary], stones: Dictionary[String, Dictionary]) -> void:
+		bosses: Dictionary[String, Dictionary], stones: Dictionary[String, Dictionary],
+		dungeons: Dictionary[String, Dictionary] = {}) -> void:
 	var boss_ids: Dictionary[String, bool] = _ids(bosses, "bosses")
+	var dungeon_ids: Dictionary[String, bool] = {}
+	for dungeon_path: String in dungeons:  # M22: a dungeon source is the id of a dungeon file
+		if dungeons[dungeon_path].get("id") is String:
+			dungeon_ids[dungeons[dungeon_path]["id"] as String] = true
 	var stone_ids: Dictionary[String, bool] = _ids(stones, "rift_stones", "area")  # M15: a Monolith source is an area id
 	var per_boss: Dictionary[String, int] = {}
 	var blueprint_bases: Dictionary[String, bool] = {}
@@ -139,7 +144,7 @@ static func validate_sources(v: DataValidatorRules, items: Dictionary[String, Di
 				masterworks.append((e as Dictionary)["id"] as String)
 			var legendary: Variant = (equip as Dictionary).get("legendary")
 			if legendary is Dictionary and (legendary as Dictionary).get("source") is Dictionary:
-				_check_source(v, (legendary as Dictionary)["source"] as Dictionary, boss_ids, stone_ids, per_boss)
+				_check_source(v, (legendary as Dictionary)["source"] as Dictionary, boss_ids, stone_ids, dungeon_ids, per_boss)
 	for boss: String in per_boss:
 		if per_boss[boss] > BOSS_LEGENDARIES_MAX:
 			v.fail("boss '%s' has %d legendaries, at most %d" % [boss, per_boss[boss], BOSS_LEGENDARIES_MAX])
@@ -149,7 +154,7 @@ static func validate_sources(v: DataValidatorRules, items: Dictionary[String, Di
 
 
 static func _check_source(v: DataValidatorRules, source: Dictionary, boss_ids: Dictionary[String, bool],
-		stone_ids: Dictionary[String, bool], per_boss: Dictionary[String, int]) -> void:
+		stone_ids: Dictionary[String, bool], dungeon_ids: Dictionary[String, bool], per_boss: Dictionary[String, int]) -> void:
 	if not (source.get("type") is String and source.get("id") is String):
 		return
 	var id: String = source["id"] as String
@@ -159,6 +164,8 @@ static func _check_source(v: DataValidatorRules, source: Dictionary, boss_ids: D
 			v.fail("field 'equip.legendary.source.id': unknown boss '%s'" % id)
 	elif source["type"] == "monolith" and not stone_ids.has(id):
 		v.fail("field 'equip.legendary.source.id': unknown Monolith '%s'" % id)
+	elif source["type"] == "dungeon" and not dungeon_ids.has(id):
+		v.fail("field 'equip.legendary.source.id': unknown dungeon '%s'" % id)
 
 
 static func _ids(files: Dictionary[String, Dictionary], key: String, id_field: String = "id") -> Dictionary[String, bool]:

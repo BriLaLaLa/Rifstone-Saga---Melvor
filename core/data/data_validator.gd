@@ -111,10 +111,11 @@ static func validate(raw: Dictionary, errors: PackedStringArray) -> void:
 	DataValidatorFracture.validate_areas(v, _files(raw, "balance"), _files(raw, "areas"))
 	DataValidatorMaps.validate_mods(v, _files(raw, "map_mods"))
 	DataValidatorMaps.validate_bosses(v, _files(raw, "bosses"))
-	DataValidatorLegendary.validate_sources(v, _files(raw, "items"), _files(raw, "bosses"), _files(raw, "rift_stones"))
+	DataValidatorDungeon.validate(v, raw)
+	DataValidatorLegendary.validate_sources(v, _files(raw, "items"), _files(raw, "bosses"), _files(raw, "rift_stones"), _files(raw, "dungeons"))
 	DataValidatorMaps.validate_card_set(v, _files(raw, "items"))
 	DataValidatorLootTables.validate(v, _files(raw, "loot_tables"), [[_files(raw, "areas"), "areas", "area"],
-			[_files(raw, "monsters"), "monsters", "monster"], [_files(raw, "rift_stones"), "rift_stones", "rift stone"],
+			[_files(raw, "monsters"), "monsters", "monster"], [DataValidatorDungeon.monster_files(raw), "monsters", "monster"], [_files(raw, "rift_stones"), "rift_stones", "rift stone"],
 			[_files(raw, "bosses"), "bosses", "boss"]])
 	DataValidatorHints.validate(v, _files(raw, "hints"))
 	DataValidatorGuide.validate(v, raw)
@@ -230,6 +231,7 @@ static func _validate_balance(v: DataValidatorRules, files: Dictionary[String, D
 		DataValidatorMetin.validate_balance(v, balance)
 		DataValidatorVillage.validate_balance(v, balance)
 		DataValidatorQuests.validate_balance(v, balance)
+		DataValidatorDungeon.validate_balance(v, balance)
 
 
 static func _balance_value(v: DataValidatorRules, key: String, value: Variant) -> void:
@@ -258,7 +260,7 @@ static func _unknown_balance_keys(v: DataValidatorRules, node: Dictionary, prefi
 		if str(key) == DataValidatorRules.DOC_KEY or path in REQUIRED_BALANCE_KEYS \
 				or path in DataValidatorM10Balance.M10_REQUIRED_KEYS or path in DataValidatorM10Balance.LEGACY_KEYS \
 				or DataValidatorFracture.is_known_key(path) or DataValidatorM14.is_known_key(path) \
-				or DataValidatorMetin.is_known_key(path) or DataValidatorVillage.is_known_key(path) or DataValidatorQuests.is_known_key(path):
+				or DataValidatorMetin.is_known_key(path) or DataValidatorVillage.is_known_key(path) or DataValidatorQuests.is_known_key(path) or DataValidatorDungeon.is_known_key(path):
 			continue
 		var is_prefix: bool = false
 		for required: String in REQUIRED_BALANCE_KEYS:
