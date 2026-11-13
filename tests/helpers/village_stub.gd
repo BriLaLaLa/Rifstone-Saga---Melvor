@@ -6,8 +6,8 @@ extends RefCounted
 ## It also answers `village_building(id)` like `GameData`.
 
 const MAX_LEVEL: int = 2
-const BUILDABLE: Array[StringName] = [&"storehouse", &"inn", &"forge", &"sawmill", &"loot_shed"]
-const PLACEHOLDERS: Array[StringName] = [&"market", &"noticeboard"]
+const BUILDABLE: Array[StringName] = [&"storehouse", &"inn", &"forge", &"sawmill", &"loot_shed", &"market", &"noticeboard"]
+const PLACEHOLDERS: Array[StringName] = []
 const PER_LEVEL: float = 4.0
 const GOLD_PER_LEVEL: int = 100
 
@@ -40,6 +40,10 @@ func village_building(building_id: StringName) -> StubDef:
 	def.name = "Edificio %s" % building_id
 	def.description = "Descrizione di prova."
 	def.buildable = BUILDABLE.has(building_id)
+	if building_id == &"market":
+		def.effect_stat = &""
+	elif building_id == &"noticeboard":
+		def.effect_stat = &"quest_slots"
 	return def
 
 

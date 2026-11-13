@@ -74,8 +74,9 @@ func refresh(village: Object, session: GameSession) -> void:
 	var max_level: int = village.max_level()
 	var maxed: bool = level >= max_level
 	_level_label.text = VillageTexts.LEVEL_TEXT % [level, max_level]
+	var fixed: bool = _def.get("effect_stat") == &""
 	_now_label.text = VillageTexts.EFFECT_NOW_TEXT % _effect_text(village.effect_at(building_id, level), session)
-	_next_label.visible = not maxed
+	_next_label.visible = not maxed and not fixed
 	_next_label.text = VillageTexts.EFFECT_NEXT_TEXT % _effect_text(
 			village.effect_at(building_id, level + 1), session)
 	_maxed_label.visible = maxed
@@ -97,6 +98,8 @@ func refresh(village: Object, session: GameSession) -> void:
 
 func _effect_text(value: float, session: GameSession) -> String:
 	var stat: StringName = _def.get("effect_stat")
+	if stat == &"":
+		return VillageTexts.FIXED_EFFECT_TEXT
 	if not session.data.stats.has(stat):
 		return NumberFormat.format_number(value)
 	var info: Dictionary = session.data.stats.info(stat)

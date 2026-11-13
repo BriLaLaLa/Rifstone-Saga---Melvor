@@ -152,3 +152,22 @@ func test_every_real_shop_entry_has_a_vendor() -> void:
 	var shop: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/shop/shop.json"))
 	for entry: Dictionary in shop["entries"]:
 		assert_true(DataValidatorItems.SHOP_VENDORS.has(str(entry["vendor"])), str(entry["id"]))
+
+
+func test_market_stall_and_village_requirement_text() -> void:
+	var real: GameSession = TestFactory.session_no_kit(7, TestFactory.real_data())
+	add_child_autofree(real)
+	var page: ShopPage = SCENE.instantiate()
+	add_child_autofree(page)
+	page.bind(real)
+	assert_not_null(page.find_child("Section_mercato", true, false), "Market stall always listed")
+	var required: Dictionary = {&"storehouse": 1}
+	var missing: Array[String] = page.missing_village(required)
+	assert_eq(missing.size(), 1, "level 0 does not satisfy the requirement")
+	assert_true(missing[0].contains("1"))
+	real.wallet.add_gold(300)
+	TestFactory.give(real, &"redbirch_shieldcore", 20)
+	TestFactory.give(real, &"emberbronze_plate", 4)
+	assert_true(real.village.upgrade(&"storehouse").ok)
+	assert_true(page.missing_village(required).is_empty(), "satisfied requirement shows nothing")
+	page.unbind()

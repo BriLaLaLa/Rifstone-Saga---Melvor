@@ -11,6 +11,8 @@ const MAXED_TEXT: String = "Livello massimo"
 const LEVEL_TEXT: String = "Livello %s/%s"
 const EFFECT_NOW_TEXT: String = "Ora: %s"
 const EFFECT_NEXT_TEXT: String = "Prossimo livello: %s"
+## Buildings without a stat (the Market): the effect is this fixed line (docs/05_INTERFACES.md §7.s).
+const FIXED_EFFECT_TEXT: String = "Sblocca nuove bancarelle"
 const EFFECT_LINE_TEXT: String = "%s %s"
 const COST_TITLE_TEXT: String = "Costo"
 const COST_GOLD_TEXT: String = "Oro: %s / %s"
