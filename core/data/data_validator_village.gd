@@ -9,12 +9,14 @@ const METALS: PackedStringArray = ["emberbronze", "ashlead", "stormzinc", "duskc
 const FISH: PackedStringArray = ["brookfin", "ashgill", "redscale", "dusk_eel", "shard_gar", "mist_barbel", "ember_sturgeon", "riftmaw"]
 const COMPONENTS: PackedStringArray = ["grip", "handle", "shieldcore"]
 const QTY_KINDS: PackedStringArray = ["wood", "plate", "food"]
-const BUILDING_FIELDS: PackedStringArray = ["id", "name", "description", "icon", "order", "buildable", "milestone", "unlocks_shop",
+const BUILDING_FIELDS: PackedStringArray = ["id", "name", "description", "icon", "order", "buildable", "map_pos", "page", "milestone", "unlocks_shop",
 	"effect", "cost_spec", "levels"]
 const SPEC_FIELDS: PackedStringArray = ["wood", "plate", "food", "gold_weight"]
 const LEVEL_FIELDS: PackedStringArray = ["level", "requires_woodwright", "gold", "items", "effect_value"]
 const FORBIDDEN_CATEGORIES: PackedStringArray = ["equipment", "tool", "map"]  # they live in the Armory, not in the Deposit
 const WEIGHT_EPSILON: float = 0.000001
+const MAP_GAP_X: float = 0.22  # M21 (§26): two nodes need |dx| >= MAP_GAP_X or |dy| >= MAP_GAP_Y
+const MAP_GAP_Y: float = 0.16
 
 
 ## True for the `village` section of balance.json (its fields are checked by `validate_balance`).
@@ -77,6 +79,8 @@ static func validate(v: DataValidatorRules, files: Dictionary[String, Dictionary
 	var seen: Dictionary[StringName, bool] = {}
 	var orders: Dictionary[int, bool] = {}
 	var effect_keys: Dictionary[String, bool] = {}
+	var positions: Array[Vector2] = []
+	var position_ids: Array[String] = []
 	for path: String in files:
 		v.at_file(path)
 		var list: Array[Dictionary] = DataValidator.entries(v, files[path], "buildings")
@@ -84,9 +88,12 @@ static func validate(v: DataValidatorRules, files: Dictionary[String, Dictionary
 			var e: Dictionary = list[index]
 			v.entry("building", index, e, seen, BUILDING_FIELDS, orders)
 			v.text(e, "icon")
+			_map_pos(v, e, positions, position_ids)
 			if DataValidatorRules.is_int(e.get("order")) and float(e["order"]) < 1.0:
 				v.fail("field 'order' must be >= 1")
-			if not v.flag(e, "buildable"):
+			var buildable_ok: bool = v.flag(e, "buildable")
+			_page(v, e, buildable_ok and e["buildable"] as bool)
+			if not buildable_ok:
 				continue
 			if e["buildable"] as bool:
 				_buildable(v, e, params, effect_keys)
@@ -253,3 +260,32 @@ static func shop_unlockers(files: Dictionary[String, Dictionary], balance_files:
 					and (e as Dictionary).get("id") is String:
 				found[(e as Dictionary)["id"] as String] = max_level
 	return found
+
+
+# M21 (§26): `map_pos` is two numbers in 0..1 and no two buildings overlap on the map.
+static func _map_pos(v: DataValidatorRules, e: Dictionary, positions: Array[Vector2], ids: Array[String]) -> void:
+	var pos: Variant = e.get("map_pos")
+	if not pos is Array or (pos as Array).size() != 2 or not DataValidatorRules.is_number((pos as Array)[0]) \
+			or not DataValidatorRules.is_number((pos as Array)[1]) \
+			or float((pos as Array)[0]) < 0.0 or float((pos as Array)[0]) > 1.0 \
+			or float((pos as Array)[1]) < 0.0 or float((pos as Array)[1]) > 1.0:
+		v.fail("field 'map_pos' must be [x, y], two numbers in 0..1")
+		return
+	var point := Vector2(float((pos as Array)[0]), float((pos as Array)[1]))
+	for i: int in positions.size():
+		if absf(positions[i].x - point.x) < MAP_GAP_X and absf(positions[i].y - point.y) < MAP_GAP_Y:
+			v.fail("field 'map_pos': overlaps the building '%s' (needs |dx| >= %s or |dy| >= %s)" % [ids[i], MAP_GAP_X, MAP_GAP_Y])
+	positions.append(point)
+	ids.append(str(e.get("id", "")))
+
+
+# M21 (§26): `page` is optional, an id, and only for a buildable building.
+static func _page(v: DataValidatorRules, e: Dictionary, buildable: bool) -> void:
+	if not e.has("page"):
+		return
+	if not v.text(e, "page"):
+		return
+	if RegEx.create_from_string(DataValidatorRules.ID_PATTERN).search(e["page"] as String) == null:
+		v.fail("field 'page' '%s' does not match %s" % [e["page"], DataValidatorRules.ID_PATTERN])
+	if not buildable:
+		v.fail("field 'page' is not allowed on a placeholder (buildable false)")

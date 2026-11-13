@@ -14,6 +14,8 @@ var icon: String = ""
 var order: int = 0
 var buildable: bool = false
 var milestone: int = 0
+var map_pos: Vector2 = Vector2.ZERO  # M21: node position on the village map, 0..1 (presentation only)
+var page: StringName = &""  # M21: page id of the Open button (`noticeboard`, `shop`); empty if none
 var unlocks_shop: bool = false  # M20: the level opens shop entries (`requires.village`); no modifier effect
 var effect_stat: StringName = &""
 var effect_scope: String = "global"
@@ -31,6 +33,13 @@ static func from_dict(d: Dictionary) -> VillageBuildingDef:
 	def.icon = r.text("icon")
 	def.order = r.integer("order")
 	def.buildable = r.flag("buildable")
+	var pos: Variant = d.get("map_pos")
+	if pos is Array and (pos as Array).size() == 2 and (pos[0] is float or pos[0] is int) and (pos[1] is float or pos[1] is int):
+		def.map_pos = Vector2(float(pos[0]), float(pos[1]))
+	else:
+		r.fail("field 'map_pos' must be [x, y]")
+	if r.has("page"):
+		def.page = r.id("page")
 	if r.has("milestone"):
 		def.milestone = r.integer("milestone")
 	if r.has("unlocks_shop"):
