@@ -1,0 +1,11 @@
+{
+  "pages": [
+    {"id": "guide_village", "section": "first_steps", "title": "Villaggio", "order": 4,
+     "help_for": ["village"],
+     "blocks": [
+       {"type": "text", "text": "Il Villaggio si migliora con materiali dei mestieri e oro. Ogni edificio ha dei livelli e dà un bonus permanente, che cresce in modo lineare: il Magazzino aggiunge caselle al Deposito, la Locanda cura di più col cibo, la Fucina e la Segheria velocizzano il Fabbro e il Falegname, la Rimessa del bottino allarga la borsa del bottino."},
+       {"type": "text", "text": "Alcuni edifici sono ancora in arrivo. Per costruire serve un livello minimo di Falegname: se manca qualcosa, il pulsante mostra il motivo."},
+       {"type": "links", "targets": ["page:guide_deposit", "page:guide_bank_shop"]}
+     ]}
+  ]
+}
