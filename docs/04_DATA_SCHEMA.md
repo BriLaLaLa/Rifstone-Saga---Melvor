@@ -827,7 +827,7 @@ Cartella nuova `data/dungeons/` con **un file per dungeon** (`monkey_den.json`; 
 (mostri, stadi, tabella del loot, premi); i numeri di taratura (`map`, `rooms`, premi) stanno come costanti nello script (come `gen_areas.gd`) e finiscono nel JSON, che è la fonte che il codice legge. Il validatore è `DataValidatorDungeon` (`core/data/data_validator_dungeon.gd`).
 ```json
 {"id": "monkey_den", "name": "Covo delle Scimmie", "description": "…", "icon": "res://assets/icons/ui/dungeon.svg", "order": 1,
- "requirements": {"character": 35}, "recommended_level": 45, "ticket": "dungeon_ticket_monkey_den",
+ "requirements": {"character": 40}, "recommended_level": 45, "ticket": "dungeon_ticket_monkey_den",
  "map": {"forks": 5, "width_weights": [3, 4, 3], "exit_weights": [5, 3, 2], "hint_pct": 45},
  "monsters": [{"id": "monkey_grunt", "name": "Scimmia predona", "icon": "…", "description": "…", "level": 44, "hp": 0, "style": "blade", "attack_interval_ms": 0, "...": "campi dei mostri di §8"}],
  "rooms": {

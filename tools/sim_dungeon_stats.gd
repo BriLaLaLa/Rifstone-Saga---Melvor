@@ -4,9 +4,9 @@ extends RefCounted
 const DUNGEON_ID: StringName = &"monkey_den"
 const HOUR_MS: int = 3_600_000
 const RECOMMENDED: int = 45
-## Win rate by character level (policy random). Calibrated on the engine (M22-07): the heroes of level 35 and 40 meet a cliff
-## (the grade of the set jumps), so their bands are low; see F-144.
-const WIN_BANDS: Dictionary = {35: [0.0, 0.10], 40: [0.10, 0.40], 45: [0.85, 0.97], 55: [0.98, 1.0]}
+## Win rate by character level (policy random). Calibrated on the engine (M22-07): the hero of level 40 (the minimum) meets a cliff
+## (the grade of the set jumps), so its band is low; see F-144.
+const WIN_BANDS: Dictionary = {40: [0.10, 0.40], 45: [0.85, 0.97], 55: [0.98, 1.0]}
 ## Food of the hero with the tier-1 rations: mean pieces per run (measured 33-45, see F-144).
 const FOOD_MEAN_MAX: int = 55
 ## Gross hp lost per room (% of the max hp of a level-45 hero with tier-1 rations): ceilings, F-144.

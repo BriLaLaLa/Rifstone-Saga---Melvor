@@ -43,7 +43,7 @@ const MONSTERS: Array = [
 		"Il Re del Covo: siede su un trono di radici e ogni scimmia gli deve un ruggito."],
 ]
 
-const REQUIRES_CHARACTER: int = 35
+const REQUIRES_CHARACTER: int = 40
 const RECOMMENDED_LEVEL: int = 45
 ## F-137: the parameters of the hidden map.
 const MAP: Dictionary = {"forks": 5, "width_weights": [3, 4, 3], "exit_weights": [5, 3, 2], "hint_pct": 45}

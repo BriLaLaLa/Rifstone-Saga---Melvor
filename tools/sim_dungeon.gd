@@ -5,7 +5,7 @@ extends SceneTree
 ## It does not use OfflineSimulator: offline the run is frozen (F-144 rule 2).
 ##
 ## Usage: godot --headless --path . -s tools/sim_dungeon.gd [-- key=value ...]
-##   level=all|<n>       character level(s): all = 35,40,45,55 (default all)
+##   level=all|<n>       character level(s): all = 40,45,55 (default all)
 ##   runs=<n>            runs per level and policy (default 200; F-144 asks 500 for the published table)
 ##   policy=random|cautious|both   how the exits are chosen (default random; the thresholds apply to random)
 ##   seed=<n>            session seed (default 1)
@@ -20,7 +20,7 @@ const COMBAT_TOOL: String = "res://tools/sim_combat.gd"
 const CONFIG_ROOT: String = "res://data/config"
 const DUNGEON_ID: StringName = &"monkey_den"
 const TICKET: StringName = &"dungeon_ticket_monkey_den"
-const LEVELS: Array[int] = [35, 40, 45, 55]
+const LEVELS: Array[int] = [40, 45, 55]
 const HOUR_MS: int = 3_600_000
 const RUN_CAP_MS: int = 3_600_000
 const DEFAULTS: Dictionary = {

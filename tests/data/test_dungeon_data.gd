@@ -27,7 +27,7 @@ func test_real_data_is_valid_and_the_den_loads() -> void:
 	assert_true(_data.is_valid(), str(_data.errors))
 	var den: DungeonDef = _data.dungeon(&"monkey_den")
 	assert_not_null(den)
-	_eq(den.req_character, 35)
+	_eq(den.req_character, 40)
 	_eq(den.recommended_level, 45)
 	_eq(den.ticket, TICKET)
 	_eq(_data.dungeon_for_ticket(TICKET), den)

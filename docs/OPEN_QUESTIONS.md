@@ -153,6 +153,7 @@ I documenti sono già scritti con questi default. I numeri non presenti nella fo
 | Q93 | Offline con la run attiva: congelata, oppure la run prosegue fino alla prossima scelta (e si ferma lì)? | **Congelata**: nessun progresso, nessuna morte; semplice da spiegare e senza perdite a giocatore assente. L'alternativa "fino alla prossima scelta" è più idle ma può far morire il giocatore offline | M22 | utente |
 | Q94 | "Esci dal Covo" ai bivi: costo? | Nessuno oltre alla rinuncia al boss (si tiene la borsa); "Fuggi" in combattimento perde la borsa. Rivedere se il Biglietto va rimborsato o se uscire è troppo comodo (sim: frequenza di uscite) | M22 | utente |
 | Q95 | Miniboss anche nelle Fratture e nei Monoliti, e Biglietti di altri dungeon dagli stessi miniboss? | No: un miniboss di area per area, un solo tipo di Biglietto per ora (M23+ con altri dungeon) | M22 | utente |
+| Q96 | Il Covo richiede il livello 40 (era 35) perché la curva delle vittorie è un gradino di un grado di equipaggiamento: va bene un minimo a 30% di vittorie (soglie F-144: 40 → 10-40%, 45 → 85-97%)? Oppure un Covo più dolce (PV dei mostri più bassi) con un minimo a 35? | Sì, 40 (scelta del Reviewer in M22-08, DECISIONS_LOG); rivedere dopo il playtest se il salto 40 → 45 è troppo ripido | M22 | utente |
 
 ## Chiuse
 

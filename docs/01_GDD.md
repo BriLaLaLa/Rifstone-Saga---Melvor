@@ -971,7 +971,7 @@ a stanze dei giochi d'azione, solo come meccanica; nomi, testi e numeri original
 ### 33.1 Biglietto, requisiti, miniboss
 - **Biglietto del Covo delle Scimmie** (`dungeon_ticket_monkey_den`): oggetto della categoria `misc` con il campo `dungeon` (id del dungeon, `04_DATA_SCHEMA.md` §27); impilabile nella Bank, **non vendibile**, si consuma **all'ingresso** (non si recupera).
 - **Fonti** (F-139): i **miniboss** delle aree e i **Monoliti** (tabelle di drop F-32) delle aree 4-10; mai dai mostri comuni, dalle Fratture o dallo shop (Q91). Obiettivo: un Biglietto ogni **1,5-2,5 ore** di combattimento nelle aree giuste.
-- **Requisito**: livello del personaggio 35; **consigliato 45** (aree 5-6). Nessun requisito di equipaggiamento.
+- **Requisito**: livello del personaggio 40; **consigliato 45** (aree 5-6). Nessun requisito di equipaggiamento.
 - **Miniboss (Z8, ora fissato)**: ogni area ha **un miniboss** (10, uno per area, campo `miniboss` di `areas.json`): un mostro dell'area con PV, danno e XP molto maggiori (F-139) che compare in un **incontro a sé** con due mostri dell'area di scorta. Dopo ogni incontro
   normale si tira `miniboss.chance_pct` (1,5%): se riesce, il prossimo incontro (dopo `BETWEEN`) è quello del miniboss; non vale con un Monolito in attesa (il Monolito ha la precedenza) né dentro Fratture o dungeon. Uccisioni, XP, oro e drop come per i mostri (le uccisioni contano per F-87).
 
