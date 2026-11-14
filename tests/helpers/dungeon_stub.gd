@@ -23,7 +23,9 @@ func state() -> Dictionary:
 
 
 ## `phase`: &"await", &"event", &"fight", &"intro" (or &"" for no run). `directions` = how many exits in the fork.
-func set_phase(phase: StringName, directions: int = 3, kind: StringName = &"pack", is_paused: bool = false) -> void:
+## `stage_index` (1..3) only matters for the boss (the `stage` fields of M22-09: `count`, `monster`, `acts`).
+func set_phase(phase: StringName, directions: int = 3, kind: StringName = &"pack", is_paused: bool = false,
+		stage_index: int = 1) -> void:
 	active = phase != &""
 	paused = is_paused
 	if not active:
@@ -33,20 +35,26 @@ func set_phase(phase: StringName, directions: int = 3, kind: StringName = &"pack
 	if phase == &"await":
 		var all: Array[StringName] = [&"left", &"forward", &"right", &"far_right"]
 		for i: int in directions:
-			choices.append({"id": &"exit", "direction": all[i], "hint": "Rumore di rami" if i == 0 else ""})
+			choices.append({"id": &"exit", "direction": all[i]})
 	elif phase == &"event":
 		var ids: Array[StringName] = []
 		ids.assign([&"dash", &"detour"] if kind == &"trap" else [&"rest", &"forage"])
 		for id: StringName in ids:
-			choices.append({"id": id, "direction": &"", "hint": ""})
+			choices.append({"id": id, "direction": &""})
 	_state = {"dungeon": &"monkey_den", "phase": phase, "paused": is_paused, "progress": {"done": 2, "total": 7},
 		"room": {"layer": 2, "kind": kind, "name": ""}, "choices": choices,
 		"bag": {"stacks": 2, "pieces": 1, "cards": 0}, "can_leave": (phase == &"await" or phase == &"event") and not is_paused,
 		"wins": 3}
 	if kind == &"boss":
-		_state["room"]["name"] = "Gorom"
-		_state["stage"] = {"index": 1, "id": &"gorom", "title": "Gorom", "quote": "Nessuno passa.", "intro_ms": 4000,
-			"intro_left_ms": 2000 if phase == &"intro" else 0}
+		var acts: Array[Dictionary] = [
+			{"id": &"right_hand", "monster": &"monkey_gorom", "name": "Gorom"},
+			{"id": &"strategist", "monster": &"monkey_ziki", "name": "Ziki"},
+			{"id": &"king", "monster": &"monkey_king", "name": "Uuk-Maar"},
+		]
+		_state["room"]["name"] = "Il Braccio Destro"
+		_state["stage"] = {"index": stage_index, "id": acts[stage_index - 1]["id"], "title": "Il Braccio Destro",
+			"quote": "Nessuno passa.", "intro_ms": 4000, "intro_left_ms": 2000 if phase == &"intro" else 0,
+			"count": acts.size(), "monster": acts[stage_index - 1]["monster"], "acts": acts}
 
 
 func can_open(_dungeon_id: StringName) -> StringName:

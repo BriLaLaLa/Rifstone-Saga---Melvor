@@ -18,10 +18,13 @@ var _redraw_queued: bool = false
 var _entry: DungeonEntryView = null
 var _choice: DungeonChoiceView = null
 var _fight: DungeonFightView = null
+var _banner: DungeonRevealBanner = null
 
 @onready var _margin: MarginContainer = %Margin
 @onready var _header: HBoxContainer = %Header
 @onready var _title_label: Label = %TitleLabel
+@onready var _food_label: Label = %FoodLabel
+@onready var _eat_button: Button = %EatButton
 @onready var _intro_label: Label = %IntroLabel
 @onready var _message_label: Label = %MessageLabel
 @onready var _resume_box: PanelContainer = %ResumeBox
@@ -38,6 +41,10 @@ func _ready() -> void:
 	_paused_label.text = DungeonTexts.PAUSED_TEXT
 	_resume_button.text = DungeonTexts.RESUME_TEXT
 	_resume_button.pressed.connect(_on_resume_pressed)
+	_eat_button.text = DungeonTexts.EAT_TEXT
+	_eat_button.pressed.connect(_on_eat_pressed)
+	_banner = DungeonRevealBanner.new()
+	add_child(_banner)
 	_entry = DungeonEntryView.new()
 	_entry.name = "EntryView"
 	_entry.enter_requested.connect(_on_enter_requested)
@@ -50,7 +57,6 @@ func _ready() -> void:
 	_fight.name = "FightView"
 	_fight.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_fight.flee_requested.connect(_on_flee_requested)
-	_fight.message_requested.connect(_show_error_text)
 	for view: Control in [_entry, _choice, _fight]:
 		view.visible = false
 		_content.add_child(view)
@@ -75,7 +81,9 @@ func bind_with(session: GameSession, dungeon: Object) -> void:
 	var events: GameEvents = session.events
 	var redraw: Callable = _request_redraw
 	_connect(events.dungeon_opened, redraw.unbind(1))
-	_connect(events.dungeon_room_entered, redraw.unbind(2))
+	_connect(events.dungeon_room_entered, _on_room_entered)
+	_connect(events.food_changed, _on_food_signal)
+	_connect(events.food_eaten, _on_food_signal)
 	_connect(events.dungeon_choice_ready, redraw.unbind(2))
 	_connect(events.dungeon_room_cleared, redraw.unbind(2))
 	_connect(events.dungeon_stage_started, redraw.unbind(2))
@@ -99,6 +107,8 @@ func unbind() -> void:
 		if source.is_connected(callable):
 			source.disconnect(callable)
 	_connections.clear()
+	if _banner != null:
+		_banner.clear()
 	if _fight != null:
 		_fight.unbind()
 	_session = null
@@ -141,6 +151,8 @@ func refresh() -> void:
 	_fight.visible = fighting
 	_intro_label.visible = not active
 	_resume_box.visible = active and bool(state.get("paused", false))
+	_eat_button.visible = active and not bool(state.get("paused", false))
+	_redraw_food()
 	if not active:
 		_entry.redraw(_session, _dungeon, _kept_result)
 	elif awaiting:
@@ -158,10 +170,37 @@ func _show_result(result: CommandResult, success_text: String = "") -> void:
 	refresh()
 
 
-func _show_error_text(text: String) -> void:
-	_message_label.visible = text != ""
+## Food of the header, same texts and reads as the Combat page (the choice of the food stays in Equipment).
+func _redraw_food() -> void:
+	var food_id: StringName = _session.equipment.get_food()
+	var def: ItemDef = _session.data.item(food_id) if food_id != &"" else null
+	_food_label.text = CombatTexts.NO_FOOD_TEXT if def == null else CombatTexts.FOOD_TEXT % [def.name,
+			NumberFormat.format_int(_session.bank.get_count(food_id))]
+
+
+func _on_food_signal(_a: Variant = null, _b: Variant = null) -> void:
+	if _session != null:
+		_redraw_food()
+
+
+func _on_eat_pressed() -> void:
+	if _session == null:
+		return
+	var result: CommandResult = _session.combat.eat()
+	_message_label.visible = not result.ok
 	_message_label.add_theme_color_override("font_color", UiStyle.BAD)
-	_message_label.text = text
+	_message_label.text = "" if result.ok else CombatTexts.REASON_TEXTS.get(result.reason, CombatTexts.REASON_TEXT_DEFAULT)
+	_redraw_food()
+
+
+## The reveal banner of the room just entered (not the entrance nor the boss, not in a paused run); never after a load.
+func _on_room_entered(_layer: int, kind: StringName) -> void:
+	_request_redraw()
+	if _session == null or _dungeon == null or kind == &"entrance" or kind == &"boss":
+		return
+	if bool((_dungeon.call("state") as Dictionary).get("paused", false)):
+		return
+	_banner.show_kind(kind, int(_session.data.balance_value("dungeon.reveal_ms")))
 
 
 func _on_enter_requested(dungeon_id: StringName) -> void:
@@ -197,5 +236,6 @@ func _on_flee_requested() -> void:
 
 
 func _on_dungeon_finished(outcome: StringName, _rooms: int, _pieces: int) -> void:
+	_banner.clear()
 	_kept_result = DungeonTexts.outcome_text(outcome)
 	_request_redraw()

@@ -120,10 +120,63 @@ func test_boss_intro_shows_the_card_and_hides_the_enemies() -> void:
 	assert_true(fight.visible)
 	_page._process(0.0)
 	assert_true(fight.intro_visible())
-	assert_false(_view("EnemyZone").visible)
+	assert_false(fight.grid().visible)
+	assert_true(fight.boss_bar().visible, "the band stays during the intro")
 	_show(&"fight", 0, &"boss")
 	_page._process(0.0)
 	assert_false(fight.intro_visible())
+	assert_true(fight.grid().visible)
+
+
+func test_boss_band_shows_the_act_and_the_three_acts() -> void:
+	_show(&"fight", 0, &"boss")
+	_stub.set_phase(&"fight", 0, &"boss", false, 2)
+	_page.refresh()
+	var fight: DungeonFightView = _view("FightView") as DungeonFightView
+	var bar: DungeonBossBar = fight.boss_bar()
+	assert_true(bar.visible)
+	assert_eq((_view("BossHeader") as Label).text, DungeonTexts.boss_header(2, 3))
+	assert_eq(bar.act_count(), 3)
+	assert_eq([bar.act_state(1), bar.act_state(2), bar.act_state(3)], [&"passed", &"current", &"next"])
+	assert_eq((_view("ProgressLabel") as Label).text, DungeonTexts.PROGRESS_FINAL_TEXT)
+	_show(&"fight", 0, &"pack")
+	_page._process(0.0)
+	assert_false(bar.visible, "no band outside the boss")
+	_stub.set_phase(&"intro", 0, &"boss", false, 3)
+	_page.refresh()
+	_page._process(0.0)
+	assert_true((_view("IntroCard") as DungeonIntroCard).is_final_look(), "the last act is stronger")
+
+
+func test_food_and_eat_are_in_the_page_header_in_every_phase() -> void:
+	for phase: StringName in [&"", &"await", &"event", &"fight", &"intro"]:
+		_show(phase, 3, &"trap" if phase == &"event" else &"pack")
+		_page._process(0.0)
+		assert_true((_view("FoodLabel") as Label).is_visible_in_tree(), "food in %s" % phase)
+		assert_eq((_view("EatButton") as Button).visible, phase != &"", "eat button with a run: %s" % phase)
+	_show(&"await", 3)
+	(_view("EatButton") as Button).pressed.emit()
+	assert_true((_view("MessageLabel") as Label).visible, "a refused meal shows its reason")
+
+
+func test_reveal_banner_follows_the_room_entered_and_goes_away() -> void:
+	_session.data._balance["dungeon"]["reveal_ms"] = 3000  # until the real data has it (M22-10)
+	var banner: DungeonRevealBanner = _view("RevealBanner") as DungeonRevealBanner
+	_show(&"fight", 0, &"horde")
+	_session.events.dungeon_room_entered.emit(2, &"horde")
+	assert_true(banner.is_showing())
+	assert_eq(banner.shown_text(), DungeonTexts.reveal_text(&"horde"))
+	assert_eq(banner.mouse_filter, Control.MOUSE_FILTER_IGNORE)
+	_session.events.dungeon_room_entered.emit(3, &"pack")
+	assert_eq(banner.shown_text(), DungeonTexts.reveal_text(&"pack"), "replaced by the next one")
+	_session.events.dungeon_finished.emit(&"fled", 2, 0)
+	assert_false(banner.is_showing(), "gone at the end of the run")
+	_session.events.dungeon_room_entered.emit(1, &"entrance")
+	_session.events.dungeon_room_entered.emit(7, &"boss")
+	assert_false(banner.is_showing(), "none for the entrance and the boss")
+	_show(&"await", 3, &"pack", true)
+	_session.events.dungeon_room_entered.emit(2, &"pack")
+	assert_false(banner.is_showing(), "none in a paused run")
 
 
 func test_paused_run_shows_resume_and_no_actions() -> void:

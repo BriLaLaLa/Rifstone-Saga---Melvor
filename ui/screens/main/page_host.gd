@@ -45,10 +45,14 @@ func setup(session: GameSession) -> void:
 
 
 ## Shows the page of `page_id`; an unavailable page is reported and the current page stays.
-func show_page(page_id: StringName) -> void:
+func show_page(requested_id: StringName) -> void:
 	if _session == null:
-		Log.warn(LOG_CATEGORY, "show_page('%s') without a session" % page_id)
+		Log.warn(LOG_CATEGORY, "show_page('%s') without a session" % requested_id)
 		return
+	var page_id: StringName = requested_id
+	# A dungeon run (also paused) keeps the player out of the Combat page, from any entry point (docs/05_INTERFACES.md §7.q).
+	if page_id == &"combat" and _session.dungeon != null and _session.dungeon.is_active():
+		page_id = &"dungeon"
 	if not has_page(page_id):
 		Log.warn(LOG_CATEGORY, "show_page: page '%s' is not available" % page_id)
 		return
