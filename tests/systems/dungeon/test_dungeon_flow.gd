@@ -225,7 +225,7 @@ func test_state_is_empty_outside_a_run_and_never_names_the_next_rooms() -> void:
 	assert_eq(state["room"]["kind"], &"entrance", "the kind of the room we are in")
 	assert_false(state.has("stage"))
 	for choice: Dictionary in state["choices"]:
-		assert_eq(choice.keys().size(), 3)
+		assert_eq(choice.keys().size(), 2, "id and direction only")
 		assert_false(choice.has("kind"))
 	assert_true(state["can_leave"])
 
@@ -236,6 +236,12 @@ func test_state_during_the_boss_scene() -> void:
 	var stage: Dictionary = _s.dungeon.state()["stage"]
 	assert_eq([stage["index"], stage["id"], stage["intro_ms"], stage["intro_left_ms"]], [1, &"right_hand", 3500, 1200])
 	assert_eq(stage["title"], "Il Braccio Destro")
+	assert_eq([stage["count"], stage["monster"]], [3, &"tden_right_hand"])
+	var acts: Array = stage["acts"]
+	assert_eq(acts.size(), 3)
+	assert_eq(acts[0]["id"], &"right_hand")
+	assert_eq(acts[0]["monster"], &"tden_right_hand")
+	assert_eq(acts[0]["name"], _s.data.dungeon(&"test_den").monster_def(&"tden_right_hand").name)
 	_engine.end_intro()
 	assert_eq(_s.dungeon.state()["stage"]["intro_left_ms"], 0)
 	assert_false(_s.dungeon.state()["can_leave"], "never during a fight")

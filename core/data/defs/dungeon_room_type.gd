@@ -14,7 +14,6 @@ var size_max: int = 0
 var pool_monsters: Array[StringName] = []
 var pool_weights: Array[int] = []
 var fixed: Array[StringName] = []  # a composition with these monsters, in order, instead of `size` and `pool`
-var hint: String = ""  # the fixed phrase of the type (F-138)
 var reward: Dictionary = {}
 
 
@@ -27,8 +26,6 @@ static func from_dict(d: Dictionary, type_id: StringName, inline_reward: bool = 
 		def.weight = r.integer("weight")
 	if r.has("min_layer"):
 		def.min_layer = r.integer("min_layer")
-	if r.has("hint"):
-		def.hint = r.text("hint")
 	var size: Variant = d.get("size")
 	if size is Array:
 		var pair: Vector2i = r.int_pair("size")

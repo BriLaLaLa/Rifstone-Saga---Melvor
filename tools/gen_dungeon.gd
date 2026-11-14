@@ -46,19 +46,17 @@ const MONSTERS: Array = [
 const REQUIRES_CHARACTER: int = 40
 const RECOMMENDED_LEVEL: int = 45
 ## F-137: the parameters of the hidden map.
-const MAP: Dictionary = {"forks": 5, "width_weights": [3, 4, 3], "exit_weights": [5, 3, 2], "hint_pct": 45}
-## F-138: the entrance, then the types [id, weight, min layer, composition, hint, reward]; a composition is {"size", "pool"} or {"fixed"}.
+const MAP: Dictionary = {"forks": 5, "width_weights": [3, 4, 3], "exit_weights": [5, 3, 2]}
+## F-138: the entrance, then the types [id, weight, min layer, composition, reward]; a composition is {"size", "pool"} or {"fixed"}.
 const ENTRANCE: Dictionary = {"size": 6, "pool": [["monkey_grunt", 4], ["monkey_slinger", 2], ["monkey_imp", 3]], "reward": {"gold": [200, 400]}}
 const TYPES: Array = [
-	["pack", 30, 1, {"size": [3, 6], "pool": [["monkey_grunt", 4], ["monkey_slinger", 3], ["monkey_shaman", 2], ["monkey_guard", 2]]},
-		"Rumore di rami e di risate sguaiate", {}],
-	["horde", 16, 1, {"size": 12, "pool": [["monkey_imp", 8], ["monkey_grunt", 2]]}, "Un brusio fitto, di molte voci",
-		{"gold": [400, 800], "dust": [4, 8]}],
-	["elite", 14, 2, {"fixed": ["monkey_gorilla"]}, "Passi pesanti, uno solo", {"gold": [600, 1200], "piece_pct": 40}],
-	["miniboss", 10, 3, {"fixed": ["monkey_packlead", "monkey_guard", "monkey_guard"]}, "Un ruggito basso che fa tremare le foglie",
+	["pack", 30, 1, {"size": [3, 6], "pool": [["monkey_grunt", 4], ["monkey_slinger", 3], ["monkey_shaman", 2], ["monkey_guard", 2]]}, {}],
+	["horde", 16, 1, {"size": 12, "pool": [["monkey_imp", 8], ["monkey_grunt", 2]]}, {"gold": [400, 800], "dust": [4, 8]}],
+	["elite", 14, 2, {"fixed": ["monkey_gorilla"]}, {"gold": [600, 1200], "piece_pct": 40}],
+	["miniboss", 10, 3, {"fixed": ["monkey_packlead", "monkey_guard", "monkey_guard"]},
 		{"gold": [1200, 2000], "dust": [10, 18], "crystal_pct": 25, "piece_pct": 70}],
-	["trap", 14, 1, {}, "Una liana tesa nell'ombra", {}],
-	["rest", 10, 2, {}, "Odore di frutta matura e di acqua fresca", {}],
+	["trap", 14, 1, {}, {}],
+	["rest", 10, 2, {}, {}],
 ]
 ## F-140: the events. The ambush and the forage draw from the same pool.
 const SIDE_POOL: Array = [["monkey_grunt", 4], ["monkey_slinger", 2]]
@@ -183,9 +181,8 @@ func _rooms() -> String:
 			e["pool"] = _pool(comp["pool"] as Array)
 		elif comp.has("fixed"):
 			e["fixed"] = comp["fixed"]
-		e["hint"] = t[4]
 		if t[0] != "trap" and t[0] != "rest":
-			e["reward"] = t[5]
+			e["reward"] = t[4]
 		types.append(e)
 	var trap: Dictionary = {"kinds": TRAP["kinds"], "dash_hp_pct": TRAP["dash_hp_pct"],
 		"ambush": {"size": TRAP["ambush_size"], "pool": _pool(SIDE_POOL)}, "reward": TRAP["reward"]}

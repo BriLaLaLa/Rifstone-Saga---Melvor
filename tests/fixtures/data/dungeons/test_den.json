@@ -2,7 +2,7 @@
   "id": "test_den", "name": "Covo di prova", "description": "Un dungeon minimo per i test.",
   "icon": "res://assets/icons/ui/dungeon.svg", "order": 1,
   "requirements": {"character": 35}, "recommended_level": 45, "ticket": "test_den_ticket",
-  "map": {"forks": 5, "width_weights": [3, 4, 3], "exit_weights": [5, 3, 2], "hint_pct": 45},
+  "map": {"forks": 5, "width_weights": [3, 4, 3], "exit_weights": [5, 3, 2]},
   "monsters": [
     {"id": "tden_imp", "name": "Monello di prova", "icon": "res://assets/icons/monsters/plains_boar.svg", "description": "Piccolo.",
      "level": 40, "hp": 30, "xp": 10, "style": "blade", "attack_interval_ms": 2400, "attack_level": 40, "power_level": 40,
@@ -45,17 +45,16 @@
     "entrance": {"size": 6, "pool": [{"monster": "tden_grunt", "weight": 4}, {"monster": "tden_slinger", "weight": 2}, {"monster": "tden_imp", "weight": 3}],
                  "reward": {"gold": [200, 400]}},
     "types": [
-      {"id": "pack", "weight": 30, "min_layer": 1, "size": [3, 6], "hint": "Rumore di rami e di risate sguaiate",
+      {"id": "pack", "weight": 30, "min_layer": 1, "size": [3, 6],
        "pool": [{"monster": "tden_grunt", "weight": 4}, {"monster": "tden_slinger", "weight": 3}, {"monster": "tden_guard", "weight": 2}], "reward": {}},
-      {"id": "horde", "weight": 16, "min_layer": 1, "size": 12, "hint": "Un brusio fitto, di molte voci",
+      {"id": "horde", "weight": 16, "min_layer": 1, "size": 12,
        "pool": [{"monster": "tden_imp", "weight": 8}, {"monster": "tden_grunt", "weight": 2}], "reward": {"gold": [400, 800], "dust": [4, 8]}},
-      {"id": "elite", "weight": 14, "min_layer": 2, "fixed": ["tden_gorilla"], "hint": "Passi pesanti, uno solo",
+      {"id": "elite", "weight": 14, "min_layer": 2, "fixed": ["tden_gorilla"],
        "reward": {"gold": [600, 1200], "piece_pct": 40}},
       {"id": "miniboss", "weight": 10, "min_layer": 3, "fixed": ["tden_lead", "tden_guard", "tden_guard"],
-       "hint": "Un ruggito basso che fa tremare le foglie",
        "reward": {"gold": [1200, 2000], "dust": [10, 18], "crystal_pct": 25, "piece_pct": 70}},
-      {"id": "trap", "weight": 14, "min_layer": 1, "hint": "Una liana tesa nell'ombra"},
-      {"id": "rest", "weight": 10, "min_layer": 2, "hint": "Odore di frutta matura e di acqua fresca"}
+      {"id": "trap", "weight": 14, "min_layer": 1},
+      {"id": "rest", "weight": 10, "min_layer": 2}
     ],
     "trap": {"kinds": ["darts", "pit", "vines"], "dash_hp_pct": 20,
              "ambush": {"size": 3, "pool": [{"monster": "tden_grunt", "weight": 4}, {"monster": "tden_slinger", "weight": 2}]},

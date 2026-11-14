@@ -7,7 +7,7 @@
   "requirements": {"character":40},
   "recommended_level": 45,
   "ticket": "dungeon_ticket_monkey_den",
-  "map": {"forks":5,"width_weights":[3,4,3],"exit_weights":[5,3,2],"hint_pct":45},
+  "map": {"forks":5,"width_weights":[3,4,3],"exit_weights":[5,3,2]},
   "monsters": [
     {"id":"monkey_imp","name":"Monello del branco","icon":"res://assets/icons/monsters/ember_rat.svg","description":"Piccolo, rumoroso e mai da solo: ti morde i lacci degli stivali e scappa ridendo.","level":40,"hp":200,"style":"blade","attack_interval_ms":2100,"attack_level":40,"power_level":32,"defence_level":40,"accuracy_bonus":45,"power_bonus":2,"evasion_bonus":47,"damage_reduction":3.0,"gold":[8,16],"rift_shard_chance":1.5,"xp":278,"drops":[],"loot_tables":["loot_dungeon_monkey_den"]},
     {"id":"monkey_grunt","name":"Scimmia predona","icon":"res://assets/icons/monsters/redrock_raider.svg","description":"Ruba tutto quello che brilla e difende il bottino a morsi.","level":44,"hp":444,"style":"blade","attack_interval_ms":2800,"attack_level":44,"power_level":37,"defence_level":44,"accuracy_bonus":49,"power_bonus":39,"evasion_bonus":52,"damage_reduction":11.5,"gold":[18,36],"rift_shard_chance":1.75,"xp":679,"drops":[],"loot_tables":["loot_dungeon_monkey_den"]},
@@ -23,12 +23,12 @@
   "rooms": {
     "entrance": {"size":6,"pool":[{"monster":"monkey_grunt","weight":4},{"monster":"monkey_slinger","weight":2},{"monster":"monkey_imp","weight":3}],"reward":{"gold":[200,400]}},
     "types": [
-      {"id":"pack","weight":30,"min_layer":1,"size":[3,6],"pool":[{"monster":"monkey_grunt","weight":4},{"monster":"monkey_slinger","weight":3},{"monster":"monkey_shaman","weight":2},{"monster":"monkey_guard","weight":2}],"hint":"Rumore di rami e di risate sguaiate","reward":{}},
-      {"id":"horde","weight":16,"min_layer":1,"size":12,"pool":[{"monster":"monkey_imp","weight":8},{"monster":"monkey_grunt","weight":2}],"hint":"Un brusio fitto, di molte voci","reward":{"gold":[400,800],"dust":[4,8]}},
-      {"id":"elite","weight":14,"min_layer":2,"fixed":["monkey_gorilla"],"hint":"Passi pesanti, uno solo","reward":{"gold":[600,1200],"piece_pct":40}},
-      {"id":"miniboss","weight":10,"min_layer":3,"fixed":["monkey_packlead","monkey_guard","monkey_guard"],"hint":"Un ruggito basso che fa tremare le foglie","reward":{"gold":[1200,2000],"dust":[10,18],"crystal_pct":25,"piece_pct":70}},
-      {"id":"trap","weight":14,"min_layer":1,"hint":"Una liana tesa nell'ombra"},
-      {"id":"rest","weight":10,"min_layer":2,"hint":"Odore di frutta matura e di acqua fresca"}
+      {"id":"pack","weight":30,"min_layer":1,"size":[3,6],"pool":[{"monster":"monkey_grunt","weight":4},{"monster":"monkey_slinger","weight":3},{"monster":"monkey_shaman","weight":2},{"monster":"monkey_guard","weight":2}],"reward":{}},
+      {"id":"horde","weight":16,"min_layer":1,"size":12,"pool":[{"monster":"monkey_imp","weight":8},{"monster":"monkey_grunt","weight":2}],"reward":{"gold":[400,800],"dust":[4,8]}},
+      {"id":"elite","weight":14,"min_layer":2,"fixed":["monkey_gorilla"],"reward":{"gold":[600,1200],"piece_pct":40}},
+      {"id":"miniboss","weight":10,"min_layer":3,"fixed":["monkey_packlead","monkey_guard","monkey_guard"],"reward":{"gold":[1200,2000],"dust":[10,18],"crystal_pct":25,"piece_pct":70}},
+      {"id":"trap","weight":14,"min_layer":1},
+      {"id":"rest","weight":10,"min_layer":2}
     ],
     "trap": {"kinds":["darts","pit","vines"],"dash_hp_pct":20,"ambush":{"size":3,"pool":[{"monster":"monkey_grunt","weight":4},{"monster":"monkey_slinger","weight":2}]},"reward":{"dust":[3,6]}},
     "rest": {"heal_pct":35,"forage":{"size":4,"pool":[{"monster":"monkey_grunt","weight":4},{"monster":"monkey_slinger","weight":2}],"dust":[8,14],"crystal_pct":30}}

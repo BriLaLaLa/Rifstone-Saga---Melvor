@@ -7,7 +7,8 @@ extends SceneTree
 ## Usage: godot --headless --path . -s tools/sim_dungeon.gd [-- key=value ...]
 ##   level=all|<n>       character level(s): all = 40,45,55 (default all)
 ##   runs=<n>            runs per level and policy (default 200; F-144 asks 500 for the published table)
-##   policy=random|cautious|both   how the exits are chosen (default random; the thresholds apply to random)
+##   policy=random|cautious|both   how the exits are chosen (default random; the thresholds apply to random); `cautious` = random
+##                       but leaves the run at a fork under CAUTIOUS_LEAVE_HP_PCT of the hit points (no hints since M22-09)
 ##   seed=<n>            session seed (default 1)
 ##   setup=sword_shield|greatsword|dual, material=plate|leather|cloth (default leather), slice=<s> (default 3)
 ##   tier=<n>            auto-eat tier of the dungeon hero (default 1: the field rations owned from the start, F-144)
@@ -30,6 +31,8 @@ const DEFAULTS: Dictionary = {
 const Stats := preload("res://tools/sim_dungeon_stats.gd")
 const Tickets := preload("res://tools/sim_dungeon_tickets.gd")
 const RECOMMENDED: int = 45
+## Sim only (not a game number): the `cautious` policy leaves at a fork with the hit points under this % of the maximum.
+const CAUTIOUS_LEAVE_HP_PCT: float = 40.0
 
 
 func _initialize() -> void:
@@ -116,16 +119,12 @@ static func play(data: Object, level: int, policy: String, runs: int, seed_value
 	session.equipment.set_food(food_id)
 	tool.call("_set_tier", session, int(opts["tier"]))
 	session.deposit.register_occupant(&"sim:room", func() -> int: return -100000)
-	var def: Object = data.call("dungeon", DUNGEON_ID)
-	var hint_kinds: Dictionary = {}
-	for room_type: Object in def.room_types:
-		hint_kinds[str(room_type.hint)] = str(room_type.id)
 	var trace: Dictionary = {"kind": "", "prev": -1, "max": 1, "food": 0, "loss": {}, "boss": 0.0, "boss_seen": false}
 	_listen(session, trace)
 	var result: Array[Dictionary] = []
 	var slice_ms: int = maxi(1, int(float(opts["slice"]) * 1000.0))
 	for _i: int in runs:
-		result.append(one_run(session, data, policy, hint_kinds, trace, slice_ms, xp_before, tool))
+		result.append(one_run(session, data, policy, trace, slice_ms, xp_before, tool))
 	session.free()
 	return result
 
@@ -157,7 +156,7 @@ static func _room_count(trace: Dictionary, key: String) -> void:
 	trace["loss"][key][1] += 1
 
 
-static func one_run(session: Object, data: Object, policy: String, hint_kinds: Dictionary, trace: Dictionary, slice_ms: int, pinned_xp: int, tool: GDScript) -> Dictionary:
+static func one_run(session: Object, data: Object, policy: String, trace: Dictionary, slice_ms: int, pinned_xp: int, tool: GDScript) -> Dictionary:
 	trace.merge({"kind": "", "prev": -1, "food": 0, "loss": {}, "boss": 0.0, "boss_seen": false}, true)
 	var before: Dictionary = _inventory(session, data)
 	session.bank.add(TICKET, 1)
@@ -173,7 +172,10 @@ static func one_run(session: Object, data: Object, policy: String, hint_kinds: D
 		var state: Dictionary = session.dungeon.state()
 		var phase: StringName = state["phase"]
 		if phase == &"await" or phase == &"event":
-			session.dungeon.choose(_pick(state["choices"], phase, policy, hint_kinds, session))
+			if policy == "cautious" and phase == &"await" and _hp_pct(trace) < CAUTIOUS_LEAVE_HP_PCT:
+				if session.dungeon.leave().ok:  # the fork with the hit points under the threshold: out with the bag
+					continue
+			session.dungeon.choose(_pick(state["choices"], phase, policy, session))
 		else:
 			session.advance(slice_ms)
 			elapsed += slice_ms
@@ -233,27 +235,22 @@ static func _inventory(session: Object, data: Object) -> Dictionary:
 		"gold": session.wallet.get_gold(), "cards": session.cards.cards().size()}
 
 
-## Index of the choice. `random`: uniform with the generator of the slot is not touched (a local counter would bias): uses its own RNG.
-static func _pick(choices: Array, phase: StringName, policy: String, hint_kinds: Dictionary, session: Object) -> int:
-	if policy != "cautious":
-		return int(_rng(session).randi_range(0, choices.size() - 1))
-	var best: int = 0
-	var best_score: int = -1000
-	for i: int in choices.size():
-		var choice: Dictionary = choices[i]
-		var score: int = 0
-		if phase == &"event":
-			score = 1 if choice["id"] == &"rest" or choice["id"] == &"dash" else 0
-		else:
-			match hint_kinds.get(str(choice["hint"]), ""):
-				"rest": score = 3
-				"miniboss", "horde": score = -3
-				"elite": score = -1
-				"": score = 0
-		if score > best_score:
-			best = i
-			best_score = score
-	return best
+## The current hit points of the hero as % of the maximum (100 before the first change).
+static func _hp_pct(trace: Dictionary) -> float:
+	if int(trace["prev"]) < 0:
+		return 100.0
+	return float(trace["prev"]) / float(maxi(1, int(trace["max"]))) * 100.0
+
+
+## Index of the choice, uniform with a generator of its own (the one of the slot must stay the game's). Without hints (M22-09)
+## `cautious` picks like `random` and differs only for leaving the run at a fork under CAUTIOUS_LEAVE_HP_PCT (see one_run);
+## in an event it prefers the safe choice (`rest`, `dash`).
+static func _pick(choices: Array, phase: StringName, policy: String, session: Object) -> int:
+	if policy == "cautious" and phase == &"event":
+		for i: int in choices.size():
+			if choices[i]["id"] == &"rest" or choices[i]["id"] == &"dash":
+				return i
+	return int(_rng(session).randi_range(0, choices.size() - 1))
 
 
 static var _choice_rng: RandomNumberGenerator = null

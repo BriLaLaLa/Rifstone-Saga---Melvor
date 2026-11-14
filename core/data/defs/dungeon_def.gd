@@ -2,7 +2,7 @@ class_name DungeonDef
 extends RefCounted
 ## A dungeon of data/dungeons/<id>.json (docs/04_DATA_SCHEMA.md §27, F-137...F-143). It builds its own monsters
 ## (`monsters`, ordinary MonsterDefs marked with `dungeon`; GameData registers them) and resolves the stage monsters.
-## Numbers of the hidden map (`forks`, weights, `hint_pct`), the room types, the events, the stages and the boss loot
+## Numbers of the hidden map (`forks`, weights), the room types, the events, the stages and the boss loot
 ## are all data; nothing here is a design number.
 ## `from_dict` returns null (after logging, see DefReader) if a field is missing or mistyped.
 
@@ -18,7 +18,6 @@ var ticket: StringName = &""
 var forks: int = 0
 var width_weights: Array[int] = []  # width 2, 3, 4
 var exit_weights: Array[int] = []  # exits 2, 3, 4
-var hint_pct: float = 0.0
 var monsters: Array[MonsterDef] = []
 var entrance: DungeonRoomType = null
 var room_types: Array[DungeonRoomType] = []
@@ -103,7 +102,6 @@ static func _read_map(def: DungeonDef, map: Dictionary, r: DefReader) -> void:
 			def.width_weights = weights
 		else:
 			def.exit_weights = weights
-	def.hint_pct = m.number("hint_pct")
 	r.absorb(m.ok)
 
 
