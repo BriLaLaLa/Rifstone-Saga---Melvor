@@ -11,7 +11,7 @@ Save v7 **invariato** (modulo additivo `dungeon`, nessuna migrazione). Nessuna s
 
 ## Fissato da M22-01 (2026-11-13), in breve (dettagli in `DECISIONS_LOG.md` M22-01)
 - **Sistema generico**: `data/dungeons/<id>.json`; il Covo delle Scimmie (`monkey_den`) è il primo. La seconda classe slitta a M23+.
-- **Mappa nascosta** (F-137): ingresso, **5 bivi** di 2-4 stanze, boss; 2-4 uscite per stanza, **7 direzioni** da fasce di spostamento laterale, indizio **vero** con 45%; solo il **seme** nel save.
+- **Mappa nascosta** (F-137): ingresso, **5 bivi** di 2-4 stanze, boss; 2-4 uscite per stanza, **7 direzioni** da fasce di spostamento laterale, nessun indizio (tolti in M22-09: la stanza si rivela dopo la scelta); solo il **seme** nel save.
 - **Tipi di stanza** (F-138): Branco, Orda (12), Guardiano, Capobranco (miniboss), Trappola, Riposo; le due scelte dei **due eventi** (Trappola, Riposo) sono l'unico altro input (F-140, nessun effetto permanente, mai letali).
 - **Boss in tre atti** (F-139, F-141): Gorom (braccio destro) → Ziki (stratega, con sottoposti) → Uuk-Maar (il Re), con scena d'ingresso prima di ogni stadio; abilità = i tre tipi esistenti di F-112.
 - **Biglietto** dai **miniboss di area** (nuovi, Z8 fissato: uno per area, 1,5% dopo un incontro) e dai Monoliti, aree 4-10; **uno ogni ~1,7 ore** (F-139).

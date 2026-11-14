@@ -370,7 +370,7 @@ Nomi originali, generati dai dati (`tools/gen_dungeon.gd`, `tools/gen_areas.gd`,
 | `monkey_gorom` | Gorom, il Braccio Destro (stadio 1, id `right_hand`, "Il Braccio Destro") |
 | `monkey_ziki` | Ziki, la Stratega (stadio 2, id `strategist`, "La Stratega") |
 | `monkey_king` | Uuk-Maar, il Re delle Scimmie (stadio 3, id `king`, "Il Re delle Scimmie") |
-Tipi di stanza (id fissi, testi di `rooms.types[].hint`): `pack` Branco, `horde` Orda, `elite` Guardiano, `miniboss` Capobranco, `trap` Trappola, `rest` Riposo; trappole `darts`, `pit`, `vines`; scelte degli eventi: "Attraversa di corsa", "Aggira", "Riposa", "Fruga" (testi in UI, M22-06).
+Tipi di stanza (id fissi; gli indizi sono stati tolti in M22-09): `pack` Branco, `horde` Orda, `elite` Guardiano, `miniboss` Capobranco, `trap` Trappola, `rest` Riposo; trappole `darts`, `pit`, `vines`; scelte degli eventi: "Attraversa di corsa", "Aggira", "Riposa", "Fruga" (testi in UI, M22-06).
 
 ### Miniboss di area (id `miniboss_<area>`)
 | Id | Nome |

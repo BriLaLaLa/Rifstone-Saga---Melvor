@@ -981,7 +981,7 @@ a stanze dei giochi d'azione, solo come meccanica; nomi, testi e numeri original
   tutte al boss: corridoio senza scelta, quindi le **scelte vere sono 5**, una per ogni passaggio dal livello 0 al 5). Una stanza può essere raggiunta da più stanze del livello prima; non si torna indietro; non esistono vicoli ciechi.
 - **Direzioni**: le stanze di un livello hanno una posizione laterale (`x`, 0..1). Le uscite di una stanza sono le stanze del livello dopo **più vicine** alla sua posizione; la direzione mostrata dipende dallo spostamento laterale (F-137): **sinistra estrema, sinistra, leggermente a sinistra, avanti,
   leggermente a destra, destra, destra estrema**. Chi è all'estrema sinistra non vedrà mai una "sinistra". Due uscite di una stanza hanno sempre direzioni diverse.
-- **Indizi (opzionali)**: ogni uscita ha, con probabilità `dungeon.hint_pct` (45%), un **indizio vero** sul tipo di stanza (un suono o un odore, una frase fissa per tipo, F-138); senza indizio la scelta è alla cieca. Gli indizi non mentono mai; non rivelano però il contenuto esatto.
+- **Nessun indizio** (V13, M22-09): le uscite mostrano **solo la direzione**; la scelta è sempre alla cieca. Cosa c'era dietro si scopre **dopo** (§33.8).
 - **Tipi di stanza** (pesi e livello minimo in F-138): **Branco** (3-6 scimmie), **Orda** (12 scimmiette), **Guardiano** (un solo gorilla molto robusto), **Capobranco** (miniboss con due guardie), **Trappola** (evento a scelta), **Riposo** (evento a scelta). Pesi e dimensioni sono dati.
 
 ### 33.3 Combattimento: tutto automatico, tranne le scelte
@@ -1022,6 +1022,13 @@ nome, titolo e una frase del personaggio (testi nei dati). Gli stadi (`stages` d
 
 ### 33.7 UI
 - Pagina **Dungeon** (sidebar, voce "Dungeon" dopo "Fratture"), tre stati della stessa pagina. **Ingresso** (nessuna run): il dungeon, il livello consigliato, i Biglietti posseduti, pulsante **Entra** (rifiuti con il motivo), il bottino in attesa ("Raccogli"), l'esito dell'ultima run (solo testo, in memoria).
-  **Scelta** (fase `await` o `event`): titolo della stanza superata, avanzamento ("Stanza 3 di 7"; il boss è "?"), i **pulsanti delle direzioni** (testo della direzione e, se c'è, l'indizio; sono 2-4), per un evento i due pulsanti dell'evento, "Esci dal Covo", la borsa del dungeon. **Stanza in combattimento**: gli stessi
+  **Scelta** (fase `await` o `event`): titolo della stanza superata, avanzamento ("Stanza 3 di 7"; nel boss "Stanza finale", §33.8), i **pulsanti delle direzioni** (solo il testo della direzione; sono 2-4), per un evento i due pulsanti dell'evento, "Esci dal Covo", la borsa del dungeon. **Stanza in combattimento**: gli stessi
   componenti della pagina Combattimento (carta del giocatore, nemici, numeri dei colpi, registro), il nome della stanza, "Fuggi", "Mangia" e, per il boss, la **scena di ingresso**. Se la run è in pausa: un solo pulsante **"Riprendi"**.
 - La UI non tiene stato di gioco e non conosce la mappa: legge `DungeonSystem.state()` e invia i comandi. Notifica a vittoria, morte, fuga e uscita. **Guida**: pagina "Dungeon" (§27) con struttura, tipi di stanza e fonti dei Biglietti; bottino del boss e leggendari nella Guida a scoperta (§27.1).
+
+### 33.8 Rifiniture dal playtest (V13, M22-09)
+- **Rivelazione**: scelta una direzione, la stanza **parte subito** (nessun ritardo di gioco) e per alcuni secondi la UI mostra un **banner** che dice cosa è successo (un branco, un'orda, un Guardiano, un Capobranco, una trappola, un riposo): solo presentazione, in cima alla pagina, non blocca i pulsanti. Testo per tipo e durata (`dungeon.reveal_ms`, dati) non toccano il combattimento. Nessun banner dopo un caricamento o in pausa.
+- **Il Covo è una modalità a sé**: durante una run (anche in pausa dopo il caricamento) la voce **Combattimento** della sidebar è **disattivata** (con una spiegazione) e il pallino "attività in corso" sta sulla voce **Dungeon**; caricando una partita con una run attiva si apre la pagina Dungeon. Alla fine della run (vittoria, uscita, morte, fuga) tutto torna come prima.
+- **Cibo** sempre a portata: la pagina Dungeon mostra in alto a destra il cibo e "Mangia" in **ogni** fase (scelta, evento, combattimento, intro), come la pagina Combattimento.
+- **Nemici sempre tutti visibili**: nel Covo la vista dei nemici non si riduce mai a un contatore ("x11"): una **griglia di quadrati**, uno per nemico (fino a 16 insieme: Orda di 12, evocati), ognuno con la sua barra dei PV.
+- **Il boss si deve riconoscere**: per tutto lo scontro un indicatore fisso **"BOSS FINALE — Atto n/3"** con il progresso dei tre atti (Gorom, Ziki, il Re), intestazione "Stanza finale" (mai "?"), banner d'ingresso più forte per atto, il boss visivamente distinto dalle scorte.

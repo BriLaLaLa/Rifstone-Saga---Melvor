@@ -813,12 +813,12 @@ Regole in `01_GDD.md` §33, dati in `04_DATA_SCHEMA.md` §27, contratto in `05_I
 Stat nuove: nessuna. `rng` = `RngService.new(seed)` locale, **non** il generatore dello slot: la mappa dipende solo dal seme.
 
 ### F-137 Mappa nascosta
-Parametri (dati del dungeon, `map`): `forks` = 5, `width_weights` = [3, 4, 3] (larghezza 2, 3, 4), `exit_weights` = [5, 3, 2] (uscite 2, 3, 4), `hint_pct` = 45; globale (`balance.json` `dungeon.direction_bands`) = [−0,55, −0,30, −0,10, 0,10, 0,30, 0,55]. Ordine **fisso** dei tiri (stesso seme = stessa mappa):
+Parametri (dati del dungeon, `map`): `forks` = 5, `width_weights` = [3, 4, 3] (larghezza 2, 3, 4), `exit_weights` = [5, 3, 2] (uscite 2, 3, 4); globale (`balance.json` `dungeon.direction_bands`) = [−0,55, −0,30, −0,10, 0,10, 0,30, 0,55]. Ordine **fisso** dei tiri (stesso seme = stessa mappa):
 1. **Larghezze**: livello 0 e livello `forks + 1` (boss) hanno 1 stanza; per i livelli 1…`forks`, nell'ordine, `w = 2 + pick_weighted(width_weights)`. La stanza `k` (da 0) di un livello di `w` stanze ha posizione `x = (k + 0,5) / w`.
 2. **Uscite**: per ogni livello `i` da 0 a `forks − 1` e ogni stanza `r` in ordine, `d = min(w_(i+1), 2 + pick_weighted(exit_weights))`; le uscite sono le `d` stanze del livello dopo con `|x_next − x_r|` minima (pari merito: indice più basso), ordinate per `x` crescente (da sinistra a destra).
    Le stanze del livello `forks` hanno come unica uscita il boss (nessun tiro). Le stanze del livello dopo **senza nessuna entrata** sono tolte (gli indici si rinumerano, le `x` restano): ne restano sempre almeno 2.
 3. **Tipi**: per ogni stanza dei livelli 1…`forks`, in ordine, `pick_weighted` sui tipi di F-138 con `min_layer ≤ livello`; se il livello ha già un `miniboss` il tipo si ritira escludendolo. Una Trappola tira anche il suo tipo (`trap_kinds`: dardi, fossa, liane, peso uguale).
-4. **Indizi**: per ogni stanza (anche non visibile), `hint = roll_pct(hint_pct)`; l'indizio è la frase fissa del suo tipo (F-138). L'indizio appartiene alla stanza: lo stesso da qualunque uscita.
+(Il tiro degli **indizi** era il punto 4 ed è stato **tolto in M22-09** (V13): era l'ultimo tiro, quindi lo stesso seme dà **la stessa mappa di prima** e le run salvate restano valide. Le uscite mostrano solo la direzione, mai il tipo; la stanza si rivela entrandoci, `01_GDD.md` §33.8.)
 - **Direzione di un'uscita**: `dx = x_destinazione − x_attuale`; `far_left` se `dx ≤ −0,55`; `left` se `≤ −0,30`; `slight_left` se `< −0,10`; `forward` se `≤ 0,10`; `slight_right` se `< 0,30`; `right` se `< 0,55`; altrimenti `far_right`. Le uscite di una stanza hanno direzioni **sempre diverse** (le stanze di un livello distano ≥ 0,25 e nessuna fascia è più larga di 0,25).
 Esempi (= test, `tests/systems/dungeon/test_dungeon_map.gd`): stanza a `x = 0,875` (livello di 4) con il livello dopo di 2 (`x` 0,25 e 0,75): uscite `far_left` (`dx` −0,625) e `slight_left` (−0,125), nessuna a destra. Stanza a `x = 0,125` con il livello dopo di 3 (0,1667, 0,5, 0,8333) e `d = 2`: `forward` (+0,0417)
 e `right` (+0,375). Stanza a `x = 0,5` (livello di 3), livello dopo di 4 (0,125, 0,375, 0,625, 0,875), `d = 3`: 0,375 e 0,625 (distanza 0,125) più, a pari distanza 0,375, la prima per indice (0,125): uscite in ordine `left` (−0,375), `slight_left` (−0,125), `slight_right` (+0,125).
@@ -826,14 +826,15 @@ Proprietà su 1.000 semi: ogni stanza dei livelli 0…`forks − 1` ha 2-4 uscit
 
 ### F-138 Tipi di stanza e composizioni
 Pesi e livello minimo (dati del dungeon, `rooms`); l'ingresso e il boss non si tirano.
-| Tipo | `min_layer` | Peso | Composizione (tirata all'ingresso nella stanza con il generatore dello slot) | Indizio |
-|---|---|---|---|---|
-| `pack` Branco | 1 | 30 | 3-6 mostri (uniforme) da `monkey_grunt` 4, `monkey_slinger` 3, `monkey_shaman` 2, `monkey_guard` 2 | "Rumore di rami e di risate sguaiate" |
-| `horde` Orda | 1 | 16 | 12 mostri da `monkey_imp` 8, `monkey_grunt` 2 | "Un brusio fitto, di molte voci" |
-| `elite` Guardiano | 2 | 14 | `monkey_gorilla` da solo | "Passi pesanti, uno solo" |
-| `miniboss` Capobranco | 3 | 10 | `monkey_packlead` + 2 `monkey_guard` | "Un ruggito basso che fa tremare le foglie" |
-| `trap` Trappola | 1 | 14 | nessun nemico; evento F-140 | "Una liana tesa nell'ombra" |
-| `rest` Riposo | 2 | 10 | nessun nemico; evento F-140 | "Odore di frutta matura e di acqua fresca" |
+| Tipo | `min_layer` | Peso | Composizione (tirata all'ingresso nella stanza con il generatore dello slot) |
+|---|---|---|---|
+| `pack` Branco | 1 | 30 | 3-6 mostri (uniforme) da `monkey_grunt` 4, `monkey_slinger` 3, `monkey_shaman` 2, `monkey_guard` 2 |
+| `horde` Orda | 1 | 16 | 12 mostri da `monkey_imp` 8, `monkey_grunt` 2 |
+| `elite` Guardiano | 2 | 14 | `monkey_gorilla` da solo |
+| `miniboss` Capobranco | 3 | 10 | `monkey_packlead` + 2 `monkey_guard` |
+| `trap` Trappola | 1 | 14 | nessun nemico; evento F-140 |
+| `rest` Riposo | 2 | 10 | nessun nemico; evento F-140 |
+(Dal M22-09 i tipi non hanno più la frase d'indizio; i testi di rivelazione sono della UI, `01_GDD.md` §33.8.)
 Ingresso (`entrance`): 6 mostri da `monkey_grunt` 4, `monkey_slinger` 2, `monkey_imp` 3. Le Orde superano `combat.max_pack_size`: valgono la vista compatta e il limite del motore dei Monoliti (≥ 30 nemici).
 Esempio (= test): al livello 1 i pesi sono 30, 16, 14 (somma 60): `P(pack)` = 50%; al livello 2 si aggiungono Guardiano e Riposo (somma 84); dal livello 3 la somma è 94 e `P(miniboss)` per stanza = 10/94 = 10,6% (prima del limite di uno per livello). Test: `tests/systems/dungeon/test_room_types.gd`.
 

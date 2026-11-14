@@ -828,12 +828,12 @@ Cartella nuova `data/dungeons/` con **un file per dungeon** (`monkey_den.json`; 
 ```json
 {"id": "monkey_den", "name": "Covo delle Scimmie", "description": "…", "icon": "res://assets/icons/ui/dungeon.svg", "order": 1,
  "requirements": {"character": 40}, "recommended_level": 45, "ticket": "dungeon_ticket_monkey_den",
- "map": {"forks": 5, "width_weights": [3, 4, 3], "exit_weights": [5, 3, 2], "hint_pct": 45},
+ "map": {"forks": 5, "width_weights": [3, 4, 3], "exit_weights": [5, 3, 2]},
  "monsters": [{"id": "monkey_grunt", "name": "Scimmia predona", "icon": "…", "description": "…", "level": 44, "hp": 0, "style": "blade", "attack_interval_ms": 0, "...": "campi dei mostri di §8"}],
  "rooms": {
    "entrance": {"size": 6, "pool": [{"monster": "monkey_grunt", "weight": 4}], "reward": {"gold": [200, 400]}},
-   "types": [{"id": "pack", "weight": 30, "min_layer": 1, "size": [3, 6], "pool": [{"monster": "monkey_grunt", "weight": 4}], "hint": "Rumore di rami…", "reward": {}},
-             {"id": "miniboss", "weight": 10, "min_layer": 3, "fixed": ["monkey_packlead", "monkey_guard", "monkey_guard"], "hint": "…", "reward": {"gold": [1200, 2000], "dust": [10, 18], "crystal_pct": 25, "piece_pct": 70}}],
+   "types": [{"id": "pack", "weight": 30, "min_layer": 1, "size": [3, 6], "pool": [{"monster": "monkey_grunt", "weight": 4}], "reward": {}},
+             {"id": "miniboss", "weight": 10, "min_layer": 3, "fixed": ["monkey_packlead", "monkey_guard", "monkey_guard"], "reward": {"gold": [1200, 2000], "dust": [10, 18], "crystal_pct": 25, "piece_pct": 70}}],
    "trap": {"kinds": ["darts", "pit", "vines"], "dash_hp_pct": 20, "ambush": {"size": 3, "pool": [{"monster": "monkey_grunt", "weight": 4}]}, "reward": {"dust": [3, 6]}},
    "rest": {"heal_pct": 35, "forage": {"size": 4, "pool": [{"monster": "monkey_grunt", "weight": 1}], "dust": [8, 14], "crystal_pct": 30}}},
  "stages": [{"id": "right_hand", "monster": "monkey_gorom", "escorts": ["monkey_guard", "monkey_guard"], "intro_ms": 3500, "title": "Il Braccio Destro", "quote": "…",
@@ -849,10 +849,10 @@ Cartella nuova `data/dungeons/` con **un file per dungeon** (`monkey_den.json`; 
 | `ticket` | String | id di un oggetto `misc` con il campo `dungeon` uguale a questo `id` (sotto) |
 | `map.forks` | int | 1..8 (5 per il Covo) |
 | `map.width_weights`, `map.exit_weights` | `[int, int, int]` | pesi ≥ 0, somma ≥ 1: larghezza 2/3/4 e uscite 2/3/4 (F-137) |
-| `map.hint_pct` | float | 0..100 |
+| `dungeon.reveal_ms` (in `balance.json`, M22-09) | int | 500..10000 (3000): durata del banner di rivelazione della UI (GDD §33.8); obbligatorio, nessun fallback. `map.hint_pct` e `rooms.types[].hint` **non esistono più**: il validatore li rifiuta come chiavi sconosciute (nessun dato morto) |
 | `monsters[]` | array | i campi dei mostri di §8 (stesso validatore: `hp`, `style`, `attack_interval_ms`, livelli, bonus, `damage_reduction`, `gold`, `rift_shard_chance`, `xp`, `drops`, `loot_tables`) più `level` (1..99, livello di riferimento della generazione); id unici **tra tutti i mostri del gioco**; non compaiono in nessuna area |
 | `rooms.entrance` | oggetto | `size` 1..30, `pool` (`monster` esistente in `monsters`, `weight` ≥ 1), `reward` |
-| `rooms.types[]` | array | `id` ∈ `pack`, `horde`, `elite`, `miniboss`, `trap`, `rest` (elenco **chiuso**, ognuno al più una volta; `pack` obbligatorio con `min_layer` 1), `weight` ≥ 1, `min_layer` 1..`forks`, `hint` stringa non vuota; i tipi di combattimento (`pack`, `horde`, `elite`, `miniboss`) hanno `size` (intero o `[min, max]`, 1..30) con `pool`, oppure `fixed` (elenco di id di `monsters`); `trap` e `rest` non hanno composizione (la danno `rooms.trap` e `rooms.rest`) |
+| `rooms.types[]` | array | `id` ∈ `pack`, `horde`, `elite`, `miniboss`, `trap`, `rest` (elenco **chiuso**, ognuno al più una volta; `pack` obbligatorio con `min_layer` 1), `weight` ≥ 1, `min_layer` 1..`forks`; i tipi di combattimento (`pack`, `horde`, `elite`, `miniboss`) hanno `size` (intero o `[min, max]`, 1..30) con `pool`, oppure `fixed` (elenco di id di `monsters`); `trap` e `rest` non hanno composizione (la danno `rooms.trap` e `rooms.rest`) |
 | `reward` (in `rooms.entrance`, `rooms.types[]`, `rooms.trap`, `stages[]`) | oggetto | chiavi tutte facoltative: `gold` `[min, max]`, `dust` `[min, max]` (1 ≤ min ≤ max), `crystal_pct` 0..100, `piece_pct` 0..100 (F-142) |
 | `rooms.trap` | oggetto | `kinds` ≥ 1 stringhe, `dash_hp_pct` 1..50, `ambush` (`size` 1..8, `pool`), `reward` |
 | `rooms.rest` | oggetto | `heal_pct` 1..100, `forage` (`size` 1..8, `pool`, `dust` `[min, max]`, `crystal_pct` 0..100) |
