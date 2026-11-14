@@ -36,7 +36,9 @@ func test_kills_per_hour_are_even_across_the_areas() -> void:
 		# M17-03b: lower bound 190 -> 160. The Soglia was already at 180 on main (pack_size_weights of M17-03 give packs of
 		# 3-4 on average and the run is paced by the Monolith fights); the 4.0% pool of Q85 shifts the seeded run to 175.
 		# M17-04 (narrow areas) must re-check this band.
-		assert_between(kills, 160.0, 360.0, "%s kills per hour" % id)
+		# M22-08: lower bound 160 -> 140. The area miniboss (F-139, 1.5% per encounter, hp x4 with two escorts) takes time from the
+		# seeded run: rift_heart goes from 160+ to 146 kills per hour (checked: with `miniboss.chance_pct` 0 the old band holds).
+		assert_between(kills, 140.0, 360.0, "%s kills per hour" % id)
 	assert_lt(high / low, 1.6, "the busiest area is at most 1.6 times the slowest")
 
 
@@ -65,7 +67,8 @@ func test_one_rare_piece_every_two_to_three_hours() -> void:
 func test_about_one_blueprint_per_hour() -> void:
 	for id: Variant in _rows:
 		var per_hour: float = float((_rows[id] as Dictionary)["kills_h"]) * _chance("loot.blueprint.chance_pct")
-		assert_between(per_hour, 0.75, 1.4, "%s blueprints per hour from the data" % id)
+		# M22-08: lower bound 0.75 -> 0.70, same cause as the kills per hour (area miniboss).
+		assert_between(per_hour, 0.70, 1.4, "%s blueprints per hour from the data" % id)
 
 
 func test_rift_dust_is_a_trickle_not_a_flood() -> void:
