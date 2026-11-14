@@ -9,7 +9,7 @@ signal choice_requested(index: int)
 signal leave_requested
 
 const SEPARATION: int = 10
-const CHOICE_HEIGHT: int = 48
+const CHOICE_HEIGHT: int = 64
 
 
 func _init() -> void:
@@ -50,6 +50,8 @@ func _choice_button(index: int, choice: Dictionary, is_event: bool, def: Dungeon
 	button.name = "Choice_%d" % index
 	button.focus_mode = Control.FOCUS_NONE
 	button.custom_minimum_size.y = CHOICE_HEIGHT
+	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	button.clip_text = false
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	if is_event:
 		var id: StringName = choice.get("id", &"") as StringName
