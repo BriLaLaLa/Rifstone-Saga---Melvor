@@ -17,7 +17,6 @@ func _new_session(seed_value: int) -> GameSession:
 	TestFactory.make_roomy(s)
 	TestFactory.set_character_level(s, 55)
 	s.modifiers.set_source(HERO, [Modifier.make(&"power_bonus", 5000.0), Modifier.make(&"max_hp_flat", 100000.0)])
-	(s.data._balance["dungeon"] as Dictionary)["reveal_ms"] = 3000  # until the real data has it (M22-10)
 	return s
 
 

@@ -160,7 +160,6 @@ func test_food_and_eat_are_in_the_page_header_in_every_phase() -> void:
 
 
 func test_reveal_banner_follows_the_room_entered_and_goes_away() -> void:
-	_session.data._balance["dungeon"]["reveal_ms"] = 3000  # until the real data has it (M22-10)
 	var banner: DungeonRevealBanner = _view("RevealBanner") as DungeonRevealBanner
 	_show(&"fight", 0, &"horde")
 	_session.events.dungeon_room_entered.emit(2, &"horde")
