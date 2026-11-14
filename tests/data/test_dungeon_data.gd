@@ -68,7 +68,7 @@ func test_three_stages_with_the_abilities_of_f139() -> void:
 	_eq(stages[1]["escorts"], ["monkey_slinger", "monkey_slinger", "monkey_slinger"])
 	_eq((stages[2]["escorts"] as Array).size(), 0, "the King is alone")
 	_eq([stages[0]["intro_ms"], stages[1]["intro_ms"], stages[2]["intro_ms"]], [3500, 3500, 5500])
-	_eq(stages[0]["ability"], {"type": "heavy_strike", "every_ms": 9000, "mult": 2.0})
+	_eq(stages[0]["ability"], {"type": "heavy_strike", "every_ms": 9000, "mult": 2.2})
 	_eq(stages[1]["ability"]["type"], "summon")
 	_eq([stages[1]["ability"]["every_ms"], stages[1]["ability"]["count"], stages[1]["ability"]["max_alive"]], [10000, 2, 4])
 	_eq(stages[1]["ability"]["monsters"], ["monkey_slinger"])
@@ -112,7 +112,7 @@ func test_rewards_follow_f142_and_f143() -> void:
 	_eq((by_type["horde"]["reward"] as Dictionary), {"gold": [400, 800], "dust": [4, 8]})
 	_eq(((rooms["entrance"] as Dictionary)["reward"] as Dictionary), {"gold": [200, 400]})
 	for stage: Dictionary in (_den["stages"] as Array).slice(0, 2):
-		_eq(stage["reward"], {"gold": [1500, 2500], "dust": [15, 25], "crystal_pct": 40, "piece_pct": 60})
+		_eq(stage["reward"], {"gold": [1500, 2500], "dust": [15, 25], "crystal_pct": 60, "piece_pct": 60})
 	var boss: Dictionary = _den["boss"] as Dictionary
 	_eq([boss["gold"], boss["dust"], boss["crystals"], boss["card_pct"], boss["card_grade"]], [[3000, 5000], [40, 60], 2, 60, 4])
 	_eq(boss["pieces"], [{"rarity": "rare"}, {"min_rarity": "magic"}])
@@ -150,7 +150,7 @@ func test_the_ticket_only_where_the_schema_says() -> void:
 	_eq(tables_with.keys().size(), 7, "the Monoliti of the areas 4-10")
 	for id: String in tables_with:
 		assert_true(allowed_tables.has(id), id)
-		_eq(tables_with[id], 20.0, id)
+		_eq(tables_with[id], 5.0, id)
 	var with_ticket: Array[String] = []
 	for m: Dictionary in _read("res://data/combat/monsters.json")["monsters"]:
 		for d: Dictionary in m["drops"]:
@@ -158,7 +158,7 @@ func test_the_ticket_only_where_the_schema_says() -> void:
 				with_ticket.append(String(m["id"]))
 				assert_true(m.get("miniboss", false), "only a miniboss drops the ticket")
 				assert_true(allowed_minibosses.has(m["id"]), String(m["id"]))
-				_eq(d["chance_pct"], 25.0)
+				_eq(d["chance_pct"], 12.0)
 	_eq(with_ticket.size(), 7)
 	for dungeon_monster: Dictionary in _den["monsters"]:
 		for d: Dictionary in dungeon_monster["drops"]:
@@ -168,15 +168,24 @@ func test_the_ticket_only_where_the_schema_says() -> void:
 	_eq(ticket.value, 0)
 
 
-## F-139 example: 300 kills/hour, 4.07 monsters per encounter, 1.5% miniboss, 25% ticket; 1.5 Monoliti/hour at 20%: about 0.58 an hour.
+## F-139/F-144 (M22-07, measured by tools/sim_dungeon.gd with the hero of the area): about 530 kills/hour and 134 encounters/hour,
+## the chances of the data (miniboss after an encounter, Monolith per kill, ticket in the miniboss and in the Monolith tables):
+## one ticket every 1.5-2.5 hours in the areas 4-10.
 func test_ticket_rate_is_one_every_one_and_a_half_to_two_and_a_half_hours() -> void:
-	var mini: Dictionary = _balance["miniboss"] as Dictionary
-	var encounters: float = 300.0 / 4.07
-	var from_minibosses: float = encounters * float(mini["chance_pct"]) / 100.0 * 0.25
-	var from_monoliths: float = 1.5 * 0.20
-	var per_hour: float = from_minibosses + from_monoliths
-	assert_almost_eq(per_hour, 0.58, 0.02)
-	assert_between(1.0 / per_hour, 1.5, 2.5, "hours per ticket")
+	var encounters: float = 134.0
+	var kills: float = 530.0
+	var area: AreaDef = _data.area(&"ash_marsh")
+	var from_miniboss: float = encounters * float(_balance["miniboss"]["chance_pct"]) / 100.0 * _ticket_pct(_data.monster(area.miniboss_id).drops) / 100.0
+	var stones: Array[RiftStoneDef] = _data.rift_stones_for_area(area.id)
+	var from_stones: float = kills * area.rift_stone_chance_pct / 100.0 * _ticket_pct(_data.loot_table(stones[0].loot_tables[0]).entries) / 100.0
+	assert_between(1.0 / (from_miniboss + from_stones), 1.5, 2.5, "hours per ticket")
+
+
+func _ticket_pct(entries: Array) -> float:
+	var pct: float = 0.0
+	for entry: DropEntry in entries:
+		pct += entry.chance_pct if entry.item_id == TICKET else 0.0
+	return pct
 
 
 func test_every_area_has_its_own_miniboss() -> void:
