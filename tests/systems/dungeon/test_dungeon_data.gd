@@ -65,7 +65,6 @@ func test_the_dungeon_is_built() -> void:
 	assert_eq(def.forks, 5)
 	assert_eq(def.width_weights, [3, 4, 3] as Array[int])
 	assert_eq(def.exit_weights, [5, 3, 2] as Array[int])
-	assert_almost_eq(def.hint_pct, 45.0, 1e-9)
 	assert_eq(def.room_types.size(), 6)
 	assert_eq(def.trap_kinds.size(), 3)
 	assert_eq(def.boss_gold, Vector2i(3000, 5000))
@@ -171,6 +170,26 @@ func test_direction_bands_must_increase() -> void:
 	var balance: Dictionary = V.file_of(raw, "balance", "balance.json")
 	((balance["dungeon"] as Dictionary))["direction_bands"] = [-0.55, -0.30, -0.10, 0.10, 0.05, 0.55]
 	_expect(raw, ["strictly increasing"])
+
+
+func test_reveal_ms_is_required_and_in_range() -> void:
+	var raw: Dictionary = _raw()
+	var dungeon: Dictionary = V.file_of(raw, "balance", "balance.json")["dungeon"] as Dictionary
+	dungeon.erase("reveal_ms")
+	_expect(raw, ["reveal_ms"])
+	dungeon["reveal_ms"] = 400
+	_expect(raw, ["reveal_ms"])
+	dungeon["reveal_ms"] = 10001
+	_expect(raw, ["reveal_ms"])
+
+
+func test_hint_keys_are_rejected_as_unknown() -> void:
+	var raw: Dictionary = _raw()
+	(_den(raw)["map"] as Dictionary)["hint_pct"] = 45
+	_expect(raw, ["hint_pct"])
+	raw = _raw()
+	(((_den(raw)["rooms"] as Dictionary)["types"] as Array)[0] as Dictionary)["hint"] = "Rumore"
+	_expect(raw, ["hint"])
 
 
 func test_balance_needs_the_dungeon_and_miniboss_sections() -> void:
@@ -334,6 +353,7 @@ func test_the_dungeon_is_a_legendary_source_type() -> void:
 func test_balance_values_of_f137_and_f139() -> void:
 	var data: GameData = TestFactory.fixture_data()
 	assert_eq(data.balance_value("dungeon.direction_bands"), [-0.55, -0.30, -0.10, 0.10, 0.30, 0.55])
+	assert_eq(int(data.balance_value("dungeon.reveal_ms")), 3000)
 	assert_eq(float(data.balance_value("miniboss.chance_pct")), 1.5)
 	assert_eq(float(data.balance_value("miniboss.hp_mult")), 4.0)
 	assert_eq(float(data.balance_value("miniboss.power_mult")), 1.5)

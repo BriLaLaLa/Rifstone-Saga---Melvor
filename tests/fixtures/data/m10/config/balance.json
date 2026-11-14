@@ -304,7 +304,7 @@
       {"areas": ["test_stone_area"], "level_bonus": 7, "hp_mult": 2.4, "damage_mult": 1.7, "reward_mult": 3.5, "piece_grade": 8, "recommended_level": 99}
     ]
   },
-  "dungeon": {"direction_bands": [-0.55, -0.30, -0.10, 0.10, 0.30, 0.55]},
+  "dungeon": {"direction_bands": [-0.55, -0.30, -0.10, 0.10, 0.30, 0.55], "reveal_ms": 3000},
   "miniboss": {"chance_pct": 1.5, "hp_mult": 4.0, "power_mult": 1.5, "xp_mult": 4.0, "gold_mult": 4.0},
   "offline": {
     "cap_ms": 43200000,

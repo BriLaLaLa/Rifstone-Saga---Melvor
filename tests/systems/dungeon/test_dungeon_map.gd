@@ -3,6 +3,7 @@ extends GutTest
 ## formula), the properties over 1.000 seeds and the same map from the same seed.
 
 const SEEDS: int = 1000
+const PINNED_77: String = "0.0@0.5000:entrance::[0, 1]|1.0@0.3750:trap:pit:[0, 1]|1.1@0.6250:pack::[0, 1, 2]|2.0@0.1667:pack::[0, 1]|2.1@0.5000:elite::[0, 1]|2.2@0.8333:pack::[1, 2]|3.0@0.1667:horde::[0, 1]|3.1@0.5000:trap:vines:[0, 1]|3.2@0.8333:pack::[0, 1]|4.0@0.2500:miniboss::[0, 1, 2, 3]|4.1@0.7500:elite::[1, 2, 3]|5.0@0.1250:miniboss::[0]|5.1@0.3750:horde::[0]|5.2@0.6250:horde::[0]|5.3@0.8750:rest::[0]|6.0@0.5000:boss::[]"
 
 var _data: GameData
 var _def: DungeonDef
@@ -163,26 +164,23 @@ func test_generating_does_not_touch_other_generators() -> void:
 	assert_eq(rng.randf(), expected, "the map uses its own local generator")
 
 
-func test_hint_is_the_phrase_of_the_room_type_and_belongs_to_the_room() -> void:
-	var with_hint: int = 0
-	var without_hint: int = 0
+func test_an_exit_has_only_index_and_direction() -> void:
+	var exits: int = 0
 	for seed_value: int in range(1, 60):
 		var map: DungeonMap = DungeonGenerator.generate(_def, seed_value, _data)
 		for layer: int in _def.forks:
 			for index: int in map.width(layer):
 				for exit: Dictionary in map.exits_of(layer, index, _data):
-					var target: DungeonRoom = map.room(layer + 1, exit["index"] as int)
-					if layer + 1 > _def.forks:
-						continue
-					var phrase: String = exit["hint"] as String
-					if target.hint:
-						assert_eq(phrase, _def.room_type(target.kind).hint)
-						with_hint += 1
-					else:
-						assert_eq(phrase, "")
-						without_hint += 1
-	assert_gt(with_hint, 0)
-	assert_gt(without_hint, 0)
+					exits += 1
+					var keys: Array = exit.keys()
+					keys.sort()
+					assert_eq(keys, ["direction", "index"], "no hint and no kind (M22-09)")
+	assert_gt(exits, 0)
+
+
+func test_the_map_of_a_fixed_seed_is_the_one_from_before_the_hints_were_removed() -> void:
+	# The hint rolls were the last of the generator: removing them leaves widths, exits, types and trap kinds as they were.
+	assert_eq(_describe(DungeonGenerator.generate(_def, 77, _data)), PINNED_77)
 
 
 func test_a_trap_has_its_kind_and_other_rooms_none() -> void:
@@ -215,5 +213,5 @@ func _describe(map: DungeonMap) -> String:
 	for layer: int in map.layers():
 		for index: int in map.width(layer):
 			var room: DungeonRoom = map.room(layer, index)
-			parts.append("%d.%d@%.4f:%s:%s:%s:%s" % [layer, index, room.x, room.kind, room.trap_kind, room.hint, room.exits])
+			parts.append("%d.%d@%.4f:%s:%s:%s" % [layer, index, room.x, room.kind, room.trap_kind, room.exits])
 	return "|".join(parts)

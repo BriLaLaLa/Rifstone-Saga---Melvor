@@ -6,7 +6,7 @@ extends RefCounted
 const TIE_EPSILON: float = 1e-9  # two distances this close are a tie (lowest index wins)
 
 
-## F-137: the map of `def` for `seed_value`. The rolls are in a fixed order (widths, exits level by level, types, hints) on a
+## F-137: the map of `def` for `seed_value`. The rolls are in a fixed order (widths, exits level by level, types) on a
 ## local `RngService.new(seed_value)`: the same seed always gives the same map. `data` is unused for now (the directions are
 ## computed when the exits are read); it is part of the contract of the interface.
 static func generate(def: DungeonDef, seed_value: int, _data: GameData) -> DungeonMap:
@@ -20,9 +20,6 @@ static func generate(def: DungeonDef, seed_value: int, _data: GameData) -> Dunge
 		_exits(levels, layer, forks, def, rng)
 	for layer: int in range(1, forks + 1):
 		_types(levels[layer] as Array, layer, def, rng)
-	for layer: int in range(1, forks + 1):
-		for room: DungeonRoom in levels[layer]:
-			room.hint = rng.roll_pct(def.hint_pct)
 	for level: Array in levels:
 		var typed: Array[DungeonRoom] = []
 		typed.assign(level)

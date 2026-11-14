@@ -11,11 +11,11 @@ const STRICT_REAL_DATA: bool = true
 const FIELDS: PackedStringArray = ["id", "name", "description", "icon", "order", "requirements", "recommended_level",
 	"ticket", "map", "monsters", "rooms", "stages", "boss", "loot_table"]
 const ICON_DIR: String = "res://assets/icons/"
-const MAP_FIELDS: PackedStringArray = ["forks", "width_weights", "exit_weights", "hint_pct"]
+const MAP_FIELDS: PackedStringArray = ["forks", "width_weights", "exit_weights"]
 const FORKS_MAX: int = 8
 const ROOM_TYPES: PackedStringArray = ["pack", "horde", "elite", "miniboss", "trap", "rest"]
 const COMBAT_TYPES: PackedStringArray = ["pack", "horde", "elite", "miniboss"]
-const TYPE_FIELDS: PackedStringArray = ["id", "weight", "min_layer", "hint", "reward"]
+const TYPE_FIELDS: PackedStringArray = ["id", "weight", "min_layer", "reward"]
 const COMPOSITION_FIELDS: PackedStringArray = ["size", "pool", "fixed"]
 const SIZE_MAX: int = 30  # the entrance and the combat rooms
 const SIDE_SIZE_MAX: int = 8  # the ambush and the forage
@@ -32,6 +32,8 @@ const CARD_GRADE_MAX: int = 10
 const RARITIES: PackedStringArray = ["common", "magic", "rare"]
 const FORBIDDEN_TABLE_CATEGORIES: PackedStringArray = ["map", "contract"]  # no Cards and no Contracts in a dungeon table
 const MINIBOSS_KEYS: PackedStringArray = ["chance_pct", "hp_mult", "power_mult", "xp_mult", "gold_mult"]
+const REVEAL_MS_MIN: int = 500  # `dungeon.reveal_ms`: the banner of the UI (GDD §33.8)
+const REVEAL_MS_MAX: int = 10000
 const BANDS_COUNT: int = 6
 const BAND_WIDTH_MAX: float = 0.25  # F-137: rooms of a level are at least this far apart, so no band may hold two exits
 const EPSILON: float = 1e-9
@@ -41,7 +43,7 @@ const EPSILON: float = 1e-9
 
 ## True for the sections `dungeon` and `miniboss` and their keys (so that DataValidator does not report them as unknown).
 static func is_known_key(path: String) -> bool:
-	return path == "dungeon" or path == "dungeon.direction_bands" or path == "miniboss" \
+	return path == "dungeon" or path == "dungeon.direction_bands" or path == "dungeon.reveal_ms" or path == "miniboss" \
 			or (path.begins_with("miniboss.") and MINIBOSS_KEYS.has(path.get_slice(".", 1)))
 
 
@@ -50,8 +52,9 @@ static func validate_balance(v: DataValidatorRules, balance: Dictionary) -> void
 	if not dungeon is Dictionary:
 		v.fail("missing key 'dungeon'")
 	else:
-		v.keys(dungeon as Dictionary, ["direction_bands"], "dungeon")
+		v.keys(dungeon as Dictionary, ["direction_bands", "reveal_ms"], "dungeon")
 		_bands(v, dungeon as Dictionary)
+		v.integer(dungeon as Dictionary, "reveal_ms", REVEAL_MS_MIN, REVEAL_MS_MAX, "dungeon")
 	var miniboss: Variant = DataValidator.lookup(balance, "miniboss")
 	if not miniboss is Dictionary:
 		v.fail("missing key 'miniboss'")
@@ -150,7 +153,6 @@ static func _map(v: DataValidatorRules, d: Dictionary) -> int:
 			total += float(w) if DataValidatorRules.is_number(w) else 0.0
 		if not valid or total < 1.0:
 			v.fail("field 'map.%s' needs 3 integer weights >= 0 with a sum >= 1, got %s" % [key, JSON.stringify(weights)])
-	v.number(map, "hint_pct", 0.0, 100.0, "map")
 	return forks
 
 
@@ -225,8 +227,6 @@ static func _type(v: DataValidatorRules, t: Dictionary, prefix: String, local: D
 	var top: float = float(forks) if forks > 0 else DataValidatorRules.NO_LIMIT
 	if v.integer(t, "min_layer", 1, top, prefix) and t.get("id") == "pack" and int(t["min_layer"]) != 1:
 		v.fail("field '%s.min_layer': the type 'pack' must start at layer 1" % prefix)
-	if v.text(t, "hint", prefix) and (t["hint"] as String).is_empty():
-		v.fail("field '%s.hint' must not be empty" % prefix)
 	if is_combat:
 		_composition(v, t, prefix, local, true)
 	_reward(v, t, prefix)

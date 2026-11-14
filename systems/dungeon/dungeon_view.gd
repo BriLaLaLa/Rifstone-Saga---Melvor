@@ -1,7 +1,7 @@
 class_name DungeonView
 extends RefCounted
 ## The copy of a run for the UI (`DungeonSystem.state`, docs/05_INTERFACES.md §5.29), split from the system for size. Nothing of
-## the hidden map reaches the UI but the kind of the room we are in and, for the exits, direction and hint.
+## the hidden map reaches the UI but the kind of the room we are in and, for the exits, only the direction (no hints, M22-09).
 
 const EXIT_CHOICE: StringName = &"exit"
 const EVENT_CHOICES: Dictionary[StringName, Array] = {&"trap": [&"dash", &"detour"], &"rest": [&"rest", &"forage"]}
@@ -18,8 +18,12 @@ static func build(run: DungeonRun, def: DungeonDef, data: GameData, engine_state
 	if run.stage > 0:
 		var stage: DungeonStageDef = def.stages[run.stage - 1]
 		result["room"]["name"] = stage.title
-		result["stage"] = {"index": run.stage, "id": stage.id, "title": stage.title, "quote": stage.quote,
-			"intro_ms": stage.intro_ms, "intro_left_ms": _intro_left_ms(run, engine_state)}
+		var acts: Array[Dictionary] = []
+		for act: DungeonStageDef in def.stages:
+			acts.append({"id": act.id, "monster": act.monster_id, "name": act.monster.name if act.monster != null else ""})
+		result["stage"] = {"index": run.stage, "count": def.stages.size(), "id": stage.id, "monster": stage.monster_id,
+			"title": stage.title, "quote": stage.quote, "intro_ms": stage.intro_ms,
+			"intro_left_ms": _intro_left_ms(run, engine_state), "acts": acts}
 	return result
 
 
@@ -39,10 +43,10 @@ static func _choices(run: DungeonRun, room: DungeonRoom, data: GameData) -> Arra
 	var result: Array[Dictionary] = []
 	if run.phase == DungeonRun.PHASE_AWAIT:
 		for exit: Dictionary in run.map.exits_of(run.layer, run.index, data):
-			result.append({"id": EXIT_CHOICE, "direction": exit["direction"], "hint": exit["hint"]})
+			result.append({"id": EXIT_CHOICE, "direction": exit["direction"]})
 	elif run.phase == DungeonRun.PHASE_EVENT:
 		for id: StringName in EVENT_CHOICES[room.kind]:
-			result.append({"id": id, "direction": &"", "hint": ""})
+			result.append({"id": id, "direction": &""})
 	return result
 
 

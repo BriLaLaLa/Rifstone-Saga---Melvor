@@ -28,8 +28,7 @@ func room(layer: int, index: int) -> DungeonRoom:
 	return _layers[layer][index] as DungeonRoom
 
 
-## The exits of a room, from left to right: `{"index", "direction", "hint"}`; `hint` is the phrase of the type of the room
-## behind the exit, or "" when that room has no hint. Empty for an unknown room and for the boss.
+## The exits of a room, from left to right: `{"index", "direction"}` (never the kind of the room behind it). Empty for an unknown room and for the boss.
 func exits_of(layer: int, index: int, data: GameData) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	var from: DungeonRoom = room(layer, index)
@@ -40,10 +39,7 @@ func exits_of(layer: int, index: int, data: GameData) -> Array[Dictionary]:
 		var target: DungeonRoom = room(layer + 1, exit_index)
 		if target == null:
 			continue
-		var phrase: String = ""
-		if target.hint and def.room_type(target.kind) != null:
-			phrase = def.room_type(target.kind).hint
-		result.append({"index": exit_index, "direction": direction_of(target.x - from.x, data), "hint": phrase})
+		result.append({"index": exit_index, "direction": direction_of(target.x - from.x, data)})
 	return result
 
 

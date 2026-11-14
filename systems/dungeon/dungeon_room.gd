@@ -13,5 +13,4 @@ var x: float = 0.5
 ## `&"entrance"`, `&"pack"`, `&"horde"`, `&"elite"`, `&"miniboss"`, `&"trap"`, `&"rest"` or `&"boss"`.
 var kind: StringName = &""
 var trap_kind: StringName = &""  # a trap only (`rooms.trap.kinds`)
-var hint: bool = false  # a hint exists (F-137 point 4); its phrase is the one of the type (F-138)
 var exits: Array[int] = []  # indices in the next level, from left to right (2-4; [0] for the last fork level; [] for the boss)

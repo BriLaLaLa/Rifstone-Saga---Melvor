@@ -25,7 +25,7 @@ func _kinds(map: DungeonMap) -> Array:
 	for layer: int in map.layers():
 		for k: int in map.width(layer):
 			var room: DungeonRoom = map.room(layer, k)
-			kinds.append([layer, k, room.kind, room.trap_kind, room.hint, room.exits, room.x])
+			kinds.append([layer, k, room.kind, room.trap_kind, room.exits, room.x])
 	return kinds
 
 

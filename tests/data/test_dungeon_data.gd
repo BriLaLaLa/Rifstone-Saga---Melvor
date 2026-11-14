@@ -97,7 +97,8 @@ func test_room_types_follow_f138() -> void:
 	_eq(types["elite"]["fixed"], ["monkey_gorilla"])
 	_eq(types["miniboss"]["fixed"], ["monkey_packlead", "monkey_guard", "monkey_guard"])
 	_eq((rooms["entrance"] as Dictionary)["size"], 6)
-	_eq(int(_den["map"]["hint_pct"]), 45)
+	assert_false((_den["map"] as Dictionary).has("hint_pct"), "no hints (M22-09)")
+	assert_false((types["pack"] as Dictionary).has("hint"), "no hints (M22-09)")
 	_eq((rooms["trap"] as Dictionary)["dash_hp_pct"], 20)
 	_eq((rooms["rest"] as Dictionary)["heal_pct"], 35)
 
@@ -207,6 +208,7 @@ func test_every_area_has_its_own_miniboss() -> void:
 
 func test_the_direction_bands_and_the_miniboss_balance_are_the_ones_of_the_fixtures() -> void:
 	_eq((_balance["dungeon"] as Dictionary)["direction_bands"], [-0.55, -0.30, -0.10, 0.10, 0.30, 0.55])
+	_eq(int((_balance["dungeon"] as Dictionary)["reveal_ms"]), 3000)
 	_eq(_balance["miniboss"], {"chance_pct": 1.5, "hp_mult": 4.0, "power_mult": 1.5, "xp_mult": 4.0, "gold_mult": 4.0})
 
 

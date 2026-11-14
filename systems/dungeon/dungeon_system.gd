@@ -47,7 +47,7 @@ func run() -> DungeonRun:
 	return _run
 
 
-## Copy for the UI: `{}` outside a run (docs/05_INTERFACES.md §5.29). Nothing of the hidden map but direction and hint.
+## Copy for the UI: `{}` outside a run (docs/05_INTERFACES.md §5.29). Nothing of the hidden map but the direction of the exits.
 func state() -> Dictionary:
 	if _run == null:
 		return {}
