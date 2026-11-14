@@ -27,6 +27,7 @@ var _room_label: Label = null
 var _progress_label: Label = null
 var _flee_button: Button = null
 var _log_label: Label = null
+var _bag_label: Label = null
 
 
 func _init() -> void:
@@ -79,6 +80,8 @@ func tick(state: Dictionary) -> void:
 		_intro.show_stage(stage)
 	var paused: bool = bool(state.get("paused", false))
 	_flee_button.visible = not paused
+	var bag_text: String = FractureTexts.bag_text(state.get("bag", {}) as Dictionary)
+	_bag_label.text = "%s: %s" % [DungeonTexts.BAG_TITLE_TEXT, bag_text if bag_text != "" else DungeonTexts.BAG_EMPTY_TEXT]
 	var combat_state: Dictionary = _session.combat.get_state()
 	_player.tick(combat_state)
 	if not in_intro:
@@ -144,7 +147,12 @@ func _build() -> void:
 	_feed_zone.name = "FeedZone"
 	_feed_zone.visible = false
 	add_child(_feed_zone)
+	_bag_label = _label("BagLabel", &"HeaderLabel")
+	_bag_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_bag_label.clip_text = false
+	add_child(_bag_label)
 	_log_label = _label("LogLabel", &"MutedLabel")
+	_log_label.clip_text = false
 	add_child(_log_label)
 
 
