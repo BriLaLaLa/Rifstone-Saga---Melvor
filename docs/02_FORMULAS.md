@@ -807,7 +807,7 @@ Voci del Mercato (id, effetto, massimo, prezzo, livello del Mercato, requisito d
 | `market_loot_pouch` | `loot_bag_slots` +6 | 1 | 50.000 | 8 | — |
 Totale 15 voci, 314.000 oro (circa 4 h di oro per voce al gradino in cui si sbloccano; nessuna è obbligatoria). Esempio (= test, `tests/systems/shop/test_shop_market.gd`): con Mercato 2, `market_shelf_2` (Mercato 3) → `requirement_not_met`; con Mercato 3 ma senza `market_shelf_1` → `requirement_not_met`; comprate `market_shelf_1` e `market_shelf_2`: `T(deposit_slots)` = 8 (capienza 60 + 8 = 68, F-133).
 
-## 5j. Dungeon delle scimmie (F-137…F-144; M22, V12; numeri fissati da M22-01, da verificare con `tools/sim_dungeon.gd` in M22-07)
+## 5j. Dungeon delle scimmie (F-137…F-144; M22, V12; numeri fissati da M22-01, ritarati e verificati con `tools/sim_dungeon.gd` in M22-07)
 
 Regole in `01_GDD.md` §33, dati in `04_DATA_SCHEMA.md` §27, contratto in `05_INTERFACES.md` §5.29. Tutti i numeri sono **valori di partenza** (chiavi di `data/dungeons/monkey_den.json` e di `balance.json` `dungeon` e `miniboss`, §9); gli esempi sono casi di test e cambiano insieme ai valori.
 Stat nuove: nessuna. `rng` = `RngService.new(seed)` locale, **non** il generatore dello slot: la mappa dipende solo dal seme.
@@ -841,22 +841,22 @@ Esempio (= test): al livello 1 i pesi sono 30, 16, 14 (somma 60): `P(pack)` = 50
 **Mostri del dungeon** (`data/dungeons/monkey_den.json`, **generati** da `tools/gen_dungeon.gd`, mai scritti a mano): le statistiche (PV, danno, precisione, evasione, intervallo, XP F-130, oro) sono quelle di un mostro di area di pari livello `L` (stesse formule di `gen_areas.gd`) × il moltiplicatore del ruolo. Valori di partenza:
 | Id | Nome | `L` | Stile | PV × | Danno × | XP, oro × | Note |
 |---|---|---|---|---|---|---|---|
-| `monkey_imp` | Monello del branco | 40 | blade | 0,5 | 0,6 | 0,5 | scimmietta d'Orda |
-| `monkey_grunt` | Scimmia predona | 44 | blade | 1,0 | 1,0 | 1 | |
-| `monkey_slinger` | Lanciatrice di noci | 45 | marksmanship | 0,8 | 1,1 | 1 | |
-| `monkey_shaman` | Scimmia sciamana | 46 | arcana | 1,0 | 1,1 | 1 | |
-| `monkey_guard` | Guardia dei rami | 46 | blade | 1,6 | 1,2 | 1,5 | |
-| `monkey_gorilla` | Gorilla guardiano | 49 | blade | 3,0 | 1,4 | 3 | stanza Guardiano |
-| `monkey_packlead` | Capobranco | 50 | blade | 4,0 | 1,5 | 4 | stanza Capobranco |
-| `monkey_gorom` | Gorom, il Braccio Destro | 50 | blade | 6,0 | 1,4 | 6 | stadio 1; `heavy_strike` ogni 9000 ms, `mult` 2,0 |
-| `monkey_ziki` | Ziki, la Stratega | 51 | arcana | 5,0 | 1,2 | 5 | stadio 2; DR ×1,3; `summon` ogni 10000 ms, `count` 2, `max_alive` 4, `monsters` [`monkey_slinger`] |
-| `monkey_king` | Uuk-Maar, il Re delle Scimmie | 54 | blade | 10,0 | 1,6 | 10 | stadio 3; `shield` ogni 14000 ms, `duration_ms` 6000, `shield_pct` 20 |
+| `monkey_imp` | Monello del branco | 40 | blade | 1,0 | 0,65 | 0,5 | scimmietta d'Orda |
+| `monkey_grunt` | Scimmia predona | 44 | blade | 2,0 | 1,09 | 1 | |
+| `monkey_slinger` | Lanciatrice di noci | 45 | marksmanship | 1,6 | 1,20 | 1 | |
+| `monkey_shaman` | Scimmia sciamana | 46 | arcana | 2,0 | 1,20 | 1 | |
+| `monkey_guard` | Guardia dei rami | 46 | blade | 3,2 | 1,31 | 1,5 | |
+| `monkey_gorilla` | Gorilla guardiano | 49 | blade | 6,0 | 1,53 | 3 | stanza Guardiano |
+| `monkey_packlead` | Capobranco | 50 | blade | 8,0 | 1,64 | 4 | stanza Capobranco |
+| `monkey_gorom` | Gorom, il Braccio Destro | 50 | blade | 12,0 | 1,53 | 6 | stadio 1; `heavy_strike` ogni 9000 ms, `mult` 2,2 |
+| `monkey_ziki` | Ziki, la Stratega | 51 | arcana | 10,0 | 1,31 | 5 | stadio 2; DR ×1,3; `summon` ogni 10000 ms, `count` 2, `max_alive` 4, `monsters` [`monkey_slinger`] |
+| `monkey_king` | Uuk-Maar, il Re delle Scimmie | 54 | blade | 20,0 | 1,74 | 10 | stadio 3; `shield` ogni 14000 ms, `duration_ms` 6000, `shield_pct` 20 |
 Stadi (`stages`): 1 = `monkey_gorom` + 2 `monkey_guard` (`intro_ms` 3500); 2 = `monkey_ziki` + 3 `monkey_slinger` (3500); 3 = `monkey_king` da solo (5500, "il ruggito"). Le abilità sono quelle di F-112 (stesso schema e limiti: `max_alive + 1 ≤ combat.max_pack_size`).
 **Requisito e livello**: `requirements.character` 35; `recommended_level` 45.
 **Miniboss di area** (`balance.json` `miniboss`): `{"chance_pct": 1.5, "hp_mult": 4.0, "power_mult": 1.5, "xp_mult": 4.0, "gold_mult": 4.0}`. Il miniboss di un'area è il suo mostro di livello più alto con quei moltiplicatori (generato da `tools/gen_areas.gd`, nome proprio per area, id `miniboss_<area>`);
 dopo ogni incontro normale (non Monolito, non Frattura, non dungeon) `roll_pct(chance_pct)`; se riesce e non c'è un Monolito in attesa, il prossimo incontro (dopo `BETWEEN`) è il miniboss con `AreaDef.miniboss_escorts` mostri (unica fonte: `areas.json`, non `balance.json`) dell'area (a caso tra i suoi mostri). Un solo miniboss in attesa alla volta.
-**Biglietti** (`dungeon_ticket_monkey_den`): voce di drop `{"item": "dungeon_ticket_monkey_den", "chance_pct": 25, "qty": [1, 1]}` nei `drops` dei miniboss delle aree 4-10 (`level_min ≥ 31`), voce `chance_pct` 20 nelle tabelle dei Monoliti delle stesse aree. Nessun'altra fonte.
-Esempio (= test dei dati e `sim_dungeon`): 300 uccisioni/ora, 4,07 mostri per incontro → 73,7 incontri/ora → 1,1 miniboss/ora → 0,28 Biglietti/ora; Monoliti (F-87, 0,5% a uccisione) 1,5/ora → 0,30 Biglietti/ora: **0,58 Biglietti/ora = uno ogni 1,7 ore** (obiettivo 1,5-2,5). Test: `tests/data/test_dungeon_data.gd`,
+**Biglietti** (`dungeon_ticket_monkey_den`): voce di drop `{"item": "dungeon_ticket_monkey_den", "chance_pct": 12, "qty": [1, 1]}` nei `drops` dei miniboss delle aree 4-10 (`level_min ≥ 31`), voce `chance_pct` 5 nelle tabelle dei Monoliti delle stesse aree. Nessun'altra fonte.
+Esempio (= test dei dati e `sim_dungeon`, misurato con l'eroe dell'area): circa 530 uccisioni/ora e 134 incontri/ora nelle aree 4-10 (non i 300 e 73,7 stimati su carta) → 2,0 miniboss/ora × 12% = 0,24 Biglietti/ora; Monoliti (F-87, 1% a uccisione) 5,3/ora × 5% = 0,27: **0,51 Biglietti/ora = uno ogni 1,97 ore** in `ash_marsh` (obiettivo 1,5-2,5; le sette aree 4-10: 1,8-2,5 ore). Ritarato in M22-07 (prima 25% e 20%: uno ogni 0,5-0,8 ore). Test: `tests/data/test_dungeon_data.gd`,
 `tests/systems/combat/test_miniboss.gd` (con `chance_pct` 100: ogni incontro normale è seguito dal miniboss; con 0 mai; con un Monolito pending la precedenza è del Monolito).
 
 ### F-140 Eventi (Trappola e Riposo)
@@ -883,8 +883,8 @@ Ogni mostro del dungeon ha la tabella `loot_dungeon_monkey_den` (come una tabell
 | `elite` (`L_m` 49) | 600-1.200 | — | — | 40 |
 | `miniboss` (`L_m` 50) | 1.200-2.000 | 10-18 | 25 | 70 |
 | `trap` (dopo la scelta) | — | 3-6 | — | — |
-| stadio 1 Gorom (`L_m` 50) | 1.500-2.500 | 15-25 | 40 | 60 |
-| stadio 2 Ziki (`L_m` 51) | 1.500-2.500 | 15-25 | 40 | 60 |
+| stadio 1 Gorom (`L_m` 50) | 1.500-2.500 | 15-25 | 60 | 60 |
+| stadio 2 Ziki (`L_m` 51) | 1.500-2.500 | 15-25 | 60 | 60 |
 Il premio non dipende dalla via scelta: le stanze più pericolose rendono di più (Orda, Guardiano, Capobranco). Esempio (= test, semi fissi, `*_pct` 100): Capobranco → un pezzo almeno magico, un Cristallo, Polvere in 10-18, oro in 1.200-2.000. Test: `tests/systems/dungeon/test_room_rewards.gd`.
 
 ### F-143 Bottino del boss ("loot pool")
@@ -902,18 +902,21 @@ Probabilità: almeno un leggendario a vittoria = 1 − 0,965⁶ = **19,4%** (att
 
 ### F-144 Bilanciamento e regole della run (soglie di `tools/sim_dungeon.gd`)
 Regole fisse: (1) **dopo il caricamento la run è in pausa** fino a `resume()`; (2) **offline la run non avanza** (nessun progresso, nessuna morte); (3) un Biglietto si consuma all'ingresso e **non** si recupera (morte, fuga, uscita); (4) la mappa è una funzione del seme (F-137), il seme è un `randi_range(1, 2147483647)` del generatore dello slot, estratto all'ingresso; (5) una sola istanza alla volta.
-**Soglie** per un personaggio del livello consigliato (45) con il set del grado di quel livello e cibo del grado (`sim_dungeon` con `policy=random`, la scelta delle uscite casuale, 500 run per punto):
-| Livello del personaggio | Vittorie | Note |
-|---|---|---|
-| 35 (minimo) | 15-45% | il minimo è una sfida, non un muro |
-| 40 | 50-75% | |
-| 45 (consigliato) | **85-97%** | la morte è rara ma possibile |
-| 55 | ≥ 98% | non banale in durata |
-- **Durata** di una run al livello consigliato: **12-20 minuti** (media; 90° percentile < 30 min). **Cibo**: usato in ≥ 70% delle run, mai oltre 25 pezzi per run (con le razioni da campo di livello 1).
-- **PV**: nelle stanze di combattimento normali (Branco, Orda) il giocatore perde in media ≤ 35% dei PV massimi senza cibo; il Capobranco e il Guardiano ≤ 50%; il boss (tre stadi) 80-130% (serve il cibo).
-- **Bottino per run vinta** (livello 45): **4-7 pezzi** in tutto (di cui ≥ 1,2 rari o meglio: uno garantito dal boss più i tiri), Polvere 70-130, 3-6 Cristalli, una Carta con 60%; oro 6.000-12.000; leggendario 19,4%. Il valore per **ora di run** (non per ora di farm del Biglietto) è ≥ 3× quello del combattimento in area.
-- **Biglietti**: uno ogni 1,5-2,5 ore di combattimento nelle aree 4-10 (F-139). **Ore di combattimento per leggendario**: 5,2 vittorie × 1,7 h ≈ **9 ore** (soglia 6-14), contro le 15-30 h dei boss di Frattura: il dungeon è la fonte più rapida di leggendari, ma limitata dai Biglietti.
-- `sim_dungeon` stampa: durata, vittorie per livello del personaggio, PV persi per tipo di stanza, cibo usato, pezzi/rari/Polvere/Cristalli/leggendari per run, Biglietti/ora e ore per leggendario. Opzioni: `level=`, `runs=`, `policy=random|cautious` (la prudente evita le uscite con indizio `miniboss`/`horde` e cerca `rest`), `seed=`.
+**Soglie** (M22-07: confermate o corrette con le **misure** di `tools/sim_dungeon.gd`, `policy=random`, la scelta delle uscite casuale; eroe tipo = personaggio del livello indicato con il set forgiato del grado più alto che il livello può indossare, tratti e abilità automatici, cibo del grado, **razioni da campo di livello 1** (`auto_eat_tier` 1), 150 run per punto, seme 1). Ogni run su una sessione vera con il motore vero; la run offline non si simula (regola 2).
+| Livello del personaggio | Soglia | Misurato | Note |
+|---|---|---|---|
+| 35 (minimo) | vittorie 0-10% | **0%** | con il set del grado di quel livello il Re è un muro: serve salire di livello (vedi sotto) |
+| 40 | vittorie 10-40% | **23%** | sfida seria, si vince con fortuna e buon cibo |
+| 45 (consigliato) | vittorie **85-97%** | **94%** (cauta: 90%) | la morte è rara ma possibile: quasi sempre contro Gorom (`heavy_strike`) |
+| 55 | vittorie ≥ 98% | **100%** | non banale in durata (13,7 min) |
+**Perché le fasce di 35 e 40 sono basse** (corrette rispetto ai valori di M22-01 di 15-45% e 50-75%): la morte nel motore dipende dalla potenza dell'eroe (grado del set, PV massimi, cura del cibo), non dalla fortuna, quindi la curva delle vittorie è un **gradino** di circa un grado di equipaggiamento: uno spostamento uniforme dei moltiplicatori sposta il gradino ma non lo allarga (provati: PV ×1,8-2,0, Danno ×1,0-1,2, `heavy_strike` 2,0-3,0). Con 45 in 85-97% resta a 40 il 10-40%. Per rendere il minimo una sfida e non un muro, proposta al Reviewer: alzare `requirements.character` del Covo a 40 (costante `REQUIRES_CHARACTER` di `tools/gen_dungeon.gd`).
+- **Durata** di una run al livello consigliato: soglia **12-20 minuti** (media; 90° percentile < 30 min). **Misurato: 13,1 min, p90 14,9** (55: 13,7; 40: 9,2 per la morte precoce).
+- **Cibo**: usato nel 100% delle run (soglia ≥ 70%). La soglia «mai oltre 25 pezzi» di M22-01 non regge con una run di 13 minuti e le razioni di livello 1: **media 45 pezzi per run al livello 45 (massimo 58; livello 55: 37)**, soglia sulla media ≤ 55.
+- **PV persi** (lordi: i danni subiti, il cibo non li toglie; PV massimi dell'eroe di livello 45 = 500): le soglie di M22-01 (Branco/Orda ≤ 35%, Capobranco/Guardiano ≤ 50%, boss 80-130%) erano stimate su carta e valgono la metà dell'area stessa (un incontro normale di area costa a un eroe pari livello il 60-100% dei PV lordi, con 400 cibi all'ora). **Misurato**: ingresso 152%, Branco 169%, Orda 142%, Guardiano 67%, Capobranco 317%, Trappola 51%, Riposo 50%, boss (tre stadi) 2.200%. **Soglie come tetti** (`tools/sim_dungeon_stats.gd`): Branco ≤ 220%, Orda ≤ 190%, Guardiano ≤ 100%, Capobranco ≤ 350%, boss ≤ 2.600%, e il boss costa sempre più di ogni altra stanza.
+- **Bottino per run vinta** (livello 45; soglia → misurato): **4-7 pezzi** in tutto → 5,1 (di cui ≥ 1,2 rari o meglio → 1,40: uno garantito dal boss più i tiri); Polvere 70-130 → 108; **3-6 Cristalli → 3,35** (era 2,98 con i Cristalli di stadio al 40%: portati al 60%); una Carta con 60% → 0,57 a run (la Carta del boss è solo una delle fonti); oro 6.000-12.000 → 11.184; leggendario atteso 6 × 3,5% = 0,21 per vittoria (campionato 0,21; fascia larga 0,08-0,40 per il rumore). Il valore per **ora di run** è ≥ 3× quello del combattimento in area: oro ×3,5, pezzi rari o meglio ×6,0.
+- **Biglietti**: uno ogni 1,5-2,5 ore di combattimento nelle aree 4-10 (F-139): **misurato 1,8-2,5 ore** (ash_marsh 1,97; rift_heart 2,44). Prima della ritaratura 0,5-0,8 ore, perché l'eroe di area fa circa 530 uccisioni/ora e 134 incontri/ora e non 300 e 74: le percentuali di drop del Biglietto sono scese (miniboss 25% → **12%**, Monoliti 20% → **5%**), `miniboss.chance_pct` resta 1,5. **Ore di combattimento per leggendario**: 1,97 h per Biglietto ÷ (0,94 vittorie × 0,21) ≈ **10 ore** (soglia 6-14), contro le 15-30 h dei boss di Frattura: il dungeon è la fonte più rapida di leggendari, ma limitata dai Biglietti.
+- **Ritaratura M22-07** (solo tramite generatori): PV dei mostri del Covo ×2 (durata da 7 a 13 min) e Danno ×1,09 su tutte le righe di F-139; `heavy_strike` di Gorom 2,0 → 2,2; Cristalli di stadio 40% → 60%; Biglietti 25%/20% → 12%/5%. Prima della ritaratura (valori di M22-01, tier 1): 45 vinceva il 100% in 7 minuti.
+- `sim_dungeon` stampa: durata, vittorie per livello del personaggio, PV persi per tipo di stanza, morti per stanza, cibo usato, pezzi/rari/Polvere/Cristalli/oro/Carte/leggendari per run, Biglietti/ora e ore per leggendario per ogni area 4-10 e il valore per ora di run rispetto all'area. Esce con codice 1 se una soglia non è rispettata. Opzioni: `level=`, `runs=`, `policy=random|cautious|both` (la prudente evita le uscite con indizio `miniboss`/`horde`, cerca `rest`, attraversa le trappole di corsa), `seed=`, `tier=`, `area_hours=`, `setup=`, `material=`.
 
 ## 6. Offline
 

@@ -49,8 +49,8 @@ const MINIBOSS_COMMON_PCT: int = 40
 const MINIBOSS_COMMON_QTY: Array = [2, 4]
 const TICKET_ITEM: String = "dungeon_ticket_monkey_den"
 const TICKET_MIN_LEVEL: int = 31
-const TICKET_MINIBOSS_PCT: float = 25.0
-const TICKET_MONOLITH_PCT: float = 20.0
+const TICKET_MINIBOSS_PCT: float = 12.0
+const TICKET_MONOLITH_PCT: float = 5.0
 ## The table of the monsters of the Monkey Den (F-142): dust, the four chips, a leather bag; no Cards, no Contracts.
 const DUNGEON_TABLE_ID: String = "loot_dungeon_monkey_den"
 const TRADES: Array[String] = ["forestry", "quarrying", "angling"]
