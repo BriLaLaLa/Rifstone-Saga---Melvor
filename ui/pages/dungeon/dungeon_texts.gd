@@ -17,11 +17,10 @@ const COLLECTED_TEXT: String = "Bottino raccolto."
 const LAST_RESULT_TEXT: String = "Ultima volta: %s"
 
 const PROGRESS_TEXT: String = "Stanza %d di %d"
-const PROGRESS_BOSS_TEXT: String = "Stanza ? di %d"
+const PROGRESS_FINAL_TEXT: String = "Stanza finale"
 const CHOICE_TITLE_TEXT: String = "Dove vuoi andare?"
 const EVENT_TRAP_TITLE_TEXT: String = "Una trappola"
 const EVENT_REST_TITLE_TEXT: String = "Un posto per riposare"
-const HINT_TEXT: String = "%s  (%s)"
 const BAG_TITLE_TEXT: String = "Borsa del dungeon"
 const BAG_EMPTY_TEXT: String = "La borsa è vuota."
 const LEAVE_TEXT: String = "Esci dal Covo"
@@ -38,7 +37,21 @@ const ROOM_TEXT: String = "%s  -  %s"
 const COMBAT_NOTICE_TEXT: String = "Sei nel Covo delle Scimmie"
 const COMBAT_NOTICE_HINT_TEXT: String = "Le scelte e \"Fuggi\" sono nella pagina Dungeon."
 const COMBAT_OPEN_PAGE_TEXT: String = "Vai al Dungeon"
-const INTRO_STAGE_TEXT: String = "Atto %d"
+const INTRO_STAGE_TEXT: String = "ATTO %d/%d"
+const BOSS_HEADER_TEXT: String = "BOSS FINALE — Atto %d/%d"
+const BOSS_LABEL_TEXT: String = "BOSS"
+const COMBAT_LOCKED_TEXT: String = "Sei nel Covo delle Scimmie: finisci o abbandona la run"
+
+## Narrative line shown for a few seconds after the player enters a room (the reveal banner), by room kind.
+const REVEAL_TEXTS: Dictionary[StringName, String] = {
+	&"pack": "Un branco di scimmie ti salta addosso!",
+	&"horde": "Un'orda urlante ti accerchia!",
+	&"elite": "Un guardiano ti sbarra la strada.",
+	&"miniboss": "Il capobranco esce dall'ombra!",
+	&"trap": "Hai pestato qualcosa: è una trappola!",
+	&"rest": "Trovi un angolo tranquillo dove riposare.",
+}
+const REVEAL_UNKNOWN_TEXT: String = "Entri in una nuova stanza."
 
 const DIRECTION: Dictionary[StringName, String] = {
 	&"far_left": "Tutto a sinistra",
@@ -113,11 +126,9 @@ static func kind_name(kind: StringName) -> String:
 	return KIND_NAMES.get(kind, KIND_UNKNOWN_TEXT)
 
 
-## The text of a fork button: the direction and, when the room has one, its hint.
+## The text of a fork button: the direction only, no hint (M22-09).
 static func choice_text(choice: Dictionary) -> String:
-	var direction: String = direction_text(choice.get("direction", &"") as StringName)
-	var hint: String = String(choice.get("hint", ""))
-	return HINT_TEXT % [direction, hint] if hint != "" else direction
+	return direction_text(choice.get("direction", &"") as StringName)
 
 
 static func event_text(id: StringName) -> String:
@@ -147,7 +158,7 @@ static func progress_text(state: Dictionary) -> String:
 	var done: int = int(progress.get("done", 0))
 	var room: Dictionary = state.get("room", {}) as Dictionary
 	if (room.get("kind", &"") as StringName) == &"boss":
-		return PROGRESS_BOSS_TEXT % total
+		return PROGRESS_FINAL_TEXT
 	return PROGRESS_TEXT % [mini(done + 1, total), total]
 
 
@@ -156,6 +167,20 @@ static func room_title(state: Dictionary) -> String:
 	var room: Dictionary = state.get("room", {}) as Dictionary
 	var name_text: String = String(room.get("name", ""))
 	return name_text if name_text != "" else kind_name(room.get("kind", &"") as StringName)
+
+
+## The banner text of a room kind entered (docs/05_INTERFACES.md §7.q, "Rivelazione").
+static func reveal_text(kind: StringName) -> String:
+	return REVEAL_TEXTS.get(kind, REVEAL_UNKNOWN_TEXT)
+
+
+## "BOSS FINALE — Atto n/3": `count` comes from `state["stage"]["count"]`.
+static func boss_header(index: int, count: int) -> String:
+	return BOSS_HEADER_TEXT % [index, count]
+
+
+static func act_text(index: int, count: int) -> String:
+	return INTRO_STAGE_TEXT % [index, count]
 
 
 ## Toast of `dungeon_finished`.

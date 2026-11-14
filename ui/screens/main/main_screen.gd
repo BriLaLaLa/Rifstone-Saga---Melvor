@@ -99,6 +99,8 @@ func _unbind() -> void:
 
 ## First available skill page in data order, otherwise the bank.
 func _first_page() -> StringName:
+	if _session.dungeon != null and _session.dungeon.is_active():  # a loaded slot with a run on: back to the Dungeon page
+		return &"dungeon"
 	for skill: SkillDef in _session.data.skills():
 		var page_id: StringName = StringName(PageHost.ROUTE_SKILL + PageHost.ROUTE_SEPARATOR + skill.id)
 		if _page_host.has_page(page_id):

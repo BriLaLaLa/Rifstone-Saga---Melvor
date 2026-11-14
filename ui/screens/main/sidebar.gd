@@ -41,6 +41,8 @@ var _group: ButtonGroup = ButtonGroup.new()
 var _rows: Dictionary[StringName, Button] = {}
 var _level_labels: Dictionary[StringName, Label] = {}
 var _dots: Dictionary[StringName, ActiveDot] = {}
+## Whether each row's page exists (before the dungeon lock).
+var _available: Dictionary[StringName, bool] = {}
 
 @onready var _entries: VBoxContainer = %Entries
 @onready var _row_template: Button = $Scroll/Entries/RowTemplate
@@ -79,6 +81,7 @@ func bind(session: GameSession, is_available: Callable) -> void:
 	for sig: Signal in _work_signals(_session.events):
 		sig.connect(_on_work_changed)
 	_refresh_dots()
+	_refresh_lock()
 
 
 ## Disconnects from the session's events; the rows stay as they are.
@@ -113,6 +116,7 @@ func _clear_rows() -> void:
 	_rows.clear()
 	_level_labels.clear()
 	_dots.clear()
+	_available.clear()
 
 
 func _add_section_title(text: String) -> void:
@@ -131,6 +135,7 @@ func _add_row(page_id: StringName, text: String, icon: Texture2D, available: boo
 	row.button_group = _group
 	row.disabled = not available
 	row.visible = true
+	_available[page_id] = available
 	row.pressed.connect(_on_row_pressed.bind(page_id))
 	if not available:
 		(row.get_node("Side") as Label).text = COMING_SOON_TEXT
@@ -158,11 +163,38 @@ func _redraw_level(skill_id: StringName) -> void:
 ## The events after which the work in progress may have changed (M16-06, V9).
 func _work_signals(events: GameEvents) -> Array[Signal]:
 	return [events.action_started, events.action_stopped, events.combat_started, events.combat_stopped,
-			events.encounter_started]  # combat_started comes before the state changes, encounter_started after
+			events.encounter_started,  # combat_started comes before the state changes, encounter_started after
+			events.dungeon_opened, events.dungeon_finished, events.dungeon_loot_lost, events.dungeon_paused_changed]
 
 
 func _on_work_changed(_a: Variant = null, _b: Variant = null, _c: Variant = null) -> void:
 	_refresh_dots()
+	_refresh_lock()
+	# `dungeon_finished` is emitted before the run is cleared: read again at the end of the frame.
+	_refresh_later.call_deferred()
+
+
+func _refresh_later() -> void:
+	_refresh_dots()
+	_refresh_lock()
+
+
+## True while a dungeon run is on (also paused): the Combat page is off limits (docs/05_INTERFACES.md §7.q).
+func _dungeon_on() -> bool:
+	return _session != null and _session.dungeon != null and _session.dungeon.is_active()
+
+
+## Disables the Combat row (with the reason as tooltip) while a dungeon run is on; restores it at the end.
+func _refresh_lock() -> void:
+	var row: Button = _rows.get(&"combat") as Button
+	if row == null:
+		return
+	var locked: bool = _dungeon_on()
+	row.disabled = locked or not _available.get(&"combat", false)
+	if locked:
+		row.tooltip_text = DungeonTexts.COMBAT_LOCKED_TEXT
+	elif _available.get(&"combat", false):
+		row.tooltip_text = ""
 
 
 ## Lights the dot of the skill in progress (main lane) and of the combat, reading both from the session.
@@ -173,7 +205,9 @@ func _refresh_dots() -> void:
 	var skill_page: StringName = StringName(PageHost.ROUTE_SKILL + PageHost.ROUTE_SEPARATOR + running) \
 			if running != &"" else &""
 	for page_id: StringName in _dots:
-		var on: bool = page_id == skill_page or (page_id == &"combat" and _session.combat.is_active())
+		var dungeon_on: bool = _dungeon_on()
+		var on: bool = page_id == skill_page or (page_id == &"combat" and _session.combat.is_active() and not dungeon_on) \
+				or (page_id == &"dungeon" and dungeon_on)
 		_dots[page_id].set_active(on)
 
 
