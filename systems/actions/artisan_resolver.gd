@@ -8,7 +8,7 @@ extends RefCounted
 ##    (outcome `bank_full`); when the inputs are gone (e.g. sold mid-cycle) the cycle fails with `missing_inputs`;
 ## 5. skill xp (F-02) and mastery (F-10, F-12) through their systems. No rift shard (F-07).
 ## Since M10 no recipe makes equipment or tools (the data validator forbids it): pieces come from blueprints
-## (BlueprintCraft), drops and the starting kit. Rolls go through `session.rng`, in this order: preservation, double.
+## (BlueprintCraft), drops and the starting kit. Rolls go through the `rng` passed in (the queue's, Q124), in this order: preservation, double.
 
 const PRESERVATION_STAT: StringName = &"preservation_chance"
 const DOUBLE_STAT: StringName = &"double_item_chance"
@@ -25,14 +25,14 @@ static func can_start(session: GameSession, action: ActionDef) -> CommandResult:
 	return CommandResult.success()
 
 
-static func resolve(session: GameSession, action: ActionDef) -> ActionOutcome:
+static func resolve(session: GameSession, action: ActionDef, rng: RngService) -> ActionOutcome:
 	var outcome := ActionOutcome.new()
 	if not can_start(session, action).ok:
 		outcome.reason = Reasons.MISSING_INPUTS
 		return outcome
 	var ctx: ModifierContext = ModifierContext.for_action(action.skill_id, action.id)
-	var preserved: bool = session.rng.roll_pct(session.modifiers.total(PRESERVATION_STAT, ctx))
-	var factor: int = DOUBLE_FACTOR if session.rng.roll_pct(session.modifiers.total(DOUBLE_STAT, ctx)) else 1
+	var preserved: bool = rng.roll_pct(session.modifiers.total(PRESERVATION_STAT, ctx))
+	var factor: int = DOUBLE_FACTOR if rng.roll_pct(session.modifiers.total(DOUBLE_STAT, ctx)) else 1
 	var consumed: Dictionary[StringName, int] = {}
 	if not preserved:
 		consumed = _sum(action.inputs, 1)

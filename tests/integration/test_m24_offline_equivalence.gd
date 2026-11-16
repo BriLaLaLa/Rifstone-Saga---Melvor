@@ -15,8 +15,7 @@ func _session(with_queue: bool = false) -> GameSession:
 	s.disciplines.new_game()
 	TestFactory.set_character_level(s, 55)
 	TestFactory.make_roomy(s)
-	s.modifiers.set_source(&"test:hero", [Modifier.make(&"power_bonus", 100000.0), Modifier.make(&"max_hp_flat", 100000.0),
-			Modifier.make(&"armor", 100000.0), Modifier.make(&"evasion_bonus", 80000.0)])
+	_boost(s)
 	s.wallet.add_gold(1000)
 	for id: StringName in [&"forestry", &"angling", &"forging", &"hearthcraft"]:
 		assert_true(s.disciplines.learn(id).ok)
@@ -25,6 +24,11 @@ func _session(with_queue: bool = false) -> GameSession:
 		assert_true(s.actions.enqueue(&"forging", &"smelt_emberbronze", 1, true).ok)
 	assert_true(s.combat.start(AREA).ok)
 	return s
+
+
+func _boost(s: GameSession) -> void:
+	s.modifiers.set_source(&"test:hero", [Modifier.make(&"power_bonus", 100000.0), Modifier.make(&"max_hp_flat", 100000.0),
+			Modifier.make(&"armor", 100000.0), Modifier.make(&"evasion_bonus", 80000.0)])
 
 
 ## The whole state that can differ: the slot file without its clock fields.
@@ -80,20 +84,47 @@ func test_twelve_hours_in_one_block_in_ticks_and_in_blocks_is_the_same_state() -
 	_assert_same(one, blocks, "12 h block vs blocks")
 
 
-func test_a_production_queue_in_parallel_keeps_its_own_progress_in_every_block_size() -> void:
-	# The queue and the fights share the session rng and the queue runs first in each `advance`: the order of the draws depends on the
-	# block size, so the whole state is not the same (it never was). What the time alone decides is the same.
+func test_a_production_queue_in_parallel_gives_the_same_whole_state_in_every_block_size() -> void:
+	# Q124: the queue rolls on its own generator and the block is cut in online steps while it runs: the whole state is the same.
 	var one: GameSession = _session(true)
 	var ticks: GameSession = _session(true)
 	var blocks: GameSession = _session(true)
 	one.advance(HOUR_MS)
 	_in_ticks(ticks, HOUR_MS)
 	_in_blocks(blocks, HOUR_MS, 60_000)
-	for other: GameSession in [ticks, blocks]:
-		assert_eq(other.skills.get_xp(&"forging"), one.skills.get_xp(&"forging"), "the queue works the same seconds")
-		assert_eq(other.actions.current().get("elapsed_ms"), one.actions.current().get("elapsed_ms"))
-		assert_gt(int(other.combat.node_counts()["worked"]) + int(other.combat.node_counts()["skipped"]), 0)
 	assert_gt(one.skills.get_xp(&"forging"), 0)
+	assert_gt(int(one.combat.node_counts()["worked"]), 0)
+	_assert_same(one, ticks, "queue 1 h block vs ticks")
+	_assert_same(one, blocks, "queue 1 h block vs blocks")
+
+
+func test_a_production_queue_in_parallel_twelve_hours_is_the_same_whole_state() -> void:
+	var one: GameSession = _session(true)
+	var ticks: GameSession = _session(true)
+	var blocks: GameSession = _session(true)
+	var twelve: int = 12 * HOUR_MS
+	one.advance(twelve)
+	_in_ticks(ticks, twelve)
+	_in_blocks(blocks, twelve, 60_000)
+	assert_gt(one.skills.get_xp(&"forging"), 0)
+	_assert_same(one, ticks, "queue 12 h block vs ticks")
+	_assert_same(one, blocks, "queue 12 h block vs blocks")
+
+
+func test_save_and_reload_in_the_middle_continues_the_same_evolution_with_a_queue() -> void:
+	var straight: GameSession = _session(true)
+	var half: GameSession = _session(true)
+	straight.advance(HOUR_MS)
+	half.advance(HOUR_MS / 2)
+	var loaded: GameSession = autofree(TestFactory.session_no_kit(SEED + 1, TestFactory.real_data()))
+	var saved: Dictionary = SaveCodec.decode(SaveCodec.encode(half.to_save(0)))
+	assert_true(loaded.from_save(saved).ok)
+	# The test boost is not part of the save: put it back and read the fight again, so the hit points are not cut to the base maximum.
+	_boost(loaded)
+	loaded.combat.from_save(saved["modules"]["combat"])
+	_assert_same(half, loaded, "right after the load")
+	loaded.advance(HOUR_MS / 2)
+	_assert_same(straight, loaded, "straight vs save-reload")
 
 
 func test_the_offline_run_of_one_hour_equals_its_silent_twin_and_counts_the_nodes() -> void:

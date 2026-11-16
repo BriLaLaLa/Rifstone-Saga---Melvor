@@ -79,6 +79,6 @@ Da provare a mano (nessuna sessione grafica in questo ambiente): vedi sezione 4.
   di viaggio, un nodo lavorato (colore, barra, prodotti nel Deposito) e uno saltato (motivo); mettere in coda 2-3 lavori (anche "Ripeti") e vederli finire durante
   il combattimento; usare una Ricetta dal Deposito ("Impara"); grado successivo e messaggio "Al limite"; disimparare con conferma (perdita in chiaro);
   caricare un salvataggio v7 (discipline scelte in automatico); offline di qualche ora con nodi e coda nel riepilogo.
-- **Limiti noti**: con una coda attiva lo stato offline non è identico a quello online a parità di seme (Q124, difetto aperto, solo statistico); durata media
+- **Limiti noti**: durata media
   misurata di un nodo ~10 s invece di 12 s (Q123); la pagina dei Maestri non ha ancora il pulsante "?" (la pagina della Guida esiste); `Reasons.SKILL_IN_OTHER_LANE`
   senza uso (Q126).

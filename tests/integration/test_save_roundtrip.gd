@@ -104,6 +104,7 @@ func test_copy_without_the_rng_block_would_diverge() -> void:
 	var original: GameSession = _played_session()
 	var d: Dictionary = SaveCodec.decode(SaveCodec.encode(original.to_save(NOW_MS)))
 	d["rng"] = {"seed": OTHER_SEED, "state": OTHER_SEED}
+	d["modules"]["actions"]["rng"] = {"seed": OTHER_SEED, "state": OTHER_SEED}  # the queue has its own generator (Q124)
 	var other: GameSession = _new_session(OTHER_SEED)
 	assert_true(other.from_save(d).ok)
 	_boost(original)

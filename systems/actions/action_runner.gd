@@ -5,8 +5,8 @@ extends RefCounted
 ## Time arrives only from `advance(delta_ms)`: the head completes the cycles that fit and the next job starts with the time left.
 ## The F-03 interval is fixed when a cycle starts (0 = not fixed yet, e.g. after a load). Missing ingredients at the start of a cycle
 ## end the job (`missing_inputs`); a full Bank or Armory makes the head wait at 100% (one notification, retried at every advance).
-## Every end of a job emits `action_stopped` and is appended to the stop reasons log (not saved). `new_game`/`from_save` emit nothing.
-## Dependencies: data, events, modifiers, bank, armory, skills, mastery, rng, disciplines.
+## Every end of a job emits `action_stopped` and goes in the stop reasons log (not saved); `new_game`/`from_save` emit nothing. Its rolls use its own
+## `RngService`, derived from the slot seed and saved (Q124). Dependencies: data, events, modifiers, bank, armory, skills, mastery, rng, disciplines.
 
 const SAVE_KEY: StringName = &"actions"
 const QUEUE: StringName = &"queue"
@@ -19,12 +19,14 @@ const CRYSTALLIZE_KIND: StringName = &"crystallize"  # ActionDef.kind resolved b
 const INTERVAL_STAT: StringName = &"skill_interval_pct"
 const SAVE_JOBS_KEY: String = "jobs"
 const SAVE_ELAPSED_KEY: String = "elapsed_ms"
+const SAVE_RNG_KEY: String = "rng"
 
 var _session: GameSession
 var _data: GameData
 var _events: GameEvents
 var _modifiers: ModifierService
 var _min_interval_ms: int = 0
+var _rng: RngService
 var _jobs: Array[ProductionJob] = []
 # The head: elapsed time of the current cycle (or of the blueprint craft), its fixed interval (0 = not fixed yet), waiting for room.
 var _elapsed_ms: int = 0
@@ -42,6 +44,7 @@ func _init(session: GameSession) -> void:
 	_events = session.events
 	_modifiers = session.modifiers
 	_min_interval_ms = int(_data.balance_value(MIN_INTERVAL_KEY))
+	_rng = ProductionQueueLoader.derive_rng(session)
 
 
 ## Empty queue, empty stop log.
@@ -50,11 +53,12 @@ func new_game() -> void:
 	_stop_log.clear()
 	_reset_head()
 	_head_ready = true
+	_rng = ProductionQueueLoader.derive_rng(_session)
 
 
-## {"jobs": [...], "elapsed_ms": int} (docs/05_INTERFACES_M24.md §6b); `elapsed_ms` is the head's.
+## {"jobs": [...], "elapsed_ms": int, "rng": {...}} (docs/05_INTERFACES_M24.md §6b); `elapsed_ms` is the head's.
 func to_save() -> Dictionary:
-	return {SAVE_JOBS_KEY: jobs(), SAVE_ELAPSED_KEY: _elapsed_ms}
+	return {SAVE_JOBS_KEY: jobs(), SAVE_ELAPSED_KEY: _elapsed_ms, SAVE_RNG_KEY: _rng.to_save()}
 
 
 ## Restores the queue (see ProductionQueueLoader): unusable jobs are reported and dropped, the queue is cut to the
@@ -64,13 +68,15 @@ func from_save(d: Dictionary) -> void:
 	_jobs = ProductionQueueLoader.load_jobs(_session, d.get(SAVE_JOBS_KEY), capacity())
 	_elapsed_ms = ProductionQueueLoader.load_elapsed(d.get(SAVE_ELAPSED_KEY, 0), _jobs)
 	_head_ready = _jobs.is_empty() or not _jobs[0].is_blueprint() or _jobs[0].consumed
+	if d.get(SAVE_RNG_KEY) is Dictionary:  # a v8 save without it keeps the generator derived from the seed
+		_rng.from_save(d[SAVE_RNG_KEY])
 
 
 ## Appends `count` cycles of the recipe (`repeat`: until the ingredients run out; `count` is not checked). Refusals in order:
 ## unknown_id (unknown skill or action, action of another skill, gathering or single-cycle), not_learned, recipe_unknown,
 ## level_too_low, invalid_amount (count outside 1..production.max_job_count), queue_full. Nothing changes on a refusal.
 func enqueue(skill_id: StringName, action_id: StringName, count: int, repeat: bool = false) -> CommandResult:
-	var action: ActionDef = _find_action(skill_id, action_id)
+	var action: ActionDef = ProductionQueueLoader.find_action(_data, skill_id, action_id)
 	if action == null or action.single or not action.is_artisan():
 		return CommandResult.fail(Reasons.UNKNOWN_ID)
 	if not _session.disciplines.is_learned(skill_id):
@@ -102,7 +108,7 @@ func enqueue_blueprint(blueprint_id: StringName, chosen_affix: StringName = &"")
 	if not check.ok:
 		return check
 	var job := ProductionJob.new()
-	job.action = _find_action(BlueprintCraft.SKILL, BlueprintCraft.ACTION)
+	job.action = ProductionQueueLoader.find_action(_data, BlueprintCraft.SKILL, BlueprintCraft.ACTION)
 	if job.action == null:
 		Log.error(LOG_CATEGORY, "action '%s' is missing from the data" % BlueprintCraft.ACTION)
 		return CommandResult.fail(Reasons.UNKNOWN_ID)
@@ -276,7 +282,7 @@ func _advance_blueprint(job: ProductionJob, left: int) -> int:
 		return -1
 	left -= needed
 	_elapsed_ms = job.duration_ms
-	var uid: int = BlueprintCraft.finish(_session, job.blueprint, job.chosen_affix)
+	var uid: int = BlueprintCraft.finish(_session, job.blueprint, job.chosen_affix, _rng)
 	if uid == 0:
 		_wait("Armeria piena: il lavoro attende un posto libero.")
 		return -1
@@ -292,8 +298,8 @@ func _advance_blueprint(job: ProductionJob, left: int) -> int:
 
 func _resolve(action: ActionDef) -> ActionOutcome:
 	if action.kind == CRYSTALLIZE_KIND:
-		return EngraverResolver.resolve(_session, action)
-	return ArtisanResolver.resolve(_session, action)
+		return EngraverResolver.resolve(_session, action, _rng)
+	return ArtisanResolver.resolve(_session, action, _rng)
 
 
 func _wait(text: String) -> void:
@@ -364,7 +370,6 @@ func _can_start_blueprint(blueprint_id: StringName, chosen_affix: StringName) ->
 	return check
 
 
-# F-03 with the stat total of the action's context.
 func _interval_for(action: ActionDef) -> int:
 	var pct: float = _modifiers.total(INTERVAL_STAT, ModifierContext.for_action(action.skill_id, action.id))
 	return ActionMath.interval_ms(action.interval_ms, pct, _min_interval_ms)
@@ -393,7 +398,3 @@ func _estimate_job(index: int) -> int:
 func _blueprint_duration(job: ProductionJob) -> int:
 	var pct: float = _modifiers.total(INTERVAL_STAT, ModifierContext.for_action(job.action.skill_id, job.action.id))
 	return BlueprintCraft.duration_ms(_data.item(job.blueprint), pct, _data)
-
-
-func _find_action(skill_id: StringName, action_id: StringName) -> ActionDef:
-	return ProductionQueueLoader.find_action(_data, skill_id, action_id)

@@ -72,13 +72,13 @@ static func can_start(session: GameSession, blueprint_id: StringName, chosen_aff
 
 ## Creates the Masterwork (F-91/F-92 with the current Forging level and `item_rarity_pct`) and puts it in the Armory.
 ## Returns its uid, 0 (no rolls made) when the Armory is full.
-static func finish(session: GameSession, blueprint_id: StringName, chosen_affix: StringName) -> int:
+static func finish(session: GameSession, blueprint_id: StringName, chosen_affix: StringName, rng: RngService) -> int:
 	if not session.armory.can_add(1):
 		return 0
 	var ctx: ModifierContext = ModifierContext.for_action(SKILL, ACTION)
 	var inst: ItemInstance = ItemRoller.create_from_blueprint(session.data.item(blueprint_id),
 			session.skills.get_level(SKILL), session.modifiers.total(RARITY_STAT, ctx), chosen_affix, session.data,
-			session.rng)
+			rng)
 	return session.armory.add(inst)
 
 

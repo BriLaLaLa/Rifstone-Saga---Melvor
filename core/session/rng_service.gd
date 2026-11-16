@@ -12,6 +12,8 @@ const SEED_KEY: String = "seed"
 const STATE_KEY: String = "state"
 # Largest integer a JSON number (double) holds exactly: larger states are saved as strings.
 const MAX_EXACT_JSON_INT: int = 9007199254740992
+# Derived seeds stay below 2^53 so the saved seed (a JSON number) is exact.
+const MAX_EXACT_JSON_INT_MASK: int = 0x1FFFFFFFFFFFFF
 
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
@@ -23,6 +25,11 @@ func _init(seed_value: int) -> void:
 ## The seed given to `_init` or restored by `from_save` (read only: it never consumes a roll).
 func seed_value() -> int:
 	return _rng.seed
+
+
+## Seed of an independent stream derived from `base` and `salt` (same inputs, same seed): the queue's generator (Q124).
+static func derive_seed(base: int, salt: int) -> int:
+	return ((base ^ salt) * 0x1E3779B97F4A7C15 + salt) & MAX_EXACT_JSON_INT_MASK
 
 
 ## Uniform float in [0, 1].

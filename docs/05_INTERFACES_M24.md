@@ -169,10 +169,7 @@ func node_skill() -> StringName           # disciplina del nodo in corso (lavora
   (0 fuori da `travel`), `next` (`{}` o `{"kind","skill"}`) e `node` (`{}` o `{"skill","action","duration_ms","elapsed_ms","skipped","color","units"}`, `color` = id del
   colore di adesso, `units` = `encounters.node_units` o 0 se saltato). Un nodo che non trova risorsa (`NodeWork.begin` null: disciplina senza azioni) diventa uno
   scontro con `Log.warn`; da M24-08 il validatore lo rifiuta nei dati (`04_DATA_SCHEMA_M24.md` §29.3).
-- **Equivalenza con la coda (limite noto, M24-08, Q124)**: l'identità `advance(n)` = passi più piccoli vale per il motore da solo (con viaggi e nodi) e per la
-  coda da sola; con **coda e combattimento insieme** no, perché tirano sullo stesso `session.rng` e in ogni `advance` la coda risolve tutti i suoi cicli prima
-  del combattimento: l'ordine dei tiri dipende dalla dimensione del blocco (`tests/integration/test_m24_offline_equivalence.gd` controlla solo le grandezze
-  dettate dal tempo). È in contrasto con F-41 e `01_GDD.md` §10.10: difetto aperto, non corretto in M24.
+- **Equivalenza con la coda (M24-09, Q124 chiusa)**: `advance(n)` = passi più piccoli anche con **coda e combattimento insieme**: la coda ha un `RngService` proprio (non condivide più il flusso di `session.rng`) e, con la coda in corso, `GameSession.advance(delta_ms, freeze_combat)` taglia il blocco in passi di `balance.tick_ms` (fasi in sequenza per ogni passo), così il bottino dei nodi che la coda consuma ("finché ci sono ingredienti") arriva nello stesso istante online e offline. Test: `tests/integration/test_m24_offline_equivalence.gd` (stato completo, 1 h e 12 h, e salva-ricarica a metà). Valida per blocchi multipli di `tick_ms`.
 - **OfflineSummary** e **SessionSnapshot** (M24-04): campi `nodes_worked: int`, `nodes_skipped: int` (differenza di `node_counts`). La vista del riepilogo li
   mostra (M24-06).
 
@@ -186,10 +183,11 @@ func node_skill() -> StringName           # disciplina del nodo in corso (lavora
 "disciplines": {"learned": {"forestry": 2, "quarrying": 1, "forging": 3, "woodwright": 1}, "recipes": ["brew_tonic_1"]},
 "actions": {"jobs": [{"skill": "forging", "action": "smelt_emberbronze", "remaining": 30, "repeat": false},
                      {"skill": "forging", "action": "blueprint_craft", "blueprint": "blueprint_sword_2", "chosen_affix": "", "duration_ms": 600000, "consumed": false}],
-            "elapsed_ms": 1200},
+            "elapsed_ms": 1200, "rng": {"seed": 1234, "state": 98765}},
 "combat": {"state": "travel", "travel_ms": 1800, "next": {"kind": "node", "skill": "quarrying"}, "node": {}, "nodes": {"worked": 12, "skipped": 9}, "...": "come v7"},
 "combat (nel nodo)": {"state": "node", "travel_ms": 0, "next": {}, "node": {"skill": "quarrying", "action": "mine_ironvein", "elapsed_ms": 4000, "duration_ms": 10800, "skipped": false}}
 ```
+- **`actions.rng`** (M24-09, additivo, nessun cambio di versione): `{"seed": int, "state": int|string}` come il blocco `rng` della radice, il generatore della coda (preservazione, doppio, cristallo, capolavoro). Assente (save v8 di M24-03..08) ⇒ derivato dal seme dello slot (`RngService.derive_seed(rng.seed, RNG_SALT)`), stato iniziale.
 - `repeat: true` ⇒ `remaining` ignorato (scritto 0). `elapsed_ms` è della testa. `helpers` non esiste più.
 - **Motore** (`CombatSave`, M24-04), tollerante: `between` in un'area (non Frattura, non Dungeon) → `travel` con `travel_ms` pieno e `next = fight`
   (nessun tiro); `next`/`node` malformati o con id sconosciuti → `travel` pieno verso `fight`; `nodes` assente → 0. Un motore `idle` scrive `travel_ms` 0,
