@@ -6,7 +6,7 @@ extends RefCounted
 
 const TIERS: int = 8
 const TYPES: PackedStringArray = ["kill", "gather", "craft"]
-const SKILLS_OF: Dictionary = {"gather": ["forestry", "quarrying", "angling"], "craft": ["forging", "hearthcraft", "woodwright"]}
+const SKILLS_OF: Dictionary = {"gather": ["forestry", "quarrying", "angling", "herbalism"], "craft": ["forging", "hearthcraft", "woodwright"]}
 const QUEST_FIELDS: PackedStringArray = ["id", "name", "description", "type", "tier", "skill", "item", "target", "requires", "reward"]
 const PARAM_KEYS: PackedStringArray = ["tier_levels", "tier_window", "recent_memory", "gold_by_tier", "xp_unit_by_tier",
 	"kill_food_qty", "types"]
@@ -39,8 +39,9 @@ static func lookup_from(items_files: Dictionary, actions_files: Dictionary) -> D
 	return {"names": names, "producers": producers}
 
 
-## The item a quest of `skill` asks for at tier `tier` (1..8); "" for an unknown skill.
-static func item_for(skill: String, tier: int) -> String:
+## The item a quest of `skill` asks for at tier `tier` (1..8); "" for an unknown skill. `herbalism` reads its herbs from the data
+## (`lookup.producers`: the items made by that skill, by level; the tier-th one), so no herb id is written here.
+static func item_for(skill: String, tier: int, lookup: Dictionary = {}) -> String:
 	var wood: String = DataValidatorVillage.WOODS[tier - 1]
 	var metal: String = DataValidatorVillage.METALS[tier - 1]
 	var fish: String = DataValidatorVillage.FISH[tier - 1]
@@ -51,8 +52,21 @@ static func item_for(skill: String, tier: int) -> String:
 		"forging": return metal + "_plate"
 		"hearthcraft": return "seared_" + fish
 		"woodwright": return wood + "_grip"
+		"herbalism": return _herb(tier, lookup)
 	return ""
 
+
+# The herb of tier `tier`: the items produced by herbalism actions ordered by action level (ties by id).
+static func _herb(tier: int, lookup: Dictionary) -> String:
+	var herbs: Array[Dictionary] = []
+	var producers: Dictionary = lookup.get("producers", {}) as Dictionary
+	for item: Variant in producers:
+		var p: Dictionary = producers[item] as Dictionary
+		if str(p.get("skill")) == "herbalism":
+			herbs.append({"id": str(item), "level": int(p["level"])})
+	herbs.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return int(a["level"]) < int(b["level"]) or (int(a["level"]) == int(b["level"]) and str(a["id"]) < str(b["id"])))
+	return str(herbs[tier - 1]["id"]) if tier >= 1 and tier <= herbs.size() else ""
 
 ## F-134: the quest of `type` (kill, gather, craft), `skill` ("" for kill) and `tier` (1..8) with the `quest` parameters of
 ## balance.json and the lookup of `lookup_from`. `{}` if the item has no name or no producing action of that skill.
@@ -71,7 +85,7 @@ static func quest_for(type: String, skill: String, tier: int, params: Dictionary
 		return {"id": "kill_any_t%d" % tier, "name": "Caccia di gradino %d" % tier,
 				"description": "Sconfiggi %d mostri, in qualunque area." % target, "type": type, "tier": tier,
 				"target": target, "requires": {"character": character, "skills": {}}, "reward": reward}
-	var item: String = item_for(skill, tier)
+	var item: String = item_for(skill, tier, lookup)
 	var producer: Dictionary = (lookup["producers"] as Dictionary).get(item, {}) as Dictionary
 	if not (lookup["names"] as Dictionary).has(item) or str(producer.get("skill")) != skill:
 		return {}

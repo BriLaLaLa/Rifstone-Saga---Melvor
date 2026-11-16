@@ -76,12 +76,12 @@ func test_craft_examples() -> void:
 	assert_eq(_quest("craft", "forging", 8)["target"], 58)
 
 
-func test_file_has_56_quests_and_equals_the_regeneration() -> void:
+func test_file_has_64_quests_and_equals_the_regeneration() -> void:
 	var all: Dictionary = DataValidatorQuests.all_for(_params, _lookup)
 	assert_eq((all["errors"] as PackedStringArray).size(), 0)
-	assert_eq((all["quests"] as Array).size(), 56)
+	assert_eq((all["quests"] as Array).size(), 64)
 	var written: Array = _written()
-	assert_eq(written.size(), 56)
+	assert_eq(written.size(), 64)
 	for index: int in written.size():
 		assert_eq(DataValidatorQuests._first_diff(written[index], (all["quests"] as Array)[index], ""), "", "quest #%d" % index)
 	var generated: Dictionary = _gen.call("generate", _params, _gen.call("read_dir", "res://data/items"),
@@ -119,3 +119,13 @@ func test_validator_rejects_a_wrong_order_and_a_missing_quest() -> void:
 	written = _written()
 	written.pop_back()
 	assert_true(_validate(written).size() >= 1)
+
+
+func test_herbalism_quests_take_their_herbs_from_the_data() -> void:
+	var first: Dictionary = _quest("gather", "herbalism", 1)
+	assert_eq(first["item"], "redrock_clover")
+	assert_eq(first["requires"]["skills"], {"herbalism": 1})
+	var seen: Dictionary = {}
+	for tier: int in range(1, 9):
+		seen[_quest("gather", "herbalism", tier)["item"]] = true
+	assert_eq(seen.size(), 8, "eight different herbs")
