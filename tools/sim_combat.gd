@@ -303,9 +303,14 @@ static func stone_estimate(data: Object, area: Object, session: Object) -> Array
 
 
 static func food_for_grade(data: Object, grade: int) -> StringName:
+	var tonics: Array[StringName] = []  # M24-07: outputs of recipes to discover (the Tonics) are not part of the cooked ladder
+	for action: Object in data.call("actions_for_skill", &"hearthcraft"):
+		if action.discover:
+			for output: Object in action.outputs:
+				tonics.append(output.item_id)
 	var foods: Array[Object] = []
 	for item: Object in data.call("items"):
-		if item.category == &"food":
+		if item.category == &"food" and not tonics.has(item.id):
 			foods.append(item)
 	foods.sort_custom(func(a: Object, b: Object) -> bool: return a.sort_order < b.sort_order)
 	return foods[clampi(grade - 1, 0, foods.size() - 1)].id
