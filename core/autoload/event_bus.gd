@@ -58,7 +58,8 @@ signal encounter_started(monster_ids: Array[StringName])
 signal encounter_cleared()
 signal travel_started(next_kind: StringName, skill_id: StringName, duration_ms: int)  # M24 (F-153): the journey to the next encounter
 signal node_started(skill_id: StringName, action_id: StringName, skipped: bool, duration_ms: int)  # M24 (F-155): arrival at a node
-signal node_finished(skill_id: StringName, action_id: StringName, units: int, reason: StringName)  # M24: node_done, bank_full, not_learned
+signal node_finished(skill_id: StringName, action_id: StringName, units: int, reason: StringName)  # M24: node_done, bank_full, not_learned, too_hard (M25)
+signal node_attempt_done(skill_id: StringName, action_id: StringName, attempt: int, attempts: int, units: int, total_units: int, color: StringName)  # M25 (F-161..F-163)
 signal rift_stone_appeared(stone_id: StringName)  # M7
 signal rift_stone_wave(stone_id: StringName, threshold: int, count: int)  # M15 (F-126): threshold 100 = first hit, then 75, 50, 25
 signal rift_stone_skipped(stone_id: StringName)  # M15 (F-128)

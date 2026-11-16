@@ -10,8 +10,14 @@ const HOUR_MS: int = 3_600_000
 const TICK_MS: int = 100
 
 
-func _session(with_queue: bool = false) -> GameSession:
-	var s: GameSession = autofree(TestFactory.session_no_kit(SEED, TestFactory.real_data()))
+# `rich_pct` >= 0: the chance of a rich node (F-164) of a copy of the real data (M25): 0 = every node has the 3 attempts, 100 = the 5 of a rich one.
+func _session(with_queue: bool = false, rich_pct: int = -1, seed_value: int = SEED) -> GameSession:
+	var data: GameData = TestFactory.real_data()
+	if rich_pct >= 0:
+		data = GameData.load_from_dirs(TestFactory.REAL_CONTENT_ROOT, TestFactory.CONFIG_ROOT)
+		((data.get("_balance") as Dictionary)["encounters"] as Dictionary)["rich_chance_pct"] = rich_pct
+	var s: GameSession = autofree(TestFactory.session_no_kit(seed_value, data))
+	s.events.node_attempt_done.connect(_count_attempt.bind(s))
 	s.disciplines.new_game()
 	TestFactory.set_character_level(s, 55)
 	TestFactory.make_roomy(s)
@@ -24,6 +30,20 @@ func _session(with_queue: bool = false) -> GameSession:
 		assert_true(s.actions.enqueue(&"forging", &"smelt_emberbronze", 1, true).ok)
 	assert_true(s.combat.start(AREA).ok)
 	return s
+
+
+# Per session: [attempts resolved, units of those attempts, the largest `attempts` of a node seen] (M25).
+var _seen: Dictionary = {}
+
+
+func _count_attempt(_skill: StringName, _action: StringName, _attempt: int, attempts: int, units: int, _total: int, _color: StringName,
+		s: GameSession) -> void:
+	var row: Array = _seen.get(s.get_instance_id(), [0, 0, 0])
+	_seen[s.get_instance_id()] = [int(row[0]) + 1, int(row[1]) + units, maxi(int(row[2]), attempts)]
+
+
+func _attempts_of(s: GameSession) -> Array:
+	return _seen.get(s.get_instance_id(), [0, 0, 0])
 
 
 func _boost(s: GameSession) -> void:
@@ -140,3 +160,54 @@ func test_the_offline_run_of_one_hour_equals_its_silent_twin_and_counts_the_node
 	assert_gt(summary.nodes_worked, 0)
 	assert_gt(summary.nodes_skipped, 0)
 	assert_gt(int(summary.xp.get(&"forging", 0)), 0, "the queue works offline too")
+
+
+# --- M25: nodes with attempts (F-161..F-165, Q124) --------------------------------------------------------------------
+
+func test_three_attempt_nodes_with_a_queue_are_the_same_in_a_block_in_ticks_and_in_blocks() -> void:
+	var one: GameSession = _session(true, 0)
+	var ticks: GameSession = _session(true, 0)
+	var blocks: GameSession = _session(true, 0)
+	one.advance(HOUR_MS)
+	_in_ticks(ticks, HOUR_MS)
+	_in_blocks(blocks, HOUR_MS, 60_000)
+	assert_eq(_attempts_of(one)[2], 3, "no rich node: three attempts")
+	assert_gt(_attempts_of(one)[0], 10)
+	_assert_same(one, ticks, "3 attempts, block vs ticks")
+	_assert_same(one, blocks, "3 attempts, block vs blocks")
+	assert_eq(_attempts_of(ticks), _attempts_of(one), "the same attempts, in the same number")
+	assert_eq(_attempts_of(blocks), _attempts_of(one))
+
+
+func test_rich_nodes_with_a_queue_twelve_hours_are_the_same_whole_state() -> void:
+	var one: GameSession = _session(true, 100)
+	var ticks: GameSession = _session(true, 100)
+	var blocks: GameSession = _session(true, 100)
+	var twelve: int = 12 * HOUR_MS
+	one.advance(twelve)
+	_in_ticks(ticks, twelve)
+	_in_blocks(blocks, twelve, 60_000)
+	assert_eq(_attempts_of(one)[2], 5, "every node is rich: five attempts")
+	assert_gt(int(one.combat.node_counts()["worked"]), 50)
+	_assert_same(one, ticks, "rich 12 h block vs ticks")
+	_assert_same(one, blocks, "rich 12 h block vs blocks")
+	assert_eq(_attempts_of(ticks), _attempts_of(one))
+	assert_eq(_attempts_of(blocks), _attempts_of(one))
+
+
+func test_save_and_reload_in_the_middle_of_rich_nodes_continues_the_same_evolution() -> void:
+	var straight: GameSession = _session(true, 100)
+	var half: GameSession = _session(true, 100)
+	straight.advance(HOUR_MS)
+	half.advance(HOUR_MS / 2 + 7000)  # a cut inside a node
+	var loaded: GameSession = _session(true, 100, SEED + 1)
+	var saved: Dictionary = SaveCodec.decode(SaveCodec.encode(half.to_save(0)))
+	assert_true(loaded.from_save(saved).ok)
+	_boost(loaded)
+	loaded.combat.from_save(saved["modules"]["combat"])
+	_assert_same(half, loaded, "right after the load")
+	var again: Dictionary = loaded.to_save(0)
+	var first: Dictionary = half.to_save(0)
+	assert_eq(again["modules"]["combat"], first["modules"]["combat"], "save, load, save is identical")
+	loaded.advance(HOUR_MS / 2 - 7000)
+	_assert_same(straight, loaded, "straight vs save-reload (rich nodes)")

@@ -16,7 +16,7 @@ func _next_timer() -> int:
 	if _state == STATE_TRAVEL:
 		return _cy.travel_ms
 	if _state == STATE_NODE:
-		return _cy.node.duration_ms - _cy.node.elapsed_ms
+		return _cy.node.next_event_ms()
 	var next: int = mini(mini(_player_timer_ms, _frac.next_pulse_ms()), _abilities.next_ms(_player_hp, player_stats().max_hp))
 	next = mini(next, _frac.next_boss_ms())
 	if _dg.fighting:
@@ -63,8 +63,7 @@ func _resolve_instant() -> void:
 			_arrive()
 		return
 	if _state == STATE_NODE:
-		if _cy.node.elapsed_ms >= _cy.node.duration_ms:
-			_finish_node()
+		_resolve_node()
 		return
 	if _player_timer_ms <= 0:
 		_player_attack()
@@ -359,22 +358,26 @@ func _arrive() -> void:
 	_session.events.node_started.emit(work.skill_id, work.action_id, work.skipped, work.duration_ms)
 
 
-# F-155: the node is over; its units, xp and mastery come in one instant, then the journey starts again.
+# F-161: a node instant: every attempt whose instant is reached, in order, each with its signals; a skipped node ends at its time.
+func _resolve_node() -> void:
+	var work: NodeWork = _cy.node
+	while work.due_attempts() > 0 and _cy.node == work:  # a handler of a signal may have stopped the fight
+		var outcome: ActionOutcome = work.resolve_attempt(_session)
+		if outcome.ok:
+			_session.events.action_completed.emit(ActionRunner.NODE, work.skill_id, work.action_id, outcome.outputs)
+			_session.events.node_attempt_done.emit(work.skill_id, work.action_id, work.attempt, work.attempts, outcome.units,
+					work.units, work.last_attempt["color"])
+	if _cy.node == work and work.is_over():
+		_finish_node()
+
+
+# The node is over (F-155, F-161): the journey starts again.
 func _finish_node() -> void:
 	var work: NodeWork = _cy.node
-	var outcome: ActionOutcome = work.finish(_session)
-	var reason: StringName = Reasons.NODE_DONE
-	if work.skipped:
-		reason = Reasons.NOT_LEARNED
-		_cy.skipped += 1
-	else:
-		_cy.worked += 1
-		if outcome.reason == Reasons.BANK_FULL:
-			reason = Reasons.BANK_FULL
+	_cy.skipped += 1 if work.skipped else 0
+	_cy.worked += 0 if work.skipped else 1
 	_start_travel()
-	if outcome.ok:
-		_session.events.action_completed.emit(ActionRunner.NODE, work.skill_id, work.action_id, outcome.outputs)
-	_session.events.node_finished.emit(work.skill_id, work.action_id, outcome.units, reason)
+	_session.events.node_finished.emit(work.skill_id, work.action_id, work.units, work.end_reason())
 	_announce_travel()
 
 

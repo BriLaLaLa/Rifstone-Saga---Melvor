@@ -300,6 +300,38 @@ func test_encounters_ranges() -> void:
 	_expect(raw_skip, [V.BALANCE, "field 'encounters.skip_ms'"])
 
 
+func test_the_keys_of_the_attempts_are_required_and_in_range() -> void:
+	# 04_DATA_SCHEMA_M25.md §30.2
+	for key: String in ["attempts", "yield_free_levels", "yield_loss_pct", "yield_min_pct", "rich_chance_pct", "rich_extra_attempts",
+			"rich_units_pct", "rich_ms_pct"]:
+		var raw: Dictionary = _raw()
+		_balance(raw, "encounters").erase(key)
+		_expect(raw, [V.BALANCE, "field 'encounters.%s'" % key])
+	var bad: Array = [["attempts", 0], ["attempts", 11], ["yield_min_pct", 0], ["yield_loss_pct", 101], ["rich_chance_pct", 101],
+		["rich_units_pct", 99], ["rich_ms_pct", 99], ["rich_extra_attempts", -1], ["yield_free_levels", -1]]
+	for pair: Array in bad:
+		var raw_bad: Dictionary = _raw()
+		_balance(raw_bad, "encounters")[pair[0]] = pair[1]
+		_expect(raw_bad, [V.BALANCE, "field 'encounters.%s'" % pair[0]])
+
+
+func test_the_difficulty_and_the_minimum_level_of_a_node() -> void:
+	# 04_DATA_SCHEMA_M25.md §30.1: optional, 1..max level, `min_level` not above the difficulty (the cap of the area if absent)
+	var raw_ok: Dictionary = _raw()
+	var entry_ok: Dictionary = ((_nodes(raw_ok)[0] as Dictionary)["nodes"] as Array)[0]
+	entry_ok["difficulty"] = 8
+	entry_ok["min_level"] = 8
+	assert_eq(V.validate(raw_ok).size(), 0)
+	var cases: Array = [[{"difficulty": 0}, "field 'nodes.difficulty'"], [{"difficulty": 100}, "field 'nodes.difficulty'"],
+		[{"min_level": 0}, "field 'nodes.min_level'"], [{"difficulty": "x"}, "field 'nodes.difficulty'"],
+		[{"difficulty": 5, "min_level": 6}, "'nodes.min_level' (6) must not exceed the difficulty (5)"],
+		[{"min_level": 11}, "'nodes.min_level' (11) must not exceed the difficulty (10)"]]  # the cap of test_area is 10
+	for c: Array in cases:
+		var raw: Dictionary = _raw()
+		((_nodes(raw)[0] as Dictionary)["nodes"] as Array)[0].merge(c[0])
+		_expect(raw, ["nodes.json", c[1]])
+
+
 func test_node_durations_are_ordered_and_above_the_action_minimum() -> void:
 	var raw: Dictionary = _raw()
 	_balance(raw, "encounters")["node_min_ms"] = 100

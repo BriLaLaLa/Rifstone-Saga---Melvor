@@ -52,6 +52,7 @@ const EXPECTED: Dictionary = {
 	"travel_started": [["next_kind", SN, ""], ["skill_id", SN, ""], ["duration_ms", I, ""]],
 	"node_started": [["skill_id", SN, ""], ["action_id", SN, ""], ["skipped", B, ""], ["duration_ms", I, ""]],
 	"node_finished": [["skill_id", SN, ""], ["action_id", SN, ""], ["units", I, ""], ["reason", SN, ""]],
+	"node_attempt_done": [["skill_id", SN, ""], ["action_id", SN, ""], ["attempt", I, ""], ["attempts", I, ""], ["units", I, ""], ["total_units", I, ""], ["color", SN, ""]],
 	"rift_stone_appeared": [["stone_id", SN, ""]],
 	"rift_stone_wave": [["stone_id", SN, ""], ["threshold", I, ""], ["count", I, ""]],
 	"rift_stone_skipped": [["stone_id", SN, ""]],

@@ -103,7 +103,9 @@ func test_the_fights_work_the_learned_nodes_and_skip_the_others() -> void:
 	assert_false(skipped.has(FORESTRY) or skipped.has(ANGLING))
 	assert_gt(worked_units.size(), 0)
 	for skill: StringName in worked_units:
-		assert_gte(worked_units[skill], 80, "80 units a node, at least (%s)" % skill)
+		# M25 (F-162): a node gives at least `node_units` x `yield_min_pct` / 100 units (the yield falls with the gap to the difficulty)
+		var least: int = int(s.data.balance_value("encounters.node_units")) * int(s.data.balance_value("encounters.yield_min_pct")) / 100
+		assert_gte(worked_units[skill], least, "the least a node gives (%s)" % skill)
 		assert_gt(s.skills.get_xp(skill), 0)
 	assert_eq(s.skills.get_xp(QUARRYING), 0)
 	assert_eq(s.skills.get_xp(HERBALISM), 0)
