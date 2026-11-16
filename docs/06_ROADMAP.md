@@ -274,10 +274,18 @@ Progettata da M22-01 (`M22_DUNGEON.md`, `01_GDD.md` §33, `02_FORMULAS.md` F-137
 sei tipi di stanza (Branco, Orda, Guardiano, Capobranco, Trappola, Riposo), boss in tre stadi (Gorom, Ziki, Uuk-Maar) con entrata epica, sei **leggendari** del dungeon; tutto in autobattle tranne le scelte; stato per slot (additivo, save v7 invariato), la run si congela offline. Task M22-02…M22-08.
 **Giocabile**: si entra nel Covo con un Biglietto, si scelgono direzioni e eventi tra combattimenti automatici, si affronta il boss in tre atti e si incassa il bottino (o si perde, morendo o fuggendo); una run al livello consigliato dura 12-20 minuti (sim).
 
-## M23+: Seconda classe, altri dungeon e boss (dopo M22; era M22+)
+## M23: Casa d'Aste
+Progettata da M23-01 (`M23_CASA_ASTE.md`, decisioni V14-V15, `01_GDD.md` §34, `02_FORMULAS.md` §5k F-145…F-152, `04_DATA_SCHEMA.md` §28, `05_INTERFACES.md` §5.30 e §7.p): ottavo edificio del Villaggio, si costruisce come Bacheca e Mercato e si apre dalla mappa.
+Si vendono materiali, componenti e cibo a un prezzo che scende con le vendite e risale col tempo verso un equilibrio che oscilla piano (seme dello slot); si comprano componenti e cibo con scorte che si riformano.
+Tutta la formula dietro `AuctionPricing` (sostituibile in futuro da un modello a popolazione); offline in forma chiusa a blocchi; save additivo (`auction`, v7 invariata); nessuna stat. Task M23-02…M23-06.
+**Giocabile**: costruire la Casa d'Aste, aprirla dalla mappa, vendere un materiale e vedere il prezzo calare e poi risalire col tempo (anche dopo aver chiuso e riaperto il gioco), comprare un componente finché la scorta lo permette;
+nessun guadagno comprando e rivendendo (sim, anche passando dal Deposito).
+
+## M24+: Seconda classe, altri dungeon e boss (dopo M23; era M23+)
 Seconda classe con le sue armi (es. arco o bastone, con i suoi progetti e componenti del Falegname), supporti delle abilità, altri dungeon (solo dati: il sistema di M22 è generico), livelli di difficoltà dei dungeon, altri boss, elementi e resistenze.
 
 ## Percorso critico e parallelismo
+- M23: M23-01 → (M23-02 ∥ M23-03) → M23-04 → M23-05 → M23-06. M23-02 (CORE: `core/data/**` del mercato, `systems/auction/**`, `game_session.gd`, `event_bus.gd`, `reasons.gd`) e M23-03 (DATA: `data/**`, generatori, validatore dei dati della Casa d'Aste) hanno file distinti (contratto fisso da M23-01); la UI (M23-04) parte con entrambi fusi.
 - M14: R-05 → M14-01 → M14-02 → M14-03 → M14-04 → (M14-05 ∥ M14-07) → (M14-08 ∥ M14-09) → M14-06 → M14-10 → M14-11. I primi quattro toccano file comuni (`core/data/**`, `event_bus.gd`, `game_session.gd`, `systems/combat/**`): in sequenza; la UI (M14-06) per ultima.
 - M13: R-04 → M13-01 → (M13-02 ∥ M13-04) → M13-03 → (M13-05 ∥ M13-06) → M13-07. M13-01 e M13-02 toccano file comuni (`core/data/**`, `event_bus.gd`, `reasons.gd`, `game_session.gd`): in sequenza; M13-02 (motore) e M13-04 (dati) hanno file diversi.
 - M12: R-03 → M12-01 → M12-02 → M12-03 → M12-04 → M12-05 → (M12-06 ∥ M12-07) → M12-08 → M12-09. I task CORE toccano file comuni (`core/data/**`, `event_bus.gd`, `reasons.gd`, `game_session.gd`): vanno in sequenza; M12-06 (UI) e M12-07 (bilanciamento) hanno file diversi.

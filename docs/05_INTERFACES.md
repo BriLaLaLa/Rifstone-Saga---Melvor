@@ -91,8 +91,10 @@ const DUNGEON_PAUSED := &"dungeon_paused"               # M22: la run è in paus
 const NOT_PAUSED := &"not_paused"                       # M22: resume su una run non in pausa
 const DUNGEON_WON := &"dungeon_won"                     # M22: motivo di stop a dungeon vinto senza area di ritorno
 const DUNGEON_FLED := &"dungeon_fled"                   # M22: idem, per la fuga
+const NOT_TRADABLE := &"not_tradable"                   # M23: oggetto fuori dall'elenco della Casa d'Aste (vendita) o non acquistabile (acquisto)
+const OUT_OF_STOCK := &"out_of_stock"                   # M23: scorta della Casa d'Aste zero o minore della quantità chiesta
 ```
-Le costanti nuove le aggiunge il primo task che le usa (M4-01 per quelle di M4), con il test di `reasons.gd`. A fine M12 la lista chiusa conta **50** costanti; M13 ne aggiunge 5 (**55**); M22 ne aggiunge 9 (`dungeon_*`, `no_dungeon`, `not_awaiting`, `not_fighting`, `not_paused`; `invalid_choice` esisteva già): la lista chiusa conta **67** costanti.
+Le costanti nuove le aggiunge il primo task che le usa (M4-01 per quelle di M4), con il test di `reasons.gd`. A fine M12 la lista chiusa conta **50** costanti; M13 ne aggiunge 5 (**55**); M22 ne aggiunge 9 (`dungeon_*`, `no_dungeon`, `not_awaiting`, `not_fighting`, `not_paused`; `invalid_choice` esisteva già): la lista chiusa conta **67** costanti; M23 ne aggiunge 2 (`not_tradable`, `out_of_stock`): **69**.
 
 ## 2. Autoload
 
@@ -315,6 +317,9 @@ func hide_tooltip() -> void
 | `dungeon_finished` (M22) | `outcome: StringName, rooms: int, pieces: int` | CombatEngine (`won`, `died`, `fled`), DungeonSystem (`left`) | `rooms` = stanze superate; `pieces` = pezzi consegnati (0 se persi) |
 | `dungeon_bag_changed` (M22) | `stacks: int, pieces: int, cards: int` | DungeonSystem | cambia la borsa della run o quella in attesa |
 | `dungeon_loot_lost` (M22) | `stacks: int, pieces: int, cards: int` | DungeonSystem | morte o fuga: la borsa è persa |
+| `auction_sold` (M23) | `item_id: StringName, qty: int, gold: int` | AuctionHouse | vendita riuscita alla Casa d'Aste (dopo `bank_changed` e `gold_changed`); **non** emette `item_sold` (che resta della vendita a prezzo fisso, F-18) |
+| `auction_bought` (M23) | `item_id: StringName, qty: int, gold: int` | AuctionHouse | acquisto riuscito (dopo `gold_changed` e `bank_changed`) |
+| `auction_updated` (M23) | `blocks: int` | AuctionHouse | è passato almeno un blocco del mercato in un `advance` (F-145): prezzi, scorte e tendenze possono essere cambiati; al più uno per `advance` |
 | `card_changed` (M13) | `uid: int, change: StringName` | CardStore | `change` = `&"added"`, `&"removed"`, `&"updated"` (blocco, Cristallo) |
 | `card_rejected` (M13) | `grade: int` | CardStore | Carta non aggiunta per Deposito pieno |
 | `item_obtained` (M14) | `item_id: StringName, qty: int` | Bank, LootBag, Armory, CardStore | ogni volta che un oggetto entra in possesso del giocatore (pezzi e Carte: id di base, qty 1); lo ascolta `Discoveries` (F-124) |
@@ -540,6 +545,7 @@ func roll_pct(chance_pct: float) -> bool                # chance <= 0 → false 
 func pick_weighted(weights: Array[int]) -> int          # indice
 func to_save() -> Dictionary                            # {"seed": int, "state": int} (state come stringa se > 2^53)
 func from_save(d: Dictionary) -> void
+func seed_value() -> int                                # M23-02: il seme di _init/from_save (sola lettura, non consuma tiri); lo usa AuctionHouse per il seme del mercato (5.30)
 ```
 
 ### 5.2 Modificatori (`res://core/modifiers/`)
@@ -601,10 +607,11 @@ var deposit: Deposit; var helpers: HelperSystem   # M12-01 / M12-02 (null prima)
 var cards: CardStore; var fractures: FractureSystem   # M13-01 / M13-02 (null prima)
 var village: Village              # M19-02 (null prima): edifici del Villaggio, 5.27
 var quests: Quests                # M20-02 (null prima): incarichi della Bacheca, 5.28
+var auction: AuctionHouse         # M23-02 (null prima): Casa d'Aste, 5.30 (fase `_PHASE_AUCTION`)
 var slot: int; var player_name: String; var created_at_unix_ms: int; var play_time_ms: int
 func _init(game_data: GameData, game_events: GameEvents, rng_seed: int) -> void
 func new_game() -> void                                  # stato iniziale 01_GDD §1.1 + rebuild_modifiers
-func advance(delta_ms: int) -> void                      # ordine: actions, helpers, combat, play_time (M13: le Fratture non hanno timer)
+func advance(delta_ms: int) -> void                      # ordine: actions, helpers, combat, auction (M23), play_time (M13: le Fratture non hanno timer)
 func to_save(now_unix_ms: int) -> Dictionary             # file completo (§6)
 func from_save(d: Dictionary) -> CommandResult           # poi rebuild_modifiers
 func rebuild_modifiers() -> void                         # begin_batch, clear_all, rebuild di ogni sistema, end_batch
@@ -628,9 +635,9 @@ func _create_systems() -> void
 func _join(key: StringName, new_game_fn: Callable, to_save_fn: Callable, from_save_fn: Callable,
 		rebuild_fn: Callable = Callable()) -> void            # SAVE_KEY duplicata → assert
 func _tick(phase: int, advance_fn: Callable) -> void         # una fase = un solo sistema, altrimenti assert
-const _PHASE_FRACTURES: int; const _PHASE_ACTIONS: int; const _PHASE_HELPERS: int; const _PHASE_COMBAT: int   # _PHASE_HELPERS: M12-02
+const _PHASE_FRACTURES: int; const _PHASE_ACTIONS: int; const _PHASE_HELPERS: int; const _PHASE_COMBAT: int   # _PHASE_HELPERS: M12-02; const _PHASE_AUCTION: int (M23-02, dopo il combattimento)
 ```
-- `advance`: ordine fisso fratture → azioni → aiutanti → combattimento (solo le fasi registrate), poi `play_time_ms`; indipendente
+- `advance`: ordine fisso fratture → azioni → aiutanti → combattimento → Casa d'Aste (M23; solo le fasi registrate), poi `play_time_ms`; indipendente
   dall'ordine di `_join`. `new_game`, `to_save`, `from_save` e `rebuild_modifiers` seguono l'ordine di `_join`.
 - `from_save`: `format_version` assente o intestazione malformata (`slot`, `created_at_unix_ms`, `play_time_ms` non interi,
   `player_name` non stringa, `rng`/`modules` non oggetti) → `corrupted` senza toccare nulla; `format_version` ≠
@@ -1920,6 +1927,79 @@ func in_dungeon() -> bool; func dungeon_run() -> DungeonRun    # null fuori
 `dungeon_paused_changed(paused)`, `dungeon_finished(outcome, rooms, pieces)`, `dungeon_bag_changed(stacks, pieces, cards)`, `dungeon_loot_lost(stacks, pieces, cards)`. **Motivi** (`Reasons`, M22-02): `DUNGEON_ACTIVE`, `DUNGEON_BAG_PENDING`, `NO_DUNGEON`, `NOT_AWAITING`, `NOT_FIGHTING`, `INVALID_CHOICE`, `DUNGEON_PAUSED`, `NOT_PAUSED`, `DUNGEON_WON`, `DUNGEON_FLED`
 (motivi di stop del combattimento senza area di ritorno, come `FRACTURE_WON`).
 
+### 5.30 Casa d'Aste (M23; `01_GDD.md` §34, `02_FORMULAS.md` F-145…F-152, `04_DATA_SCHEMA.md` §28) — cartella `systems/auction/`
+Tre classi: `AuctionMath` (funzioni pure delle formule), `AuctionPricing` (**l'unica interfaccia dei prezzi**, V15: stato del mercato e formule nascoste), `AuctionHouse` (modulo di gioco: comandi, motivi,
+segnali, save, integrazione con Wallet, Bank/Deposito e Village). Nome "auction" ovunque (cartella, classi, chiave di save, pagina) per non confondersi con il **Mercato** (`market`, §5.28) dello shop.
+**Confine (V15)**: solo `AuctionPricing` usa `AuctionMath` e conosce indice, saturazione, nodi e margini; `AuctionHouse` usa solo i metodi pubblici di `AuctionPricing` qui sotto; la UI usa solo `AuctionHouse`.
+Un modello futuro (popolazione) sostituirà `AuctionPricing` con la **stessa API** senza toccare `AuctionHouse`, la UI e il save degli altri moduli. Nessuna stat, nessuna sorgente in `ModifierService`.
+```gdscript
+class_name AuctionMath extends RefCounted      # systems/auction/auction_math.gd — logica pura, interi (ppm), nessuno stato; la usano solo AuctionPricing e i test
+static func hash32(text: String) -> int                                  # F-146: fmix32(fnv1a32(utf8)), 0..2^32-1
+static func knot(item_id: StringName, seed_value: int, i: int, p: AuctionParams) -> int
+static func drift(item_id: StringName, seed_value: int, block: int, p: AuctionParams) -> int
+static func index_ppm(eq_ppm: int, sat_ppm: int, p: AuctionParams) -> int          # F-147
+static func sale_sum_ppm(eq_ppm: int, sat_ppm: int, qty: int, p: AuctionParams) -> int   # F-148: Σ in forma chiusa
+static func gold_of(value: int, sum_ppm: int) -> int                     # (value × sum) ÷ 1.000.000
+static func stock_max(value: int, p: AuctionParams) -> int               # F-150 S
+static func refill_per_block(stock_max: int, p: AuctionParams) -> int    # F-150 r
+static func buy_unit(value: int, index_ppm: int, p: AuctionParams) -> int   # F-151
+static func trend_of(now_ppm: int, next_ppm: int, p: AuctionParams) -> StringName   # F-152: &"up", &"down", &"stable"
+
+class_name AuctionPricing extends RefCounted   # systems/auction/auction_pricing.gd — l'interfaccia piccola: dato un oggetto e lo stato → prezzi e scorta
+func _init(data: GameData) -> void              # legge auction_params(), auction_items() e i value degli oggetti
+func reset(seed_value: int) -> void             # mercato nuovo: block 0, pending_ms 0, ogni oggetto a riposo (sat 0, scorta piena)
+func is_listed(item_id: StringName) -> bool     # nell'elenco (vendibile qui)
+func is_buyable(item_id: StringName) -> bool    # buy_level ≥ 1
+func buy_level(item_id: StringName) -> int      # 0 se non acquistabile o non nell'elenco
+func sell_quote(item_id: StringName, qty: int) -> int    # F-148: oro per vendere qty ora; 0 se non nell'elenco o qty ≤ 0
+func buy_quote(item_id: StringName, qty: int) -> int     # F-151: qty × unit; 0 se non acquistabile o qty ≤ 0 (non guarda la scorta)
+func stock(item_id: StringName) -> int          # F-150: scorta attuale (0 se non acquistabile)
+func stock_max(item_id: StringName) -> int      # F-150: S (0 se non acquistabile)
+func trend(item_id: StringName) -> StringName   # F-152: &"up" | &"down" | &"stable" (&"stable" se non nell'elenco)
+func record_sale(item_id: StringName, qty: int) -> void      # F-148: sat = min(CAP, sat + qty·STEP); nessun controllo (li fa AuctionHouse)
+func record_purchase(item_id: StringName, qty: int) -> void  # F-150: stock −= qty (mai sotto 0)
+func advance(delta_ms: int) -> int              # F-145, F-149, F-150: blocchi interi passati (0 se nessuno); delta_ms ≤ 0 → 0
+func to_save() -> Dictionary; func from_save(d: Dictionary) -> void
+```
+```gdscript
+class_name AuctionHouse extends RefCounted     # systems/auction/auction_house.gd — dipendenze: data, events, rng (solo il seme), bank, wallet, village
+const SAVE_KEY := &"auction"
+func _init(session: GameSession) -> void        # crea AuctionPricing; legge data, events, bank, wallet dalla sessione; session.village all'uso (creato prima, ma letto pigro come Shop)
+func level() -> int                              # Village.level(GameData.auction_building()); 0 senza Village o senza edificio
+func is_open() -> bool                           # level() ≥ 1
+func listed_items() -> Array[StringName]         # elenco in ordine di file (auction_items)
+func buyable_items() -> Array[StringName]        # sottoinsieme con buy_level ≥ 1, stesso ordine
+func buy_level(item_id: StringName) -> int; func sell_quote(item_id: StringName, qty: int) -> int; func buy_quote(item_id: StringName, qty: int) -> int
+func stock(item_id: StringName) -> int; func stock_max(item_id: StringName) -> int; func trend(item_id: StringName) -> StringName   # pass-through di AuctionPricing (sola lettura per la UI)
+func can_sell(item_id: StringName, qty: int) -> CommandResult
+    # in ordine: invalid_amount (qty ≤ 0), unknown_id, not_tradable, requirement_not_met (level 0), item_locked (bank.is_locked), not_enough_items, not_sellable (sell_quote = 0)
+func sell(item_id: StringName, qty: int) -> CommandResult
+    # stessi controlli; poi gold = sell_quote, bank.remove, wallet.add_gold(gold), pricing.record_sale, auction_sold(item_id, qty, gold)
+func can_buy(item_id: StringName, qty: int) -> CommandResult
+    # in ordine: invalid_amount, unknown_id, not_tradable (non acquistabile), requirement_not_met (level < buy_level), out_of_stock (stock < qty), not_enough_gold, bank_full (not bank.can_add)
+func buy(item_id: StringName, qty: int) -> CommandResult
+    # stessi controlli; poi wallet.spend(buy_quote), bank.add, pricing.record_purchase, auction_bought(item_id, qty, gold)
+func advance(delta_ms: int) -> void              # pricing.advance; se blocchi > 0: auction_updated(blocks)
+func new_game() -> void; func to_save() -> Dictionary; func from_save(d: Dictionary) -> void
+```
+- **Atomicità**: `sell` e `buy` non possono fallire a metà dopo `can_*` ok (come `Village.upgrade`): `sell` toglie gli oggetti e poi aggiunge l'oro; `buy` spende l'oro e poi aggiunge (se `bank.add` fallisse comunque: `push_error` e oro restituito; caso non raggiungibile).
+  L'oro della vendita è calcolato **prima** di `record_sale` (i pezzi della stessa vendita scendono di prezzo dentro la formula, F-148). Nessun `item_sold`, nessun `shop_purchased`: i segnali sono quelli di §3 (`auction_sold`, `auction_bought`, `auction_updated`) più `bank_changed`/`gold_changed`/`item_obtained` dei moduli.
+- **Nessuna stat**: nessun modificatore cambia prezzi o scorte; se in futuro servisse (es. "scorte +x%"), la stat va in `stats.json` con formula e test (Lezioni) e si legge in `AuctionPricing`.
+- **Seme**: `new_game()` chiama `pricing.reset(seed)` con `seed = posmod(session.rng.seed_value(), 2147483647) + 1`; `RngService` guadagna **`func seed_value() -> int`** (il seme passato a `_init`/`from_save`, sola lettura, **non consuma tiri**: le sequenze del generatore dello slot non cambiano). Il seme si salva: non cambia più per quello slot.
+- **Tempo** (F-145): `GameSession` registra `_tick(_PHASE_AUCTION, auction.advance)`; fase nuova **`_PHASE_AUCTION := 4`** dopo il combattimento (`_PHASE_COUNT := 5`); `freeze_combat` non la tocca (il mercato avanza anche con una run del dungeon congelata).
+  **Offline**: nessun codice nuovo in `OfflineSimulator` (il simulatore chiama `session.advance` a blocchi di F-41, e F-145 è additiva: stesso stato del calcolo in un colpo, test); `OfflineSummary` invariato.
+- **Composizione** in `GameSession`: campo `var auction: AuctionHouse` (null prima di M23-02). In `_create_systems()`, dopo `quests`: `auction = AuctionHouse.new(self)`, `_join(AuctionHouse.SAVE_KEY, auction.new_game, auction.to_save, auction.from_save)` (nessun `rebuild_fn`) e `_tick(_PHASE_AUCTION, auction.advance)`.
+  `game_session.gd` ≤ 226 righe (`MAX_SESSION_LINES` da 220 a 226 nel test). La chiave `auction` non è usata dai `FakeSystem` dei test.
+- **Dati**: `GameData.auction_params() -> AuctionParams`, `auction_items() -> Array[AuctionItemDef]`, `auction_item(id) -> AuctionItemDef` (null se non nell'elenco), `auction_building() -> StringName`; `AuctionItemDef` = `{item: StringName, buy_level: int}`;
+  `AuctionParams` (interi): `block_ms`, `base_ppm`, `min_ppm`, `max_ppm`, `amp_ppm`, `period_blocks`, `step_ppm`, `cap_ppm`, `recover_ppm`, `spread_ppm`, `stock_gold`, `stock_min`, `stock_max`, `refill_ppm`, `trend_blocks`, `trend_threshold_ppm`. `VillageBuildingDef.unlocks_auction: bool` (§28 dello schema).
+- **Save** (§6): `modules.auction = {"seed": int, "block": int, "pending_ms": int, "items": {item_id: {"sat": int, "stock": int}}}`; in `items` solo gli oggetti **non a riposo** (`sat > 0` o, se acquistabile, `stock < S`), ognuno con le sole chiavi
+  diverse dal riposo; dopo `advance` gli oggetti tornati a riposo si tolgono (save piccolo). `from_save` tollerante, con `Log.warn`: `seed` non intero o ≤ 0 → seme nuovo come in `new_game`; `block` non intero o < 0 → 0; `pending_ms` fuori `0..block_ms−1` → 0;
+  `items` non oggetto → tutti a riposo; id sconosciuto o non nell'elenco → scartato; `sat` non intero o < 0 → 0, oltre `CAP` → `CAP`; `stock` non intero → `S`, < 0 → 0, > `S` → `S`; `stock` su un oggetto non acquistabile → ignorato. Nessun segnale.
+  **Additivo: chiave assente = mercato nuovo** (`new_game`), **nessuna migrazione, `format_version` 7 invariata**; un save con `auction` caricato da una build che non lo conosce lo scarta con `Log.warn` (§5.3).
+- **Reasons** nuovi: `NOT_TRADABLE`, `OUT_OF_STOCK` (§1). **Segnali** nuovi: `auction_sold`, `auction_bought`, `auction_updated` (§3).
+- **File**: ognuno < 400 righe (`auction_math.gd` ~120, `auction_pricing.gd` ~200, `auction_house.gd` ~180); test in `tests/systems/auction/`.
+- **UI** (§7.p, sola lettura e comandi): la pagina legge `session.auction`, `session.bank`, `session.shop` (solo `sell_value`, F-18, per il confronto), `session.wallet`, `session.data` (nomi e icone); si aggiorna con `auction_sold`, `auction_bought`, `auction_updated`, `bank_changed`, `gold_changed`, `village_upgraded`.
+
 ### 7.q UI del Dungeon (M22; nessuno stato di gioco nella UI, solo letture e comandi; `01_GDD.md` §33.7)
 ```gdscript
 class_name DungeonPage extends Page              # ui/pages/dungeon/dungeon_page.gd (+ .tscn), rotta `dungeon` (voce "Dungeon" della sidebar, sezione Partita, dopo "Fratture"; icona di assets/icons/ui, `missing` come ripiego)
@@ -1967,9 +2047,28 @@ class_name DungeonTexts extends RefCounted            # ui/pages/dungeon/dungeon
 - Smoke test unico `tests/ui/test_village_page_smoke.gd` (casi nuovi con lo stub `tests/helpers/village_stub.gd`) più il test di tabella di `VillageNodeState`: 7 nodi alle posizioni attese, stato di un nodo `locked`/`ready`/`maxed`, selezione cambia il box del dettaglio, "Apri" disabilitato a livello 0 e abilitato dopo la costruzione, cambio vista Mappa/Elenco, nessuno stato di gioco nella UI. Layout a 1280×720 (campo + dettaglio senza sovrapposizioni).
 
 
+### 7.p UI della Casa d'Aste (M23; nessuno stato di gioco nella UI, solo letture e comandi; `01_GDD.md` §34.7)
+```gdscript
+class_name AuctionPage extends Page              # ui/pages/auction/auction_page.gd (+ .tscn), rotta `auction` (voce "Casa d'Aste" della sidebar dopo "Bacheca"; `page` dell'edificio auction_house: "Apri" dalla mappa del Villaggio, §7.r)
+# Due schede (stato di presentazione, non salvato; predefinita Vendi): VENDI = una AuctionRow per ogni oggetto di listed_items() con bank.get_count > 0; COMPRA = una AuctionRow per ogni oggetto di buyable_items().
+# Se auction.is_open() è falso: un solo messaggio "Costruisci la Casa d'Aste al Villaggio".
+class_name AuctionRow extends HBoxContainer      # ui/pages/auction/auction_row.gd — signal trade_requested(item_id: StringName, qty: int)
+# setup(item_id, mode: StringName (&"sell" | &"buy")); refresh(session): icona e nome (ItemDef), posseduti, prezzo per pezzo (sell_quote/buy_quote con qty 1), in Vendi anche "Al Deposito: n" (session.shop.sell_value(item, 1)),
+# in Compra la scorta "s/S" (stock, stock_max) e, se bloccato, "Richiede Casa d'Aste n" (buy_level); freccia di tendenza (trend); quantità (SpinBox 1..massimo e scorciatoie 1, 10, 100, Tutti); totale previsto
+# (sell_quote/buy_quote con la quantità scelta, mai calcolato dalla UI); pulsante Vendi/Compra disabilitato con il motivo di can_sell/can_buy accanto.
+class_name AuctionTexts extends RefCounted       # ui/pages/auction/auction_texts.gd — testi italiani: titolo, schede, TREND (up "In salita", down "In calo", stable "Stabile"), REFUSED (testo per ogni motivo di can_sell/can_buy), "Al Deposito", "Scorta", "Costruisci la Casa d'Aste al Villaggio"; nessun numero di design
+```
+- **Nessuna logica di prezzo nella UI**: ogni numero mostrato viene da `AuctionHouse` (`sell_quote`, `buy_quote`, `stock`, `stock_max`, `trend`, `buy_level`) o da `Shop.sell_value` (F-18); la UI non legge `AuctionPricing`, `AuctionMath`, `AuctionParams` né `balance.json`.
+  La quantità scelta e la scheda attiva sono stato di presentazione (si perdono alla chiusura). Un clic = un comando (`auction.sell`/`auction.buy`); motivo di rifiuto in `MessageLabel`.
+- Redraw su `auction_sold`, `auction_bought`, `auction_updated`, `bank_changed`, `gold_changed`, `village_upgraded`. Toast facoltativo alla vendita ("Venduti n × nome per x oro"), come la vendita dello shop.
+- `page_host.gd`: rotta `&"auction"` → `res://ui/pages/auction/auction_page.tscn`; `sidebar.gd`: voce `{"page": &"auction", "text": AuctionTexts.TITLE_TEXT, "icon": "coins"}` dopo `noticeboard`. Mappa del Villaggio: nessun cambio di codice (il nodo e "Apri" vengono da `map_pos` e `page`, §7.r); `VillageBox` mostra per la Casa d'Aste il testo fisso
+  "Compravendita di materiali" (nessuna stat, come il Mercato, §7.s; testo in `village_texts.gd`).
+- **Guida**: pagina scritta a mano `data/guide/casa_aste.json` (regole di §34 senza numeri; nessuna tabella generata in M23), costante `GuideIndex.PAGE_AUCTION` come `PAGE_DUNGEON`.
+- Smoke test unico `tests/ui/test_auction_page_smoke.gd` (stub `tests/helpers/auction_stub.gd` con gli stessi metodi di sola lettura di `AuctionHouse`): pagina chiusa a livello 0, schede Vendi/Compra, una riga per oggetto, pulsante disabilitato con motivo (`out_of_stock`, `requirement_not_met`), un clic emette il comando, nessuno stato di gioco nella UI; layout a 1280×720 (righe che scorrono, nessuna sovrapposizione). Nessun test su testi esatti o prezzi.
+
 ## 6. Formato del salvataggio (`user://saves/slot_<n>.json`)
 
-Versione **7 da M17** (M19: il modulo `village` è additivo; M20: anche `quests`; M22: anche `dungeon`, additivo, §5.29; versione invariata) (v6 da M15 e v5 da M14 si migrano; vedi sotto); v5 da M14 (v4 da M12, v3 da M10, v2 da M4-03, D3). Un save v1, v2, v3 o **v4 non si carica** (`version_unsupported`, nessuna migrazione: nessun giocatore reale ancora; M14 cambia il significato di `damage_reduction`, le basi dei pezzi e aggiunge `discoveries`). `SaveMigrator.CURRENT_VERSION` = 5.
+Versione **7 da M17** (M19: il modulo `village` è additivo; M20: anche `quests`; M22: anche `dungeon`, additivo, §5.29; M23: anche `auction`, additivo, §5.30; versione invariata) (v6 da M15 e v5 da M14 si migrano; vedi sotto); v5 da M14 (v4 da M12, v3 da M10, v2 da M4-03, D3). Un save v1, v2, v3 o **v4 non si carica** (`version_unsupported`, nessuna migrazione: nessun giocatore reale ancora; M14 cambia il significato di `damage_reduction`, le basi dei pezzi e aggiunge `discoveries`). `SaveMigrator.CURRENT_VERSION` = 5.
 **Save v7 e migrazione v6 → v7 (M17-04, `core/save/migrations/migration_6_to_7.gd`)**: `SaveMigrator.CURRENT_VERSION` = 7; v5 e v6 si migrano in catena, v1-v4 restano `version_unsupported`. Le 10 aree strette sostituiscono le 4 larghe (`02_FORMULAS.md` §8.5). Nessuna chiave nuova, cambiano i valori in `modules`:
 - `combat.area` e `fractures.run.return_area`: se non nomina più un'area esistente diventa **l'area che contiene il livello del personaggio** (la più alta il cui `level_min` non supera il livello; livello 1 se manca l'XP); un'area ancora esistente resta.
 - Incontro in corso (`encounter`, `riftstone`, `between`): riparte come `between` con `enemies = []` ed `effects = {}` (i mostri vecchi hanno altre statistiche); `wave` rimosso; il Monolito in attesa è annullato e il contatore riparte (`stone` = `{since: 0, pending: false, stone_id: ""}`). Bottino, uccisioni, morti, cibo e stato delle Fratture restano.
@@ -2021,8 +2120,9 @@ Versione **7 da M17** (M19: il modulo `village` è additivo; M20: anche `quests`
     "fractures": {"run": {}, "pending": {}},
     "discoveries": {"items": ["redbirch_log", "emberbronze_sword"]},
     "village": {"levels": {"storehouse": 3, "forge": 1}},
-    "quests": {"slots": [{"id": "kill_any_t1", "progress": 12}, {}], "cursor": 3, "recent": ["gather_angling_t1"], "completed": 4}
-    "dungeon": {"run": {"dungeon": "monkey_den", "seed": 918273, "layer": 2, "index": 1, "phase": "await", "stage": 0, "paused": true, "path": [[0, 0], [1, 1]], "return_area": "ash_marsh", "cleared": 2, "bag": {"stacks": [{"item": "rift_dust", "qty": 6}], "pieces": [], "cards": []}}, "pending": {}, "wins": {"monkey_den": 1}}
+    "quests": {"slots": [{"id": "kill_any_t1", "progress": 12}, {}], "cursor": 3, "recent": ["gather_angling_t1"], "completed": 4},
+    "dungeon": {"run": {"dungeon": "monkey_den", "seed": 918273, "layer": 2, "index": 1, "phase": "await", "stage": 0, "paused": true, "path": [[0, 0], [1, 1]], "return_area": "ash_marsh", "cleared": 2, "bag": {"stacks": [{"item": "rift_dust", "qty": 6}], "pieces": [], "cards": []}}, "pending": {}, "wins": {"monkey_den": 1}},
+    "auction": {"seed": 918274, "block": 1440, "pending_ms": 120000, "items": {"redbirch_log": {"sat": 75000}, "riftite_plate": {"stock": 3}}}
   }
 }
 ```
