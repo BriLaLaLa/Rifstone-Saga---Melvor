@@ -99,7 +99,7 @@ func refresh(village: Object, session: GameSession) -> void:
 func _effect_text(value: float, session: GameSession) -> String:
 	var stat: StringName = _def.get("effect_stat")
 	if stat == &"":
-		return VillageTexts.FIXED_EFFECT_TEXT
+		return VillageTexts.FIXED_EFFECT_TEXTS.get(building_id, VillageTexts.FIXED_EFFECT_TEXT)
 	if not session.data.stats.has(stat):
 		return NumberFormat.format_number(value)
 	var info: Dictionary = session.data.stats.info(stat)

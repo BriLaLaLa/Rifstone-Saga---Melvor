@@ -1,0 +1,16 @@
+{
+  "pages": [
+    {"id": "guide_auction", "section": "first_steps", "title": "Casa d'Aste", "order": 6,
+     "help_for": ["auction"],
+     "blocks": [
+       {"type": "text", "text": "La Casa d'Aste è l'ottavo edificio del Villaggio: si compra e si vende. Si apre dal Villaggio o dalla barra laterale, e appena costruita permette di vendere subito."},
+       {"type": "heading", "text": "Vendere"},
+       {"type": "text", "text": "Si vendono materiali, componenti e cibo. Ogni pezzo venduto fa scendere un poco il prezzo di quell'oggetto, anche dentro la stessa vendita; col tempo il prezzo risale da solo. Accanto al prezzo vedi anche quanto pagherebbe il Deposito: se la Casa d'Aste paga meno, conviene aspettare o vendere al Deposito."},
+       {"type": "heading", "text": "Comprare"},
+       {"type": "text", "text": "Si comprano solo componenti e cibo, e ogni oggetto richiede un livello della Casa d'Aste. Comprare costa sempre più di quanto rende vendere lo stesso pezzo. Le scorte si esauriscono con gli acquisti e si riforniscono col tempo."},
+       {"type": "heading", "text": "La freccia di tendenza"},
+       {"type": "text", "text": "Dice se il prezzo di un oggetto sta salendo, scendendo o è stabile. I prezzi cambiano piano e in modo diverso per ogni oggetto; il mercato avanza anche mentre sei via."},
+       {"type": "links", "targets": ["page:guide_village", "page:guide_deposit"]}
+     ]}
+  ]
+}

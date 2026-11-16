@@ -13,6 +13,7 @@ const EFFECT_NOW_TEXT: String = "Ora: %s"
 const EFFECT_NEXT_TEXT: String = "Prossimo livello: %s"
 ## Buildings without a stat (the Market): the effect is this fixed line (docs/05_INTERFACES.md §7.s).
 const FIXED_EFFECT_TEXT: String = "Sblocca nuove bancarelle"
+const FIXED_EFFECT_TEXTS: Dictionary[StringName, String] = {&"auction_house": "Compravendita di materiali"}
 const EFFECT_LINE_TEXT: String = "%s %s"
 const COST_TITLE_TEXT: String = "Costo"
 const COST_GOLD_TEXT: String = "Oro: %s / %s"
@@ -34,7 +35,7 @@ const VIEW_LIST_TEXT: String = "Elenco"
 const NODE_UNBUILT_TEXT: String = "Da costruire"
 const NODE_BUILDABLE_TEXT: String = "Costruibile"
 const NODE_UPGRADABLE_TEXT: String = "Migliorabile"
-const OPEN_TEXTS: Dictionary[StringName, String] = {&"noticeboard": "Apri Bacheca", &"shop": "Apri Mercato"}
+const OPEN_TEXTS: Dictionary[StringName, String] = {&"noticeboard": "Apri Bacheca", &"shop": "Apri Mercato", &"auction": "Apri Casa d'Aste"}
 const OPEN_DEFAULT_TEXT: String = "Apri"
 const OPEN_LOCKED_TEXT: String = "Costruiscilo per usarlo"
 const REFUSED_TEXT_DEFAULT: String = "Costruzione non riuscita."
