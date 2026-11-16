@@ -20,6 +20,11 @@ func _init(seed_value: int) -> void:
 	_rng.seed = seed_value
 
 
+## The seed given to `_init` or restored by `from_save` (read only: it never consumes a roll).
+func seed_value() -> int:
+	return _rng.seed
+
+
 ## Uniform float in [0, 1].
 func randf() -> float:
 	return _rng.randf()

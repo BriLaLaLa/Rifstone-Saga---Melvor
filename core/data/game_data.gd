@@ -20,6 +20,7 @@ const CONTENT_FILES: Dictionary[String, String] = {
 	"map_mods": MapIndex.MODS_FILE, "bosses": MapIndex.BOSSES_FILE,  # M13: mandatory (may be empty)
 	"village": VillageIndex.FILE,  # M19: mandatory (may be empty)
 	"quests": "quests/quests.json",  # M20: mandatory (may be empty)
+	"auction": AuctionIndex.FILE,  # M23: mandatory
 }
 const CONTENT_DIRS: Dictionary[String, String] = {
 	"items": "items", "actions": "actions", "mastery": "mastery", "classes": "classes",
@@ -60,6 +61,7 @@ var _maps: MapIndex = MapIndex.new()  # M13
 var _village: VillageIndex = VillageIndex.new()  # M19
 var _quests: Dictionary[StringName, QuestDef] = {}  # M20
 var _quest_list: Array[QuestDef] = []
+var _auction: AuctionIndex = AuctionIndex.new()  # M23
 var _dungeons: DungeonIndex = DungeonIndex.new()  # M22
 var _blueprint_list: Array[ItemDef] = []
 var _blueprint_by_base: Dictionary[StringName, ItemDef] = {}
@@ -237,6 +239,12 @@ func village_buildings() -> Array[VillageBuildingDef]: return _village.list.dupl
 func quest(id: StringName) -> QuestDef: return _find(_quests, id, "quest") as QuestDef
 func quests() -> Array[QuestDef]: return _quest_list.duplicate()
 
+## M23 (docs/04_DATA_SCHEMA.md §28): the `auction` parameters (ppm), the traded items in file order, one of them (null, without error, if not traded), the Auction House building (`&""` if none).
+func auction_params() -> AuctionParams: return _auction.params
+func auction_items() -> Array[AuctionItemDef]: return _auction.list.duplicate()
+func auction_item(id: StringName) -> AuctionItemDef: return _auction.by_id.get(id) as AuctionItemDef
+func auction_building() -> StringName: return _village.auction_building()
+
 ## M22 (docs/04_DATA_SCHEMA.md §27): a dungeon by id (null and an error if unknown); all of them, by `order`; the dungeon a
 ## ticket item opens (null, without error, for any other item).
 func dungeon(id: StringName) -> DungeonDef: return _find(_dungeons.by_id, id, "dungeon") as DungeonDef
@@ -338,6 +346,7 @@ func _build(raw: Dictionary) -> void:
 	_loot.build(raw["loot_tables"] as Dictionary, errors)
 	_maps.build(_item_list, raw["map_mods"] as Dictionary, raw["bosses"] as Dictionary, _balance, errors)
 	_village.build(raw["village"] as Dictionary, errors)
+	_auction.build(_balance, raw["auction"] as Dictionary, errors)
 	_dungeons.build(raw.get("dungeons", {}) as Dictionary, _monsters, errors)
 	for path: String in raw["quests"]:
 		for d: Dictionary in DataBuildUtil.list(raw["quests"][path], "quests"):
@@ -371,6 +380,7 @@ func _clear() -> void:
 	_loot.clear()
 	_maps.clear()
 	_village.clear()
+	_auction.clear()
 	_dungeons.clear()
 	for list: Array in [_item_list, _skill_list, _action_list, _node_list, _area_list, _shop_list, _class_list,
 			_affix_list, _hint_list, _blueprint_list, _quest_list]:

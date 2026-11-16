@@ -9,7 +9,7 @@ const METALS: PackedStringArray = ["emberbronze", "ashlead", "stormzinc", "duskc
 const FISH: PackedStringArray = ["brookfin", "ashgill", "redscale", "dusk_eel", "shard_gar", "mist_barbel", "ember_sturgeon", "riftmaw"]
 const COMPONENTS: PackedStringArray = ["grip", "handle", "shieldcore"]
 const QTY_KINDS: PackedStringArray = ["wood", "plate", "food"]
-const BUILDING_FIELDS: PackedStringArray = ["id", "name", "description", "icon", "order", "buildable", "map_pos", "page", "milestone", "unlocks_shop",
+const BUILDING_FIELDS: PackedStringArray = ["id", "name", "description", "icon", "order", "buildable", "map_pos", "page", "milestone", "unlocks_shop", "unlocks_auction",
 	"effect", "cost_spec", "levels"]
 const SPEC_FIELDS: PackedStringArray = ["wood", "plate", "food", "gold_weight"]
 const LEVEL_FIELDS: PackedStringArray = ["level", "requires_woodwright", "gold", "items", "effect_value"]
@@ -105,9 +105,13 @@ static func _buildable(v: DataValidatorRules, e: Dictionary, params: Dictionary,
 	if e.has("milestone"):
 		v.fail("field 'milestone' is only for placeholders (buildable false)")
 	var effect_ok: bool = true
-	if _unlocks_shop(v, e):
+	var auction: bool = _flag(v, e, "unlocks_auction")
+	var shop: bool = _unlocks_shop(v, e)
+	if shop and auction:
+		v.fail("fields 'unlocks_shop' and 'unlocks_auction' exclude each other")
+	if shop or auction:
 		if e.has("effect"):
-			v.fail("field 'effect' and 'unlocks_shop' exclude each other")
+			v.fail("field 'effect' and '%s' exclude each other" % ("unlocks_shop" if shop else "unlocks_auction"))
 	else:
 		effect_ok = _effect(v, e, effect_keys)
 	var spec_ok: bool = _cost_spec(v, e)
@@ -123,14 +127,19 @@ static func _buildable(v: DataValidatorRules, e: Dictionary, params: Dictionary,
 
 # True if `unlocks_shop` is present and true (a non-bool is reported).
 static func _unlocks_shop(v: DataValidatorRules, e: Dictionary) -> bool:
-	if not e.has("unlocks_shop"):
+	return _flag(v, e, "unlocks_shop")
+
+
+# True if the optional boolean `key` is present and true (a non-bool is reported).
+static func _flag(v: DataValidatorRules, e: Dictionary, key: String) -> bool:
+	if not e.has(key):
 		return false
-	return v.flag(e, "unlocks_shop") and e["unlocks_shop"] as bool
+	return v.flag(e, key) and e[key] as bool
 
 
 static func _placeholder(v: DataValidatorRules, e: Dictionary) -> void:
 	v.integer(e, "milestone", 1.0)
-	for key: String in ["effect", "cost_spec", "unlocks_shop"]:
+	for key: String in ["effect", "cost_spec", "unlocks_shop", "unlocks_auction"]:
 		if e.has(key):
 			v.fail("field '%s' is not allowed on a placeholder (buildable false)" % key)
 	if not e.get("levels") is Array or not (e["levels"] as Array).is_empty():

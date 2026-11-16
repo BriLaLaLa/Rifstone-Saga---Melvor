@@ -114,3 +114,8 @@ signal dungeon_paused_changed(paused: bool)  # resume() (false) or a run loaded 
 signal dungeon_finished(outcome: StringName, rooms: int, pieces: int)  # outcome: won, died, fled, left
 signal dungeon_bag_changed(stacks: int, pieces: int, cards: int)
 signal dungeon_loot_lost(stacks: int, pieces: int, cards: int)  # death or flight: the bag is lost
+
+# Auction House (M23, docs/05_INTERFACES.md §3, §5.30)
+signal auction_sold(item_id: StringName, qty: int, gold: int)  # after bank_changed and gold_changed; item_sold is not emitted
+signal auction_bought(item_id: StringName, qty: int, gold: int)  # after gold_changed and bank_changed
+signal auction_updated(blocks: int)  # at least one market block passed in an advance (at most one per advance)

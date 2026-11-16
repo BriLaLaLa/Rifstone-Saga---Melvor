@@ -4,7 +4,7 @@ extends GutTest
 
 func test_reasons_values_match_their_names() -> void:
 	var constants: Dictionary = (Reasons as Script).get_script_constant_map()
-	assert_eq(constants.size(), 67, "closed list of docs/05_INTERFACES.md §1")
+	assert_eq(constants.size(), 69, "closed list of docs/05_INTERFACES.md §1")
 	for constant_name: String in constants:
 		var value: Variant = constants[constant_name]
 		assert_typeof(value, TYPE_STRING_NAME, constant_name)
@@ -45,3 +45,5 @@ func test_m22_reasons() -> void:
 	assert_eq(Reasons.NOT_PAUSED, &"not_paused")
 	assert_eq(Reasons.DUNGEON_WON, &"dungeon_won")
 	assert_eq(Reasons.DUNGEON_FLED, &"dungeon_fled")
+	assert_eq(Reasons.NOT_TRADABLE, &"not_tradable")
+	assert_eq(Reasons.OUT_OF_STOCK, &"out_of_stock")

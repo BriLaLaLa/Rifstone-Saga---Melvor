@@ -17,6 +17,7 @@ var milestone: int = 0
 var map_pos: Vector2 = Vector2.ZERO  # M21: node position on the village map, 0..1 (presentation only)
 var page: StringName = &""  # M21: page id of the Open button (`noticeboard`, `shop`); empty if none
 var unlocks_shop: bool = false  # M20: the level opens shop entries (`requires.village`); no modifier effect
+var unlocks_auction: bool = false  # M23: the level opens the Auction House (`page: auction`); no modifier effect
 var effect_stat: StringName = &""
 var effect_scope: String = "global"
 var effect_per_level: float = 0.0
@@ -42,6 +43,8 @@ static func from_dict(d: Dictionary) -> VillageBuildingDef:
 		def.page = r.id("page")
 	if r.has("milestone"):
 		def.milestone = r.integer("milestone")
+	if r.has("unlocks_auction"):
+		def.unlocks_auction = r.flag("unlocks_auction")
 	if r.has("unlocks_shop"):
 		def.unlocks_shop = r.flag("unlocks_shop")
 	if r.has("effect") and r.is_dict("effect"):

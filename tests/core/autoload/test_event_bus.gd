@@ -95,6 +95,9 @@ const EXPECTED: Dictionary = {
 	"dungeon_finished": [["outcome", SN, ""], ["rooms", I, ""], ["pieces", I, ""]],
 	"dungeon_bag_changed": [["stacks", I, ""], ["pieces", I, ""], ["cards", I, ""]],
 	"dungeon_loot_lost": [["stacks", I, ""], ["pieces", I, ""], ["cards", I, ""]],
+	"auction_sold": [["item_id", SN, ""], ["qty", I, ""], ["gold", I, ""]],
+	"auction_bought": [["item_id", SN, ""], ["qty", I, ""], ["gold", I, ""]],
+	"auction_updated": [["blocks", I, ""]],
 }
 
 const REMOVED_SIGNALS: PackedStringArray = ["fracture_closed"]  # the timed Fracture is gone (R-04)
