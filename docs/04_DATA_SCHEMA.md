@@ -916,7 +916,10 @@ con `value ≥ 1` non è prodotto da nessuna azione o la sua azione ha un livell
 
 **Regole del validatore** (`DataValidatorAuction`, anche sulle fixture): (1) chiavi e vincoli di `auction` sopra; (2) `auction_items.json` = rigenerazione (un file scritto a mano che diverge è un errore);
 (3) campi e vincoli di ogni voce; (4) nessun oggetto con `buy_level > 0` è un `input` di un'azione; (5) **controllo dei progetti** di F-151: per ogni progetto di `blueprints.json`,
-`Σ qty × c(x)` (ingredienti `inputs` e `rare_components`) `≥ value(base) × (100 + blueprint_margin_pct) / 100`; (6) esattamente **un** edificio con `unlocks_auction: true` (transitorio: con la costante `STRICT_REAL_DATA = false` di M23-02 i dati veri possono non averne nessuno; M23-03 aggiunge l'edificio e la porta a `true`, come in M22); (7) `buy_level ≤ village.max_level`.
+`Σ qty × c(x)` (ingredienti `inputs` e `rare_components`) `≥ value(base) × (100 + blueprint_margin_pct) / 100`; (6) esattamente **un** edificio con `unlocks_auction: true` (`STRICT_REAL_DATA = true` da M23-03; un Villaggio **senza edifici**, come le fixture minime, è esentato); (7) `buy_level ≤ village.max_level`.
+**Modalità `strict`** della regola di generazione: `build/entries(items, actions, tier_levels, strict := true)`; con `strict = false` un componente o cibo che nessuna azione produce diventa solo vendita
+(`buy_level` 0) invece di un errore. Il validatore usa `strict = false` solo quando il Villaggio non ha edifici (fixture minime); `tools/gen_auction.gd` lo espone con l'opzione `--lenient`
+(per rigenerare l'elenco delle fixture).
 
 **`data/village/buildings.json`** (estensione di §24-§26; i `levels` restano generati da `tools/gen_village.gd`): edificio nuovo, scritto a mano nella sorgente:
 ```json
@@ -930,5 +933,6 @@ Campo nuovo `unlocks_auction` (bool, facoltativo, default `false`): come `unlock
 controlla come sempre. **`page`** ammette `auction` (la pagina della UI, `05_INTERFACES.md` §7.p). Icona: una già presente in `assets/icons/ui` (`coins`; nessun asset nuovo; se manca, `missing`).
 
 **Fixture** (`tests/fixtures/data/`): `balance.json` con la sezione `auction` (valori di partenza), un `auction_items.json` coerente con gli oggetti delle fixture (rigenerato con lo stesso
-`entries()`), un edificio `auction_house` minimo; più i casi rifiutati: `spread_pct ≤ max − min`, `max_pct < base + A`, `buy_level > 0` su un materiale, un acquistabile usato come input di un'azione, file divergente dalla rigenerazione,
+`entries()` con `--lenient`). **Nessun edificio** nelle fixture (`village/buildings.json` resta con 0 edifici): i test dell'edificio, della mappa e dell'integrazione usano i
+dati veri (`AuctionTestData.session`, `05_INTERFACES.md` §5.30). Casi rifiutati (costruiti nei test): `spread_pct ≤ max − min`, `max_pct < base + A`, `buy_level > 0` su un materiale, un acquistabile usato come input di un'azione, file divergente dalla rigenerazione,
 due edifici con `unlocks_auction`, `unlocks_auction` e `unlocks_shop` insieme, progetto sotto margine.

@@ -1997,7 +1997,13 @@ func new_game() -> void; func to_save() -> Dictionary; func from_save(d: Diction
   `items` non oggetto → tutti a riposo; id sconosciuto o non nell'elenco → scartato; `sat` non intero o < 0 → 0, oltre `CAP` → `CAP`; `stock` non intero → `S`, < 0 → 0, > `S` → `S`; `stock` su un oggetto non acquistabile → ignorato. Nessun segnale.
   **Additivo: chiave assente = mercato nuovo** (`new_game`), **nessuna migrazione, `format_version` 7 invariata**; un save con `auction` caricato da una build che non lo conosce lo scarta con `Log.warn` (§5.3).
 - **Reasons** nuovi: `NOT_TRADABLE`, `OUT_OF_STOCK` (§1). **Segnali** nuovi: `auction_sold`, `auction_bought`, `auction_updated` (§3).
-- **File**: ognuno < 400 righe (`auction_math.gd` ~120, `auction_pricing.gd` ~200, `auction_house.gd` ~180); test in `tests/systems/auction/`.
+- **File**: ognuno < 400 righe (`auction_math.gd` 95, `auction_pricing.gd` 209, `auction_house.gd` 176; `game_session.gd` 225 ≤ `MAX_SESSION_LINES` 226); test in `tests/systems/auction/`.
+- **Come implementato (M23-02…M23-05, allineato da M23-06)**: `AuctionPricing` espone **solo** i metodi pubblici di contratto sopra (il resto è privato, `_equilibrium`, `_index`, ...);
+  `AuctionHouse` ha in più solo la costante `SEED_MODULUS` (2147483647) e `LOG_CATEGORY`. `Village.rebuild_modifiers` salta gli edifici con `unlocks_auction` (come `unlocks_shop`: nessun modificatore).
+  `DataValidatorGuide.ROUTES` comprende `"auction"`. `DataValidatorAuction.build/entries(..., strict := true)` (§28 dello schema: `strict = false` solo per un Villaggio senza edifici, `--lenient` in
+  `tools/gen_auction.gd`). Helper dei test: `tests/systems/auction/auction_test_data.gd` (non `class_name`, si carica con `preload`): `data()` = dati veri, `building(real)` = l'edificio come dizionario
+  con i livelli generati, **`session(level, seed_value := 1234) -> GameSession`** = sessione vera con la Casa d'Aste al livello dato (base dei test di integrazione e degli screenshot).
+  Le fixture non hanno edifici: i test dell'edificio usano i dati veri.
 - **UI** (§7.p, sola lettura e comandi): la pagina legge `session.auction`, `session.bank`, `session.shop` (solo `sell_value`, F-18, per il confronto), `session.wallet`, `session.data` (nomi e icone); si aggiorna con `auction_sold`, `auction_bought`, `auction_updated`, `bank_changed`, `gold_changed`, `village_upgraded`.
 
 ### 7.q UI del Dungeon (M22; nessuno stato di gioco nella UI, solo letture e comandi; `01_GDD.md` §33.7)
@@ -2065,6 +2071,11 @@ class_name AuctionTexts extends RefCounted       # ui/pages/auction/auction_text
   "Compravendita di materiali" (nessuna stat, come il Mercato, §7.s; testo in `village_texts.gd`).
 - **Guida**: pagina scritta a mano `data/guide/casa_aste.json` (regole di §34 senza numeri; nessuna tabella generata in M23), costante `GuideIndex.PAGE_AUCTION` come `PAGE_DUNGEON`.
 - Smoke test unico `tests/ui/test_auction_page_smoke.gd` (stub `tests/helpers/auction_stub.gd` con gli stessi metodi di sola lettura di `AuctionHouse`): pagina chiusa a livello 0, schede Vendi/Compra, una riga per oggetto, pulsante disabilitato con motivo (`out_of_stock`, `requirement_not_met`), un clic emette il comando, nessuno stato di gioco nella UI; layout a 1280×720 (righe che scorrono, nessuna sovrapposizione). Nessun test su testi esatti o prezzi.
+- **Come implementato (M23-04, allineato da M23-06)**: file in `ui/pages/auction/` (`auction_page.gd/.tscn` 195, `auction_row.gd` 161, solo codice, nessuna `.tscn`; `auction_texts.gd` 48).
+  `AuctionPage.bind(session)` chiama **`bind_with(session: GameSession, auction: Object)`** (anche lo smoke test, con lo stub). `AuctionRow.setup(id, mode)` e **`refresh(auction: Object, session: GameSession)`**
+  (il modulo è passato dalla pagina, non letto da `session.auction`). La **tendenza** è un **testo** colorato (`AuctionTexts.TREND`: "In salita", "In calo", "Stabile"; `trend_text(trend)`), non una freccia.
+  Scorciatoie della quantità `SHORTCUTS` [1, 10, 100] più "Tutti" (costanti di presentazione); il motivo di rifiuto sta anche sotto il nome della riga (`ReasonLabel`) e nel tooltip del pulsante.
+  Il testo fisso del box è `VillageTexts.FIXED_EFFECT_TEXTS[&"auction_house"]`, quello del pulsante del dettaglio `VillageTexts.OPEN_TEXTS[&"auction"]` ("Apri Casa d'Aste"). Guida: `GuideIndex.PAGE_AUCTION` = `&"guide_auction"`.
 
 ## 6. Formato del salvataggio (`user://saves/slot_<n>.json`)
 

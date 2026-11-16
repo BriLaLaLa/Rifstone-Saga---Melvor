@@ -5,8 +5,8 @@ extends RefCounted
 ## blueprints and the Village building. `entries` is the pure generation rule: the validator compares the written file with
 ## it, tools/gen_auction.gd writes it and the tests call it.
 
-## Transitional (M23-02): with the real data the Village may still have no `unlocks_auction` building. M23-03 adds the
-## building and sets this to true (rule 6 of §28). Without any building at all (the minimal fixtures) it never applies.
+## Rule 6 of §28 is strict since M23-03 (the real data have the `auction_house` building): a Village with buildings but
+## none with `unlocks_auction` is an error. Without any building at all (the minimal fixtures) it never applies.
 const STRICT_REAL_DATA: bool = true
 const TRADED: PackedStringArray = ["material", "component", "food"]
 const BUYABLE: PackedStringArray = ["component", "food"]
@@ -263,7 +263,7 @@ static func _blueprints(v: DataValidatorRules, list: Array[Dictionary], items: A
 
 # --- the building ----------------------------------------------------------------------------------------------
 
-# Rule 6: exactly one building with `unlocks_auction` (none is accepted while STRICT_REAL_DATA is false, or with no building).
+# Rule 6: exactly one building with `unlocks_auction` (none is accepted only with no building at all, or with STRICT_REAL_DATA false).
 static func _building_rules(v: DataValidatorRules, raw: Dictionary, buildings: Array) -> void:
 	var found: Array[String] = []
 	for b: Variant in buildings:
