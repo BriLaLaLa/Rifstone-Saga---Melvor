@@ -8,9 +8,10 @@
        {"type": "links", "targets": ["skill:forestry", "skill:quarrying", "skill:angling", "skill:herbalism", "skill:forging", "skill:hearthcraft", "skill:woodwright", "skill:riftbinding", "stat:mastery_xp_pct"]}
      ]},
     {"id": "guide_disciplines", "section": "crafts", "title": "Mestieri e Maestri", "order": 3,
+     "help_for": ["trainers"],
      "blocks": [
        {"type": "text", "text": "Le discipline sono i mestieri che si imparano dai Maestri del Villaggio: quattro di raccolta (Boscaiolo, Minatore, Pescatore, Erborista) e tre di produzione (Fabbro, Falegname, Cuoco e alchimista). Se ne imparano al massimo {balance:disciplines.max_per_category|int} per categoria. L'Incisore invece è di tutti."},
-       {"type": "text", "text": "Ogni Maestro insegna cinque gradi. Il grado fissa il livello massimo della disciplina: oltre, l'esperienza si perde. Per il grado successivo servono la disciplina a {balance:trainer.skill_margin|int} livelli dal limite, un certo livello del personaggio e oro."},
+       {"type": "text", "text": "Ogni Maestro insegna i gradi della tabella qui sotto. Il grado fissa il livello massimo della disciplina: oltre, l'esperienza si perde. Per il grado successivo servono la disciplina a {balance:trainer.skill_margin|int} livelli dal limite, un certo livello del personaggio e oro."},
        {"type": "table", "source": "trainer_grades"},
        {"type": "text", "text": "Disimparare costa oro e azzera tutto l'avanzamento della disciplina: esperienza, maestria e nodi dell'albero. Restano gli oggetti, l'attrezzo e le ricette già scoperte."},
        {"type": "text", "text": "Le materie grezze non si comprano: il Fabbro vive del Minatore, il Falegname del Boscaiolo, il Cuoco e alchimista di Pescatore ed Erborista. Le Ricette dei Tonici si trovano nei bottini delle aree."},
