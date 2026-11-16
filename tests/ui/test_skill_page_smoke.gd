@@ -1,8 +1,8 @@
 extends GutTest
-## SkillPage (M1-15) with a TestFactory session (never Game.session, never a real slot) on the fixture `test_gather`:
-## header and cards read from the session, interval = actions.current_interval_ms, locked card refused, start/stop
-## commands, progress bar read every frame (gut.simulate drives `_process`), unbind disconnects everything.
-## Also the base components it uses: ActionProgressBar, XpBar, ItemSlotView.
+## SkillPage (M1-15, M24-06) with a TestFactory session (never Game.session, never a real slot) on the fixture `test_gather`
+## and `test_craft`: header and cards read from the session, interval = actions.current_interval_ms, a gathering page is
+## read only, a recipe card puts the job in the queue (`actions.enqueue`) and the queue panel shows and cancels it, unbind
+## disconnects everything. Also the base components it uses: ActionProgressBar, XpBar, ItemSlotView.
 
 const SCENE: PackedScene = preload("res://ui/pages/skill/skill_page.tscn")
 const XP_BAR_SCENE: PackedScene = preload("res://ui/components/progress/xp_bar.tscn")
@@ -12,10 +12,10 @@ const TWIG := &"gather_twig"
 const LOG := &"gather_log"
 const BUNDLE := &"gather_bundle"
 const INTERVAL_STAT := &"skill_interval_pct"
-const LANE_ACTION_KEY: String = "action"
 ## Every event a page may connect to (the SkillPage uses a subset).
 const OBSERVED: Array[StringName] = [&"xp_gained", &"level_up", &"action_started", &"action_stopped",
-		&"action_completed", &"mastery_xp_gained", &"mastery_level_up", &"modifiers_changed", &"bank_changed"]
+		&"action_completed", &"mastery_xp_gained", &"modifiers_changed", &"bank_changed", &"production_queue_changed",
+		&"discipline_changed", &"recipe_learned"]
 
 var _session: GameSession
 var _page: SkillPage
@@ -38,7 +38,6 @@ func test_header_and_cards_read_the_skill() -> void:
 	_open(SKILL)
 	assert_eq(_label(_page, "%NameLabel").text, "Raccolta di prova")
 	assert_eq(_label(_page, "%LevelLabel").text, "Livello 1")
-	assert_eq(_label(_page, "%StatusLabel").text, "Nessuna azione in corso")
 	var next_xp: int = _session.data.xp_table().xp_for_level(2)
 	assert_eq(_xp_bar(_page).shown_text(), "0 / %s XP" % NumberFormat.format_int(next_xp))
 	var ids: Array[StringName] = []
@@ -84,14 +83,23 @@ func test_interval_shown_is_current_interval_ms() -> void:
 	assert_eq(_label(_card(LOG), "%IntervalValue").text, "3,6 s")
 
 
+func test_gathering_page_is_read_only() -> void:
+	_open(SKILL)
+	for card: ActionCard in _cards():
+		assert_null(card.find_child("ToggleButton", true, false), "no Avvia/Ferma on a gathering card")
+		assert_null(card.find_child("EnqueueButton", true, false))
+	assert_null(_page.find_child("ProductionQueue", true, false), "no queue on a gathering page")
+	assert_not_null(_page.find_child("FoundInLabel", true, false))
 
 
-
-
-
-
-
-
+func test_gathering_card_shows_the_colour_from_the_model() -> void:
+	var saved: String = NodeColorPreview.cycle_script_path
+	NodeColorPreview.cycle_script_path = "res://tests/helpers/combat_cycle_stub.gd"
+	_open(SKILL)
+	var label: Label = _card(TWIG).find_child("ColorLabel", true, false) as Label
+	assert_true(label.visible, "the colour comes from EncounterCycle.color (double)")
+	assert_true(label.text.contains("arancione"))
+	NodeColorPreview.cycle_script_path = saved
 
 
 func test_unbind_disconnects_everything() -> void:
@@ -103,7 +111,7 @@ func test_unbind_disconnects_everything() -> void:
 		var added: int = bound[signal_name] - baseline[signal_name]
 		assert_true(added == 0 or added == 1, "%s connected at most once" % signal_name)
 		connected += added
-	assert_eq(connected, 6, "xp, level, start, stop, mastery xp, modifiers")
+	assert_eq(connected, 9, "xp, level, start, stop, mastery xp, modifiers, queue, discipline, recipe")
 	assert_true(_page.is_processing())
 	_page.unbind()
 	assert_eq(_counts(), baseline, "back to the baseline")
@@ -126,24 +134,38 @@ func test_recipe_gets_a_recipe_card_with_ingredients() -> void:
 	var text: Label = card.get_node("%Ingredients/IngredientTestLog/Text") as Label
 	assert_eq(text.text, "%s  0 / 2" % _session.data.item(&"test_log").name)
 	assert_eq(text.get_theme_color("font_color"), UiStyle.BAD, "short ingredient in red")
-	assert_true(_button(card).disabled, "cannot start without ingredients")
 	_session.bank.add(&"test_log", 5)
 	assert_eq(text.text, "%s  5 / 2" % _session.data.item(&"test_log").name, "redrawn on bank_changed")
 	assert_ne(text.get_theme_color("font_color"), UiStyle.BAD)
-	assert_false(_button(card).disabled)
 
 
-func test_recipe_card_start_and_stop() -> void:
-	_session.bank.add(&"test_log", 2)
+func test_recipe_card_puts_the_job_in_the_queue_and_the_panel_cancels_it() -> void:
+	_session.bank.add(&"test_log", 20)
 	_open(&"test_craft")
 	var card: RecipeCard = _page.get_node("%Cards/CraftPlank") as RecipeCard
-	_button(card).pressed.emit()
-	assert_eq(_running_action(), &"craft_plank")
-	assert_eq(_button(card).text, "Ferma")
-	_session.bank.remove(&"test_log", 2)
-	assert_false(_button(card).disabled, "the running recipe can always be stopped")
-	_button(card).pressed.emit()
-	assert_false(_session.actions.is_running())
+	var spin: SpinBox = card.find_child("QuantitySpin", true, false) as SpinBox
+	spin.value = 3.0
+	(card.find_child("EnqueueButton", true, false) as Button).pressed.emit()
+	assert_eq(_session.actions.jobs().size(), 1)
+	assert_eq(_session.actions.jobs()[0]["remaining"], 3)
+	var panel: ProductionQueuePanel = _page.find_child("ProductionQueue", true, false) as ProductionQueuePanel
+	assert_not_null(panel.find_child("QueueRow_0", true, false), "the queue panel shows the job (production_queue_changed)")
+	assert_true((_label(_page, "%StatusLabel").text).contains("Tagliare"), "the status names the head of the queue")
+	(panel.find_child("CancelButton", true, false) as Button).pressed.emit()
+	assert_eq(_session.actions.jobs().size(), 0)
+	assert_null(panel.find_child("QueueRow_0", true, false))
+
+
+func test_recipe_to_discover_shows_the_lock_and_a_refusal_shows_its_reason() -> void:
+	_open(&"test_craft")
+	var card: RecipeCard = _page.get_node("%Cards/CraftPlank") as RecipeCard
+	var lock: Label = card.find_child("LockedLabel", true, false) as Label
+	assert_eq(lock.visible, not _session.disciplines.knows_recipe(&"craft_plank"))
+	_session.actions.enqueue(&"test_craft", &"craft_plank", 1, true)
+	for _i: int in _session.actions.capacity():
+		_session.actions.enqueue(&"test_craft", &"craft_plank", 1, false)
+	(card.find_child("EnqueueButton", true, false) as Button).pressed.emit()
+	assert_true((_label(_page, "%MessageLabel")).visible, "queue_full or a refusal is shown, in Italian")
 
 
 func test_recipe_card_chances_read_modifiers() -> void:
@@ -190,17 +212,17 @@ func test_real_data_forging_scrolls_16_recipes_and_hides_the_blueprint_action() 
 	assert_true(counts.has(1), "every recipe of the page has one ingredient (ore or ingots)")
 
 
-func test_real_data_forestry_page() -> void:
+func test_real_data_forestry_page_is_read_only_and_lists_its_areas() -> void:
 	_session.free()
 	_session = TestFactory.session(1234, TestFactory.real_data())
 	_open(&"forestry")
 	var cards: Array[ActionCard] = _cards()
 	assert_eq(cards.size(), 8)
 	assert_eq(_label(_page, "%NameLabel").text, "Boscaiolo")
-	assert_false(_button(cards[0]).disabled)
 	assert_eq(_label(cards[0], "%IntervalValue").text, "2,85 s", "the unique hatchet +0 of the kit: -5%")
 	for card: ActionCard in cards.slice(1):
-		assert_true(_button(card).disabled, "%s locked at level 1" % card.action_id())
+		assert_true(_label(card, "%RequirementLabel").text.begins_with("Richiede"), "%s locked at level 1" % card.action_id())
+	assert_true((_page.find_child("FoundInLabel", true, false) as Label).text.length() > 0)
 
 
 func test_seconds_text() -> void:
@@ -258,10 +280,6 @@ func _open(skill_id: StringName) -> void:
 	_page.bind(_session)
 
 
-func _running_action() -> StringName:
-	return _session.actions.current().get(LANE_ACTION_KEY, &"")
-
-
 func _counts() -> Dictionary[StringName, int]:
 	var counts: Dictionary[StringName, int] = {}
 	for signal_name: StringName in OBSERVED:
@@ -279,14 +297,6 @@ func _cards() -> Array[ActionCard]:
 
 func _card(action_id: StringName) -> ActionCard:
 	return _page.get_node("%Cards/" + String(action_id).to_pascal_case()) as ActionCard
-
-
-func _button(card: ActionCard) -> Button:
-	return card.get_node("%ToggleButton") as Button
-
-
-func _bar(card: ActionCard) -> ActionProgressBar:
-	return card.get_node("%ProgressBar") as ActionProgressBar
 
 
 func _xp_bar(node: Node, path: String = "%XpBar") -> XpBar:

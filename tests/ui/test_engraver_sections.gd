@@ -77,13 +77,13 @@ func test_ingredients_say_where_they_come_from() -> void:
 	assert_gt(line.text.length(), 4)
 
 
-func test_crystallize_starts_with_dust_only() -> void:
+func test_crystallize_is_queued_from_its_level() -> void:
 	_open()
-	var button: Button = _page.find_child("CrystallizeSpark", true, false).find_child("ToggleButton", true, false) as Button
-	assert_true(button.disabled, "no Dust")
+	var button: Button = _page.find_child("CrystallizeSpark", true, false).find_child("EnqueueButton", true, false) as Button
+	assert_true(button.disabled, "level too low")
 	TestFactory.give(_session, &"rift_dust", 100)
 	TestFactory.set_level(_session, SKILL, 5)
-	assert_false(button.disabled, "Dust and level")
+	assert_false(button.disabled, "level reached: the ingredients are checked at each cycle")
 
 
 func _open() -> void:

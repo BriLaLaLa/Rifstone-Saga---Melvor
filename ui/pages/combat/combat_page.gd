@@ -6,6 +6,9 @@ extends Page
 ## actions are commands (`combat.start/stop/eat`, `combat.loot.collect_all`); a refused command shows its reason. It keeps
 ## no game state. The yield and the log (`CombatYield`) are derived readings of the events, never saved.
 
+## Signals of the encounter cycle (M24-04, 05_INTERFACES_M24.md §3b) -> number of parameters.
+const CYCLE_SIGNALS: Dictionary[StringName, int] = {&"travel_started": 3, &"node_started": 4, &"node_finished": 4}
+
 var _session: GameSession = null
 ## Signal, callable pairs connected in `bind` (disconnected in `unbind`).
 var _connections: Array[Array] = []
@@ -28,6 +31,9 @@ var _skip_control: SkipStoneControl = null
 var _feed: CombatFeed = null
 ## The clickable map of the areas (overlay, built in `_ready`).
 var _map: CombatMap = null
+## M24-06: the travel strip and the node panel, under the cards (05_INTERFACES_M24.md §7.o).
+var _travel: TravelMap = null
+var _node_panel: NodePanel = null
 
 @onready var _margin: MarginContainer = %Margin
 @onready var _main: VBoxContainer = %Main
@@ -89,6 +95,14 @@ func _ready() -> void:
 	_map.name = "CombatMap"
 	add_child(_map)
 	_map.area_chosen.connect(_on_area_chosen)
+	_travel = TravelMap.new()
+	_travel.name = "TravelMap"
+	_node_panel = NodePanel.new()
+	_node_panel.name = "NodePanel"
+	_main.add_child(_travel)
+	_main.add_child(_node_panel)
+	_main.move_child(_travel, _main.get_child_count() - 3)
+	_main.move_child(_node_panel, _main.get_child_count() - 2)
 	set_process(false)
 
 
@@ -133,6 +147,9 @@ func bind(session: GameSession) -> void:
 	_connect(events.character_xp_gained, _on_xp_gained)
 	_connect(events.gold_changed, _on_gold_changed)
 	_connect(events.skip_stone_changed, _skip_control.refresh.unbind(1))
+	for cycle_signal: StringName in CYCLE_SIGNALS:  # M24-04 signals: the header follows the cycle
+		if events.has_signal(cycle_signal):
+			_connect(Signal(events, cycle_signal), _redraw_all.unbind(CYCLE_SIGNALS[cycle_signal]))
 	_message_label.visible = false
 	_refresh_static()
 	_redraw_all()
@@ -163,6 +180,8 @@ func _process(_delta: float) -> void:
 		var state: Dictionary = _session.combat.get_state()
 		_player.tick(state)
 		_zone.refresh(_session, state)
+		_travel.refresh(state, _session.data, _session.disciplines)
+		_node_panel.refresh(state, _session.data)
 		if CombatFracture.is_in(state):  # the ability timer and the shield move between events
 			_state_label.text = CombatFracture.state_text(state["fracture"], _state_base, _session.data)
 		_redraw_yield()

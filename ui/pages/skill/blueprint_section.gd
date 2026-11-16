@@ -7,7 +7,7 @@ extends VBoxContainer
 ## Internal to SkillPage. `setup` builds one row per blueprint of the data (hidden unless owned or running); `redraw`
 ## rereads everything from the session; the page feeds the bar with `set_progress(actions.get_progress())`. The only
 ## state is presentation: the selected blueprint and the chosen affix. The buttons emit signals; the page sends
-## `actions.start_blueprint` / `actions.stop` and shows the refusal.
+## `actions.enqueue_blueprint` / `actions.cancel(0)` and shows the refusal.
 
 signal start_requested(blueprint_id: StringName, chosen_affix: StringName)
 signal stop_requested

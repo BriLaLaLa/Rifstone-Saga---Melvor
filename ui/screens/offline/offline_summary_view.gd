@@ -119,6 +119,11 @@ func _combat_lines() -> PackedStringArray:
 	var lines: PackedStringArray = PackedStringArray()
 	for id: StringName in _sorted_by_name(_summary.kills.keys()):
 		lines.append(OfflineTexts.KILLS_LINE % [_monster_name(id), NumberFormat.format_int(_summary.kills[id])])
+	for nodes: Array in [["nodes_worked", OfflineTexts.NODES_WORKED_LINE], ["nodes_skipped", OfflineTexts.NODES_SKIPPED_LINE]]:
+		var raw: Variant = _summary.get(nodes[0] as StringName)  # M24-04 fields (05_INTERFACES_M24.md §5.33), null before
+		var count: int = int(raw) if raw != null else 0
+		if count > 0:
+			lines.append((nodes[1] as String) % NumberFormat.format_int(count))
 	if _summary.deaths > 0:
 		lines.append(OfflineTexts.DEATHS_LINE % NumberFormat.format_int(_summary.deaths))
 	if _summary.food_eaten > 0:

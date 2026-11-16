@@ -16,6 +16,8 @@ const LOG_CATEGORY: String = "ui"
 const COMING_SOON_TEXT: String = "In arrivo"
 const LEVEL_TEXT: String = "Liv. %s"
 const SECTIONS_TITLE: String = "Partita"
+## The Engraver row (M24): not a discipline, it sits in the Village group.
+const ENGRAVER_PAGE := &"skill:riftbinding"
 ## Game sections, in order: page id, text, UI icon (UiStyle.icon).
 const SECTIONS: Array[Dictionary] = [
 	{"page": &"character", "text": "Personaggio", "icon": "user"},
@@ -27,6 +29,8 @@ const SECTIONS: Array[Dictionary] = [
 	{"page": &"bank", "text": "Deposito", "icon": "box"},
 	{"page": &"shop", "text": "Shop", "icon": "building-store"},
 	{"page": &"village", "text": VillageTexts.TITLE_TEXT, "icon": "coins"},
+	{"page": &"trainers", "text": TrainersTexts.SIDEBAR_TEXT, "icon": "star"},
+	{"page": ENGRAVER_PAGE, "text": "Incisore", "icon": "sparkles"},
 	{"page": &"noticeboard", "text": NoticeboardTexts.TITLE_TEXT, "icon": "star"},
 	{"page": &"auction", "text": AuctionTexts.TITLE_TEXT, "icon": "coins"},
 	{"page": &"guide", "text": "Guida", "icon": "star"},
@@ -38,6 +42,9 @@ const CATEGORY_TITLES: Dictionary[StringName, String] = {
 }
 
 var _session: GameSession = null
+var _is_available: Callable = Callable()
+## Presentation: the page highlighted now, kept to restore the highlight when the rows are rebuilt.
+var _current: StringName = &""
 var _group: ButtonGroup = ButtonGroup.new()
 var _rows: Dictionary[StringName, Button] = {}
 var _level_labels: Dictionary[StringName, Label] = {}
@@ -59,30 +66,46 @@ func _ready() -> void:
 ## Builds the rows for `session`; `is_available` is `(page_id: StringName) -> bool`.
 func bind(session: GameSession, is_available: Callable) -> void:
 	unbind()
-	_clear_rows()
 	_session = session
-	_add_section_title(SECTIONS_TITLE)
-	for section: Dictionary in SECTIONS:
-		var page_id: StringName = section["page"]
-		var icon: Texture2D = UiStyle.icon(section["icon"] as String)
-		_add_row(page_id, section["text"] as String, icon, is_available.call(page_id) as bool)
-	for category: StringName in CATEGORY_TITLES:
-		var skills: Array[SkillDef] = _session.data.skills_by_category(category)
-		if skills.is_empty():
-			continue
-		_add_section_title(CATEGORY_TITLES[category])
-		for skill: SkillDef in skills:
-			var page_id: StringName = StringName(PageHost.ROUTE_SKILL + PageHost.ROUTE_SEPARATOR + skill.id)
-			var row: Button = _add_row(page_id, skill.name, _skill_icon(skill), is_available.call(page_id) as bool)
-			row.add_theme_color_override("icon_normal_color", skill.color)
-			row.add_theme_color_override("icon_disabled_color", Color(skill.color, UiStyle.TEXT_DISABLED.a))
-			_level_labels[skill.id] = row.get_node("Side") as Label
-			_redraw_level(skill.id)
+	_is_available = is_available
+	_build_rows()
 	_session.events.level_up.connect(_on_events_level_up)
+	_session.events.discipline_changed.connect(_on_events_discipline_changed)
 	for sig: Signal in _work_signals(_session.events):
 		sig.connect(_on_work_changed)
 	_refresh_dots()
 	_refresh_lock()
+
+
+## The rows: the game sections (the Trainers and the Engraver in the Village group) and, by category, only the
+## disciplines the player has learned (`disciplines.is_learned`).
+func _build_rows() -> void:
+	_clear_rows()
+	_add_section_title(SECTIONS_TITLE)
+	for section: Dictionary in SECTIONS:
+		var page_id: StringName = section["page"]
+		var icon: Texture2D = UiStyle.icon(section["icon"] as String)
+		var row: Button = _add_row(page_id, section["text"] as String, icon, _is_available.call(page_id) as bool)
+		if page_id == ENGRAVER_PAGE:
+			_level_labels[&"riftbinding"] = row.get_node("Side") as Label
+			_redraw_level(&"riftbinding")
+	for category: StringName in CATEGORY_TITLES:
+		var learned: Array[SkillDef] = []
+		for skill: SkillDef in _session.data.skills_by_category(category):
+			if StringName(PageHost.ROUTE_SKILL + PageHost.ROUTE_SEPARATOR + skill.id) != ENGRAVER_PAGE \
+					and _session.disciplines.is_learned(skill.id):
+				learned.append(skill)
+		if learned.is_empty():
+			continue
+		_add_section_title(CATEGORY_TITLES[category])
+		for skill: SkillDef in learned:
+			var page_id: StringName = StringName(PageHost.ROUTE_SKILL + PageHost.ROUTE_SEPARATOR + skill.id)
+			var row: Button = _add_row(page_id, skill.name, _skill_icon(skill), _is_available.call(page_id) as bool)
+			row.add_theme_color_override("icon_normal_color", skill.color)
+			row.add_theme_color_override("icon_disabled_color", Color(skill.color, UiStyle.TEXT_DISABLED.a))
+			_level_labels[skill.id] = row.get_node("Side") as Label
+			_redraw_level(skill.id)
+	set_current(_current)
 
 
 ## Disconnects from the session's events; the rows stay as they are.
@@ -90,6 +113,8 @@ func unbind() -> void:
 	if _session == null:
 		return
 	if is_instance_valid(_session):
+		if _session.events.discipline_changed.is_connected(_on_events_discipline_changed):
+			_session.events.discipline_changed.disconnect(_on_events_discipline_changed)
 		if _session.events.level_up.is_connected(_on_events_level_up):
 			_session.events.level_up.disconnect(_on_events_level_up)
 		for sig: Signal in _work_signals(_session.events):
@@ -100,6 +125,7 @@ func unbind() -> void:
 
 ## Highlights the row of `page_id` (none if it has no row).
 func set_current(page_id: StringName) -> void:
+	_current = page_id
 	for id: StringName in _rows:
 		_rows[id].set_pressed_no_signal(id == page_id)
 
@@ -163,12 +189,17 @@ func _redraw_level(skill_id: StringName) -> void:
 
 ## The events after which the work in progress may have changed (M16-06, V9).
 func _work_signals(events: GameEvents) -> Array[Signal]:
-	return [events.action_started, events.action_stopped, events.combat_started, events.combat_stopped,
+	var result: Array[Signal] = [events.action_started, events.action_stopped, events.production_queue_changed,
+			events.combat_started, events.combat_stopped,
 			events.encounter_started,  # combat_started comes before the state changes, encounter_started after
 			events.dungeon_opened, events.dungeon_finished, events.dungeon_loot_lost, events.dungeon_paused_changed]
+	for cycle_signal: StringName in [&"node_started", &"node_finished"]:  # M24-04: the dot follows the node worked
+		if events.has_signal(cycle_signal):
+			result.append(Signal(events, cycle_signal))
+	return result
 
 
-func _on_work_changed(_a: Variant = null, _b: Variant = null, _c: Variant = null) -> void:
+func _on_work_changed(_a: Variant = null, _b: Variant = null, _c: Variant = null, _d: Variant = null) -> void:
 	_refresh_dots()
 	_refresh_lock()
 	# `dungeon_finished` is emitted before the run is cleared: read again at the end of the frame.
@@ -198,18 +229,32 @@ func _refresh_lock() -> void:
 		row.tooltip_text = ""
 
 
-## Lights the dot of the skill in progress (main lane) and of the combat, reading both from the session.
+## Lights the dot of the combat and of the discipline at the head of the production queue (and of the one whose node is
+## being worked), reading both from the session.
 func _refresh_dots() -> void:
 	if _session == null:
 		return
 	var running: StringName = StringName(_session.actions.current().get("skill", &""))
-	var skill_page: StringName = StringName(PageHost.ROUTE_SKILL + PageHost.ROUTE_SEPARATOR + running) \
-			if running != &"" else &""
+	var node_skill: StringName = _session.combat.node_skill()
+	var skill_page: StringName = _skill_page_of(running)
+	var node_page: StringName = _skill_page_of(node_skill)
 	for page_id: StringName in _dots:
 		var dungeon_on: bool = _dungeon_on()
-		var on: bool = page_id == skill_page or (page_id == &"combat" and _session.combat.is_active() and not dungeon_on) \
+		var on: bool = page_id == skill_page or (page_id != &"" and page_id == node_page) \
+				or (page_id == &"combat" and _session.combat.is_active() and not dungeon_on) \
 				or (page_id == &"dungeon" and dungeon_on)
 		_dots[page_id].set_active(on)
+
+
+func _skill_page_of(skill_id: StringName) -> StringName:
+	return StringName(PageHost.ROUTE_SKILL + PageHost.ROUTE_SEPARATOR + skill_id) if skill_id != &"" else &""
+
+
+## A discipline was learned or unlearned: its row appears or goes away.
+func _on_events_discipline_changed(_skill_id: StringName, _grade: int) -> void:
+	_build_rows()
+	_refresh_dots()
+	_refresh_lock()
 
 
 ## True when the dot of the entry `page_id` is lit, for tests.

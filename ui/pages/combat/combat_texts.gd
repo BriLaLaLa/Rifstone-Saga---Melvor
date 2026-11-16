@@ -7,11 +7,16 @@ extends RefCounted
 const MAX_HIT_NUMBERS: int = 3
 const LOOT_TITLE: String = "Bottino"
 const STATS_TITLE: String = "Valori di combattimento"
+## States of the encounter cycle (M24-04, 05_INTERFACES_M24.md §5.33): the values of `CombatEngine.STATE_TRAVEL/NODE`.
+const STATE_TRAVEL := &"travel"
+const STATE_NODE := &"node"
 const STATE_TEXTS: Dictionary[StringName, String] = {
 	CombatEngine.STATE_IDLE: "In attesa",
 	CombatEngine.STATE_ENCOUNTER: "In combattimento",
 	CombatEngine.STATE_BETWEEN: "Il prossimo gruppo sta arrivando",
 	CombatEngine.STATE_RIFTSTONE: "Monolito del Rift",
+	STATE_TRAVEL: "In viaggio",
+	STATE_NODE: "Al nodo",
 }
 const STATE_TEXT_DEFAULT: String = "In attesa"
 const NO_AREA_TEXT: String = "Scegli un'area per combattere."
@@ -177,3 +182,31 @@ static func final_stat_lines(session: GameSession) -> Array[String]:
 ## "Colpisci 85% · Ti colpisce 70%": the F-129 percentages read from the state, whole numbers.
 static func hit_line(player_pct: int, enemy_pct: int) -> String:
 	return HIT_PCT_TEXT % player_pct + " · " + ENEMY_HIT_PCT_TEXT % enemy_pct
+
+
+## Travel map and node panel (M24-06, docs/01_GDD_M24.md §35.11). Resource and skill names come from the data.
+const TRAVEL_FIGHT_TEXT: String = "Verso il prossimo scontro"
+const TRAVEL_NODE_TEXT: String = "Verso un nodo: %s"
+const TRAVEL_LOCKED_TEXT: String = "Non appresa"
+const TRAVEL_LOCKED_TIP: String = "Disciplina non appresa: il nodo verrà saltato. I Maestri la insegnano."
+const NODE_TITLE_TEXT: String = "Nodo: %s"
+const NODE_RESOURCE_TEXT: String = "Risorsa: %s"
+const NODE_COLOR_TEXT: String = "Colore: %s"
+const NODE_UNITS_TEXT: String = "Unità: %s"
+const NODE_SKIPPED_TEXT: String = "Nodo saltato: la disciplina non è stata appresa."
+## Colour id of the node (ids of `encounters.colors`, F-154) -> name shown. The percentage is never computed here.
+const NODE_COLOR_NAMES: Dictionary[StringName, String] = {
+	&"orange": "arancione", &"yellow": "giallo", &"green": "verde", &"grey": "grigio",
+}
+const NODE_COLOR_UNKNOWN_TEXT: String = "sconosciuto"
+## Colour id -> display colour.
+const NODE_COLORS: Dictionary[StringName, Color] = {
+	&"orange": Color("ff9a3c"), &"yellow": Color("f1d27a"), &"green": Color("9be08a"), &"grey": Color("a89f8a"),
+}
+
+
+## The colour id inside a state value (`"color"` may be an id or a `{"id": ..}` dictionary).
+static func color_id(value: Variant) -> StringName:
+	if value is Dictionary:
+		return StringName((value as Dictionary).get("id", &""))
+	return StringName(value) if value != null else &""
