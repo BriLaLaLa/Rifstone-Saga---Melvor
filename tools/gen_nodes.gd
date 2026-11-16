@@ -25,6 +25,9 @@ const THEMES: Dictionary = {
 	"sunken_citadel": [20, 20, 45, 15],
 	"rift_heart": [25, 25, 20, 30],
 }
+## Optional per-area overrides (docs/04_DATA_SCHEMA_M25.md §30.1, Q127): `{area: {skill: level}}`. Empty = fields omitted (difficulty = max_level, min_level 1).
+const DIFFICULTY: Dictionary = {}
+const MIN_LEVEL: Dictionary = {}
 
 
 func _initialize() -> void:
@@ -66,7 +69,14 @@ static func generate(areas: Array) -> Dictionary:
 			sum += int(weights[index])
 			if int(weights[index]) < MIN_WEIGHT:
 				errors.append("area '%s': weight of %s below %d" % [id, SKILLS[index], MIN_WEIGHT])
-			nodes.append({"skill": SKILLS[index], "weight": int(weights[index])})
+			var node: Dictionary = {"skill": SKILLS[index], "weight": int(weights[index])}
+			var overrides: Dictionary = DIFFICULTY.get(id, {}) as Dictionary
+			if overrides.has(SKILLS[index]):
+				node["difficulty"] = int(overrides[SKILLS[index]])
+			overrides = MIN_LEVEL.get(id, {}) as Dictionary
+			if overrides.has(SKILLS[index]):
+				node["min_level"] = int(overrides[SKILLS[index]])
+			nodes.append(node)
 		if sum != TOTAL:
 			errors.append("area '%s': the weights sum to %d, not %d" % [id, sum, TOTAL])
 		rows.append("    " + JSON.stringify({"area": id, "max_level": int((area as Dictionary)["level_max"]), "nodes": nodes}, "", false))
