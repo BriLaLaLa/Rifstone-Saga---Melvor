@@ -11,7 +11,7 @@ qui nello stesso task.
 Convenzioni: `floor` = troncamento verso il basso, `round` = arrotondamento a metà verso l'alto (`roundi` di Godot),
 `clamp(x, a, b)`. `T(stat, ctx)` = valore totale della stat nel contesto (F-05). Percentuali "pct" = punti percentuali.
 
-**M24 (Incontri e Mestieri)**: F-153…F-160, le tabelle §8.10-§8.11 e le chiavi §9b sono in [`02_FORMULAS_M24.md`](02_FORMULAS_M24.md) (sezione §5l). Gli aiutanti e i Contratti (F-101, F-102, `helper.*`) sono **ELIMINATI in M24**.
+**M24 (Incontri e Mestieri)**: F-153…F-160, le tabelle §8.10-§8.11 e le chiavi §9b sono in [`02_FORMULAS_M24.md`](02_FORMULAS_M24.md) (sezione §5l). **M25 (Nodi con tentativi)**: F-161…F-165 in [`02_FORMULAS_M25.md`](02_FORMULAS_M25.md) (modificano F-155 e F-156). Gli aiutanti e i Contratti (F-101, F-102, `helper.*`) sono **ELIMINATI in M24**.
 
 ---
 

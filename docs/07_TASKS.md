@@ -2121,3 +2121,5 @@ Casa d'Aste non si validano prima del validatore di M23-02; i parametri e l'elen
 
 ## M24 — Incontri e Mestieri (V16-V24; fonte `docs/M24_MESTIERI.md`)
 I task M24-01…M24-08 (tabella, ordine, ownership, test) sono in **`07_TASKS_M24.md`** (questo file supera le 400 righe).
+
+I task M25-01…M25-09 (Alpha 1: nodi con tentativi) sono in **`07_TASKS_M25.md`**.

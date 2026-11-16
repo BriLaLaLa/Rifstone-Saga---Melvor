@@ -306,7 +306,14 @@ un vecchio salvataggio si carica con le discipline scelte in automatico; offline
 
 Layout a 1280×720 di Maestri, mappa di viaggio, nodo e coda **non verificato a schermo** (Q125).
 
-## M25+: Seconda classe, altri dungeon e boss (dopo M24; era M24+)
+## M25: Alpha 1 (nodi con tentativi)
+Progettata da M25-01 (V25-V26, `01_GDD_M25.md` §36, `02_FORMULAS_M25.md` F-161…F-165, `04_DATA_SCHEMA_M25.md` §30, `05_INTERFACES_M25.md`, task in `07_TASKS_M25.md`):
+ogni nodo ha **tentativi** (3) con bottino garantito e resa che dipende da skill contro difficoltà, **nodi ricchi** rari, XP e maestria per tentativo con i colori di M24 e una **scheda del nodo**
+animata al posto del riquadro del bersaglio; poi verifica dei layout, ritocchi, drop dell'utente, strumento di debug dell'offline, export Windows e README. Save v8 invariato (additivo). Task M25-02…M25-09; scadenza giovedì 2026-11-19.
+**Giocabile**: in un nodo la scheda mostra l'immagine animata, i tentativi che si completano uno alla volta, il bottino che sale e l'XP; un nodo ricco si riconosce; un personaggio di livello molto basso raccoglie poco ma mai zero;
+offline di 12 ore con nodi a tentativi dà lo stesso stato del gioco acceso; l'eseguibile Windows parte e si gioca. Nessuna ritaratura (Q122).
+
+## M26+: Seconda classe, altri dungeon e boss (dopo M25; era M25+)
 Seconda classe con le sue armi (es. arco o bastone, con i suoi progetti e componenti del Falegname), supporti delle abilità, altri dungeon (solo dati: il sistema di M22 è generico), livelli di difficoltà dei dungeon, altri boss, elementi e resistenze;
 modello a popolazione della Casa d'Aste (Q110), pozioni (Q112), attrezzo dell'Erboristeria (Q111).
 

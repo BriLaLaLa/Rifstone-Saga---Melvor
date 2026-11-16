@@ -135,6 +135,8 @@ func advance(delta_ms: int) -> void
 - Save (§6b). `from_save` tollerante: lavoro sconosciuto, di una disciplina non appresa, ricetta non scoperta, `remaining` non valido → `Log.warn` e scartato;
   oltre `queue_slots` → troncata; `elapsed_ms` non valido → 0. Nessun segnale.
 
+> **M25**: `NodeWork.finish`, il segnale per nodo di `action_completed` e `get_state()["node"]` sono estesi da `05_INTERFACES_M25.md` (vale quello).
+
 ## 5.33 Ciclo degli incontri (`systems/encounters/` e `CombatEngine`, M24-04) — dipendenze nuove del motore: skills, mastery, disciplines (solo `is_learned`)
 ```gdscript
 class_name EncounterCycle extends RefCounted              # systems/encounters/encounter_cycle.gd — logica pura

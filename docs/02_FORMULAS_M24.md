@@ -31,6 +31,7 @@ Esempi (gradini 1, 10, 20, 30, 45, 60, 75, 90): `L` 27, `M` 30 → risorsa di li
 Test: `tests/systems/encounters/test_encounter_cycle.gd`.
 
 ## F-155 Durata e resa del nodo
+> **Modificata in M25** (V25): la resa si divide in tentativi (F-161…F-165 in `02_FORMULAS_M25.md`); durata totale, risorsa e colore restano come qui. Le unità `N` sono il totale a resa piena.
 **Nodo lavorato** (disciplina appresa), `a` = risorsa di F-154, `ctx = ModifierContext.for_action(s, a)`:
 - durata `node_ms = max(encounters.node_min_ms, round(encounters.node_ms × (1 + T(skill_interval_pct, ctx)/100)))` (12.000 e 3.000), fissata all'inizio;
 - alla fine, `N = encounters.node_units` (80) **unità**, nell'ordine, ognuna con i tiri di un ciclo di raccolta su `session.rng`: doppio (F-06), Frammento (F-07),
