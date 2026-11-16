@@ -23,7 +23,7 @@ func _fund_storehouse_1() -> void:
 
 
 func test_buildings_in_order_all_buildable() -> void:
-	assert_eq(_village.buildings(), [&"storehouse", &"inn", &"forge", &"sawmill", &"loot_shed", &"market", &"noticeboard"] as Array[StringName])
+	assert_eq(_village.buildings(), [&"storehouse", &"inn", &"forge", &"sawmill", &"loot_shed", &"market", &"noticeboard", &"auction_house"] as Array[StringName])
 	assert_true(_village.is_buildable(&"inn"))
 	assert_true(_village.is_buildable(&"market"))
 	assert_true(_village.is_buildable(&"noticeboard"), "M20: no placeholder left")

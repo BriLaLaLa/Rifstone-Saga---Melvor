@@ -27,7 +27,6 @@ func _errors(change: Callable) -> PackedStringArray:
 
 func _with_building(raw: Dictionary, extra: Array = []) -> Array:
 	var buildings: Array = (raw["village"][BUILDINGS_PATH] as Dictionary)["buildings"] as Array
-	buildings.append(AuctionTestData.building(TestFactory.real_data()))
 	for more: Variant in extra:
 		buildings.append(more)
 	return buildings

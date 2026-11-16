@@ -89,6 +89,8 @@ static func _render(b: Dictionary, levels: Array[String]) -> String:
 		return head + ', "milestone": %d, "levels": []}' % int(b["milestone"])
 	if bool(b.get("unlocks_shop", false)):  # M20: no `effect`, the level opens shop entries
 		head += ',\n     "unlocks_shop": true'
+	elif bool(b.get("unlocks_auction", false)):  # M23: same, the level opens the Auction House
+		head += ',\n     "unlocks_auction": true'
 	else:
 		head += ",\n     \"effect\": %s" % JSON.stringify(b["effect"], "", false)
 	return "%s,\n     \"cost_spec\": %s,\n     \"levels\": [\n%s\n     ]}" % [head,
