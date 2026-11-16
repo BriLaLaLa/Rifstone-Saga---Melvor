@@ -125,7 +125,7 @@ func _draw_cost(cost: Dictionary, session: GameSession) -> void:
 	var required: int = int(cost.get("requires_woodwright", 0))
 	_requires_label.visible = required > 0
 	_requires_label.text = VillageTexts.REQUIRES_WOODWRIGHT_TEXT % required
-	var too_low: bool = required > 0 and session.skills.get_level(&"woodwright") < required
+	var too_low: bool = required > 0 and session.character.get_level() < required  # M24: the character level (§35.8)
 	_requires_label.add_theme_color_override("font_color", UiStyle.BAD if too_low else UiStyle.TEXT_2)
 
 

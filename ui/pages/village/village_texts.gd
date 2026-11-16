@@ -19,13 +19,13 @@ const COST_TITLE_TEXT: String = "Costo"
 const COST_GOLD_TEXT: String = "Oro: %s / %s"
 const COST_ITEM_TEXT: String = "%s: %s / %s"
 const COST_MISSING_TEXT: String = " (mancano %s)"
-const REQUIRES_WOODWRIGHT_TEXT: String = "Richiede Falegname %s"
+const REQUIRES_WOODWRIGHT_TEXT: String = "Richiede livello %s"
 ## Reason of `can_upgrade` / `upgrade` -> text; other reasons: REFUSED_TEXT_DEFAULT.
 const REFUSED_TEXTS: Dictionary[StringName, String] = {
 	&"unknown_id": "Edificio sconosciuto.",
 	&"not_buildable": "Non ancora costruibile.",
 	&"max_level": "Livello massimo raggiunto.",
-	&"level_too_low": "Livello del Falegname troppo basso.",
+	&"level_too_low": "Livello del personaggio troppo basso.",
 	&"not_enough_gold": "Oro insufficiente.",
 	&"not_enough_items": "Materiali insufficienti.",
 }
@@ -37,6 +37,7 @@ const NODE_BUILDABLE_TEXT: String = "Costruibile"
 const NODE_UPGRADABLE_TEXT: String = "Migliorabile"
 const OPEN_TEXTS: Dictionary[StringName, String] = {&"noticeboard": "Apri Bacheca", &"shop": "Apri Mercato", &"auction": "Apri Casa d'Aste"}
 const OPEN_DEFAULT_TEXT: String = "Apri"
+const TRAINERS_TEXT: String = "Maestri di mestiere"
 const OPEN_LOCKED_TEXT: String = "Costruiscilo per usarlo"
 const REFUSED_TEXT_DEFAULT: String = "Costruzione non riuscita."
 

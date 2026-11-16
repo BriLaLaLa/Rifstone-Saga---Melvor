@@ -1,20 +1,19 @@
 class_name SkillPage
 extends Page
-## Generic page of a gathering or artisan skill (docs/01_GDD.md §4, docs/03_ARCHITECTURE.md §11), route
-## `skill:<skill_id>`: header with icon, name, level and XP bar; one ActionCard per action of the data.
+## Page of a learned discipline or of the Engraver (docs/01_GDD_M24.md §35.7 and §35.11, docs/03_ARCHITECTURE.md §11),
+## route `skill:<skill_id>`: header with icon, name, level and XP bar; one card per action of the data.
 ##
-## Every redraw reads the session: level and XP from `skills`, interval from `actions.current_interval_ms`, mastery
-## from `mastery`, the running action from `actions.get_lane`. The cycle bars are redrawn every frame from
-## `actions.get_progress` (the only `_process` work: reading and drawing). A card's button sends `actions.start` or
-## `actions.stop`; a refused command shows its reason under the header. Stop reasons of the runner become toasts in the
-## ToastManager of the main screen (`action_stopped`), not here.
-## It keeps no game state: only the session reference and its nodes (cards by action id).
-## Artisan recipes (actions with inputs) get a RecipeCard (ingredients, chances), the others an ActionCard; the cards
-## of recipes are redrawn on `bank_changed` (owned ingredients; connected only by pages with recipes). The card list
-## scrolls (88 recipes in Forgiatura).
-## Skills with mastery have a "Maestria" button in the header that opens the MasteryPanel (M2-03), a child window of
-## the page (created on the first press, freed with the page): bound to the session only while open, closed when the
-## page unbinds.
+## A gathering discipline is read only (resources, level, the colour at the current level, mastery, the areas where it is
+## found, the tool panel): the player gathers at the nodes of the combat cycle. An artisan page and the Engraver put the
+## recipes in the production queue (`actions.enqueue`, `enqueue_blueprint`) and show the queue (ProductionQueuePanel).
+## Every redraw reads the session; a refused command shows its reason under the header. Stop reasons of the runner
+## become toasts (ToastManager), not here. It keeps no game state: the session reference and its nodes.
+## The cards of recipes are redrawn on `bank_changed` (owned ingredients). The card list scrolls (88 recipes in Forgiatura).
+## Skills with mastery have a "Maestria" button in the header that opens the MasteryPanel (M2-03), a child window of the
+## page (created on the first press, freed with the page): bound to the session only while open.
+## When its own discipline is unlearned the page asks for the Trainers page (`page_requested`).
+
+signal page_requested(page_id: StringName)
 
 const CARD_SCENE: PackedScene = preload("res://ui/pages/skill/action_card.tscn")
 const RECIPE_CARD_SCENE: PackedScene = preload("res://ui/pages/skill/recipe_card.tscn")
@@ -24,7 +23,7 @@ const TOOL_PANEL_SCENE: PackedScene = preload("res://ui/pages/skill/tool_upgrade
 const TOOL_SKILLS: Array[StringName] = [&"forestry", &"quarrying", &"angling"]
 const LOG_CATEGORY: String = "ui"
 const LEVEL_TEXT: String = "Livello %s"
-## Italian text of each refusal of `actions.start`; other reasons use REFUSED_TEXT_DEFAULT.
+## Italian text of each refusal of `actions.enqueue`; other reasons use REFUSED_TEXT_DEFAULT.
 const REFUSED_TEXTS: Dictionary[StringName, String] = SkillHeader.REFUSED_TEXTS
 const REFUSED_TEXT_DEFAULT: String = SkillHeader.REFUSED_TEXT_DEFAULT
 
@@ -37,6 +36,9 @@ var _pool_bar: ProgressBar = null
 var _blueprints: BlueprintSection = null
 var _tool_panel: ToolUpgradePanel = null
 var _bench: ForgeBench = null
+## The production queue of the artisan pages and the Engraver; the "Si trova in" line of a gathering page.
+var _queue: ProductionQueuePanel = null
+var _top: Control = null
 var _tabs: SkillTabs = SkillTabs.new()
 ## Flow container of each Engraver section (presentation), by section id.
 var _section_flows: Dictionary[StringName, HFlowContainer] = {}
@@ -84,6 +86,9 @@ func bind(session: GameSession) -> void:
 	events.action_stopped.connect(_on_events_action_stopped)
 	events.mastery_xp_gained.connect(_on_events_mastery_xp_gained)
 	events.modifiers_changed.connect(_on_events_modifiers_changed)
+	events.production_queue_changed.connect(_on_events_queue_changed)
+	events.discipline_changed.connect(_on_events_discipline_changed)
+	events.recipe_learned.connect(_on_events_recipe_learned)
 	if _has_recipe_cards() or _blueprints != null or _tool_panel != null:
 		events.bank_changed.connect(_on_events_bank_changed)
 		events.armory_changed.connect(_on_events_extras_changed)
@@ -109,6 +114,9 @@ func unbind() -> void:
 			[events.armory_changed, _on_events_extras_changed],
 			[events.blueprint_crafted, _on_events_extras_changed],
 			[events.gold_changed, _on_events_extras_changed],
+			[events.production_queue_changed, _on_events_queue_changed],
+			[events.discipline_changed, _on_events_discipline_changed],
+			[events.recipe_learned, _on_events_recipe_learned],
 		]:
 			var event: Signal = connection[0]
 			var handler: Callable = connection[1]
@@ -118,6 +126,10 @@ func unbind() -> void:
 		_bench.unbind()
 	if _mastery_panel != null and is_instance_valid(_mastery_panel):
 		_mastery_panel.close_window()
+	if _queue != null and is_instance_valid(_queue):
+		_queue.unbind()
+	_queue = null
+	_top = null
 	_session = null
 	_skill = null
 	_blueprints = null
@@ -126,13 +138,9 @@ func unbind() -> void:
 
 
 func _process(_delta: float) -> void:
-	# Read-only: the cycle progress of the main lane goes to the card of the running action, 0 to the others.
-	var running_id: StringName = _running_action_id()
-	var progress: float = _session.actions.get_progress()
-	for action_id: StringName in _cards:
-		_cards[action_id].set_progress(progress if action_id == running_id else 0.0)
+	# Read-only: the progress of the queue head goes to the blueprint bar when the head is a blueprint craft.
 	if _blueprints != null:
-		_blueprints.set_progress(progress if running_id == BlueprintCraft.ACTION else 0.0)
+		_blueprints.set_progress(_session.actions.get_progress() if _running_action_id() == BlueprintCraft.ACTION else 0.0)
 
 
 func _exit_tree() -> void:
@@ -151,7 +159,8 @@ func _build_cards() -> void:
 		var action_card: ActionCard = scene.instantiate() as ActionCard
 		_card_parent(action).add_child(action_card)
 		action_card.setup(action, _session.data)
-		action_card.toggle_requested.connect(_on_card_toggle_requested)
+		if action_card is RecipeCard:
+			(action_card as RecipeCard).enqueue_requested.connect(_on_enqueue_requested)
 		_cards[action.id] = action_card
 
 
@@ -194,14 +203,11 @@ func _hide_refusal() -> void:
 	_message_label.visible = false
 
 
-func _on_card_toggle_requested(action_id: StringName) -> void:
+## "Metti in coda" of a recipe card: the command answers, a refusal shows its reason.
+func _on_enqueue_requested(action_id: StringName, count: int, repeat: bool) -> void:
 	if _session == null:
 		return
-	if _running_action_id() == action_id:
-		_session.actions.cancel(0)
-		_hide_refusal()
-		return
-	var result: CommandResult = _session.actions.enqueue(_skill.id, action_id, 1, true)
+	var result: CommandResult = _session.actions.enqueue(_skill.id, action_id, count, repeat)
 	if result.ok:
 		_hide_refusal()
 	else:
@@ -224,6 +230,22 @@ func _on_events_action_started(_lane: StringName, _skill_id: StringName, _action
 
 func _on_events_action_stopped(_lane: StringName, _skill_id: StringName, _reason: StringName) -> void:
 	_redraw()
+
+
+func _on_events_queue_changed() -> void:
+	_redraw_status()
+	_redraw_extras()
+
+
+## A recipe was discovered: the lock of its card goes away.
+func _on_events_recipe_learned(_action_id: StringName) -> void:
+	_redraw()
+
+
+## The discipline of this page was unlearned: the page has nothing to show, the Trainers page is requested.
+func _on_events_discipline_changed(skill_id: StringName, grade: int) -> void:
+	if skill_id == _skill.id and grade <= 0:
+		page_requested.emit(&"trainers")
 
 
 func _on_events_mastery_xp_gained(skill_id: StringName, action_id: StringName, _amount: int) -> void:
@@ -276,6 +298,15 @@ func _build_extras() -> void:
 	_bench = null
 	_section_flows.clear()
 	_tabs.clear()
+	_clear_top()
+	if _skill.category == &"gathering":
+		_add_top(GatheringInfo.build_label(_session.data, _skill.id))
+	else:  # artisan pages and the Engraver: the production queue on top
+		_queue = ProductionQueuePanel.new()
+		_queue.name = "ProductionQueue"
+		_add_top(_queue)
+		_queue.bind(_session)
+		_queue.refused.connect(_show_refusal)
 	if _skill.id == BlueprintCraft.SKILL:
 		_blueprints = BLUEPRINT_SECTION_SCENE.instantiate() as BlueprintSection
 		_extras.add_child(_blueprints)
@@ -290,6 +321,23 @@ func _build_extras() -> void:
 		_extras.add_child(_tool_panel)
 		_tool_panel.setup(_skill.id)
 		_tool_panel.upgrade_requested.connect(_on_tool_upgrade_requested)
+
+
+## The node above `Extras` (the queue or the "Si trova in" line): presentation, replaced at each bind.
+func _add_top(node: Control) -> void:
+	_top = node
+	_extras.get_parent().add_child(node)
+	_extras.get_parent().move_child(node, _extras.get_index())
+
+
+func _clear_top() -> void:
+	if _queue != null and is_instance_valid(_queue):
+		_queue.unbind()
+	if _top != null and is_instance_valid(_top):
+		_top.get_parent().remove_child(_top)
+		_top.queue_free()
+	_top = null
+	_queue = null
 
 
 func _redraw_extras() -> void:

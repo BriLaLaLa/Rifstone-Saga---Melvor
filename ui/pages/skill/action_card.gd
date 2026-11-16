@@ -1,26 +1,20 @@
 class_name ActionCard
 extends PanelContainer
-## Card of one action on the SkillPage (docs/01_GDD.md §4): icon, name, required level, base XP, current interval
-## (F-03, read from `actions.current_interval_ms`), products, mastery level and bar, cycle progress, Start/Stop.
-##
-## `setup` draws the parts that come from the data; `redraw` reads everything else from the session; the page calls
-## `set_progress` every frame with `actions.get_progress`. Pressing the button emits `toggle_requested`: the page sends
-## the command (start or stop) and shows a refusal. The card keeps no game state, only its ActionDef and its nodes.
-## A card below the required level is drawn locked (button disabled, requirement in red); the running one has its
-## name in light gold and a Stop button.
-
-signal toggle_requested(action_id: StringName)
+## Card of one action on the SkillPage (docs/01_GDD.md §4, docs/01_GDD_M24.md §35.7): icon, name, required level, base XP,
+## current interval (F-03, read from `actions.current_interval_ms`), products, mastery level and bar. Read only (M24-06):
+## a gathering card also shows the colour the node would have at the player's level (`NodeColorPreview`); the cards
+## of recipes (RecipeCard) add the "Metti in coda" controls. `setup` draws the parts that come from the data; `redraw`
+## reads everything else from the session. The card keeps no game state, only its ActionDef and its nodes.
+## A card below the required level is drawn locked (requirement in red).
 
 const ITEM_SLOT_SCENE: PackedScene = preload("res://ui/components/item_slot/item_slot.tscn")
-const LANE_ACTION_KEY: String = "action"
 const LEVEL_TEXT: String = "Livello %s"
 const LOCKED_TEXT: String = "Richiede il livello %s"
 const XP_TEXT: String = "%s XP"
 const MASTERY_TEXT: String = "Liv. %s"
 const NO_MASTERY_TEXT: String = "Nessuna"
 const PRODUCT_OWNED_TEXT: String = "%s (ne hai %s)"
-const START_TEXT: String = "Avvia"
-const STOP_TEXT: String = "Ferma"
+const COLOR_TEXT: String = "Colore ora: %s (%s%% XP)"
 
 var _action: ActionDef = null
 var _bonus_tag: MasteryBonusTag = null
@@ -29,6 +23,8 @@ var _product_labels: Dictionary[StringName, Label] = {}
 var _product_names: Dictionary[StringName, String] = {}
 ## Set by a craft card before `setup`: show "possiedi N" next to every product.
 var _show_owned: bool = false
+## Only on a gathering card: the colour of the node at the current level.
+var _color_label: Label = null
 
 @onready var _icon: TextureRect = %Icon
 @onready var _name_label: Label = %NameLabel
@@ -38,12 +34,6 @@ var _show_owned: bool = false
 @onready var _products: HBoxContainer = %Products
 @onready var _mastery_label: Label = %MasteryValue
 @onready var _mastery_bar: XpBar = %MasteryBar
-@onready var _progress_bar: ActionProgressBar = %ProgressBar
-@onready var _toggle_button: Button = %ToggleButton
-
-
-func _ready() -> void:
-	_toggle_button.pressed.connect(_on_toggle_button_pressed)
 
 
 ## Draws the data of `action` (call it once, after the card entered the tree).
@@ -76,13 +66,16 @@ func setup(action: ActionDef, data: GameData) -> void:
 		_bonus_tag = MasteryBonusTag.new()  # M16-05: the mastery lines moved from above "Avvia" into this summary
 		_icon.get_parent().add_child(_bonus_tag)
 		_bonus_tag.setup(action, data)
+	if action.inputs.is_empty() and data.skill(action.skill_id).category == &"gathering":
+		_color_label = Label.new()  # the colour of the node at the player's level (F-154), filled by `redraw`
+		_color_label.name = "ColorLabel"
+		_color_label.visible = false
+		_icon.get_parent().get_parent().add_child(_color_label)
 
 
-## Reads level, interval, mastery and the running action from `session`.
+## Reads level, interval, mastery and (gathering) the colour at the current level from `session`.
 func redraw(session: GameSession) -> void:
 	var unlocked: bool = session.skills.meets_requirements({_action.skill_id: _action.level})
-	var running_id: StringName = session.actions.current().get(LANE_ACTION_KEY, &"")
-	var running: bool = running_id == _action.id
 	var level_text: String = NumberFormat.format_int(_action.level)
 	_requirement_label.text = (LEVEL_TEXT if unlocked else LOCKED_TEXT) % level_text
 	if unlocked:
@@ -90,6 +83,8 @@ func redraw(session: GameSession) -> void:
 	else:
 		_requirement_label.add_theme_color_override("font_color", UiStyle.BAD)
 	_icon.modulate = Color.WHITE if unlocked else UiStyle.TEXT_DISABLED
+	if _color_label != null:
+		_redraw_color(session)
 	_interval_label.text = seconds_text(session.actions.current_interval_ms(_action.id))
 	if _action.mastery:
 		_mastery_label.text = MASTERY_TEXT % NumberFormat.format_int(session.mastery.get_mastery_level(_action.id))
@@ -103,17 +98,6 @@ func redraw(session: GameSession) -> void:
 		for item_id: StringName in _product_labels:
 			_product_labels[item_id].text = PRODUCT_OWNED_TEXT % [_product_names[item_id],
 					NumberFormat.format_int(session.bank.get_count(item_id))]
-	_toggle_button.text = STOP_TEXT if running else START_TEXT
-	_toggle_button.disabled = not unlocked and not running
-	if running:
-		_name_label.add_theme_color_override("font_color", UiStyle.GOLD_LIGHT)
-	else:
-		_name_label.remove_theme_color_override("font_color")
-
-
-## Draws the cycle progress read from the session (0..1).
-func set_progress(progress: float) -> void:
-	_progress_bar.set_progress(progress)
 
 
 func action_id() -> StringName:
@@ -125,6 +109,15 @@ static func seconds_text(ms: int) -> String:
 	return NumberFormat.format_seconds(ms)
 
 
-func _on_toggle_button_pressed() -> void:
-	if _action != null:
-		toggle_requested.emit(_action.id)
+## The colour of the node of this resource at the player's level, from the model (F-154), if it can be read.
+func _redraw_color(session: GameSession) -> void:
+	var preview: Dictionary = NodeColorPreview.of(session, _action)
+	_color_label.visible = not preview.is_empty()
+	if preview.is_empty():
+		return
+	var color_id: StringName = CombatTexts.color_id(preview)
+	_color_label.text = COLOR_TEXT % [CombatTexts.NODE_COLOR_NAMES.get(color_id, CombatTexts.NODE_COLOR_UNKNOWN_TEXT),
+			NumberFormat.format_number(float(preview.get("xp_pct", 0.0)))]
+	_color_label.add_theme_color_override("font_color", CombatTexts.NODE_COLORS.get(color_id, UiStyle.TEXT))
+
+

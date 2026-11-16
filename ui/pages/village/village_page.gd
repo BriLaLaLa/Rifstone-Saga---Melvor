@@ -11,6 +11,7 @@ extends Page
 signal page_requested(page_id: StringName)
 
 const OPEN_BUTTON_NAME: String = "OpenButton"
+const TRAINERS_BUTTON_NAME: String = "TrainersButton"
 const BOX_SCENE: PackedScene = preload("res://ui/pages/village/village_box.tscn")
 const VILLAGE_FIELD: StringName = &"village"
 const UPGRADED_SIGNAL: StringName = &"village_upgraded"
@@ -60,6 +61,13 @@ func _ready() -> void:
 	_map_button.pressed.connect(_show_view.bind(true))
 	_list_button.pressed.connect(_show_view.bind(false))
 	_map.building_selected.connect(_on_building_selected)
+	var trainers_button := Button.new()  # M24: the Trainers page, from the Village too
+	trainers_button.name = TRAINERS_BUTTON_NAME
+	trainers_button.focus_mode = Control.FOCUS_NONE
+	trainers_button.text = VillageTexts.TRAINERS_TEXT
+	trainers_button.pressed.connect(func() -> void: page_requested.emit(&"trainers"))
+	_list_button.get_parent().add_child(trainers_button)
+	_list_button.get_parent().move_child(trainers_button, _list_button.get_index() + 1)
 
 
 ## Draws the village of `session` (nothing if the session has none yet) and follows its changes.

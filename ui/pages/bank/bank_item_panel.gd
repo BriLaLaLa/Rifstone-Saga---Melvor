@@ -31,6 +31,12 @@ const SELL_ALL_TEXT: String = "Tutti"
 const SELL_PREVIEW_TEXT: String = "Vendita di %s: %s oro"
 const SELL_LOCKED_TEXT: String = "Sblocca l'oggetto per venderlo."
 const SELL_NOT_SELLABLE_TEXT: String = "Questo oggetto non si vende."
+const LEARN_RECIPE_TEXT: String = "Impara"
+const RECIPE_REFUSED_TEXTS: Dictionary[StringName, String] = {
+	Reasons.RECIPE_KNOWN: "Conosci già questa ricetta.",
+	Reasons.NOT_ENOUGH_ITEMS: "Non hai la Ricetta.",
+}
+const RECIPE_REFUSED_DEFAULT: String = "Non puoi imparare questa ricetta."
 const CLOSE_ICON: String = "x"
 const CLOSE_TOOLTIP: String = "Chiudi"
 
@@ -49,6 +55,9 @@ var _session: GameSession = null
 @onready var _close_box: HBoxContainer = %CloseBox
 @onready var _food_button: Button = %FoodButton
 var _bag_button: Button = null
+## M24: "Impara" of a Recipe item (`disciplines.learn_recipe`) and the reason of a refusal.
+var _recipe_button: Button = null
+var _recipe_note: Label = null
 @onready var _socket_box: BankSocketBox = %SocketBox
 @onready var _sell_section: VBoxContainer = %SellSection
 @onready var _sell_slider: HSlider = %SellSlider
@@ -71,6 +80,13 @@ func _ready() -> void:
 	_food_button.text = FOOD_TEXT
 	_food_button.pressed.connect(_on_food_button_pressed)
 	_bag_button = _new_action_button(BAG_TEXT, "BagButton", func() -> void: bag_requested.emit(_item_id))
+	_recipe_button = _new_action_button(LEARN_RECIPE_TEXT, "RecipeButton", _on_recipe_button_pressed)
+	_recipe_note = Label.new()
+	_recipe_note.name = "RecipeNote"
+	_recipe_note.theme_type_variation = &"MutedLabel"
+	_recipe_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_recipe_note.visible = false
+	_food_button.get_parent().add_child(_recipe_note)
 	_socket_box.infusion_requested.connect(func(id: StringName) -> void: infusion_socket_requested.emit(id))
 	_socket_box.stone_requested.connect(func(id: StringName, uid: int) -> void: stone_socket_requested.emit(id, uid))
 	_sell_button.text = SELL_TEXT
@@ -105,6 +121,8 @@ func show_item(session: GameSession, item_id: StringName) -> bool:
 	_description_label.visible = not item.description.is_empty()
 	_lines_label.text = "\n".join(ItemTooltipLines.body(item, session.data))
 	_lock_button.text = UNLOCK_TEXT if locked else LOCK_TEXT
+	if not same_item:
+		_recipe_note.visible = false
 	_refresh_actions(item)
 	_socket_box.show_for(session, item_id)
 	_refresh_sell(item, count, locked, same_item)
@@ -127,6 +145,8 @@ func clear() -> void:
 	_sell_section.visible = false
 	_food_button.visible = false
 	_bag_button.visible = false
+	_recipe_button.visible = false
+	_recipe_note.visible = false
 	_socket_box.visible = false
 	visible = false
 
@@ -154,6 +174,7 @@ func _refresh_actions(item: ItemDef) -> void:
 	_food_button.text = FOOD_ACTIVE_TEXT if chosen else FOOD_TEXT
 	_food_button.disabled = chosen
 	_bag_button.visible = item.is_bag()
+	_recipe_button.visible = item.category == &"recipe"
 
 
 func _on_food_button_pressed() -> void:
@@ -224,3 +245,13 @@ func _new_action_button(text: String, node_name: String, on_pressed: Callable) -
 	_food_button.get_parent().add_child(button)
 	_food_button.get_parent().move_child(button, _food_button.get_index() + 1)
 	return button
+
+
+## "Impara" of a Recipe: the command answers; a refusal shows its reason (the bank page redraws on `bank_changed`).
+func _on_recipe_button_pressed() -> void:
+	if _item_id == &"" or _session == null:
+		return
+	var result: CommandResult = _session.disciplines.learn_recipe(_item_id)
+	_recipe_note.visible = not result.ok
+	if not result.ok:
+		_recipe_note.text = RECIPE_REFUSED_TEXTS.get(result.reason, RECIPE_REFUSED_DEFAULT)

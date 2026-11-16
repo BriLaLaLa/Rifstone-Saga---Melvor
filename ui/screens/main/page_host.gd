@@ -21,6 +21,7 @@ const ROUTES: Dictionary[StringName, String] = {
 	&"bank": "res://ui/pages/bank/bank_page.tscn",
 	&"shop": "res://ui/pages/shop/shop_page.tscn",
 	&"village": "res://ui/pages/village/village_page.tscn",
+	&"trainers": "res://ui/pages/trainers/trainers_page.tscn",
 	&"noticeboard": "res://ui/pages/noticeboard/noticeboard_page.tscn",
 	&"auction": "res://ui/pages/auction/auction_page.tscn",
 	&"equipment": "res://ui/pages/equipment/equipment_page.tscn",
@@ -91,6 +92,8 @@ func has_page(page_id: StringName) -> bool:
 	for skill: SkillDef in _session.data.skills():
 		if skill.id == skill_id:
 			var has_actions: bool = not _session.data.actions_for_skill(skill_id).is_empty()
+			if not _session.disciplines.is_learned(skill_id):  # M24: a discipline not learned has no page
+				return false
 			return SKILL_PAGE_CATEGORIES.has(skill.category) and has_actions
 	return false
 

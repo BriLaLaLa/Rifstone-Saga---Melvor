@@ -154,7 +154,8 @@ func test_real_data_sidebar_and_first_page() -> void:
 	var rows: Node = _sidebar().get_node("%Entries")
 	assert_eq((rows.get_node("SkillForestry") as Button).text, "Boscaiolo")
 	assert_false((rows.get_node("SkillQuarrying") as Button).disabled, "quarrying has actions")
-	assert_false((rows.get_node("SkillAngling") as Button).disabled, "angling has actions")
+	assert_null(rows.get_node_or_null("SkillAngling"), "M24: a discipline that is not learned has no row")
+	assert_not_null(rows.get_node_or_null("Trainers"), "the Trainers row is in the Village group")
 	assert_false((rows.get_node("SkillForging") as Button).disabled, "forging has recipes (M3-04)")
 
 

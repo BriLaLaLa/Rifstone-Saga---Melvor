@@ -4,9 +4,12 @@ extends ActionCard
 ## ingredients (owned / required, in red when short) and the preservation and double-product chances (F-08, F-06),
 ## read from `modifiers.total` with the action's context.
 ##
-## The ingredient rows come from the recipe (any number of them); owned quantities come from `bank.get_count`. The start
-## state comes from `ArtisanResolver.can_start` (read only): the button is disabled when the recipe cannot start, unless
-## it is the running one (so it can be stopped). The card keeps no game state.
+## The ingredient rows come from the recipe (any number of them); owned quantities come from `bank.get_count`. The
+## "Metti in coda" controls (EnqueueControls, M24-06) emit `enqueue_requested`; a recipe not discovered yet
+## (`disciplines.knows_recipe`) shows the lock "Da scoprire". The card keeps no game state.
+
+## "Metti in coda" pressed: the page sends `actions.enqueue(skill, action, count, repeat)`.
+signal enqueue_requested(action_id: StringName, count: int, repeat: bool)
 
 const INGREDIENT_ROW_PREFIX: String = "Ingredient"
 const INGREDIENT_ROW_SEPARATION: int = 6
@@ -22,6 +25,7 @@ var _needed: Dictionary[StringName, int] = {}
 var _item_names: Dictionary[StringName, String] = {}
 var _chance_label: Label = null
 var _loss_label: Label = null
+var _controls: EnqueueControls = null
 
 @onready var _ingredients: VBoxContainer = %Ingredients
 @onready var _preservation_name: Label = %PreservationName
@@ -64,6 +68,10 @@ func setup(action: ActionDef, data: GameData) -> void:
 	if action.kind == &"crystallize":
 		_chance_label = _add_muted_line("ChanceLabel", "")
 		_loss_label = _add_muted_line("LossLabel", "")
+	_controls = EnqueueControls.new()
+	_ingredients.get_parent().get_parent().add_child(_controls)
+	_controls.enqueue_requested.connect(func(count: int, repeat: bool) -> void:
+		enqueue_requested.emit(action.id, count, repeat))
 
 
 ## Reads level, interval, mastery, owned ingredients, chances and the start state from `session`.
@@ -87,15 +95,13 @@ func redraw(session: GameSession) -> void:
 			session.modifiers.total(ArtisanResolver.PRESERVATION_STAT, ctx))
 	_double_value.text = CHANCE_TEXT % NumberFormat.format_number(
 			session.modifiers.total(ArtisanResolver.DOUBLE_STAT, ctx))
-	var running: bool = session.actions.current().get(LANE_ACTION_KEY, &"") == _action.id
 	if _chance_label != null:
 		_chance_label.text = EngraverSections.chance_text(session, _action)
 		_loss_label.text = EngraverSections.loss_text(session, _action)
-	var can_start: CommandResult = ArtisanResolver.can_start(session, _action)
-	if _action.kind == &"crystallize":
-		can_start = EngraverResolver.can_start(session, _action)
-	if not running and not can_start.ok:
-		_toggle_button.disabled = true
+	# The queue accepts the job when the level is reached and the recipe is discovered (the ingredients are checked at the
+	# start of each cycle): the model answers `enqueue`, the card only greys the controls.
+	_controls.set_state(session.disciplines.knows_recipe(_action.id),
+			session.skills.meets_requirements({_action.skill_id: _action.level}))
 
 
 ## A muted wrapped line under the ingredients (source of an ingredient, chance and loss of a crystallization).
