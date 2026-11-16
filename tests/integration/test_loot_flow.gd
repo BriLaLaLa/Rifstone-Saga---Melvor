@@ -130,7 +130,8 @@ func test_full_armory_salvages_the_drop_and_the_bank_full_is_never_silent() -> v
 	_fight_until_kills(s, 8)
 	assert_eq(s.armory.used(), pieces_before, "the full Armory takes no drop")
 	assert_eq(_added.size(), 0)
-	assert_eq(_auto_salvaged.size(), _kills * 2, "every drop is salvaged, with a signal (auto = true)")
+	assert_gte(_auto_salvaged.size(), _kills * 2, "every drop is salvaged, with a signal (auto = true)")
+	assert_lte(_auto_salvaged.size(), _kills * 3, "the F-121 pool adds at most one piece per kill")
 	assert_gt(_rejected, 0, "yields that do not fit are reported by bank_rejected, not lost in silence")
 	assert_eq(s.bank.get_count(INGOT), 0, "and nothing was stored")
 

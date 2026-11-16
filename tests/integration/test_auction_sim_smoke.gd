@@ -19,7 +19,7 @@ func test_unit_prices_and_strategies_have_no_failure() -> void:
 	var data: GameData = TestFactory.real_data()
 	var unit: Dictionary = _sim().call("unit_prices", data, 20, 11)
 	assert_eq(unit["failures"], [])
-	assert_eq(unit["items"], 40)
+	assert_eq(unit["items"], 48)
 	assert_gt(float(unit["min_over_max"]), 1.0)
 	var strat: Dictionary = _sim().call("strategies", data, 6, 11)
 	assert_eq(strat["failures"], [])
