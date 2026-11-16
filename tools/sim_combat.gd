@@ -303,11 +303,10 @@ static func stone_estimate(data: Object, area: Object, session: Object) -> Array
 
 
 static func food_for_grade(data: Object, grade: int) -> StringName:
-	var tonics: Array[StringName] = []  # M24-07: outputs of recipes to discover (the Tonics) are not part of the cooked ladder
+	var tonics: Array[StringName] = []  # M24-07: Tonics (recipes to discover) are not the cooked ladder
 	for action: Object in data.call("actions_for_skill", &"hearthcraft"):
-		if action.discover:
-			for output: Object in action.outputs:
-				tonics.append(output.item_id)
+		for output: Object in (action.outputs if action.discover else []):
+			tonics.append(output.item_id)
 	var foods: Array[Object] = []
 	for item: Object in data.call("items"):
 		if item.category == &"food" and not tonics.has(item.id):
@@ -397,6 +396,5 @@ static func _set_tier(session: Object, tier: int) -> void:
 
 static func _set_modifier(session: Object, source: StringName, stat: StringName, value: float) -> void:
 	var modifier_class: GDScript = load("res://core/modifiers/modifier.gd") as GDScript
-	var list: Array = Array([], TYPE_OBJECT, &"RefCounted", modifier_class)
-	list.append(modifier_class.call("make", stat, value))
+	var list: Array = Array([modifier_class.call("make", stat, value)], TYPE_OBJECT, &"RefCounted", modifier_class)
 	session.modifiers.set_source(source, list)
