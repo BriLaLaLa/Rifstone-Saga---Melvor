@@ -12,14 +12,13 @@ const SAVE_KEY: StringName = &"village"
 const LOG_CATEGORY: String = "village"
 const SOURCE_PREFIX: String = "village:"
 const LEVELS_KEY: String = "levels"
-const WOODWRIGHT: StringName = &"woodwright"
 
 var _data: GameData
 var _events: GameEvents
 var _modifiers: ModifierService
 var _bank: Bank
 var _wallet: Wallet
-var _skills: SkillsSystem
+var _character: CharacterSystem
 # Building id -> definition and the ids in order of `order` (built once: the data is immutable).
 var _defs: Dictionary[StringName, VillageBuildingDef] = {}
 var _ids: Array[StringName] = []
@@ -34,7 +33,7 @@ func _init(session: GameSession) -> void:
 	_modifiers = session.modifiers
 	_bank = session.bank
 	_wallet = session.wallet
-	_skills = session.skills
+	_character = session.character
 	for def: VillageBuildingDef in _data.village_buildings():
 		_defs[def.id] = def
 		_ids.append(def.id)
@@ -89,7 +88,7 @@ func can_upgrade(building_id: StringName) -> CommandResult:
 	if level(building_id) >= max_level():
 		return CommandResult.fail(Reasons.MAX_LEVEL)
 	var cost: Dictionary = next_cost(building_id)
-	if _skills.get_level(WOODWRIGHT) < int(cost["requires_woodwright"]):
+	if _character.get_level() < int(cost["requires_woodwright"]):  # M24: the character level (§35.8)
 		return CommandResult.fail(Reasons.LEVEL_TOO_LOW)
 	if _wallet.get_gold() < int(cost["gold"]):
 		return CommandResult.fail(Reasons.NOT_ENOUGH_GOLD)

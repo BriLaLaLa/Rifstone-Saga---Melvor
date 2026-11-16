@@ -39,7 +39,7 @@ func _bind(action_id: StringName, cycles: int = 1, spare: int = 1) -> void:
 	var action: ActionDef = _s.data.action(action_id)
 	for input: ItemQty in action.inputs:
 		TestFactory.give(_s, input.item_id, input.qty * cycles * spare)
-	var started: CommandResult = _s.actions.start(SKILL, action_id)
+	var started: CommandResult = _s.actions.enqueue(SKILL, action_id, 1, true)
 	assert_true(started.ok, "start %s: %s" % [action_id, started.reason])
 	var out: StringName = action.outputs[0].item_id
 	var goal: int = _s.bank.get_count(out) + action.outputs[0].qty * cycles
@@ -47,7 +47,7 @@ func _bind(action_id: StringName, cycles: int = 1, spare: int = 1) -> void:
 	while _s.bank.get_count(out) < goal and steps < MAX_STEPS:
 		_s.advance(TICK_MS)
 		steps += 1
-	_s.actions.stop()
+	_s.actions.cancel(0)
 	assert_eq(_s.bank.get_count(out), goal, "%s done within the guard" % action_id)
 
 
@@ -80,7 +80,7 @@ func test_engrave_below_the_level_is_refused_and_nothing_is_spent() -> void:
 	var action: ActionDef = _s.data.action(&"engrave_keen_edge")
 	for input: ItemQty in action.inputs:
 		TestFactory.give(_s, input.item_id, input.qty)
-	var result: CommandResult = _s.actions.start(SKILL, action.id)
+	var result: CommandResult = _s.actions.enqueue(SKILL, action.id, 1, true)
 	assert_false(result.ok, "level %d needed" % action.level)
 	assert_eq(_s.bank.get_count(action.inputs[0].item_id), action.inputs[0].qty)
 
@@ -88,7 +88,7 @@ func test_engrave_below_the_level_is_refused_and_nothing_is_spent() -> void:
 func test_engrave_without_materials_does_not_produce() -> void:
 	var action: ActionDef = _s.data.action(&"engrave_swift_hands")
 	TestFactory.give(_s, &"rune_slab", action.inputs[0].qty)  # the slab but no boar tusks
-	var started: CommandResult = _s.actions.start(SKILL, action.id)
+	var started: CommandResult = _s.actions.enqueue(SKILL, action.id, 1, true)
 	if started.ok:
 		for i: int in 200:
 			_s.advance(TICK_MS)

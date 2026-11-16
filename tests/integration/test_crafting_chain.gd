@@ -60,6 +60,7 @@ func test_every_metal_has_smelting_and_plate_recipes_with_matching_items() -> vo
 
 func test_ore_to_plate_to_blueprint_to_worn_piece() -> void:
 	_session = TestFactory.session_no_kit(SEED, TestFactory.real_data())
+	TestFactory.learn_discipline(_session, &"woodwright")
 	var data: GameData = _session.data
 	var blueprint: ItemDef = data.item(BLUEPRINT)
 	assert_eq(_session.armory.instances().size(), 0, "starts without pieces")
@@ -90,7 +91,7 @@ func test_ore_to_plate_to_blueprint_to_worn_piece() -> void:
 	# 2. the blueprint becomes a piece after its duration
 	var level: int = _session.skills.get_level(&"forging")
 	assert_gte(level, BlueprintCraft.required_level(blueprint, data), "the smelting XP made the level")
-	var started: CommandResult = _session.actions.start_blueprint(BLUEPRINT)
+	var started: CommandResult = _session.actions.enqueue_blueprint(BLUEPRINT)
 	assert_true(started.ok, "start: %s" % started.reason)
 	var duration: int = int(_session.actions.blueprint_state()["duration_ms"])
 	_session.advance(duration)
@@ -112,18 +113,8 @@ func test_ore_to_plate_to_blueprint_to_worn_piece() -> void:
 
 # Gathers `qty` of an item running the first gathering action available that produces it.
 func _gather(item_id: StringName, qty: int) -> void:
-	var action: ActionDef = _gathering_action_for(item_id)
-	assert_not_null(action, "a gathering action produces %s" % item_id)
-	if action == null:
-		return
-	var start: int = _session.bank.get_count(item_id)
-	assert_true(_session.actions.start(action.skill_id, action.id).ok, "start %s" % action.id)
-	var steps: int = 0
-	while _session.bank.get_count(item_id) - start < qty and steps < MAX_STEPS:
-		_session.advance(TICK_MS)
-		steps += 1
-	_session.actions.stop()
-	assert_gte(_session.bank.get_count(item_id) - start, qty, "%d x %s gathered" % [qty, item_id])
+	# M24: gathering happens at the nodes of the combat cycle (M24-04); the chain starts from the raw materials.
+	TestFactory.give(_session, item_id, qty)
 
 
 # Gathers `qty` of an item, or crafts it from gathered inputs when no gathering action produces it (the handle).
@@ -153,7 +144,7 @@ func _gathering_action_for(item_id: StringName, category: StringName = GATHERING
 
 
 func _run_cycles(action: ActionDef, cycles: int) -> void:
-	var start: CommandResult = _session.actions.start(action.skill_id, action.id)
+	var start: CommandResult = _session.actions.enqueue(action.skill_id, action.id, 1, true)
 	assert_true(start.ok, "start %s: %s" % [action.id, start.reason])
 	_done = 0
 	_session.events.action_completed.connect(_on_completed)
@@ -162,7 +153,7 @@ func _run_cycles(action: ActionDef, cycles: int) -> void:
 		_session.advance(TICK_MS)
 		steps += 1
 	_session.events.action_completed.disconnect(_on_completed)
-	_session.actions.stop()
+	_session.actions.cancel(0)
 	assert_eq(_done, cycles, "%d cycles of %s" % [cycles, action.id])
 
 

@@ -4,7 +4,9 @@ extends RefCounted
 ##
 ## Xp is granted through `skill_xp_pct` (F-02) and capped at `xp_curve.xp_cap`; the level stops at
 ## `xp_curve.max_level` while xp keeps growing up to the cap. One `level_up` per level gained, after `xp_gained`.
-## Dependencies: data, events, modifiers.
+## M24: the xp a discipline can hold is limited by its Trainer grade (F-160, `disciplines.xp_max`; the xp above is lost and
+## `xp_capped` follows); a skill that is not learned gets nothing. `reset_skill` brings a discipline back to 0 xp.
+## Dependencies: data, events, modifiers, disciplines (only `xp_max`).
 
 const SAVE_KEY: StringName = &"skills"
 const LOG_CATEGORY: String = "skills"
@@ -13,6 +15,7 @@ const XP_PCT_STAT: StringName = &"skill_xp_pct"
 const SAVE_XP_KEY: String = "xp"
 const LEVEL_SOURCE_PREFIX: String = "skill_level:"
 
+var _session: GameSession
 var _data: GameData
 var _events: GameEvents
 var _modifiers: ModifierService
@@ -24,6 +27,7 @@ var _xp: Dictionary[StringName, int] = {}
 
 func _init(session: GameSession) -> void:
 	assert(session != null, "SkillsSystem needs a session")
+	_session = session
 	_data = session.data
 	_events = session.events
 	_modifiers = session.modifiers
@@ -94,9 +98,13 @@ func add_xp(skill_id: StringName, base_amount: int, ctx: ModifierContext = null)
 	# (100 + pct) / 100 keeps whole-percent results exact (10 × 115 / 100 = 11.5, not 11.4999…).
 	var granted: int = floori(float(base_amount) * (100.0 + pct) / 100.0)
 	var old_xp: int = _xp[skill_id]
-	var new_xp: int = mini(old_xp + maxi(granted, 0), _xp_cap)
+	var limit: int = _session.disciplines.xp_max(skill_id) if _session.disciplines != null else _xp_cap
+	var new_xp: int = maxi(old_xp, mini(old_xp + maxi(granted, 0), limit))
 	var gained: int = new_xp - old_xp
+	var lost: int = old_xp + maxi(granted, 0) - new_xp if limit > 0 else 0
 	if gained <= 0:
+		if lost > 0:
+			_events.xp_capped.emit(skill_id, lost)
 		return 0
 	var old_level: int = _table.level_for_xp(old_xp)
 	_xp[skill_id] = new_xp
@@ -106,6 +114,8 @@ func add_xp(skill_id: StringName, base_amount: int, ctx: ModifierContext = null)
 	_events.xp_gained.emit(skill_id, gained)
 	for level: int in range(old_level + 1, new_level + 1):
 		_events.level_up.emit(skill_id, level)
+	if lost > 0:
+		_events.xp_capped.emit(skill_id, lost)
 	return gained
 
 
@@ -177,3 +187,13 @@ func _read_xp(entry: Variant) -> Variant:
 		if f == floorf(f):
 			return int(f)
 	return null
+
+
+## M24 (docs/05_INTERFACES_M24.md §5.31): the skill goes back to 0 xp (level 1, no `level_up`), its `skill_level:<id>` source is
+## rebuilt and `skill_reset` follows. An unknown skill is an error and changes nothing.
+func reset_skill(skill_id: StringName) -> void:
+	if not _is_known(skill_id):
+		return
+	_xp[skill_id] = 0
+	_apply_level_source(skill_id)
+	_events.skill_reset.emit(skill_id)

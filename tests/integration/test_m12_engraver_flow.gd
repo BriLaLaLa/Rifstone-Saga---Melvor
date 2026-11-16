@@ -58,12 +58,12 @@ func _new(data: GameData = null) -> GameSession:
 # Runs `action_id` until `cycles` cycles completed (or the runner stopped).
 func _cycles(action_id: StringName, cycles: int) -> void:
 	_completed = []
-	assert_true(_s.actions.start(SKILL, action_id).ok, "start %s" % action_id)
+	assert_true(_s.actions.enqueue(SKILL, action_id, 1, true).ok, "start %s" % action_id)
 	var steps: int = 0
 	while _completed.size() < cycles and _s.actions.is_running() and steps < MAX_STEPS:
 		_s.advance(TICK_MS)
 		steps += 1
-	_s.actions.stop()
+	_s.actions.cancel(0)
 
 
 func _kill_some(kills: int) -> int:
@@ -97,7 +97,7 @@ func test_fuse_turns_nine_chips_into_three_stones_and_a_heart_needs_three_stones
 	assert_eq(_completed.size(), 3)
 	assert_eq(_s.bank.get_count(STONE), 3, "F-105: 9 chips -> 3 stones")
 	assert_eq(_s.bank.get_count(CHIP), 2, "the remaining 2 are not enough")
-	assert_eq(_s.actions.start(SKILL, &"fuse_ember_stone").reason, Reasons.MISSING_INPUTS)
+	assert_eq(ArtisanResolver.can_start(_s, _s.data.action(&"fuse_ember_stone")).reason, Reasons.MISSING_INPUTS)
 	_cycles(&"fuse_ember_heart", 1)
 	assert_eq(_s.bank.get_count(HEART), 1, "3 stones -> 1 perfect stone")
 	assert_eq(_s.bank.get_count(STONE), 0)
@@ -111,7 +111,7 @@ func test_crystallize_with_a_fixed_seed_follows_f104_in_dust_xp_and_mastery() ->
 	var xp_start: int = _s.skills.get_xp(SKILL)
 	TestFactory.give(_s, DUST, 100)
 	_completed = []
-	assert_true(_s.actions.start(SKILL, &"crystallize_spark").ok)
+	assert_true(_s.actions.enqueue(SKILL, &"crystallize_spark", 1, true).ok)
 	var steps: int = 0
 	while _s.actions.is_running() and steps < MAX_STEPS:
 		_s.advance(TICK_MS)
@@ -140,7 +140,7 @@ func test_the_same_seed_gives_the_same_crystals() -> void:
 		_new()
 		TestFactory.set_level(_s, SKILL, 5)
 		TestFactory.give(_s, DUST, 100)
-		assert_true(_s.actions.start(SKILL, &"crystallize_spark").ok)
+		assert_true(_s.actions.enqueue(SKILL, &"crystallize_spark", 1, true).ok)
 		for step: int in 2000:
 			_s.advance(TICK_MS)
 		results.append(_s.bank.get_count(&"currency_spark"))
@@ -166,7 +166,7 @@ func test_engrave_then_upgrade_to_grade_five_is_a_pure_conversion_of_runes() -> 
 		assert_eq(_s.bank.get_count(to_id), left, "grade %d: %d runes" % [grade, left])
 		assert_eq(_s.bank.get_count(from_id), 0, "all the lower runes were consumed (F-106: 3 -> 1)")
 	assert_eq(_s.bank.get_count(&"inf_swift_hands_5"), 1, "81 grade I -> one grade V")
-	assert_eq(_s.actions.start(SKILL, &"upgrade_swift_hands_5").reason, Reasons.MISSING_INPUTS)
+	assert_eq(ArtisanResolver.can_start(_s, _s.data.action(&"upgrade_swift_hands_5")).reason, Reasons.MISSING_INPUTS)
 	for a: ActionDef in _s.data.actions_for_skill(SKILL):
 		for input: ItemQty in a.inputs:
 			assert_ne(input.item_id, &"inf_swift_hands_5", "grade V is never an upgrade input")
@@ -175,7 +175,7 @@ func test_engrave_then_upgrade_to_grade_five_is_a_pure_conversion_of_runes() -> 
 func test_the_upgrade_needs_the_level_of_the_rune_plus_five_per_step() -> void:
 	_new()
 	TestFactory.give(_s, &"inf_swift_hands", 3)
-	var below: CommandResult = _s.actions.start(SKILL, &"upgrade_swift_hands_2")
+	var below: CommandResult = _s.actions.enqueue(SKILL, &"upgrade_swift_hands_2", 1, true)
 	var action: ActionDef = _s.data.action(&"upgrade_swift_hands_2")
 	assert_eq(action.level, 6, "F-106: level of the rune I (1) + 5")
 	assert_eq(below.reason, Reasons.LEVEL_TOO_LOW)

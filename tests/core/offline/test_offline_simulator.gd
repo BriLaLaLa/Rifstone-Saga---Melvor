@@ -100,16 +100,17 @@ func test_f41_one_block_or_ten_gives_the_same_state() -> void:
 
 # --- summary ----------------------------------------------------------------------------------------------------
 
-func test_gathering_for_an_hour_gives_xp_and_items_and_keeps_play_time() -> void:
+func test_production_for_an_hour_gives_xp_and_items_and_keeps_play_time() -> void:
 	var s: GameSession = _session()
 	s.play_time_ms = 777
-	assert_true(s.actions.start(&"angling", &"catch_brookfin").ok)
+	TestFactory.give(s, &"emberbronze_ore", 20000)
+	assert_true(s.actions.enqueue(&"forging", &"smelt_emberbronze", 1, true).ok)
 	var summary: OfflineSummary = await _run(s, HOUR_MS)
-	assert_gt(summary.xp.get(&"angling", 0), 0)
+	assert_gt(summary.xp.get(&"forging", 0), 0)
 	assert_false(summary.items.is_empty())
-	assert_true(summary.levels.has(&"angling"), "an hour of angling raises the level")
-	assert_eq(summary.levels[&"angling"].x, 1)
-	assert_gt(summary.levels[&"angling"].y, 1)
+	assert_true(summary.levels.has(&"forging"), "an hour of smelting raises the level")
+	assert_eq(summary.levels[&"forging"].x, 1)
+	assert_gt(summary.levels[&"forging"].y, 1)
 	assert_eq(s.play_time_ms, 777, "play time counts online time only")
 	assert_false(summary.is_empty())
 
@@ -117,7 +118,7 @@ func test_gathering_for_an_hour_gives_xp_and_items_and_keeps_play_time() -> void
 func test_crafting_runs_out_of_ingredients_and_reports_when() -> void:
 	var s: GameSession = _session()
 	TestFactory.give(s, &"emberbronze_ore", 10)
-	assert_true(s.actions.start(&"forging", &"smelt_emberbronze").ok)
+	assert_true(s.actions.enqueue(&"forging", &"smelt_emberbronze", 1, true).ok)
 	var summary: OfflineSummary = await _run(s, 30 * 60000)
 	assert_eq(summary.items.get(&"emberbronze_ore", 0), -10)
 	assert_eq(summary.items.get(INGOT, 0), 5)

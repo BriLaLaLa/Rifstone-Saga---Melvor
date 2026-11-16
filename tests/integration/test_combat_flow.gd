@@ -292,23 +292,17 @@ func test_advance_steps_are_equivalent_with_a_shield_and_food() -> void:
 	assert_eq(_blob(sessions[2]), first, "one big advance gives the same state")
 
 
-# --- combat and actions replace each other -------------------------------------------------------------------------
+# --- combat and the production queue run side by side -------------------------------------------------------------
 
-func test_combat_and_main_action_replace_each_other() -> void:
+func test_combat_and_the_queue_do_not_stop_each_other() -> void:
 	var s: GameSession = _geared(SEED)
-	assert_true(s.actions.start(&"forestry", &"cut_redbirch").ok)
+	TestFactory.give(s, &"emberbronze_ore", 50)
+	assert_true(s.actions.enqueue(&"forging", &"smelt_emberbronze", 1, true).ok)
 	_run(s, 10000)
 	assert_true(s.combat.start(AREA).ok)
-	assert_false(s.actions.is_running(), "combat stops the main action")
-	assert_true(s.actions.stop_reasons_log().has(Reasons.REPLACED))
+	assert_true(s.actions.is_running(), "M24: combat does not stop the queue")
 	_run(s, 30000)
-	assert_true(s.actions.start(&"forestry", &"cut_redbirch").ok)
-	assert_false(s.combat.is_active(), "an action stops the combat")
-	assert_eq(s.combat.stop_reasons_log().back(), Reasons.REPLACED)
-	assert_eq(String(s.combat.get_state()["area"]), "", "idle has no area (05 5.10)")
-	assert_eq(int(s.combat.get_state()["player_hp"]), s.combat.player_stats().max_hp, "idle shows the full hp")
-	_run(s, 10000)
-	assert_true(s.actions.is_running())
-	assert_true(s.combat.start(AREA).ok, "and back to the combat")
+	assert_true(s.combat.is_active(), "and the queue does not stop the combat")
+	assert_gt(s.skills.get_xp(&"forging"), 0)
 	assert_eq(s.combat.start(&"nowhere").reason, Reasons.UNKNOWN_ID)
 	assert_true(s.combat.is_active(), "a failed start changes nothing")

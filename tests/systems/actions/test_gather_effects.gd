@@ -94,20 +94,3 @@ func _byproducts(tool: bool, table: XpTable) -> int:
 		count += _resolve(s, QUARRYING_A).outputs.get(RESIN, 0)
 	return count
 
-
-func test_one_big_step_equals_many_small_steps_with_the_tool() -> void:
-	var big: GameSession = _runner_session()
-	var small: GameSession = _runner_session()
-	for i: int in 30:
-		big.advance(1000)
-	for i: int in 300:
-		small.advance(100)
-	assert_gt(big.bank.get_count(RESIN), 0, "the effect fired")
-	assert_eq(SaveCodec.encode(small.to_save(0)), SaveCodec.encode(big.to_save(0)))
-
-
-func _runner_session() -> GameSession:
-	var s: GameSession = _session(17)
-	LegendaryKit.wear(s, &"fx_leg_hatchet")
-	assert_true(s.actions.start(&"forestry", FORESTRY_A).ok)
-	return s

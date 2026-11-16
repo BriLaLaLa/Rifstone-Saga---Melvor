@@ -127,13 +127,13 @@ func test_full_armory_refuses_the_start_and_waits_at_the_end_without_losing_anyt
 	_seal(room, 0)
 	assert_false(_session.armory.can_add(1), "the Armory is full")
 	var before: Dictionary = _world()
-	var refused: CommandResult = _session.actions.start_blueprint(_bp(SWORD))
-	assert_eq(refused.reason, Reasons.ARMORY_FULL, "a full Armory refuses the start")
-	assert_eq(_world(), before, "nothing consumed by a refused start")
+	assert_true(_session.actions.enqueue_blueprint(_bp(SWORD)).ok, "M24: a full Armory does not refuse the enqueue")
+	_session.actions.cancel(0)
+	assert_eq(_world(), before, "cancelling gives everything back")
 	# one place frees up, the craft starts, the place is taken again before the end: the work waits
 	var first: ItemInstance = _session.armory.instances()[0]
 	assert_true(_session.armory.remove(first.uid).ok)
-	assert_true(_session.actions.start_blueprint(_bp(SWORD)).ok)
+	assert_true(_session.actions.enqueue_blueprint(_bp(SWORD)).ok)
 	var duration: int = int(_session.actions.blueprint_state()["duration_ms"])
 	_seal(room, 1)  # the craft consumed materials: exactly one box is free again
 	var filler: int = _session.armory.create(SWORD, &"common", 1)
@@ -154,10 +154,10 @@ func test_full_armory_refuses_the_start_and_waits_at_the_end_without_losing_anyt
 func test_stop_returns_blueprint_and_materials() -> void:
 	_stock(SWORD)
 	var before: Dictionary = _world()
-	assert_true(_session.actions.start_blueprint(_bp(SWORD)).ok)
+	assert_true(_session.actions.enqueue_blueprint(_bp(SWORD)).ok)
 	assert_ne(_world(), before, "blueprint and materials left the bank at the start")
 	_session.advance(60000)
-	_session.actions.stop()
+	_session.actions.cancel(0)
 	assert_eq(_world(), before, "stop gives everything back")
 	assert_eq(_session.armory.instances().size(), 0)
 
@@ -208,7 +208,7 @@ func _stock(base: StringName) -> void:
 
 # Starts the blueprint of `base` and lets it finish (the lane stops by itself with blueprint_done).
 func _craft(base: StringName) -> void:
-	var result: CommandResult = _session.actions.start_blueprint(_bp(base))
+	var result: CommandResult = _session.actions.enqueue_blueprint(_bp(base))
 	assert_true(result.ok, "start %s: %s" % [base, result.reason])
 	_session.advance(int(_session.actions.blueprint_state()["duration_ms"]))
 

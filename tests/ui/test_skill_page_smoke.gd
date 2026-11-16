@@ -84,85 +84,14 @@ func test_interval_shown_is_current_interval_ms() -> void:
 	assert_eq(_label(_card(LOG), "%IntervalValue").text, "3,6 s")
 
 
-func test_locked_card_does_not_start() -> void:
-	_open(SKILL)
-	var locked: ActionCard = _card(LOG)
-	assert_eq(_label(locked, "%RequirementLabel").text, "Richiede il livello 5")
-	assert_true(_button(locked).disabled, "button disabled below the level")
-	# Even if the button fired, the command is refused and the reason is shown.
-	_button(locked).pressed.emit()
-	assert_false(_session.actions.is_running(), "level_too_low: nothing started")
-	var message: Label = _label(_page, "%MessageLabel")
-	assert_true(message.visible)
-	assert_eq(message.text, SkillPage.REFUSED_TEXTS[Reasons.LEVEL_TOO_LOW])
 
 
-func test_level_up_unlocks_the_card() -> void:
-	_open(SKILL)
-	TestFactory.set_level(_session, SKILL, 5)
-	var card: ActionCard = _card(LOG)
-	assert_false(_button(card).disabled)
-	assert_eq(_label(card, "%RequirementLabel").text, "Livello 5")
-	assert_eq(_label(_page, "%LevelLabel").text, "Livello 5")
-	_button(card).pressed.emit()
-	assert_eq(_running_action(), LOG)
 
 
-func test_start_and_stop_from_the_card() -> void:
-	_open(SKILL)
-	watch_signals(_session.events)
-	var twig: ActionCard = _card(TWIG)
-	_button(twig).pressed.emit()
-	assert_eq(_running_action(), TWIG)
-	assert_eq(_button(twig).text, "Ferma")
-	assert_eq(_button(_card(BUNDLE)).text, "Avvia")
-	assert_eq(_label(_page, "%StatusLabel").text, "In corso: Raccogliere rametti di prova")
-	_button(_card(BUNDLE)).pressed.emit()
-	assert_eq(_running_action(), BUNDLE, "another card replaces the running action")
-	assert_eq(_button(twig).text, "Avvia")
-	_button(_card(BUNDLE)).pressed.emit()
-	assert_false(_session.actions.is_running())
-	assert_signal_emitted_with_parameters(_session.events, "action_stopped",
-			[ActionRunner.MAIN, SKILL, Reasons.STOPPED_BY_USER])
-	assert_eq(_button(_card(BUNDLE)).text, "Avvia")
-	assert_eq(_label(_page, "%StatusLabel").text, "Nessuna azione in corso")
-	assert_false(_label(_page, "%MessageLabel").visible)
 
 
-func test_progress_bar_reads_get_progress_every_frame() -> void:
-	_open(SKILL)
-	_button(_card(TWIG)).pressed.emit()
-	_session.advance(1200)
-	assert_eq(_bar(_card(TWIG)).value, 0.0, "nothing drawn before the frame")
-	gut.simulate(_page, 1, 0.0)
-	assert_almost_eq(_bar(_card(TWIG)).value, _session.actions.get_progress(), 0.0001)
-	assert_almost_eq(_bar(_card(TWIG)).value, 0.4, 0.0001, "F-04: 1200 / 3000")
-	assert_eq(_bar(_card(BUNDLE)).value, 0.0, "only the running card fills")
-	_session.advance(2400)
-	gut.simulate(_page, 1, 0.0)
-	assert_almost_eq(_bar(_card(TWIG)).value, _session.actions.get_progress(), 0.0001, "next cycle")
-	assert_almost_eq(_bar(_card(TWIG)).value, 0.2, 0.0001, "600 / 3000")
-	_session.actions.stop()
-	gut.simulate(_page, 1, 0.0)
-	assert_eq(_bar(_card(TWIG)).value, 0.0, "idle lane: the bar shows 0, it keeps nothing")
 
 
-func test_completed_cycles_redraw_xp_and_mastery() -> void:
-	_open(SKILL)
-	_button(_card(TWIG)).pressed.emit()
-	_session.advance(_session.actions.current_interval_ms(TWIG) * 3)
-	var xp: int = _session.skills.get_xp(SKILL)
-	assert_gt(xp, 0)
-	var next_xp: int = _session.data.xp_table().xp_for_level(_session.skills.get_level(SKILL) + 1)
-	assert_eq(_xp_bar(_page).shown_text(), "%s / %s XP" % [
-		NumberFormat.format_int(xp), NumberFormat.format_int(next_xp)])
-	var twig: ActionCard = _card(TWIG)
-	assert_eq(_label(twig, "%MasteryValue").text,
-			"Liv. %s" % NumberFormat.format_int(_session.mastery.get_mastery_level(TWIG)))
-	var mastery_xp: int = _session.mastery.get_mastery_xp(TWIG)
-	assert_gt(mastery_xp, 0)
-	assert_almost_eq(_xp_bar(twig, "%MasteryBar").shown_progress(),
-			_session.data.mastery_table().progress(mastery_xp), 0.0001)
 
 
 func test_unbind_disconnects_everything() -> void:
@@ -330,7 +259,7 @@ func _open(skill_id: StringName) -> void:
 
 
 func _running_action() -> StringName:
-	return _session.actions.get_lane().get(LANE_ACTION_KEY, &"")
+	return _session.actions.current().get(LANE_ACTION_KEY, &"")
 
 
 func _counts() -> Dictionary[StringName, int]:

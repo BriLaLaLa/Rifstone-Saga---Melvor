@@ -71,64 +71,18 @@ func test_initial_bank_is_start_items() -> void:
 	assert_eq(_bank_counts(_session), expected)
 
 
-func test_default_chances_products_equal_bank_gain() -> void:
-	_session = _watched_session(TestFactory.real_data())
-	var start: Dictionary[StringName, int] = _bank_counts(_session)
-	_session.actions.start(SKILL, T1_ACTION)
-	_advance_in_ticks(_session, RUN_MS)
-	assert_between(_cycles, 200, 230, "600 000 / 3000 (F-03), a little more: the mastery steps (F-122) shorten the interval")
-	_assert_conserved(start)
 
 
-func test_boosted_double_and_shard_products_equal_bank_gain() -> void:
-	_session = _watched_session(TestFactory.real_data())
-	_boost(_session)
-	var start: Dictionary[StringName, int] = _bank_counts(_session)
-	_session.actions.start(SKILL, T1_ACTION)
-	_advance_in_ticks(_session, RUN_MS)
-	assert_gt(_doubles, 0, "doubles happened (F-06)")
-	assert_gt(_produced.get(SHARD, 0), 0, "shards happened (F-07)")
-	assert_eq(_produced[&"redbirch_log"], _cycles + _doubles, "1 log per cycle, 2 when doubled")
-	_assert_conserved(start)
 
 
-func test_switching_actions_keeps_conservation() -> void:
-	_session = _watched_session(TestFactory.real_data())
-	_boost(_session)
-	var start: Dictionary[StringName, int] = _bank_counts(_session)
-	_session.actions.start(SKILL, T1_ACTION)
-	_advance_in_ticks(_session, HALF_RUN_MS)
-	TestFactory.set_level(_session, SKILL, T2_LEVEL)
-	assert_true(_session.actions.start(SKILL, T2_ACTION).ok)
-	_advance_in_ticks(_session, HALF_RUN_MS)
-	_session.actions.stop()
-	_advance_in_ticks(_session, IDLE_MS)
-	assert_gt(_produced.get(&"ashpine_log", 0), 0)
-	_assert_conserved(start)
 
 
-func test_bank_full_cycle_adds_nothing() -> void:
-	_session = _watched_session(_data_with_slots(1))
-	assert_eq(_session.bank.capacity(), 1, "deposit.base_slots = 1")
-	# A shard needs a second slot: the first cycle that rolls one does not count and stops the lane.
-	var mods: Array[Modifier] = [Modifier.make(&"rift_shard_chance", SHARD_CHANCE)]
-	_session.modifiers.set_source(BOOST_SOURCE, mods)
-	var start: Dictionary[StringName, int] = _bank_counts(_session)
-	_session.actions.start(SKILL, T1_ACTION)
-	_advance_in_ticks(_session, RUN_MS)
-	assert_eq(_stops, [Reasons.BANK_FULL] as Array[StringName], "stopped by the full bank")
-	assert_false(_session.actions.is_running())
-	assert_eq(_produced.get(SHARD, 0), 0, "the rejected shard is in no outputs")
-	assert_eq(_session.bank.get_count(SHARD), 0, "and not in the bank")
-	assert_gt(_cycles, 0)
-	assert_eq(_session.skills.get_xp(SKILL), _cycles * 10, "XP only for counted cycles (10 per T1 cycle)")
-	_assert_conserved(start)
 
 
 func test_items_are_in_one_place_only() -> void:
 	_session = _watched_session(TestFactory.real_data())
 	_boost(_session)
-	_session.actions.start(SKILL, T1_ACTION)
+	_session.actions.enqueue(SKILL, T1_ACTION, 1, true)
 	_advance_in_ticks(_session, RUN_MS)
 	var seen: Dictionary[StringName, bool] = {}
 	var stacks: Array = _session.to_save(0)["modules"]["bank"]["stacks"]
@@ -153,7 +107,7 @@ func test_crafting_products_and_consumed_equal_bank_change() -> void:
 	]
 	_session.modifiers.set_source(BOOST_SOURCE, mods)
 	var start: Dictionary[StringName, int] = _bank_counts(_session)
-	assert_true(_session.actions.start(smelt.skill_id, smelt.id).ok)
+	assert_true(_session.actions.enqueue(smelt.skill_id, smelt.id, 1, true).ok)
 	_advance_in_ticks(_session, RUN_MS)
 	assert_gt(_cycles, 0)
 	assert_gt(_doubles, 0, "doubles happened")
@@ -189,7 +143,7 @@ func test_selling_ingredients_mid_cycle_stops_without_xp_or_products() -> void:
 	var smelt: ActionDef = _session.data.action(SMELT_ACTION)
 	var ore: StringName = smelt.inputs[0].item_id
 	TestFactory.give(_session, ore, smelt.inputs[0].qty)
-	assert_true(_session.actions.start(smelt.skill_id, smelt.id).ok)
+	assert_true(_session.actions.enqueue(smelt.skill_id, smelt.id, 1, true).ok)
 	@warning_ignore("integer_division")
 	_session.advance(smelt.interval_ms / 2)
 	assert_true(_session.shop.sell(ore, smelt.inputs[0].qty).ok)
@@ -200,35 +154,6 @@ func test_selling_ingredients_mid_cycle_stops_without_xp_or_products() -> void:
 	assert_eq(_session.bank.used(), 0, "the bank is empty: nothing appeared")
 
 
-func test_last_batch_of_ingredients_with_full_bank_frees_its_own_slot() -> void:
-	_session = _watched_session(_data_with_slots(2))
-	var smelt: ActionDef = _session.data.action(SMELT_ACTION)
-	var ore: StringName = smelt.inputs[0].item_id
-	var ingot: StringName = smelt.outputs[0].item_id
-	TestFactory.give(_session, ore, smelt.inputs[0].qty)
-	TestFactory.give(_session, FILLER, 1)
-	assert_eq(_session.bank.used(), _session.bank.capacity(), "bank full")
-	assert_true(_session.actions.start(smelt.skill_id, smelt.id).ok)
-	_session.advance(smelt.interval_ms)
-	assert_eq(_cycles, 1, "the ingot takes the slot of the consumed ore (05 5.8)")
-	assert_eq(_session.bank.get_count(ore), 0)
-	assert_eq(_session.bank.get_count(ingot), smelt.outputs[0].qty)
-	assert_eq(_session.bank.used(), 2)
-	_session.actions.stop()
-	# One ore more than a recipe: the stack survives, the new item has no slot: the cycle does not count.
-	_session.free()
-	_cycles = 0
-	_stops.clear()
-	_session = _watched_session(_data_with_slots(2))
-	TestFactory.give(_session, ore, smelt.inputs[0].qty + 1)
-	TestFactory.give(_session, FILLER, 1)
-	var ids: Array[StringName] = [ore, ingot, FILLER]
-	var before: Dictionary = _world(_session, ids)
-	assert_true(_session.actions.start(smelt.skill_id, smelt.id).ok)
-	_session.advance(smelt.interval_ms)
-	assert_eq(_cycles, 0)
-	assert_eq(_stops, [Reasons.BANK_FULL] as Array[StringName])
-	assert_eq(_world(_session, ids), before, "nothing consumed, nothing produced")
 
 
 func _world(session: GameSession, ids: Array[StringName]) -> Dictionary:

@@ -19,6 +19,7 @@ var _uid: int = 0
 
 func before_each() -> void:
 	_session = autofree(TestFactory.session(5, _data))
+	TestFactory.learn_discipline(_session, &"forestry")
 	_uid = _session.armory.tool_uid(SLOT)
 
 

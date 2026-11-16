@@ -149,13 +149,15 @@ func test_autosave_after_interval_of_clock_time() -> void:
 	assert_eq(int(d["play_time_ms"]), interval_ms)
 
 
-func test_clock_runs_the_action_lane() -> void:
+func test_clock_runs_the_production_queue() -> void:
 	_game.new_game(1, "Davide")
 	_reset_clock()
-	assert_true(_game.session.actions.start(&"forestry", &"cut_redbirch").ok)
-	var interval_ms: int = _game.session.actions.current_interval_ms(&"cut_redbirch")
+	assert_true(_game.session.disciplines.learn(&"forging").ok)
+	TestFactory.give(_game.session, &"emberbronze_ore", 10)
+	assert_true(_game.session.actions.enqueue(&"forging", &"smelt_emberbronze", 2).ok)
+	var interval_ms: int = _game.session.actions.current_interval_ms(&"smelt_emberbronze")
 	_simulate(interval_ms)
-	assert_gt(_game.session.skills.get_xp(&"forestry"), 0)
+	assert_gt(_game.session.skills.get_xp(&"forging"), 0)
 
 
 func test_save_now_writes_and_signals() -> void:
@@ -222,10 +224,12 @@ func test_continue_restores_the_slot() -> void:
 
 # --- offline (M9-01, N5) ----------------------------------------------------------------------------------------
 
-# Saves slot 2 with the angling action running, ends the session and moves the clock `away_ms` forward.
+# Saves slot 2 with a forging job running, ends the session and moves the clock `away_ms` forward.
 func _leave_and_return(away_ms: int) -> void:
 	_game.new_game(2, "Davide")
-	assert_true(_game.session.actions.start(&"angling", &"catch_brookfin").ok)
+	assert_true(_game.session.disciplines.learn(&"forging").ok)
+	TestFactory.give(_game.session, &"emberbronze_ore", 20000)
+	assert_true(_game.session.actions.enqueue(&"forging", &"smelt_emberbronze", 1, true).ok)
 	_game.session.play_time_ms = 5000
 	_game.end_session(true)
 	GameClock.time_source = func() -> int: return NOW_MS + away_ms
@@ -248,7 +252,7 @@ func test_continue_after_two_hours_simulates_and_keeps_the_summary() -> void:
 	assert_not_null(_game.last_offline_summary)
 	assert_eq(_game.last_offline_summary.elapsed_ms, 2 * 3600000)
 	assert_false(_game.last_offline_summary.capped)
-	assert_gt(_game.last_offline_summary.xp.get(&"angling", 0), 0)
+	assert_gt(_game.last_offline_summary.xp.get(&"forging", 0), 0)
 	assert_eq(_game.session.play_time_ms, 5000, "play time grows only online")
 	assert_eq(order, ["started", "completed"])
 	assert_eq(_started, [[2, false]], "session_started is the last step")
@@ -273,7 +277,7 @@ func test_continue_below_the_minimum_simulates_silently() -> void:
 	assert_null(_game.last_offline_summary)
 	assert_eq(completed.size(), 0, "no screen and no offline signals")
 	assert_eq(_game.state, &"playing")
-	assert_gt(_game.session.skills.get_xp(&"angling"), 0, "the 30 s were played")
+	assert_gt(_game.session.skills.get_xp(&"forging"), 0, "the 30 s were played")
 	assert_eq(_game.session.play_time_ms, 5000)
 
 
@@ -281,7 +285,7 @@ func test_continue_with_the_clock_set_back_has_no_offline() -> void:
 	_leave_and_return(-3600000)
 	await _game.continue_game(2)
 	assert_null(_game.last_offline_summary)
-	assert_eq(_game.session.skills.get_xp(&"angling"), 0)
+	assert_eq(_game.session.skills.get_xp(&"forging"), 0)
 
 
 func test_second_continue_during_the_offline_is_refused() -> void:

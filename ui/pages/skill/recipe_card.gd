@@ -87,7 +87,7 @@ func redraw(session: GameSession) -> void:
 			session.modifiers.total(ArtisanResolver.PRESERVATION_STAT, ctx))
 	_double_value.text = CHANCE_TEXT % NumberFormat.format_number(
 			session.modifiers.total(ArtisanResolver.DOUBLE_STAT, ctx))
-	var running: bool = session.actions.get_lane().get(LANE_ACTION_KEY, &"") == _action.id
+	var running: bool = session.actions.current().get(LANE_ACTION_KEY, &"") == _action.id
 	if _chance_label != null:
 		_chance_label.text = EngraverSections.chance_text(session, _action)
 		_loss_label.text = EngraverSections.loss_text(session, _action)

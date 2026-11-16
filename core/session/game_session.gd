@@ -29,6 +29,7 @@ var deposit: Deposit
 var bank: Bank
 var skills: SkillsSystem
 var mastery: MasterySystem
+var disciplines: Disciplines  # M24-03
 var character: CharacterSystem
 var armory: Armory
 var cards: CardStore  # M13-01
@@ -153,6 +154,8 @@ func _create_systems() -> void:
 	_join(CharacterSystem.SAVE_KEY, character.new_game, character.to_save, character.from_save)
 	mastery = MasterySystem.new(self)
 	_join(MasterySystem.SAVE_KEY, mastery.new_game, mastery.to_save, mastery.from_save, mastery.rebuild_modifiers)
+	disciplines = Disciplines.new(self)
+	_join(Disciplines.SAVE_KEY, disciplines.new_game, disciplines.to_save, disciplines.from_save)
 	armory = Armory.new(self)
 	_join(Armory.SAVE_KEY, armory.new_game, armory.to_save, armory.from_save)
 	cards = CardStore.new(self)

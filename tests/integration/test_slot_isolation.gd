@@ -11,13 +11,13 @@ const PreRun := preload("res://tests/helpers/gut_pre_run.gd")
 const NOW_MS: int = 1793600000000
 const SLOT_A: int = 1
 const SLOT_B: int = 2
-const SKILL: StringName = &"forestry"
-const ACTION: StringName = &"cut_redbirch"
-const LOG_ITEM: StringName = &"redbirch_log"
-# 10 cycles of cut_redbirch (2850 ms: 3000 ms with the kit hatchet +0, -5%, F-03) plus 2700 ms of the 11th: 100 XP, 10 logs, a lane half way.
-const A_PLAY_MS: int = 31200
-const A_ELAPSED_MS: int = 2700
-const A_XP: int = 100
+const SKILL: StringName = &"forging"
+const ACTION: StringName = &"smelt_emberbronze"
+const LOG_ITEM: StringName = &"emberbronze_ingot"
+# 10 cycles of smelting (2000 ms, F-03) plus 1700 ms of the 11th: 80 XP, 10 ingots, the head job half way.
+const A_PLAY_MS: int = 21700
+const A_ELAPSED_MS: int = 1700
+const A_XP: int = 80
 const A_LOGS: int = 10
 const A_EXTRA_GOLD: int = 123
 const B_EXTRA_GOLD: int = 7
@@ -74,7 +74,7 @@ func test_playing_and_saving_b_does_not_touch_the_file_of_a() -> void:
 	var a_bak: bool = FileAccess.file_exists(SaveService.slot_path(SLOT_A) + ".bak")
 	_game.new_game(SLOT_B, "Beta")
 	_game.session.wallet.add_gold(B_EXTRA_GOLD)
-	_game.session.actions.start(SKILL, ACTION)
+	_game.session.actions.enqueue(SKILL, ACTION, 1, true)
 	_reset_clock()
 	_simulate(25000)
 	_game.save_now()
@@ -122,7 +122,7 @@ func test_continue_a_after_b_restores_only_a() -> void:
 	assert_eq(a.skills.get_xp(SKILL), A_XP)
 	assert_eq(a.bank.get_count(LOG_ITEM), A_LOGS)
 	assert_true(a.actions.is_running(), "the action in progress belongs to A")
-	assert_eq(int(a.actions.get_lane()["elapsed_ms"]), A_ELAPSED_MS)
+	assert_eq(int(a.actions.current()["elapsed_ms"]), A_ELAPSED_MS)
 
 
 func test_continue_b_after_a_has_no_action_in_progress() -> void:
@@ -180,11 +180,13 @@ func test_store_level_write_and_delete_are_per_slot() -> void:
 	assert_eq(SaveService.read_slot(SLOT_B)["player_name"], "Beta")
 
 
-# Slot A: new game "Alfa", A_EXTRA_GOLD added, cut_redbirch for A_PLAY_MS through GameClock, saved.
+# Slot A: new game "Alfa", A_EXTRA_GOLD added, smelting for A_PLAY_MS through GameClock, saved.
 func _play_slot_a() -> void:
 	assert_true(_game.new_game(SLOT_A, "Alfa").ok)
 	_game.session.wallet.add_gold(A_EXTRA_GOLD)
-	assert_true(_game.session.actions.start(SKILL, ACTION).ok)
+	assert_true(_game.session.disciplines.learn(SKILL).ok)
+	TestFactory.give(_game.session, &"emberbronze_ore", 100)
+	assert_true(_game.session.actions.enqueue(SKILL, ACTION, 1, true).ok)
 	_reset_clock()
 	_simulate(A_PLAY_MS - A_ELAPSED_MS)
 	_game.session.advance(A_ELAPSED_MS)

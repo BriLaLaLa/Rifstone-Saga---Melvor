@@ -144,7 +144,7 @@ func test_a_blueprint_crafts_one_masterwork_with_one_or_two_affixes() -> void:
 	for entry: ItemQty in BlueprintCraft.inputs(blueprint):
 		TestFactory.give(s, entry.item_id, entry.qty)
 	var before: int = s.armory.instances().size()
-	assert_true(s.actions.start_blueprint(blueprint.id).ok)
+	assert_true(s.actions.enqueue_blueprint(blueprint.id).ok)
 	s.actions.advance(BlueprintCraft.duration_ms(blueprint, 0.0, _data) + 1000)
 	var pieces: Array[ItemInstance] = s.armory.instances()
 	assert_eq(pieces.size(), before + 1, "exactly one piece")

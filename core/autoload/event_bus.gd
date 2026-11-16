@@ -13,11 +13,16 @@ signal session_ended(slot: int)
 signal action_started(lane: StringName, skill_id: StringName, action_id: StringName)
 signal action_completed(lane: StringName, skill_id: StringName, action_id: StringName, outputs: Dictionary)
 signal action_stopped(lane: StringName, skill_id: StringName, reason: StringName)
+signal production_queue_changed()  # M24: the production queue changed
 signal blueprint_crafted(blueprint_id: StringName, uid: int)  # M10: end of a blueprint craft, after armory_changed
 
 # Skills and mastery
 signal xp_gained(skill_id: StringName, amount: int)
 signal level_up(skill_id: StringName, new_level: int)
+signal skill_reset(skill_id: StringName)  # M24: a discipline was unlearned, xp back to 0
+signal xp_capped(skill_id: StringName, lost: int)  # M24: xp lost at the grade limit (F-160)
+signal discipline_changed(skill_id: StringName, grade: int)  # M24: learn (1), train (new grade), unlearn (0)
+signal recipe_learned(action_id: StringName)  # M24
 signal mastery_xp_gained(skill_id: StringName, action_id: StringName, amount: int)
 signal mastery_level_up(skill_id: StringName, action_id: StringName, new_level: int)
 signal mastery_pool_changed(skill_id: StringName, pool_xp: int)

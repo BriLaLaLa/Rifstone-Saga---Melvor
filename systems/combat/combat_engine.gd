@@ -22,7 +22,6 @@ func start(area_id: StringName) -> CommandResult:
 	if is_active() and _area_id == area_id:
 		return CommandResult.success()
 	stop(Reasons.REPLACED)
-	_session.actions.stop(ActionRunner.MAIN, Reasons.REPLACED)
 	_area_id = area_id
 	_hand = 0
 	_fx.reset()
@@ -63,7 +62,6 @@ func start_fracture(run: FractureRun) -> CommandResult:
 		return CommandResult.fail(Reasons.DUNGEON_ACTIVE)
 	run.return_area = _area_id
 	stop(Reasons.REPLACED)
-	_session.actions.stop(ActionRunner.MAIN, Reasons.REPLACED)
 	_frac.begin(run)
 	_area_id = &""
 	_hand = 0
@@ -83,6 +81,11 @@ func abandon_fracture() -> void:
 		_resume()
 
 
+## M24-03 stub: the discipline of the node being worked; the node cycle (M24-04) completes it.
+func node_skill() -> StringName:
+	return &""
+
+
 func in_fracture() -> bool:
 	return _frac.active()
 
@@ -99,7 +102,6 @@ func start_dungeon(run: DungeonRun) -> CommandResult:
 	if _frac.active():
 		return CommandResult.fail(Reasons.FRACTURE_ACTIVE)
 	stop(Reasons.REPLACED)
-	_session.actions.stop(ActionRunner.MAIN, Reasons.REPLACED)
 	_dg.begin(run)
 	_area_id = &""
 	_hand = 0

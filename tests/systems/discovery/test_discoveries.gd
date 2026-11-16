@@ -113,8 +113,9 @@ func test_new_game_starts_from_the_kit_only() -> void:
 	assert_eq(s.discoveries.items(), kit)
 
 
-func test_offline_gathering_unlocks_what_it_produces() -> void:
+func test_offline_production_unlocks_what_it_produces() -> void:
 	var s: GameSession = _session()
-	assert_true(s.actions.start(&"forestry", &"cut_redbirch").ok)
+	TestFactory.give(s, &"emberbronze_ore", 20)
+	assert_true(s.actions.enqueue(&"forging", &"smelt_emberbronze", 5).ok)
 	OfflineSimulator.advance_silently(s, 60000)
-	assert_true(s.discoveries.has(LOG_ITEM))
+	assert_true(s.discoveries.has(&"emberbronze_ingot"))

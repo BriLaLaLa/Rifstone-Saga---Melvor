@@ -18,6 +18,7 @@ var _events: GameEvents
 var _modifiers: ModifierService
 var _bank: Bank
 var _wallet: Wallet
+var _session: GameSession
 var _skills: SkillsSystem
 var _character: CharacterSystem
 var _params: Dictionary = {}
@@ -33,6 +34,7 @@ var _paying: bool = false  # true while claim pays: the final refill runs once, 
 
 func _init(session: GameSession) -> void:
 	assert(session != null, "Quests needs a session")
+	_session = session
 	_data = session.data
 	_events = session.events
 	_modifiers = session.modifiers
@@ -306,11 +308,11 @@ func _active_ids() -> Array[StringName]:
 	return active
 
 
-# The levels of the six skills quests ask for (F-135 requirement of a gather or craft quest).
+# The levels of the skills quests ask for (F-135 requirement of a gather or craft quest); M24: 0 for a discipline that is not learned.
 func _skill_levels() -> Dictionary:
 	var levels: Dictionary = {}
-	for skill: String in DataValidatorQuests.SKILLS_OF["gather"] + DataValidatorQuests.SKILLS_OF["craft"]:
-		levels[StringName(skill)] = _skills.get_level(StringName(skill))
+	for skill_id: StringName in _data.disciplines():
+		levels[skill_id] = _skills.get_level(skill_id) if _session.disciplines.is_learned(skill_id) else 0
 	return levels
 
 
