@@ -9,7 +9,7 @@ artigianato · 6 Maestria · 7 Deposito (ex Bank) · 8 Oro e shop · 9 Equipaggi
 11 Incisore e Altare del Rift (M8, M12) · 12 Progressione offline · 13 Feedback e notifiche · 14 Suggerimenti ·
 15 Modificatori e stat · 16 Impostazioni · 17 Fratture del Rift come mappe (M13) · 18 Azioni in parallelo (eliminate, M12) ·
 19 Personaggio e classe · 20 Tratti e abilità (M6) · 21 Armeria · 22 Rarità e affissi · 23 Raffinazione (M7) ·
-24 Monoliti del Rift (M7) · 25 Smantellamento e filtro (M7) · 26 Castoni e valute del Rift (M8) · 27 Guida in gioco (M11) · 28 Equipaggiamento vero (M14) · 29 Ritocchi UI dell'Alpha · 30 Villaggio (M19) · 31 Bacheca e Mercato (M20) · 32 Mappa del Villaggio (M21) · 33 Dungeon delle scimmie (M22) · 34 Casa d'Aste (M23)
+24 Monoliti del Rift (M7) · 25 Smantellamento e filtro (M7) · 26 Castoni e valute del Rift (M8) · 27 Guida in gioco (M11) · 28 Equipaggiamento vero (M14) · 29 Ritocchi UI dell'Alpha · 30 Villaggio (M19) · 31 Bacheca e Mercato (M20) · 32 Mappa del Villaggio (M21) · 33 Dungeon delle scimmie (M22) · 34 Casa d'Aste (M23) · 35 Incontri e Mestieri (M24, file `01_GDD_M24.md`)
 
 Direzione del gioco da M4 (decisioni D1-D6 in `DECISIONS_LOG.md`): il **combattimento è il cuore** (gruppi di mostri,
 bottino con rarità e affissi, potenziamento, build di tratti e abilità); raccolta e artigianato sono il ciclo di
@@ -84,7 +84,7 @@ passi successivi fino a `max_catchup_ms` (5 s) per frame; oltre, il resto si sca
 reali (computer in sospensione con il gioco aperto) sono trattate come offline al ritorno se superano
 `offline_min_ms` (vedi sezione 12).
 
-## 3. Skill ed esperienza
+## 3. Skill ed esperienza — **in parte SOSTITUITA in M24** (discipline, Maestri, limite di grado: `01_GDD_M24.md` §35.3)
 
 **Regole**
 - 7 skill di supporto (tabella in `00_VISION.md`: 3 di raccolta, 3 di artigianato, Incisore), tutte
@@ -103,7 +103,7 @@ reali (computer in sospensione con il gioco aperto) sono trattate come offline a
 **Interazioni**: azioni, maestria, requisiti degli attrezzi (gli equipaggiamenti richiedono il livello del personaggio),
 Altare del Rift. Il combattimento dà XP solo al personaggio (F-28).
 
-## 4. Azioni di raccolta (Boscaiolo, Minatore, Pescatore)
+## 4. Azioni di raccolta (Boscaiolo, Minatore, Pescatore) — **SOSTITUITA in M24** (la raccolta avviene solo nei nodi: `01_GDD_M24.md` §35.2)
 
 **Regole**
 - Ogni skill di raccolta ha una lista di azioni (es. "Betulla rossa") con: livello richiesto, intervallo
@@ -126,7 +126,7 @@ Altare del Rift. Il combattimento dà XP solo al personaggio (F-28).
 ridotto sotto il minimo (`action.min_interval_ms`); cambio di attrezzo durante l'azione (vale dal ciclo successivo:
 l'intervallo si ricalcola a ogni avvio di ciclo).
 
-### 4.1 Aiutanti (M12, W3; F-101, F-102)
+### 4.1 Aiutanti (M12, W3; F-101, F-102) — **ELIMINATO in M24** (V22; testo storico, `01_GDD_M24.md` §35.12)
 
 **Regole**
 - Ogni mestiere di raccolta (Boscaiolo, Minatore, Pescatore) può avere **un aiutante**, che lavora **mentre il giocatore fa altro** (combatte, lavora un'altra azione, un progetto)
@@ -149,7 +149,7 @@ l'intervallo si ricalcola a ogni avvio di ciclo).
 
 **Interazioni**: Deposito (spazio), maestria (traguardi e nodi), skill (XP), modificatori (`for_helper`), offline (fase aiutanti del tick), Guida.
 
-## 5. Azioni di artigianato (Fabbro, Cuoco, Falegname, Incisore)
+## 5. Azioni di artigianato (Fabbro, Cuoco, Falegname, Incisore) — **la corsia unica è SOSTITUITA in M24** dalla coda (`01_GDD_M24.md` §35.4)
 
 **Regole**
 - Ogni ricetta ha: livello richiesto, intervallo, XP, **ingredienti** (`inputs`, oggetto e quantità) e **prodotti**
@@ -587,7 +587,7 @@ Carta bloccata o sconosciuta (`unknown_id`, `item_locked` per smantellare); apri
 per primo la Frattura è vinta); `stop` del combattimento durante la Frattura (= abbandono, ma **non** riporta all'area: il combattimento resta fermo; solo `abandon_fracture` e le fini naturali riportano all'area, scelta approvata); un tratto/abilità non si cambia durante la Frattura (`combat_active`); caricamento di un salvataggio con Frattura in corso (riprende); Carta con un modificatore o un grado sconosciuto nel
 salvataggio (scartata con `Log.warn`; se era la Frattura in corso, la Frattura termina come abbandonata, senza bottino).
 
-## 18. Azioni in parallelo — ELIMINATE (M12, W3)
+## 18. Azioni in parallelo — ELIMINATE (M12, W3); anche gli aiutanti che le sostituivano sono **ELIMINATI in M24**
 
 Le corsie parallele (stat `parallel_lanes`, voce "Secondo pensiero", F-51) **non esistono più**: le sostituiscono gli **aiutanti** (§4.1). Il combattimento e le azioni
 del giocatore restano in una sola corsia (`main`).
@@ -1108,3 +1108,6 @@ Pagina con due schede, **Vendi** e **Compra**. Vendi: gli oggetti ammessi presen
 di tendenza, quantità, totale previsto, **Vendi**). Compra: gli oggetti acquistabili (prezzo per pezzo, scorta `s/S`, gradino richiesto se bloccato, freccia, quantità,
 totale, **Compra**). Pulsanti disabilitati con il motivo. Prezzi, totali, scorte e tendenze vengono dal modulo (la UI non conosce la formula, non tiene stato, non
 calcola nulla). Testi in `auction_texts.gd`. Guida: una pagina "Casa d'Aste" scritta a mano (regole, nessun numero copiato).
+
+## 35. Incontri e Mestieri (M24)
+In file separato: [`01_GDD_M24.md`](01_GDD_M24.md) (V16-V24). Sostituisce le parti di §3, §4, §4.1 (aiutanti, eliminati) e §5 indicate lì.

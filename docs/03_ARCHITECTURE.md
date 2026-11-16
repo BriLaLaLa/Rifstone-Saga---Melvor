@@ -44,7 +44,7 @@ res://
 │   ├── bank/                     ← bank.gd
 │   ├── deposit/                  ← deposit.gd (M12: capienza unica, slot borsa)
 │   ├── discovery/                ← discoveries.gd (M14: scoperte della Guida, F-124)
-│   ├── helpers/                  ← helper_system.gd, helper_math.gd (M12: aiutanti dei mestieri di raccolta)
+│   ├── helpers/                  ← helper_system.gd, helper_math.gd (M12: aiutanti; **ELIMINATO in M24**, V22)
 │   ├── skills/                   ← skills_system.gd
 │   ├── mastery/                  ← mastery_system.gd, mastery_math.gd
 │   ├── actions/                  ← action_runner.gd, action_math.gd, action_outcome.gd,
@@ -213,7 +213,7 @@ flowchart TD
 **M12 (W1-W3)**: `Deposit` (capienza unica, slot borsa) è una foglia (dipende solo da data ed events). `Bank` e `Armory` lo
 consultano per lo spazio e **si registrano come occupanti** (`deposit.register_occupant(id, used_fn)` in `_create_systems()`):
 non c'è ciclo di classi (Deposit non conosce Bank né Armory; i comandi che spostano una borsa tra casella e slot stanno in
-`Bank`). `HelperSystem` è un sistema parallelo ad `ActionRunner` (stesso `GatheringResolver`, profilo "aiutante") e non lo
+`Bank`). (**M24**: `HelperSystem` eliminato, V22; la raccolta avviene nei nodi del ciclo, `01_GDD_M24.md` §35.2.) `HelperSystem` è un sistema parallelo ad `ActionRunner` (stesso `GatheringResolver`, profilo "aiutante") e non lo
 conosce: le corsie parallele non esistono più.
 
 **M13 (X1-X4)**: `CardStore` (istanze delle Carte) è un occupante del Deposito come `Armory`. `FractureSystem` (Carta → `FractureRun` + `FractureBag`) non ha timer: non è nel tick. Il `CombatEngine` esegue la Frattura (gruppi scalati da `FractureScaler`, boss,
@@ -262,7 +262,7 @@ sequenceDiagram
 - `GameClock._process(delta)` accumula millisecondi reali e, per ogni `tick_ms` (100) intero accumulato, emette
   `ticked(tick_ms)`; massimo `max_catchup_ms` per frame (il resto si scarta). `set_paused(true)` durante menu e offline.
 - `Game` collega `GameClock.ticked` a `session.advance(delta_ms)` solo quando la sessione è in stato `PLAYING`.
-- `GameSession.advance(delta_ms)` chiama in ordine fisso: `actions.advance` → `helpers.advance` → `combat.advance`
+- `GameSession.advance(delta_ms)` chiama in ordine fisso: `actions.advance` → `helpers.advance` (eliminato in M24) → `combat.advance`
   → `play_time_ms += delta_ms`.
 - Ogni `advance` gestisce **più eventi nello stesso passo** (es. due cicli d'azione da 250 ms in 600 ms): è la
   condizione che rende identici online e offline (test di equivalenza F-41).
@@ -326,7 +326,7 @@ flowchart LR
 ```
 
 - `OfflineSimulator` usa lo **stesso** `session.advance`: nessuna formula duplicata per l'offline. Da M12 la fase `_PHASE_HELPERS`
-  (dopo le azioni, prima del combattimento) fa avanzare anche gli **aiutanti**: lavorano offline come online.
+  (dopo le azioni, prima del combattimento) fa avanzare anche gli **aiutanti**: lavorano offline come online. (**M24**: aiutanti eliminati; offline con il motore esatto del ciclo, `01_GDD_M24.md` §35.9)
 - I sistemi raccolgono contatori di sessione che servono al riepilogo (uccisioni, morti, cibo mangiato, motivi di
   stop) in `SessionSnapshot`; la differenza tra due snapshot dà il riepilogo.
 - Durante la simulazione `GameClock` è in pausa e la UI non accetta comandi (overlay modale).

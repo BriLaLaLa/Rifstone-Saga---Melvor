@@ -2118,3 +2118,6 @@ Casa d'Aste non si validano prima del validatore di M23-02; i parametri e l'elen
 ### M23-06 — dettaglio
 - **Ownership** (REV): merge, `docs/RELEASE_CHECKLIST_MVP.md` (voce Casa d'Aste), documenti di design se serve allinearli al codice; `docs/STATUS.md` lo aggiorna l'Orchestratore.
 - **Accettazione**: come la tabella; il REV controlla anche che la UI non legga `AuctionPricing`/`AuctionMath`/`balance.json` (grep), che `AuctionHouse` non contenga formule (solo chiamate a `AuctionPricing`), che nessuna sorgente della Casa d'Aste sia in `ModifierService`, e che Q99-Q104 siano ancora giuste.
+
+## M24 — Incontri e Mestieri (V16-V24; fonte `docs/M24_MESTIERI.md`)
+I task M24-01…M24-08 (tabella, ordine, ownership, test) sono in **`07_TASKS_M24.md`** (questo file supera le 400 righe).
