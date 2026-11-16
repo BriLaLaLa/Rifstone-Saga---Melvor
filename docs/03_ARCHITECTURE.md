@@ -134,7 +134,7 @@ classDiagram
       +rng: RngService
       +modifiers: ModifierService
       +wallet, bank, deposit, skills, mastery, character
-      +armory, equipment, loadout, actions, helpers, combat, shop, rift
+      +armory, equipment, loadout, disciplines, actions, combat, shop, rift
       +advance(delta_ms)
       +to_save() Dictionary
       +from_save(d)
@@ -197,7 +197,8 @@ flowchart TD
     CE --> WL[Wallet]
     CE --> AM
     SH[Shop] --> BK & WL & AM & CH
-    HS[HelperSystem M12] --> BK & SK & MS & DP
+    DI[Disciplines M24] --> WL & BK & SK & MS & CH
+    CE --> NW[EncounterCycle e NodeWork M24] --> GR
     BK & AM --> DP[Deposit M12]
     DP --> GD2[GameData]
     RA[RiftAltar] --> BK & SK
@@ -213,8 +214,8 @@ flowchart TD
 **M12 (W1-W3)**: `Deposit` (capienza unica, slot borsa) è una foglia (dipende solo da data ed events). `Bank` e `Armory` lo
 consultano per lo spazio e **si registrano come occupanti** (`deposit.register_occupant(id, used_fn)` in `_create_systems()`):
 non c'è ciclo di classi (Deposit non conosce Bank né Armory; i comandi che spostano una borsa tra casella e slot stanno in
-`Bank`). (**M24**: `HelperSystem` eliminato, V22; la raccolta avviene nei nodi del ciclo, `01_GDD_M24.md` §35.2.) `HelperSystem` è un sistema parallelo ad `ActionRunner` (stesso `GatheringResolver`, profilo "aiutante") e non lo
-conosce: le corsie parallele non esistono più.
+`Bank`). (**M24**: `HelperSystem` **ELIMINATO**, V22; la raccolta avviene nei nodi del ciclo degli incontri, tenuti dal `CombatEngine` con `EncounterCycle`/`NodeWork`
+(`GatheringResolver.resolve_units`); `ActionRunner` è la coda di produzione in parallelo al combattimento; `Disciplines` non ha sorgenti di modificatori, `01_GDD_M24.md` §35.)
 
 **M13 (X1-X4)**: `CardStore` (istanze delle Carte) è un occupante del Deposito come `Armory`. `FractureSystem` (Carta → `FractureRun` + `FractureBag`) non ha timer: non è nel tick. Il `CombatEngine` esegue la Frattura (gruppi scalati da `FractureScaler`, boss,
 consegna alla fine) tenendo un riferimento al `FractureRun` e scrivendo il bottino in una `FractureBag` al posto della `LootBag` (stesso `KillRewards`, un sink diverso); `FractureSystem` ascolta `fracture_finished` per consegnare o perdere la borsa. Nessun ciclo di classi:
@@ -262,10 +263,11 @@ sequenceDiagram
 - `GameClock._process(delta)` accumula millisecondi reali e, per ogni `tick_ms` (100) intero accumulato, emette
   `ticked(tick_ms)`; massimo `max_catchup_ms` per frame (il resto si scarta). `set_paused(true)` durante menu e offline.
 - `Game` collega `GameClock.ticked` a `session.advance(delta_ms)` solo quando la sessione è in stato `PLAYING`.
-- `GameSession.advance(delta_ms)` chiama in ordine fisso: `actions.advance` → `helpers.advance` (eliminato in M24) → `combat.advance`
-  → `play_time_ms += delta_ms`.
+- `GameSession.advance(delta_ms)` chiama in ordine fisso: fratture → `actions.advance` (coda) → `combat.advance` → Casa d'Aste
+  → `play_time_ms += delta_ms` (la fase degli aiutanti è **ELIMINATA in M24**).
 - Ogni `advance` gestisce **più eventi nello stesso passo** (es. due cicli d'azione da 250 ms in 600 ms): è la
-  condizione che rende identici online e offline (test di equivalenza F-41).
+  condizione che rende identici online e offline (test di equivalenza F-41). **M24-08**: vale per ogni sistema da solo e per il combattimento con viaggi e
+  nodi; con una coda di produzione attiva **no** (coda e combattimento condividono `session.rng`, fasi in sequenza): difetto aperto, Q124.
 - Nessun sistema usa `_process`, `Timer` o `await` per la logica. Fanno eccezione solo `GameClock` e la UI.
 
 ## 7. Salvataggio e caricamento per slot
@@ -304,9 +306,10 @@ sequenceDiagram
   (`test_write_200_kb_and_measure`), 200 KB scritti in ~10-12 ms, quindi niente thread (Q5 confermato col default);
   il test segnala con un warning se si superano 30 ms.
 - **Stato derivato non salvato**: livelli, modificatori, capienze, statistiche di combattimento si ricalcolano.
-- **Versione 4 (M12)**: `format_version` 3 → 4 (Deposito, aiutanti). I salvataggi v3 non si caricano (`version_unsupported`, nessuna
+- **Versione 4 (M12)**: `format_version` 3 → 4 (Deposito, aiutanti: **ELIMINATI in M24**). I salvataggi v3 non si caricano (`version_unsupported`, nessuna
   migrazione: come per M4 e M10, nessun giocatore reale); gli "spazi" già comprati non contano più.
 - **Versione 5 (M14, Alpha)**: `format_version` 4 → 5 (Armatura e Barriera al posto della riduzione piatta, 15 gradi e basi nuove, chiave `discoveries`). I salvataggi v4 non si caricano (`version_unsupported`, nessuna migrazione).
+- **Versione 8 (M24)**: `format_version` 7 → 8 con `migration_7_to_8.gd` (non additiva: discipline, coda, motore con viaggio e nodo; v5-v7 in catena, `05_INTERFACES_M24.md` §6b).
 - **Isolamento**: caricare lo slot B dopo lo slot A crea una `GameSession` nuova; niente sopravvive tra slot
   (test `tests/integration/test_slot_isolation.gd`).
 
@@ -325,8 +328,9 @@ flowchart LR
     I --> J[salvataggio, PLAYING]
 ```
 
-- `OfflineSimulator` usa lo **stesso** `session.advance`: nessuna formula duplicata per l'offline. Da M12 la fase `_PHASE_HELPERS`
-  (dopo le azioni, prima del combattimento) fa avanzare anche gli **aiutanti**: lavorano offline come online. (**M24**: aiutanti eliminati; offline con il motore esatto del ciclo, `01_GDD_M24.md` §35.9)
+- `OfflineSimulator` usa lo **stesso** `session.advance`: nessuna formula duplicata per l'offline. Da M24 viaggi, nodi e coda
+  avanzano offline con il motore esatto (`01_GDD_M24.md` §35.9; la fase degli aiutanti è **ELIMINATA**). **Limite noto (M24-08)**: coda e combattimento tirano sullo
+  stesso `session.rng` e la coda avanza prima in ogni `advance`, quindi con una coda attiva l'ordine dei tiri dipende dalla dimensione del blocco (vedi §6 e Q124).
 - I sistemi raccolgono contatori di sessione che servono al riepilogo (uccisioni, morti, cibo mangiato, motivi di
   stop) in `SessionSnapshot`; la differenza tra due snapshot dà il riepilogo.
 - Durante la simulazione `GameClock` è in pausa e la UI non accetta comandi (overlay modale).
@@ -375,8 +379,8 @@ flowchart TD
   chiama `unbind()` e la libera. Le pagine si collegano all'`EventBus` in `bind` e si scollegano in `unbind`.
 - Una sola `SkillPage` generica disegna tutte le skill di raccolta e artigianato leggendo i dati (niente scena per skill).
 - M12: la pagina **Deposito** (rotta `bank`) ha due schede (Oggetti, Equipaggiamento) sulla stessa capienza e 6 slot borsa in cima;
-  la pagina Equipaggiamento mostra gli stessi pezzi (nessuna copia di dati); la `SkillPage` dei mestieri di raccolta ha la riga
-  **Aiutante**; la pagina dell'Incisore usa la `SkillPage` generica (contratto in `05_INTERFACES.md` §7.w).
+  la pagina Equipaggiamento mostra gli stessi pezzi (nessuna copia di dati); da M24 la `SkillPage` di raccolta è di sola lettura e quella
+  di produzione mette in coda (riga Aiutante **ELIMINATA**, `05_INTERFACES_M24.md` §7.o); la pagina dell'Incisore usa la `SkillPage` generica (contratto in `05_INTERFACES.md` §7.w).
 - Risoluzione base 1600×900, minimo 1280×720; scala UI dalle impostazioni.
 - Tema: `ui/theme/ui_style.gd` (porting di `UiStyle` di RiftStone) genera `riftstone_idle_theme.tres`.
 

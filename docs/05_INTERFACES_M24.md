@@ -10,6 +10,8 @@ il task che la scrive.
 `NOT_A_DISCIPLINE`, `MAX_GRADE`, `DISCIPLINE_BUSY`, `RECIPE_UNKNOWN`, `RECIPE_KNOWN`, `NOT_A_RECIPE`, `QUEUE_FULL`, `JOB_DONE`; `NODE_DONE` (M24-04).
 **Tolti** (M24-02): `NOT_A_CONTRACT`, `NO_HELPER`, `HELPER_NOT_BETTER`; `LANE_UNAVAILABLE` (M24-03, con le corsie). Restano `bank_full`, `missing_inputs`,
 `level_too_low`, `requirement_not_met`, `not_enough_gold`, `not_enough_items`, `invalid_amount`, `unknown_id`, `blueprint_done`, `stopped_by_user`, `replaced`.
+**Come implementato (M24-08)**: la lista chiusa di `Reasons` conta **77** costanti (`tests/core/common/test_reasons.gd`). `SKILL_IN_OTHER_LANE`
+(`&"skill_in_other_lane"`, M12) **resta** come costante senza uso reale (nessun codice la restituisce; toglierla cambia il conteggio del test: task di pulizia).
 
 ## 3b. Segnali dell'EventBus
 | Segnale | Parametri | Emesso da | Quando |
@@ -99,7 +101,8 @@ func new_game() -> void; func to_save() -> Dictionary; func from_save(d: Diction
 
 ## 5.32 Coda di produzione (`systems/actions/action_runner.gd`, M24-03) — dipendenze: data, events, modifiers, bank, armory, skills, mastery, rng, disciplines
 **SOSTITUISCE** `05_INTERFACES.md` §5.8 (corsie) e le aggiunte di §5.8b su `ActionRunner`; `ActionMath`, `ActionOutcome`, `ArtisanResolver`,
-`EngraverResolver`, `BlueprintCraft` restano (helper puri). Il file può dividersi (`production_job.gd`, interno) per restare sotto le 400 righe.
+`EngraverResolver`, `BlueprintCraft` restano (helper puri). Il file può dividersi (`production_job.gd`, interno) per restare sotto le 400 righe. **Come implementato**: interni `production_job.gd` (un lavoro) e
+`production_queue_loader.gd` (lettura tollerante della coda), non API.
 ```gdscript
 class_name ActionRunner extends RefCounted
 const SAVE_KEY := &"actions"
@@ -146,7 +149,8 @@ class_name NodeWork extends RefCounted                   # systems/encounters/no
 var skill_id: StringName; var action_id: StringName; var duration_ms: int; var elapsed_ms: int; var skipped: bool
 static func begin(session: GameSession, area_id: StringName, skill_id: StringName) -> NodeWork      # risorsa F-154, durata F-155 o skip_ms
 func finish(session: GameSession) -> ActionOutcome      # GatheringResolver.resolve_units con il colore di adesso; ok=false e vuoto se skipped
-func to_save() -> Dictionary; static func from_save(d: Dictionary, data: GameData) -> NodeWork      # null se malformato
+func to_save() -> Dictionary; static func from_save(raw: Dictionary, data: GameData) -> NodeWork    # null se malformato, azione sconosciuta o di un'altra skill
+func color(session: GameSession) -> Dictionary          # (M24-04) colore F-154 se il nodo finisse adesso: {"id", "xp_pct"}; {&"", 0} se skipped (usato da finish e dalla vista)
 # GatheringResolver (cambiata): static func resolve_units(session: GameSession, action: ActionDef, units: int, xp_pct: float) -> ActionOutcome   # F-155
 #   tolta `resolve` (M24-02 le toglie `helper_grade`, M24-04 la sostituisce); ActionOutcome: var units: int (unità messe)
 # CombatEngine (aggiunte)
@@ -160,6 +164,15 @@ func node_skill() -> StringName           # disciplina del nodo in corso (lavora
   (`travel_started`). A fine viaggio: `fight` → `_begin_encounter()`; `node` → `NodeWork.begin` → `node` (`node_started`). A fine nodo: `finish` → segnali di
   §3b → `travel`. `stop`, morte, apertura di Frattura o Dungeon durante `travel`/`node`: il nodo è perso senza prodotti. Equivalenza obbligatoria
   `advance(1000)` = dieci `advance(100)` anche con viaggi e nodi (il nodo si risolve all'istante della sua fine).
+- **Come implementato (M24-04…M24-08)**: lo stato del ciclo sta in `CycleState` (`systems/encounters/cycle_state.gd`, helper interno del motore, non API:
+  `begin_travel`, `clear`, `reset`, `worked_skill`, `to_save`, `apply`, `parse` tollerante, `view`); `get_state()` aggiunge esattamente `travel_ms`, `travel_total_ms`
+  (0 fuori da `travel`), `next` (`{}` o `{"kind","skill"}`) e `node` (`{}` o `{"skill","action","duration_ms","elapsed_ms","skipped","color","units"}`, `color` = id del
+  colore di adesso, `units` = `encounters.node_units` o 0 se saltato). Un nodo che non trova risorsa (`NodeWork.begin` null: disciplina senza azioni) diventa uno
+  scontro con `Log.warn`; da M24-08 il validatore lo rifiuta nei dati (`04_DATA_SCHEMA_M24.md` §29.3).
+- **Equivalenza con la coda (limite noto, M24-08, Q124)**: l'identità `advance(n)` = passi più piccoli vale per il motore da solo (con viaggi e nodi) e per la
+  coda da sola; con **coda e combattimento insieme** no, perché tirano sullo stesso `session.rng` e in ogni `advance` la coda risolve tutti i suoi cicli prima
+  del combattimento: l'ordine dei tiri dipende dalla dimensione del blocco (`tests/integration/test_m24_offline_equivalence.gd` controlla solo le grandezze
+  dettate dal tempo). È in contrasto con F-41 e `01_GDD.md` §10.10: difetto aperto, non corretto in M24.
 - **OfflineSummary** e **SessionSnapshot** (M24-04): campi `nodes_worked: int`, `nodes_skipped: int` (differenza di `node_counts`). La vista del riepilogo li
   mostra (M24-06).
 
@@ -216,6 +229,10 @@ func refresh(state: Dictionary, data: GameData, disciplines: Object) -> void   #
   `page_requested(&"trainers")`; testo del requisito "Richiede livello n". **BankItemPanel**: "Impara" per le Ricette (`disciplines.learn_recipe`); niente "Assumi".
 - **Toast**: `discipline_changed`, `recipe_learned`, `xp_capped` (al più uno per disciplina ogni `UiStyle` intervallo, solo presentazione), avviso di
   `node_finished(bank_full)`. **OfflineSummaryView**: nodi lavorati e saltati.
+- **File interni di M24-06** (non API, solo presentazione): `ui/pages/skill/enqueue_controls.gd` (quantità e "Metti in coda"), `gathering_info.gd` (pagina di
+  raccolta in sola lettura), `node_color_preview.gd` (colore previsto con `EncounterCycle.color`), `queue_texts.gd`; la rotta `trainers` ha la sua pagina della Guida
+  `guide_disciplines` (`help_for: ["trainers"]`, rotta aggiunta a `DataValidatorGuide.ROUTES` da M24-08: lo chiede `test_guide_real_data.gd`); il pulsante "?"
+  nella pagina dei Maestri non è ancora agganciato (`HelpButton.attach`, ritocco UI futuro).
 - Smoke test (uno per pagina): `tests/ui/test_trainers_page_smoke.gd`, `tests/ui/test_travel_map_smoke.gd` (stato finto), `tests/ui/test_skill_page_smoke.gd`
   aggiornato. Testi in `*_texts.gd`.
 

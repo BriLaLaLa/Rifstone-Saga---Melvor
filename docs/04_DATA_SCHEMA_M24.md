@@ -2,7 +2,10 @@
 
 Estensione di `04_DATA_SCHEMA.md` (che supera le 400 righe): vale come la sua sezione **§29**. Regole generali di §0-§1 invariate (id `snake_case`,
 nessun campo sconosciuto, nessun fallback silenzioso). Il validatore nuovo è `core/data/data_validator_disciplines.gd` (M24-02) con
-`STRICT_REAL_DATA = false` finché M24-05 non scrive i dati veri (poi `true`, come in M23).
+`STRICT_REAL_DATA = true` da M24-05. **Ramo strict (M24-08, codice vero)**: le regole "dei dati veri" (segnate qui sotto "Con
+`STRICT_REAL_DATA = true`") valgono solo se `STRICT_REAL_DATA` **e** `DataValidatorDisciplines.is_real_data(raw)`: dati veri = **almeno un'area di
+`areas.json` ha `level_min`** (aree strette di M17, lo stesso criterio di `DataValidatorDungeon`). Le fixture minime non hanno `level_min`, quindi restano
+fuori dal ramo strict (test `tests/core/data/test_strict_real_data.gd`); le regole di struttura valgono sempre.
 
 ## 29.1 `data/skills/skills.json`: campo `discipline`
 | Campo | Tipo | Vincoli |
@@ -44,7 +47,7 @@ Con `STRICT_REAL_DATA = true`: ogni disciplina ha il suo Maestro. Classi: `Train
 |---|---|---|
 | `area` | String | area esistente, unica nel file |
 | `max_level` | int | 1..99; il generatore usa il `level_max` dell'area (F-154) |
-| `nodes` | array | non vuoto; `skill` = disciplina `gathering`, unica nell'area; `weight` intero ≥ 1 |
+| `nodes` | array | non vuoto; `skill` = disciplina `gathering`, unica nell'area, con almeno un'azione di `level` ≤ 1 (altrimenti F-154 non trova la risorsa; regola di M24-08, sempre attiva); `weight` intero ≥ 1 |
 Con `STRICT_REAL_DATA = true`: ogni area di `areas.json` ha una voce; ogni voce ha **tutte** le discipline di raccolta; i pesi di un'area sommano a 100 e
 nessuno è sotto 10 (temi dell'area scelti dal Data Designer: es. più Miniera nelle Miniere, più Pesca e Erboristeria nelle Paludi). Un file assente è
 ammesso solo con `STRICT_REAL_DATA = false` (nessun nodo: F-153 dà sempre `fight`). Classi: `AreaNodesDef` (`area`, `max_level`,
@@ -95,10 +98,10 @@ Dungeon); `balance.json` `helper`; tabella della Guida `helper_grades`; pagina `
 
 ## 29.9 Fixture (`tests/fixtures/data/`, M24-02)
 `skills/skills.json` con `discipline` (almeno 2 `gathering` e 2 `artisan` discipline e una skill non disciplina), `disciplines/trainers.json` (3 gradi bastano),
-`encounters/nodes.json` per le aree di fixture, una ricetta `discover` e la sua Ricetta, `balance.json` con le sezioni di §29.6; casi rifiutati
+`encounters/nodes.json` per le aree di fixture (da M24-08 solo `test_gather`, peso 100: `test_gather_b` non ha azioni), una ricetta `discover` e la sua Ricetta, `balance.json` con le sezioni di §29.6; casi rifiutati
 (`tests/core/data/test_data_validator_disciplines.gd`): `discipline` su una skill di un'altra categoria, `cap` non crescenti o ultimo ≠ 99, Maestro di una
 skill non disciplina, `fed_by` non di raccolta, area sconosciuta o doppia in `nodes.json`, nodo di una skill non di raccolta, peso 0, `recipe.action`
-sconosciuta o senza `discover`, `discover` su un'azione di raccolta, chiavi di `encounters` fuori intervallo, `colors` non crescenti, chiave `helper`.
+sconosciuta o senza `discover`, `discover` su un'azione di raccolta, nodo di una raccolta senza azione di livello 1, chiavi di `encounters` fuori intervallo, `colors` non crescenti, chiave `helper`.
 **Fixture e test esistenti**: nel `balance.json` delle fixture `encounters.node_chance_pct` = **0** e `encounters.travel_ms` = `combat.respawn_ms` della
 fixture, così i test di combattimento di oggi restano validi cambiando solo il nome dello stato (`between` → `travel`); i test del ciclo (M24-04) alzano
 `node_chance_pct` nel proprio dato di prova.

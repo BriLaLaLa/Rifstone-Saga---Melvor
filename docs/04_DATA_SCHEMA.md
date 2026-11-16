@@ -74,9 +74,6 @@ l'elenco delle chiavi obbligatorie, `DataValidator.REQUIRED_BALANCE_KEYS`).
   "action": {"min_interval_ms": 250},
   "gathering": {"rift_shard_base_chance_pct": 0.5},
   "deposit": {"base_slots": 60, "bag_slots": 6},
-  "helper": {"xp_pct": 25, "mastery_pct": 25,
-             "grades": [{"id": "apprentice", "interval_mult": 3.0}, {"id": "journeyman", "interval_mult": 2.5},
-                        {"id": "expert", "interval_mult": 2.0}, {"id": "master", "interval_mult": 1.5}]},
   "engraver": {"crystal_chance_min_pct": 40, "crystal_chance_max_pct": 90, "crystal_fail_loss_pct": 50, "merge_ratio": 3},
   "rune": {"upgrade_ratio": 3, "grade_mult": [1, 2, 3, 4, 5]},
   "combat": {
@@ -130,7 +127,7 @@ esattamente 9 voci con `min_level` crescente (1..99), `grade` 1..8 non decrescen
 `start.items` è una lista di `{"item": id, "qty": n}`. `player_name.min_length` e `max_length` (lunghezza del nome dopo
 `strip_edges`) sono interi ≥ 1 con `min_length` ≤ `max_length`. `mastery.pool_warning_pct` è un numero > 0 e ≤ 100
 (percentuale del tetto del pool da cui la UI avvisa che il pool è quasi pieno). In M13 si aggiunge `fracture` (Carte, modificatori, scala dei gradi: §11). Le corsie parallele (`parallel`) non esistono più (§12).
-**Riforma 2 (M12, W1-W7)**: tolte le chiavi `bank` e `armory`; aggiunte `deposit`, `helper`, `engraver`, `rune` e `mastery.milestones` (esempio sopra; valori e formule in `02_FORMULAS.md` §9, F-100…F-108). Regole del validatore: `deposit.base_slots` ≥ 1, `deposit.bag_slots` 1..12; `helper.grades` ha **4 voci** in ordine di grado con `interval_mult` ≥ 1 non crescente (i più lenti per primi) e `id` unici; `helper.xp_pct` e `helper.mastery_pct` 1..100; **invariante** `3 × helper.xp_pct / (100 × min interval_mult) ≤ 1` (F-102); `mastery.milestones.byproduct_at < resource_at < trade_at` (1..99), `byproduct_chance_pct` 0..100; `engraver.crystal_chance_min_pct ≤ crystal_chance_max_pct` (0..100), `crystal_fail_loss_pct` 0..100, `merge_ratio` ≥ 2; `rune.upgrade_ratio` ≥ 2, `rune.grade_mult` ha 5 numeri > 0, crescente, il primo è 1.
+**Riforma 2 (M12, W1-W7)**: tolte le chiavi `bank` e `armory`; aggiunte `deposit`, `helper` (**ELIMINATA in M24**: la chiave non è più ammessa), `engraver`, `rune` e `mastery.milestones` (esempio sopra; valori e formule in `02_FORMULAS.md` §9, F-100…F-108). Regole del validatore: `deposit.base_slots` ≥ 1, `deposit.bag_slots` 1..12; (le regole di `helper` sono **ELIMINATE in M24**); `mastery.milestones.byproduct_at < resource_at < trade_at` (1..99), `byproduct_chance_pct` 0..100; `engraver.crystal_chance_min_pct ≤ crystal_chance_max_pct` (0..100), `crystal_fail_loss_pct` 0..100, `merge_ratio` ≥ 2; `rune.upgrade_ratio` ≥ 2, `rune.grade_mult` ha 5 numeri > 0, crescente, il primo è 1.
 
 ## 4. `data/skills/skills.json`
 
@@ -195,8 +192,8 @@ ognuno `{"items": [...]}`. Campi comuni:
 M12); `modifiers` ha almeno 1 modificatore (una runa senza effetto sarebbe decorativa). **Gradi delle rune (M12, F-107)**: la runa di grado I
 ha `family` uguale al proprio `id`; le rune di grado 2-5 hanno `family` = id della runa di grado I, id `<family>_<grado>` e ogni
 `value` = `value` di grado I × `rune.grade_mult[grado−1]` (lo controlla il validatore); 5 oggetti per famiglia, nessun grado mancante.
-**Borse e contratti (M12)**: una `bag` ha `value` 0 e `slots` ≥ 1 (F-100); si può mettere in uno slot borsa. Un `contract` ha `value` 0, ed esiste
-**uno per ogni coppia** (mestiere di raccolta, grado): 3 × 4 = 12 oggetti, id `contract_<skill>_<grade>`. Il sottoprodotto di un traguardo
+**Borse (M12)**: una `bag` ha `value` 0 e `slots` ≥ 1 (F-100); si può mettere in uno slot borsa. (La categoria dei Contratti è **ELIMINATA in M24**;
+da M24 c'è la categoria `recipe`, `04_DATA_SCHEMA_M24.md` §29.4.) Il sottoprodotto di un traguardo
 (`milestones`) è un `material`. Pietre e valute (categorie `stone`, `currency`) restano con id `stone_<famiglia>_<chip|stone|heart>` e
 `currency_*`: cambiano solo i nomi (`NOMI.md`); `rift_dust` (Polvere del Rift) e `rune_slab` (Lastra runica) sono `material`.
 
@@ -657,14 +654,14 @@ Un segnaposto con percorso, formato, id o tipo sconosciuto è un errore di valid
 **Eccezioni dichiarate** (`data/guide/exceptions.json`): `{ "no_source": [item_id…], "no_use": [item_id…] }`: oggetti ammessi senza "Si ottiene da"
 o senza "Serve a" (es. valute di sola uscita). Ogni id deve esistere; un'eccezione superflua (l'oggetto ha fonte/uso) è un errore.
 Il file ammette la chiave `_doc` (commento, ignorata). Da M12 la fonte può venire anche da tabelle di drop (`loot_tables`) e da sottoprodotti dei traguardi di maestria, l'uso da borse
-(`bag`) e contratti (`contract`): sono nell'indice e non vanno dichiarate. Restano in `no_source` i 8 anelli e amuleti di base; in `no_use` le valute di sola uscita e i
+(`bag`) e, da M24, Ricette (`recipe`): sono nell'indice e non vanno dichiarate. Restano in `no_source` i 8 anelli e amuleti di base; in `no_use` le valute di sola uscita e i
 sottoprodotti di raccolta senza ricette (27 voci a fine M12).
 
 Regole del validatore: id di pagina unici; `section` valida; `order` ≥ 0; ogni `links.targets`/`{link:…}` punta a un id esistente (o a una pagina di guida
 esistente); ogni `help_for` è una rotta nota; ogni `table.source` è dichiarata; nessuna cifra scritta a mano nei testi (le sequenze di cifre fuori da un segnaposto
 sono un errore, salvo anni/numeri ordinali dichiarati in `allow_digits: true` sulla pagina); nessun fallback silenzioso (errore e nessun dato in caso di file non valido).
 
-## 20. Aggiunte di M12 (Riforma 2: Deposito, aiutanti, maestria per risorsa, Incisore)
+## 20. Aggiunte di M12 (Riforma 2: Deposito, aiutanti, maestria per risorsa, Incisore; aiutanti e Contratti **ELIMINATI in M24**)
 
 Riepilogo per il validatore e i task M12-01…M12-05 (dettagli nelle sezioni indicate):
 - `balance.json` (§3): tolte `bank` e `armory`; aggiunte `deposit`, `helper`, `engraver`, `rune`, `mastery.milestones`; le regole del validatore sono in §3.
@@ -858,7 +855,7 @@ Cartella nuova `data/dungeons/` con **un file per dungeon** (`monkey_den.json`; 
 | `rooms.rest` | oggetto | `heal_pct` 1..100, `forage` (`size` 1..8, `pool`, `dust` `[min, max]`, `crystal_pct` 0..100) |
 | `stages[]` | array | **esattamente 3** (braccio destro, stratega, boss; `id` unici), `monster` esistente in `monsters`, `escorts` (id di `monsters`, 0-4), `intro_ms` 1000..10000, `title`, `quote` (italiano), `ability` (`heavy_strike`, `shield`, `summon`, stessi campi e limiti di §11.3; `summon.monsters` ⊂ `monsters`), `reward`; l'ultimo stadio ha `escorts` vuoto e non ha `reward` (il suo premio è `boss`) |
 | `boss` | oggetto | `gold`, `dust` (`[min, max]`), `pieces` (lista di `{"rarity": "rare"}` o `{"min_rarity": "magic"}`, 1..3), `crystals` 0..5, `card_pct` 0..100, `card_grade` 1..10, `drops` come i mostri |
-| `loot_table` | String | id esistente in `loot_tables.json`; la tabella **non** può contenere Carte (`category: map`) né Contratti |
+| `loot_table` | String | id esistente in `loot_tables.json`; la tabella **non** può contenere Carte (`category: map`) |
 Regole globali del validatore: a ogni dungeon corrisponde **un solo Biglietto** (`misc` con `dungeon`, `value` 0); `balance.json` `dungeon.direction_bands` ha 6 numeri strettamente crescenti in −1..1 con ogni fascia **non più larga di 0,25** (garanzia di direzioni diverse, F-137); `legendary.source.type` ammette **`dungeon`** con `id` di un dungeon esistente.
 Classi: `DungeonDef` (campi sopra), `DungeonRoomType`, `DungeonStageDef` (`id`, `monster: MonsterDef`, `escorts`, `intro_ms`, `title`, `quote`, `ability: BossAbilityDef`, `reward`); `GameData.dungeons()`, `GameData.dungeon(id)`, `GameData.dungeon_for_ticket(item_id)`. I mostri del dungeon sono `MonsterDef` ordinari (`GameData.monster(id)` li restituisce).
 

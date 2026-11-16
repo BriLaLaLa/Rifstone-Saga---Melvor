@@ -105,7 +105,7 @@ static func validate(v: DataValidatorRules, raw: Dictionary, strict: bool = STRI
 		v.fail("data/encounters/nodes.json is missing")
 	for path: Variant in node_files:
 		v.at_file(str(path))
-		_nodes_file(v, node_files[path] as Dictionary, _ids(raw, "areas", "areas"), strict)
+		_nodes_file(v, node_files[path] as Dictionary, _ids(raw, "areas", "areas"), _first_resources(raw), strict)
 	_recipes(v, raw, strict)
 
 
@@ -208,7 +208,8 @@ static func _fed_by(v: DataValidatorRules, t: Dictionary, owner: StringName) -> 
 
 # --- nodes.json -------------------------------------------------------------------------------------------------
 
-static func _nodes_file(v: DataValidatorRules, content: Dictionary, areas: Dictionary[StringName, bool], strict: bool) -> void:
+static func _nodes_file(v: DataValidatorRules, content: Dictionary, areas: Dictionary[StringName, bool],
+		first: Dictionary[StringName, bool], strict: bool) -> void:
 	v.keys(content, ["areas"])
 	var seen: Dictionary[StringName, bool] = {}
 	var list: Array[Dictionary] = v.object_list(content, "areas")
@@ -222,7 +223,7 @@ static func _nodes_file(v: DataValidatorRules, content: Dictionary, areas: Dicti
 		if v.text(a, "area") and not areas.has(id):
 			v.fail("field 'area': unknown area '%s'" % id)
 		v.integer(a, "max_level", 1, v.max_skill_level)
-		_node_rows(v, a, strict)
+		_node_rows(v, a, first, strict)
 	if strict:
 		for area_id: StringName in areas:
 			if not seen.has(area_id):
@@ -230,7 +231,7 @@ static func _nodes_file(v: DataValidatorRules, content: Dictionary, areas: Dicti
 				v.fail("area '%s' has no nodes" % area_id)
 
 
-static func _node_rows(v: DataValidatorRules, a: Dictionary, strict: bool) -> void:
+static func _node_rows(v: DataValidatorRules, a: Dictionary, first: Dictionary[StringName, bool], strict: bool) -> void:
 	var seen: Dictionary[StringName, bool] = {}
 	var total: int = 0
 	var smallest: int = 1 << 30
@@ -240,6 +241,8 @@ static func _node_rows(v: DataValidatorRules, a: Dictionary, strict: bool) -> vo
 			var skill_id: StringName = StringName(node["skill"] as String)
 			if v.skills[skill_id].get("category") != "gathering":
 				v.fail("field 'nodes.skill': '%s' is not a gathering skill" % skill_id)
+			elif not first.has(skill_id):
+				v.fail("field 'nodes.skill': '%s' has no gathering action of level 1 (F-154 would find no resource)" % skill_id)
 			if seen.has(skill_id):
 				v.fail("duplicate node skill '%s' in the area" % skill_id)
 			seen[skill_id] = true
@@ -253,6 +256,20 @@ static func _node_rows(v: DataValidatorRules, a: Dictionary, strict: bool) -> vo
 			v.fail("the area lacks the node of discipline '%s'" % skill_id)
 	if total != NODE_WEIGHT_TOTAL or smallest < NODE_WEIGHT_MIN:
 		v.fail("the node weights must sum to %d with none below %d, got sum %d, smallest %d" % [NODE_WEIGHT_TOTAL, NODE_WEIGHT_MIN, total, smallest])
+
+
+# The skills with an action of level <= 1 (`skill` of the actions file): a node of one of them always has a resource
+# (F-154: the skill level is at least 1).
+static func _first_resources(raw: Dictionary) -> Dictionary[StringName, bool]:
+	var result: Dictionary[StringName, bool] = {}
+	var files: Dictionary = raw.get("actions", {}) as Dictionary
+	for path: Variant in files:
+		var content: Dictionary = files[path] as Dictionary
+		for a: Variant in (content.get("actions", []) as Array):
+			var level: Variant = (a as Dictionary).get("level") if a is Dictionary else null
+			if (level is int or level is float) and float(level) <= 1.0:
+				result[StringName(str(content.get("skill", "")))] = true
+	return result
 
 
 # --- Recipes ----------------------------------------------------------------------------------------------------

@@ -207,9 +207,16 @@ func test_a_node_of_a_skill_that_does_not_gather() -> void:
 	_expect(raw, ["nodes.json", "'test_craft' is not a gathering skill"])
 
 
+## M24-08: a node of a gathering skill with no action of level 1 would find no resource (NodeWork.begin null): data error.
+func test_a_node_of_a_gathering_skill_without_a_first_resource() -> void:
+	var raw: Dictionary = _raw()
+	((_nodes(raw)[0] as Dictionary)["nodes"] as Array).append({"skill": "test_gather_b", "weight": 10})
+	_expect(raw, ["nodes.json", "'test_gather_b' has no gathering action of level 1"])
+
+
 func test_a_double_node_skill_and_a_bad_weight() -> void:
 	var raw: Dictionary = _raw()
-	((_nodes(raw)[0] as Dictionary)["nodes"] as Array)[1]["skill"] = "test_gather"
+	((_nodes(raw)[0] as Dictionary)["nodes"] as Array).append({"skill": "test_gather", "weight": 10})
 	_expect(raw, ["nodes.json", "duplicate node skill 'test_gather'"])
 	var raw_weight: Dictionary = _raw()
 	((_nodes(raw_weight)[0] as Dictionary)["nodes"] as Array)[0]["weight"] = 0
@@ -380,16 +387,16 @@ func test_strict_every_area_needs_nodes_with_all_the_disciplines() -> void:
 	_expect_strict(raw, "area 'test_loot_area' has no nodes")
 	var raw_skill: Dictionary = _raw()
 	((_nodes(raw_skill)[0] as Dictionary)["nodes"] as Array).pop_back()
-	_expect_strict(raw_skill, "the area lacks the node of discipline 'test_gather_b'")
+	_expect_strict(raw_skill, "the area lacks the node of discipline 'test_gather'")
 
 
 func test_strict_weights_sum_to_100_with_none_below_10() -> void:
 	var raw: Dictionary = _raw()
 	((_nodes(raw)[0] as Dictionary)["nodes"] as Array)[0]["weight"] = 95
-	((_nodes(raw)[0] as Dictionary)["nodes"] as Array)[1]["weight"] = 5
+	((_nodes(raw)[0] as Dictionary)["nodes"] as Array).append({"skill": "test_gather_b", "weight": 5})
 	_expect_strict(raw, "the node weights must sum to 100 with none below 10")
 	var raw_sum: Dictionary = _raw()
-	((_nodes(raw_sum)[0] as Dictionary)["nodes"] as Array)[0]["weight"] = 70
+	((_nodes(raw_sum)[0] as Dictionary)["nodes"] as Array)[0]["weight"] = 110
 	_expect_strict(raw_sum, "got sum 110")
 
 

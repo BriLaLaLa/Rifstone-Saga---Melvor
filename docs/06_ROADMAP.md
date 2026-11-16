@@ -293,6 +293,18 @@ Task M24-02…M24-08.
 **Giocabile**: partita nuova → Maestri → imparare 2 + 2 discipline → combattere in un'area: tra uno scontro e l'altro la mappa mostra il viaggio, alcuni nodi si lavorano
 (prodotti e XP nel Deposito, colore della risorsa), altri si saltano con il motivo; intanto la coda produce; un grado successivo alza il limite; disimparare costa e azzera;
 un vecchio salvataggio si carica con le discipline scelte in automatico; offline di 12 ore con nodi e coda; nessuna traccia degli aiutanti.
+**Misure di M24-07** (`tools/sim_encounters.gd`, 12 h per area, dati veri; **nessun ritocco dei dati**, la ritaratura è una milestone a parte):
+
+| Misura | Risultato | Soglia (F-156) | Esito |
+|---|---|---|---|
+| Uccisioni/h con il ciclo ÷ riferimento senza nodi | minimo **0,923** sulle 10 aree | ≥ 0,90 | passa ovunque |
+| Unità/h di una disciplina appresa | da 193 (`cracked_mines` `angling`, peso 15) a 800 (`cracked_mines` `quarrying`, peso 60); fuori anche `whisper_wood` `forestry` 627 (peso 45), `sunken_citadel` `angling` 620 e `forestry` 240, `rift_heart` `forestry` 240, `redrock_plains` `angling` 287 | 300-600 | salta per pesi ≤ 25 o ≥ 45 (Q122) |
+| XP/h di raccolta ÷ lavoro dedicato | sotto: `redrock_plains` `angling` 27%, `cracked_mines` `angling` 21% | ≥ 30% | salta per pesi bassi (Q122) |
+| Ricette/h per area | 0,67-1,75 | obiettivo ~1 ogni 2 h per ricetta del gradino | plausibile |
+| Durata media di un nodo | ~10 s | 12 s (F-155 senza modificatori) | causa non verificata (Q123) |
+| Stato dopo lo stesso tempo, blocco unico / 100 ms / 60 s | identico senza coda; con la coda solo le grandezze del tempo | identico (F-41) | **difetto** (Q124) |
+
+Layout a 1280×720 di Maestri, mappa di viaggio, nodo e coda **non verificato a schermo** (Q125).
 
 ## M25+: Seconda classe, altri dungeon e boss (dopo M24; era M24+)
 Seconda classe con le sue armi (es. arco o bastone, con i suoi progetti e componenti del Falegname), supporti delle abilità, altri dungeon (solo dati: il sistema di M22 è generico), livelli di difficoltà dei dungeon, altri boss, elementi e resistenze;

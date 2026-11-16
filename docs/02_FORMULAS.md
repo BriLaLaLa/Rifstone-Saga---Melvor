@@ -11,6 +11,8 @@ qui nello stesso task.
 Convenzioni: `floor` = troncamento verso il basso, `round` = arrotondamento a metà verso l'alto (`roundi` di Godot),
 `clamp(x, a, b)`. `T(stat, ctx)` = valore totale della stat nel contesto (F-05). Percentuali "pct" = punti percentuali.
 
+**M24 (Incontri e Mestieri)**: F-153…F-160, le tabelle §8.10-§8.11 e le chiavi §9b sono in [`02_FORMULAS_M24.md`](02_FORMULAS_M24.md) (sezione §5l). Gli aiutanti e i Contratti (F-101, F-102, `helper.*`) sono **ELIMINATI in M24**.
+
 ---
 
 ## 1. Esperienza e livelli
@@ -502,7 +504,7 @@ Ogni smantellamento di un pezzo (manuale `Armory.salvage`, filtro automatico o A
 (`grado` = `equip.grade` 1…15, non il grado del materiale). Nessun XP se lo smantellamento è rifiutato. Fondere (F-105) dava già XP (campo `xp`
 dell'azione): non cambia. Esempi: comune grado 1 → 2; magico grado 1 → 4; raro grado 1 → 8; raro grado 15 → 120. Test: `tests/systems/armory/test_salvage.gd`.
 
-## 5d. Deposito, aiutanti, maestria per risorsa e Incisore (F-100…F-108, M12, Riforma 2)
+## 5d. Deposito, aiutanti (**ELIMINATI in M24**), maestria per risorsa e Incisore (F-100…F-108, M12, Riforma 2)
 
 Fonte: decisioni W1-W7 (`DECISIONS_LOG.md`). Tutti i valori sono **valori di partenza** (chiavi di `balance.json` in §9) da
 tarare in M12-07 con `tools/sim_combat.gd` (Q58-Q61); gli esempi sono casi di test e cambiano insieme ai valori.
@@ -544,7 +546,7 @@ Test: `tests/systems/helpers/test_helper_math.gd`, `tests/data/test_balance_inva
 Ogni azione di raccolta ha 3 traguardi in `milestones` (`data/actions/<skill>.json`, `04_DATA_SCHEMA.md` §6), al **livello di
 maestria dell'azione** `L` (F-09), soglie da `mastery.milestones.{byproduct_at, resource_at, trade_at}` = 25, 50, 99:
 - **25 (sottoprodotto)**: se `L ≥ 25`, dopo il tiro del Frammento (F-07) un tiro `roll_pct(mastery.milestones.byproduct_chance_pct)`
-  (2,0) dà 1 sottoprodotto (`item` del traguardo; mai raddoppiato da F-06). Vale anche per l'aiutante (F-102). Ordine dei
+  (2,0) dà 1 sottoprodotto (`item` del traguardo; mai raddoppiato da F-06). Vale anche per le unità di un nodo (F-155, M24). Ordine dei
   tiri su `session.rng`: doppio (F-06), Frammento (F-07), sottoprodotto.
 - **50 (bonus della risorsa)**: se `L ≥ 50`, i `modifiers` del traguardo con scope `action:<id>` (sorgente
   `mastery_item:<action_id>`, la stessa che F-11 usava per le skill di raccolta). Valori di partenza in §8.8b.
@@ -619,7 +621,7 @@ Esempio: se §8.2 chiede 4 piastre per il corpo del materiale 6, il progetto del
 - **Fonte** (`legendary.source`, sempre dichiarata e mostrata dalla Guida a scoperta): `{"type":"boss","id":<boss>,"chance_pct":0,6}`: alla vittoria su quel boss, `roll_pct(chance_pct)` per ogni leggendario di quella fonte, in ordine; `{"type":"monolith","id":<Monolito>,"chance_pct":0,3}`: uccidendo quel Monolito (F-87), stesso tiro.
   Nessun `item_rarity_pct`. Consegna: dal boss nella borsa della Frattura (F-116, solo a vittoria); dal Monolito direttamente nell'Armeria. Deposito pieno: il leggendario **si perde** con notifica (`armory_rejected`), come le Carte (Q64).
   Obiettivo (Q69): circa 1 leggendario ogni 15-30 ore di Fratture del grado giusto (3 leggendari × 0,6% = 1,8% a vittoria, tarato in M14-10: un leggendario di boss ogni 17-26 ore di Fratture; i Monoliti restano allo 0,3%).
-- **Tipi di effetto** (elenco **chiuso**, stesso `EffectSet` di F-81; i tipi di F-81 restano validi anche sui leggendari). Nuovi agganci: `on_block` (parata riuscita, F-75), `on_gather` (ciclo di raccolta riuscito del giocatore, mai dell'aiutante), `on_monolith` (Monolito ucciso).
+- **Tipi di effetto** (elenco **chiuso**, stesso `EffectSet` di F-81; i tipi di F-81 restano validi anche sui leggendari). Nuovi agganci: `on_block` (parata riuscita, F-75), `on_gather` (ciclo di raccolta riuscito del giocatore; da M24 ogni unità di un nodo lavorato), `on_monolith` (Monolito ucciso).
 
 | Tipo | Parametri | Aggancio | Regola | Esempio |
 |---|---|---|---|---|
@@ -660,7 +662,7 @@ Le funzioni stanno in `MasteryMath` (`step_bonus`, `next_step`, `05_INTERFACES.m
 
 ### F-124 Scoperte della Guida (wiki a scoperta, Y7)
 Regola, non formula. Lo stato per slot è `discoveries.items`, l'insieme degli id di base degli oggetti **ottenuti almeno una volta**. Un oggetto è ottenuto quando entra in possesso del giocatore per qualsiasi via (Bank, borsa del bottino, Armeria, `CardStore`, kit iniziale, Frattura consegnata,
-aiutanti, offline), segnalato da `item_obtained(item_id, qty)`; i pezzi e le Carte contano per l'id della loro base. L'insieme è monotono (non si perde mai). Effetti sulla Guida: oggetto non scoperto → casella bloccata ("???", icona in ombra), pagina chiusa; scoperto → pagina con **Si ottiene da** e la **% base**; pagina di
+nodi, offline), segnalato da `item_obtained(item_id, qty)`; i pezzi e le Carte contano per l'id della loro base. L'insieme è monotono (non si perde mai). Effetti sulla Guida: oggetto non scoperto → casella bloccata ("???", icona in ombra), pagina chiusa; scoperto → pagina con **Si ottiene da** e la **% base**; pagina di
 mostro, area, Monolito o attività → **tutto ciò che può dare**, in caselle bloccate fino alla scoperta (sbloccate mostrano la %). La % di un pezzo del pool (F-121) è `chance_pct × (peso del tipo / somma dei pesi) × (1 / n. di gradi candidati) × (1/3 per il materiale, se armatura o scudo)`. Il tooltip e la scheda
 dell'oggetto **non** mostrano più "Si ottiene da" (resta "Serve a"); le meccaniche (testi) restano sempre visibili.
 Esempio: un Persico mai pescato è una casella bloccata nella pagina della Lenza; al primo Persico pescato si sblocca e mostra la sua fonte e la % dai dati. Pezzo del pool: mostro `L_m` 46, corpo di Cuoio grado 9 → 2,5 × (1/10) × (1/4) × (1/3) = **0,0208%**. Test: `tests/core/guide/test_discoveries.gd`, `tests/core/data/test_guide_index_sources.gd`.
@@ -753,7 +755,7 @@ Esempi (= test, `tests/systems/village/test_village_cost.gd`):
 - Segheria livello 5: 90 `shardcedar_grip` e 90 `shardcedar_handle` (⌈0,75 × 120⌉), oro 690 (0,6 × 1.152,48 = 691,5 → 690), Falegname 45.
 - Rimessa livello 2: 30 `ashpine_handle`, 6 `ashlead_plate`, oro 340 (0,8 × 420 = 336 → 340), Falegname 10.
 
-**Ore per livello (`tools/sim_village.gd`, tassi dei dati senza aiutanti né maestria, oro con l'oro/h di `sim_combat`; M19-01).** Materiali + oro per livello 1…8 (ore): Magazzino 0,39 · 0,28 · 0,30 · 0,52 · 0,46 · 0,54 · 0,66 · 0,84 (somma 4,00); Locanda 0,31 · 0,22 · 0,23 · 0,40 · 0,34 · 0,40 · 0,48 · 0,60 (2,97);
+**Ore per livello (`tools/sim_village.gd`, tassi dei dati senza maestria, oro con l'oro/h di `sim_combat`; M19-01).** Materiali + oro per livello 1…8 (ore): Magazzino 0,39 · 0,28 · 0,30 · 0,52 · 0,46 · 0,54 · 0,66 · 0,84 (somma 4,00); Locanda 0,31 · 0,22 · 0,23 · 0,40 · 0,34 · 0,40 · 0,48 · 0,60 (2,97);
 Fucina 0,39 · 0,28 · 0,31 · 0,52 · 0,46 · 0,54 · 0,66 · 0,83 (3,99); Segheria 0,27 · 0,23 · 0,26 · 0,42 · 0,42 · 0,50 · 0,61 · 0,75 (3,46); Rimessa 0,31 · 0,22 · 0,23 · 0,40 · 0,34 · 0,40 · 0,49 · 0,61 (2,99).
 Massimo di un livello 0,84 h (soglia della sim: 1,0 h); un edificio al massimo 4,0 h; i cinque insieme circa 17 h, spesi mentre si sale di livello. I valori esatti si rigenerano con la sim (arrotondati a 0,01 h dall'output della sim).
 
@@ -781,14 +783,14 @@ Esempi (= test, `tests/systems/quests/test_quest_formulas.gd`):
 - `gather_forestry_t5`: 210 `shardcedar_log`, oro 480 (0,8 × 600), XP Boscaiolo 2.320 (40 × 58), richiede personaggio 45 e Boscaiolo 45. `gather_angling_t1`: 150 `brookfin`, oro 60 (64 → 60), XP 400.
 - `craft_hearthcraft_t3`: 114 `seared_redscale` (3 × 38), oro 340, XP Cuoco 1.680 (60 × 28), richiede personaggio 20 e Cuoco 20. `craft_woodwright_t8`: 232 `riftspruce_grip` (4 × 58), oro 1.030, XP 8.700, personaggio 90 e Falegname 90.
 - Il file `quests.json` ha 56 voci (8 + 24 + 24) e coincide con la rigenerazione (stessa funzione pura del generatore, come F-131).
-**Misura** (`tools/sim_quests.gd`, tassi dei dati senza aiutanti né maestria; uccisioni/h da `sim_combat`): ore per incarico 0,13-0,49 (massimo 0,49 h, `kill` gradino 8); oro/h dell'incarico ≤ 0,69 volte l'oro/h del combattimento del gradino (massimo: gradino 4, area più povera). Soglie della sim: 0,6 h e 0,7.
+**Misura** (`tools/sim_quests.gd`, tassi dei dati senza maestria; uccisioni/h da `sim_combat`): ore per incarico 0,13-0,49 (massimo 0,49 h, `kill` gradino 8); oro/h dell'incarico ≤ 0,69 volte l'oro/h del combattimento del gradino (massimo: gradino 4, area più povera). Soglie della sim: 0,6 h e 0,7.
 
 ### F-135 Caselle e scelta del prossimo incarico
 `slots = floor(T(quest_slots))` (`quest_slots`: Bacheca livello `n` → `n`; massimo 8). `current_tier` = il più alto `t` con `tier_levels[t−1] ≤` livello del personaggio (0 se nessuno: non succede, `tier_levels[0] = 1`).
 Un incarico `q` è **candidato** se: (1) i suoi requisiti (`requires.character`, `requires.skills`) sono soddisfatti, (2) `q.tier ≥ current_tier − (tier_window − 1)`, (3) non è attivo in nessuna casella, (4) non è nelle ultime `recent_memory` voci di `recent`.
 Scelta: parte dall'indice `cursor` dell'elenco di `quests.json` (ordine del file: per gradino, poi `kill`, `gather` per Boscaiolo, Minatore, Pescatore, `craft` per Fabbro, Cuoco, Falegname), scorre circolarmente e prende il primo candidato; `cursor = (indice + 1) mod N`; se nessuno è candidato ripete ignorando (4); se ancora nessuno, la casella resta vuota e `cursor` non cambia.
 Dopo la scelta: `recent` accoda l'id **quando** l'incarico viene riscosso o abbandonato (si tengono gli ultimi `recent_memory` = 6); `progress = 0`.
-Progresso: `monster_killed` → ogni incarico `kill` attivo +1; `action_completed` e `helper_completed` → per ogni incarico `gather`/`craft` attivo con `item` in `outputs`: `+= outputs[item]`; sempre `min(progress, target)`.
+Progresso: `monster_killed` → ogni incarico `kill` attivo +1; `action_completed` (da M24 `lane` `node` per la raccolta e `queue` per la produzione) → per ogni incarico `gather`/`craft` attivo con `item` in `outputs`: `+= outputs[item]`; sempre `min(progress, target)`.
 Esempi (= test, `tests/systems/quests/test_quests.gd`, con dati di fixture): personaggio 1, Bacheca 3 (3 caselle): `current_tier` 1, candidati solo del gradino 1 nell'ordine del file → caselle `kill_any_t1`, `gather_forestry_t1`, `gather_quarrying_t1`, cursore 3; riscossa la casella 0 → il successivo candidato è `gather_angling_t1` (non `kill_any_t1`: è in `recent`);
 personaggio 45 (`current_tier` 5, finestra dei gradini 3-5): `kill_any_t2` non è candidato (gradino 2 < 3); `gather_forestry_t5` richiede Boscaiolo 45: con Boscaiolo 44 non è candidato; un `kill` da 3 uccisioni su 3 non scende mai oltre l'obiettivo (la 4ª uccisione non cambia il progresso).
 
@@ -874,7 +876,7 @@ Durante `intro` il motore avanza solo il contatore di `intro_ms` (nessun nemico 
 Esempio: Covo con 5 bivi: scelte `choose` 5 volte (ingresso → livello 1 → … → livello 5), poi boss: tre `intro`, tre stadi; `dungeon_room_entered` 6 volte prima del boss (ingresso + 5), `dungeon_stage_started` 3 volte, `dungeon_finished(&"won", 7, …)`. Test: `tests/systems/dungeon/test_dungeon_flow.gd` (con motore finto), `tests/systems/combat/test_dungeon_combat.gd`.
 
 ### F-142 Ricompense minori
-Ogni mostro del dungeon ha la tabella `loot_dungeon_monkey_den` (come una tabella di area 41-50: Polvere 6%, quattro Pietre 1% ciascuna, borsa di cuoio 0,05%; **nessuna** Carta né Contratto) e i suoi `drops`; tutto nella borsa del dungeon. Per i pezzi: F-121 con `L_m` reale del mostro (nessun grado scalato).
+Ogni mostro del dungeon ha la tabella `loot_dungeon_monkey_den` (come una tabella di area 41-50: Polvere 6%, quattro Pietre 1% ciascuna, borsa di cuoio 0,05%; **nessuna** Carta) e i suoi `drops`; tutto nella borsa del dungeon. Per i pezzi: F-121 con `L_m` reale del mostro (nessun grado scalato).
 **Premio di stanza** alla stanza superata (dati del dungeon, `room_rewards`; ogni voce è facoltativa): `gold` [min, max] nel portafoglio; `dust` [min, max]; `crystal_pct` (un Cristallo, uniforme sui tre); `piece_pct` (un pezzo di F-121 punto 2-3 con `L_m` della stanza e rarità almeno magica: F-84 con fonte `monster`, se comune diventa magica).
 | Stanza | Oro | Polvere | Cristallo % | Pezzo ≥ magico % |
 |---|---|---|---|---|
@@ -993,7 +995,7 @@ Esempi (= test, `seed` 12345): `redbirch_grip`, blocco 0, `sat` 0 → `now` 1.21
 **Simulazione** (`tools/sim_market.gd`, M23-05; esce con codice 1 se una soglia salta): (1) per ogni oggetto acquistabile e 1.000 stati casuali, `unit` > vendita del pezzo al tetto e > `v` (F-151);
 (2) 10.000 strategie casuali di compra/vendi/attendi su 12 h per ogni oggetto, compresi giri attraverso il Deposito: partendo senza quell'oggetto, **oro finale + pezzi rimasti × `v·MAX` ≤ oro iniziale** (nessun guadagno dal nulla);
 (3) nessun oggetto acquistabile è ingrediente di un'azione, controllo dei progetti come sopra; (4) `advance` di 12 h in un colpo = a tick da 100 ms = a blocchi da 60 s (stato identico);
-(5) oro di 1 h di produzione di ogni grezzo T1-T8 (tassi di §8.1, senza aiutanti, venduta in un colpo, con `eq` al minimo e al massimo dell'escursione) alla Casa d'Aste rispetto a F-18: **soglia tra 0,85 e 1,25** (su carta: T1 0,92-1,08, T8 0,99-1,15); stampa anche lo stesso rapporto per componenti e cibo (senza soglia), le ore di recupero dal tetto e le ore per riempire le scorte.
+(5) oro di 1 h di produzione di ogni grezzo T1-T8 (tassi di §8.1, venduta in un colpo, con `eq` al minimo e al massimo dell'escursione) alla Casa d'Aste rispetto a F-18: **soglia tra 0,85 e 1,25** (su carta: T1 0,92-1,08, T8 0,99-1,15); stampa anche lo stesso rapporto per componenti e cibo (senza soglia), le ore di recupero dal tetto e le ore per riempire le scorte.
 **Misure** (M23-05, dati veri, sim verde): (1) `unit` / vendita del pezzo al tetto, minimo su tutti gli acquistabili **2,225**; (2) il giro compra-vendi più favorevole perde comunque
 **≥ 4 oro**, la strategia con saturazione e riacquisto **≥ 3.005 oro**; (5) 1 h di produzione dei grezzi T1-T8 rispetto a F-18: **0,920-1,148** (dentro 0,85-1,25); recupero dal tetto
 **9,17 h** (110 blocchi, F-149); rifornimento di una scorta dallo zero **≤ 8,33 h** (F-150).
@@ -1292,12 +1294,11 @@ uccisione** (da tarare in M12-07 con `sim_combat`; i gradi alti delle pietre e i
 | Scheggia (per ciascuna delle 4 famiglie) | 1% | 1 |
 | Pietra (per ciascuna famiglia) | 0,05% (solo Bosco, Miniere, Soglia) | 1 |
 | Cristallo del risveglio / mutamento / ascesa | 0,05% / 0,03% / 0,02% (solo Bosco, Miniere, Soglia) | 1 |
-| Contratto (per ciascuno dei 3 mestieri) | Apprendista 0,02% nelle Pianure e nel Bosco; Garzone 0,015% (Bosco, Miniere); Esperto 0,01% (Miniere, Soglia); Maestro 0,005% (Soglia) | 1 |
 | Borsa di cuoio | 0,05% (Pianure, Bosco) | 1 |
 | Borsa del viandante | 0,02% (Miniere) | 1 |
 **Monoliti** (tabella di ogni Monolito, che oggi lascia già frammenti e materiali): Polvere 100% (20-40); Scheggia di ogni famiglia
 100% (2-4); Pietra di ogni famiglia 20%; Cristallo del risveglio 15%, del mutamento 10%, dell'ascesa 5%; Borsa runica 5% (solo
-il Monolito della Soglia); un Contratto di grado pari al massimo dell'area con probabilità 2% per mestiere.
+il Monolito della Soglia). (Le voci dei Contratti sono **ELIMINATE in M24**; da M24 le aree hanno anche le Ricette, `02_FORMULAS_M24.md` §8.11.)
 La borsa del bottino del combattimento (12 caselle + `loot_bag_slots`) non cambia: più tipi di oggetto in caduta la riempiono
 prima (Q56): M12-07 verifica la perdita con `sim_combat` (`lost/h`).
 
@@ -1453,8 +1454,8 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | `gathering.rift_shard_base_chance_pct` | 0.5 | F-07 |
 | ~~`bank.*`~~ | tolta in M12 | era F-16, F-17 (sostituite da F-100) |
 | `deposit.{base_slots, bag_slots}` (M12) | 60, 6 | F-100 (Q58) |
-| `helper.{xp_pct, mastery_pct}` (M12) | 25, 25 | F-102 (Q59) |
-| `helper.grades` (M12) | `[{"id":"apprentice","interval_mult":3.0},{"id":"journeyman","interval_mult":2.5},{"id":"expert","interval_mult":2.0},{"id":"master","interval_mult":1.5}]` (in ordine di grado) | F-101 (Q59) |
+| ~~`helper.{xp_pct, mastery_pct}`~~ (M12) | **ELIMINATO in M24** | — |
+| ~~`helper.grades`~~ (M12) | **ELIMINATO in M24** | — |
 | `mastery.milestones.{byproduct_at, resource_at, trade_at, byproduct_chance_pct}` (M12) | 25, 50, 99, 2.0 | F-103, F-108 (Q60) |
 | `engraver.{crystal_chance_min_pct, crystal_chance_max_pct, crystal_fail_loss_pct, merge_ratio}` (M12) | 40, 90, 50, 3 | F-104, F-105 (Q61) |
 | `rune.{upgrade_ratio, grade_mult}` (M12) | 3, `[1, 2, 3, 4, 5]` | F-106, F-107 |
@@ -1567,4 +1568,4 @@ sezione (`auto_loot`: `"10.6"` = `01_GDD §10.6`; `04_DATA_SCHEMA.md` §2). Con 
 | `quest_slots` (M20, V7) | 0 | 8 | incarichi attivi della Bacheca (caselle) | F-135 | `tests/systems/quests/test_quests.gd::test_slots_follow_quest_slots` |
 
 Stat **tolta in M13 (R-04)**: `fracture_duration_pct` (le Fratture non hanno più durata). Stat **tolte in M12** (nessuna stat decorativa: la capienza viene dalle borse, F-100; le corsie non esistono): `bank_slots`, `armory_slots`, `parallel_lanes`.
-Nessuna stat nuova in M12: aiutanti, traguardi e Incisore usano stat esistenti (`skill_interval_pct`, `double_item_chance`, `skill_xp_pct`, `rift_shard_chance`, `mastery_xp_pct`).
+Nessuna stat nuova in M12: traguardi e Incisore usano stat esistenti (`skill_interval_pct`, `double_item_chance`, `skill_xp_pct`, `rift_shard_chance`, `mastery_xp_pct`). Nessuna stat nuova in M24: i nodi usano `skill_interval_pct`, `double_item_chance`, `rift_shard_chance`, `skill_xp_pct`, `mastery_xp_pct` (F-155); le discipline non hanno sorgenti di modificatori.

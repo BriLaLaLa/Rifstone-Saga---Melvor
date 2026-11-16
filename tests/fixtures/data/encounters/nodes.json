@@ -1,8 +1,8 @@
 {
-  "_doc": "Test fixture (04_DATA_SCHEMA_M24.md §29.9): nodes of the fixture areas (gathering disciplines of the fixtures only).",
+  "_doc": "Test fixture (04_DATA_SCHEMA_M24.md §29.9): nodes of the fixture areas, only of test_gather (test_gather_b has no actions, so it has no node).",
   "areas": [
-    {"area": "test_area", "max_level": 10, "nodes": [{"skill": "test_gather", "weight": 60}, {"skill": "test_gather_b", "weight": 40}]},
-    {"area": "test_stone_area", "max_level": 10, "nodes": [{"skill": "test_gather", "weight": 50}, {"skill": "test_gather_b", "weight": 50}]},
-    {"area": "test_loot_area", "max_level": 20, "nodes": [{"skill": "test_gather", "weight": 70}, {"skill": "test_gather_b", "weight": 30}]}
+    {"area": "test_area", "max_level": 10, "nodes": [{"skill": "test_gather", "weight": 100}]},
+    {"area": "test_stone_area", "max_level": 10, "nodes": [{"skill": "test_gather", "weight": 100}]},
+    {"area": "test_loot_area", "max_level": 20, "nodes": [{"skill": "test_gather", "weight": 100}]}
   ]
 }
