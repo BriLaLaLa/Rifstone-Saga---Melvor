@@ -25,7 +25,7 @@ func test_real_recipes_of_the_engraver_follow_8_7() -> void:
 	var slab: ActionDef = data.action(&"make_rune_slab")
 	assert_eq([slab.level, slab.interval_ms, slab.xp], [1, 3000, 6])
 	assert_eq([slab.inputs[0].item_id, slab.inputs[0].qty, slab.inputs[1].item_id, slab.inputs[1].qty],
-			[&"emberbronze_ore", 2, &"rift_shard", 1])
+			[&"rift_dust", 3, &"rift_shard", 1])
 	assert_eq(slab.outputs[0].item_id, &"rune_slab")
 
 

@@ -395,3 +395,43 @@ Tipi di stanza (id fissi; gli indizi sono stati tolti in M22-09): `pack` Branco,
 | `leg_ring_monkey` | Anello della Scimmia Avida | `kill_heal_pct` 2 |
 | `leg_neck_monkey` | Amuleto della Stratega | `stat_convert` Barriera → Armatura 40% |
 | `leg_hands_monkey` | Guanti da Cima d'Albero | `on_kill_timer_cut` 60 |
+
+## Incontri e Mestieri (M24-05; erbe, Tonici, Ricette, Maestri)
+Skill nuova `herbalism` = **Erborista** (raccolta); `hearthcraft` si chiama ora **Cuoco e alchimista**. Gradi dei Maestri: Novizio, Lavorante, Provetto, Capomastro, Luminare.
+
+### Erbe (T1-T8, azioni `gather_<id>`) e sottoprodotti (traguardo 25)
+| Id | Nome | Sottoprodotto (id: nome) |
+|---|---|---|
+| `redrock_clover` | Trifoglio rosso | `clover_seed`: Seme |
+| `ash_mint` | Menta di cenere | `mint_leaf`: Foglia |
+| `thorn_sage` | Salvia spinosa | `sage_bud`: Gemma |
+| `dusk_lily` | Giglio del vespro | `lily_petal`: Petalo |
+| `shard_bloom` | Fiore di scheggia | `bloom_pollen`: Polline |
+| `veil_fern` | Felce del velo | `fern_spore`: Spora |
+| `ember_thistle` | Cardo ardente | `thistle_burr`: Riccio |
+| `rift_orchid` | Orchidea del Rift | `orchid_nectar`: Nettare |
+
+### Tonici e Ricette (azioni `brew_tonic_n`, "Distillare ...")
+| Id | Nome | Ricetta (id) |
+|---|---|---|
+| `tonic_1` | Tonico del prato | `recipe_tonic_1` Ricetta: Tonico del prato |
+| `tonic_2` | Tonico di cenere | `recipe_tonic_2` |
+| `tonic_3` | Tonico spinoso | `recipe_tonic_3` |
+| `tonic_4` | Tonico del vespro | `recipe_tonic_4` |
+| `tonic_5` | Tonico di scheggia | `recipe_tonic_5` |
+| `tonic_6` | Tonico del velo | `recipe_tonic_6` |
+| `tonic_7` | Tonico ardente | `recipe_tonic_7` |
+| `tonic_8` | Tonico del Rift | `recipe_tonic_8` |
+
+### Maestri
+| Disciplina | Maestro | Titolo |
+|---|---|---|
+| `forestry` | Berto Fendiscorza | Maestro Boscaiolo |
+| `quarrying` | Ilda Roccavena | Maestra Minatrice |
+| `angling` | Nilo Guadoclaro | Maestro Pescatore |
+| `herbalism` | Sorra Vallefiore | Maestra Erborista |
+| `forging` | Tarsa Martelrosso | Maestra Fabbra |
+| `woodwright` | Osvaldo Pialla | Maestro Falegname |
+| `hearthcraft` | Fenna Focolare | Maestra di cucina e alchimia |
+
+Nodi di raccolta: nessun nome (nodi per disciplina e area, `data/encounters/nodes.json`). Maestria dell'Erborista: nodi `herbalism_n1_green_thumb` Mano verde, `n2_full_basket` Cesto colmo, `n3_field_notes` Taccuino dei prati, `n4_rift_bloom` Fiori del Rift, `n5_patient_eye` Occhio paziente, `n6_master` Maestro dei prati.

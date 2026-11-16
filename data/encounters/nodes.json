@@ -1,0 +1,14 @@
+{
+  "areas": [
+    {"area":"redrock_plains","max_level":10,"nodes":[{"skill":"forestry","weight":30},{"skill":"quarrying","weight":20},{"skill":"angling","weight":25},{"skill":"herbalism","weight":25}]},
+    {"area":"whisper_wood","max_level":20,"nodes":[{"skill":"forestry","weight":45},{"skill":"quarrying","weight":10},{"skill":"angling","weight":20},{"skill":"herbalism","weight":25}]},
+    {"area":"dry_uplands","max_level":30,"nodes":[{"skill":"forestry","weight":25},{"skill":"quarrying","weight":30},{"skill":"angling","weight":15},{"skill":"herbalism","weight":30}]},
+    {"area":"cracked_mines","max_level":40,"nodes":[{"skill":"forestry","weight":10},{"skill":"quarrying","weight":60},{"skill":"angling","weight":15},{"skill":"herbalism","weight":15}]},
+    {"area":"ash_marsh","max_level":50,"nodes":[{"skill":"forestry","weight":15},{"skill":"quarrying","weight":10},{"skill":"angling","weight":35},{"skill":"herbalism","weight":40}]},
+    {"area":"weeping_gorge","max_level":60,"nodes":[{"skill":"forestry","weight":15},{"skill":"quarrying","weight":35},{"skill":"angling","weight":30},{"skill":"herbalism","weight":20}]},
+    {"area":"rift_threshold","max_level":70,"nodes":[{"skill":"forestry","weight":20},{"skill":"quarrying","weight":25},{"skill":"angling","weight":20},{"skill":"herbalism","weight":35}]},
+    {"area":"black_glass_desert","max_level":80,"nodes":[{"skill":"forestry","weight":10},{"skill":"quarrying","weight":50},{"skill":"angling","weight":10},{"skill":"herbalism","weight":30}]},
+    {"area":"sunken_citadel","max_level":90,"nodes":[{"skill":"forestry","weight":20},{"skill":"quarrying","weight":20},{"skill":"angling","weight":45},{"skill":"herbalism","weight":15}]},
+    {"area":"rift_heart","max_level":99,"nodes":[{"skill":"forestry","weight":25},{"skill":"quarrying","weight":25},{"skill":"angling","weight":20},{"skill":"herbalism","weight":30}]}
+  ]
+}

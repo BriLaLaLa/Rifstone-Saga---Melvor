@@ -1,0 +1,30 @@
+{
+  "_doc": "Erborista: un'azione per gradino T1-T8 di 02_FORMULAS.md §8.1 (livello, intervallo, XP, prodotto), le erbe servono ai Tonici del Cuoco e alchimista (02_FORMULAS_M24.md §8.10-§8.11). Ogni azione ha 3 traguardi (F-103, F-108).",
+  "skill": "herbalism",
+  "actions": [
+    {"id":"gather_redrock_clover","name":"Trifoglio","level":1,"interval_ms":3000,"xp":10,
+     "mastery":true,"inputs":[],"outputs":[{"item":"redrock_clover","qty":1}],
+     "milestones": [{"at":25,"type":"byproduct","item":"clover_seed"},{"at":50,"type":"resource","modifiers":[{"stat":"double_item_chance","value":6}]},{"at":99,"type":"trade","modifiers":[{"stat":"skill_interval_pct","value":-0.5}]}]},
+    {"id":"gather_ash_mint","name":"Menta","level":10,"interval_ms":3200,"xp":18,
+     "mastery":true,"inputs":[],"outputs":[{"item":"ash_mint","qty":1}],
+     "milestones": [{"at":25,"type":"byproduct","item":"mint_leaf"},{"at":50,"type":"resource","modifiers":[{"stat":"double_item_chance","value":6}]},{"at":99,"type":"trade","modifiers":[{"stat":"skill_interval_pct","value":-0.5}]}]},
+    {"id":"gather_thorn_sage","name":"Salvia","level":20,"interval_ms":3500,"xp":28,
+     "mastery":true,"inputs":[],"outputs":[{"item":"thorn_sage","qty":1}],
+     "milestones": [{"at":25,"type":"byproduct","item":"sage_bud"},{"at":50,"type":"resource","modifiers":[{"stat":"double_item_chance","value":6}]},{"at":99,"type":"trade","modifiers":[{"stat":"skill_interval_pct","value":-0.5}]}]},
+    {"id":"gather_dusk_lily","name":"Giglio","level":30,"interval_ms":3800,"xp":40,
+     "mastery":true,"inputs":[],"outputs":[{"item":"dusk_lily","qty":1}],
+     "milestones": [{"at":25,"type":"byproduct","item":"lily_petal"},{"at":50,"type":"resource","modifiers":[{"stat":"double_item_chance","value":6}]},{"at":99,"type":"trade","modifiers":[{"stat":"skill_interval_pct","value":-0.5}]}]},
+    {"id":"gather_shard_bloom","name":"Fiore di scheggia","level":45,"interval_ms":4200,"xp":58,
+     "mastery":true,"inputs":[],"outputs":[{"item":"shard_bloom","qty":1}],
+     "milestones": [{"at":25,"type":"byproduct","item":"bloom_pollen"},{"at":50,"type":"resource","modifiers":[{"stat":"double_item_chance","value":6}]},{"at":99,"type":"trade","modifiers":[{"stat":"skill_interval_pct","value":-0.5}]}]},
+    {"id":"gather_veil_fern","name":"Felce","level":60,"interval_ms":4600,"xp":80,
+     "mastery":true,"inputs":[],"outputs":[{"item":"veil_fern","qty":1}],
+     "milestones": [{"at":25,"type":"byproduct","item":"fern_spore"},{"at":50,"type":"resource","modifiers":[{"stat":"double_item_chance","value":6}]},{"at":99,"type":"trade","modifiers":[{"stat":"skill_interval_pct","value":-0.5}]}]},
+    {"id":"gather_ember_thistle","name":"Cardo","level":75,"interval_ms":5000,"xp":108,
+     "mastery":true,"inputs":[],"outputs":[{"item":"ember_thistle","qty":1}],
+     "milestones": [{"at":25,"type":"byproduct","item":"thistle_burr"},{"at":50,"type":"resource","modifiers":[{"stat":"double_item_chance","value":6}]},{"at":99,"type":"trade","modifiers":[{"stat":"skill_interval_pct","value":-0.5}]}]},
+    {"id":"gather_rift_orchid","name":"Orchidea del Rift","level":90,"interval_ms":5500,"xp":145,
+     "mastery":true,"inputs":[],"outputs":[{"item":"rift_orchid","qty":1}],
+     "milestones": [{"at":25,"type":"byproduct","item":"orchid_nectar"},{"at":50,"type":"resource","modifiers":[{"stat":"double_item_chance","value":6}]},{"at":99,"type":"trade","modifiers":[{"stat":"skill_interval_pct","value":-0.5}]}]}
+  ]
+}

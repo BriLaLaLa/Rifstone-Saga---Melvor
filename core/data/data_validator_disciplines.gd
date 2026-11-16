@@ -6,7 +6,7 @@ extends RefCounted
 
 ## The "real data" rules of §29 (a Trainer for every discipline, nodes for every area, a Recipe for every `discover` action
 ## that drops somewhere) are on once M24-05 writes the content; before that only the structure is checked.
-const STRICT_REAL_DATA: bool = false
+const STRICT_REAL_DATA: bool = true
 const DISCIPLINE_CATEGORIES: PackedStringArray = ["gathering", "artisan"]
 const GRADE_FIELDS: PackedStringArray = ["id", "name", "cap", "character_level"]
 const TRAINER_FIELDS: PackedStringArray = ["skill", "name", "title", "description", "fed_by"]
@@ -77,6 +77,16 @@ static func validate_balance(v: DataValidatorRules, balance: Dictionary) -> void
 		v.keys(production as Dictionary, ["queue_slots", "max_job_count"], "production")
 		for key: String in ["queue_slots", "max_job_count"]:
 			v.integer(production as Dictionary, key, 1, DataValidatorRules.NO_LIMIT, "production")
+
+
+## True for the real narrow-area data (an area has `level_min`, as `DataValidatorDungeon` decides): the minimal fixtures are not strict.
+static func is_real_data(raw: Dictionary) -> bool:
+	var files: Dictionary = raw.get("areas", {}) as Dictionary
+	for path: Variant in files:
+		for a: Variant in ((files[path] as Dictionary).get("areas", []) as Array):
+			if a is Dictionary and (a as Dictionary).has("level_min"):
+				return true
+	return false
 
 
 ## The balance, the Trainers file and the nodes file (`raw` is the whole raw data of DataValidator), then the cross-checks.

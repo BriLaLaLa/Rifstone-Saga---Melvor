@@ -32,6 +32,14 @@
     {"item":"palecinnabar_ingot","buy_level":0},
     {"item":"emberheart_ingot","buy_level":0},
     {"item":"riftite_ingot","buy_level":0},
+    {"item":"redrock_clover","buy_level":0},
+    {"item":"ash_mint","buy_level":0},
+    {"item":"thorn_sage","buy_level":0},
+    {"item":"dusk_lily","buy_level":0},
+    {"item":"shard_bloom","buy_level":0},
+    {"item":"veil_fern","buy_level":0},
+    {"item":"ember_thistle","buy_level":0},
+    {"item":"rift_orchid","buy_level":0},
     {"item":"boar_tusk","buy_level":0},
     {"item":"scorched_fur","buy_level":0},
     {"item":"raider_bandage","buy_level":0},
@@ -52,6 +60,7 @@
     {"item":"birch_resin","buy_level":0},
     {"item":"copper_nugget","buy_level":0},
     {"item":"trout_scale","buy_level":0},
+    {"item":"clover_seed","buy_level":0},
     {"item":"redbirch_grip","buy_level":1},
     {"item":"ashpine_grip","buy_level":2},
     {"item":"thornalder_grip","buy_level":3},
@@ -91,6 +100,14 @@
     {"item":"seared_shard_gar","buy_level":5},
     {"item":"seared_mist_barbel","buy_level":6},
     {"item":"seared_ember_sturgeon","buy_level":7},
-    {"item":"seared_riftmaw","buy_level":8}
+    {"item":"seared_riftmaw","buy_level":8},
+    {"item":"tonic_1","buy_level":1},
+    {"item":"tonic_2","buy_level":2},
+    {"item":"tonic_3","buy_level":3},
+    {"item":"tonic_4","buy_level":4},
+    {"item":"tonic_5","buy_level":5},
+    {"item":"tonic_6","buy_level":6},
+    {"item":"tonic_7","buy_level":7},
+    {"item":"tonic_8","buy_level":8}
   ]
 }

@@ -5,7 +5,7 @@
      "blocks": [
        {"type": "text", "text": "Il Deposito contiene materiali, cibo, pietre, valute, rune e anche i pezzi dell'Armeria non indossati: le due schede dividono la stessa capienza. Ogni tipo di oggetto occupa una casella; ogni pezzo dell'Armeria ne occupa una."},
        {"type": "text", "text": "Parti con {balance:deposit.base_slots|int} caselle. Si aggiungono con le borse: hai {balance:deposit.bag_slots|int} slot borsa in cima alla pagina e in ognuno metti una borsa. La borsa nello slot non occupa caselle, ma finché è nel Deposito sì."},
-       {"type": "text", "text": "Togliere una borsa si può solo se le caselle restanti bastano ancora: libera prima lo spazio. Le borse si trovano come bottino o si costruiscono con il Falegname."},
+       {"type": "text", "text": "Togliere una borsa si può solo se le caselle restanti bastano ancora: libera prima lo spazio. Le borse si trovano come bottino o si costruiscono con il Falegname, se hai imparato questa disciplina."},
        {"type": "table", "source": "bags"},
        {"type": "links", "targets": ["item:bag_canvas", "item:bag_reinforced", "skill:woodwright", "page:guide_bank_shop"]}
      ]},
@@ -20,6 +20,8 @@
        {"type": "table", "source": "mastery_milestones:quarrying"},
        {"type": "heading", "text": "Pescatore"},
        {"type": "table", "source": "mastery_milestones:angling"},
+       {"type": "heading", "text": "Erborista"},
+       {"type": "table", "source": "mastery_milestones:herbalism"},
        {"type": "links", "targets": ["page:guide_mastery"]}
      ]},
     {"id": "guide_engraver", "section": "crafts", "title": "Incisore", "order": 5,

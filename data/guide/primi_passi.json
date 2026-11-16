@@ -5,9 +5,17 @@
      "blocks": [
        {"type": "text", "text": "Sei uno Spadaccino delle {link:area:redrock_plains|Pianure di Roccarossa}. Hai già un equipaggiamento di base, un po' di cibo e tre attrezzi: tutto pronto per la prima ora."},
        {"type": "heading", "text": "La prima ora"},
-       {"type": "text", "text": "Apri Combattimento, scegli un'area e avvia: gli incontri si susseguono da soli. Scegli il cibo da mangiare: con le Razioni da campo si mangia in automatico. Raccogli il bottino dalla borsa e portalo nel Deposito. Dall'Armeria equipaggia i pezzi migliori che trovi. Intanto i mestieri lavorano per te: legna, minerali, pesce, ricette."},
+       {"type": "text", "text": "Apri Combattimento, scegli un'area e avvia: gli incontri si susseguono da soli. Scegli il cibo da mangiare: con le Razioni da campo si mangia in automatico. Raccogli il bottino dalla borsa e portalo nel Deposito. Dall'Armeria equipaggia i pezzi migliori che trovi. Per raccogliere e produrre impara una disciplina dai Maestri del Villaggio: i nodi che incontri tra uno scontro e l'altro e la coda dei lavori faranno il resto."},
        {"type": "text", "text": "Il gioco prosegue anche a gioco chiuso, fino a {balance:offline.cap_ms|ore} ore."},
-       {"type": "links", "targets": ["page:guide_deposit", "page:guide_packs", "page:guide_food", "page:guide_rarity", "page:guide_mastery", "page:guide_offline"]}
+       {"type": "links", "targets": ["page:guide_deposit", "page:guide_packs", "page:guide_food", "page:guide_rarity", "page:guide_mastery", "page:guide_disciplines", "page:guide_travel", "page:guide_offline"]}
+     ]},
+    {"id": "guide_travel", "section": "first_steps", "title": "Viaggio e nodi", "order": 7,
+     "blocks": [
+       {"type": "text", "text": "Tra uno scontro e l'altro il gruppo viaggia ({balance:encounters.travel_ms|sec} secondi). Alla fine del viaggio, una volta su {balance:encounters.node_chance_pct|pct}, incontri un nodo di raccolta invece di un nemico."},
+       {"type": "text", "text": "Il tipo di nodo dipende dall'area: nei boschi trovi più alberi, nelle miniere più minerali, nelle paludi più pesce ed erbe. Se conosci la disciplina, lavori la risorsa migliore che sai raccogliere e che il nodo permette: dura {balance:encounters.node_ms|sec} secondi e rende {balance:encounters.node_units|int} raccolte insieme."},
+       {"type": "text", "text": "Il colore del nodo dice quanto è facile per il tuo livello: arancione dà tutta l'esperienza, giallo la metà, verde poca e grigio nessuna. Prodotti e maestria arrivano sempre interi. Se il Deposito si riempie, il nodo si chiude."},
+       {"type": "text", "text": "Se non conosci la disciplina del nodo lo salti in {balance:encounters.skip_ms|sec} secondi e non ottieni nulla: impara dai Maestri, oppure compra alla Casa d'Aste ciò che ti manca."},
+       {"type": "links", "targets": ["page:guide_disciplines", "page:guide_auction", "page:guide_resource_mastery", "page:guide_deposit"]}
      ]},
     {"id": "guide_bank_shop", "section": "first_steps", "title": "Shop", "order": 3,
      "help_for": ["shop"],

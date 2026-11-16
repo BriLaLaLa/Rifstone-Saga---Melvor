@@ -119,7 +119,7 @@ func test_buying_always_costs_more_than_any_sale_for_every_buyable_item() -> voi
 			assert_gt(unit, AuctionMath.gold_of(value, _p.max_ppm), "%s: unit above the sale at the ceiling" % def.item)
 			assert_gt(unit, value, "%s: unit above the fixed price (F-18)" % def.item)
 		checked += 1
-	assert_eq(checked, 40)
+	assert_eq(checked, 48)
 
 
 func test_trend_examples() -> void:

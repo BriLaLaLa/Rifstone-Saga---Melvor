@@ -91,8 +91,8 @@ func test_the_nodes_file_is_optional_in_non_strict_data() -> void:
 	assert_eq(V.validate(V.fixture_raw()), PackedStringArray())
 
 
-func test_the_real_data_flag_is_off_until_m24_05() -> void:
-	assert_false(DataValidatorDisciplines.STRICT_REAL_DATA)
+func test_the_real_data_flag_is_on_since_m24_05() -> void:
+	assert_true(DataValidatorDisciplines.STRICT_REAL_DATA)
 
 
 # --- skills -----------------------------------------------------------------------------------------------------

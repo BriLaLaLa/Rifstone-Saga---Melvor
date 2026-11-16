@@ -43,6 +43,13 @@ const DEFAULT_QTY: int = 5
 ## Kills per hour of each area as `tools/sim_combat.gd deposit=1 scope=all` measures them (sword and shield, gear of the level).
 const DESIGN_KILLS_H: Array[float] = [223.0, 222.0, 207.0, 249.0, 239.0, 232.0, 171.0, 152.0, 231.0, 140.0]
 const DROP_COMMON_PCT: int = 12
+## Recipes of the Tonics (M24-05, 02_FORMULAS_M24.md §8.11): [recipe item, level of its step (§8.1)]. A Recipe drops in every area whose
+## `level_max` reaches the level of the step: about one per RECIPE_HOURS hours of kills in the first such area ("the area of the step"),
+## one per RECIPE_HOURS x RECIPE_LATER_FACTOR hours in the later ones (kills per hour: DESIGN_KILLS_H).
+const RECIPES: Array = [["recipe_tonic_1", 1], ["recipe_tonic_2", 10], ["recipe_tonic_3", 20], ["recipe_tonic_4", 30],
+		["recipe_tonic_5", 45], ["recipe_tonic_6", 60], ["recipe_tonic_7", 75], ["recipe_tonic_8", 90]]
+const RECIPE_HOURS: float = 2.0
+const RECIPE_LATER_FACTOR: float = 3.0
 ## Miniboss (F-139, M22-03): the commons of the kit drop from it with this chance and quantity; the ticket of the Monkey Den drops in the
 ## areas from level TICKET_MIN_LEVEL (areas 4-10) from the miniboss and from the Monoliti (percentages of F-139).
 const MINIBOSS_COMMON_PCT: int = 40
@@ -295,7 +302,22 @@ func _area_table(area: Dictionary) -> Dictionary:
 	for card: Array in CARDS[tier]:
 		if float(card[1]) > 0.0:
 			entries.append(_entry(card[0], card[1]))
+	entries.append_array(_recipe_entries(Data.AREAS.find(area)))
 	return {"id": "loot_area_" + (area["id"] as String), "entries": entries}
+
+
+## The Recipe entries of area `index`: the Recipes whose step level is reached by the area, with the chance of one per RECIPE_HOURS hours of
+## kills in the area of the step (the first area that reaches it) and RECIPE_LATER_FACTOR times rarer in the later ones.
+func _recipe_entries(index: int) -> Array:
+	var entries: Array = []
+	for recipe: Array in RECIPES:
+		var level: int = int(recipe[1])
+		if level_max_of(index) < level:
+			continue
+		var home: bool = index == 0 or level_max_of(index - 1) < level
+		var hours: float = RECIPE_HOURS if home else RECIPE_HOURS * RECIPE_LATER_FACTOR
+		entries.append(_entry(recipe[0] as String, roundf(100.0 / (hours * DESIGN_KILLS_H[index]) * 100.0) / 100.0))
+	return entries
 
 
 ## The table of the Monoliti of an area (every stone of the area rolls it).

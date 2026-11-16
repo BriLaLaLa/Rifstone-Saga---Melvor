@@ -4,7 +4,7 @@
      "help_for": ["settings"],
      "blocks": [
        {"type": "text", "text": "Quando chiudi il gioco, il tempo passato conta fino a {balance:offline.cap_ms|ore} ore. Se sei stato via almeno {balance:offline.min_ms|min} minuto, al ritorno vedi la schermata Mentre eri via, poi il riepilogo."},
-       {"type": "text", "text": "Proseguono l'azione o il combattimento in corso, i progetti e le raccolte, con lo stesso motore del gioco aperto. Il filtro automatico smantella i pezzi sotto soglia. Se finiscono gli ingredienti o muori, tutto si ferma e il riepilogo indica quando."},
+       {"type": "text", "text": "Proseguono il combattimento, con i suoi viaggi e i suoi nodi di raccolta, e la coda dei lavori di produzione, con lo stesso motore del gioco aperto. Il filtro automatico smantella i pezzi sotto soglia. Se finiscono gli ingredienti o muori, tutto si ferma e il riepilogo indica quando."},
        {"type": "text", "text": "Non prosegue nulla che richieda una tua scelta: il cibo va scelto in anticipo."}
      ]}
   ]

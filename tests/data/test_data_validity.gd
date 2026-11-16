@@ -8,7 +8,8 @@ const CONFIG_ROOT: String = "res://data/config"
 ## 00_VISION.md, in sidebar order: [id, name, category].
 const SKILLS: Array[Array] = [
 	["forestry", "Boscaiolo", "gathering"], ["quarrying", "Minatore", "gathering"],
-	["angling", "Pescatore", "gathering"], ["forging", "Fabbro", "artisan"], ["hearthcraft", "Cuoco", "artisan"],
+	["angling", "Pescatore", "gathering"], ["herbalism", "Erborista", "gathering"], ["forging", "Fabbro", "artisan"],
+	["hearthcraft", "Cuoco e alchimista", "artisan"],
 	["woodwright", "Falegname", "artisan"], ["riftbinding", "Incisore", "artisan"],
 ]
 ## Ids that the reform removed (D3, Q37): combat skills, bows and staves.
@@ -20,7 +21,7 @@ const GATHERING_TIERS: Array[Array] = [
 	[45, 4200, 58, 1, 18], [60, 4600, 80, 1, 30], [75, 5000, 108, 1, 50], [90, 5500, 145, 1, 85],
 ]
 ## Gathering skills whose actions exist (M1: forestry; M2: quarrying and angling).
-const GATHERING_WITH_ACTIONS: PackedStringArray = ["forestry", "quarrying", "angling"]
+const GATHERING_WITH_ACTIONS: PackedStringArray = ["forestry", "quarrying", "angling", "herbalism"]
 ## 02_FORMULAS.md §8.8, forestry nodes: [id, cost_pct, requires, [[stat, value], ...]] (scope skill:forestry).
 const FORESTRY_NODES: Array[Array] = [
 	["forestry_n1_quick_axe", 5.0, [], [["skill_interval_pct", -3.0]]],

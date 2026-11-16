@@ -20,8 +20,8 @@ func test_disciplines_by_category_in_order() -> void:
 	assert_false(_fixture.skill(&"riftbinding").discipline, "the Engraver is always available")
 
 
-func test_the_real_disciplines_are_the_six_existing_trades() -> void:
-	assert_eq(_real.disciplines(&"gathering"), [&"forestry", &"quarrying", &"angling"] as Array[StringName])
+func test_the_real_disciplines_are_the_seven_trades() -> void:
+	assert_eq(_real.disciplines(&"gathering"), [&"forestry", &"quarrying", &"angling", &"herbalism"] as Array[StringName])
 	assert_eq(_real.disciplines(&"artisan"), [&"forging", &"hearthcraft", &"woodwright"] as Array[StringName])
 	assert_false(_real.skill(&"riftbinding").discipline)
 
@@ -70,7 +70,7 @@ func test_the_trainer_grades_guide_table() -> void:
 
 
 func test_trainer_is_null_without_error_when_absent() -> void:
-	assert_null(_real.trainer(&"forestry"), "the real Trainers are written by M24-05")
+	assert_not_null(_real.trainer(&"forestry"), "the real Trainers (M24-05)")
 	assert_null(_real.trainer(&"nothing"))
 	assert_eq(_fixture.trainer(&"test_gather").name, "Maestro di prova")
 	assert_eq(_fixture.trainer(&"test_craft").fed_by, [&"test_gather"] as Array[StringName])
@@ -87,7 +87,7 @@ func test_area_nodes_are_null_without_error_when_absent() -> void:
 	assert_eq(nodes.entries[0].weight, 60)
 	assert_eq(_fixture.area_nodes(&"test_loot_area").max_level, 20)
 	assert_null(_fixture.area_nodes(&"nowhere"))
-	assert_null(_real.area_nodes(&"redrock_plains"), "no nodes.json yet in the real data (M24-05)")
+	assert_not_null(_real.area_nodes(&"redrock_plains"), "the real nodes (M24-05)")
 
 
 func test_recipe_item_for_an_action() -> void:

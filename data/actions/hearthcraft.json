@@ -1,5 +1,5 @@
 {
-  "_doc": "Cuoco (02_FORMULAS.md §8.2): pesce cotto T1-T8.",
+  "_doc": "Cuoco e alchimista (02_FORMULAS.md §8.2): pesce cotto T1-T8; Tonici da scoprire T1-T8 (02_FORMULAS_M24.md §8.11, discover).",
   "skill": "hearthcraft",
   "actions": [
     {"id": "cook_brookfin", "name": "Cucinare trota", "level": 1, "interval_ms": 2500, "xp": 9,
@@ -17,6 +17,22 @@
     {"id": "cook_ember_sturgeon", "name": "Cucinare pesce lanterna", "level": 75, "interval_ms": 2500, "xp": 97,
      "mastery": true, "inputs": [{"item": "ember_sturgeon", "qty": 1}], "outputs": [{"item": "seared_ember_sturgeon", "qty": 1}]},
     {"id": "cook_riftmaw", "name": "Cucinare leviatano del Rift", "level": 90, "interval_ms": 2500, "xp": 130,
-     "mastery": true, "inputs": [{"item": "riftmaw", "qty": 1}], "outputs": [{"item": "seared_riftmaw", "qty": 1}]}
+     "mastery": true, "inputs": [{"item": "riftmaw", "qty": 1}], "outputs": [{"item": "seared_riftmaw", "qty": 1}]},
+    {"id": "brew_tonic_1", "name": "Distillare tonico del prato", "level": 1, "interval_ms": 3000, "xp": 12, "discover": true,
+     "mastery": true, "inputs": [{"item": "redrock_clover", "qty": 2}, {"item": "brookfin", "qty": 1}], "outputs": [{"item": "tonic_1", "qty": 1}]},
+    {"id": "brew_tonic_2", "name": "Distillare tonico di cenere", "level": 10, "interval_ms": 3000, "xp": 21, "discover": true,
+     "mastery": true, "inputs": [{"item": "ash_mint", "qty": 2}, {"item": "ashgill", "qty": 1}], "outputs": [{"item": "tonic_2", "qty": 1}]},
+    {"id": "brew_tonic_3", "name": "Distillare tonico spinoso", "level": 20, "interval_ms": 3000, "xp": 33, "discover": true,
+     "mastery": true, "inputs": [{"item": "thorn_sage", "qty": 2}, {"item": "redscale", "qty": 1}], "outputs": [{"item": "tonic_3", "qty": 1}]},
+    {"id": "brew_tonic_4", "name": "Distillare tonico del vespro", "level": 30, "interval_ms": 3000, "xp": 48, "discover": true,
+     "mastery": true, "inputs": [{"item": "dusk_lily", "qty": 2}, {"item": "dusk_eel", "qty": 1}], "outputs": [{"item": "tonic_4", "qty": 1}]},
+    {"id": "brew_tonic_5", "name": "Distillare tonico di scheggia", "level": 45, "interval_ms": 3000, "xp": 69, "discover": true,
+     "mastery": true, "inputs": [{"item": "shard_bloom", "qty": 2}, {"item": "shard_gar", "qty": 1}], "outputs": [{"item": "tonic_5", "qty": 1}]},
+    {"id": "brew_tonic_6", "name": "Distillare tonico del velo", "level": 60, "interval_ms": 3000, "xp": 96, "discover": true,
+     "mastery": true, "inputs": [{"item": "veil_fern", "qty": 2}, {"item": "mist_barbel", "qty": 1}], "outputs": [{"item": "tonic_6", "qty": 1}]},
+    {"id": "brew_tonic_7", "name": "Distillare tonico ardente", "level": 75, "interval_ms": 3000, "xp": 129, "discover": true,
+     "mastery": true, "inputs": [{"item": "ember_thistle", "qty": 2}, {"item": "ember_sturgeon", "qty": 1}], "outputs": [{"item": "tonic_7", "qty": 1}]},
+    {"id": "brew_tonic_8", "name": "Distillare tonico del Rift", "level": 90, "interval_ms": 3000, "xp": 174, "discover": true,
+     "mastery": true, "inputs": [{"item": "rift_orchid", "qty": 2}, {"item": "riftmaw", "qty": 1}], "outputs": [{"item": "tonic_8", "qty": 1}]}
   ]
 }

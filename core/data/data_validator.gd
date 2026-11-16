@@ -122,7 +122,7 @@ static func validate(raw: Dictionary, errors: PackedStringArray) -> void:
 	DataValidatorVillage.validate(v, _files(raw, "village"), _files(raw, "balance"))
 	DataValidatorQuests.validate(v, _files(raw, "quests"), _files(raw, "balance"), _files(raw, "items"), _files(raw, "actions"))
 	DataValidatorAuction.validate(v, raw)
-	DataValidatorDisciplines.validate(v, raw)
+	DataValidatorDisciplines.validate(v, raw, DataValidatorDisciplines.STRICT_REAL_DATA and DataValidatorDisciplines.is_real_data(raw))
 	errors.append_array(v.errors)
 
 

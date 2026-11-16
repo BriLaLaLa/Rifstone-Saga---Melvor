@@ -2,7 +2,7 @@
   "_doc": "Incisore (02_FORMULAS.md §8.7, F-104..F-107): Lastra runica, fondere pietre, cristallizzare la Polvere, incidere le rune e potenziarle. Consuma solo drop dei mostri e prodotti dell'Incisore.",
   "skill": "riftbinding",
   "actions": [
-    {"id":"make_rune_slab","name":"Preparare lastra runica","level":1,"interval_ms":3000,"xp":6,"mastery":true,"inputs":[{"item":"emberbronze_ore","qty":2},{"item":"rift_shard","qty":1}],"outputs":[{"item":"rune_slab","qty":1}]},
+    {"id":"make_rune_slab","name":"Preparare lastra runica","level":1,"interval_ms":3000,"xp":6,"mastery":true,"inputs":[{"item":"rift_dust","qty":3},{"item":"rift_shard","qty":1}],"outputs":[{"item":"rune_slab","qty":1}]},
     {"id":"fuse_ember_stone","name":"Fondere Schegge di forza","level":10,"interval_ms":3000,"xp":20,"mastery":true,"inputs":[{"item":"stone_ember_chip","qty":3}],"outputs":[{"item":"stone_ember_stone","qty":1}]},
     {"id":"fuse_eye_stone","name":"Fondere Schegge di precisione","level":10,"interval_ms":3000,"xp":20,"mastery":true,"inputs":[{"item":"stone_eye_chip","qty":3}],"outputs":[{"item":"stone_eye_stone","qty":1}]},
     {"id":"fuse_shade_stone","name":"Fondere Schegge di agilità","level":10,"interval_ms":3000,"xp":20,"mastery":true,"inputs":[{"item":"stone_shade_chip","qty":3}],"outputs":[{"item":"stone_shade_stone","qty":1}]},

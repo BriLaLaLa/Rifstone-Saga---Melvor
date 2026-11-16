@@ -61,7 +61,7 @@ func test_auto_level_is_the_mean_monster_level() -> void:
 func test_food_for_grade_is_clamped_to_the_foods() -> void:
 	assert_eq(Sim.food_for_grade(_data, 1), &"seared_brookfin")
 	assert_eq(Sim.food_for_grade(_data, 2), &"seared_ashgill")
-	assert_eq(Sim.food_for_grade(_data, 99), &"seared_riftmaw")
+	assert_eq(Sim.food_for_grade(_data, 99), &"tonic_8")  # M24-05: the Tonics are foods too (the sim takes the last food)
 
 
 func test_measure_is_deterministic_and_restores_the_area() -> void:

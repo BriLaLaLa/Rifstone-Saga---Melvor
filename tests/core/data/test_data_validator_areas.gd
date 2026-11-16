@@ -18,6 +18,7 @@ func _real_raw() -> Dictionary:
 	for section: String in GameData.CONTENT_DIRS:
 		raw[section] = _read(JsonLoader.list_json_files(REAL_ROOT.path_join(GameData.CONTENT_DIRS[section]), errors), errors)
 	raw["dungeons"] = _read(DungeonIndex.list_files(REAL_ROOT, errors), errors)  # M22-03: the real data has the Monkey Den
+	raw["encounters"] = _read(DisciplineIndex.nodes_files(REAL_ROOT), errors)  # M24-05: the real data has the nodes
 	assert(errors.is_empty(), "real files must load: %s" % [errors])
 	return raw
 

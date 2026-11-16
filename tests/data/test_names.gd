@@ -22,7 +22,7 @@ const COOKED: Array[String] = ["Trota alla griglia", "Persico arrosto", "Carpa a
 ## Fixed names by id (skills, class, areas, monsters, drops, traits, abilities, stones, currencies, infusions, shop).
 const FIXED: Dictionary = {
 	"forestry": "Boscaiolo", "quarrying": "Minatore", "angling": "Pescatore", "forging": "Fabbro",
-	"hearthcraft": "Cuoco", "woodwright": "Falegname", "riftbinding": "Incisore", "rift_blade": "Spadaccino",
+	"hearthcraft": "Cuoco e alchimista", "woodwright": "Falegname", "riftbinding": "Incisore", "rift_blade": "Spadaccino",
 	"redrock_plains": "Pianure di Roccarossa", "whisper_wood": "Bosco dei Sussurri",
 	"cracked_mines": "Miniere Abbandonate", "rift_threshold": "Soglia del Rift",
 	"plains_boar": "Cinghiale", "ember_rat": "Ratto rosso", "redrock_raider": "Predone", "whisper_wolf": "Lupo grigio",

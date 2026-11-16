@@ -172,5 +172,6 @@ func _raw() -> Dictionary:
 		raw[section] = DataBuildUtil.read_files(JsonLoader.list_json_files("res://data".path_join(GameData.CONTENT_DIRS[section]), errors), errors)
 	raw["guide"] = DataBuildUtil.read_files(DataValidatorGuide.list_files("res://data", errors), errors)
 	raw["dungeons"] = DataBuildUtil.read_files(DungeonIndex.list_files("res://data", errors), errors)
+	raw["encounters"] = DataBuildUtil.read_files(DisciplineIndex.nodes_files("res://data"), errors)
 	assert_eq(errors.size(), 0, str(errors))
 	return raw

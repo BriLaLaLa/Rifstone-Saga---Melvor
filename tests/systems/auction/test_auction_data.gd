@@ -19,6 +19,7 @@ func _errors(change: Callable) -> PackedStringArray:
 		raw[section] = DataBuildUtil.read_files(JsonLoader.list_json_files("res://data".path_join(GameData.CONTENT_DIRS[section]), errors), errors)
 	raw["guide"] = DataBuildUtil.read_files(DataValidatorGuide.list_files("res://data", errors), errors)
 	raw["dungeons"] = DataBuildUtil.read_files(DungeonIndex.list_files("res://data", errors), errors)
+	raw["encounters"] = DataBuildUtil.read_files(DisciplineIndex.nodes_files("res://data"), errors)
 	change.call(raw)
 	var found: PackedStringArray = []
 	DataValidator.validate(raw, found)
@@ -46,15 +47,15 @@ func _mentions(errors: PackedStringArray, text: String) -> bool:
 func test_the_real_data_is_valid_and_has_the_list() -> void:
 	assert_eq(_errors(func(_raw: Dictionary) -> void: pass), PackedStringArray())
 	var data: GameData = TestFactory.real_data()
-	assert_eq(data.auction_items().size(), 92)
+	assert_eq(data.auction_items().size(), 109)
 	var buyable: int = 0
 	var per_step: Dictionary = {}
 	for def: AuctionItemDef in data.auction_items():
 		if def.buy_level > 0:
 			buyable += 1
 			per_step[def.buy_level] = int(per_step.get(def.buy_level, 0)) + 1
-	assert_eq(buyable, 40)
-	assert_eq(per_step, {1: 5, 2: 5, 3: 5, 4: 5, 5: 5, 6: 5, 7: 5, 8: 5})
+	assert_eq(buyable, 48)
+	assert_eq(per_step, {1: 6, 2: 6, 3: 6, 4: 6, 5: 6, 6: 6, 7: 6, 8: 6})
 	assert_eq(data.auction_items()[0].item, &"redbirch_log", "materials first")
 	assert_eq(data.auction_item(&"riftite_plate").buy_level, 8)
 	assert_null(data.auction_item(&"test_unknown"))
@@ -75,7 +76,7 @@ func test_the_generator_tool_delegates_to_the_rule() -> void:
 	var gen: GDScript = load("res://tools/gen_auction.gd") as GDScript
 	var from_tool: Array = gen.call("entries", _all("res://data/items", "items"), _all("res://data/actions", "actions"),
 			TestFactory.real_data().balance_value("village.woodwright_levels")) as Array
-	assert_eq(from_tool.size(), 92)
+	assert_eq(from_tool.size(), 109)
 
 
 func test_generation_rule_on_a_small_table() -> void:
