@@ -24,12 +24,11 @@ var stone_modifiers: Array[Modifier] = []
 var currency_effect: StringName = &""
 var blueprint: BlueprintInfo = null  # M10: null unless category `blueprint`
 var bag_slots: int = 0  # M12: `bag.slots` of a category `bag` item (F-100); 0 otherwise
-var contract_skill: StringName = &""  # M12: `contract.skill` of a category `contract` item (a gathering skill)
-var contract_grade: StringName = &""  # M12: `contract.grade` (an id of helper.grades)
 var infusion_grade: int = 1  # M12: `infusion.grade` 1..5 (F-107), 1 when absent
 var infusion_family: StringName = &""  # M12: `infusion.family` (the id of the grade I rune); the own id when absent
 var map_grade: int = 0  # M13: `map.grade` 1..10 of a category `map` item (a Fracture Card base); 0 otherwise
 var dungeon: StringName = &""  # M22: the dungeon a `misc` ticket opens (docs/04_DATA_SCHEMA.md §27); &"" for any other item
+var recipe_action: StringName = &""  # M24 (docs/04_DATA_SCHEMA_M24.md §29.4): the action a category `recipe` item teaches; &"" for any other item
 
 
 static func from_dict(d: Dictionary) -> ItemDef:
@@ -76,11 +75,10 @@ static func from_dict(d: Dictionary) -> ItemDef:
 		var bag := DefReader.new(r.dict("bag"), r.context() + " bag")
 		def.bag_slots = bag.integer("slots")
 		r.absorb(bag.ok)
-	if r.has("contract") and r.is_dict("contract"):
-		var contract := DefReader.new(r.dict("contract"), r.context() + " contract")
-		def.contract_skill = contract.id("skill")
-		def.contract_grade = contract.id("grade")
-		r.absorb(contract.ok)
+	if r.has("recipe") and r.is_dict("recipe"):
+		var recipe := DefReader.new(r.dict("recipe"), r.context() + " recipe")
+		def.recipe_action = recipe.id("action")
+		r.absorb(recipe.ok)
 	if r.has("map") and r.is_dict("map"):
 		var map := DefReader.new(r.dict("map"), r.context() + " map")
 		def.map_grade = map.integer("grade")
@@ -116,8 +114,8 @@ func is_bag() -> bool:
 	return category == &"bag" and bag_slots > 0
 
 
-func is_contract() -> bool:
-	return category == &"contract" and contract_skill != &""
+func is_recipe() -> bool:
+	return category == &"recipe" and recipe_action != &""
 
 
 func is_map() -> bool:

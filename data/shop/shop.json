@@ -1,5 +1,5 @@
 {
-  "_doc": "Shop dell'MVP (02_FORMULAS.md §8.6). Senza voci per le corsie (sostituite dagli aiutanti, M12) e senza gli spazi del Deposito (borse, M12); nessuna voce `tools` dalla riforma M10 (gli attrezzi sono unici, nel kit iniziale).",
+  "_doc": "Shop dell'MVP (02_FORMULAS.md §8.6). Senza voci per le corsie e senza gli spazi del Deposito (borse, M12); nessuna voce `tools` dalla riforma M10 (gli attrezzi sono unici, nel kit iniziale).",
   "entries": [
     {"id": "auto_eat_1", "name": "Razioni da campo I", "category": "combat", "vendor": "bottegaia",
      "description": "Si mangia da soli quando i punti vita scendono.",

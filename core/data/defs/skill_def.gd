@@ -13,6 +13,7 @@ var icon: String = ""
 var color: Color = Color()
 var has_mastery: bool = false
 var level_modifiers: Array[LevelModifier] = []  # M10 (F-93): empty when absent
+var discipline: bool = false  # M24: learned from the Trainers (docs/04_DATA_SCHEMA_M24.md §29.1); false when absent
 
 
 static func from_dict(d: Dictionary) -> SkillDef:
@@ -27,6 +28,8 @@ static func from_dict(d: Dictionary) -> SkillDef:
 	def.icon = r.text("icon")
 	def.color = r.color("color")
 	def.has_mastery = r.flag("has_mastery")
+	if r.has("discipline"):
+		def.discipline = r.flag("discipline")
 	if r.has("level_modifiers"):
 		for entry: Dictionary in r.dict_list("level_modifiers"):
 			var level_mod: LevelModifier = LevelModifier.from_dict(entry)

@@ -119,8 +119,8 @@ func test_sort_puts_bags_after_materials_and_before_food() -> void:
 		order.append(stack["item"])
 	assert_lt(order.find(&"test_log"), order.find(SMALL), "material, then bag")
 	assert_lt(order.find(SMALL), order.find(&"seared_brookfin"), "bag, then food")
-	assert_lt(Bank.SORT_CATEGORIES.find(&"bag"), Bank.SORT_CATEGORIES.find(&"contract"))
-	assert_lt(Bank.SORT_CATEGORIES.find(&"contract"), Bank.SORT_CATEGORIES.find(&"food"))
+	assert_lt(Bank.SORT_CATEGORIES.find(&"bag"), Bank.SORT_CATEGORIES.find(&"recipe"))
+	assert_lt(Bank.SORT_CATEGORIES.find(&"recipe"), Bank.SORT_CATEGORIES.find(&"food"))
 
 
 func test_full_deposit_blocks_a_new_type_but_not_more_of_an_existing_one() -> void:

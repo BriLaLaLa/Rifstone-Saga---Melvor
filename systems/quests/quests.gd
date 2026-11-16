@@ -5,7 +5,7 @@ extends RefCounted
 ## The Bacheca level gives the stat `quest_slots` = the number of active quests (slots). There is no timer and no `advance`:
 ## a free slot receives the next quest (QuestPicker) only when the Bacheca grows, a quest is claimed or abandoned, or the
 ## character or a skill levels up. Progress counts only while the quest is active, with the same signals online and offline
-## (`monster_killed`, `action_completed`, `helper_completed`) and never exceeds the target. `new_game` and `from_save` set the
+## (`monster_killed`, `action_completed`) and never exceeds the target. `new_game` and `from_save` set the
 ## state without signals.
 
 const SAVE_KEY: StringName = &"quests"
@@ -45,7 +45,6 @@ func _init(session: GameSession) -> void:
 	_clear()
 	_events.monster_killed.connect(_on_monster_killed)
 	_events.action_completed.connect(_on_action_completed)
-	_events.helper_completed.connect(_on_helper_completed)
 	_events.modifiers_changed.connect(refill)
 	_events.character_level_up.connect(_on_character_level_up)
 	_events.level_up.connect(_on_level_up)
@@ -269,10 +268,6 @@ func _on_monster_killed(_index: int, _monster_id: StringName) -> void:
 
 func _on_action_completed(_lane: StringName, _skill: StringName, _action: StringName, outputs: Dictionary) -> void:
 	_count_outputs(outputs, [&"gather", &"craft"])
-
-
-func _on_helper_completed(_skill: StringName, _action: StringName, outputs: Dictionary) -> void:
-	_count_outputs(outputs, [&"gather"])
 
 
 func _count_outputs(outputs: Dictionary, types: Array[StringName]) -> void:

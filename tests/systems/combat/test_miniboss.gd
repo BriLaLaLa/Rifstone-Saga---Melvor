@@ -126,7 +126,7 @@ func test_the_miniboss_is_in_the_row_with_its_scaled_hp() -> void:
 
 
 func test_a_pending_rift_stone_goes_first_and_no_roll_follows_a_stone() -> void:
-	var s: GameSession = _session(100)
+	var s: GameSession = _session(100, 6)  # seed 6: the stone pity does not repeat on the next encounter
 	var d: Dictionary = s.combat.to_save()
 	d["stone"] = {"since": int(s.data.balance_value("rift_stone.pity_kills")) - 1, "pending": false, "stone_id": ""}
 	s.combat.from_save(d)

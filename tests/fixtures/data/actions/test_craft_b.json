@@ -1,0 +1,7 @@
+{
+  "skill": "test_craft_b",
+  "actions": [
+    {"id": "craft_secret", "name": "Segreto di prova", "level": 1, "interval_ms": 2000, "xp": 8,
+     "mastery": false, "discover": true, "inputs": [{"item": "test_sap", "qty": 1}], "outputs": [{"item": "test_plank", "qty": 1}]}
+  ]
+}

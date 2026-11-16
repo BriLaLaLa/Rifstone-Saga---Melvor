@@ -5,7 +5,7 @@ const SKILL: StringName = &"test_gather"
 const OTHER_SKILL: StringName = &"test_gather_b"
 const XP_PCT: StringName = &"skill_xp_pct"
 const SOURCE: StringName = &"test:xp"
-const FIXTURE_SKILL_COUNT: int = 4
+const FIXTURE_SKILL_COUNT: int = 5
 
 var _session: GameSession
 var _skills: SkillsSystem
@@ -98,6 +98,15 @@ func test_xp_grows_past_max_level_up_to_the_cap() -> void:
 	assert_eq(_skills.get_xp(SKILL), cap)
 	assert_signal_emit_count(_session.events, "xp_gained", 2)
 	assert_signal_emit_count(_session.events, "level_up", max_level - 1)
+
+
+## M24: `add_xp` has no share parameter any more (skill, amount, context): the F-02 result is the whole grant.
+func test_add_xp_takes_only_skill_amount_and_context() -> void:
+	for info: Dictionary in _skills.get_method_list():
+		if info["name"] == "add_xp":
+			assert_eq((info["args"] as Array).size(), 3)
+			assert_eq((info["default_args"] as Array).size(), 1, "only the context is optional")
+	assert_eq(_skills.add_xp(SKILL, 100), 100)
 
 
 func test_negative_xp_is_ignored() -> void:

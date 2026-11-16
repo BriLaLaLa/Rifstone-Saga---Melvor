@@ -51,16 +51,6 @@ const EXPECTED_BALANCE: Dictionary = {
 	"gathering.rift_shard_base_chance_pct": 0.5,
 	"deposit.base_slots": 60.0,
 	"deposit.bag_slots": 6.0,
-	"helper.xp_pct": 25.0,
-	"helper.mastery_pct": 25.0,
-	"helper.grades.0.id": "apprentice",
-	"helper.grades.0.interval_mult": 3.0,
-	"helper.grades.1.id": "journeyman",
-	"helper.grades.1.interval_mult": 2.5,
-	"helper.grades.2.id": "expert",
-	"helper.grades.2.interval_mult": 2.0,
-	"helper.grades.3.id": "master",
-	"helper.grades.3.interval_mult": 1.5,
 	"engraver.crystal_chance_min_pct": 40.0,
 	"engraver.crystal_chance_max_pct": 90.0,
 	"engraver.crystal_fail_loss_pct": 50.0,
@@ -246,9 +236,9 @@ func _flatten_without_loot(out: Dictionary) -> void:
 	for key: String in out.keys():
 		if key.begins_with("upgrade.") or key.begins_with("salvage.") or key.begins_with("tool_upgrade.") \
 				or key.begins_with("fracture.") or key.begins_with("equipment.") or key.begins_with("combat.armor.") \
-				or key.begins_with("loot.") or key.begins_with("mastery.step.") or key.begins_with("metin.") or key.begins_with("village.") or key.begins_with("quest.") or key.begins_with("dungeon.") or key.begins_with("miniboss.") or key.begins_with("auction."):
+				or key.begins_with("loot.") or key.begins_with("mastery.step.") or key.begins_with("metin.") or key.begins_with("village.") or key.begins_with("quest.") or key.begins_with("dungeon.") or key.begins_with("miniboss.") or key.begins_with("auction.") or key.begins_with("encounters.") or key.begins_with("disciplines.") or key.begins_with("trainer.") or key.begins_with("production."):
 			# fracture.* is covered by tests/core/data/test_map_data_validation.gd, equipment.* and combat.armor.* (M14) by
-			# tests/systems/combat/test_armor_math.gd and tests/core/data/test_weapon_validation.gd, loot.* (M14-05) by tests/data/test_loot_data.gd, metin.* (M15) by tests/data/test_metin_data.gd; mastery.step.* (M14-08) by tests/systems/mastery/test_mastery_step.gd, village.* (M19) by tests/systems/village/test_village_cost.gd, quest.* (M20) by tests/systems/quests/test_quest_formulas.gd, dungeon.* and miniboss.* (M22) by tests/systems/dungeon/test_dungeon_data.gd, auction.* (M23) by tests/systems/auction/test_auction_math.gd and test_auction_data.gd
+			# tests/systems/combat/test_armor_math.gd and tests/core/data/test_weapon_validation.gd, loot.* (M14-05) by tests/data/test_loot_data.gd, metin.* (M15) by tests/data/test_metin_data.gd; mastery.step.* (M14-08) by tests/systems/mastery/test_mastery_step.gd, village.* (M19) by tests/systems/village/test_village_cost.gd, quest.* (M20) by tests/systems/quests/test_quest_formulas.gd, dungeon.* and miniboss.* (M22) by tests/systems/dungeon/test_dungeon_data.gd, auction.* (M23) by tests/systems/auction/test_auction_math.gd and test_auction_data.gd, encounters.*, disciplines.*, trainer.* and production.* (M24) by tests/data/test_balance_invariants.gd
 			out.erase(key)
 
 

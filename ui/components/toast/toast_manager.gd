@@ -84,7 +84,6 @@ func _enter_tree() -> void:
 	_bound_events.action_stopped.connect(_on_events_action_stopped)
 	_bound_events.session_ended.connect(_on_events_session_ended)
 	_bound_events.mastery_milestone_reached.connect(_on_events_milestone_reached)
-	_bound_events.helper_blocked.connect(_on_events_helper_blocked)
 	_bound_events.fracture_finished.connect(_on_events_fracture_finished)
 	_bound_events.dungeon_finished.connect(_on_events_dungeon_finished)
 	_bound_events.dungeon_trap_triggered.connect(_on_events_dungeon_trap_triggered)
@@ -102,7 +101,6 @@ func _exit_tree() -> void:
 	_bound_events.action_stopped.disconnect(_on_events_action_stopped)
 	_bound_events.session_ended.disconnect(_on_events_session_ended)
 	_bound_events.mastery_milestone_reached.disconnect(_on_events_milestone_reached)
-	_bound_events.helper_blocked.disconnect(_on_events_helper_blocked)
 	_bound_events.fracture_finished.disconnect(_on_events_fracture_finished)
 	_bound_events.dungeon_finished.disconnect(_on_events_dungeon_finished)
 	_bound_events.dungeon_trap_triggered.disconnect(_on_events_dungeon_trap_triggered)
@@ -170,20 +168,12 @@ func _on_toast_dismissed(toast: Toast) -> void:
 
 
 func _on_events_notification_requested(text: String, kind: StringName) -> void:
-	if text == HelperSystem.BLOCKED_TEXT:
-		return  # replaced by the toast of `helper_blocked`, which names the trade
 	push(text, kind)
 
 
 ## "Traguardo di maestria: <risorsa> (25/50/99)".
 func _on_events_milestone_reached(_skill_id: StringName, action_id: StringName, at: int) -> void:
 	push(MILESTONE_TEXT % [action_resolver.call(action_id) as String, NumberFormat.format_int(at)], KIND_SUCCESS)
-
-
-## "L'aiutante del <mestiere> è fermo: Deposito pieno" when it stops.
-func _on_events_helper_blocked(skill_id: StringName, blocked: bool) -> void:
-	if blocked:
-		push(HelperTexts.BLOCKED_TOAST_TEXT % _display_name(skill_id), KIND_WARNING)
 
 
 ## "Frattura vinta! ..." / "Frattura persa: bottino perduto" / "Frattura abbandonata" (texts: FractureTexts).

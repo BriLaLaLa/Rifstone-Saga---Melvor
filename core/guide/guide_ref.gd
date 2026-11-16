@@ -17,7 +17,6 @@ const KIND_FOOD: StringName = &"food"
 const KIND_LOOT_TABLE: StringName = &"loot_table"
 const KIND_MILESTONE: StringName = &"milestone"
 const KIND_BAG: StringName = &"bag"
-const KIND_CONTRACT: StringName = &"contract"
 const KIND_FRACTURE: StringName = &"fracture"
 const KIND_DUNGEON: StringName = &"dungeon"
 const KIND_POOL: StringName = &"pool"  # M14: the drop pool of equipment and blueprints (F-121), by area

@@ -54,6 +54,35 @@ func test_add_for_action_gives_mastery_and_pool_share() -> void:
 	assert_signal_not_emitted(_session.events, "mastery_level_up")
 
 
+## M24: `cycles` = 3 gives 3 x F-10 (here 3 x 3 = 9) and the F-12 share of the total (round(9 x 20 / 100) = 2, not 3 x 1).
+func test_add_for_action_with_cycles_is_cycles_times_f10_and_the_pool_of_the_total() -> void:
+	watch_signals(_session.events)
+	assert_eq(_mastery.add_for_action(_action(TWIG), 3), 9)
+	assert_eq(_mastery.get_mastery_xp(TWIG), 9)
+	assert_eq(_mastery.get_pool(SKILL), 2)
+	assert_signal_emitted_with_parameters(_session.events, "mastery_xp_gained", [SKILL, TWIG, 9])
+	assert_signal_emitted_with_parameters(_session.events, "mastery_pool_changed", [SKILL, 2])
+
+
+func test_add_for_action_with_one_cycle_is_the_default() -> void:
+	assert_eq(_mastery.add_for_action(_action(TWIG), 1), 3)
+	assert_eq(_mastery.get_pool(SKILL), 1)
+
+
+func test_add_for_action_with_no_cycles_is_an_error_and_changes_nothing() -> void:
+	assert_eq(_mastery.add_for_action(_action(TWIG), 0), 0)
+	assert_push_error("add_for_action with 0 cycles")
+	assert_eq(_mastery.add_for_action(_action(TWIG), -2), 0)
+	assert_push_error("add_for_action with -2 cycles")
+	assert_eq(_mastery.get_mastery_xp(TWIG), 0)
+	assert_eq(_mastery.get_pool(SKILL), 0)
+
+
+func test_add_for_action_with_cycles_on_an_action_without_mastery_changes_nothing() -> void:
+	assert_eq(_mastery.add_for_action(_action(BUNDLE), 5), 0)
+	assert_eq(_mastery.get_pool(SKILL), 0)
+
+
 ## R of F-10 uses the mastery levels of the skill's mastery actions: (99 + 1) / (99 × 2).
 func test_skill_ratio_uses_mastery_levels() -> void:
 	_load({SKILL: {"actions": {TWIG: _table.xp_for_level(99)}}})

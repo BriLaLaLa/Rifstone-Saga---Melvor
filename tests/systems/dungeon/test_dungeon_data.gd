@@ -218,7 +218,7 @@ func test_the_loot_table_has_no_cards_and_no_contracts() -> void:
 	for table: Variant in tables:
 		if (table as Dictionary)["id"] == "test_monster_loot":
 			((table as Dictionary)["entries"] as Array).append({"item": "fracture_card_1", "chance_pct": 5, "qty": [1, 1]})
-	_expect(raw, ["field 'loot_table'", "no Cards and no Contracts"])
+	_expect(raw, ["field 'loot_table'", "a dungeon table has no Cards"])
 
 
 func test_the_ticket_must_belong_to_the_dungeon() -> void:

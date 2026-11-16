@@ -1,6 +1,6 @@
 extends GutTest
-## M12-06: toasts of the mastery milestones and of a blocked helper, and the layout of the new pages at 1600x900 and
-## 1280x720 (Deposit with the bag slots, a gathering page with the helper row, the Engraver page).
+## M12-06: toasts of the mastery milestones, and the layout of the new pages at 1600x900 and
+## 1280x720 (Deposit with the bag slots, a gathering page, the Engraver page).
 
 const BANK_SCENE: PackedScene = preload("res://ui/pages/bank/bank_page.tscn")
 const SKILL_SCENE: PackedScene = preload("res://ui/pages/skill/skill_page.tscn")
@@ -34,14 +34,6 @@ func after_each() -> void:
 func test_milestone_toast_names_the_resource_and_the_step() -> void:
 	_events.mastery_milestone_reached.emit(&"forestry", &"cut_redbirch", 25)
 	assert_eq(_texts(), PackedStringArray(["Traguardo di maestria: res cut_redbirch (25)"]))
-
-
-func test_blocked_helper_toast_names_the_trade_and_the_generic_one_is_dropped() -> void:
-	_events.helper_blocked.emit(&"forestry", true)
-	_events.notification_requested.emit(HelperSystem.BLOCKED_TEXT, &"warning")
-	assert_eq(_texts(), PackedStringArray(["L'aiutante del skill forestry è fermo: Deposito pieno"]))
-	_events.helper_blocked.emit(&"forestry", false)
-	assert_eq(_texts().size(), 1, "no toast when it restarts")
 
 
 func test_new_pages_fit_at_both_resolutions() -> void:

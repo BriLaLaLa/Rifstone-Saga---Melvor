@@ -14,8 +14,6 @@ extends RefCounted
 const DOUBLE_STAT: StringName = &"double_item_chance"
 const SHARD_STAT: StringName = &"rift_shard_chance"
 const SHARD_BASE_KEY: String = "gathering.rift_shard_base_chance_pct"
-const HELPER_XP_KEY: String = "helper.xp_pct"
-const HELPER_MASTERY_KEY: String = "helper.mastery_pct"
 const SHARD_ITEM: StringName = &"rift_shard"
 const SHARD_QTY: int = 1
 const BYPRODUCT_QTY: int = 1  # F-103: never doubled
@@ -24,15 +22,10 @@ const BONUS_QTY: int = 1  # F-120 gather_bonus_item: never doubled
 const DOUBLE_FACTOR: int = 2
 
 
-## `helper_grade` non-empty (M12, F-101/F-102) = the helper profile: the context ignores the player's tool
-## (`ModifierContext.for_helper`), xp and mastery are the `helper.xp_pct` / `helper.mastery_pct` share; the rolls are the same.
-static func resolve(session: GameSession, action: ActionDef, helper_grade: StringName = &"") -> ActionOutcome:
+static func resolve(session: GameSession, action: ActionDef) -> ActionOutcome:
 	var outcome := ActionOutcome.new()
-	var is_helper: bool = helper_grade != &""
 	var ctx: ModifierContext = ModifierContext.for_action(action.skill_id, action.id)
-	if is_helper:
-		ctx = ModifierContext.for_helper(action.skill_id, action.id)
-	var gather: GatherContext = null if is_helper else GatherEffects.roll(session, action)  # F-120
+	var gather: GatherContext = GatherEffects.roll(session, action)  # F-120
 	var worked: ActionDef = gather.upgraded_action if gather != null and gather.grade_up else action
 	var factor: int = DOUBLE_FACTOR if session.rng.roll_pct(session.modifiers.total(DOUBLE_STAT, ctx)) else 1
 	var produced: Dictionary[StringName, int] = {}
@@ -54,10 +47,8 @@ static func resolve(session: GameSession, action: ActionDef, helper_grade: Strin
 		var added: CommandResult = session.bank.add(item_id, produced[item_id])
 		assert(added.ok, "bank.add failed after the room check")
 	outcome.outputs = produced
-	var xp_share: float = float(session.data.balance_value(HELPER_XP_KEY)) if is_helper else 100.0
-	var mastery_share: float = float(session.data.balance_value(HELPER_MASTERY_KEY)) if is_helper else 100.0
-	outcome.xp = session.skills.add_xp(action.skill_id, action.xp, ctx, xp_share)
-	outcome.mastery_xp = session.mastery.add_for_action(action, mastery_share)
+	outcome.xp = session.skills.add_xp(action.skill_id, action.xp, ctx)
+	outcome.mastery_xp = session.mastery.add_for_action(action)
 	outcome.ok = true
 	return outcome
 

@@ -6,7 +6,7 @@ extends RefCounted
 
 const TABLE_FIELDS: PackedStringArray = ["id", "entries"]
 const ENTRY_FIELDS: PackedStringArray = ["item", "chance_pct", "qty"]
-const CATEGORIES: PackedStringArray = ["material", "stone", "currency", "bag", "contract", "map", "misc"]  # M13: Cards; M22: misc (the dungeon ticket)
+const CATEGORIES: PackedStringArray = ["material", "stone", "currency", "bag", "recipe", "map", "misc"]  # M13: Cards; M22: misc (the dungeon ticket); M24: Recipes
 const ENTRIES_MAX: int = 24
 const CHANCE_MIN: float = 0.01
 

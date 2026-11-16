@@ -7,9 +7,6 @@ extends GutTest
 const TIERS: Dictionary = {"redrock_plains": 0, "whisper_wood": 1, "dry_uplands": 1, "cracked_mines": 2, "ash_marsh": 2,
 		"weeping_gorge": 2, "rift_threshold": 3, "black_glass_desert": 3, "sunken_citadel": 3, "rift_heart": 3}
 const FAMILIES: Array[String] = ["ember", "eye", "shade", "root"]
-const TRADES: Array[String] = ["forestry", "quarrying", "angling"]
-## The contract grade of each tier: the highest one dropped there and the grade of its Monolito.
-const MAX_GRADE: Array[String] = ["apprentice", "journeyman", "expert", "master"]
 
 var _data: GameData
 
@@ -69,14 +66,10 @@ func test_bags_of_the_areas() -> void:
 		assert_eq(_chance(table, "bag_runic"), -1.0, "the runic bag falls only from the Monoliti")
 
 
-func test_contract_grades_by_tier() -> void:
-	# [apprentice, journeyman, expert, master] chance per trade, in the areas of each tier (0.005% is under the 0.01% minimum: 0.01)
-	var want: Array = [[0.02, -1.0, -1.0, -1.0], [0.02, 0.015, -1.0, -1.0], [-1.0, 0.015, 0.01, -1.0], [-1.0, -1.0, 0.01, 0.01]]
-	for area_id: String in TIERS:
-		for trade: String in TRADES:
-			for index: int in 4:
-				assert_eq(_chance("loot_area_" + area_id, "contract_%s_%s" % [trade, MAX_GRADE[index]]), (want[TIERS[area_id]] as Array)[index],
-						"%s %s %d" % [area_id, trade, index])
+func test_no_item_of_a_removed_category_drops() -> void:
+	for table: LootTableDef in _data.loot_tables():
+		for entry: DropEntry in table.entries:
+			assert_true(_data.has_item(entry.item_id), String(entry.item_id))
 
 
 func test_monolith_tables_follow_8_5b() -> void:
@@ -88,8 +81,6 @@ func test_monolith_tables_follow_8_5b() -> void:
 			assert_eq([_chance(table, "stone_%s_chip" % family), _qty(table, "stone_%s_chip" % family)], [100.0, [2, 4] as Array[int]], table)
 			assert_eq(_chance(table, "stone_%s_stone" % family), 20.0, table)
 		assert_eq([_chance(table, "currency_spark"), _chance(table, "currency_flux"), _chance(table, "currency_crown")], [15.0, 10.0, 5.0], table)
-		for trade: String in TRADES:
-			assert_eq(_chance(table, "contract_%s_%s" % [trade, MAX_GRADE[tier]]), 2.0, table)
 		assert_eq(_chance(table, "bag_runic"), 5.0 if tier == 3 else -1.0, "only the Monoliti of the last four areas drop the runic bag")
 
 
@@ -102,9 +93,6 @@ func test_every_new_drop_item_has_a_source_in_the_tables() -> void:
 		assert_true(dropped.has(StringName(id)), id)
 	for family: String in FAMILIES:
 		assert_true(dropped.has(StringName("stone_%s_chip" % family)), family)
-	for trade: String in TRADES:
-		for grade: String in MAX_GRADE:
-			assert_true(dropped.has(StringName("contract_%s_%s" % [trade, grade])), "%s %s" % [trade, grade])
 
 
 func test_the_tiers_cover_the_areas_in_order() -> void:

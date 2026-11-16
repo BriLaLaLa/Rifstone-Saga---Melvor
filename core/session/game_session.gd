@@ -16,10 +16,9 @@ const RNG_KEY: String = "rng"
 # Advance phases, in the fixed order of docs/01_GDD.md §2.
 const _PHASE_FRACTURES: int = 0
 const _PHASE_ACTIONS: int = 1
-const _PHASE_HELPERS: int = 2  # M12
-const _PHASE_COMBAT: int = 3
-const _PHASE_AUCTION: int = 4  # M23: the market clock (F-145); not frozen with the combat
-const _PHASE_COUNT: int = 5
+const _PHASE_COMBAT: int = 2
+const _PHASE_AUCTION: int = 3  # M23: the market clock (F-145); not frozen with the combat
+const _PHASE_COUNT: int = 4
 
 var data: GameData
 var events: GameEvents
@@ -38,7 +37,6 @@ var dungeon: DungeonSystem  # M22-04
 var equipment: Equipment
 var loadout: Loadout
 var actions: ActionRunner
-var helpers: HelperSystem
 var combat: CombatEngine
 var shop: Shop
 var rift: RiftAltar
@@ -76,7 +74,7 @@ func new_game() -> void:
 	rebuild_modifiers()
 
 
-## One fixed step: fractures, actions, helpers, combat (only the systems that exist), then play time. `freeze_combat`
+## One fixed step: fractures, actions, combat (only the systems that exist), then play time. `freeze_combat`
 ## (offline, with a dungeon run: F-144 rule 2) leaves the combat and the run where they are; the rest advances.
 func advance(delta_ms: int, freeze_combat: bool = false) -> void:
 	for phase: int in _steps.size():
@@ -171,9 +169,6 @@ func _create_systems() -> void:
 	actions = ActionRunner.new(self)
 	_join(ActionRunner.SAVE_KEY, actions.new_game, actions.to_save, actions.from_save)
 	_tick(_PHASE_ACTIONS, actions.advance)
-	helpers = HelperSystem.new(self)
-	_join(HelperSystem.SAVE_KEY, helpers.new_game, helpers.to_save, helpers.from_save)
-	_tick(_PHASE_HELPERS, helpers.advance)
 	combat = CombatEngine.new(self)
 	_join(CombatEngine.SAVE_KEY, combat.new_game, combat.to_save, combat.from_save, combat.rebuild_modifiers)
 	_tick(_PHASE_COMBAT, combat.advance)

@@ -77,16 +77,23 @@
       "craft": {"base": 30, "per_tier": 4, "gold_mult": 1.0, "xp_cycles": 60, "mult": {"forging": 1, "hearthcraft": 3, "woodwright": 4}}
     }
   },
-  "helper": {
-    "xp_pct": 25,
-    "mastery_pct": 25,
-    "grades": [
-      {"id": "apprentice", "interval_mult": 3.0},
-      {"id": "journeyman", "interval_mult": 2.5},
-      {"id": "expert", "interval_mult": 2.0},
-      {"id": "master", "interval_mult": 1.5}
+  "encounters": {
+    "travel_ms": 1500,
+    "node_chance_pct": 0,
+    "node_ms": 12000,
+    "node_min_ms": 3000,
+    "skip_ms": 1500,
+    "node_units": 80,
+    "colors": [
+      {"id": "orange", "below": 10, "xp_pct": 100},
+      {"id": "yellow", "below": 20, "xp_pct": 50},
+      {"id": "green", "below": 30, "xp_pct": 20},
+      {"id": "grey", "below": 100, "xp_pct": 0}
     ]
   },
+  "disciplines": {"max_per_category": 2},
+  "trainer": {"learn_gold": 0, "gold_base": 250, "gold_growth": 5, "skill_margin": 5, "unlearn_pct": 50, "unlearn_min_gold": 100},
+  "production": {"queue_slots": 5, "max_job_count": 9999},
   "engraver": {
     "crystal_chance_min_pct": 40,
     "crystal_chance_max_pct": 90,

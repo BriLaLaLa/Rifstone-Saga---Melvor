@@ -1,7 +1,7 @@
 class_name GatherEffects
 extends RefCounted
-## The `on_gather` effects of the legendary tools worn (F-120) for one cycle of a gathering action of the player (never of a
-## helper). No state: `roll` draws on `session.rng` in the order of the effects, and only if some effect is worn.
+## The `on_gather` effects of the legendary tools worn (F-120) for one cycle of a gathering action of the player.
+## No state: `roll` draws on `session.rng` in the order of the effects, and only if some effect is worn.
 
 const TYPES: Array[StringName] = [&"gather_bonus_item", &"gather_grade_up_pct", &"byproduct_mult"]
 

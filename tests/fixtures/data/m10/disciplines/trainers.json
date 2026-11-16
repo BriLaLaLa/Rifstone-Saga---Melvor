@@ -1,0 +1,12 @@
+{
+  "_doc": "Test fixture (04_DATA_SCHEMA_M24.md §29.9): three grades; the last cap is xp_curve.max_level.",
+  "grades": [
+    {"id": "novice", "name": "Novizio di prova", "cap": 20, "character_level": 1},
+    {"id": "worker", "name": "Lavorante di prova", "cap": 60, "character_level": 15},
+    {"id": "luminary", "name": "Luminare di prova", "cap": 99, "character_level": 75}
+  ],
+  "trainers": [
+    {"skill": "test_gather", "name": "Maestro di prova", "title": "Maestro della raccolta", "description": "Insegna la raccolta di prova."},
+    {"skill": "test_craft", "name": "Maestra di prova", "title": "Maestra dell'artigianato", "description": "Insegna l'artigianato di prova.", "fed_by": ["test_gather"]}
+  ]
+}

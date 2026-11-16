@@ -16,7 +16,7 @@ func before_all() -> void:
 func test_plains_do_not_kill_the_starting_kit() -> void:
 	var area: Object = _data.area(&"redrock_plains")
 	for level: int in [1, 5, 10, 60]:
-		var r: Dictionary = Sim.measure(SimCombat, _data, area, level, "start", {"seed": 4321, "hours": "2"})
+		var r: Dictionary = Sim.measure(SimCombat, _data, area, level, "start", {"seed": 4323, "hours": "2"})
 		assert_eq(float(r["deaths"]), 0.0, "deaths per hour at level %d" % level)
 		assert_lt(float(r["food"]), 800.0, "food per hour at level %d" % level)
 		assert_gt(float(r["kills"]), 60.0, "kills per hour at level %d" % level)

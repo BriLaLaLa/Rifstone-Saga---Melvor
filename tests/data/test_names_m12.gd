@@ -1,6 +1,6 @@
 extends GutTest
 ## Visible names of the Riforma 2 in the real data against docs/NOMI.md (section Riforma 2): the Engraver, Rift Dust and
-## Rune Slab, the Crystals, the stones, the bags, the contracts, the runes by grade, the Monoliti del Rift; and no old name
+## Rune Slab, the Crystals, the stones, the bags, the runes by grade, the Monoliti del Rift; and no old name
 ## in any text of data/.
 
 const OLD_NAMES: PackedStringArray = ["Legatura del Rift", "Scintilla del Rift", "Sabbia del mutamento", "Essenza del Rift",
@@ -10,8 +10,6 @@ const FIXED: Dictionary = {
 	"currency_spark": "Cristallo del risveglio", "currency_crown": "Cristallo dell'ascesa", "currency_flux": "Cristallo del mutamento",
 	"bag_canvas": "Borsa di tela", "bag_leather": "Borsa di cuoio", "bag_reinforced": "Borsa rinforzata",
 	"bag_wayfarer": "Borsa del viandante", "bag_runic": "Borsa runica",
-	"contract_forestry_journeyman": "Contratto: Garzone boscaiolo", "contract_quarrying_apprentice": "Contratto: Apprendista minatore",
-	"contract_angling_expert": "Contratto: Esperto pescatore", "contract_forestry_master": "Contratto: Maestro boscaiolo",
 	"stone_ember_heart": "Pietra perfetta di forza", "stone_eye_chip": "Scheggia di precisione",
 	"stone_shade_stone": "Pietra di agilità", "stone_root_heart": "Pietra perfetta di tempra",
 }

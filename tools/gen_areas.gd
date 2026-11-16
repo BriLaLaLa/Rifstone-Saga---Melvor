@@ -51,17 +51,9 @@ const TICKET_ITEM: String = "dungeon_ticket_monkey_den"
 const TICKET_MIN_LEVEL: int = 31
 const TICKET_MINIBOSS_PCT: float = 12.0
 const TICKET_MONOLITH_PCT: float = 5.0
-## The table of the monsters of the Monkey Den (F-142): dust, the four chips, a leather bag; no Cards, no Contracts.
+## The table of the monsters of the Monkey Den (F-142): dust, the four chips, a leather bag; no Cards.
 const DUNGEON_TABLE_ID: String = "loot_dungeon_monkey_den"
-const TRADES: Array[String] = ["forestry", "quarrying", "angling"]
 const FAMILIES: Array[String] = ["ember", "eye", "shade", "root"]
-## Contract grades dropped by each tier of areas (and by the Monoliti): [grade, area chance, Monolith chance].
-const CONTRACTS: Array = [
-	[["apprentice", 0.02, 2.0]],
-	[["apprentice", 0.02, -1.0], ["journeyman", 0.015, 2.0]],
-	[["journeyman", 0.015, -1.0], ["expert", 0.01, 2.0]],
-	[["expert", 0.01, -1.0], ["master", 0.01, 2.0]],
-]
 ## Fracture Cards per tier: [card item, area chance, Monolith chance].
 const CARDS: Array = [
 	[["fracture_card_1", 0.16, 15.0]],
@@ -296,9 +288,6 @@ func _area_table(area: Dictionary) -> Dictionary:
 		for family: String in FAMILIES:
 			entries.append(_entry("stone_%s_stone" % family, 0.05))
 		entries.append_array([_entry("currency_spark", 0.05), _entry("currency_flux", 0.03), _entry("currency_crown", 0.02)])
-	for grade: Array in CONTRACTS[tier]:
-		for trade: String in TRADES:
-			entries.append(_entry("contract_%s_%s" % [trade, grade[0]], grade[1]))
 	if tier <= 1:
 		entries.append(_entry("bag_leather", 0.05))
 	elif tier == 2:
@@ -320,10 +309,6 @@ func _monolith_table(area: Dictionary) -> Dictionary:
 	entries.append_array([_entry("currency_spark", 15), _entry("currency_flux", 10), _entry("currency_crown", 5)])
 	if tier == 3:
 		entries.append(_entry("bag_runic", 5))
-	for grade: Array in CONTRACTS[tier]:
-		if float(grade[2]) > 0.0:
-			for trade: String in TRADES:
-				entries.append(_entry("contract_%s_%s" % [trade, grade[0]], grade[2]))
 	for card: Array in CARDS[tier]:
 		if float(card[2]) > 0.0:
 			entries.append(_entry(card[0], card[2]))
@@ -332,7 +317,7 @@ func _monolith_table(area: Dictionary) -> Dictionary:
 	return {"id": "loot_monolith_" + (area["id"] as String), "entries": entries}
 
 
-## The table of the monsters of the Monkey Den (F-142): no Card and no Contract.
+## The table of the monsters of the Monkey Den (F-142): no Card.
 func _dungeon_table() -> Dictionary:
 	var entries: Array = [_entry("rift_dust", 6)]
 	for family: String in FAMILIES:

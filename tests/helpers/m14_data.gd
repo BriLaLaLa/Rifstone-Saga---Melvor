@@ -55,25 +55,11 @@ static func _content_root() -> String:
 		_merge(_root.path_join("items/tools.json"), EXTRA_ROOT.path_join("tools.json"), "items")
 		_merge(_root.path_join("combat/monsters.json"), EXTRA_ROOT.path_join("monsters.json"), "monsters")
 		_merge(_root.path_join("skills/skills.json"), EXTRA_ROOT.path_join("skills.json"), "skills")
-		_add_contracts(_root.path_join("items/contracts.json"))
 		for file_name: String in DirAccess.get_files_at(EXTRA_ROOT.path_join("actions")):
 			if file_name.ends_with(".json"):
 				_write(_root.path_join("actions").path_join(file_name),
 						FileAccess.get_file_as_string(EXTRA_ROOT.path_join("actions").path_join(file_name)))
 	return _root
-
-
-# The helpers need one contract per gathering skill and grade (M12): the new skills get theirs.
-static func _add_contracts(path: String) -> void:
-	var target: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(path))
-	var order: int = 1000
-	for skill: String in ["forestry", "quarrying", "angling"]:
-		for grade: String in ["apprentice", "journeyman", "expert", "master"]:
-			order += 10
-			(target["items"] as Array).append({"id": "contract_%s_%s" % [skill, grade], "name": "Contratto di prova %s %s" % [skill, grade],
-					"category": "contract", "icon": "res://assets/icons/items/contract_test_gather.png", "value": 0, "sort_order": order,
-					"description": "Contratto di prova per un aiutante.", "contract": {"skill": skill, "grade": grade}})
-	_write(path, JSON.stringify(target))
 
 
 # Appends the `key` list of `extra_path` to the same list of the JSON at `target_path`.

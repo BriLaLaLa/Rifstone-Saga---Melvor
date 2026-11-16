@@ -9,27 +9,18 @@
        {"type": "table", "source": "bags"},
        {"type": "links", "targets": ["item:bag_canvas", "item:bag_reinforced", "skill:woodwright", "page:guide_bank_shop"]}
      ]},
-    {"id": "guide_helpers", "section": "crafts", "title": "Aiutanti", "order": 3,
-    
-     "blocks": [
-       {"type": "text", "text": "Ogni mestiere di raccolta può avere un aiutante: un solo aiutante per mestiere. Lo assumi con un contratto, che trovi come bottino. Lavora su una risorsa che scegli tu, anche mentre combatti o fai altro, e anche a gioco chiuso."},
-       {"type": "text", "text": "L'aiutante impiega più tempo di te per ogni ciclo, tanto meno quanto più è alto il grado, e guadagna una parte dell'esperienza e della maestria: {balance:helper.xp_pct|pct} dell'esperienza e {balance:helper.mastery_pct|pct} della maestria. Un contratto di grado più alto sostituisce l'aiutante; uno di grado uguale o più basso non si consuma."},
-       {"type": "text", "text": "Se il Deposito è pieno l'aiutante si ferma e aspetta: libera spazio e riparte da solo, senza perdere il ciclo in corso."},
-       {"type": "table", "source": "helper_grades"},
-       {"type": "links", "targets": ["skill:forestry", "skill:quarrying", "skill:angling", "page:guide_deposit"]}
-     ]},
     {"id": "guide_resource_mastery", "section": "crafts", "title": "Maestria per risorsa", "order": 4,
     
      "blocks": [
        {"type": "text", "text": "Nei mestieri di raccolta ogni risorsa ha tre traguardi di maestria. Al primo ottieni, con una piccola probabilità ({balance:mastery.milestones.byproduct_chance_pct|pct}), un sottoprodotto in più ogni volta che raccogli. Al secondo la risorsa migliora. Al terzo il mestiere intero migliora."},
-       {"type": "text", "text": "I traguardi sono alla maestria {balance:mastery.milestones.byproduct_at|int}, {balance:mastery.milestones.resource_at|int} e {balance:mastery.milestones.trade_at|int}; scattano anche per le risorse raccolte dall'aiutante. Il pool e i nodi dell'albero restano per mestiere."},
+       {"type": "text", "text": "I traguardi sono alla maestria {balance:mastery.milestones.byproduct_at|int}, {balance:mastery.milestones.resource_at|int} e {balance:mastery.milestones.trade_at|int}; scattano anche per le risorse raccolte ai nodi. Il pool e i nodi dell'albero restano per mestiere."},
        {"type": "heading", "text": "Boscaiolo"},
        {"type": "table", "source": "mastery_milestones:forestry"},
        {"type": "heading", "text": "Minatore"},
        {"type": "table", "source": "mastery_milestones:quarrying"},
        {"type": "heading", "text": "Pescatore"},
        {"type": "table", "source": "mastery_milestones:angling"},
-       {"type": "links", "targets": ["page:guide_mastery", "page:guide_helpers"]}
+       {"type": "links", "targets": ["page:guide_mastery"]}
      ]},
     {"id": "guide_engraver", "section": "crafts", "title": "Incisore", "order": 5,
      "help_for": ["skill:riftbinding"],

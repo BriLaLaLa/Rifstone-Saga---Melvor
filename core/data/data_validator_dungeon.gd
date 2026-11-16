@@ -30,7 +30,7 @@ const PIECES_MAX: int = 3
 const CRYSTALS_MAX: int = 5
 const CARD_GRADE_MAX: int = 10
 const RARITIES: PackedStringArray = ["common", "magic", "rare"]
-const FORBIDDEN_TABLE_CATEGORIES: PackedStringArray = ["map", "contract"]  # no Cards and no Contracts in a dungeon table
+const FORBIDDEN_TABLE_CATEGORIES: PackedStringArray = ["map"]  # no Cards in a dungeon table
 const MINIBOSS_KEYS: PackedStringArray = ["chance_pct", "hp_mult", "power_mult", "xp_mult", "gold_mult"]
 const REVEAL_MS_MIN: int = 500  # `dungeon.reveal_ms`: the banner of the UI (GDD §33.8)
 const REVEAL_MS_MAX: int = 10000
@@ -341,7 +341,7 @@ static func _boss(v: DataValidatorRules, d: Dictionary) -> void:
 	DataValidatorClasses.drops(v, boss)
 
 
-# `loot_table`: an existing table without Cards and Contracts.
+# `loot_table`: an existing table without Cards.
 static func _loot_table(v: DataValidatorRules, d: Dictionary, tables: Dictionary[StringName, Dictionary]) -> void:
 	if not v.ref(d, "loot_table", tables, "loot table"):
 		return
@@ -350,7 +350,7 @@ static func _loot_table(v: DataValidatorRules, d: Dictionary, tables: Dictionary
 			continue
 		var item: StringName = StringName(str((entry as Dictionary).get("item")))
 		if v.items.has(item) and FORBIDDEN_TABLE_CATEGORIES.has(str(v.items[item].get("category"))):
-			v.fail("field 'loot_table': '%s' holds '%s' (%s), a dungeon table has no Cards and no Contracts"
+			v.fail("field 'loot_table': '%s' holds '%s' (%s), a dungeon table has no Cards"
 					% [d["loot_table"], item, v.items[item].get("category")])
 
 

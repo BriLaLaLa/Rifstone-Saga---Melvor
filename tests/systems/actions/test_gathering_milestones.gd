@@ -1,6 +1,6 @@
 extends GutTest
 ## GatheringResolver and the byproduct of mastery milestone 25 (F-103): mastery level gate, chance 100 / 0, order of the
-## rolls (double F-06, shard F-07, byproduct), never doubled, helper profile (F-102).
+## rolls (double F-06, shard F-07, byproduct), never doubled.
 ##
 ## Fixture: gather_twig -> byproduct test_resin, gather_log -> test_sap (chance `mastery.milestones.byproduct_chance_pct`).
 
@@ -82,14 +82,6 @@ func test_roll_order_is_double_then_shard_then_byproduct() -> void:
 		assert_eq(outcome.outputs.has(RESIN), byproduct)
 		seen_byproduct += 1 if byproduct else 0
 	assert_gt(seen_byproduct, 0)
-
-
-## F-102: the helper profile has the same milestones (the mastery level is the action's).
-func test_the_helper_gets_the_same_byproduct() -> void:
-	var session: GameSession = _session_with_chance(100.0)
-	_set_mastery(session, {TWIG: _table.xp_for_level(25)})
-	var outcome: ActionOutcome = GatheringResolver.resolve(session, session.data.action(TWIG), &"expert")
-	assert_eq(outcome.outputs[RESIN], 1)
 
 
 ## An action without mastery has no mastery level, so no byproduct.

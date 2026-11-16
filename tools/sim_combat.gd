@@ -15,7 +15,6 @@ extends SceneTree
 ##   loadout=none|auto    auto fills the open trait and ability slots with the first unlocked ones the assembly allows (default none)
 ##   loot=0|1             1 adds the M7 tables: pieces by rarity, Rift Stones and the expected cost of refinement (default 0)
 ##   material=plate|leather|cloth   material of the worn armour and shield (default plate: the highest Armour)
-##   helpers|engraver|deposit=0|1, collect=<min>   M12-07 measurements (tools/sim_m12.gd)
 ##   root=<res path>      content root (default res://data), config root is res://data/config
 ## Nothing is written. GameData and the sessions use the Log autoload, which does not exist while this `-s` script is
 ## compiled: they are reached through paths and dynamic calls. Output goes through print_rich/printerr.
@@ -31,7 +30,7 @@ const ARMOR_SLOTS: Array[StringName] = [&"body", &"legs", &"head", &"feet", &"ha
 const DEFAULTS: Dictionary = {
 	"area": "all", "scope": "both", "hours": "1", "seed": "1234", "grade": "auto", "setup": "sword_shield",
 	"level": "auto", "tier": "auto", "food": "1000000", "slice": "30", "root": "res://data", "loot": "0",
-	"loadout": "none", "material": "plate", "helpers": "0", "engraver": "0", "deposit": "0", "collect": "10",
+	"loadout": "none", "material": "plate",
 }
 
 
@@ -70,8 +69,6 @@ func run(args: PackedStringArray) -> int:
 ## Runs every requested measurement and returns the table lines.
 static func report(data: Object, opts: Dictionary) -> PackedStringArray:
 	var lines: PackedStringArray = PackedStringArray()
-	if "1" in [opts["helpers"], opts["engraver"], opts["deposit"]]:  # M12-07 reports replace the combat table
-		return (load("res://tools/sim_m12.gd") as GDScript).call("report", data, opts)
 	lines.append("| area | scope | grade | level | tier | deaths/h | kills/h | xp/h | gold/h | food/h |")
 	lines.append("|---|---|---|---|---|---|---|---|---|---|")
 	var loot_lines: PackedStringArray = PackedStringArray()

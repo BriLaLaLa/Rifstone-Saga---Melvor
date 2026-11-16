@@ -1,5 +1,5 @@
 extends GutTest
-## The real contents of M12-05 (docs/04_DATA_SCHEMA.md §5, §6, §7; 02_FORMULAS.md §8.6b, §8.7, §8.8b): bags, contracts, the
+## The real contents of M12-05 (docs/04_DATA_SCHEMA.md §5, §6, §7; 02_FORMULAS.md §8.6b, §8.7, §8.8b): bags, the
 ## 24 byproducts and the milestones, the three different mastery trees, Rift Dust and Rune Slab, icons and descriptions.
 
 const TRADES: Dictionary = {
@@ -10,7 +10,6 @@ const TRADES: Dictionary = {
 	"angling": {"actions": ["catch_brookfin", "catch_ashgill", "catch_redscale", "catch_dusk_eel", "catch_shard_gar",
 			"catch_mist_barbel", "catch_ember_sturgeon", "catch_riftmaw"], "stat": "skill_xp_pct", "resource": 10.0, "trade": 0.5},
 }
-const GRADES: Array[String] = ["apprentice", "journeyman", "expert", "master"]
 
 var _data: GameData
 
@@ -47,18 +46,6 @@ func _is_byproduct(item: StringName) -> bool:
 			if action.milestones[0].item == item:
 				return true
 	return false
-
-
-func test_twelve_contracts_three_trades_by_four_grades() -> void:
-	var found: Dictionary = {}
-	for item: ItemDef in _data.items():
-		if item.category == &"contract":
-			found[item.id] = [item.contract_skill, item.contract_grade]
-			assert_eq(item.value, 0)
-	assert_eq(found.size(), 12)
-	for skill: String in TRADES:
-		for grade: String in GRADES:
-			assert_eq(found.get(StringName("contract_%s_%s" % [skill, grade])), [StringName(skill), StringName(grade)])
 
 
 func test_milestones_of_the_24_gathering_actions() -> void:

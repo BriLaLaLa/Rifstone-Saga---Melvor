@@ -1,7 +1,6 @@
 extends GutTest
-## Integration, M12-08: the whole way through `Game` (slot on disk in PreRun.save_dir(), never a real one): a helper hired
-## and bags in the slots are saved, the clock moves 3 hours, the helper has worked while away, the summary shows its
-## products and the bags and the capacity are still there. A save of an older version is refused by the load.
+## Integration, M12-08: the whole way through `Game` (slot on disk in PreRun.save_dir(), never a real one): a bag in
+## a slot is saved, the clock moves 3 hours, the summary exists and the bag and the capacity are still there. A save of an older version is refused by the load.
 
 const GameScript := preload("res://core/autoload/game.gd")
 const PreRun := preload("res://tests/helpers/gut_pre_run.gd")
@@ -38,13 +37,10 @@ func _clear_dir(path: String) -> void:
 		DirAccess.remove_absolute(path.path_join(file_name))
 
 
-func test_helper_and_bags_survive_three_hours_away_and_the_summary_counts_the_helper() -> void:
+func test_bags_survive_three_hours_away() -> void:
 	assert_true(_game.new_game(SLOT, "Tester").ok)
 	var s: GameSession = _game.session
-	TestFactory.give(s, &"contract_forestry_master", 1)
 	TestFactory.give(s, &"bag_leather", 1)
-	assert_true(s.helpers.hire(&"contract_forestry_master").ok)
-	assert_true(s.helpers.set_action(&"forestry", &"cut_redbirch").ok)
 	assert_true(s.bank.equip_bag(0, &"bag_leather").ok)
 	var capacity: int = s.deposit.capacity()
 	_game.end_session(true)
@@ -53,15 +49,8 @@ func test_helper_and_bags_survive_three_hours_away_and_the_summary_counts_the_he
 	s = _game.session
 	var sum: OfflineSummary = _game.last_offline_summary
 	assert_not_null(sum)
-	var cycles: int = 3 * HOUR_MS / 4500
-	var xp: int = s.skills.get_xp(&"forestry")
-	assert_between(xp, cycles * 2, cycles * 2 * 6 / 5, "Master: 4500 ms per cycle, 2 xp each; the mastery steps (F-122) shorten it a little")
-	assert_eq(sum.xp.get(&"forestry", 0), xp)
-	assert_gte(int(sum.items.get(&"redbirch_log", 0)), cycles, "the helper's logs are in the summary")
-	assert_eq(s.bank.get_count(&"redbirch_log"), int(sum.items.get(&"redbirch_log", 0)))
 	assert_eq(s.deposit.get_bag(0), &"bag_leather")
 	assert_eq(s.deposit.capacity(), capacity)
-	assert_eq(s.helpers.get_grade(&"forestry"), &"master")
 
 
 func test_a_v3_slot_on_disk_is_not_loaded_and_not_touched() -> void:

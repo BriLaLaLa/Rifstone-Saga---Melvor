@@ -21,6 +21,7 @@ const CONTENT_FILES: Dictionary[String, String] = {
 	"village": VillageIndex.FILE,  # M19: mandatory (may be empty)
 	"quests": "quests/quests.json",  # M20: mandatory (may be empty)
 	"auction": AuctionIndex.FILE,  # M23: mandatory
+	"disciplines": DisciplineIndex.TRAINERS_FILE,  # M24: mandatory (the grades; the Trainers may be empty)
 }
 const CONTENT_DIRS: Dictionary[String, String] = {
 	"items": "items", "actions": "actions", "mastery": "mastery", "classes": "classes",
@@ -55,7 +56,7 @@ var _affix_list: Array[AffixDef] = []
 var _hints: Dictionary[StringName, HintDef] = {}
 var _hint_list: Array[HintDef] = []
 var _guide: GuideBook = GuideBook.new()  # M11
-var _helper: HelperIndex = HelperIndex.new()  # M12
+var _disciplines: DisciplineIndex = DisciplineIndex.new()  # M24
 var _loot: LootIndex = LootIndex.new()  # M12
 var _maps: MapIndex = MapIndex.new()  # M13
 var _village: VillageIndex = VillageIndex.new()  # M19
@@ -80,6 +81,7 @@ static func load_from_dirs(content_root: String = "res://data", config_root: Str
 				data.errors), data.errors)
 	raw["guide"] = DataBuildUtil.read_files(DataValidatorGuide.list_files(content_root, data.errors), data.errors)  # M11, optional
 	raw["dungeons"] = DataBuildUtil.read_files(DungeonIndex.list_files(content_root, data.errors), data.errors)  # M22, optional until M22-03
+	raw["encounters"] = DataBuildUtil.read_files(DisciplineIndex.nodes_files(content_root), data.errors)  # M24, optional until M24-05
 	DataValidator.validate(raw, data.errors)
 	if data.errors.is_empty():
 		data._build(raw)
@@ -251,19 +253,23 @@ func dungeon(id: StringName) -> DungeonDef: return _find(_dungeons.by_id, id, "d
 func dungeons() -> Array[DungeonDef]: return _dungeons.list.duplicate()
 func dungeon_for_ticket(item_id: StringName) -> DungeonDef: return _dungeons.by_ticket.get(item_id) as DungeonDef
 
+## M24 (docs/04_DATA_SCHEMA_M24.md §29): disciplines of a category (&"" = all) by `order`; the Trainer grades (1-based, null outside); a Trainer,
+## the nodes of an area and the Recipe item of an action: null without error when absent.
+func disciplines(category: StringName = &"") -> Array[StringName]: return DisciplineIndex.ids(_skill_list, category)
+func trainer_grades() -> Array[TrainerGradeDef]: return _disciplines.grades.duplicate()
+func trainer_grade(grade: int) -> TrainerGradeDef: return _disciplines.grades[grade - 1] if grade >= 1 and grade <= _disciplines.grades.size() else null
+func trainer(skill_id: StringName) -> TrainerDef: return _disciplines.trainers.get(skill_id) as TrainerDef
+func area_nodes(area_id: StringName) -> AreaNodesDef: return _disciplines.nodes.get(area_id) as AreaNodesDef
+func recipe_item_for(action_id: StringName) -> ItemDef:
+	for def: ItemDef in _item_list:
+		if def.is_recipe() and def.recipe_action == action_id:
+			return def
+	return null
+
 func hint(id: StringName) -> HintDef: return _find(_hints, id, "hint") as HintDef
 
 ## Every hint, in file order.
 func hints() -> Array[HintDef]: return _hint_list.duplicate()
-
-## M12: the helper grades of `helper.grades`, in order of grade (apprentice first).
-func helper_grades() -> Array[HelperGradeDef]: return _helper.grades.duplicate()
-
-## M12: a helper grade by id; null and an error if unknown.
-func helper_grade(id: StringName) -> HelperGradeDef: return _find(_helper.by_id, id, "helper grade") as HelperGradeDef
-
-## M12: the contract item of a gathering skill and a grade; null (no error) when there is none.
-func contract_for(skill_id: StringName, grade_id: StringName) -> ItemDef: return _helper.contract_for(skill_id, grade_id)
 
 ## M12: a loot table by id; null and an error if unknown.
 func loot_table(id: StringName) -> LootTableDef: return _find(_loot.by_id, id, "loot table") as LootTableDef
@@ -342,7 +348,7 @@ func _build(raw: Dictionary) -> void:
 		for d: Dictionary in DataBuildUtil.list(raw["hints"][path], "hints"):
 			_add(HintDef.from_dict(d), _hints, _hint_list, path, "hint", d)
 	ItemIndexM10.build(_item_list, _blueprint_list, _blueprint_by_base, _unique_tools)
-	_helper.build(_balance, _item_list)
+	_disciplines.build(raw["disciplines"] as Dictionary, raw.get("encounters", {}) as Dictionary, errors)
 	_loot.build(raw["loot_tables"] as Dictionary, errors)
 	_maps.build(_item_list, raw["map_mods"] as Dictionary, raw["bosses"] as Dictionary, _balance, errors)
 	_village.build(raw["village"] as Dictionary, errors)
@@ -376,7 +382,7 @@ func _clear() -> void:
 			_blueprint_by_base, _unique_tools, _affixes, _hints, _quests]:
 		table.clear()
 	_guide.clear()
-	_helper.clear()
+	_disciplines.clear()
 	_loot.clear()
 	_maps.clear()
 	_village.clear()

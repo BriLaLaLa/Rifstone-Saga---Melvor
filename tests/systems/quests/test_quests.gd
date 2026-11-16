@@ -85,17 +85,16 @@ func test_kill_progress_caps_at_the_target_and_completes_once() -> void:
 	assert_eq(_progress_log.back(), [0, 40, 40])
 
 
-func test_gather_counts_player_and_helper_cycles_craft_only_the_player() -> void:
+func test_gather_and_craft_cycles_of_every_lane_count() -> void:
 	_board(5)
 	var events: GameEvents = _session.events
 	events.action_completed.emit(&"main", &"forestry", &"cut_redbirch", {&"redbirch_log": 3})
-	events.helper_completed.emit(&"forestry", &"cut_redbirch", {&"redbirch_log": 2})
+	events.action_completed.emit(&"node", &"forestry", &"cut_redbirch", {&"redbirch_log": 2})
 	events.action_completed.emit(&"main", &"quarrying", &"x", {&"emberbronze_ore": 4})
 	assert_eq(_quests.progress_at(1), 5)
 	assert_eq(_quests.progress_at(2), 4)
-	events.helper_completed.emit(&"forging", &"forge", {&"emberbronze_plate": 7})
-	assert_eq(_quests.progress_at(4), 0, "helpers do not craft")
-	events.action_completed.emit(&"main", &"forging", &"forge_emberbronze_plate", {&"emberbronze_plate": 6})
+	assert_eq(_quests.progress_at(4), 0, "nothing crafted yet")
+	events.action_completed.emit(&"queue", &"forging", &"forge_emberbronze_plate", {&"emberbronze_plate": 6})
 	assert_eq(_quests.progress_at(4), 6)
 	events.action_completed.emit(&"main", &"forestry", &"cut_ashpine", {&"ashpine_log": 9})
 	assert_eq(_quests.progress_at(1), 5, "another item")

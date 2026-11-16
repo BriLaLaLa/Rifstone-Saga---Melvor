@@ -39,9 +39,6 @@ signal food_changed(item_id: StringName)
 signal armory_changed(uid: int, change: StringName)
 signal deposit_changed(used: int, capacity: int)  # M12: boxes used (Bank + Armory) or capacity (bags) changed
 signal bags_changed()  # M12: a bag slot changed
-signal helper_changed(skill_id: StringName, grade: StringName, action_id: StringName)  # M12: hire, new action or stop (empty ids when absent)
-signal helper_completed(skill_id: StringName, action_id: StringName, outputs: Dictionary)  # M12: a helper cycle ended
-signal helper_blocked(skill_id: StringName, blocked: bool)  # M12: the helper waits for Deposit room (true) or restarts (false)
 signal armory_rejected(base_id: StringName, qty: int)
 signal item_obtained(item_id: StringName, qty: int)  # M14: an item enters the possession of the player (Bank, loot bag, Armory, CardStore); Discoveries listens (F-124)
 signal item_discovered(item_id: StringName)  # M14: the first time an item is obtained (wiki a scoperta, F-124)

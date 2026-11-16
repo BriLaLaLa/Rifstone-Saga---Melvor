@@ -1,0 +1,11 @@
+{
+  "_doc": "Gradi dei Maestri (F-158, 04_DATA_SCHEMA_M24.md §29.2). I Maestri (uno per disciplina) li scrive M24-05.",
+  "grades": [
+    {"id": "novice", "name": "Novizio", "cap": 20, "character_level": 1},
+    {"id": "worker", "name": "Lavorante", "cap": 40, "character_level": 15},
+    {"id": "skilled", "name": "Provetto", "cap": 60, "character_level": 35},
+    {"id": "foreman", "name": "Capomastro", "cap": 80, "character_level": 55},
+    {"id": "luminary", "name": "Luminare", "cap": 99, "character_level": 75}
+  ],
+  "trainers": []
+}

@@ -9,7 +9,7 @@ extends RefCounted
 const LOG_CATEGORY: String = "guide"
 const MS_PER_SEC: float = 1000.0
 const FIXED_IDS: Array[String] = ["affix_tiers", "refine_costs", "tool_upgrades", "traits", "abilities", "stats",
-	"bags", "helper_grades", "engraver_recipes",
+	"bags", "trainer_grades", "engraver_recipes",
 	"infusions", "fracture_grades", "map_mods", "bosses", "dungeon_rooms", "dungeon_stages", "dungeon_loot"]
 const PREFIX_ACTIONS: String = "actions:"
 const PREFIX_AREA_MONSTERS: String = "area_monsters:"
@@ -42,8 +42,8 @@ static func build(source: String, data: GameData) -> Array[Array]:
 			rows = _infusions(data)
 		"bags":
 			rows = _bags(data)
-		"helper_grades":
-			rows = _helper_grades(data)
+		"trainer_grades":
+			rows = _trainer_grades(data)
 		"fracture_grades":
 			rows = GuideFractureTables.grades(data)
 		"map_mods":
@@ -234,11 +234,13 @@ static func _bags(data: GameData) -> Array[Array]:
 	return rows
 
 
-## Helper grades in the order of the data: the helper takes `interval_mult` times the player's interval (F-101).
-static func _helper_grades(data: GameData) -> Array[Array]:
-	var rows: Array[Array] = [["Grado", "Durata rispetto a te"]]
-	for grade: HelperGradeDef in data.helper_grades():
-		rows.append([HelperGradeNames.name_of(grade.id), "x%s" % _n(grade.interval_mult)])
+## The Trainer grades (M24, F-158): name, level cap, character level and gold price of each grade.
+static func _trainer_grades(data: GameData) -> Array[Array]:
+	var rows: Array[Array] = [["Grado", "Livello massimo", "Livello del personaggio", "Oro"]]
+	var grades: Array[TrainerGradeDef] = data.trainer_grades()
+	for index: int in grades.size():
+		var grade: TrainerGradeDef = grades[index]
+		rows.append([grade.name, str(grade.cap), str(grade.character_level), _n(float(TrainerGradeDef.gold(data, index + 1)))])
 	return rows
 
 

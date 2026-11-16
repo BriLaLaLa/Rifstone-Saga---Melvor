@@ -20,6 +20,7 @@ var outputs: Array[ItemQty] = []
 var single: bool = false  # M10: single-cycle action (04 §6); false when absent
 var milestones: Array[MilestoneDef] = []  # M12: gathering actions only (F-103), in the order 25/50/99
 var kind: StringName = &"craft"  # M12: `craft` (default) or `crystallize` (F-104), Incisore only
+var discover: bool = false  # M24: the recipe must be learned from a Recipe item (docs/04_DATA_SCHEMA_M24.md §29.5)
 
 
 static func from_dict(d: Dictionary, file_skill_id: StringName = &"") -> ActionDef:
@@ -43,6 +44,8 @@ static func from_dict(d: Dictionary, file_skill_id: StringName = &"") -> ActionD
 		def.single = r.flag("single")
 	if r.has("kind"):
 		def.kind = r.id("kind")
+	if r.has("discover"):
+		def.discover = r.flag("discover")
 	if r.has("milestones"):
 		for entry: Dictionary in r.dict_list("milestones"):
 			var milestone: MilestoneDef = MilestoneDef.from_dict(entry, def.id, file_skill_id)

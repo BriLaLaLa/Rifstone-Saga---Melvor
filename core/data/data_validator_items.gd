@@ -5,7 +5,7 @@ extends RefCounted
 
 const ACTION_SKILL_CATEGORIES: PackedStringArray = ["gathering", "artisan"]
 const ITEM_FIELDS: PackedStringArray = ["id", "name", "description", "category", "icon", "value", "sort_order",
-	"equip", "food", "infusion", "stone", "currency", "blueprint", "bag", "contract", "map", "dungeon"]
+	"equip", "food", "infusion", "stone", "currency", "blueprint", "bag", "recipe", "map", "dungeon"]
 const ITEM_ICON_DIR: String = "res://assets/icons/items/"
 ## Item file name (without `.json`) -> the category of its items.
 const ITEM_FILE_CATEGORIES: Dictionary[String, String] = {
@@ -13,7 +13,7 @@ const ITEM_FILE_CATEGORIES: Dictionary[String, String] = {
 	"equipment_weapons": "equipment", "equipment_jewels": "equipment", "equipment_plate": "equipment",
 	"equipment_leather": "equipment", "equipment_cloth": "equipment", "equipment_masterwork": "equipment",
 	"equipment_legendary": "equipment", "tools": "tool", "tools_legendary": "tool", "food": "food", "infusions": "infusion",
-	"misc": "misc", "stones": "stone", "currencies": "currency", "bags": "bag", "contracts": "contract", "maps": "map",
+	"misc": "misc", "stones": "stone", "currencies": "currency", "bags": "bag", "recipes": "recipe", "maps": "map",
 }
 const CURRENCY_EFFECTS: PackedStringArray = ["to_magic", "to_rare", "reroll"]
 const EQUIP_CATEGORIES: PackedStringArray = ["equipment", "tool"]
@@ -32,7 +32,7 @@ const OFFHAND_SLOT_KINDS: PackedStringArray = ["shield"]  # kinds of slot offhan
 const RIFT_SHARD_ID: StringName = &"rift_shard"
 const RIFT_SHARD_CATEGORY: String = "misc"
 const ACTION_FIELDS: PackedStringArray = ["id", "name", "level", "interval_ms", "xp", "mastery", "inputs",
-	"outputs", "icon", "single", "milestones", "kind"]
+	"outputs", "icon", "single", "milestones", "kind", "discover"]
 const SHOP_CATEGORIES: PackedStringArray = ["bank", "combat", "tools", "materials", "market"]  # M8 adds "lanes"
 ## Vendors (stalls) the shop page groups the entries under; the page lists them in this order (P-04).
 const SHOP_VENDORS: PackedStringArray = ["bottegaia", "fabbro", "armaiolo", "mercante_armature", "mercato"]  # M12: "deposito" has no entries
@@ -52,7 +52,6 @@ static func validate_items(v: DataValidatorRules, files: Dictionary[String, Dict
 			v.entry("item", index, list[index], seen, ITEM_FIELDS)
 			_item(v, list[index], ITEM_FILE_CATEGORIES.get(stem, ""))
 	v.at_file("section 'items'" if files.is_empty() else (files.keys()[0] as String).get_base_dir())
-	DataValidatorHelper.validate_contract_set(v)
 	if not v.items.has(RIFT_SHARD_ID):
 		v.fail("required item '%s' (category %s) is missing" % [RIFT_SHARD_ID, RIFT_SHARD_CATEGORY])
 	elif v.items[RIFT_SHARD_ID].get("category") != RIFT_SHARD_CATEGORY:
@@ -96,8 +95,8 @@ static func _item(v: DataValidatorRules, e: Dictionary, file_category: String) -
 		v.integer(e["bag"] as Dictionary, "slots", 1, BAG_SLOTS_MAX, "bag")
 		if DataValidatorRules.is_int(e.get("value")) and int(e["value"]) != 0:
 			v.fail("a bag must have value 0 (it cannot be sold)")
-	if _sub_object(v, e, "contract", category == "contract"):
-		DataValidatorHelper.contract(v, e)
+	if _sub_object(v, e, "recipe", category == "recipe"):
+		DataValidatorDisciplines.recipe_item(v, e)
 	if _sub_object(v, e, "map", category == "map"):
 		DataValidatorMaps.map_item(v, e)
 	if _sub_object(v, e, "currency", category == "currency"):
@@ -200,6 +199,7 @@ static func validate_actions(v: DataValidatorRules, files: Dictionary[String, Di
 			DataValidatorM10.recipe_outputs(v, e)
 			DataValidatorMilestones.action(v, e, skill, category)
 			DataValidatorEngraver.action(v, e, skill)
+			DataValidatorDisciplines.action(v, e, category, single)
 
 
 static func validate_shop(v: DataValidatorRules, files: Dictionary[String, Dictionary],

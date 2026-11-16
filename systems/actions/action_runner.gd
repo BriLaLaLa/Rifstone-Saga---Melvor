@@ -210,7 +210,7 @@ func current_interval_ms(action_id: StringName, _lane: StringName = MAIN) -> int
 	return _interval_for(action)
 
 
-## 1: there are no parallel lanes any more (replaced by the helpers, M12).
+## 1: there are no parallel lanes any more.
 func lanes_available() -> int:
 	return 1
 

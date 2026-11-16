@@ -122,7 +122,7 @@ func test_rewards_follow_f142_and_f143() -> void:
 		_eq([d["chance_pct"], d["qty"]], [50, [3, 6]], d["item"])
 
 
-func test_the_den_table_has_no_cards_and_no_contracts_and_no_ticket() -> void:
+func test_the_den_table_has_no_cards_and_no_ticket() -> void:
 	var table: LootTableDef = null
 	for t: LootTableDef in _data.loot_tables():
 		if t.id == &"loot_dungeon_monkey_den":
@@ -130,7 +130,7 @@ func test_the_den_table_has_no_cards_and_no_contracts_and_no_ticket() -> void:
 	assert_not_null(table)
 	for entry: DropEntry in table.entries:
 		var category: StringName = _data.item(entry.item_id).category
-		assert_false([&"map", &"contract"].has(category), String(entry.item_id))
+		assert_false(category == &"map", String(entry.item_id))
 		assert_ne(entry.item_id, TICKET)
 
 

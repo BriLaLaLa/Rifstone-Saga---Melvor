@@ -5,7 +5,7 @@ extends GutTest
 
 const Sim := preload("res://tools/sim_m14.gd")
 const HOURS: float = 4.0
-const SEED: int = 1234
+const SEED: int = 1235  # M24-02: 1234 -> 1235 (the Contracts left the loot tables: the seeded stream moves)
 
 var _data: GameData = null
 var _rows: Dictionary = {}

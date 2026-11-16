@@ -20,7 +20,6 @@ const REQUIRED_BALANCE_KEYS: PackedStringArray = [
 	"mastery.pool_cap_per_item", "mastery.pool_warning_pct", "action.min_interval_ms",
 	"gathering.rift_shard_base_chance_pct",
 	"deposit.base_slots", "deposit.bag_slots",
-	"helper.xp_pct", "helper.mastery_pct", "helper.grades",
 	"engraver.crystal_chance_min_pct", "engraver.crystal_chance_max_pct", "engraver.crystal_fail_loss_pct",
 	"engraver.merge_ratio", "rune.upgrade_ratio", "rune.grade_mult",
 	"mastery.milestones.byproduct_at", "mastery.milestones.resource_at", "mastery.milestones.trade_at",
@@ -53,7 +52,7 @@ const BALANCE_LIST_KEYS: PackedStringArray = [
 	"combat.pack_size_weights",
 	"start.items", "combat.auto_eat_tiers", "rift.sockets", "traits.slot_levels", "abilities.slot_levels", "rarity.affix_count.magic", "rarity.affix_count.rare",
 	"upgrade.levels", "upgrade.ingot_items", "tool_upgrade.levels",
-	"helper.grades", "rune.grade_mult",
+	"rune.grade_mult",
 ]
 const BALANCE_STYLE_KEYS: PackedStringArray = [
 	"combat.triangle.beats.blade", "combat.triangle.beats.arcana", "combat.triangle.beats.marksmanship",
@@ -69,14 +68,14 @@ const DEPOSIT_BAG_SLOTS_MAX: int = 12  # format limit of deposit.bag_slots (docs
 const START_ITEM_FORBIDDEN_CATEGORIES: PackedStringArray = ["equipment", "tool", "map"]  # they live in the Armory only
 ## Sections made of one file (the others are folders, possibly empty).
 const SINGLE_FILE_SECTIONS: PackedStringArray = ["balance", "stats", "skills", "areas", "monsters", "shop", "affixes",
-	"rift_stones", "hints", "loot_tables", "map_mods", "bosses", "village", "quests", "auction"]
+	"rift_stones", "hints", "loot_tables", "map_mods", "bosses", "village", "quests", "auction", "disciplines"]
 const SKILL_CATEGORIES: PackedStringArray = ["gathering", "artisan"]
 const STAT_FIELDS: PackedStringArray = ["id", "name", "format", "min", "max", "description", "formula", "test"]
 const STAT_FORMULA_PATTERN: String = "^(F-[0-9]{2,3}|[0-9]+(\\.[0-9]+)*)$"
 const STAT_TEST_PATTERN: String = "^[^:]+\\.gd::[A-Za-z_][A-Za-z0-9_]*$"
 const STAT_NAME_MAX_LENGTH: int = 40
 const SKILL_FIELDS: PackedStringArray = ["id", "name", "description", "category", "order", "icon", "color",
-	"has_mastery", "mastery_bonuses", "level_modifiers"]  # mastery_bonuses: accepted here only to give a precise error
+	"has_mastery", "mastery_bonuses", "level_modifiers", "discipline"]  # mastery_bonuses: accepted here only to give a precise error
 const COLOR_PATTERN: String = "^#[0-9a-fA-F]{6}$"
 const SKILL_ICON_DIR: String = "res://assets/icons/skills/"
 
@@ -123,6 +122,7 @@ static func validate(raw: Dictionary, errors: PackedStringArray) -> void:
 	DataValidatorVillage.validate(v, _files(raw, "village"), _files(raw, "balance"))
 	DataValidatorQuests.validate(v, _files(raw, "quests"), _files(raw, "balance"), _files(raw, "items"), _files(raw, "actions"))
 	DataValidatorAuction.validate(v, raw)
+	DataValidatorDisciplines.validate(v, raw)
 	errors.append_array(v.errors)
 
 
@@ -222,7 +222,6 @@ static func _validate_balance(v: DataValidatorRules, files: Dictionary[String, D
 		DataValidatorAreas.collect_pack_weights(v, balance)
 		DataValidatorClasses.validate_balance(v, balance)
 		DataValidatorLoot.validate_balance(v, balance)
-		DataValidatorHelper.validate_balance(v, balance)
 		DataValidatorEngraver.validate_balance(v, balance)
 		DataValidatorMilestones.validate_balance(v, balance)
 		DataValidatorHints.validate_balance(v, balance)
@@ -261,7 +260,7 @@ static func _unknown_balance_keys(v: DataValidatorRules, node: Dictionary, prefi
 		if str(key) == DataValidatorRules.DOC_KEY or path in REQUIRED_BALANCE_KEYS \
 				or path in DataValidatorM10Balance.M10_REQUIRED_KEYS or path in DataValidatorM10Balance.LEGACY_KEYS \
 				or DataValidatorFracture.is_known_key(path) or DataValidatorM14.is_known_key(path) \
-				or DataValidatorMetin.is_known_key(path) or DataValidatorVillage.is_known_key(path) or DataValidatorQuests.is_known_key(path) or DataValidatorDungeon.is_known_key(path) or DataValidatorAuction.is_known_key(path):
+				or DataValidatorMetin.is_known_key(path) or DataValidatorVillage.is_known_key(path) or DataValidatorQuests.is_known_key(path) or DataValidatorDungeon.is_known_key(path) or DataValidatorAuction.is_known_key(path) or DataValidatorDisciplines.is_known_key(path):
 			continue
 		var is_prefix: bool = false
 		for required: String in REQUIRED_BALANCE_KEYS:
@@ -385,6 +384,7 @@ static func _validate_skills(v: DataValidatorRules, files: Dictionary[String, Di
 			if e.get("id") == DataValidatorRules.CHARACTER_KEY:
 				v.fail("id '%s' is reserved (the character level in requirements)" % DataValidatorRules.CHARACTER_KEY)
 			v.one_of(e, "category", SKILL_CATEGORIES)
+			DataValidatorDisciplines.skill(v, e)
 			icon(v, e, SKILL_ICON_DIR)
 			if v.text(e, "color") and color.search(e["color"] as String) == null:
 				v.fail("field 'color' must be #rrggbb, got '%s'" % e["color"])

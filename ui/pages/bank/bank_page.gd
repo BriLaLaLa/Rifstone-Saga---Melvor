@@ -83,7 +83,6 @@ func _ready() -> void:
 	_item_panel.stone_socket_requested.connect(_on_item_panel_stone_socket_requested)
 	_item_panel.close_requested.connect(_on_item_panel_close_requested)
 	_item_panel.bag_requested.connect(_on_item_panel_bag_requested)
-	_item_panel.hire_requested.connect(_on_item_panel_hire_requested)
 	_bag_bar.equip_requested.connect(_on_bag_equip_requested)
 	_bag_bar.unequip_requested.connect(_on_bag_unequip_requested)
 	_grid.set_drag_forwarding(Callable(), _can_drop_on_grid, _drop_on_grid)
@@ -386,8 +385,3 @@ func _on_bag_equip_requested(slot_index: int, item_id: StringName) -> void:
 func _on_bag_unequip_requested(slot_index: int) -> void:
 	if _session != null:
 		_show_text(_session.bank.unequip_bag(slot_index), BagTexts.refused)
-
-
-func _on_item_panel_hire_requested(item_id: StringName) -> void:
-	if _session != null:
-		_show_text(_session.helpers.hire(item_id), HelperTexts.refused)

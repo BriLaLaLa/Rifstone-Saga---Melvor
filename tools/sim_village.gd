@@ -1,7 +1,7 @@
 extends SceneTree
 ## Balance tool for the Village (M19-01, F-131/F-132 in docs/02_FORMULAS.md). Read-only: nothing is written.
 ## For every building and level it prints the hours needed to farm the cost: materials are produced from raw gathering
-## with the real action data (interval and ingredients of data/actions/*.json, no modifiers, no helpers, no mastery:
+## with the real action data (interval and ingredients of data/actions/*.json, no modifiers, no mastery:
 ## an upper bound), gold is converted with the gold per hour measured by tools/sim_combat.gd (M19-01 run, scope "all").
 ## Parameters: balance.json "village" and data/village/buildings.json when they exist (M19-02); until then the
 ## defaults below, which are the values fixed by M19-01 (docs/02_FORMULAS.md F-131).

@@ -137,12 +137,3 @@ func test_milestones_survive_a_save_and_load() -> void:
 	assert_eq(other.actions.current_interval_ms(BIRCH), _s.actions.current_interval_ms(BIRCH))
 	assert_eq(SaveCodec.encode(other.to_save(NOW_MS)), SaveCodec.encode(saved))
 
-
-func test_the_helper_gets_the_resource_bonus_and_the_byproduct() -> void:
-	_set_levels({BIRCH: 50})
-	TestFactory.give(_s, &"contract_forestry_master", 1)
-	assert_true(_s.helpers.hire(&"contract_forestry_master").ok)
-	assert_true(_s.helpers.set_action(FORESTRY, BIRCH).ok)
-	var bonus: float = float((_s.data.action(BIRCH).milestones[1] as MilestoneDef).modifiers[0].value)
-	var base: int = ActionMath.interval_ms(3000, bonus - 10.0, 250)  # resource node + 5 steps of -2% (F-122)
-	assert_eq(_s.helpers.interval_ms(FORESTRY), int(round(base * 1.5)), "F-101: the resource node of the mastery counts for the helper")

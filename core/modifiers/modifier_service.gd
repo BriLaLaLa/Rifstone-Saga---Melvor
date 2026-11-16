@@ -54,7 +54,7 @@ func has_source(source_id: StringName) -> bool:
 
 
 ## F-05: sum of the applicable modifiers of `stat`, limited to the stat's min/max. null = global context.
-## Sources in `ctx.excluded_sources` (M12, `ModifierContext.for_helper`) are ignored.
+## Sources in `ctx.excluded_sources` are ignored.
 func total(stat: StringName, ctx: ModifierContext = null) -> float:
 	if not _stats.has(stat):
 		Log.error("modifiers", "total of unknown stat '%s'" % stat)

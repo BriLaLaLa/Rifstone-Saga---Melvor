@@ -1,11 +1,11 @@
 extends GutTest
-## Guide of the Riforma 2 (M12-06): the new generated tables (bags, helper_grades, engraver_recipes,
-## mastery_milestones:<skill>), the sources from loot tables and milestones, the uses of bags and contracts, the new
+## Guide of the Riforma 2 (M12-06): the new generated tables (bags, trainer_grades, engraver_recipes,
+## mastery_milestones:<skill>), the sources from loot tables and milestones, the uses of bags, the new
 ## hand-written pages, the declared exceptions and the old names gone from the texts.
 
 const REAL_ROOT: String = "res://data"
 const CONFIG_ROOT: String = "res://data/config"
-const NEW_PAGES: Array[StringName] = [&"guide_deposit", &"guide_helpers", &"guide_resource_mastery", &"guide_engraver"]
+const NEW_PAGES: Array[StringName] = [&"guide_deposit", &"guide_resource_mastery", &"guide_engraver"]
 
 var _data: GameData = null
 var _index: GuideIndex = null
@@ -24,14 +24,18 @@ func test_bags_table_lists_every_bag_with_its_slots() -> void:
 	assert_eq(rows[1][1], str(bags[0].bag_slots))
 
 
-func test_helper_grades_table_follows_the_data() -> void:
-	var rows: Array[Array] = GuideTables.build("helper_grades", _data)
-	var grades: Array[HelperGradeDef] = _data.helper_grades()
+func test_trainer_grades_table_follows_the_data() -> void:
+	var rows: Array[Array] = GuideTables.build("trainer_grades", _data)
+	var grades: Array[TrainerGradeDef] = _data.trainer_grades()
 	assert_eq(rows.size(), grades.size() + 1)
 	for index: int in grades.size():
-		assert_eq(rows[index + 1][0], HelperGradeNames.name_of(grades[index].id))
-		assert_eq(rows[index + 1][1], "x%s" % GuideIndex.num(grades[index].interval_mult))
-	assert_eq(HelperGradeNames.name_of(&"journeyman"), "Garzone", "NOMI.md")
+		assert_eq(rows[index + 1][0], grades[index].name)
+		assert_eq(rows[index + 1][1], str(grades[index].cap))
+		assert_eq(rows[index + 1][2], str(grades[index].character_level))
+		assert_eq(rows[index + 1][3], GuideIndex.num(float(TrainerGradeDef.gold(_data, index + 1))))
+	assert_eq(rows[1][3], "0", "F-158: the first grade costs trainer.learn_gold")
+	assert_eq(rows[2][3], "250", "F-158 gold(2)")
+	assert_eq(rows[5][3], "31250", "F-158 gold(5)")
 
 
 func test_engraver_recipes_table_shows_the_chance_range_for_crystals() -> void:
@@ -72,9 +76,8 @@ func test_loot_table_drops_and_byproducts_have_sources() -> void:
 	assert_eq(refs[0].kind, GuideRef.KIND_MILESTONE)
 
 
-func test_bags_and_contracts_have_a_use() -> void:
+func test_bags_have_a_use() -> void:
 	assert_eq(_index.uses_of(&"bag_canvas")[0].kind, GuideRef.KIND_BAG)
-	assert_eq(_index.uses_of(&"contract_forestry_apprentice")[0].kind, GuideRef.KIND_CONTRACT)
 
 
 func test_exceptions_are_only_what_the_index_still_cannot_explain() -> void:

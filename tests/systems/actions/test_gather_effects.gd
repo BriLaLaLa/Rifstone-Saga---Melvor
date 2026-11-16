@@ -1,7 +1,7 @@
 extends GutTest
 ## F-120 gathering effects of the legendary tools (hook `on_gather`): `gather_bonus_item` (+1 item), `gather_grade_up_pct`
 ## (the product of the next resource, the xp of the worked one), `byproduct_mult` (the byproduct of the milestone 25 x mult).
-## Only the player's cycle counts (never a helper's), only the tool of the skill that is being worked, no draw without a tool.
+## Only the player's cycle counts, only the tool of the skill that is being worked, no draw without a tool.
 ## Content: tests/helpers/m14_data.gd (skills forestry / quarrying / angling, actions `<skill>_a` level 1 -> test_twig and
 ## `<skill>_b` level 10 -> test_log; legendary tools fx_leg_hatchet, fx_leg_rod, fx_leg_pick).
 
@@ -18,8 +18,8 @@ func _session(seed_value: int = 5) -> GameSession:
 	return autofree(LegendaryKit.session(seed_value))
 
 
-func _resolve(s: GameSession, action: StringName, helper: StringName = &"") -> ActionOutcome:
-	return GatheringResolver.resolve(s, s.data.action(action), helper)
+func _resolve(s: GameSession, action: StringName) -> ActionOutcome:
+	return GatheringResolver.resolve(s, s.data.action(action))
 
 
 func test_gather_bonus_item_adds_one_item_to_the_product() -> void:
@@ -49,15 +49,6 @@ func test_without_a_tool_no_draw_is_made() -> void:
 	_resolve(s, FORESTRY_A)
 	_resolve(replica, FORESTRY_A)
 	assert_eq(s.rng.randf(), replica.rng.randf())
-
-
-func test_a_helper_never_triggers_the_effect() -> void:
-	var s: GameSession = _session()
-	LegendaryKit.wear(s, &"fx_leg_hatchet")
-	var outcome: ActionOutcome = _resolve(s, FORESTRY_A, &"apprentice")
-	assert_true(outcome.ok)
-	assert_false(outcome.outputs.has(RESIN), "the helper does not use the tool of the player")
-	assert_false(_resolve(s, FORESTRY_A).outputs.is_empty())
 
 
 func test_grade_up_gives_the_next_resource_with_the_xp_of_the_worked_one() -> void:

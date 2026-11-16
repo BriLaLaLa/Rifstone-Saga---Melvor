@@ -18,9 +18,7 @@ const LABEL_ALTAR: String = "Altare del Rift"
 const LABEL_FOOD: String = "Cibo"
 const LABEL_MILESTONE: String = "Traguardo di maestria"
 const LABEL_BAG: String = "Slot borsa del Deposito"
-const LABEL_CONTRACT: String = "Assumi un aiutante"
 const PAGE_DEPOSIT: StringName = &"guide_deposit"
-const PAGE_HELPERS: StringName = &"guide_helpers"
 const PAGE_FRACTURES: StringName = &"guide_fractures"
 const PAGE_DUNGEON: StringName = &"guide_dungeon"
 const PAGE_AUCTION: StringName = &"guide_auction"
@@ -307,8 +305,6 @@ func _add_item_kind_uses(def: ItemDef) -> void:
 		_add(_uses, def.id, GuideRef.make(GuideRef.KIND_FRACTURE, entry(&"page", PAGE_FRACTURES), LABEL_FRACTURE_OPEN))
 	if def.dungeon != &"":
 		_add(_uses, def.id, GuideRef.make(GuideRef.KIND_DUNGEON, entry(&"page", PAGE_DUNGEON), LABEL_DUNGEON_OPEN))
-	if def.is_contract():
-		_add(_uses, def.id, GuideRef.make(GuideRef.KIND_CONTRACT, entry(&"page", PAGE_HELPERS), LABEL_CONTRACT))
 	if def.is_currency():
 		_add(_uses, def.id, GuideRef.make(GuideRef.KIND_REFINE, &"", LABEL_REFINE))
 	if def.is_stone():

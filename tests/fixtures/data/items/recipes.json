@@ -1,0 +1,7 @@
+{
+  "items": [
+    {"id": "recipe_secret", "name": "Ricetta di prova", "category": "recipe",
+     "icon": "res://assets/icons/items/test_twig.png", "value": 0, "sort_order": 10,
+     "description": "Insegna una ricetta da scoprire, per i test.", "recipe": {"action": "craft_secret"}}
+  ]
+}

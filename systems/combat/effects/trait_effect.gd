@@ -49,7 +49,7 @@ func on_monolith(_ctx: EffectContext) -> void:
 	pass
 
 
-## F-120 `on_gather`: a gathering cycle of the player succeeded (never of a helper): fills the outputs of `ctx`.
+## F-120 `on_gather`: a gathering cycle of the player succeeded: fills the outputs of `ctx`.
 func on_gather(_ctx: GatherContext) -> void:
 	pass
 

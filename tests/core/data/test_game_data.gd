@@ -82,7 +82,7 @@ func test_item_lookup() -> void:
 	assert_eq(item.food_heal, 20)
 	assert_true(_data.has_item(&"rift_shard"))
 	assert_false(_data.has_item(&"ghost_item"))
-	assert_eq(_data.items().size(), 90)  # M22-02: + 1 test ticket; M14-01/02: + 7 test pieces (weapons per F-118, plate body); M12-02: + 8 contracts (2 gathering skills x 4 grades); M12-03: + 2 byproducts; M12-04: + 8 (dust, crystal, chip, 5 rune grades); M13-01: + 10 Cards; M13-03: + 4 boss piece bases
+	assert_eq(_data.items().size(), 83)  # M24-02: - 8 test Contracts, + 1 test Recipe; M22-02: + 1 test ticket; M14-01/02: + 7 test pieces (weapons per F-118, plate body); M12-02: + 8 contracts (2 gathering skills x 4 grades); M12-03: + 2 byproducts; M12-04: + 8 (dust, crystal, chip, 5 rune grades); M13-01: + 10 Cards; M13-03: + 4 boss piece bases
 
 
 func test_unknown_ids_are_null_with_error() -> void:
@@ -107,17 +107,17 @@ func test_has_area_and_has_monster_do_not_log_errors() -> void:
 func test_lists_are_copies() -> void:
 	_data.items().clear()
 	_data.skills().clear()
-	assert_eq(_data.items().size(), 90)  # M22-02: + 1 test ticket; M14-01/02: + 7 test pieces (weapons per F-118, plate body); M12-02: + 8 contracts (2 gathering skills x 4 grades); M12-03: + 2 byproducts; M12-04: + 8
-	assert_eq(_data.skills().size(), 4)
+	assert_eq(_data.items().size(), 83)  # M24-02: - 8 test Contracts, + 1 test Recipe; M22-02: + 1 test ticket; M14-01/02: + 7 test pieces (weapons per F-118, plate body); M12-02: + 8 contracts (2 gathering skills x 4 grades); M12-03: + 2 byproducts; M12-04: + 8
+	assert_eq(_data.skills().size(), 5)
 
 
 func test_skills_are_ordered_by_order() -> void:
-	assert_eq(_ids(_data.skills()), [&"test_gather", &"test_gather_b", &"test_craft", &"riftbinding"] as Array[StringName])
+	assert_eq(_ids(_data.skills()), [&"test_gather", &"test_gather_b", &"test_craft", &"test_craft_b", &"riftbinding"] as Array[StringName])
 
 
 func test_skills_by_category() -> void:
 	assert_eq(_ids(_data.skills_by_category(&"gathering")), [&"test_gather", &"test_gather_b"] as Array[StringName])
-	assert_eq(_ids(_data.skills_by_category(&"artisan")), [&"test_craft", &"riftbinding"] as Array[StringName])
+	assert_eq(_ids(_data.skills_by_category(&"artisan")), [&"test_craft", &"test_craft_b", &"riftbinding"] as Array[StringName])
 
 
 func test_skills_by_unknown_category_is_error() -> void:

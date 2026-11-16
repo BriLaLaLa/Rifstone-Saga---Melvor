@@ -59,7 +59,7 @@ func test_refusal_deposit_not_empty_is_shown() -> void:
 	TestFactory.give(_session, BAG, 1)
 	assert_true(_session.bank.equip_bag(0, BAG).ok)
 	for item: ItemDef in _session.data.items():
-		if _session.deposit.has_room() and not item.is_bag() and not item.is_contract() and item.category != &"equipment":
+		if _session.deposit.has_room() and not item.is_bag() and item.category != &"equipment":
 			TestFactory.give(_session, item.id, 1)
 	assert_gt(_session.deposit.used(), _session.data.balance_value("deposit.base_slots"), "uses the boxes of the bag")
 	_open()
