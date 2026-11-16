@@ -18,7 +18,8 @@ const _PHASE_FRACTURES: int = 0
 const _PHASE_ACTIONS: int = 1
 const _PHASE_HELPERS: int = 2  # M12
 const _PHASE_COMBAT: int = 3
-const _PHASE_COUNT: int = 4
+const _PHASE_AUCTION: int = 4  # M23: the market clock (F-145); not frozen with the combat
+const _PHASE_COUNT: int = 5
 
 var data: GameData
 var events: GameEvents
@@ -45,6 +46,7 @@ var hints: HintsSystem
 var discoveries: Discoveries  # M14-07
 var village: Village  # M19-02
 var quests: Quests  # M20-02
+var auction: AuctionHouse  # M23-02
 # The other system fields of docs/05_INTERFACES.md §5.3 are declared by the task that creates each system.
 var slot: int = -1
 var player_name: String = ""
@@ -181,6 +183,9 @@ func _create_systems() -> void:
 	_join(Village.SAVE_KEY, village.new_game, village.to_save, village.from_save, village.rebuild_modifiers)
 	quests = Quests.new(self)
 	_join(Quests.SAVE_KEY, quests.new_game, quests.to_save, quests.from_save, quests.refill)
+	auction = AuctionHouse.new(self)
+	_join(AuctionHouse.SAVE_KEY, auction.new_game, auction.to_save, auction.from_save)
+	_tick(_PHASE_AUCTION, auction.advance)
 	rift = RiftAltar.new(self)
 	_join(RiftAltar.SAVE_KEY, rift.new_game, rift.to_save, rift.from_save, rift.rebuild_modifiers)
 	hints = HintsSystem.new(self)

@@ -1,0 +1,32 @@
+{
+  "items": [
+    {"item":"test_twig","buy_level":0},
+    {"item":"test_log","buy_level":0},
+    {"item":"test_plank","buy_level":0},
+    {"item":"emberbronze_ingot","buy_level":0},
+    {"item":"ashlead_ingot","buy_level":0},
+    {"item":"stormzinc_ingot","buy_level":0},
+    {"item":"duskcobalt_ingot","buy_level":0},
+    {"item":"glimmerite_ingot","buy_level":0},
+    {"item":"palecinnabar_ingot","buy_level":0},
+    {"item":"emberheart_ingot","buy_level":0},
+    {"item":"riftite_ingot","buy_level":0},
+    {"item":"test_plate_1","buy_level":1},
+    {"item":"test_plate_2","buy_level":0},
+    {"item":"test_plate_3","buy_level":0},
+    {"item":"test_plate_4","buy_level":0},
+    {"item":"test_plate_5","buy_level":0},
+    {"item":"test_plate_6","buy_level":0},
+    {"item":"test_plate_7","buy_level":0},
+    {"item":"test_plate_8","buy_level":0},
+    {"item":"test_handle_1","buy_level":0},
+    {"item":"test_handle_2","buy_level":0},
+    {"item":"test_handle_3","buy_level":0},
+    {"item":"test_handle_4","buy_level":0},
+    {"item":"test_handle_5","buy_level":0},
+    {"item":"test_handle_6","buy_level":0},
+    {"item":"test_handle_7","buy_level":0},
+    {"item":"test_handle_8","buy_level":0},
+    {"item":"test_ration","buy_level":0}
+  ]
+}

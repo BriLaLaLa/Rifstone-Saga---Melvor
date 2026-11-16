@@ -25,3 +25,11 @@ func build(raw: Dictionary, errors: PackedStringArray) -> void:
 func clear() -> void:
 	by_id.clear()
 	list.clear()
+
+
+## M23: the id of the building with `unlocks_auction` (`&""` if none: only the minimal fixtures).
+func auction_building() -> StringName:
+	for def: VillageBuildingDef in list:
+		if def.unlocks_auction:
+			return def.id
+	return &""

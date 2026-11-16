@@ -71,3 +71,5 @@ const DUNGEON_PAUSED := &"dungeon_paused"  # M22: the run is paused after loadin
 const NOT_PAUSED := &"not_paused"  # M22: resume on a run that is not paused
 const DUNGEON_WON := &"dungeon_won"  # M22: combat stop reason after a won run with no area to return to
 const DUNGEON_FLED := &"dungeon_fled"  # M22: same, after a flight
+const NOT_TRADABLE := &"not_tradable"  # M23: item outside the Auction House list (selling) or not for sale there (buying)
+const OUT_OF_STOCK := &"out_of_stock"  # M23: the Auction House stock is zero or below the requested quantity
