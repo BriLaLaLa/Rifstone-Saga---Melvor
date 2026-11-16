@@ -33,6 +33,8 @@ const GOLD_GAINED_LINE := "Oro: +%s"
 const GOLD_SPENT_LINE := "Oro: -%s"
 const KILLS_LINE := "%s: %s uccisioni"
 const DEATHS_LINE := "Morti: %s"
+const NODES_WORKED_LINE := "Nodi lavorati: %s"
+const NODES_SKIPPED_LINE := "Nodi saltati: %s"
 const FOOD_LINE := "Cibo mangiato: %s"
 const PIECES_STORED_LINE := "Pezzi conservati: %s"
 const PIECES_DISMANTLED_LINE := "Pezzi smantellati dal filtro: %s"
@@ -49,6 +51,8 @@ const REASON_TEXTS: Dictionary[StringName, String] = {
 	Reasons.LEVEL_TOO_LOW: "Livello troppo basso",
 	Reasons.STOPPED_BY_USER: "Attività interrotta",
 	Reasons.REPLACED: "Attività sostituita",
+	Reasons.JOB_DONE: "Lavori in coda terminati",
+	Reasons.NOT_LEARNED: "Disciplina non appresa",
 }
 const REASON_UNKNOWN := "Attività interrotta (%s)"
 

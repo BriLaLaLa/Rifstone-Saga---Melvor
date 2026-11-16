@@ -36,6 +36,14 @@ const STOP_TEXTS: Dictionary[StringName, String] = {
 const STOP_TEXT_DEFAULT := "interrotta"
 const MILESTONE_TEXT: String = "Traguardo di maestria: %s (%s)"
 const DISCOVERY_TEXT: String = "Nuovo: %s"
+const NODE_FINISHED := &"node_finished"
+const JOB_DONE_TEXT: String = "%s: lavoro completato"
+const LEARNED_TEXT: String = "Hai imparato: %s"
+const TRAINED_TEXT: String = "%s: nuovo grado (%s)"
+const UNLEARNED_TEXT: String = "Hai disimparato: %s"
+const RECIPE_TEXT: String = "Ricetta scoperta: %s"
+const CAPPED_TEXT: String = "%s: al limite del grado, esperienza persa"
+const NODE_BANK_FULL_TEXT: String = "Deposito pieno: il nodo di %s si è chiuso in anticipo"
 
 ## Event bus to listen to; null = the `EventBus` autoload.
 var events: GameEvents = null
@@ -59,6 +67,8 @@ var _group_qty: Dictionary[StringName, int] = {}
 var _group_start_ms: Dictionary[StringName, int] = {}
 ## Presentation: the last level toast of each skill (frame, level before the first gain, text) for B5.
 var _level_toasts: Dictionary[StringName, Dictionary] = {}
+## Presentation: when the last "al limite del grado" toast of each discipline was shown.
+var _capped_ms: Dictionary[StringName, int] = {}
 
 
 func _init() -> void:
@@ -89,6 +99,11 @@ func _enter_tree() -> void:
 	_bound_events.dungeon_trap_triggered.connect(_on_events_dungeon_trap_triggered)
 	_bound_events.card_rejected.connect(_on_events_card_rejected)
 	_bound_events.item_discovered.connect(_on_events_item_discovered)
+	_bound_events.discipline_changed.connect(_on_events_discipline_changed)
+	_bound_events.recipe_learned.connect(_on_events_recipe_learned)
+	_bound_events.xp_capped.connect(_on_events_xp_capped)
+	if _bound_events.has_signal(NODE_FINISHED):  # M24-04
+		_bound_events.connect(NODE_FINISHED, _on_events_node_finished)
 
 
 func _exit_tree() -> void:
@@ -106,6 +121,11 @@ func _exit_tree() -> void:
 	_bound_events.dungeon_trap_triggered.disconnect(_on_events_dungeon_trap_triggered)
 	_bound_events.card_rejected.disconnect(_on_events_card_rejected)
 	_bound_events.item_discovered.disconnect(_on_events_item_discovered)
+	_bound_events.discipline_changed.disconnect(_on_events_discipline_changed)
+	_bound_events.recipe_learned.disconnect(_on_events_recipe_learned)
+	_bound_events.xp_capped.disconnect(_on_events_xp_capped)
+	if _bound_events.has_signal(NODE_FINISHED):
+		_bound_events.disconnect(NODE_FINISHED, _on_events_node_finished)
 	_bound_events = null
 
 
@@ -243,7 +263,42 @@ func _rewrite(old_text: String, new_text: String) -> bool:
 	return false
 
 
+## M24: learn, train and unlearn of a discipline ("Hai imparato: Boscaiolo").
+func _on_events_discipline_changed(skill_id: StringName, grade: int) -> void:
+	var skill_name: String = _display_name(skill_id)
+	if grade <= 0:
+		push(UNLEARNED_TEXT % skill_name, KIND_INFO)
+	else:
+		push((LEARNED_TEXT % skill_name) if grade == 1 else (TRAINED_TEXT % [skill_name, NumberFormat.format_int(grade)]),
+				KIND_SUCCESS)
+
+
+func _on_events_recipe_learned(action_id: StringName) -> void:
+	push(RECIPE_TEXT % action_resolver.call(action_id), KIND_SUCCESS)
+
+
+## "<disciplina>: al limite del grado": at most one per discipline every `UiStyle.TOAST_LIFETIME_MS` (presentation only),
+## and none while the offline simulation runs.
+func _on_events_xp_capped(skill_id: StringName, _lost: int) -> void:
+	if not (discovery_gate.is_valid() and discovery_gate.call() as bool):
+		return
+	var now: int = _now()
+	if _capped_ms.has(skill_id) and now - _capped_ms[skill_id] < UiStyle.TOAST_LIFETIME_MS:
+		return
+	_capped_ms[skill_id] = now
+	push(CAPPED_TEXT % _display_name(skill_id), KIND_WARNING)
+
+
+## A node closed early because the Bank is full (`node_finished(skill, action, units, reason)`).
+func _on_events_node_finished(skill_id: StringName, _action_id: StringName, _units: int, reason: StringName) -> void:
+	if reason == Reasons.BANK_FULL and discovery_gate.is_valid() and discovery_gate.call() as bool:
+		push(NODE_BANK_FULL_TEXT % _display_name(skill_id), KIND_WARNING)
+
+
 func _on_events_action_stopped(_lane: StringName, skill_id: StringName, reason: StringName) -> void:
+	if reason == Reasons.JOB_DONE:
+		push(JOB_DONE_TEXT % _display_name(skill_id), KIND_SUCCESS)
+		return
 	if SILENT_STOP_REASONS.has(reason):
 		return
 	var reason_text: String = STOP_TEXTS.get(reason, STOP_TEXT_DEFAULT)
@@ -254,6 +309,7 @@ func _on_events_session_ended(_slot: int) -> void:
 	_group_qty.clear()
 	_group_start_ms.clear()
 	_level_toasts.clear()
+	_capped_ms.clear()
 
 
 func _now() -> int:

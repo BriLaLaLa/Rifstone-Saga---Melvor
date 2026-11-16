@@ -14,23 +14,24 @@ const INFO_LINE: String = "Durata: %s - XP: %s - Probabilità di due affissi: %s
 const AFFIX_LABEL: String = "Affisso scelto"
 const AFFIX_RANDOM_TEXT: String = "Casuale"
 const AFFIX_LOCKED_TEXT: String = "La scelta dell'affisso si sblocca al livello %s."
-const START_TEXT: String = "Avvia"
-const STOP_TEXT: String = "Ferma"
+const START_TEXT: String = "Metti in coda"
+const STOP_TEXT: String = "Annulla lavoro"
 const RUNNING_TEXT: String = "In lavorazione"
 const WAITING_TEXT: String = "In attesa di posto nell'Armeria."
 const MINUTES_TEXT: String = "%d min"
 const MINUTES_SECONDS_TEXT: String = "%d min %d s"
 
-## Italian text of each refusal of `actions.start_blueprint`; other reasons use REFUSED_TEXT_DEFAULT.
+## Italian text of each refusal of `actions.enqueue_blueprint`; other reasons use REFUSED_TEXT_DEFAULT.
 const REFUSED_TEXTS: Dictionary[StringName, String] = {
 	Reasons.UNKNOWN_ID: "Questo progetto non è nel deposito.",
 	Reasons.LEVEL_TOO_LOW: "Livello di Fabbro troppo basso per questo progetto.",
 	Reasons.INVALID_CHOICE: "Questo affisso non si può scegliere.",
 	Reasons.MISSING_INPUTS: "Materiali insufficienti.",
 	Reasons.ARMORY_FULL: "L'Armeria è piena.",
-	Reasons.COMBAT_ACTIVE: "Combattimento in corso.",
+	Reasons.NOT_LEARNED: "Devi prima imparare la disciplina dal Maestro.",
+	Reasons.QUEUE_FULL: "La coda di produzione è piena.",
 }
-const REFUSED_TEXT_DEFAULT: String = "Impossibile avviare il progetto."
+const REFUSED_TEXT_DEFAULT: String = "Impossibile mettere il progetto in coda."
 
 
 static func refused(reason: StringName) -> String:
