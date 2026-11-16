@@ -163,6 +163,28 @@ I documenti sono già scritti con questi default. I numeri non presenti nella fo
 | Q103 | Il prezzo d'acquisto (2,20-2,73 volte il valore) è troppo alto? | Resta così: deve superare ogni prezzo di vendita (F-151) e il costo dei progetti con margine; è una comodità per colmare un ammanco, non una fonte di materiali | M23 | utente |
 | Q104 | Pagina della Casa d'Aste anche nella barra laterale, oltre che dalla mappa del Villaggio? | Sì, dopo "Bacheca" (come la Bacheca); toglierla se la barra diventa troppo lunga | M23 | utente |
 
+## Aperte da M24 (Incontri e Mestieri; `M24_MESTIERI.md`, `01_GDD_M24.md` §35, decisioni V16-V24)
+
+| # | Domanda | Default | Chi/quando |
+|---|---|---|---|
+| Q105 | (G) L'Incisore è tra le produzioni da scegliere? | **No** (lettura a, coerente con A/V23): si sceglie 2 produzioni su 3 (Forgia, Falegnameria, Cucina e alchimia); l'Incisore è una funzione del Villaggio per tutti | M24 | utente |
+| Q106 | (H) Cucina e alchimia sono una disciplina o due? | **Una** (`hearthcraft`, "Cuoco e alchimista"): le ricette di alchimia sono i Tonici (§8.11) | M24 | utente |
+| Q107 | (I) Come avanza l'Incisore? | **Livello e maestria propri** (come oggi), senza Maestro né limite di grado; gli incavi dell'Altare restano legati al suo livello | M24 | utente |
+| Q108 | Migrazione v7 → v8: le discipline che non vengono imparate in automatico perdono XP e maestria? | **Sì**: si imparano le 2 + 2 con più XP (grado gratuito che copre il livello), le altre ripartono da zero (invariante "XP > 0 ⇒ appresa", nessun avanzamento "dormiente" da sfruttare dopo un disimparare). Alternativa: conservare l'XP e restituirla alla prima iscrizione | M24-03 | utente |
+| Q109 | Offline del ciclo in **forma chiusa** (come chiede `M24_MESTIERI.md`) o con il motore esatto? | **Motore esatto** (lo stesso del gioco, a eventi: costo trascurabile, nessuna differenza tra online e offline); F-156 è il riferimento che la sim controlla (±5%) | M24-04/07 | Reviewer, utente |
+| Q110 | Le materie prime (minerali, legni, pesci, erbe) non si comprano alla Casa d'Aste (V24): una produzione senza la raccolta che la alimenta vive solo di componenti comprati e drop. Va bene? | **Sì in M24** (Casa d'Aste invariata); la pagina dei Maestri mostra "Si alimenta con…". Da rivedere con il modello a popolazione (ordini di materie prime) | M24, M25+ | utente |
+| Q111 | Attrezzo dell'Erboristeria (un Falcetto unico, slot `tool_herbalism`, raffinazione come gli altri)? | **No in M24** (slot, affissi, leggendari e UI in più): l'Erboristeria non ha attrezzo; i nodi durano un po' di più | M25+ | utente |
+| Q112 | Alchimia: pozioni con effetti a tempo invece dei Tonici? | **Tonici** (cibo che cura il 50% in più): nessuna stat o sistema di buff nuovo; le pozioni vanno progettate con stat proprie | M25+ | utente |
+| Q113 | Nomi visibili: restano i mestieri (Boscaiolo, Minatore, Pescatore, Fabbro, Falegname) o si passa ai nomi delle discipline (Taglialegna, Miniera, Pesca, Forgia, Falegnameria)? | **Restano i mestieri**, più Erborista e "Cuoco e alchimista"; "disciplina" è la parola della pagina dei Maestri | M24-05 | utente |
+| Q114 | Il requisito del Villaggio passa al livello del personaggio: rinominare la chiave `village.woodwright_levels`? | **No** in M24 (la usa anche la Casa d'Aste per i gradini; nome storico documentato); rinomina con un task di pulizia | M24 | Reviewer |
+| Q115 | Al limite del grado l'XP in più si perde o si conserva? | **Si perde** (come i maestri dei giochi di ruolo), con l'avviso "torna dal tuo Maestro"; conservarla toglierebbe senso ai gradi | M24-03 | utente |
+| Q116 | Disimparare toglie anche le ricette scoperte, l'attrezzo raffinato o gli incarichi attivi? | **No**: si perdono XP, maestria e grado della disciplina; ricette, oggetti, attrezzo e incarichi restano (l'XP di un incarico di una disciplina disimparata va persa) | M24-03 | utente |
+| Q117 | Numeri del ciclo: viaggio 2,5 s, nodi al 25%, 12 s e 80 unità a nodo, salto 1,5 s (circa −7% di scontri all'ora, ~430 unità/h per disciplina) | Questi (F-153…F-156); la sim di M24-07 li verifica, la ritaratura è un task a parte | M24-07 | utente |
+| Q118 | Il nodo dà sempre la risorsa migliore che il personaggio sa lavorare fino al tetto dell'area (mai nodi "troppo difficili"), il primo incontro dopo l'avvio è sempre uno scontro | **Sì**: nessun nodo inutile per chi ha la disciplina; il colore (F-154) riduce solo l'XP | M24 | utente |
+| Q119 | Costi dei Maestri (0 / 250 / 1.250 / 6.250 / 31.250 oro, 39.000 per disciplina) e del disimparare (metà dell'investito, minimo 100) | Questi; rivederli con l'oro all'ora misurato nelle aree dei livelli richiesti | M24-07 | utente |
+| Q120 | Una sola coda (5 lavori, uno alla volta) per tutte le produzioni e l'Incisore? | **Sì**; più lavori in parallelo o più caselle potrebbero essere premi dei gradi in futuro | M25+ | utente |
+| Q121 | I Maestri sono una funzione fissa del Villaggio o un edificio da costruire? | **Funzione fissa** (sempre disponibili, come chiede A per l'Incisore); un edificio aggiungerebbe un costo d'ingresso prima della prima disciplina | M24 | utente |
+
 ## Chiuse
 
 | # | Domanda | Decisione | Data |

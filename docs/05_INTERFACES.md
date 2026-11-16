@@ -3,6 +3,8 @@
 Questo è il **contratto**: firme pubbliche, segnali, formato del salvataggio. È definito prima dell'implementazione
 perché i task possano procedere in parallelo. **Lo modifica solo il Reviewer/Integrator** (vedi `08_TEAM.md`); chi ha
 bisogno di un cambio apre una richiesta nel report del task e si ferma.
+**M24 (Incontri e Mestieri)**: le aggiunte e le sostituzioni del contratto sono in [`05_INTERFACES_M24.md`](05_INTERFACES_M24.md) (segnali §3b, GameData §4b, Disciplines §5.31, coda §5.32, ciclo §5.33, save v8 §6b, UI §7.o); in caso di differenza vale quel file. HelperSystem, i segnali `helper_*` e i motivi `no_helper`/`helper_not_better` sono eliminati.
+
 
 Regole generali:
 - Tutto tipizzato. `StringName` (`&"..."`) per gli id, `int` per ms, quantità, oro, XP.
@@ -73,8 +75,8 @@ const DEPOSIT_NOT_EMPTY := &"deposit_not_empty"   # M12: togliere la borsa lasce
 const NOT_A_BAG := &"not_a_bag"                   # M12: l'oggetto non è una borsa (categoria bag)
 const BAG_SLOT_OCCUPIED := &"bag_slot_occupied"   # M12: lo slot borsa non è vuoto
 const NOT_A_CONTRACT := &"not_a_contract"         # M12: l'oggetto non è un contratto (categoria contract)
-const NO_HELPER := &"no_helper"                   # M12: il mestiere non ha un aiutante
-const HELPER_NOT_BETTER := &"helper_not_better"   # M12: il contratto non supera il grado dell'aiutante attuale (non si consuma)
+const NO_HELPER := &"no_helper"                   # M12: il mestiere non ha un aiutante  # ELIMINATO in M24
+const HELPER_NOT_BETTER := &"helper_not_better"   # M12: il contratto non supera il grado dell'aiutante attuale (non si consuma)  # ELIMINATO in M24
 const BLUEPRINT_DONE := &"blueprint_done"   # M10: motivo di stop di fine progetto (action_stopped)
 const FRACTURE_ACTIVE := &"fracture_active"             # M13: c'è già una Frattura in corso
 const FRACTURE_BAG_PENDING := &"fracture_bag_pending"   # M13: la borsa della Frattura precedente non è stata consegnata del tutto
@@ -296,9 +298,9 @@ func hide_tooltip() -> void
 | `save_failed` | `slot: int, reason: StringName` | Game | |
 | `notification_requested` | `text: String, kind: StringName` | qualunque sistema | `kind` = `&"info"`, `&"success"`, `&"warning"` |
 | `hint_triggered` (M9) | `hint_id: StringName` | HintsSystem | |
-| `helper_changed` (M12) | `skill_id: StringName, grade: StringName, action_id: StringName` | HelperSystem | assunzione, cambio di azione o stop (`grade` e `action_id` vuoti se assenti) |
-| `helper_completed` (M12) | `skill_id: StringName, action_id: StringName, outputs: Dictionary` | HelperSystem | fine di un ciclo dell'aiutante (`outputs`: `{item_id: qty}`) |
-| `helper_blocked` (M12) | `skill_id: StringName, blocked: bool` | HelperSystem | l'aiutante attende (Deposito pieno) o riparte; emesso solo al cambio |
+| `helper_changed` (M12, **ELIMINATO in M24**) | `skill_id: StringName, grade: StringName, action_id: StringName` | HelperSystem | assunzione, cambio di azione o stop (`grade` e `action_id` vuoti se assenti) |
+| `helper_completed` (M12, **ELIMINATO in M24**) | `skill_id: StringName, action_id: StringName, outputs: Dictionary` | HelperSystem | fine di un ciclo dell'aiutante (`outputs`: `{item_id: qty}`) |
+| `helper_blocked` (M12, **ELIMINATO in M24**) | `skill_id: StringName, blocked: bool` | HelperSystem | l'aiutante attende (Deposito pieno) o riparte; emesso solo al cambio |
 | `mastery_milestone_reached` (M12) | `skill_id: StringName, action_id: StringName, at: int` | MasterySystem | un traguardo (25/50/99) raggiunto in gioco, dopo `mastery_level_up`; mai in `from_save` |
 | `fracture_opened` (M13) | `grade: int` | FractureSystem | la Carta è consumata e la Frattura parte (sostituisce la vecchia firma `fracture_id, duration_ms`) |
 | `fracture_group_cleared` (M13) | `index: int, total: int` | CombatEngine | gruppo `index` (da 1) superato |
@@ -801,7 +803,7 @@ func milestone_active(action_id: StringName, at: int) -> bool      # M12: livell
   l'artigianato. Dopo un `mastery_level_up` che attraversa 25/50/99 emette `mastery_milestone_reached(skill, action, at)` (una volta per soglia, mai in `from_save`/`new_game`) e, se serve, ricostruisce le sorgenti in un solo batch.
   Il sottoprodotto (25) lo tira il resolver (5.8), non la maestria.
 
-### 5.8 Azioni (`systems/actions/`) — dipendenze: data, events, modifiers, bank, skills, mastery, rng, combat (solo `stop`)
+### 5.8 Azioni — **SOSTITUITA in M24** dalla coda di produzione (`05_INTERFACES_M24.md` §5.32) (`systems/actions/`) — dipendenze: data, events, modifiers, bank, skills, mastery, rng, combat (solo `stop`)
 ```gdscript
 class_name ActionMath extends RefCounted
 static func interval_ms(base_ms: int, interval_pct: float, min_ms: int) -> int          # F-03
@@ -1408,7 +1410,7 @@ func unequip_bag(slot_index: int) -> CommandResult
 - Ordine in `_create_systems()`: `wallet`, **`deposit`**, `bank` (si registra come occupante), … `armory` (si registra come occupante). `from_save` ricarica `deposit` prima di `bank`.
 - **M19 (F-133)**: `Deposit` riceve il `ModifierService` e somma `floor(total(deposit_slots))` a `capacity()`; ascolta `modifiers_changed` e chiama `notify_changed()`. Dettagli in 5.27.
 
-### 5.21 HelperSystem (`systems/helpers/helper_system.gd`, M12; F-101, F-102) — dipendenze: data, events, modifiers, bank, deposit, skills, mastery, rng
+### 5.21 HelperSystem — **ELIMINATO in M24** (V22; testo storico, vedi `05_INTERFACES_M24.md`) (`systems/helpers/helper_system.gd`, M12; F-101, F-102) — dipendenze: data, events, modifiers, bank, deposit, skills, mastery, rng
 ```gdscript
 class_name HelperSystem extends RefCounted
 const SAVE_KEY := &"helpers"
@@ -2077,7 +2079,7 @@ class_name AuctionTexts extends RefCounted       # ui/pages/auction/auction_text
   Scorciatoie della quantità `SHORTCUTS` [1, 10, 100] più "Tutti" (costanti di presentazione); il motivo di rifiuto sta anche sotto il nome della riga (`ReasonLabel`) e nel tooltip del pulsante.
   Il testo fisso del box è `VillageTexts.FIXED_EFFECT_TEXTS[&"auction_house"]`, quello del pulsante del dettaglio `VillageTexts.OPEN_TEXTS[&"auction"]` ("Apri Casa d'Aste"). Guida: `GuideIndex.PAGE_AUCTION` = `&"guide_auction"`.
 
-## 6. Formato del salvataggio (`user://saves/slot_<n>.json`)
+## 6. Formato del salvataggio (`user://saves/slot_<n>.json`) — **v8 da M24**: `05_INTERFACES_M24.md` §6b
 
 Versione **7 da M17** (M19: il modulo `village` è additivo; M20: anche `quests`; M22: anche `dungeon`, additivo, §5.29; M23: anche `auction`, additivo, §5.30; versione invariata) (v6 da M15 e v5 da M14 si migrano; vedi sotto); v5 da M14 (v4 da M12, v3 da M10, v2 da M4-03, D3). Un save v1, v2, v3 o **v4 non si carica** (`version_unsupported`, nessuna migrazione: nessun giocatore reale ancora; M14 cambia il significato di `damage_reduction`, le basi dei pezzi e aggiunge `discoveries`). `SaveMigrator.CURRENT_VERSION` = 5.
 **Save v7 e migrazione v6 → v7 (M17-04, `core/save/migrations/migration_6_to_7.gd`)**: `SaveMigrator.CURRENT_VERSION` = 7; v5 e v6 si migrano in catena, v1-v4 restano `version_unsupported`. Le 10 aree strette sostituiscono le 4 larghe (`02_FORMULAS.md` §8.5). Nessuna chiave nuova, cambiano i valori in `modules`:

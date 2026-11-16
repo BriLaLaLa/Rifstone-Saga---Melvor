@@ -520,7 +520,7 @@ Esempi: nessuna borsa → **60**; Borsa di tela (+6) e Borsa di cuoio (+10) → 
 Con capienza 76 e `used` 66: togliere la Borsa di cuoio → 66 + 1 = 67 > 66 → `deposit_not_empty`; con `used` 65 → 66 ≤ 66 → ok.
 Test: `tests/systems/deposit/test_deposit.gd`.
 
-### F-101 Intervallo dell'aiutante
+### F-101 Intervallo dell'aiutante — **ELIMINATA in M24** (V22; aiutanti rimossi, raccolta nei nodi: F-155 in `02_FORMULAS_M24.md`)
 `p_h = total_without(skill_interval_pct, ctx_action, [equipment:tool_<skill>])` (come F-05 senza la sorgente dell'attrezzo del
 giocatore: l'aiutante non lo usa; nodi, maestria della risorsa e del mestiere, rune valgono anche per lui).
 `base_h = F-03(base_interval_ms, p_h)` (con il minimo `action.min_interval_ms`); `interval_h = round(base_h × mult(grade))`,
@@ -530,7 +530,7 @@ Esempi: Betulla 3000 ms, `p_h` 0 → Apprendista **9000**, Garzone **7500**, Esp
 Per costruzione l'aiutante è almeno `mult` volte più lento del giocatore con la stessa azione. Test:
 `tests/systems/helpers/test_helper_math.gd`.
 
-### F-102 XP e maestria dell'aiutante
+### F-102 XP e maestria dell'aiutante — **ELIMINATA in M24** (V22)
 `xp_h = floor(F-02(base_xp, T_h(skill_xp_pct)) × helper.xp_pct / 100)` con `helper.xp_pct = 25` (`T_h` come in F-101);
 `mxp_h = round(F-10 × helper.mastery_pct / 100)` con `helper.mastery_pct = 25`; il pool riceve la quota F-12 di `mxp_h`.
 Prodotti, doppio prodotto (F-06), Frammento (F-07) e sottoprodotto (F-103) come per il giocatore (**tutte le risorse**).
@@ -998,7 +998,10 @@ Esempi (= test, `seed` 12345): `redbirch_grip`, blocco 0, `sat` 0 → `now` 1.21
 **≥ 4 oro**, la strategia con saturazione e riacquisto **≥ 3.005 oro**; (5) 1 h di produzione dei grezzi T1-T8 rispetto a F-18: **0,920-1,148** (dentro 0,85-1,25); recupero dal tetto
 **9,17 h** (110 blocchi, F-149); rifornimento di una scorta dallo zero **≤ 8,33 h** (F-150).
 
-## 6. Offline
+## 5l. Incontri e Mestieri (F-153…F-160; M24, V16-V24)
+In file separato: [`02_FORMULAS_M24.md`](02_FORMULAS_M24.md). Le chiavi `helper.*` di §9 sono **eliminate in M24**.
+
+## 6. Offline — da M24 il ciclo con viaggi e nodi: F-153…F-156 in `02_FORMULAS_M24.md`
 
 ### F-40 Tempo offline
 `elapsed = clamp(now_unix_ms − saved_at_unix_ms, 0, offline_cap_ms)`; `offline_cap_ms = 43200000` (12 h),

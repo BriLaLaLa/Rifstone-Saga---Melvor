@@ -23,8 +23,9 @@ room esteso a Melvor Idle, Metin2, Path of Exile e No Rest for the Wicked: si pr
 1. **Progressione sempre leggibile.** Ogni azione mostra cosa dà (XP, oggetti, maestria) e quanto manca al prossimo
    sblocco. Ogni numero visibile ha una formula in `02_FORMULAS.md` e un test.
 2. **Scelte che contano nel lungo periodo.** Assetto (spadone, spada e scudo, due spade), tratti, abilità, bottino da
-   tenere e potenziare, maestria a nodi, rune dell'Altare e aiutanti creano build e percorsi diversi tra un giocatore e
-   l'altro. Ogni skill di supporto produce qualcosa che serve al combattimento o al potenziamento.
+   tenere e potenziare, maestria a nodi, rune dell'Altare e le **discipline** imparate dai Maestri (2 di raccolta e 2 di
+   produzione, M24) creano build e percorsi diversi tra un giocatore e l'altro. Ogni disciplina produce qualcosa che serve
+   al combattimento, al potenziamento o alla collezione.
 3. **Rispetto del tempo del giocatore.** Progressione offline fino a 12 ore con riepilogo dettagliato al rientro;
    nessuna punizione per chi chiude il gioco.
 4. **Atmosfera dark fantasy viva.** Stile "D" di RiftStone (oro su fondo scuro, Cinzel e Alegreya Sans) con più vita
@@ -32,7 +33,14 @@ room esteso a Melvor Idle, Metin2, Path of Exile e No Rest for the Wicked: si pr
 5. **Solidità tecnica.** Logica testabile separata dalla UI, dati in JSON, salvataggi per slot con versione: le
    lezioni di RiftStone Saga diventano regole di progetto.
 
-## Il personaggio e le 7 skill di supporto dell'MVP
+## Il personaggio, le discipline e l'Incisore
+
+> **M24 (V16-V24, `01_GDD_M24.md` §35)**: le skill di supporto diventano **discipline** che il giocatore impara dai **Maestri** del Villaggio:
+> al massimo **2 di raccolta su 4** (Boscaiolo, Minatore, Pescatore e il nuovo **Erborista**) e **2 di produzione su 3** (Fabbro, Falegname,
+> **Cuoco e alchimista**), con gradi a pagamento e il disimparare con perdita totale. La raccolta **non si avvia**: avviene da sola nei **nodi**
+> che il ciclo degli incontri alterna agli scontri (viaggio con piccola mappa); i nodi delle discipline non apprese si saltano. La produzione è
+> una **coda** in parallelo al combattimento. L'**Incisore** non si sceglie: è una funzione del Villaggio con livello proprio. Gli **aiutanti non
+> esistono più**. La tabella sotto resta valida per id, nomi e prodotti (più `herbalism`, Erborista, erbe).
 
 **Personaggio** (D2, D3, D4, D6): una classe, "Spadaccino" (`rift_blade`, era "Lama del Rift"), solo spade in tre
 assetti (spadone a due mani, spada e scudo, due spade); un unico **livello del personaggio** (1-99, XP per uccisione)
@@ -59,8 +67,7 @@ craft fatto come si deve** (un progetto + molti materiali + un componente raro =
 artigiane non producono più equipaggiamento in serie. Un solo **attrezzo unico** per mestiere (accetta, piccone, canna),
 potenziato con la raffinazione +0…+9 che riesce sempre.
 
-**Riforma 2 (M12; decisioni W1-W7, `DECISIONS_LOG.md`)**: i tre mestieri di raccolta hanno ciascuno un **aiutante** (contratti che cadono dai mostri; gradi Apprendista,
-Garzone, Esperto, Maestro) che lavora anche offline; ogni risorsa ha i suoi traguardi di maestria; l'**Incisore** (ex Legatura del Rift) non crea dal nulla ma trasforma i drop
+**Riforma 2 (M12; decisioni W1-W7, `DECISIONS_LOG.md`)**: ~~i tre mestieri di raccolta hanno ciascuno un aiutante~~ (**ELIMINATO in M24**, V22); ogni risorsa ha i suoi traguardi di maestria; l'**Incisore** (ex Legatura del Rift) non crea dal nulla ma trasforma i drop
 dei mostri; pietre, valute e polvere **cadono dai mostri** e dai Monoliti; un solo **Deposito** con borse; nomi nuovi in `NOMI.md`. Le corsie parallele non esistono più.
 
 ## Differenze rispetto al modello di riferimento (Melvor Idle)
@@ -72,7 +79,7 @@ dei mostri; pietre, valute e polvere **cadono dai mostri** e dai Monoliti; un so
 | Combattimento | Duello contro un mostro alla volta, skill di combattimento separate | **Gruppi di mostri** (1-6) con bersagli e motore a eventi; un **livello del personaggio** unico; tratti e abilità della classe |
 | Equipaggiamento | Oggetti impilabili e uguali tra loro, prodotti in serie dall'artigianato | **Pezzi unici** nell'Armeria con rarità e affissi a gradi, dai **mostri** o da **un singolo craft** (progetto + materiali + componente raro); raffinazione +0…+9 che non distrugge; castoni |
 | Eventi | Nessun evento periodico nel gioco base | **Monoliti del Rift** (M7, ex "Pietre del Rift"): incontri speciali con garanzia; **Fratture del Rift** come mappe (M13): si aprono quando vuole il giocatore con una **Carta** di grado 1-10, N gruppi più un boss, se muori perdi la Carta e il bottino della Frattura |
-| Azioni | Una sola azione alla volta | Una azione (o il combattimento) alla volta, più gli **aiutanti** (M12): un aiutante per mestiere di raccolta lavora mentre il giocatore combatte, con tutte le risorse ma il 25% dell'XP e più lento di lui |
+| Azioni | Una sola azione alla volta, avviata dal giocatore | Nessuna azione da avviare (M24): la **raccolta** avviene nei nodi del ciclo degli incontri, tra uno scontro e l'altro; la **produzione** è una coda di lavori in parallelo al combattimento; le discipline si imparano dai Maestri (2 + 2) |
 | Maestria della raccolta | Bonus per oggetto uguali per ogni risorsa | **3 traguardi per ogni risorsa** (sottoprodotto, bonus della risorsa, bonus del mestiere) e un albero di nodi **diverso per ogni mestiere** (M12) |
 | Inventario | Una bank a caselle comprate | Un **Deposito unico** (oggetti ed equipaggiamento sulla stessa capienza) che cresce con **6 slot borsa** (M12), non con caselle in vendita |
 | Morte | Si perde un oggetto equipaggiato a caso | Si perde il **contenuto della borsa del bottino** (loot non ancora raccolto); l'equipaggiamento è al sicuro |

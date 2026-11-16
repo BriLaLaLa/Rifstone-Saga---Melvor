@@ -283,10 +283,23 @@ nessun guadagno comprando e rivendendo (sim, anche passando dal Deposito).
 **Misure** (M23-03, M23-05): ore per livello dell'edificio 0,27-0,76 (cumulate 3,70 h, soglia ≤ 1,0 h); `tools/sim_market.gd` verde: `unit`/vendita al tetto ≥ 2,225; il giro compra-vendi perde ≥ 4 oro,
 saturazione + riacquisto ≥ 3.005 oro; 1 h di produzione dei grezzi rispetto a F-18 0,920-1,148 (soglia 0,85-1,25); recupero dal tetto 9,17 h (< 12 h di offline); rifornimento dallo zero ≤ 8,33 h.
 
-## M24+: Seconda classe, altri dungeon e boss (dopo M23; era M23+)
-Seconda classe con le sue armi (es. arco o bastone, con i suoi progetti e componenti del Falegname), supporti delle abilità, altri dungeon (solo dati: il sistema di M22 è generico), livelli di difficoltà dei dungeon, altri boss, elementi e resistenze.
+## M24: Incontri e Mestieri
+Progettata da M24-01 (`M24_MESTIERI.md`, decisioni V16-V24, `01_GDD_M24.md` §35, `02_FORMULAS_M24.md` F-153…F-160, `04_DATA_SCHEMA_M24.md` §29, `05_INTERFACES_M24.md`, task in `07_TASKS_M24.md`):
+la raccolta non si avvia più: dopo ogni scontro un **viaggio** (piccola mappa) porta a un nuovo incontro, **scontro** o **nodo di raccolta** lavorato da solo; il giocatore
+impara **2 discipline di raccolta su 4** (con la nuova Erboristeria) e **2 di produzione su 3** dai **Maestri** del Villaggio, con 5 gradi (livello e oro) e il disimparare
+a pagamento con perdita totale; i nodi delle discipline non apprese si saltano; la produzione è una **coda** in parallelo al ciclo; ricette di alchimia da scoprire;
+**aiutanti e Contratti eliminati**; l'Incisore resta una funzione del Villaggio con livello proprio; Casa d'Aste invariata nella logica. Save v8 con migrazione.
+Task M24-02…M24-08.
+**Giocabile**: partita nuova → Maestri → imparare 2 + 2 discipline → combattere in un'area: tra uno scontro e l'altro la mappa mostra il viaggio, alcuni nodi si lavorano
+(prodotti e XP nel Deposito, colore della risorsa), altri si saltano con il motivo; intanto la coda produce; un grado successivo alza il limite; disimparare costa e azzera;
+un vecchio salvataggio si carica con le discipline scelte in automatico; offline di 12 ore con nodi e coda; nessuna traccia degli aiutanti.
+
+## M25+: Seconda classe, altri dungeon e boss (dopo M24; era M24+)
+Seconda classe con le sue armi (es. arco o bastone, con i suoi progetti e componenti del Falegname), supporti delle abilità, altri dungeon (solo dati: il sistema di M22 è generico), livelli di difficoltà dei dungeon, altri boss, elementi e resistenze;
+modello a popolazione della Casa d'Aste (Q110), pozioni (Q112), attrezzo dell'Erboristeria (Q111).
 
 ## Percorso critico e parallelismo
+- M24: M24-01 → M24-02 → (M24-03 ∥ M24-05) → (M24-04 ∥ M24-06) → M24-07 → M24-08. M24-02 (rimozione degli aiutanti e schema dei dati) va da solo perché tocca file comuni; M24-03 (CORE: `systems/`, sessione, save) e M24-05 (DATA: `data/`, generatori) hanno file disgiunti; M24-04 (motore) e M24-06 (UI, con lo stub del ciclo) pure.
 - M23: M23-01 → (M23-02 ∥ M23-03) → M23-04 → M23-05 → M23-06. M23-02 (CORE: `core/data/**` del mercato, `systems/auction/**`, `game_session.gd`, `event_bus.gd`, `reasons.gd`) e M23-03 (DATA: `data/**`, generatori, validatore dei dati della Casa d'Aste) hanno file distinti (contratto fisso da M23-01); la UI (M23-04) parte con entrambi fusi.
 - M14: R-05 → M14-01 → M14-02 → M14-03 → M14-04 → (M14-05 ∥ M14-07) → (M14-08 ∥ M14-09) → M14-06 → M14-10 → M14-11. I primi quattro toccano file comuni (`core/data/**`, `event_bus.gd`, `game_session.gd`, `systems/combat/**`): in sequenza; la UI (M14-06) per ultima.
 - M13: R-04 → M13-01 → (M13-02 ∥ M13-04) → M13-03 → (M13-05 ∥ M13-06) → M13-07. M13-01 e M13-02 toccano file comuni (`core/data/**`, `event_bus.gd`, `reasons.gd`, `game_session.gd`): in sequenza; M13-02 (motore) e M13-04 (dati) hanno file diversi.

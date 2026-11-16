@@ -5,7 +5,8 @@ Idle/incremental nell'universo di RiftStone con il **combattimento al centro** (
 Godot **4.5 stable**, GDScript tipizzato, renderer GL Compatibility, PC desktop, **solo UI**.
 MVP: una classe (Lama del Rift, solo spade in tre assetti) con livello del personaggio, tratti e abilità; combattimento
 automatico a gruppi con triangolo; Armeria di pezzi unici con rarità, affissi, raffinazione e castoni; Monoliti del Rift;
-7 skill di supporto (3 raccolta con aiutanti, 3 artigianato, Incisore) con maestria a nodi e per risorsa; Deposito con borse, shop, Altare del Rift,
+discipline imparate dai Maestri del Villaggio (2 di raccolta su 4, 2 di produzione su 3; da M24) con maestria a nodi e per risorsa, raccolta
+automatica nei nodi del ciclo degli incontri, produzione in coda, Incisore come funzione del Villaggio; Deposito con borse, shop, Altare del Rift,
 offline fino a 12 ore.
 
 ## Le due cartelle

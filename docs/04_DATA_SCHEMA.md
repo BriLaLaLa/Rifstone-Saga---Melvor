@@ -178,7 +178,7 @@ ognuno `{"items": [...]}`. Campi comuni:
 | `infusion` | object | obbligatorio per `infusion`, vietato per gli altri |
 | `blueprint` | object | obbligatorio per `blueprint`, vietato per gli altri (M10, sotto) |
 | `bag` | object | obbligatorio per `bag`, vietato per gli altri (M12): `{"slots": int 1..100}` |
-| `contract` | object | obbligatorio per `contract`, vietato per gli altri (M12): `{"skill": id di una skill gathering, "grade": id di helper.grades}` |
+| `contract` | object | obbligatorio per `contract`, vietato per gli altri (M12; **ELIMINATO in M24**, V22): `{"skill": id di una skill gathering, "grade": id di helper.grades}` |
 
 `equip`:
 | Campo | Tipo | Vincoli |
@@ -936,3 +936,6 @@ controlla come sempre. **`page`** ammette `auction` (la pagina della UI, `05_INT
 `entries()` con `--lenient`). **Nessun edificio** nelle fixture (`village/buildings.json` resta con 0 edifici): i test dell'edificio, della mappa e dell'integrazione usano i
 dati veri (`AuctionTestData.session`, `05_INTERFACES.md` §5.30). Casi rifiutati (costruiti nei test): `spread_pct ≤ max − min`, `max_pct < base + A`, `buy_level > 0` su un materiale, un acquistabile usato come input di un'azione, file divergente dalla rigenerazione,
 due edifici con `unlocks_auction`, `unlocks_auction` e `unlocks_shop` insieme, progetto sotto margine.
+
+## 29. Incontri e Mestieri (M24; V16-V24, `01_GDD_M24.md` §35, `02_FORMULAS_M24.md` F-153…F-160)
+In file separato: [`04_DATA_SCHEMA_M24.md`](04_DATA_SCHEMA_M24.md). Eliminati in M24: la chiave `helper` di `balance.json` (§3), la categoria `contract` (§5) e i 12 contratti.
