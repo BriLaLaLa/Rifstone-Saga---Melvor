@@ -68,3 +68,17 @@ Da provare a mano (nessuna sessione grafica in questo ambiente): vedi sezione 4.
   aspettare (o chiudere e riaprire il gioco) e vederlo risalire; comprare un componente fino a esaurire la scorta (`Scorta esaurita`); salvare e ricaricare a metà.
 - **Limiti noti**: a 1280x720 (scala 0,8 di `canvas_items`) alcuni bordi di 1 px spariscono (nodi della mappa, SpinBox): effetto globale, non della Casa d'Aste; la tendenza "Stabile" ha un colore
   poco contrastato; `SubTabBar.select()` (solo nei test) lascia premuta anche la scheda precedente.
+
+## 8. Aggiornamento M24 (Incontri e Mestieri, 2026-11-16)
+- **Controlli automatici**: `run_checks.ps1` su main dopo il merge di M24-08 (lo lancia l'Orchestratore); in M24-08 verdi i test mirati di `tests/core/data`,
+  `tests/systems/{encounters,combat,actions}`, `tests/integration`, `tests/core/guide`, `tests/data`, `tests/ui` e `validate_data` sui dati veri e sulle fixture.
+  `tools/sim_encounters.gd`: misure in `06_ROADMAP.md` (M24); soglie (2) e (3) di F-156 saltano per alcune discipline (Q122), nessun ritocco dei dati.
+- **Verifica visiva**: **non fatta**. Il layout a 1280x720 della pagina dei Maestri, della mappa di viaggio, del pannello del nodo e della coda di produzione **non è
+  verificato a schermo** (`tools/shot_ui.gd` non è nel repository; Godot con finestra si blocca negli agenti): Q125.
+- **Prove manuali da fare** (M24): partita nuova → Maestri → imparare 2 raccolte e 2 produzioni (rifiuto della terza); combattere in un'area e guardare la mappa
+  di viaggio, un nodo lavorato (colore, barra, prodotti nel Deposito) e uno saltato (motivo); mettere in coda 2-3 lavori (anche "Ripeti") e vederli finire durante
+  il combattimento; usare una Ricetta dal Deposito ("Impara"); grado successivo e messaggio "Al limite"; disimparare con conferma (perdita in chiaro);
+  caricare un salvataggio v7 (discipline scelte in automatico); offline di qualche ora con nodi e coda nel riepilogo.
+- **Limiti noti**: con una coda attiva lo stato offline non è identico a quello online a parità di seme (Q124, difetto aperto, solo statistico); durata media
+  misurata di un nodo ~10 s invece di 12 s (Q123); la pagina dei Maestri non ha ancora il pulsante "?" (la pagina della Guida esiste); `Reasons.SKILL_IN_OTHER_LANE`
+  senza uso (Q126).

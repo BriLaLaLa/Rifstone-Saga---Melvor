@@ -1,6 +1,11 @@
 # Guida in gioco (M11)
 
 > Superato da R-02: valgono i documenti canonici (`01_GDD.md` §27, `04_DATA_SCHEMA.md` §19, `05_INTERFACES.md` §5.19/§7.y, `06_ROADMAP.md`, `07_TASKS.md`).
+>
+> **M24 (Incontri e Mestieri, allineato da M24-08)**: i mestieri sono **discipline** da imparare dai Maestri; pagine a mano nuove "Mestieri e Maestri"
+> (`guide_disciplines`, tabella `trainer_grades`, aiuto della rotta `trainers`) e "Viaggio e nodi" (`guide_travel`) in `data/guide/mestieri.json`
+> e `primi_passi.json`; pagina dell'Erborista e delle Ricette come per gli altri mestieri e oggetti. Le pagine e le tabelle degli aiutanti e dei Contratti sono
+> eliminate. La regola "nessun numero scritto a mano" vale anche qui: "cinque gradi" è stato tolto dal testo (la tabella dai dati li elenca).
 
 Stato: **APPROVATA dall'utente** (2026-11-08). Nasce dalla prova dell'utente: "tante cose non si capiscono cosa
 facciano". Ispirazione: la **struttura** delle wiki dei giochi idle (pagina per mestiere, oggetto, mostro, meccanica),

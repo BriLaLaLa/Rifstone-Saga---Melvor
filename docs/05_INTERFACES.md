@@ -74,7 +74,7 @@ const INVALID_CHOICE := &"invalid_choice"   # M10: affisso scelto non ammesso o 
 const DEPOSIT_NOT_EMPTY := &"deposit_not_empty"   # M12: togliere la borsa lascerebbe più caselle usate che capienza (F-100)
 const NOT_A_BAG := &"not_a_bag"                   # M12: l'oggetto non è una borsa (categoria bag)
 const BAG_SLOT_OCCUPIED := &"bag_slot_occupied"   # M12: lo slot borsa non è vuoto
-const NOT_A_CONTRACT := &"not_a_contract"         # M12: l'oggetto non è un contratto (categoria contract)
+# NOT_A_CONTRACT (M12) — ELIMINATO in M24
 const NO_HELPER := &"no_helper"                   # M12: il mestiere non ha un aiutante  # ELIMINATO in M24
 const HELPER_NOT_BETTER := &"helper_not_better"   # M12: il contratto non supera il grado dell'aiutante attuale (non si consuma)  # ELIMINATO in M24
 const BLUEPRINT_DONE := &"blueprint_done"   # M10: motivo di stop di fine progetto (action_stopped)
@@ -567,7 +567,7 @@ static func global_ctx() -> ModifierContext
 static func for_skill(skill_id: StringName) -> ModifierContext
 static func for_action(skill_id: StringName, action_id: StringName) -> ModifierContext
 var excluded_sources: Array[StringName]   # M12: sorgenti ignorate da total/breakdown con questo contesto (default vuoto)
-static func for_helper(skill_id: StringName, action_id: StringName) -> ModifierContext   # M12, F-101: come for_action con excluded_sources = [equipment:tool_<skill>]
+# for_helper (M12, F-101) — ELIMINATA in M24
 
 class_name StatRegistry extends RefCounted
 static func from_array(stats: Array, errors: PackedStringArray) -> StatRegistry
@@ -605,7 +605,8 @@ var loadout: Loadout              # M6-03 (null prima)
 var equipment: Equipment; var actions: ActionRunner; var combat: CombatEngine   # combat: M5-03
 var shop: Shop; var rift: RiftAltar   # rift: M8
 var hints: HintsSystem            # M9 (null prima)
-var deposit: Deposit; var helpers: HelperSystem   # M12-01 / M12-02 (null prima)
+var deposit: Deposit              # M12-01 (null prima); `helpers` ELIMINATO in M24
+var disciplines: Disciplines      # M24-03 (null prima), 05_INTERFACES_M24.md §5.31
 var cards: CardStore; var fractures: FractureSystem   # M13-01 / M13-02 (null prima)
 var village: Village              # M19-02 (null prima): edifici del Villaggio, 5.27
 var quests: Quests                # M20-02 (null prima): incarichi della Bacheca, 5.28
@@ -613,7 +614,7 @@ var auction: AuctionHouse         # M23-02 (null prima): Casa d'Aste, 5.30 (fase
 var slot: int; var player_name: String; var created_at_unix_ms: int; var play_time_ms: int
 func _init(game_data: GameData, game_events: GameEvents, rng_seed: int) -> void
 func new_game() -> void                                  # stato iniziale 01_GDD §1.1 + rebuild_modifiers
-func advance(delta_ms: int) -> void                      # ordine: actions, helpers, combat, auction (M23), play_time (M13: le Fratture non hanno timer)
+func advance(delta_ms: int) -> void                      # ordine: actions (coda, M24), combat, auction (M23), play_time (M13: le Fratture non hanno timer)
 func to_save(now_unix_ms: int) -> Dictionary             # file completo (§6)
 func from_save(d: Dictionary) -> CommandResult           # poi rebuild_modifiers
 func rebuild_modifiers() -> void                         # begin_batch, clear_all, rebuild di ogni sistema, end_batch
@@ -637,9 +638,9 @@ func _create_systems() -> void
 func _join(key: StringName, new_game_fn: Callable, to_save_fn: Callable, from_save_fn: Callable,
 		rebuild_fn: Callable = Callable()) -> void            # SAVE_KEY duplicata → assert
 func _tick(phase: int, advance_fn: Callable) -> void         # una fase = un solo sistema, altrimenti assert
-const _PHASE_FRACTURES: int; const _PHASE_ACTIONS: int; const _PHASE_HELPERS: int; const _PHASE_COMBAT: int   # _PHASE_HELPERS: M12-02; const _PHASE_AUCTION: int (M23-02, dopo il combattimento)
+const _PHASE_FRACTURES: int; const _PHASE_ACTIONS: int; const _PHASE_COMBAT: int; const _PHASE_AUCTION: int (M23-02, dopo il combattimento)   # _PHASE_HELPERS ELIMINATA in M24
 ```
-- `advance`: ordine fisso fratture → azioni → aiutanti → combattimento → Casa d'Aste (M23; solo le fasi registrate), poi `play_time_ms`; indipendente
+- `advance`: ordine fisso fratture → azioni (coda) → combattimento → Casa d'Aste (M23; solo le fasi registrate), poi `play_time_ms`; indipendente
   dall'ordine di `_join`. `new_game`, `to_save`, `from_save` e `rebuild_modifiers` seguono l'ordine di `_join`.
 - `from_save`: `format_version` assente o intestazione malformata (`slot`, `created_at_unix_ms`, `play_time_ms` non interi,
   `player_name` non stringa, `rng`/`modules` non oggetti) → `corrupted` senza toccare nulla; `format_version` ≠
@@ -663,7 +664,7 @@ const _PHASE_FRACTURES: int; const _PHASE_ACTIONS: int; const _PHASE_HELPERS: in
   che registra un sistema con la stessa chiave rinomina quella finta.
 
 - **M12**: `_create_systems()` crea `deposit` subito dopo `wallet` e prima di `bank`; `bank` e `armory` si registrano con `deposit.register_occupant(&"bank", bank.used)` e
-  `(&"armory", armory.used)`; `helpers` dopo `mastery` e `actions` (`_tick(_PHASE_HELPERS, helpers.advance)`, senza `rebuild_fn`). `to_save`/`from_save` aggiungono i moduli `deposit` e `helpers` (§6).
+  `(&"armory", armory.used)`. `to_save`/`from_save` aggiungono il modulo `deposit` (§6). (Il modulo `helpers` è **ELIMINATO in M24**; `disciplines` in `05_INTERFACES_M24.md` §5.34.)
 
 ### 5.4 Wallet (`systems/wallet/wallet.gd`) — dipendenze: events
 ```gdscript
@@ -742,7 +743,7 @@ func total_level() -> int
 class_name MasteryMath extends RefCounted
 static func mastery_xp(interval_ms: int, item_level: int, skill_ratio: float, mastery_xp_pct: float, data: GameData) -> int  # F-10
 static func pool_gain(mastery_xp: int, share_pct: float) -> int     # F-12
-static func helper_share(mastery_xp: int, share_pct: float) -> int  # M12, F-102: quota di maestria dell'aiutante, round(mastery_xp × share_pct / 100)
+# helper_share (M12, F-102) — ELIMINATA in M24
 static func pool_cap(action_count: int, per_item: int) -> int       # F-13
 static func node_cost(pool_cap: int, cost_pct: float) -> int        # F-15
 static func rule_multiplier(rule: MasteryBonusRule, level: int) -> int   # F-11: floor(L/k) o 0/1   # M14: tolta con F-11 (sostituita da step_bonus, §5.24)
@@ -797,7 +798,7 @@ func milestone_active(action_id: StringName, at: int) -> bool      # M12: livell
   nessun nodo (`Log.warn`); voci non stringa, id sconosciuti o di un'altra skill → `Log.warn` e scartati; i
   prerequisiti **non** si ricontrollano al caricamento (un nodo salvato resta posseduto).
 
-- **M12 (W4, F-103, F-108)**: `add_for_action(action, share_pct)` con `share_pct < 100` (aiutante, F-102) dà `round(F-10 × share_pct/100)` e la quota F-12 su quel valore.
+- **M12 (W4, F-103, F-108)**: (`share_pct` è **ELIMINATO in M24**: `add_for_action(action, cycles)`, `05_INTERFACES_M24.md` §5.31.)
   Per le azioni di **raccolta** le sorgenti diventano: `mastery_item:<action_id>` = modificatori del traguardo `resource` (scope `action:<id>`) se `L ≥ resource_at`, e **`mastery_trade:<skill_id>`**
   = somma dei modificatori dei traguardi `trade` delle azioni con `L ≥ trade_at` (scope `skill:<id>`; nessun modificatore → `clear_source`). Le `mastery_bonuses` per oggetto (F-11) valgono solo per
   l'artigianato. Dopo un `mastery_level_up` che attraversa 25/50/99 emette `mastery_milestone_reached(skill, action, at)` (una volta per soglia, mai in `from_save`/`new_game`) e, se serve, ricostruisce le sorgenti in un solo batch.
@@ -1374,7 +1375,7 @@ static func page_ids(data: GameData) -> Array[StringName]                       
 - `sources_of`/`uses_of` seguono l'ordine dei dati. Un `item_id` sconosciuto → `[]` con `Log.error`.
 - La Guida non emette né ascolta segnali dell'`EventBus`, non entra in `GameSession` né nel salvataggio (si ricostruisce da `GameData`).
 - **M12**: `GuideIndex.sources_of` considera anche le `loot_tables` di aree, mostri e Monoliti (e le ricette dell'Incisore e del Falegname per le borse) e i traguardi di maestria (sottoprodotti); `GuideRef.kind` aggiunge
-  `loot_table`, `milestone`, `helper_contract`. `GuideTables.ids()` aggiunge `bags`, `helper_grades`, `engraver_recipes`, `mastery_milestones:<skill>`. I contratti hanno "Serve a: assumere l'aiutante".
+  `loot_table`, `milestone`. `GuideTables.ids()` aggiunge `bags`, `engraver_recipes`, `mastery_milestones:<skill>` (da M24 `trainer_grades`; i Contratti e `helper_grades` sono **ELIMINATI in M24**).
 
 ### 5.20 Deposit (`systems/deposit/deposit.gd`, M12; F-100) — dipendenze: data, events (foglia)
 ```gdscript
@@ -1461,16 +1462,13 @@ static func resolve(session: GameSession, action: ActionDef) -> ActionOutcome   
   ogni voce con un tiro di probabilità e poi uno di quantità (F-32), infine il frammento (F-07). Per un Monolito: `drops` propri, poi le `loot_tables` **del Monolito** (non quelle dell'area).
   Gli oggetti vanno nella borsa del bottino (o nella Bank con `auto_loot`), come ogni drop.
 - `MilestoneDef` (`core/data/defs/milestone_def.gd`): `var at: int; var type: StringName; var item: StringName; var modifiers: Array[Modifier]`. `ActionDef` ha `var kind: StringName` (`&"craft"` default,
-  `&"crystallize"`) e `var milestones: Array[MilestoneDef]` (vuoto per le azioni non di raccolta). `ItemDef` ha `bag_slots: int` (0 se non borsa), `contract_skill: StringName`,
-  `contract_grade: StringName`, `infusion_grade: int` (default 1), `infusion_family: StringName`; `is_bag()`, `is_contract()`. `class_name HelperGradeDef` (`id`, `interval_mult`);
-  `GameData.helper_grades() -> Array[HelperGradeDef]` (ordine di grado), `helper_grade(id)`, `contract_for(skill_id, grade_id) -> ItemDef`.
-- **Helper interni di `core/data/`** (non API per gli altri moduli, esistono per il limite di righe di `game_data.gd`): `HelperIndex` (`helper_index.gd`: `grades`, `by_id`,
-  `build(balance, items)`, `contract_for`, `clear`), `LootIndex` (`loot_index.gd`: `by_id`, `list`, `build(raw, errors)`, `clear`; `combat/loot_tables.json` è un file obbligatorio),
+  `&"crystallize"`) e `var milestones: Array[MilestoneDef]` (vuoto per le azioni non di raccolta). `ItemDef` ha `bag_slots: int` (0 se non borsa),
+  `infusion_grade: int` (default 1), `infusion_family: StringName`; `is_bag()`. (Contratti, `HelperGradeDef` e le loro funzioni di `GameData` sono **ELIMINATI in M24**.)
+- **Helper interni di `core/data/`** (non API per gli altri moduli, esistono per il limite di righe di `game_data.gd`): `LootIndex` (`loot_index.gd`: `by_id`, `list`, `build(raw, errors)`, `clear`; `combat/loot_tables.json` è un file obbligatorio),
   `DataBuildUtil` (`data_build_util.gd`: statici `curve`, `action_before`, `list`). `MasteryMilestones` (`systems/mastery/mastery_milestones.gd`, helper di `MasterySystem`):
   `is_gathering`, `changes_sources`, `crossed`, `reached`, `resource_modifiers`, `trade_modifiers` (sorgenti `mastery_item:<action>` e `mastery_trade:<skill>`).
-- **Guida (M12)**: `GuideHelperGradeNames` = `HelperGradeNames` (`core/guide/helper_grade_names.gd`, `static func name_of(grade_id) -> String`: nome italiano del grado, l'id se
-  sconosciuto; solo presentazione). `GuideRef` ha i tipi `KIND_LOOT_TABLE`, `KIND_MILESTONE`, `KIND_BAG`, `KIND_CONTRACT`; `GuideIndex` le pagine `PAGE_DEPOSIT` (`guide_deposit`)
-  e `PAGE_HELPERS` (`guide_helpers`); `GuideTables` le tabelle `bags`, `helper_grades`, `engraver_recipes` e `mastery_milestones:<skill>`.
+- **Guida (M12)**: `GuideRef` ha i tipi `KIND_LOOT_TABLE`, `KIND_MILESTONE`, `KIND_BAG`; `GuideIndex` la pagina `PAGE_DEPOSIT` (`guide_deposit`);
+  `GuideTables` le tabelle `bags`, `engraver_recipes` e `mastery_milestones:<skill>`. (`HelperGradeNames`, `KIND_CONTRACT`, `PAGE_HELPERS` e `helper_grades` sono **ELIMINATI in M24**.)
 
 ### 5.23 Carte e Fratture (M13; `01_GDD.md` §17, `02_FORMULAS.md` §7, `04_DATA_SCHEMA.md` §11) — cartella `systems/fractures/`
 `CardStore`, `MapCard`, `MapCardRoller` (CORE, M13-01); `FractureSystem`, `FractureRun`, `FractureBag`, `FractureScaler` e l'integrazione nel motore (COMBAT, M13-02); boss (COMBAT, M13-03). Dipendenze di `CardStore`: data, events, rng, modifiers
@@ -1809,7 +1807,7 @@ func refill() -> void                                          # assegna un inca
 func refill_slots() -> int                                     # come refill; ritorna le caselle assegnate (emette quests_changed una volta se > 0)
 func new_game() -> void; func to_save() -> Dictionary; func from_save(d: Dictionary) -> void
 ```
-- **Nessun timer, nessun `advance`.** Il modulo si registra sull'`EventBus` nel costruttore: `monster_killed`, `action_completed`, `helper_completed` (progresso, F-135), `modifiers_changed`, `character_level_up`, `level_up` (chiamano `refill()`; se non c'è nulla da fare non emettono nulla).
+- **Nessun timer, nessun `advance`.** Il modulo si registra sull'`EventBus` nel costruttore: `monster_killed`, `action_completed` (progresso, F-135; da M24 ogni `lane`, `helper_completed` ELIMINATO), `modifiers_changed`, `character_level_up`, `level_up` (chiamano `refill()`; se non c'è nulla da fare non emettono nulla).
   I progressi contano solo da quando l'incarico è attivo; nessun conteggio durante `from_save`. Durante la simulazione offline gli eventi arrivano come online.
 - **`claim`**: `can_claim` ok → `wallet.add(gold)`, `skills.add_xp(skill, amount)` (XP di base, F-02) se presente, `bank.add(item, qty)` per le righe di `reward.items`; poi la casella si libera, `completed += 1`, `recent` accoda l'id (si tengono `quest.recent_memory`), `refill()`; ordine dei segnali: `gold_changed`/`xp_gained`/`bank_changed` (dai moduli), poi `quests_changed`. `bank_full` solo se `bank.can_add(item)` è falso per una riga (nessun cambiamento).
   `abandon` non paga; `recent` accoda l'id; `refill()`; `quests_changed`.
@@ -2126,7 +2124,6 @@ Versione **7 da M17** (M19: il modulo `village` è additivo; M20: anche `quests`
                "stone": {"since": 41, "pending": false, "stone_id": ""}, "kills": {"plains_boar": 41}, "deaths": 1, "food_eaten": 12},
     "shop": {"purchases": {"loot_pocket": 2, "auto_eat_1": 1}},
     "deposit": {"bags": ["bag_canvas", "bag_leather", "", "", "", ""]},
-    "helpers": {"forestry": {"grade": "journeyman", "action": "cut_redbirch", "elapsed_ms": 4200}},
     "rift": {"sockets": ["inf_swift_hands", "", "", "", ""]},
     "hints": {"seen": ["first_action"]},
     "cards": {"next_uid": 3, "items": [{"uid": 2, "base": "fracture_card_2", "rarity": "magic", "mods": [{"mod": "sturdy", "step": 5}], "locked": false}]},
@@ -2613,7 +2610,7 @@ Opzioni aggiunte in M7-07, oltre a quelle di M5-06: `loot=0|1` (con 1 stampa anc
 Pietre del Rift, scontro con la Pietra e costo atteso della raffinazione) e `loadout=none|auto` (con `auto` riempie gli slot
 aperti di tratti e abilità con i primi sbloccati consentiti dall'assetto; default `none`). `scope=easiest` include le Pietre.
 
-Opzioni di M12-07: `helpers=0|1` (simula i tre aiutanti Maestro e stampa XP/ora di mestiere con e senza aiutanti, per l'invariante F-102), `engraver=0|1` (polvere, schegge e cristalli per ora e tempo per un Cristallo), `deposit=0|1` (caselle usate nel tempo e perdita di oggetti con la borsa del bottino piena).
+Opzioni di M12-07 (`helpers` ELIMINATA in M24): `engraver=0|1` (polvere, schegge e cristalli per ora e tempo per un Cristallo), `deposit=0|1` (caselle usate nel tempo e perdita di oggetti con la borsa del bottino piena).
 
 ### 7.z UI di P-01/P-02 (pagina Personaggio, Banco del fabbro, slot Cibo)
 ```gdscript
@@ -2645,13 +2642,7 @@ signal equip_requested(slot_index: int, item_id: StringName)   # la pagina chiam
 signal unequip_requested(slot_index: int)                      # la pagina chiama bank.unequip_bag
 func redraw(session: GameSession) -> void       # deposit.bags(), nome e caselle della borsa; uno slot vuoto offre le borse possedute (bank.stacks con is_bag)
 # Rifiuti in MessageLabel con BagTexts.REFUSED (deposit_not_empty: "Libera prima le caselle in più", bag_slot_occupied, not_a_bag, not_enough_items).
-class_name HelperRow extends HBoxContainer      # ui/pages/skill/helper_row.gd (+ .tscn), interna a SkillPage dei tre mestieri di raccolta; nodo "HelperRow"
-signal change_requested(skill_id: StringName, action_id: StringName)   # la pagina chiama helpers.set_action
-signal stop_requested(skill_id: StringName)                            # helpers.stop
-signal hire_requested(contract_item_id: StringName)                    # helpers.hire
-func redraw(session: GameSession) -> void       # "Aiutante: <grado> — lavora: <risorsa> [Cambia] [Ferma]"; senza aiutante "Aiutante: nessuno" e i contratti posseduti per "Assumi";
-                                                # barra da helpers.get_progress, intervallo da helpers.interval_ms; se is_blocked "In attesa: Deposito pieno"
-# Scelta della risorsa: helpers.available_actions (nomi = solo il nome della risorsa). Redraw su helper_changed, helper_completed, helper_blocked, bank_changed, level_up.
+# HelperRow (riga dell'aiutante nella SkillPage di raccolta) — ELIMINATA in M24 (V22)
 ```
 - **Pagina dell'Incisore**: la `SkillPage` generica per `riftbinding` (nessuna pagina nuova); le sezioni per tipo di azione (Lastra, Fondere, Cristalli, Incidere,
   Potenziare) sono raggruppamenti di presentazione dei dati (`ActionDef.kind`, id con prefisso); ogni azione `crystallize` mostra "Probabilità: N%"
@@ -2659,12 +2650,12 @@ func redraw(session: GameSession) -> void       # "Aiutante: <grado> — lavora:
   sono sempre drop, e la card dice da dove vengono (stessa fonte di `GuideIndex.sources_of`).
 - **TopBar** mostra `deposit.used()/capacity()` e si aggiorna su `deposit_changed` (non più `bank_capacity_changed`); `ArmoryPage`/`EquipmentPage` mostrano il contatore del Deposito
   (stesse `used/capacity`) e si ridisegnano su `deposit_changed` al posto di `armory_capacity_changed`.
-- **Pannello dell'oggetto** (`BankItemPanel`): per una `bag` il pulsante "Metti nello slot" (primo slot libero → `equip_requested`); per un `contract` il pulsante "Assumi" (`hire`).
+- **Pannello dell'oggetto** (`BankItemPanel`): per una `bag` il pulsante "Metti nello slot" (primo slot libero → `equip_requested`); ("Assumi" dei Contratti ELIMINATO in M24; da M24 "Impara" per le Ricette, `05_INTERFACES_M24.md` §7.o).
 - **Shop**: scompaiono le voci di spazio e la bottega "deposito"; **Combattimento/Guida/testi**: "Monolito del Rift" al posto di "Pietra del Rift" (bersaglio speciale), "Incisore" al posto
   di "Legatura del Rift", i nomi di pietre/valute/rune di `NOMI.md`; testi in `UiStyle`/file di testi centralizzati, nessuna stringa vecchia visibile (test).
-- **Toast/feedback**: `mastery_milestone_reached` → toast "Traguardo di maestria: <risorsa> (25/50/99)"; `helper_blocked(true)` → avviso "L'aiutante del <mestiere> è fermo: Deposito pieno".
-- **Guida** (M12-06): pagine scritte a mano nuove (`data/guide/`): Deposito e borse, Aiutanti, Maestria per risorsa, Incisore, Monoliti del Rift (sezioni e `help_for` di
-  `04_DATA_SCHEMA.md` §19; "?" nelle pagine Deposito e dell'Incisore); tabelle generate nuove in `GuideTables`: `bags`, `helper_grades`, `engraver_recipes`, `mastery_milestones:<skill>`.
+- **Toast/feedback**: `mastery_milestone_reached` → toast "Traguardo di maestria: <risorsa> (25/50/99)" (l'avviso di `helper_blocked` è ELIMINATO in M24).
+- **Guida** (M12-06): pagine scritte a mano nuove (`data/guide/`): Deposito e borse, Maestria per risorsa, Incisore, Monoliti del Rift (la pagina Aiutanti è ELIMINATA in M24; sezioni e `help_for` di
+  `04_DATA_SCHEMA.md` §19; "?" nelle pagine Deposito e dell'Incisore); tabelle generate nuove in `GuideTables`: `bags`, `engraver_recipes`, `mastery_milestones:<skill>`.
 
 
 ### 7.v UI di M13 (Fratture come mappe; nessuno stato di gioco nella UI, solo letture e comandi)

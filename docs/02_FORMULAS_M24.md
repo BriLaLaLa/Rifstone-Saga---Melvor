@@ -60,6 +60,8 @@ diano scontri/h e nodi lavorati/h entro **±5%** di F-156 calcolata con l'`E_F` 
 `node_chance_pct` 0 e `travel_ms` = `combat.respawn_ms`; (2) unità/h di una disciplina appresa al gradino giusto tra **300 e 600**; (3) XP/h di una
 raccolta appresa al gradino giusto ≥ **30%** di quella del lavoro dedicato di §8.1 (T1: 12.000 XP/h → ≥ 3.600).
 Test: `tests/systems/encounters/test_encounter_cycle.gd` (`expected`), `tools/sim_encounters.gd`.
+**Misure di M24-07** (nessun ritocco dei dati): tabella in `06_ROADMAP.md` (M24); soglia (1) passa ovunque, (2) e (3) saltano per le discipline con peso
+lontano da 25 (lettura della soglia in Q122); durata media misurata di un nodo ~10 s invece di 12 s (Q123).
 
 ## F-157 Durata dei lavori di produzione
 - **Ciclo** di una ricetta: `cycle_ms = F-03(a.interval_ms, T(skill_interval_pct, for_action(s, a)))`, fissato all'inizio di ogni ciclo.
