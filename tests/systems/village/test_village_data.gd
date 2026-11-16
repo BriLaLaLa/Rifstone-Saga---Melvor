@@ -32,7 +32,7 @@ func _first(raw: Dictionary) -> Array:
 
 func test_accessors_of_the_real_data() -> void:
 	var data: GameData = TestFactory.real_data()
-	assert_eq(data.village_buildings().size(), 7)
+	assert_eq(data.village_buildings().size(), 8)
 	assert_eq(data.village_buildings()[0].id, &"storehouse", "ordered by `order`")
 	var storehouse: VillageBuildingDef = data.village_building(&"storehouse")
 	assert_eq(storehouse.effect_stat, &"deposit_slots")
@@ -131,6 +131,8 @@ func test_map_pos_and_page_are_read_from_the_real_data() -> void:
 	assert_eq(data.village_building(&"sawmill").map_pos, Vector2(0.5, 0.86))
 	assert_eq(data.village_building(&"inn").map_pos, Vector2(0.86, 0.22))
 	assert_eq(data.village_building(&"forge").map_pos, Vector2(0.86, 0.76))
+	assert_eq(data.village_building(&"auction_house").map_pos, Vector2(0.86, 0.49))
+	assert_eq(data.village_building(&"auction_house").page, &"auction")
 	assert_eq(data.village_building(&"noticeboard").page, &"noticeboard")
 	assert_eq(data.village_building(&"market").page, &"shop")
 	assert_eq(data.village_building(&"storehouse").page, &"")

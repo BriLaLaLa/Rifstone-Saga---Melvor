@@ -45,7 +45,8 @@ func test_not_built_and_without_the_building_in_the_data() -> void:
 	assert_eq(closed.auction.can_sell(LOG, 5).reason, Reasons.REQUIREMENT_NOT_MET)
 	var plain: GameSession = TestFactory.session_no_kit(1, TestFactory.real_data())
 	add_child_autofree(plain)
-	assert_eq(plain.data.auction_building(), &"")
+	assert_eq(plain.data.auction_building(), &"auction_house")
+	assert_eq(TestFactory.fixture_data().auction_building(), &"", "the minimal fixtures have no Auction House")
 	assert_eq(plain.auction.level(), 0)
 	assert_eq(plain.auction.can_buy(GRIP, 1).reason, Reasons.REQUIREMENT_NOT_MET)
 

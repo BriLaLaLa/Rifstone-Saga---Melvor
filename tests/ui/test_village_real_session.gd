@@ -1,5 +1,5 @@
 extends GutTest
-## M21-04: VillagePage on the real GameSession and real data: 7 map nodes at the positions of buildings.json, states,
+## M21-04: VillagePage on the real GameSession and real data: 8 map nodes at the positions of buildings.json, states,
 ## selection, "Apri" disabled at level 0 and enabled after the build, and page_requested reaching the page host.
 
 var _session: GameSession
@@ -35,10 +35,10 @@ func _build(id: StringName) -> void:
 	assert_true(_session.village.upgrade(id).ok, "build %s" % id)
 
 
-func test_seven_nodes_at_data_positions_and_coherent_states() -> void:
+func test_eight_nodes_at_data_positions_and_coherent_states() -> void:
 	var map: VillageMap = _page().find_child("Map", true, false) as VillageMap
 	var ids: Array[StringName] = _session.village.buildings()
-	assert_eq(ids.size(), 7)
+	assert_eq(ids.size(), 8)
 	for id: StringName in ids:
 		var def: VillageBuildingDef = _session.data.village_building(id)
 		var node: Button = map.node(id)

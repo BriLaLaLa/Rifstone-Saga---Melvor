@@ -7,7 +7,7 @@ extends RefCounted
 
 ## Transitional (M23-02): with the real data the Village may still have no `unlocks_auction` building. M23-03 adds the
 ## building and sets this to true (rule 6 of §28). Without any building at all (the minimal fixtures) it never applies.
-const STRICT_REAL_DATA: bool = false
+const STRICT_REAL_DATA: bool = true
 const TRADED: PackedStringArray = ["material", "component", "food"]
 const BUYABLE: PackedStringArray = ["component", "food"]
 const PPM: int = 1000000

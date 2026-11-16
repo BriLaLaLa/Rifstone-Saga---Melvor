@@ -90,6 +90,19 @@
       {"level":6,"requires_woodwright":60,"gold":1130,"items":[{"item":"veilcypress_grip","qty":70},{"item":"veilcypress_shieldcore","qty":70}],"effect_value":6.0},
       {"level":7,"requires_woodwright":75,"gold":1580,"items":[{"item":"emberlarch_grip","qty":80},{"item":"emberlarch_shieldcore","qty":80}],"effect_value":7.0},
       {"level":8,"requires_woodwright":90,"gold":2210,"items":[{"item":"riftspruce_grip","qty":90},{"item":"riftspruce_shieldcore","qty":90}],"effect_value":8.0}
+     ]},
+    {"id": "auction_house", "name": "Casa d'Aste", "description": "Banchi dove i prezzi salgono e scendono con le vendite.", "icon": "coins", "order": 8, "buildable": true, "map_pos": [0.86, 0.49], "page": "auction",
+     "unlocks_auction": true,
+     "cost_spec": {"wood":[{"component":"shieldcore","weight":0.25},{"component":"handle","weight":0.25}],"plate":0.5,"food":0.0,"gold_weight":1.0},
+     "levels": [
+      {"level":1,"requires_woodwright":1,"gold":300,"items":[{"item":"redbirch_shieldcore","qty":10},{"item":"redbirch_handle","qty":10},{"item":"emberbronze_plate","qty":4}],"effect_value":0.0},
+      {"level":2,"requires_woodwright":10,"gold":420,"items":[{"item":"ashpine_shieldcore","qty":15},{"item":"ashpine_handle","qty":15},{"item":"ashlead_plate","qty":6}],"effect_value":0.0},
+      {"level":3,"requires_woodwright":20,"gold":590,"items":[{"item":"thornalder_shieldcore","qty":20},{"item":"thornalder_handle","qty":20},{"item":"stormzinc_plate","qty":8}],"effect_value":0.0},
+      {"level":4,"requires_woodwright":30,"gold":820,"items":[{"item":"duskelm_shieldcore","qty":25},{"item":"duskelm_handle","qty":25},{"item":"duskcobalt_plate","qty":10}],"effect_value":0.0},
+      {"level":5,"requires_woodwright":45,"gold":1150,"items":[{"item":"shardcedar_shieldcore","qty":30},{"item":"shardcedar_handle","qty":30},{"item":"glimmerite_plate","qty":12}],"effect_value":0.0},
+      {"level":6,"requires_woodwright":60,"gold":1610,"items":[{"item":"veilcypress_shieldcore","qty":35},{"item":"veilcypress_handle","qty":35},{"item":"palecinnabar_plate","qty":14}],"effect_value":0.0},
+      {"level":7,"requires_woodwright":75,"gold":2260,"items":[{"item":"emberlarch_shieldcore","qty":40},{"item":"emberlarch_handle","qty":40},{"item":"emberheart_plate","qty":16}],"effect_value":0.0},
+      {"level":8,"requires_woodwright":90,"gold":3160,"items":[{"item":"riftspruce_shieldcore","qty":45},{"item":"riftspruce_handle","qty":45},{"item":"riftite_plate","qty":18}],"effect_value":0.0}
      ]}
   ]
 }

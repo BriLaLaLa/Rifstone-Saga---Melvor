@@ -66,6 +66,29 @@ func test_loot_shed_level_2() -> void:
 	assert_eq(row["requires_woodwright"], 10)
 
 
+
+func test_auction_house_levels_1_4_8() -> void:
+	var row: Dictionary = _level(&"auction_house", 1)
+	assert_eq(_qty(row, &"redbirch_shieldcore"), 10)
+	assert_eq(_qty(row, &"redbirch_handle"), 10)
+	assert_eq(_qty(row, &"emberbronze_plate"), 4)
+	assert_eq((row["items"] as Array).size(), 3)
+	assert_eq(row["gold"], 300)
+	assert_eq(row["requires_woodwright"], 1)
+	row = _level(&"auction_house", 4)
+	assert_eq(_qty(row, &"duskelm_shieldcore"), 25)
+	assert_eq(_qty(row, &"duskelm_handle"), 25)
+	assert_eq(_qty(row, &"duskcobalt_plate"), 10)
+	assert_eq(row["gold"], 820)
+	assert_eq(row["requires_woodwright"], 30)
+	row = _level(&"auction_house", 8)
+	assert_eq(_qty(row, &"riftspruce_shieldcore"), 45)
+	assert_eq(_qty(row, &"riftspruce_handle"), 45)
+	assert_eq(_qty(row, &"riftite_plate"), 18)
+	assert_eq(row["gold"], 3160)
+	assert_eq(row["requires_woodwright"], 90)
+	assert_eq(row["effect_value"], 0.0)
+
 func test_base_gold_table() -> void:
 	var gold: Array[int] = []
 	var spec: Dictionary = {"cost_spec": {"wood": [{"component": "grip", "weight": 1.0}], "plate": 0.0, "food": 0.0,
