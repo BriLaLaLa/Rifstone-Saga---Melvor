@@ -918,6 +918,82 @@ Regole fisse: (1) **dopo il caricamento la run è in pausa** fino a `resume()`; 
 - **Ritaratura M22-07** (solo tramite generatori): PV dei mostri del Covo ×2 (durata da 7 a 13 min) e Danno ×1,09 su tutte le righe di F-139; `heavy_strike` di Gorom 2,0 → 2,2; Cristalli di stadio 40% → 60%; Biglietti 25%/20% → 12%/5%. Prima della ritaratura (valori di M22-01, tier 1): 45 vinceva il 100% in 7 minuti.
 - `sim_dungeon` stampa: durata, vittorie per livello del personaggio, PV persi per tipo di stanza, morti per stanza, cibo usato, pezzi/rari/Polvere/Cristalli/oro/Carte/leggendari per run, Biglietti/ora e ore per leggendario per ogni area 4-10 e il valore per ora di run rispetto all'area. Esce con codice 1 se una soglia non è rispettata. Opzioni: `level=`, `runs=`, `policy=random|cautious|both` (la prudente sceglie come la casuale ma esce dal bivio quando i PV scendono sotto una soglia della sim, 40%; senza indizi, M22-09), `seed=`, `tier=`, `area_hours=`, `setup=`, `material=`.
 
+## 5k. Casa d'Aste (F-145…F-152; M23, V14-V15; numeri di partenza fissati da M23-01, verificati da `tools/sim_market.gd` in M23-05)
+
+Regole in `01_GDD.md` §34, dati in `04_DATA_SCHEMA.md` §28, contratto in `05_INTERFACES.md` §5.30. Parametri in `balance.json` sotto `auction` (§9); il valore base `v` di un oggetto è il suo
+`value` (`04_DATA_SCHEMA.md` §5), mai duplicato. Stat nuove: nessuna; nessuna sorgente in `ModifierService` (nessun modificatore cambia prezzi o scorte in M23).
+**Aritmetica intera**: indici, saturazione e margini sono interi in **ppm** (parti per milione: 1.000.000 = 100%); ogni chiave `*_pct` dei dati si converte una volta con
+`ppm = roundi(pct × 10000)` (es. 0,025 → 250; 1,4 → 14.000). `a ÷ b` = divisione intera troncata verso zero (come GDScript); `ceil_div(a, b) = (a + b − 1) ÷ b` per `a ≥ 0, b > 0`.
+Valori di partenza (ppm): `BASE` 1.150.000 (115%), `MIN` 700.000, `MAX` 1.250.000, `AMP` 80.000, `STEP` 250 (0,025% a pezzo), `CAP` 550.000, `REC` 5.000 (0,5% a blocco),
+`SPREAD` 1.500.000, `REFILL` 14.000; `block_ms` 300.000 (5 min), `period_blocks` 72 (6 h), `stock.gold` 6.000, `stock.min` 5, `stock.max` 500, `trend.blocks` 12 (1 h), `trend.threshold` 10.000 (1%).
+
+### F-145 Edificio e orologio del mercato
+**Costo** (F-131 con i pesi di `cost_spec`): `auction_house` = `shieldcore` 0,25 + `handle` 0,25, `plate` 0,5, `food` 0, `gold_weight` 1,0. Nessun effetto (`unlocks_auction`, F-132 `effect_value` 0).
+Esempi (= test, `tests/systems/village/test_village_cost.gd`): livello 1: 10 `redbirch_shieldcore` (⌈0,25 × 40⌉), 10 `redbirch_handle`, 4 `emberbronze_plate` (⌈0,5 × 8⌉), oro 300, Falegname 1; livello 4: 25 `duskelm_shieldcore`, 25 `duskelm_handle`, 10 `duskcobalt_plate`, oro 820, Falegname 30;
+livello 8: 45 `riftspruce_shieldcore`, 45 `riftspruce_handle`, 18 `riftite_plate`, oro 3.160, Falegname 90. Ore per livello misurate da `tools/sim_village.gd` in M23-03 (soglia: ≤ 1,0 h per livello come gli altri edifici).
+**Sblocco**: livello `L` della Casa d'Aste: `L ≥ 1` → si vende ogni oggetto dell'elenco; un oggetto con `buy_level = n ≥ 1` si compra se `L ≥ n` (`n` = gradino 1…8 dell'oggetto, F-131).
+**Orologio**: stato `block` (blocchi interi passati dalla nascita del mercato) e `pending_ms` (0 ≤ `pending_ms` < `block_ms`). `advance(Δ)` con `Δ ≥ 0`: `t = pending_ms + Δ`; `n = t ÷ block_ms`; `pending_ms = t mod block_ms`; `block += n`; poi F-149 e F-150 con `n` (se `n > 0`).
+Proprietà (= test): `advance(a); advance(b)` ≡ `advance(a + b)` per ogni `a, b ≥ 0`, perché F-149 e F-150 sono additive in `n`. Esempi: `pending_ms` 200.000 + `Δ` 1.000.000 → `n` 4, `pending_ms` 0; 12 h offline (43.200.000) → 144 blocchi; 10 tick da 100 ms → `pending_ms` + 1.000, nessun blocco.
+
+### F-146 Variazione lenta e deterministica (con seme)
+`seed` = intero dello slot (05 §5.30: preso dal seme del generatore dello slot **senza** consumare tiri). Hash a 32 bit senza segno: `H(s) = fmix32(fnv1a32(utf8(s)))`, con
+`fnv1a32`: `h = 2166136261`; per ogni byte `h = ((h xor byte) × 16777619) mod 2³²`; `fmix32`: `h ^= h >> 16; h = (h × 0x85EBCA6B) mod 2³²; h ^= h >> 13; h = (h × 0xC2B2AE35) mod 2³²; h ^= h >> 16`.
+**Nodo** `i` (intero ≥ 0) dell'oggetto `id`: `knot(id, i) = (H(id + "|" + str(seed) + "|" + str(i)) mod (2·AMP + 1)) − AMP` (in −AMP…+AMP). Con `P = period_blocks`: `i = block ÷ P`, `f = block mod P`,
+`drift(id, block) = knot(id, i) + ((knot(id, i + 1) − knot(id, i)) × f) ÷ P` (interpolazione lineare tra due nodi ogni 6 h; nessun tiro, nessuno stato salvato).
+Vettori di prova (= test, `tests/systems/auction/test_auction_math.gd`): `fnv1a32("a")` = 3.826.002.220; `H("a")` = 444.641.715; `H("redbirch_grip|12345|0")` = 1.114.708.150.
+Con `seed` 12345: nodi di `redbirch_grip` 61.184, −74.613, −57.080; di `riftite_plate` 36.080, −61.552, 22.407. `drift(redbirch_grip, 36)` = 61.184 + (−135.797 × 36) ÷ 72 = 61.184 − 67.898 = **−6.714**; `drift(redbirch_grip, 72)` = −74.613; `drift(riftite_plate, 12)` = 36.080 + (−97.632 × 12) ÷ 72 = **19.808**.
+Proprietà: stesso `seed`, `id` e `block` → stesso valore; `|drift| ≤ AMP` sempre.
+
+### F-147 Indice di mercato
+`eq(id, block) = BASE + drift(id, block)` (in `BASE − AMP … BASE + AMP` = 1.070.000…1.230.000). `index(id) = clamp(eq − sat(id), MIN, MAX)`, `sat` = saturazione dell'oggetto (0 a riposo, 0 ≤ `sat` ≤ `CAP`).
+**Vincoli del validatore** (garantiscono le formule sotto): `0 < MIN < BASE − AMP`; `BASE + AMP ≤ MAX`; `MAX ≥ 1.000.000`; `CAP ≥ BASE + AMP − MIN` (il minimo si raggiunge sempre); `STEP ≥ 1`, `REC ≥ 1`.
+Con i vincoli il tetto non taglia mai l'equilibrio: `MAX` resta il limite di sicurezza e la base della garanzia di F-151.
+Esempi (= test, `seed` 12345): `redbirch_grip` al blocco 0 con `sat` 0 → 1.211.184 (121,1%); al blocco 36 → 1.143.286; con `sat` 550.000 al blocco 0 → 661.184 → **700.000** (minimo); `riftite_plate` al blocco 0 → 1.186.080.
+
+### F-148 Vendita e saturazione (forma chiusa)
+Vendere `q ≥ 1` pezzi di valore `v` allo stesso blocco: il pezzo `k` (0…q−1) ha indice `idx_k = clamp(eq − sat − k·STEP, MIN, MAX)`. Con `x0 = eq − sat`:
+`n1 = 0` se `x0 ≤ MIN`, altrimenti `n1 = min(q, ceil_div(x0 − MIN, STEP))` (pezzi sopra il minimo); `Σ = n1·x0 − STEP·n1·(n1 − 1)/2 + (q − n1)·MIN`; **oro** `gold = (v × Σ) ÷ 1.000.000`.
+Dopo la vendita: `sat = min(CAP, sat + q·STEP)`. Prezzo mostrato per un pezzo = `gold` con `q = 1` = `(v × index) ÷ 1.000.000`. Venduto `gold = 0` → la vendita è rifiutata (`not_sellable`, nessun cambiamento).
+Esempi (= test, `tests/systems/auction/test_auction_math.gd`; `eq` 1.150.000):
+- `v` 10, `sat` 0, `q` 100: `n1` = 100, `Σ` = 115.000.000 − 1.237.500 = 113.762.500 → **1.137 oro** (F-18: 1.000); poi `sat` 25.000 (indice 112,5%). In due vendite da 60 e 40: 685 + 452 = 1.137.
+- `v` 1, `sat` 0, `q` 2.000: `n1` = 1.800, `Σ` = 2.070.000.000 − 404.775.000 + 200 × 700.000 = 1.805.225.000 → **1.805 oro** (F-18: 2.000); poi `sat` 500.000 (indice al minimo).
+- `v` 70, `sat` 400.000, `q` 10: `x0` 750.000, `n1` 10, `Σ` = 7.500.000 − 11.250 = 7.488.750 → **524 oro** (F-18: 700: la pagina mostra che il Deposito paga di più).
+Proprietà: la somma di forma chiusa coincide con la somma pezzo per pezzo (test su 1.000 casi casuali); spezzare una vendita nello stesso blocco cambia l'oro di al più 1 per ogni operazione in più (arrotondamento finale).
+**Ordine di grandezza** (stessi parametri): vendere 1 h di produzione di un grezzo T1 (1.200 pezzi) rende ≈ 1,00 × F-18, di un grezzo T8 (≈ 650 pezzi) ≈ 1,07 × F-18; la Casa d'Aste conviene per le quantità piccole e medie.
+
+### F-149 Recupero della saturazione (forma chiusa)
+Ogni blocco intero: `sat = max(0, sat − n·REC)` per `n` blocchi (lineare, additiva in `n`). Recupero completo dal tetto: `CAP ÷ REC` = 110 blocchi = **9 h 10 min** (< 12 h di offline: dopo un'assenza piena il mercato è a riposo).
+Esempi (= test): `sat` 500.000, 30 blocchi → 350.000; 100 blocchi → 0; `advance` di 12 h con `sat` 550.000 → 0.
+
+### F-150 Scorte e rifornimento (forma chiusa)
+Solo per gli oggetti con `buy_level ≥ 1`. Scorta massima `S(v) = clamp(stock.gold ÷ v, stock.min, stock.max)`; rifornimento a blocco `r(S) = max(1, (S × REFILL + 500.000) ÷ 1.000.000)` (≈ 1,4% di `S`, almeno 1).
+La scorta parte piena (`S`); `buy(q)` la abbassa di `q`; ogni `n` blocchi: `stock = min(S, stock + n·r)`.
+Esempi (= test): `redbirch_grip` (`v` 2) → `S` 500, `r` 7 (piena da 0 in 72 blocchi = 6 h); `riftite_plate` (`v` 595) → `S` 10, `r` 1; `seared_riftmaw` (`v` 170) → `S` 35, `r` 1; `shardcedar_grip` (`v` 36) → `S` 166, `r` 2;
+`riftite_plate` con scorta 3: dopo 4 blocchi 7, dopo 20 blocchi 10 (piena). Scorta 0 → `out_of_stock`.
+
+### F-151 Acquisto e non-arbitraggio
+Prezzo di un pezzo `unit = ceil_div(v × (index + SPREAD), 1.000.000)`; comprare `q` pezzi costa `q × unit` (l'indice non cambia comprando; la scorta sì, F-150).
+**Garanzia (vincolo del validatore `SPREAD > MAX − MIN`)**: per ogni stato `unit ≥ v·(MIN + SPREAD)/10⁶ > v·MAX/10⁶ ≥ v·idx_k/10⁶` per ogni pezzo `k` di ogni vendita futura, e `v·MAX/10⁶ ≥ v` (F-18, perché `MAX ≥ 100%`).
+Quindi la vendita di `q` pezzi, qui (`(v·Σ) ÷ 10⁶ ≤ q·v·MAX/10⁶`) o al Deposito (`q·v`), rende **sempre strettamente meno** di `q × unit` pagati in qualunque momento, con qualunque saturazione e
+variazione: **comprare e rivendere lo stesso oggetto perde sempre oro**. Con i valori di partenza `unit` sta tra 2,20 e 2,73 volte `v` (arrotondato in su), la vendita tra 0,70 e 1,23 volte.
+**Trasformazioni**: un oggetto acquistabile non è mai ingrediente di un'azione (`data/actions/`; regola del validatore): niente compra-lavora-rivendi con le ricette (i grezzi, che un'azione
+moltiplica fino a ×2 di valore, non si comprano). Per i **progetti** (gli unici che consumano componenti acquistabili per un pezzo vendibile a F-18) il validatore controlla, per ogni progetto,
+`Σ qty × c(x) ≥ value(pezzo) × (100 + buy.blueprint_margin_pct)/100`, con `c(x) = ceil_div(v_x × (MIN + SPREAD), 10⁶)` se `x` è acquistabile, altrimenti `v_x`: con i dati attuali il caso peggiore
+(`bp_mw_shield_14`: 24 `emberheart_plate`, 6 `emberlarch_shieldcore`, 3 + 3 materiali rari) costa 21.630 contro un pezzo da 20.572 (**1,051**, margine 3% richiesto). I progetti restano comunque limitati dai drop.
+Esempi (= test, `seed` 12345): `riftite_plate` al blocco 0, `sat` 0 (indice 1.186.080): `unit` = ⌈595 × 2.686.080 / 10⁶⌉ = ⌈1.598,2⌉ = **1.599**, vendita di un pezzo 705; con `sat` 500.000 (indice al minimo) `unit` = ⌈595 × 2,2⌉ = **1.309** > 743 (`v·MAX`);
+`redbirch_grip` (`v` 2): `unit` tra 5 e 6, vendita di un pezzo al più 2. Il test di proprietà (1.000 stati casuali per ogni oggetto acquistabile) verifica `unit` > vendita del pezzo al tetto e `unit` > `v`.
+
+### F-152 Tendenza
+Senza vendite né acquisti: `now = index` al blocco `b` con `sat`; `next` = indice al blocco `b + trend.blocks` con `sat' = max(0, sat − trend.blocks·REC)` (F-146, F-147, F-149); `d = next − now`.
+`trend = up` se `d ≥ trend.threshold`, `down` se `d ≤ −trend.threshold`, altrimenti `stable`. È una previsione del modello (non una storia): la UI mostra la freccia, non la calcola.
+Esempi (= test, `seed` 12345): `redbirch_grip`, blocco 0, `sat` 0 → `now` 1.211.184, `next` 1.188.552, `d` −22.632 → **down**; stesso, `sat` 100.000 → 1.111.184 → 1.148.552, `d` +37.368 → **up**;
+`riftite_plate`, blocco 66, `sat` 0 → 1.096.584 → 1.095.444, `d` −1.140 → **stable**.
+
+**Simulazione** (`tools/sim_market.gd`, M23-05; esce con codice 1 se una soglia salta): (1) per ogni oggetto acquistabile e 1.000 stati casuali, `unit` > vendita del pezzo al tetto e > `v` (F-151);
+(2) 10.000 strategie casuali di compra/vendi/attendi su 12 h per ogni oggetto, compresi giri attraverso il Deposito: partendo senza quell'oggetto, **oro finale + pezzi rimasti × `v·MAX` ≤ oro iniziale** (nessun guadagno dal nulla);
+(3) nessun oggetto acquistabile è ingrediente di un'azione, controllo dei progetti come sopra; (4) `advance` di 12 h in un colpo = a tick da 100 ms = a blocchi da 60 s (stato identico);
+(5) oro di 1 h di produzione di ogni grezzo T1-T8 (tassi di §8.1, senza aiutanti, venduta in un colpo, con `eq` al minimo e al massimo dell'escursione) alla Casa d'Aste rispetto a F-18: **soglia tra 0,85 e 1,25** (su carta: T1 0,92-1,08, T8 0,99-1,15); stampa anche lo stesso rapporto per componenti e cibo (senza soglia), le ore di recupero dal tetto e le ore per riempire le scorte.
+
 ## 6. Offline
 
 ### F-40 Tempo offline
@@ -1423,6 +1499,13 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | `quest.{tier_levels, tier_window, recent_memory, gold_by_tier, xp_unit_by_tier, kill_food_qty, types.{kill,gather,craft}.{base, per_tier, gold_mult, xp_cycles, mult}}` (M20, V7) | `[1,10,20,30,45,60,75,90]`, 3, 6, `[80,250,340,380,600,800,950,1030]`, `[10,18,28,40,58,80,108,145]`, 20, vedi F-134 | F-134, F-135 (obbligatorie, validate: `tier_levels` e le due tabelle di 8 voci, strettamente crescenti `tier_levels`) |
 | `dungeon.direction_bands` (M22, V12) | `[-0.55, -0.30, -0.10, 0.10, 0.30, 0.55]` | F-137 (gli altri numeri del dungeon sono per dungeon, in `data/dungeons/<id>.json`, `04_DATA_SCHEMA.md` §27) |
 | `miniboss.{chance_pct, hp_mult, power_mult, xp_mult, gold_mult}` (M22, V12, Z8) | 1.5, 4.0, 1.5, 4.0, 4.0 | F-139 |
+| `auction.block_ms` (M23, V14-V15) | 300000 | F-145 (orologio del mercato) |
+| `auction.index.{base_pct, min_pct, max_pct}` | 115, 70, 125 | F-147 |
+| `auction.drift.{amplitude_pct, period_blocks}` | 8, 72 | F-146 |
+| `auction.saturation.{per_unit_pct, max_pct, recover_pct_per_block}` | 0.025, 55, 0.5 | F-148, F-149 |
+| `auction.buy.{spread_pct, blueprint_margin_pct}` | 150, 3 | F-151 (il secondo solo nel validatore) |
+| `auction.stock.{gold, min, max, refill_pct_per_block}` | 6000, 5, 500, 1.4 | F-150 |
+| `auction.trend.{blocks, threshold_pct}` | 12, 1 | F-152 |
 | `combat.crowd_threshold` (M15, Z6) | 8 | `01_GDD.md` §10.13 (solo UI) |
 | `combat.skip_stone_level` (M15, Z7) | 0 | F-128: **valore iniziale** del nuovo slot; il valore in uso è stato dello slot |
 | `rift_stone_chance_pct` Pianure (M15, Z5) | 0 → 0,6 (dati dell'area) | F-87 (Q82) |

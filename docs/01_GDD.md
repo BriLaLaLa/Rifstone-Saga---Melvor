@@ -9,7 +9,7 @@ artigianato · 6 Maestria · 7 Deposito (ex Bank) · 8 Oro e shop · 9 Equipaggi
 11 Incisore e Altare del Rift (M8, M12) · 12 Progressione offline · 13 Feedback e notifiche · 14 Suggerimenti ·
 15 Modificatori e stat · 16 Impostazioni · 17 Fratture del Rift come mappe (M13) · 18 Azioni in parallelo (eliminate, M12) ·
 19 Personaggio e classe · 20 Tratti e abilità (M6) · 21 Armeria · 22 Rarità e affissi · 23 Raffinazione (M7) ·
-24 Monoliti del Rift (M7) · 25 Smantellamento e filtro (M7) · 26 Castoni e valute del Rift (M8) · 27 Guida in gioco (M11) · 28 Equipaggiamento vero (M14) · 29 Ritocchi UI dell'Alpha · 30 Villaggio (M19) · 31 Bacheca e Mercato (M20)
+24 Monoliti del Rift (M7) · 25 Smantellamento e filtro (M7) · 26 Castoni e valute del Rift (M8) · 27 Guida in gioco (M11) · 28 Equipaggiamento vero (M14) · 29 Ritocchi UI dell'Alpha · 30 Villaggio (M19) · 31 Bacheca e Mercato (M20) · 32 Mappa del Villaggio (M21) · 33 Dungeon delle scimmie (M22) · 34 Casa d'Aste (M23)
 
 Direzione del gioco da M4 (decisioni D1-D6 in `DECISIONS_LOG.md`): il **combattimento è il cuore** (gruppi di mostri,
 bottino con rarità e affissi, potenziamento, build di tratti e abilità); raccolta e artigianato sono il ciclo di
@@ -866,6 +866,7 @@ cresce o cala da solo, nessun timer. Costruire è **istantaneo**: nessun caso of
 | `sawmill` | Segheria | −2% di intervallo del Falegname (massimo −16%) | `skill_interval_pct` (`skill:woodwright`) |
 | `loot_shed` | Rimessa del bottino | +2 caselle della borsa del bottino (massimo +16) | `loot_bag_slots` (globale) |
 
+**Casa d'Aste (M23, §34)**: ottavo edificio costruibile (`auction_house`), stesso costo di F-131 con i pesi di F-145, nessuna stat (sblocca la compravendita).
 **Mercato e Bacheca (M20, §31)**: dalla M20 sono i due edifici **costruibili** 6 e 7 (`market`, `noticeboard`), con gli stessi livelli e costi di F-131 e un effetto proprio (§31). Fino a M20-04 stanno nei dati come segnaposto (`buildable: false`, `milestone: 20`, box grigi "In arrivo"). Il Santuario del Rift della proposta non serve in M19 (nessuna
 comodità che non sia già coperta): rimandato.
 
@@ -966,7 +967,7 @@ modello). Le posizioni sono scelte dal design e non le cambia il giocatore.
 
 **Idea.** Un'istanza a **scelte**, l'unica parte del combattimento che chiede input: si entra con un **Biglietto**, si combatte in automatico (stesso motore, triangolo, tratti, abilità, cibo), e **tra una stanza e l'altra si sceglie una direzione**. Dietro le quinte il gioco
 costruisce una mappa a livelli (il giocatore non la vede, §33.2); l'ultima stanza è sempre il **boss**, preceduto da due scagnozzi (braccio destro e stratega) e da un'entrata epica. Primo dungeon: **il Covo delle Scimmie** (`monkey_den`). Idea ispirata ai dungeon
-a stanze dei giochi d'azione, solo come meccanica; nomi, testi e numeri originali. Il sistema è **generico** (`data/dungeons/`): altri dungeon sono solo dati nuovi (M23+).
+a stanze dei giochi d'azione, solo come meccanica; nomi, testi e numeri originali. Il sistema è **generico** (`data/dungeons/`): altri dungeon sono solo dati nuovi (M24+).
 
 ### 33.1 Biglietto, requisiti, miniboss
 - **Biglietto del Covo delle Scimmie** (`dungeon_ticket_monkey_den`): oggetto della categoria `misc` con il campo `dungeon` (id del dungeon, `04_DATA_SCHEMA.md` §27); impilabile nella Bank, **non vendibile**, si consuma **all'ingresso** (non si recupera).
@@ -1032,3 +1033,78 @@ nome, titolo e una frase del personaggio (testi nei dati). Gli stadi (`stages` d
 - **Cibo** sempre a portata: la pagina Dungeon mostra in alto a destra il cibo e "Mangia" in **ogni** fase (scelta, evento, combattimento, intro), come la pagina Combattimento.
 - **Nemici sempre tutti visibili**: nel Covo la vista dei nemici non si riduce mai a un contatore ("x11"): una **griglia di quadrati**, uno per nemico (fino a 16 insieme: Orda di 12, evocati), ognuno con la sua barra dei PV.
 - **Il boss si deve riconoscere**: per tutto lo scontro un indicatore fisso **"BOSS FINALE — Atto n/3"** con il progresso dei tre atti (Gorom, Ziki, il Re), intestazione "Stanza finale" (mai "?"), banner d'ingresso più forte per atto, il boss visivamente distinto dalle scorte.
+
+## 34. Casa d'Aste (M23; decisioni V14-V15, `M23_CASA_ASTE.md`; formule F-145…F-152; nessuna stat)
+
+**Idea.** L'ottavo edificio del Villaggio: un banco dove si **vendono e comprano materiali, componenti e cibo** a prezzi che **si muovono**. Vendere molto dello stesso
+oggetto ne abbassa il prezzo; col tempo il prezzo **risale** da solo verso l'equilibrio, che a sua volta **oscilla piano** (una piccola variazione lenta, uguale a ogni
+caricamento). Si può anche **comprare**, con **scorte** che si esauriscono e si **riforniscono** col tempo. Logica volutamente semplice (V14): nessuna popolazione,
+nessun commerciante, nessun ordine, nessuna inserzione a scadenza, nessun evento. Tutto il calcolo dei prezzi sta dietro un'unica interfaccia piccola (V15), perché
+più avanti potrà essere sostituito da un modello più ricco senza toccare il resto.
+
+**Clean room.** Un banco con un elenco di oggetti, un prezzo, una freccia di tendenza e una scorta: nessun meccanismo, nome o numero da Melvor Idle o da giochi di
+aste reali. Testi in italiano originali; nome visibile **"Casa d'Aste"**.
+
+### 34.1 Costruzione e accesso
+- Edificio `auction_house` (**Casa d'Aste**) in `data/village/buildings.json`, stesso schema di Bacheca e Mercato (§30-§32): livelli 1…8, costo di F-131 con i suoi pesi
+  (F-145), requisito del Falegname come gli altri, nodo sulla mappa (`map_pos`), pulsante **Apri** (`page: auction`) abilitato dal livello 1. Nessuna stat, nessun
+  modificatore: come il Mercato, il livello **sblocca** (§34.2). Nessun meccanismo di sblocco nuovo.
+- Pagina **Casa d'Aste** (`auction`): dalla mappa del Villaggio (Apri) e dalla barra laterale (voce dopo "Bacheca"). A livello 0 la pagina mostra solo "Costruisci la
+  Casa d'Aste al Villaggio".
+
+### 34.2 Cosa si scambia
+- **Vendita**: ogni oggetto impilabile delle categorie **materiale, componente, cibo** con `value` > 0 (materiali grezzi, lingotti, piastre, componenti del Falegname,
+  materiali dei mostri, sottoprodotti, cibo cotto: 92 oggetti oggi). Si vende tutto **dal livello 1**. Mai: pezzi dell'Armeria (`equipment`, `tool`), Carte, rune,
+  progetti, borse, contratti, pietre, valute, il Biglietto (sono di altre categorie o hanno `value` 0).
+- **Acquisto**: solo **componenti e cibo** (piastre, impugnature, manici, telai dello scudo, pesce cotto: 40 oggetti, uno per gradino 1…8 di ogni famiglia). Un oggetto del
+  gradino `n` si compra con la Casa d'Aste a **livello ≥ n**. Non si comprano materiali grezzi, lingotti né materiali dei mostri: sono ingredienti di ricette che ne
+  moltiplicano il valore (F-151, chiusura dell'arbitraggio) e i drop dei mostri restano un motivo per combattere (Q99).
+- L'elenco (`data/auction/auction_items.json`) è **generato** dalla regola sopra; nessun prezzo nel file: il valore base è il `value` dell'oggetto (V15).
+
+### 34.3 Prezzi (regole; numeri in F-146…F-152)
+- **Indice di mercato** di un oggetto = equilibrio (un valore di base sopra il prezzo fisso, più la variazione lenta) meno la **saturazione** delle vendite recenti,
+  limitato tra un **minimo** e un **tetto** dei dati. Prezzo di vendita di un pezzo = `value` × indice. Il giocatore non deve fare conti: vede il prezzo per pezzo, il
+  totale dell'operazione e una freccia.
+- **Vendere** alza la saturazione di quell'oggetto (solo di quello): ogni pezzo venduto vale un po' meno del precedente, anche dentro la stessa vendita; vendere 100
+  pezzi in una volta o in due volte da 50 rende lo stesso oro (salvo l'arrotondamento finale, al più 1 oro per operazione). Al minimo il prezzo non scende più.
+- **Col tempo** la saturazione cala da sola (recupero lineare) e il prezzo torna all'equilibrio; l'equilibrio oscilla lentamente, diverso per ogni oggetto, deciso da un
+  **seme dello slot** (stesso slot, stessa storia dei prezzi; nessun caso, nessun tiro del generatore dello slot).
+- **Comprare** costa `value` × (indice + **margine di acquisto**): il margine è più grande dell'intera escursione dell'indice, quindi **un pezzo comprato costa sempre più
+  di quanto renda venderlo**, qui o al Deposito (F-151). Comprare non cambia l'indice; vendere non riempie le scorte (Q101).
+- **Confronto col prezzo fisso**: la vendita del Deposito (F-18, `value` × quantità) resta com'è. All'equilibrio la Casa d'Aste paga un po' di più; dopo una vendita
+  grossa paga meno del Deposito, e la pagina lo mostra ("Al Deposito: n oro") perché il giocatore scelga.
+- **Tendenza** (letta dal modello, mai calcolata dalla UI): **in salita**, **in calo** o **stabile**, confrontando il prezzo di adesso con quello previsto fra poco senza
+  altre vendite (F-152).
+- **Scorte**: ogni oggetto acquistabile ha una scorta massima (più piccola per gli oggetti di valore alto) che parte piena, scende con gli acquisti e si riforma di un tanto
+  per blocco di tempo (F-150).
+
+### 34.4 Tempo e offline
+- Il mercato ha un suo **orologio a blocchi** (F-145): il tempo di gioco si accumula e a ogni blocco intero la saturazione cala e le scorte crescono. Online e offline è lo
+  stesso calcolo in **forma chiusa** su `n` blocchi (nessun calcolo per pezzo o per secondo): avanzare 12 ore in un colpo o a passi dà lo stesso stato (test).
+- **Offline**: il mercato avanza del tempo offline già limitato da F-40 (12 h); in 12 ore la saturazione massima si riassorbe del tutto e le scorte si riempiono. Nessun
+  acquisto o vendita automatica, nessuna riga nel riepilogo "Mentre eri via…".
+- Il mercato avanza anche con la Casa d'Aste non costruita e durante Fratture e dungeon (il tempo passa per tutti).
+
+### 34.5 Comandi e casi limite
+- **Vendi** (quantità 1…posseduti; scorciatoie 1, 10, 100, Tutti): controlli in ordine → quantità ≤ 0 `invalid_amount`; id sconosciuto `unknown_id`; oggetto fuori
+  dall'elenco (un pezzo, una runa, `value` 0) `not_tradable`; Casa d'Aste non costruita `requirement_not_met`; oggetto **bloccato** nel Deposito `item_locked` (come F-18);
+  quantità oltre i posseduti `not_enough_items`; totale di 0 oro (es. 1 pezzo da 1 oro al minimo) `not_sellable`. Riuscito: oggetti tolti, oro aggiunto, saturazione
+  aggiornata, tutto insieme.
+- **Compra** (quantità 1…scorta): quantità ≤ 0 `invalid_amount`; id sconosciuto `unknown_id`; non acquistabile `not_tradable`; Casa d'Aste sotto il gradino dell'oggetto
+  (o non costruita) `requirement_not_met`; **scorta zero** o quantità oltre la scorta `out_of_stock`; **oro insufficiente** `not_enough_gold`; **Deposito pieno** e
+  oggetto non già presente `bank_full`. Nessun cambiamento se un controllo fallisce (l'oro non si spende a metà).
+- **Indice al minimo**: vendere resta possibile al prezzo minimo (la saturazione ha un tetto nei dati, quindi il recupero non dura più di un tempo noto). **Indice al
+  tetto**: limite di sicurezza e base della garanzia di F-151; con i valori dei dati l'equilibrio non lo supera mai (regola del validatore).
+- Comprare un oggetto mai visto lo **scopre** nella Guida (§27.1) come ogni oggetto che entra nel Deposito. Gli acquisti non contano per gli incarichi della Bacheca
+  (contano solo i prodotti delle azioni, §31.1).
+- Dati cambiati tra due versioni: un oggetto tolto dall'elenco perde il suo stato di mercato; una scorta oltre il nuovo massimo si riduce al massimo.
+
+### 34.6 Salvataggio
+Stato per slot, modulo nuovo **additivo** `auction` (nessuna migrazione, `format_version` 7 invariata): seme, orologio del mercato e, per i soli oggetti lontani dallo
+stato di riposo, saturazione e scorta. Chiave assente = mercato nuovo (tutto all'equilibrio, scorte piene). Nessuna impostazione in `settings.cfg`.
+
+### 34.7 UI
+Pagina con due schede, **Vendi** e **Compra**. Vendi: gli oggetti ammessi presenti nel Deposito (icona, nome, posseduti, prezzo per pezzo qui e al Deposito, freccia
+di tendenza, quantità, totale previsto, **Vendi**). Compra: gli oggetti acquistabili (prezzo per pezzo, scorta `s/S`, gradino richiesto se bloccato, freccia, quantità,
+totale, **Compra**). Pulsanti disabilitati con il motivo. Prezzi, totali, scorte e tendenze vengono dal modulo (la UI non conosce la formula, non tiene stato, non
+calcola nulla). Testi in `auction_texts.gd`. Guida: una pagina "Casa d'Aste" scritta a mano (regole, nessun numero copiato).

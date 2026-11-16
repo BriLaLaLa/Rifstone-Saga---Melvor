@@ -870,3 +870,65 @@ Classi: `DungeonDef` (campi sopra), `DungeonRoomType`, `DungeonStageDef` (`id`, 
 - **Leggendari** (`equipment_legendary.json`, §5): `legendary.source` ammette `{"type": "dungeon", "id": "monkey_den", "chance_pct": 3.5}`; 6 nuovi pezzi (`leg_*_monkey`, F-143). Nessun tipo di effetto nuovo.
 - **`balance.json`**: `dungeon` `{"direction_bands": [...]}` e `miniboss` come in F-139 (`02_FORMULAS.md` §9). Nessuna stat in `stats.json`.
 - **Guida** (`data/guide/dungeon.json`, §19): pagina scritta a mano "Dungeon" (struttura, tipi di stanza, miniboss, Biglietti); tabelle generate in `GuideTables`: `dungeon_rooms` (F-138), `dungeon_stages` (F-139), `dungeon_loot` (F-143).
+
+## 28. Casa d'Aste (M23; V14-V15, `01_GDD.md` §34, `02_FORMULAS.md` F-145…F-152)
+
+Nessuna stat nuova in `stats.json`; nessun prezzo in un file nuovo: il valore base è il `value` di §5 (V15). Validatore nuovo `DataValidatorAuction` (`core/data/data_validator_auction.gd`), agganciato
+in `data_validator.gd` come gli altri; regole sugli edifici in `data_validator_village.gd`.
+
+**`balance.json`**, chiave `auction` (obbligatoria, validata, nessun fallback; valori di partenza in `02_FORMULAS.md` §9):
+| Chiave | Tipo | Vincoli |
+|---|---|---|
+| `block_ms` | int | 60000..3600000 (300000) |
+| `index.base_pct`, `index.min_pct`, `index.max_pct` | float | > 0; con `drift.amplitude_pct` = A: `min_pct < base_pct − A`, `base_pct + A ≤ max_pct`, `max_pct ≥ 100` (F-147) |
+| `drift.amplitude_pct` | float | 0..50 (8) |
+| `drift.period_blocks` | int | ≥ 1 (72) |
+| `saturation.per_unit_pct` | float | > 0, con `roundi(× 10000) ≥ 1` (0,025) |
+| `saturation.max_pct` | float | `≥ base_pct + A − min_pct` (55) |
+| `saturation.recover_pct_per_block` | float | > 0, `roundi(× 10000) ≥ 1` (0,5) |
+| `buy.spread_pct` | float | **`> max_pct − min_pct`** (150): garanzia di non-arbitraggio di F-151 |
+| `buy.blueprint_margin_pct` | float | ≥ 0 (3): margine del controllo dei progetti di F-151 (solo validatore) |
+| `stock.gold`, `stock.min`, `stock.max` | int | `gold ≥ 1`, `1 ≤ min ≤ max` (6000, 5, 500) |
+| `stock.refill_pct_per_block` | float | > 0 (1,4) |
+| `trend.blocks` | int | ≥ 1 (12) |
+| `trend.threshold_pct` | float | ≥ 0 (1) |
+Tutte le chiavi `*_pct` si convertono in ppm una volta, al caricamento (`roundi(pct × 10000)`, F-145…F-152), nella classe `AuctionParams` (`core/data/defs/auction_params.gd`, campi interi in ppm e i
+conteggi; `GameData.auction_params() -> AuctionParams`). Chiave sconosciuta dentro `auction` → errore (nessun dato morto).
+
+**`data/auction/auction_items.json`** (cartella e file nuovi, **generati** da `tools/gen_auction.gd`, obbligatorio; caricato da `GameData`, classe `AuctionItemDef`, accessori `auction_items()` in ordine di file e
+`auction_item(id)` → `null` se non ammesso):
+```json
+{"items": [
+  {"item": "redbirch_log", "buy_level": 0},
+  {"item": "emberbronze_plate", "buy_level": 1},
+  {"item": "seared_riftmaw", "buy_level": 8}
+]}
+```
+| Campo | Tipo | Vincoli |
+|---|---|---|
+| `item` | String | id esistente in `data/items/`, unico nel file; `category` ∈ `material`, `component`, `food`; `value ≥ 1` |
+| `buy_level` | int | 0 = solo vendita; 1..`village.max_level` = acquistabile con la Casa d'Aste a quel livello. **> 0 solo** per `component` e `food`, e solo se l'oggetto non è tra gli `inputs` di nessuna azione di `data/actions/` |
+Nessun altro campo (prezzi, scorte e saturazione sono formule e parametri di `auction`). **Regola di generazione** (unica fonte): tutti e soli gli oggetti `material`, `component`, `food` con `value ≥ 1`, in ordine di
+categoria (`material`, `component`, `food`), poi `sort_order`, poi `id`; `buy_level` = 0 per i `material`; per un `component` o un `food` = il gradino `n` (1…8) tale che `village.woodwright_levels[n−1]` = `level` dell'azione di `data/actions/` che lo ha tra gli `outputs`
+(i livelli delle ricette sono quelli dei gradini, `02_FORMULAS.md` §8.1-8.2: piastre, impugnature, manici, telai, pesce cotto). Oggi: 92 voci, 40 acquistabili (5 per gradino). Il generatore **fallisce** se un componente o un cibo
+con `value ≥ 1` non è prodotto da nessuna azione o la sua azione ha un livello fuori da `woodwright_levels` (un oggetto nuovo si classifica nei dati, non nel generatore). Espone
+`static func entries(items: Array, actions: Array, tier_levels: Array) -> Array[Dictionary]` (pura, su dizionari JSON grezzi; usata anche dal validatore e dai test, come `levels_for` di `gen_village.gd`), `--check` come `gen_market.gd`; idempotente.
+
+**Regole del validatore** (`DataValidatorAuction`, anche sulle fixture): (1) chiavi e vincoli di `auction` sopra; (2) `auction_items.json` = rigenerazione (un file scritto a mano che diverge è un errore);
+(3) campi e vincoli di ogni voce; (4) nessun oggetto con `buy_level > 0` è un `input` di un'azione; (5) **controllo dei progetti** di F-151: per ogni progetto di `blueprints.json`,
+`Σ qty × c(x)` (ingredienti `inputs` e `rare_components`) `≥ value(base) × (100 + blueprint_margin_pct) / 100`; (6) esattamente **un** edificio con `unlocks_auction: true` (transitorio: con la costante `STRICT_REAL_DATA = false` di M23-02 i dati veri possono non averne nessuno; M23-03 aggiunge l'edificio e la porta a `true`, come in M22); (7) `buy_level ≤ village.max_level`.
+
+**`data/village/buildings.json`** (estensione di §24-§26; i `levels` restano generati da `tools/gen_village.gd`): edificio nuovo, scritto a mano nella sorgente:
+```json
+{"id": "auction_house", "name": "Casa d'Aste", "description": "Banchi dove i prezzi salgono e scendono con le vendite.", "icon": "coins", "order": 8, "buildable": true,
+ "map_pos": [0.86, 0.49], "page": "auction", "unlocks_auction": true,
+ "cost_spec": {"wood": [{"component": "shieldcore", "weight": 0.25}, {"component": "handle", "weight": 0.25}], "plate": 0.5, "food": 0, "gold_weight": 1.0}, "levels": []}
+```
+Campo nuovo `unlocks_auction` (bool, facoltativo, default `false`): come `unlocks_shop` (§25) **esclude** `effect` (`effect_value` dei livelli `0.0`); `unlocks_shop` e `unlocks_auction` non possono essere entrambi `true`.
+`VillageBuildingDef` guadagna `unlocks_auction: bool`; `GameData.auction_building() -> StringName` = id dell'unico edificio con `unlocks_auction` (`&""` se manca: solo le fixture minime senza Casa d'Aste).
+**`map_pos`** [0,86, 0,49] rispetta la regola di non sovrapposizione di §26 con tutti gli altri (`inn` [0,86, 0,22] e `forge` [0,86, 0,76]: `|dy|` 0,27 ≥ 0,16; `market` [0,50, 0,50]: `|dx|` 0,36 ≥ 0,22); il validatore la
+controlla come sempre. **`page`** ammette `auction` (la pagina della UI, `05_INTERFACES.md` §7.p). Icona: una già presente in `assets/icons/ui` (`coins`; nessun asset nuovo; se manca, `missing`).
+
+**Fixture** (`tests/fixtures/data/`): `balance.json` con la sezione `auction` (valori di partenza), un `auction_items.json` coerente con gli oggetti delle fixture (rigenerato con lo stesso
+`entries()`), un edificio `auction_house` minimo; più i casi rifiutati: `spread_pct ≤ max − min`, `max_pct < base + A`, `buy_level > 0` su un materiale, un acquistabile usato come input di un'azione, file divergente dalla rigenerazione,
+due edifici con `unlocks_auction`, `unlocks_auction` e `unlocks_shop` insieme, progetto sotto margine.
