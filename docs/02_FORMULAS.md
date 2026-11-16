@@ -930,7 +930,8 @@ Valori di partenza (ppm): `BASE` 1.150.000 (115%), `MIN` 700.000, `MAX` 1.250.00
 ### F-145 Edificio e orologio del mercato
 **Costo** (F-131 con i pesi di `cost_spec`): `auction_house` = `shieldcore` 0,25 + `handle` 0,25, `plate` 0,5, `food` 0, `gold_weight` 1,0. Nessun effetto (`unlocks_auction`, F-132 `effect_value` 0).
 Esempi (= test, `tests/systems/village/test_village_cost.gd`): livello 1: 10 `redbirch_shieldcore` (⌈0,25 × 40⌉), 10 `redbirch_handle`, 4 `emberbronze_plate` (⌈0,5 × 8⌉), oro 300, Falegname 1; livello 4: 25 `duskelm_shieldcore`, 25 `duskelm_handle`, 10 `duskcobalt_plate`, oro 820, Falegname 30;
-livello 8: 45 `riftspruce_shieldcore`, 45 `riftspruce_handle`, 18 `riftite_plate`, oro 3.160, Falegname 90. Ore per livello misurate da `tools/sim_village.gd` in M23-03 (soglia: ≤ 1,0 h per livello come gli altri edifici).
+livello 8: 45 `riftspruce_shieldcore`, 45 `riftspruce_handle`, 18 `riftite_plate`, oro 3.160, Falegname 90.
+Ore per livello (`tools/sim_village.gd`, M23-03; soglia ≤ 1,0 h): 0,38 · 0,27 · 0,28 · 0,49 · 0,42 · 0,50 · 0,60 · 0,76 (cumulate 3,70 h); pesi invariati.
 **Sblocco**: livello `L` della Casa d'Aste: `L ≥ 1` → si vende ogni oggetto dell'elenco; un oggetto con `buy_level = n ≥ 1` si compra se `L ≥ n` (`n` = gradino 1…8 dell'oggetto, F-131).
 **Orologio**: stato `block` (blocchi interi passati dalla nascita del mercato) e `pending_ms` (0 ≤ `pending_ms` < `block_ms`). `advance(Δ)` con `Δ ≥ 0`: `t = pending_ms + Δ`; `n = t ÷ block_ms`; `pending_ms = t mod block_ms`; `block += n`; poi F-149 e F-150 con `n` (se `n > 0`).
 Proprietà (= test): `advance(a); advance(b)` ≡ `advance(a + b)` per ogni `a, b ≥ 0`, perché F-149 e F-150 sono additive in `n`. Esempi: `pending_ms` 200.000 + `Δ` 1.000.000 → `n` 4, `pending_ms` 0; 12 h offline (43.200.000) → 144 blocchi; 10 tick da 100 ms → `pending_ms` + 1.000, nessun blocco.
@@ -993,6 +994,9 @@ Esempi (= test, `seed` 12345): `redbirch_grip`, blocco 0, `sat` 0 → `now` 1.21
 (2) 10.000 strategie casuali di compra/vendi/attendi su 12 h per ogni oggetto, compresi giri attraverso il Deposito: partendo senza quell'oggetto, **oro finale + pezzi rimasti × `v·MAX` ≤ oro iniziale** (nessun guadagno dal nulla);
 (3) nessun oggetto acquistabile è ingrediente di un'azione, controllo dei progetti come sopra; (4) `advance` di 12 h in un colpo = a tick da 100 ms = a blocchi da 60 s (stato identico);
 (5) oro di 1 h di produzione di ogni grezzo T1-T8 (tassi di §8.1, senza aiutanti, venduta in un colpo, con `eq` al minimo e al massimo dell'escursione) alla Casa d'Aste rispetto a F-18: **soglia tra 0,85 e 1,25** (su carta: T1 0,92-1,08, T8 0,99-1,15); stampa anche lo stesso rapporto per componenti e cibo (senza soglia), le ore di recupero dal tetto e le ore per riempire le scorte.
+**Misure** (M23-05, dati veri, sim verde): (1) `unit` / vendita del pezzo al tetto, minimo su tutti gli acquistabili **2,225**; (2) il giro compra-vendi più favorevole perde comunque
+**≥ 4 oro**, la strategia con saturazione e riacquisto **≥ 3.005 oro**; (5) 1 h di produzione dei grezzi T1-T8 rispetto a F-18: **0,920-1,148** (dentro 0,85-1,25); recupero dal tetto
+**9,17 h** (110 blocchi, F-149); rifornimento di una scorta dallo zero **≤ 8,33 h** (F-150).
 
 ## 6. Offline
 

@@ -280,6 +280,8 @@ Si vendono materiali, componenti e cibo a un prezzo che scende con le vendite e 
 Tutta la formula dietro `AuctionPricing` (sostituibile in futuro da un modello a popolazione); offline in forma chiusa a blocchi; save additivo (`auction`, v7 invariata); nessuna stat. Task M23-02…M23-06.
 **Giocabile**: costruire la Casa d'Aste, aprirla dalla mappa, vendere un materiale e vedere il prezzo calare e poi risalire col tempo (anche dopo aver chiuso e riaperto il gioco), comprare un componente finché la scorta lo permette;
 nessun guadagno comprando e rivendendo (sim, anche passando dal Deposito).
+**Misure** (M23-03, M23-05): ore per livello dell'edificio 0,27-0,76 (cumulate 3,70 h, soglia ≤ 1,0 h); `tools/sim_market.gd` verde: `unit`/vendita al tetto ≥ 2,225; il giro compra-vendi perde ≥ 4 oro,
+saturazione + riacquisto ≥ 3.005 oro; 1 h di produzione dei grezzi rispetto a F-18 0,920-1,148 (soglia 0,85-1,25); recupero dal tetto 9,17 h (< 12 h di offline); rifornimento dallo zero ≤ 8,33 h.
 
 ## M24+: Seconda classe, altri dungeon e boss (dopo M23; era M23+)
 Seconda classe con le sue armi (es. arco o bastone, con i suoi progetti e componenti del Falegname), supporti delle abilità, altri dungeon (solo dati: il sistema di M22 è generico), livelli di difficoltà dei dungeon, altri boss, elementi e resistenze.

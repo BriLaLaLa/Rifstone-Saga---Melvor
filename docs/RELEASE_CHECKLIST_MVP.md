@@ -59,3 +59,12 @@ Da provare a mano (nessuna sessione grafica in questo ambiente): vedi sezione 4.
 - **Prove manuali da fare** (M13): trovare una Carta cacciando; migliorarla con i Cristalli; aprire una Frattura dalla pagina Fratture (Combattimento fermo, aiutanti attivi); gruppi, boss e abilita (colpo pesante, scudo, evocazione);
   vittoria (borsa nel Deposito, Carte di grado piu alto, "Raccogli" se manca spazio); morte e "Abbandona" con conferma (Carta e borsa perse); salvare e ricaricare in mezzo a una Frattura; uscire e rientrare (riepilogo offline con le Fratture); pagina Guida "Fratture".
 - **Limiti noti**: layout 1600x900 e 1280x720 della pagina Fratture e della Frattura in Combattimento non visto a schermo; riga di stato del Combattimento con il boss non verificata a schermo; grado 1 in 13,9 minuti (sotto l'obiettivo 15-30) e regola "muore sotto di 10 livelli" rispettata solo al grado 1 (Q63).
+
+## 7. Aggiornamento M23 (Casa d'Aste, 2026-11-16)
+- **Controlli automatici**: `run_checks.ps1` su main dopo il merge di M23-06 (lo lancia l'Orchestratore); `tools/sim_market.gd` verde (misure in `02_FORMULAS.md` §5k "Simulazione").
+- **Verifica visiva** (M23-06, 1280x720, sessione vera con la Casa d'Aste al livello 3): mappa del Villaggio con 8 nodi senza sovrapposizioni (Casa d'Aste [0,86; 0,49] ben separata da Locanda e Fucina),
+  dettaglio con "Apri Casa d'Aste"; schede Vendi e Compra leggibili (SpinBox, scorciatoie 1/10/100/Tutti, totale, motivo di rifiuto, tendenza in testo). Nessun taglio o testo sbordante.
+- **Prove manuali da fare** (M23): costruire la Casa d'Aste al Villaggio e aprirla dalla mappa e dalla barra laterale; vendere 100+ pezzi di un materiale e vedere il prezzo calare;
+  aspettare (o chiudere e riaprire il gioco) e vederlo risalire; comprare un componente fino a esaurire la scorta (`Scorta esaurita`); salvare e ricaricare a metà.
+- **Limiti noti**: a 1280x720 (scala 0,8 di `canvas_items`) alcuni bordi di 1 px spariscono (nodi della mappa, SpinBox): effetto globale, non della Casa d'Aste; la tendenza "Stabile" ha un colore
+  poco contrastato; `SubTabBar.select()` (solo nei test) lascia premuta anche la scheda precedente.
