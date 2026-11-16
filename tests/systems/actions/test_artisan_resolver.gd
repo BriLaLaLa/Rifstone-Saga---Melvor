@@ -52,7 +52,7 @@ func test_can_start_needs_every_input() -> void:
 func test_resolve_consumes_inputs_and_gives_products_xp_and_mastery() -> void:
 	TestFactory.give(_session, LOG_ITEM, 3)
 	watch_signals(_session.events)
-	var outcome: ActionOutcome = ArtisanResolver.resolve(_session, _action())
+	var outcome: ActionOutcome = ArtisanResolver.resolve(_session, _action(), _session.rng)
 	assert_true(outcome.ok)
 	assert_eq(outcome.consumed, {LOG_ITEM: 2} as Dictionary[StringName, int])
 	assert_eq(outcome.outputs, {PLANK_ITEM: 1} as Dictionary[StringName, int])
@@ -68,7 +68,7 @@ func test_resolve_consumes_inputs_and_gives_products_xp_and_mastery() -> void:
 func test_resolve_without_inputs_fails_and_changes_nothing() -> void:
 	TestFactory.give(_session, LOG_ITEM, 1)
 	watch_signals(_session.events)
-	var outcome: ActionOutcome = ArtisanResolver.resolve(_session, _action())
+	var outcome: ActionOutcome = ArtisanResolver.resolve(_session, _action(), _session.rng)
 	assert_false(outcome.ok)
 	assert_eq(outcome.reason, Reasons.MISSING_INPUTS)
 	assert_eq(_session.bank.get_count(LOG_ITEM), 1)
@@ -80,7 +80,7 @@ func test_resolve_without_inputs_fails_and_changes_nothing() -> void:
 func test_preservation_0_always_consumes() -> void:
 	TestFactory.give(_session, LOG_ITEM, 200)
 	for i: int in 100:
-		assert_true(ArtisanResolver.resolve(_session, _action()).ok)
+		assert_true(ArtisanResolver.resolve(_session, _action(), _session.rng).ok)
 	assert_eq(_session.bank.get_count(LOG_ITEM), 0)
 
 
@@ -90,7 +90,7 @@ func test_preservation_cap() -> void:
 	TestFactory.give(_session, LOG_ITEM, 2)
 	var preserved: int = 0
 	for i: int in CYCLES:
-		var outcome: ActionOutcome = ArtisanResolver.resolve(_session, _action())
+		var outcome: ActionOutcome = ArtisanResolver.resolve(_session, _action(), _session.rng)
 		assert_true(outcome.ok)
 		if outcome.consumed.is_empty():
 			preserved += 1
@@ -104,7 +104,7 @@ func test_preservation_applies_to_the_action_context() -> void:
 	_set_mods([Modifier.make(PRESERVATION, 100.0, &"skill", &"forestry")])
 	TestFactory.give(_session, LOG_ITEM, 200)
 	for i: int in 100:
-		ArtisanResolver.resolve(_session, _action())
+		ArtisanResolver.resolve(_session, _action(), _session.rng)
 	assert_eq(_session.bank.get_count(LOG_ITEM), 0)
 
 
@@ -118,7 +118,7 @@ func test_preserved_cycle_keeps_the_inputs() -> void:
 		var preserve: bool = replica.roll_pct(80.0)
 		TestFactory.give(_session, LOG_ITEM, 2)
 		var before: int = _session.bank.get_count(LOG_ITEM)
-		var outcome: ActionOutcome = ArtisanResolver.resolve(_session, _action())
+		var outcome: ActionOutcome = ArtisanResolver.resolve(_session, _action(), _session.rng)
 		assert_true(outcome.ok)
 		assert_eq(outcome.consumed.is_empty(), preserve)
 		assert_eq(_session.bank.get_count(LOG_ITEM), before if preserve else before - 2)
@@ -132,10 +132,10 @@ func test_preserved_cycle_keeps_the_inputs() -> void:
 func test_double_item_chance() -> void:
 	TestFactory.give(_session, LOG_ITEM, 20)
 	for i: int in 5:
-		assert_eq(ArtisanResolver.resolve(_session, _action()).outputs[PLANK_ITEM], 1)
+		assert_eq(ArtisanResolver.resolve(_session, _action(), _session.rng).outputs[PLANK_ITEM], 1)
 	_set_mods([Modifier.make(DOUBLE, 100.0)])
 	for i: int in 5:
-		assert_eq(ArtisanResolver.resolve(_session, _action()).outputs[PLANK_ITEM], 2)
+		assert_eq(ArtisanResolver.resolve(_session, _action(), _session.rng).outputs[PLANK_ITEM], 2)
 	assert_eq(_session.bank.get_count(PLANK_ITEM), 15)
 
 
@@ -144,7 +144,7 @@ func test_no_rift_shard() -> void:
 	_set_mods([Modifier.make(&"rift_shard_chance", 100.0)])
 	TestFactory.give(_session, LOG_ITEM, 20)
 	for i: int in 10:
-		var outcome: ActionOutcome = ArtisanResolver.resolve(_session, _action())
+		var outcome: ActionOutcome = ArtisanResolver.resolve(_session, _action(), _session.rng)
 		assert_false(outcome.shard)
 		assert_false(outcome.outputs.has(&"rift_shard"))
 	assert_eq(_session.bank.get_count(&"rift_shard"), 0)
@@ -155,7 +155,7 @@ func test_bank_full_consumes_nothing() -> void:
 	var session: GameSession = autofree(TestFactory.session(1234, _small_data))
 	TestFactory.give(session, LOG_ITEM, 2)
 	watch_signals(session.events)
-	var outcome: ActionOutcome = ArtisanResolver.resolve(session, _action())
+	var outcome: ActionOutcome = ArtisanResolver.resolve(session, _action(), session.rng)
 	assert_false(outcome.ok)
 	assert_eq(outcome.reason, Reasons.BANK_FULL)
 	assert_eq(session.bank.get_count(LOG_ITEM), 3)
@@ -169,7 +169,7 @@ func test_bank_full_consumes_nothing() -> void:
 func test_freed_slot_takes_the_product() -> void:
 	var session: GameSession = autofree(TestFactory.session(1234, _small_data))
 	TestFactory.give(session, LOG_ITEM, 1)
-	var outcome: ActionOutcome = ArtisanResolver.resolve(session, _action())
+	var outcome: ActionOutcome = ArtisanResolver.resolve(session, _action(), session.rng)
 	assert_true(outcome.ok)
 	assert_eq(session.bank.get_count(LOG_ITEM), 0)
 	assert_eq(session.bank.get_count(PLANK_ITEM), 1)

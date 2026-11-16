@@ -95,7 +95,7 @@ func test_can_start_needs_the_dust() -> void:
 func test_success_consumes_everything_and_gives_the_crystal() -> void:
 	var session: GameSession = _session(_data(100.0, 100.0))
 	TestFactory.give(session, DUST, 60)
-	var outcome: ActionOutcome = EngraverResolver.resolve(session, _action(session))
+	var outcome: ActionOutcome = EngraverResolver.resolve(session, _action(session), session.rng)
 	assert_true(outcome.ok)
 	assert_false(outcome.failed)
 	assert_eq(outcome.consumed, {DUST: 50})
@@ -108,7 +108,7 @@ func test_success_consumes_everything_and_gives_the_crystal() -> void:
 func test_failure_loses_half_gives_proportional_xp_and_no_crystal() -> void:
 	var session: GameSession = _session(_data(0.0, 0.0))
 	TestFactory.give(session, DUST, 60)
-	var outcome: ActionOutcome = EngraverResolver.resolve(session, _action(session))
+	var outcome: ActionOutcome = EngraverResolver.resolve(session, _action(session), session.rng)
 	assert_true(outcome.ok, "the cycle counts")
 	assert_true(outcome.failed)
 	assert_eq(outcome.consumed, {DUST: 25})
@@ -128,7 +128,7 @@ func test_mastery_is_full_on_success_and_none_on_failure() -> void:
 	var successes: int = 0
 	var failures: int = 0
 	for i: int in 40:
-		var outcome: ActionOutcome = EngraverResolver.resolve(session, _action(session))
+		var outcome: ActionOutcome = EngraverResolver.resolve(session, _action(session), session.rng)
 		if outcome.failed:
 			failures += 1
 			assert_eq(outcome.mastery_xp, 0)
@@ -144,7 +144,7 @@ func test_one_roll_per_cycle_on_the_session_rng() -> void:
 	TestFactory.give(session, DUST, 500)
 	var reference := RngService.new(SEED)
 	for i: int in 5:
-		EngraverResolver.resolve(session, _action(session))
+		EngraverResolver.resolve(session, _action(session), session.rng)
 		reference.roll_pct(40.0)
 	assert_eq(session.rng.to_save(), reference.to_save())
 
@@ -156,7 +156,7 @@ func _rate_error(session: GameSession) -> float:
 	var successes: int = 0
 	for i: int in TRIALS:
 		expected += EngraverResolver.crystal_chance_pct(session.skills.get_level(SKILL), session.data) / 100.0
-		if not EngraverResolver.resolve(session, _action(session)).failed:
+		if not EngraverResolver.resolve(session, _action(session), session.rng).failed:
 			successes += 1
 	return absf(float(successes) - expected) / float(TRIALS)
 
@@ -173,7 +173,7 @@ func test_at_level_99_the_rate_is_the_maximum() -> void:
 	TestFactory.give(session, DUST, 400000)
 	var successes: int = 0
 	for i: int in TRIALS:
-		if not EngraverResolver.resolve(session, _action(session)).failed:
+		if not EngraverResolver.resolve(session, _action(session), session.rng).failed:
 			successes += 1
 	assert_almost_eq(float(successes) / float(TRIALS), 0.90, 0.03)
 
@@ -182,7 +182,7 @@ func test_not_enough_dust_fails_without_rolling() -> void:
 	var session: GameSession = _session(_data(100.0, 100.0))
 	TestFactory.give(session, DUST, 49)
 	var before: Dictionary = session.rng.to_save()
-	var outcome: ActionOutcome = EngraverResolver.resolve(session, _action(session))
+	var outcome: ActionOutcome = EngraverResolver.resolve(session, _action(session), session.rng)
 	assert_false(outcome.ok)
 	assert_eq(outcome.reason, Reasons.MISSING_INPUTS)
 	assert_eq(session.rng.to_save(), before)
@@ -192,7 +192,7 @@ func test_no_room_for_the_crystal_stops_before_the_roll() -> void:
 	var session: GameSession = _session(_data(100.0, 100.0, 1))
 	TestFactory.give(session, DUST, 80)  # the only box
 	var before: Dictionary = session.rng.to_save()
-	var outcome: ActionOutcome = EngraverResolver.resolve(session, _action(session))
+	var outcome: ActionOutcome = EngraverResolver.resolve(session, _action(session), session.rng)
 	assert_false(outcome.ok)
 	assert_eq(outcome.reason, Reasons.BANK_FULL)
 	assert_eq(session.rng.to_save(), before, "no roll")
@@ -202,7 +202,7 @@ func test_no_room_for_the_crystal_stops_before_the_roll() -> void:
 func test_the_box_freed_by_the_dust_counts_for_the_crystal() -> void:
 	var session: GameSession = _session(_data(100.0, 100.0, 1))
 	TestFactory.give(session, DUST, 50)
-	var outcome: ActionOutcome = EngraverResolver.resolve(session, _action(session))
+	var outcome: ActionOutcome = EngraverResolver.resolve(session, _action(session), session.rng)
 	assert_true(outcome.ok)
 	assert_eq(session.bank.get_count(CRYSTAL), 1)
 	assert_eq(session.bank.get_count(DUST), 0)
@@ -245,7 +245,7 @@ func test_fuse_is_an_ordinary_deterministic_recipe() -> void:
 	var action: ActionDef = session.data.action(FUSE)
 	assert_eq(action.kind, &"craft")
 	for i: int in 3:
-		assert_true(ArtisanResolver.resolve(session, action).ok)
+		assert_true(ArtisanResolver.resolve(session, action, session.rng).ok)
 	assert_eq(session.bank.get_count(STONE), 3, "9 chips -> 3 cycles -> 3 stones")
 	assert_eq(session.bank.get_count(CHIP), 0)
 	TestFactory.give(session, CHIP, 2)

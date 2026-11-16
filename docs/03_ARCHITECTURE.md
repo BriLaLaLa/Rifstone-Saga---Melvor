@@ -266,8 +266,7 @@ sequenceDiagram
 - `GameSession.advance(delta_ms)` chiama in ordine fisso: fratture → `actions.advance` (coda) → `combat.advance` → Casa d'Aste
   → `play_time_ms += delta_ms` (la fase degli aiutanti è **ELIMINATA in M24**).
 - Ogni `advance` gestisce **più eventi nello stesso passo** (es. due cicli d'azione da 250 ms in 600 ms): è la
-  condizione che rende identici online e offline (test di equivalenza F-41). **M24-08**: vale per ogni sistema da solo e per il combattimento con viaggi e
-  nodi; con una coda di produzione attiva **no** (coda e combattimento condividono `session.rng`, fasi in sequenza): difetto aperto, Q124.
+  condizione che rende identici online e offline (test di equivalenza F-41). **M24-09**: vale anche con una coda di produzione attiva insieme al combattimento (Q124 chiusa: la coda ha un proprio `RngService`, salvato in `actions.rng`, e `GameSession.advance` la fa avanzare in passi di `tick_ms`).
 - Nessun sistema usa `_process`, `Timer` o `await` per la logica. Fanno eccezione solo `GameClock` e la UI.
 
 ## 7. Salvataggio e caricamento per slot
@@ -329,8 +328,7 @@ flowchart LR
 ```
 
 - `OfflineSimulator` usa lo **stesso** `session.advance`: nessuna formula duplicata per l'offline. Da M24 viaggi, nodi e coda
-  avanzano offline con il motore esatto (`01_GDD_M24.md` §35.9; la fase degli aiutanti è **ELIMINATA**). **Limite noto (M24-08)**: coda e combattimento tirano sullo
-  stesso `session.rng` e la coda avanza prima in ogni `advance`, quindi con una coda attiva l'ordine dei tiri dipende dalla dimensione del blocco (vedi §6 e Q124).
+  avanzano offline con il motore esatto (`01_GDD_M24.md` §35.9; la fase degli aiutanti è **ELIMINATA**). **M24-09 (Q124 chiusa)**: la coda tira su un generatore proprio (derivato dal seme dello slot, salvato) e, con la coda in corso, `advance` taglia il blocco in passi di `tick_ms`: stesso stato in ogni blocco.
 - I sistemi raccolgono contatori di sessione che servono al riepilogo (uccisioni, morti, cibo mangiato, motivi di
   stop) in `SessionSnapshot`; la differenza tra due snapshot dà il riepilogo.
 - Durante la simulazione `GameClock` è in pausa e la UI non accetta comandi (overlay modale).

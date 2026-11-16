@@ -47,7 +47,7 @@ func test_new_game_is_idle() -> void:
 	assert_eq(_runner.jobs(), [] as Array[Dictionary])
 	assert_eq(_runner.get_progress(), 0.0)
 	assert_eq(_runner.capacity(), 5)
-	assert_eq(_runner.to_save(), {"jobs": [], "elapsed_ms": 0})
+	assert_eq(_runner.to_save(), {"jobs": [], "elapsed_ms": 0, "rng": ProductionQueueLoader.derive_rng(_session).to_save()})
 	assert_eq(_runner.stop_reasons_log(), [] as Array[StringName])
 
 
@@ -192,7 +192,8 @@ func test_save_writes_the_jobs_and_the_head_elapsed() -> void:
 	_session.advance(1200)
 	assert_eq(_runner.to_save(), {"jobs": [
 			{"skill": "test_craft", "action": "craft_plank", "remaining": 2, "repeat": false},
-			{"skill": "test_craft", "action": "craft_plank", "remaining": 0, "repeat": true}], "elapsed_ms": 1200})
+			{"skill": "test_craft", "action": "craft_plank", "remaining": 0, "repeat": true}], "elapsed_ms": 1200,
+			"rng": _runner.to_save()["rng"]})
 
 
 ## elapsed_ms is saved: after loading the bar continues and the cycle ends after the missing 800 ms.

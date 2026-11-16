@@ -13,6 +13,7 @@ const LOG_CATEGORY: String = "session"
 const GAME_VERSION_SETTING: String = "application/config/version"
 const MODULES_KEY: String = "modules"
 const RNG_KEY: String = "rng"
+const TICK_MS_KEY: String = "tick_ms"
 # Advance phases, in the fixed order of docs/01_GDD.md §2.
 const _PHASE_FRACTURES: int = 0
 const _PHASE_ACTIONS: int = 1
@@ -77,7 +78,22 @@ func new_game() -> void:
 
 ## One fixed step: fractures, actions, combat (only the systems that exist), then play time. `freeze_combat`
 ## (offline, with a dungeon run: F-144 rule 2) leaves the combat and the run where they are; the rest advances.
+##
+## With a production queue running the block is cut in steps of `tick_ms` (the online step), each one through all phases: what the queue
+## and the combat share (the bank) is then seen in the same order whatever the block size (Q124, F-41).
 func advance(delta_ms: int, freeze_combat: bool = false) -> void:
+	var step_ms: int = int(data.balance_value(TICK_MS_KEY))
+	if step_ms > 0 and delta_ms > step_ms and actions.is_running():
+		var left: int = delta_ms
+		while left > 0:
+			var part: int = mini(step_ms, left)
+			_advance_once(part, freeze_combat)
+			left -= part
+		return
+	_advance_once(delta_ms, freeze_combat)
+
+
+func _advance_once(delta_ms: int, freeze_combat: bool) -> void:
 	for phase: int in _steps.size():
 		if _steps[phase].is_valid() and not (freeze_combat and phase == _PHASE_COMBAT):
 			_steps[phase].call(delta_ms)

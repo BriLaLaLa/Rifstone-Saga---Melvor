@@ -4,6 +4,7 @@ extends RefCounted
 ## Internal helper of ActionRunner (not an API for other modules): static functions, no state.
 
 const LOG_CATEGORY: String = "actions"
+const RNG_SALT: int = 0x51554555  # a label for the queue generator seed, not a design number
 
 
 ## The jobs of the save entry `raw` (an Array of Dictionaries). Unknown or unusable jobs (unknown action, discipline not learned,
@@ -37,6 +38,11 @@ static func load_elapsed(raw: Variant, jobs: Array[ProductionJob]) -> int:
 
 
 ## min over the inputs of floor(owned / qty): the cycles the Bank allows (F-157; preservation and doubles ignored).
+## The queue's own generator (Q124): seed derived from the slot seed, so a v8 save without the saved state gets the same one.
+static func derive_rng(session: GameSession) -> RngService:
+	return RngService.new(RngService.derive_seed(session.rng.seed_value(), RNG_SALT))
+
+
 static func cycles_possible(session: GameSession, action: ActionDef) -> int:
 	var cycles: int = -1
 	for entry: ItemQty in action.inputs:

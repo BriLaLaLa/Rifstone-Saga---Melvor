@@ -1,7 +1,7 @@
 class_name EngraverResolver
 extends RefCounted
 ## One completed cycle of an action with `kind: crystallize` (docs/05_INTERFACES.md §5.22, F-104): N Rift Dust for one
-## Crystal, with a chance that grows with the Engraver level. One `roll_pct` on `session.rng` per cycle, no
+## Crystal, with a chance that grows with the Engraver level. One `roll_pct` on the `rng` passed in per cycle, no
 ## preservation or double roll. The room is checked before the roll (no roll when the Crystal does not fit).
 ## Success: inputs out, Crystal in, xp (F-02) and mastery in full. Failure: `fail_loss` of the dust is lost, no Crystal,
 ## xp in proportion to the dust lost, no mastery; the cycle counts (`outcome.failed`).
@@ -30,7 +30,7 @@ static func can_start(session: GameSession, action: ActionDef) -> CommandResult:
 	return ArtisanResolver.can_start(session, action)
 
 
-static func resolve(session: GameSession, action: ActionDef) -> ActionOutcome:
+static func resolve(session: GameSession, action: ActionDef, rng: RngService) -> ActionOutcome:
 	var outcome := ActionOutcome.new()
 	if not can_start(session, action).ok:
 		outcome.reason = Reasons.MISSING_INPUTS
@@ -42,7 +42,7 @@ static func resolve(session: GameSession, action: ActionDef) -> ActionOutcome:
 		return outcome
 	var ctx: ModifierContext = ModifierContext.for_action(action.skill_id, action.id)
 	var chance: float = crystal_chance_pct(session.skills.get_level(action.skill_id), session.data)
-	if session.rng.roll_pct(chance):
+	if rng.roll_pct(chance):
 		_apply(session, needed, produced)
 		outcome.consumed = needed
 		outcome.outputs = produced

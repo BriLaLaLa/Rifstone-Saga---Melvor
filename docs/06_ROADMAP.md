@@ -302,7 +302,7 @@ un vecchio salvataggio si carica con le discipline scelte in automatico; offline
 | XP/h di raccolta ÷ lavoro dedicato | sotto: `redrock_plains` `angling` 27%, `cracked_mines` `angling` 21% | ≥ 30% | salta per pesi bassi (Q122) |
 | Ricette/h per area | 0,67-1,75 | obiettivo ~1 ogni 2 h per ricetta del gradino | plausibile |
 | Durata media di un nodo | ~10 s | 12 s (F-155 senza modificatori) | causa non verificata (Q123) |
-| Stato dopo lo stesso tempo, blocco unico / 100 ms / 60 s | identico senza coda; con la coda solo le grandezze del tempo | identico (F-41) | **difetto** (Q124) |
+| Stato dopo lo stesso tempo, blocco unico / 100 ms / 60 s | identico anche con la coda (M24-09) | identico (F-41) | **ok** (Q124 chiusa) |
 
 Layout a 1280×720 di Maestri, mappa di viaggio, nodo e coda **non verificato a schermo** (Q125).
 
