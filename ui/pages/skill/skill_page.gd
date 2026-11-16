@@ -198,10 +198,10 @@ func _on_card_toggle_requested(action_id: StringName) -> void:
 	if _session == null:
 		return
 	if _running_action_id() == action_id:
-		_session.actions.stop()
+		_session.actions.cancel(0)
 		_hide_refusal()
 		return
-	var result: CommandResult = _session.actions.start(_skill.id, action_id)
+	var result: CommandResult = _session.actions.enqueue(_skill.id, action_id, 1, true)
 	if result.ok:
 		_hide_refusal()
 	else:
@@ -306,7 +306,7 @@ func _on_events_extras_changed(_a: Variant, _b: Variant) -> void:
 func _on_blueprint_start_requested(blueprint_id: StringName, chosen_affix: StringName) -> void:
 	if _session == null:
 		return
-	var result: CommandResult = _session.actions.start_blueprint(blueprint_id, chosen_affix)
+	var result: CommandResult = _session.actions.enqueue_blueprint(blueprint_id, chosen_affix)
 	if result.ok:
 		_hide_refusal()
 	else:
@@ -315,7 +315,7 @@ func _on_blueprint_start_requested(blueprint_id: StringName, chosen_affix: Strin
 
 func _on_blueprint_stop_requested() -> void:
 	if _session != null:
-		_session.actions.stop()
+		_session.actions.cancel(0)
 		_hide_refusal()
 
 

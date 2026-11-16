@@ -81,14 +81,15 @@ func test_stop_returns_to_idle_with_full_hp_and_keeps_the_bag() -> void:
 	assert_eq(_session.combat.stop_reasons_log().size(), 1, "stopping while idle does nothing")
 
 
-func test_combat_and_actions_replace_each_other() -> void:
-	assert_true(_session.actions.start(&"test_gather", &"gather_twig").ok)
+func test_combat_and_the_production_queue_do_not_stop_each_other() -> void:
+	TestFactory.give(_session, &"test_log", 4)
+	assert_true(_session.actions.enqueue(&"test_craft", &"craft_plank", 2).ok)
 	assert_true(_session.combat.start(AREA).ok)
-	assert_false(_session.actions.is_running(), "combat stops the main lane")
-	assert_eq(_session.actions.stop_reasons_log(), _ids([Reasons.REPLACED]))
-	assert_true(_session.actions.start(&"test_gather", &"gather_twig").ok)
-	assert_false(_session.combat.is_active(), "an action stops the combat")
-	assert_eq(_session.combat.stop_reasons_log(), _ids([Reasons.REPLACED]))
+	assert_true(_session.actions.is_running(), "M24: combat does not stop the queue")
+	assert_true(_session.combat.is_active())
+	assert_true(_session.actions.enqueue(&"test_craft", &"craft_plank", 1).ok)
+	assert_true(_session.combat.is_active(), "a job does not stop the combat")
+	assert_eq(_session.actions.stop_reasons_log(), [] as Array[StringName])
 
 
 func test_in_encounter_blocks_equipment_changes_not_between() -> void:

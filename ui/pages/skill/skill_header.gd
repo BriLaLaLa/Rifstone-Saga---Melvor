@@ -14,7 +14,6 @@ const REFUSED_TEXTS: Dictionary[StringName, String] = {
 	Reasons.UNKNOWN_ID: "Questa azione non è ancora disponibile.",
 	Reasons.MISSING_INPUTS: "Materiali insufficienti.",
 	Reasons.BANK_FULL: "Il deposito è pieno.",
-	Reasons.LANE_UNAVAILABLE: "Corsia non disponibile.",
 	Reasons.SKILL_IN_OTHER_LANE: "Questa skill è già attiva in un'altra corsia.",
 	Reasons.COMBAT_ACTIVE: "Combattimento in corso.",
 }
@@ -23,7 +22,7 @@ const REFUSED_TEXT_DEFAULT: String = "Impossibile avviare l'azione."
 
 ## Id of the action running in the main lane, empty if none.
 static func running_action_id(session: GameSession) -> StringName:
-	return session.actions.get_lane().get(LANE_ACTION_KEY, &"")
+	return session.actions.current().get(LANE_ACTION_KEY, &"")
 
 
 ## The status line of the skill page of `skill_id`.

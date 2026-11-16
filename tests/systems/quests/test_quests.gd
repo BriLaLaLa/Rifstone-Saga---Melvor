@@ -19,6 +19,10 @@ func _start(data: GameData) -> void:
 	_session = TestFactory.session_no_kit(5, data)
 	add_child(_session)
 	_quests = _session.quests
+	# M24: the board offers only learned disciplines; these tests want every quest skill
+	for skill: StringName in [&"angling", &"woodwright"]:
+		TestFactory.learn_discipline(_session, skill)
+	_quests.new_game()
 	_changed = 0
 	_progress_log = []
 	_completed_log = []

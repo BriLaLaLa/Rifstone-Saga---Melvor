@@ -45,9 +45,10 @@ func test_a_new_game_forgets_and_keeps_the_kit() -> void:
 func test_offline_play_unlocks_and_the_save_keeps_it() -> void:
 	var s: GameSession = _session(5)
 	assert_false(s.discoveries.has(LOG_ITEM))
-	assert_true(s.actions.start(&"forestry", &"cut_redbirch").ok)
+	TestFactory.give(s, &"emberbronze_ore", 20)
+	assert_true(s.actions.enqueue(&"forging", &"smelt_emberbronze", 1, true).ok)
 	OfflineSimulator.advance_silently(s, 30000)
-	assert_true(s.discoveries.has(LOG_ITEM))
+	assert_true(s.discoveries.has(&"emberbronze_ingot"))
 	var other: GameSession = _session(6)
 	assert_true(other.from_save(SaveCodec.decode(SaveCodec.encode(s.to_save(1)))).ok)
-	assert_true(other.discoveries.has(LOG_ITEM))
+	assert_true(other.discoveries.has(&"emberbronze_ingot"))

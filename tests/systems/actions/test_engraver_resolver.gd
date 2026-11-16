@@ -214,10 +214,10 @@ func test_runner_failed_cycle_emits_empty_outputs_and_goes_on_while_the_dust_las
 	var session: GameSession = _session(_data(0.0, 0.0))
 	TestFactory.give(session, DUST, 80)  # 80 -> 55 (fail, 25 lost) -> 30 (fail), then fewer than 50: missing_inputs
 	watch_signals(session.events)
-	assert_true(session.actions.start(SKILL, CRYSTALLIZE).ok)
+	assert_true(session.actions.enqueue(SKILL, CRYSTALLIZE, 1, true).ok)
 	session.actions.advance(3000)
 	assert_signal_emit_count(session.events, "action_completed", 1)
-	assert_signal_emitted_with_parameters(session.events, "action_completed", [&"main", SKILL, CRYSTALLIZE, {}])
+	assert_signal_emitted_with_parameters(session.events, "action_completed", [&"queue", SKILL, CRYSTALLIZE, {}])
 	assert_eq(session.bank.get_count(DUST), 55)
 	assert_true(session.actions.is_running(), "55 dust left: the next cycle can start")
 	for i: int in 3:
@@ -231,7 +231,7 @@ func test_runner_failed_cycle_emits_empty_outputs_and_goes_on_while_the_dust_las
 func test_runner_success_goes_to_the_bank() -> void:
 	var session: GameSession = _session(_data(100.0, 100.0))
 	TestFactory.give(session, DUST, 50)
-	assert_true(session.actions.start(SKILL, CRYSTALLIZE).ok)
+	assert_true(session.actions.enqueue(SKILL, CRYSTALLIZE, 1, true).ok)
 	session.actions.advance(6000)  # the second cycle finds no dust
 	assert_eq(session.bank.get_count(CRYSTAL), 1)
 	assert_eq(session.actions.stop_reasons_log().back(), Reasons.MISSING_INPUTS)

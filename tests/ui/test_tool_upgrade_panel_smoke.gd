@@ -17,6 +17,7 @@ var _host: Control
 
 func before_each() -> void:
 	_session = TestFactory.session(1234, BlueprintData.data())
+	TestFactory.learn_discipline(_session, FORESTRY)
 
 
 func after_each() -> void:

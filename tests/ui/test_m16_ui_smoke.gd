@@ -155,12 +155,13 @@ func test_menu_dot_follows_combat_and_skill_work() -> void:
 	assert_true(sidebar.is_working(&"combat"))
 	_session.combat.stop()
 	assert_false(sidebar.is_working(&"combat"))
-	var skill: SkillDef = _session.data.skills_by_category(&"gathering")[0]
+	var skill: SkillDef = _session.data.skills_by_category(&"artisan")[0]  # M24: gathering is not a job
 	var action: ActionDef = _session.data.actions_for_skill(skill.id)[0]
-	var started: CommandResult = _session.actions.start(skill.id, action.id)
+	TestFactory.give(_session, action.inputs[0].item_id, 100)
+	var started: CommandResult = _session.actions.enqueue(skill.id, action.id, 1, true)
 	assert_true(started.ok, "start: %s" % started.reason)
 	assert_true(sidebar.is_working(StringName("skill:%s" % skill.id)))
-	_session.actions.stop()
+	_session.actions.cancel(0)
 	assert_false(sidebar.is_working(StringName("skill:%s" % skill.id)))
 
 
@@ -200,7 +201,7 @@ func test_finished_masterwork_body_appears_in_the_equipment_inventory() -> void:
 	TestFactory.give(_session, &"bp_mw_body_3", 1)
 	for entry: ItemQty in BlueprintCraft.inputs(_session.data.item(&"bp_mw_body_3")):
 		TestFactory.give(_session, entry.item_id, entry.qty)
-	assert_true(_session.actions.start_blueprint(&"bp_mw_body_3").ok)
+	assert_true(_session.actions.enqueue_blueprint(&"bp_mw_body_3").ok)
 	_session.advance(int(_session.actions.blueprint_state()["duration_ms"]) + 1000)
 	var pieces: Array[ItemInstance] = _session.armory.instances()
 	assert_eq(pieces.size(), 1)

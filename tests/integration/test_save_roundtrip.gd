@@ -8,21 +8,20 @@ extends GutTest
 const SEED: int = 77001
 const OTHER_SEED: int = 5
 const NOW_MS: int = 1793603600000
-const SKILL: StringName = &"forestry"
-const ACTION: StringName = &"cut_redbirch"
-const SHARD: StringName = &"rift_shard"
+const SKILL: StringName = &"forging"
+const ACTION: StringName = &"smelt_emberbronze"
+const INGOT: StringName = &"emberbronze_ingot"
 const PreRun := preload("res://tests/helpers/gut_pre_run.gd")
 const TEST_SLOT: int = 1
-# 20 whole cycles of 3000 ms (F-03, T1) plus 1500 ms: the lane is half way through cycle 21.
+# 30 whole cycles of 2000 ms (F-03, T1) plus 1500 ms: the head job is 3/4 through cycle 31.
 const MID_CYCLE_RUN_MS: int = 61500
 const MID_CYCLE_ELAPSED_MS: int = 1500
 const AFTER_LOAD_MS: int = 600000
-# 600 000 / 3000 (F-03, T1, no interval modifiers).
-const AFTER_LOAD_CYCLES: int = 200
+# (1500 + 600 000) / 2000 (F-03, T1, no interval modifiers).
+const AFTER_LOAD_CYCLES: int = 300
 const TICK_MS: int = 100
 const SHARD_SOURCE: StringName = &"test:roundtrip"
-# Enough shard chance that the outputs sequence after the load is not trivially the same.
-const SHARD_CHANCE: float = 30.0
+# Enough double chance that the outputs sequence after the load is not trivially the same.
 const DOUBLE_CHANCE: float = 40.0
 
 var _test_dir: String = PreRun.save_dir()
@@ -52,12 +51,12 @@ func test_new_game_roundtrip_is_identical() -> void:
 
 func test_mid_cycle_roundtrip_is_identical() -> void:
 	var original: GameSession = _played_session()
-	assert_eq(int(original.actions.get_lane()["elapsed_ms"]), MID_CYCLE_ELAPSED_MS)
+	assert_eq(int(original.actions.current()["elapsed_ms"]), MID_CYCLE_ELAPSED_MS)
 	var text: String = SaveCodec.encode(original.to_save(NOW_MS))
 	var copy: GameSession = _load_copy(text)
 	assert_eq(SaveCodec.encode(copy.to_save(NOW_MS)), text, "byte for byte")
-	assert_eq(int(copy.actions.get_lane()["elapsed_ms"]), MID_CYCLE_ELAPSED_MS, "elapsed_ms kept")
-	assert_eq(copy.actions.get_lane()["action"], ACTION)
+	assert_eq(int(copy.actions.current()["elapsed_ms"]), MID_CYCLE_ELAPSED_MS, "elapsed_ms kept")
+	assert_eq(copy.actions.current()["action"], ACTION)
 	assert_eq(copy.rng.to_save(), original.rng.to_save(), "rng seed and state kept")
 	assert_ne(int(copy.rng.to_save()["seed"]), OTHER_SEED, "the seed comes from the save")
 
@@ -88,9 +87,9 @@ func test_both_copies_continue_with_the_same_sequences() -> void:
 	_advance_in_ticks(copy, AFTER_LOAD_MS)
 	var seq_a: Array = _outputs[original.get_instance_id()]
 	var seq_b: Array = _outputs[copy.get_instance_id()]
-	assert_eq(seq_a.size(), AFTER_LOAD_CYCLES, "200 cycles after the load")
-	assert_eq(seq_b, seq_a, "same outputs, cycle by cycle (doubles and shards from the same rng)")
-	assert_gt(_count_shards(seq_a), 0, "the boosted run rolls shards")
+	assert_eq(seq_a.size(), AFTER_LOAD_CYCLES, "300 cycles after the load")
+	assert_eq(seq_b, seq_a, "same outputs, cycle by cycle (doubles from the same rng)")
+	assert_gt(_count_doubles(seq_a), 0, "the boosted run rolls doubles")
 	assert_eq(SaveCodec.encode(copy.to_save(NOW_MS)), SaveCodec.encode(original.to_save(NOW_MS)))
 	var rolls_a: Array[float] = []
 	var rolls_b: Array[float] = []
@@ -141,10 +140,11 @@ func test_second_roundtrip_is_stable() -> void:
 	assert_eq(SaveCodec.encode(again.to_save(NOW_MS)), first)
 
 
-# A session with 61.5 s of cut_redbirch: 20 cycles done (rng advanced by 20 shard rolls), cycle 21 half done.
+# A session with 61.5 s of smelting: 30 cycles done (rng advanced by their rolls), cycle 31 started.
 func _played_session() -> GameSession:
 	var session: GameSession = _new_session(SEED)
-	assert_true(session.actions.start(SKILL, ACTION).ok)
+	TestFactory.give(session, &"emberbronze_ore", 2000)
+	assert_true(session.actions.enqueue(SKILL, ACTION, 1, true).ok)
 	_advance_in_ticks(session, MID_CYCLE_RUN_MS)
 	return session
 
@@ -170,8 +170,7 @@ func _new_session(seed_value: int) -> GameSession:
 # A test-only modifier source (not saved: modifiers are derived state), added after the load in both copies.
 func _boost(session: GameSession) -> void:
 	var mods: Array[Modifier] = [
-		Modifier.make(&"rift_shard_chance", SHARD_CHANCE),
-		Modifier.make(&"double_item_chance", DOUBLE_CHANCE),
+			Modifier.make(&"double_item_chance", DOUBLE_CHANCE),
 	]
 	session.modifiers.set_source(SHARD_SOURCE, mods)
 
@@ -184,10 +183,10 @@ func _record(session: GameSession) -> void:
 				(_outputs[id] as Array).append(outputs.duplicate()))
 
 
-func _count_shards(sequence: Array) -> int:
+func _count_doubles(sequence: Array) -> int:
 	var total: int = 0
 	for outputs: Dictionary in sequence:
-		total += int(outputs.get(SHARD, 0))
+		total += 1 if int(outputs.get(INGOT, 0)) == 2 else 0
 	return total
 
 

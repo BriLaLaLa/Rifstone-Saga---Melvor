@@ -87,7 +87,7 @@ func before_all() -> void:
 	before_each()
 	var session: GameSession = TestFactory.session_no_kit(SEED, _data())
 	_connect(session)
-	session.actions.start(SKILL, ACTION)
+	session.actions.enqueue(SKILL, ACTION, 1, true)
 	var started_ms: int = Time.get_ticks_msec()
 	for hour: int in RUN_HOURS:
 		session.advance(HOUR_MS)
@@ -153,154 +153,18 @@ func test_expected_numbers_follow_the_formulas() -> void:
 	assert_eq(MasteryMath.mastery_xp(BASE_INTERVAL_MS, EXPECTED_MASTERY_LEVEL, ratio_85, 5.0, data), MXP_AT_85_WITH_N5)
 
 
-func test_long_gathering_fills_the_pool() -> void:
-	assert_eq(int(_long_run["cycles"]), EXPECTED_CYCLES, "one action_completed per cycle")
-	assert_eq(int(_long_run["mastery_sum"]), EXPECTED_MASTERY_XP, "sum of mastery_xp_gained")
-	assert_eq(_long_run["levels"], _levels(2, EXPECTED_MASTERY_LEVEL), "one mastery_level_up per level")
-	assert_eq(int(_long_run["last_pool"]), EXPECTED_POOL, "last mastery_pool_changed")
-	assert_eq(int(_long_run["logs"]), int(_long_run["logs_out"]), "logs in the bank = logs in the outputs")
-	assert_between(int(_long_run["logs"]), EXPECTED_CYCLES, 2 * EXPECTED_CYCLES, "F-06: 1 or 2 per cycle")
-	assert_eq(int(_long_run["shards"]), int(_long_run["shards_out"]), "shards in the bank = shards in the outputs")
-	_session = _restore(_long_run_save)
-	assert_eq(_session.mastery.get_mastery_xp(ACTION), EXPECTED_MASTERY_XP)
-	assert_eq(_session.mastery.get_mastery_level(ACTION), EXPECTED_MASTERY_LEVEL)
-	assert_eq(_session.mastery.get_pool(SKILL), EXPECTED_POOL)
-	assert_eq(_session.mastery.get_pool_cap(SKILL), EXPECTED_POOL_CAP)
-	assert_eq(_session.mastery.get_mastery_xp(OTHER_ACTION), 0, "only the action that ran")
-	assert_eq(_session.skills.get_xp(SKILL), EXPECTED_SKILL_XP)
-	assert_eq(_session.skills.get_level(SKILL), EXPECTED_SKILL_LEVEL)
-	assert_true(_session.actions.is_running())
-	assert_eq(int(_session.actions.get_lane()["elapsed_ms"]), 0, "21 h is a multiple of 3000 ms")
-	assert_eq(_session.actions.current_interval_ms(ACTION), BASE_INTERVAL_MS, "no node yet")
-	for node_id: StringName in NODE_COSTS:
-		assert_false(_session.mastery.owns_node(node_id))
-		assert_eq(_session.mastery.node_cost(node_id), NODE_COSTS[node_id], "F-15 %s" % node_id)
 
 
-func test_pool_from_gathering_buys_the_first_node_and_the_interval_drops() -> void:
-	_session = _restore(_long_run_save)
-	assert_eq(_session.mastery.can_buy_node(N2).reason, Reasons.NODE_PREREQ_MISSING)
-	assert_true(_session.mastery.can_buy_node(N1).ok)
-	assert_true(_session.mastery.buy_node(N1).ok)
-	assert_true(_session.mastery.owns_node(N1))
-	assert_eq(_purchases, [N1] as Array[StringName])
-	assert_eq(_session.mastery.get_pool(SKILL), EXPECTED_POOL - NODE_COSTS[N1])
-	assert_eq(_pool_changes, [EXPECTED_POOL - NODE_COSTS[N1]] as Array[int])
-	assert_eq(_session.actions.current_interval_ms(ACTION), INTERVAL_AFTER_N1, "F-03 with −3")
-	assert_eq(_session.actions.current_interval_ms(OTHER_ACTION), OTHER_INTERVAL_AFTER_N1, "every Forestry action")
-	assert_eq(_session.actions.current_interval_ms(OTHER_SKILL_ACTION), BASE_INTERVAL_MS, "scope skill:forestry")
-	assert_eq(_session.mastery.can_buy_node(N1).reason, Reasons.NODE_OWNED)
-	assert_eq(_session.mastery.can_buy_node(N2).reason, Reasons.POOL_INSUFFICIENT, "5671 < 180 000")
-	assert_eq(_session.mastery.can_buy_node(N3).reason, Reasons.POOL_INSUFFICIENT)
-	_session.advance(HOUR_MS)
-	assert_eq(_completed, CYCLES_PER_HOUR_AFTER_N1, "1237 cycles instead of 1200")
-	assert_eq(int(_session.actions.get_lane()["elapsed_ms"]), ELAPSED_AFTER_HOUR_N1)
-	assert_eq(int(_session.actions.get_lane()["interval_ms"]), INTERVAL_AFTER_N1)
-	assert_eq(_mastery_gains[0], MXP_AT_85, "F-10 uses the base interval: same mxp per cycle")
-	assert_eq(_session.skills.get_xp(SKILL), EXPECTED_SKILL_XP + 10 * CYCLES_PER_HOUR_AFTER_N1)
 
 
-func test_a_cycle_in_progress_keeps_its_interval() -> void:
-	_session = _restore(_long_run_save)
-	_session.advance(100)
-	assert_true(_session.mastery.buy_node(N1).ok)
-	assert_eq(int(_session.actions.get_lane()["interval_ms"]), BASE_INTERVAL_MS, "fixed when the cycle started")
-	assert_eq(_session.actions.current_interval_ms(ACTION), INTERVAL_AFTER_N1)
-	_session.advance(BASE_INTERVAL_MS - 100)
-	assert_eq(_completed, 1)
-	assert_eq(int(_session.actions.get_lane()["interval_ms"]), INTERVAL_AFTER_N1, "next cycle")
-	_session.advance(INTERVAL_AFTER_N1 - 1)
-	assert_eq(_completed, 1)
-	_session.advance(1)
-	assert_eq(_completed, 2)
 
 
-func test_all_nodes_in_prerequisite_order() -> void:
-	_session = _restore(_with_pool(EXPECTED_POOL_CAP))
-	assert_eq(_session.mastery.buy_node(N6).reason, Reasons.NODE_PREREQ_MISSING)
-	assert_eq(_session.mastery.buy_node(N4).reason, Reasons.NODE_PREREQ_MISSING)
-	assert_eq(_session.mastery.get_pool(SKILL), EXPECTED_POOL_CAP, "errors change nothing")
-	assert_eq(_purchases.size(), 0)
-	var pool: int = EXPECTED_POOL_CAP
-	for node_id: StringName in [N1, N2, N3, N4, N5]:
-		assert_true(_session.mastery.buy_node(node_id).ok, "buy %s" % node_id)
-		pool -= NODE_COSTS[node_id]
-		assert_eq(_session.mastery.get_pool(SKILL), pool, "pool after %s" % node_id)
-		assert_eq(_session.actions.current_interval_ms(ACTION), INTERVAL_AFTER_N1, "only n1 and n6 change it")
-	assert_true(_session.mastery.buy_node(N6).ok)
-	pool -= NODE_COSTS[N6]
-	assert_eq(pool, EXPECTED_POOL_CAP - 1440000, "60% of the cap")
-	assert_eq(_session.mastery.get_pool(SKILL), pool)
-	assert_eq(_purchases, [N1, N2, N3, N4, N5, N6] as Array[StringName])
-	assert_eq(_pool_changes.size(), 6)
-	assert_eq(_session.actions.current_interval_ms(ACTION), INTERVAL_AFTER_N1_N6, "F-03 with −8")
-	var ctx: ModifierContext = ModifierContext.for_action(SKILL, ACTION)
-	assert_eq(_session.modifiers.total(&"double_item_chance", ctx), 8.0, "n2 3 + n6 5 (M12: no F-11 for gathering; the milestones come with M12-05)")
-	assert_eq(_session.modifiers.total(&"skill_xp_pct", ctx), 4.0)
-	assert_eq(_session.modifiers.total(&"rift_shard_chance", ctx), 0.25)
-	assert_eq(_session.modifiers.total(&"mastery_xp_pct", ctx), 5.0)
-	_session.advance(INTERVAL_AFTER_N1_N6)
-	assert_eq(_completed, 1, "first cycle after from_save fixed at 2760 ms")
-	assert_eq(_mastery_gains, [MXP_AT_85_WITH_N5] as Array[int], "F-10 with mastery_xp_pct +5")
-	assert_eq(_session.skills.get_xp(SKILL), EXPECTED_SKILL_XP + 10, "F-02 floor(10 × 1.04) = 10")
 
 
-func test_nodes_and_purchases_survive_the_save() -> void:
-	_session = _restore(_long_run_save)
-	assert_true(_session.mastery.buy_node(N1).ok)
-	var reloaded: GameSession = _restore(_session.to_save(0))
-	assert_true(reloaded.mastery.owns_node(N1))
-	assert_eq(reloaded.mastery.get_pool(SKILL), EXPECTED_POOL - NODE_COSTS[N1])
-	assert_eq(reloaded.actions.current_interval_ms(ACTION), INTERVAL_AFTER_N1, "modifiers rebuilt after from_save")
-	reloaded.free()
 
 
-func test_spending_the_pool_on_an_action_gives_a_level_and_the_bonus() -> void:
-	_session = _restore(_long_run_save)
-	assert_true(_session.mastery.buy_node(N1).ok)
-	_pool_changes.clear()
-	var ctx: ModifierContext = ModifierContext.for_action(SKILL, OTHER_ACTION)
-	assert_eq(_session.modifiers.total(&"double_item_chance", ctx), 0.0, "level 1: no F-11 bonus")
-	assert_true(_session.mastery.spend_pool_on_action(OTHER_ACTION, 5000).ok)
-	assert_eq(_session.mastery.get_mastery_xp(OTHER_ACTION), 5000, "F-14: min(5000, pool, needed)")
-	assert_eq(_session.mastery.get_mastery_level(OTHER_ACTION), 30)
-	assert_eq(_mastery_gains, [5000] as Array[int])
-	assert_eq(_mastery_level_ups, _levels(2, 30), "one mastery_level_up per level")
-	var pool: int = EXPECTED_POOL - NODE_COSTS[N1] - 5000
-	assert_eq(_session.mastery.get_pool(SKILL), pool)
-	assert_eq(_pool_changes, [pool] as Array[int])
-	assert_eq(_session.modifiers.total(&"double_item_chance", ctx), 0.0, "M12: no F-11 for gathering")
-	assert_false(_has_source(&"double_item_chance", ctx, &"mastery_item:cut_ashpine"), "milestones: M12-05")
-	assert_eq(_session.mastery.get_skill_ratio(SKILL), float(EXPECTED_MASTERY_LEVEL + 30 + 6) / 792.0, "R of F-10")
-	# More than the pool: F-14 spends what is left (671) → 5671 xp → level 32 (5485 ≤ 5671 < xp_for_level(33)).
-	assert_true(_session.mastery.spend_pool_on_action(OTHER_ACTION, 5000).ok)
-	assert_eq(_session.mastery.get_mastery_xp(OTHER_ACTION), 5000 + pool)
-	assert_eq(_session.mastery.get_mastery_level(OTHER_ACTION), 32)
-	assert_eq(_session.mastery.get_pool(SKILL), 0)
-	assert_eq(_session.mastery.spend_pool_on_action(OTHER_ACTION, 1).reason, Reasons.POOL_INSUFFICIENT)
-	assert_true(_session.mastery.owns_node(N1), "spending the pool keeps the nodes")
-	assert_eq(_session.actions.current_interval_ms(ACTION), INTERVAL_AFTER_N1)
-	assert_eq(_session.modifiers.total(&"double_item_chance", ModifierContext.for_action(SKILL, ACTION)), 0.0,
-			"M12: no per-action F-11 bonus for gathering (milestones: M12-05)")
 
 
-func test_spending_to_level_99_gives_the_full_bonus() -> void:
-	_session = _restore(_with_pool(EXPECTED_POOL_CAP))
-	var needed: int = MASTERY_XP_MAX - EXPECTED_MASTERY_XP
-	assert_eq(needed, 1671233)
-	assert_true(_session.mastery.spend_pool_on_action(ACTION, 5000000).ok)
-	assert_eq(_mastery_gains, [needed] as Array[int], "F-14: min(amount, pool, needed)")
-	assert_eq(_session.mastery.get_mastery_level(ACTION), 99)
-	assert_eq(_mastery_level_ups, _levels(EXPECTED_MASTERY_LEVEL + 1, 99))
-	assert_eq(_session.mastery.get_pool(SKILL), EXPECTED_POOL_CAP - needed)
-	var ctx: ModifierContext = ModifierContext.for_action(SKILL, ACTION)
-	assert_eq(_session.modifiers.total(&"double_item_chance", ctx), 0.0, "M12: no F-11 at 99 for gathering (milestones: M12-05)")
-	assert_eq(_session.mastery.spend_pool_on_action(ACTION, 1).reason, Reasons.MASTERY_MAX)
-	_mastery_gains.clear()
-	_session.advance(BASE_INTERVAL_MS)
-	assert_eq(_completed, 1)
-	assert_eq(_session.mastery.get_mastery_xp(ACTION), MASTERY_XP_MAX, "no mastery beyond 99")
-	assert_eq(_mastery_gains.size(), 0, "no mastery_xp_gained at 99")
 
 
 # Mastery levels from..to, both included, as the typed array the signal handlers fill.

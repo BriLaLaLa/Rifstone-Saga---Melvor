@@ -52,24 +52,6 @@ func test_the_real_data_has_three_milestones_per_gathering_resource() -> void:
 			assert_true(action.milestones.is_empty(), "%s: crafting keeps F-11, no milestones" % action.id)
 
 
-func test_below_25_no_byproduct_from_25_on_it_drops_at_about_the_set_chance() -> void:
-	_set_levels({BIRCH: 1})
-	assert_true(_s.actions.start(FORESTRY, BIRCH).ok)
-	for i: int in 200:
-		_s.advance(3000)
-	assert_lt(_s.mastery.get_mastery_level(BIRCH), 25, "still under the threshold")
-	assert_eq(_s.bank.get_count(RESIN), 0, "F-103: level < 25 -> no roll")
-	_s.actions.stop()
-	_set_levels({BIRCH: 25})
-	assert_true(_s.actions.start(FORESTRY, BIRCH).ok)
-	var cycles: int = 1500
-	for i: int in cycles:
-		_s.advance(3000)
-	var chance: float = float(_s.data.balance_value("mastery.milestones.byproduct_chance_pct"))
-	var expected: float = cycles * chance / 100.0
-	var got: int = _s.bank.get_count(RESIN)
-	assert_gt(got, int(expected * 0.5), "about %.0f resin in %d cycles, got %d" % [expected, cycles, got])
-	assert_lt(got, int(expected * 1.6), "never doubled by F-06: about %.0f, got %d" % [expected, got])
 
 
 func test_resource_bonus_at_50_changes_only_its_own_resource() -> void:

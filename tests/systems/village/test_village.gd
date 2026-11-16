@@ -43,10 +43,10 @@ func test_next_cost_is_the_next_level() -> void:
 
 func test_can_upgrade_reasons_in_order() -> void:
 	assert_eq(_village.can_upgrade(&"nothing").reason, Reasons.UNKNOWN_ID)
-	# Woodwright 1 is the minimum: level 2 needs 10.
+	# M24: the requirement is the character level; level 2 needs 10.
 	_village.from_save({"levels": {"storehouse": 1}})
 	assert_eq(_village.can_upgrade(&"storehouse").reason, Reasons.LEVEL_TOO_LOW, "before gold and items")
-	TestFactory.set_level(_session, &"woodwright", 10)
+	TestFactory.set_character_level(_session, 10)
 	assert_eq(_village.can_upgrade(&"storehouse").reason, Reasons.NOT_ENOUGH_GOLD, "before items")
 	_session.wallet.add_gold(420)
 	assert_eq(_village.can_upgrade(&"storehouse").reason, Reasons.NOT_ENOUGH_ITEMS)

@@ -43,8 +43,11 @@ func _leave(prepare: Callable, away_ms: int) -> void:
 	GameClock.time_source = func() -> int: return NOW_MS + away_ms
 
 
-func _angling(s: GameSession) -> void:
-	assert_true(s.actions.start(&"angling", &"catch_brookfin").ok)
+func _angling(s: GameSession) -> void:  # M24: no gathering job any more; the repeating smelting job takes its place
+	if not s.disciplines.is_learned(&"forging"):
+		assert_true(s.disciplines.learn(&"forging").ok)
+	TestFactory.give(s, &"emberbronze_ore", 60000)
+	assert_true(s.actions.enqueue(&"forging", &"smelt_emberbronze", 1, true).ok)
 
 
 func _fighting(s: GameSession) -> void:
@@ -75,8 +78,8 @@ func test_summary_matches_the_session_after_a_three_hour_absence() -> void:
 	assert_not_null(sum)
 	assert_eq(sum.elapsed_ms, 3 * HOUR_MS)
 	assert_false(sum.capped)
-	assert_eq(sum.xp.get(&"angling", 0), s.skills.get_xp(&"angling"), "summary xp = what the session gained (it started at 0)")
-	assert_eq(sum.levels[&"angling"], Vector2i(1, s.skills.get_level(&"angling")))
+	assert_eq(sum.xp.get(&"forging", 0), s.skills.get_xp(&"forging"), "summary xp = what the session gained (it started at 0)")
+	assert_eq(sum.levels[&"forging"], Vector2i(1, s.skills.get_level(&"forging")))
 	var bank: Dictionary[StringName, int] = _bank_total(s)
 	for item_id: StringName in sum.items:
 		if sum.items[item_id] > 0:
@@ -159,8 +162,8 @@ func test_thirty_hours_away_count_as_twelve() -> void:
 	assert_true(sum.capped)
 	var reference: GameSession = _geared(7)
 	await OfflineSimulator.new().run(reference, CAP_MS, true, false)
-	assert_gt(sum.xp.get(&"angling", 0), 0)
-	assert_lt(sum.xp[&"angling"], 3 * reference.skills.get_xp(&"angling"), "far from 30 h worth of xp")
+	assert_gt(sum.xp.get(&"forging", 0), 0)
+	assert_lt(sum.xp[&"forging"], 3 * reference.skills.get_xp(&"forging"), "far from 30 h worth of xp")
 
 
 func test_exactly_twelve_hours_is_not_flagged_as_capped() -> void:
@@ -177,7 +180,7 @@ func test_the_minimum_is_the_boundary_of_the_screen() -> void:
 	EventBus.offline_completed.connect(on_completed)
 	await _game.continue_game(SLOT)
 	assert_null(_game.last_offline_summary, "59.999 s: silent")
-	assert_gt(_game.session.skills.get_xp(&"angling"), 0, "but the time was played")
+	assert_gt(_game.session.skills.get_xp(&"forging"), 0, "but the time was played")
 	_game.end_session(false)
 	_leave_again(MIN_MS)
 	await _game.continue_game(SLOT)
@@ -202,7 +205,7 @@ func test_hints_triggered_while_away_stay_pending_until_closed() -> void:
 	await _game.continue_game(SLOT)
 	EventBus.hint_triggered.disconnect(on_hint)
 	var s: GameSession = _game.session
-	assert_gte(s.skills.get_level(&"angling"), HintsSystem.LEVEL_TARGET, "six hours of angling reach level 10")
+	assert_gte(s.skills.get_level(&"forging"), HintsSystem.LEVEL_TARGET, "six hours of smelting reach level 10")
 	assert_true(fired.has(&"first_level_ten"), "the hint fired during the offline")
 	assert_true(s.hints.pending().has(&"first_level_ten"), "and is waiting for the card, not lost")
 	assert_true(s.hints.is_seen(&"first_level_ten"))

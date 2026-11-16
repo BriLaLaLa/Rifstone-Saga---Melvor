@@ -28,7 +28,6 @@ const REFUSED_TEXTS: Dictionary[StringName, String] = {
 	Reasons.INVALID_CHOICE: "Questo affisso non si può scegliere.",
 	Reasons.MISSING_INPUTS: "Materiali insufficienti.",
 	Reasons.ARMORY_FULL: "L'Armeria è piena.",
-	Reasons.LANE_UNAVAILABLE: "Corsia non disponibile.",
 	Reasons.COMBAT_ACTIVE: "Combattimento in corso.",
 }
 const REFUSED_TEXT_DEFAULT: String = "Impossibile avviare il progetto."

@@ -81,7 +81,7 @@ func setup(action: ActionDef, data: GameData) -> void:
 ## Reads level, interval, mastery and the running action from `session`.
 func redraw(session: GameSession) -> void:
 	var unlocked: bool = session.skills.meets_requirements({_action.skill_id: _action.level})
-	var running_id: StringName = session.actions.get_lane().get(LANE_ACTION_KEY, &"")
+	var running_id: StringName = session.actions.current().get(LANE_ACTION_KEY, &"")
 	var running: bool = running_id == _action.id
 	var level_text: String = NumberFormat.format_int(_action.level)
 	_requirement_label.text = (LEVEL_TEXT if unlocked else LOCKED_TEXT) % level_text

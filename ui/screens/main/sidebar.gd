@@ -202,7 +202,7 @@ func _refresh_lock() -> void:
 func _refresh_dots() -> void:
 	if _session == null:
 		return
-	var running: StringName = StringName(_session.actions.get_lane().get("skill", &""))
+	var running: StringName = StringName(_session.actions.current().get("skill", &""))
 	var skill_page: StringName = StringName(PageHost.ROUTE_SKILL + PageHost.ROUTE_SEPARATOR + running) \
 			if running != &"" else &""
 	for page_id: StringName in _dots:

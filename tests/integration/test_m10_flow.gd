@@ -76,6 +76,7 @@ func test_unique_tools_cannot_be_sold_dismantled_locked_or_taken_off() -> void:
 # --- unique tools +0..+9 ----------------------------------------------------------------------------------------
 
 func test_each_unique_tool_refines_from_zero_to_nine_always_succeeding() -> void:
+	TestFactory.learn_discipline(_session, &"angling")
 	for slot: StringName in TOOLS:
 		_refine_to_nine(slot)
 
@@ -172,7 +173,7 @@ func test_drop_blueprint_then_craft_wear_and_fight_with_the_new_piece() -> void:
 	for input: ItemQty in BlueprintCraft.inputs(blueprint):
 		TestFactory.give(s, input.item_id, input.qty)
 	var bank_before: int = s.bank.get_count(BLUEPRINT)
-	assert_true(s.actions.start_blueprint(BLUEPRINT).ok)
+	assert_true(s.actions.enqueue_blueprint(BLUEPRINT).ok)
 	assert_eq(s.bank.get_count(BLUEPRINT), bank_before - 1, "exactly one blueprint is consumed")
 	var done: Array[int] = []
 	s.events.blueprint_crafted.connect(func(_id: StringName, uid: int) -> void: done.append(uid))
@@ -198,10 +199,10 @@ func test_the_chosen_affix_needs_forging_level_50_and_comes_first() -> void:
 	for input: ItemQty in BlueprintCraft.inputs(blueprint):
 		TestFactory.give(s, input.item_id, input.qty)
 	TestFactory.set_level(s, FORGING, 49)
-	assert_eq(s.actions.start_blueprint(BLUEPRINT, chosen).reason, Reasons.INVALID_CHOICE, "level 49: refused")
+	assert_eq(s.actions.enqueue_blueprint(BLUEPRINT, chosen).reason, Reasons.INVALID_CHOICE, "level 49: refused")
 	assert_eq(s.bank.get_count(BLUEPRINT), 1, "and nothing consumed")
 	TestFactory.set_level(s, FORGING, 50)
-	assert_true(s.actions.start_blueprint(BLUEPRINT, chosen).ok, "level 50: accepted")
+	assert_true(s.actions.enqueue_blueprint(BLUEPRINT, chosen).ok, "level 50: accepted")
 	s.advance(int(s.actions.blueprint_state()["duration_ms"]))
 	var piece: ItemInstance = s.armory.instances()[0]
 	assert_eq(piece.affixes[0].affix_id, chosen, "the chosen affix is the first")
@@ -214,7 +215,7 @@ func test_a_craft_saved_half_way_resumes_and_finishes() -> void:
 	TestFactory.give(s, BLUEPRINT, 1)
 	for input: ItemQty in BlueprintCraft.inputs(s.data.item(BLUEPRINT)):
 		TestFactory.give(s, input.item_id, input.qty)
-	assert_true(s.actions.start_blueprint(BLUEPRINT).ok)
+	assert_true(s.actions.enqueue_blueprint(BLUEPRINT).ok)
 	var duration: int = int(s.actions.blueprint_state()["duration_ms"])
 	s.advance(duration / 2)
 	var saved: Dictionary = s.to_save(NOW_MS)
@@ -235,7 +236,7 @@ func test_a_craft_finishes_offline() -> void:
 	TestFactory.give(s, BLUEPRINT, 1)
 	for input: ItemQty in BlueprintCraft.inputs(s.data.item(BLUEPRINT)):
 		TestFactory.give(s, input.item_id, input.qty)
-	assert_true(s.actions.start_blueprint(BLUEPRINT).ok)
+	assert_true(s.actions.enqueue_blueprint(BLUEPRINT).ok)
 	var duration: int = int(s.actions.blueprint_state()["duration_ms"])
 	await OfflineSimulator.new().run(s, duration + 60000, false, false)
 	assert_eq(s.armory.instances().size(), 1, "the offline time made the piece")
@@ -250,7 +251,7 @@ func test_dismantling_a_crafted_piece_returns_plates_and_shards_and_nothing_else
 	TestFactory.give(s, BLUEPRINT, 1)
 	for input: ItemQty in BlueprintCraft.inputs(s.data.item(BLUEPRINT)):
 		TestFactory.give(s, input.item_id, input.qty)
-	assert_true(s.actions.start_blueprint(BLUEPRINT).ok)
+	assert_true(s.actions.enqueue_blueprint(BLUEPRINT).ok)
 	s.advance(int(s.actions.blueprint_state()["duration_ms"]))
 	var piece: ItemInstance = s.armory.instances()[0]
 	var shards: int = 3  # Masterwork: shards_by_rarity.masterwork

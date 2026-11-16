@@ -27,7 +27,7 @@ func _prepare() -> void:
 
 func test_body_masterwork_reaches_armory_and_equipment() -> void:
 	_prepare()
-	var started: CommandResult = _s.actions.start_blueprint(BP)
+	var started: CommandResult = _s.actions.enqueue_blueprint(BP)
 	assert_true(started.ok, "start: %s" % started.reason)
 	assert_eq(_s.bank.get_count(BP), 0, "the blueprint leaves the Deposit at Start")
 	_s.advance(int(_s.actions.blueprint_state()["duration_ms"]) + 1000)

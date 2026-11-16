@@ -42,6 +42,7 @@ static func session(seed_value: int = 1234, data: GameData = null, keep_kit: boo
 	# Child of the session, so freeing the session frees its events too.
 	result.add_child(events)
 	result.new_game()
+	learn_all(result)
 	if is_legacy_fixture(game_data) and not keep_kit:
 		clear_kit(result)
 	return result
@@ -172,3 +173,19 @@ static func without_mastery_steps(data: GameData) -> GameData:
 	var balance: Dictionary = data.get("_balance") as Dictionary
 	((balance["mastery"] as Dictionary)["step"] as Dictionary)["every_levels"] = 1000.0
 	return data
+
+
+## M24: the first `disciplines.max_per_category` disciplines of each category (by `order`) learned at the top grade, so that tests that
+## predate the Trainers see skills that gain xp and a save of the session loads back identical (the invariant of Disciplines.from_save).
+## Another discipline: `learn_discipline`.
+static func learn_all(session: GameSession, grade: int = 0) -> void:
+	var max_per: int = int(session.data.balance_value("disciplines.max_per_category"))
+	for category: StringName in [&"gathering", &"artisan"]:
+		var ids: Array[StringName] = session.data.disciplines(category)
+		for i: int in mini(max_per, ids.size()):
+			learn_discipline(session, ids[i], grade)
+
+
+## A discipline at `grade` (0 = the top grade), set directly: it ignores `disciplines.max_per_category` and the costs.
+static func learn_discipline(session: GameSession, skill_id: StringName, grade: int = 0) -> void:
+	session.disciplines._grades[skill_id] = grade if grade > 0 else session.data.trainer_grades().size()

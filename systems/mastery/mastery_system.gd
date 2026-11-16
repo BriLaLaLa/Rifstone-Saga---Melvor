@@ -2,16 +2,11 @@ class_name MasterySystem
 extends RefCounted
 ## Per-action mastery and the mastery pool of every skill with mastery (docs/01_GDD.md §6.1-6.2).
 ##
-## State: mastery xp of each tracked action (`mastery: true` actions of `has_mastery` skills) and the pool of each
-## `has_mastery` skill. Levels derive from the F-09 table; xp stops at the max-level total. A cycle gives F-10 mxp and
-## F-12 pool share up to the F-13 cap; the pool can be spent on an action (F-14). Per-action bonuses are modifier sources:
-## `mastery_step:<action_id>` (F-122, every action) and `mastery_item:<action_id>` (gathering resource milestone), rebuilt
-## from the levels and refreshed on every mastery level up.
-## Gathering milestones (M12, F-103/F-108) also use `mastery_trade:<skill>`.
-## Mastery nodes (docs/01_GDD.md §6.3) cost F-15 of the pool cap, need their prerequisites and are permanent once
-## bought; each owned node is the `mastery_node:<node_id>` source with the node's modifiers.
-## Signals go to the session EventBus after the state changed; `new_game`/`from_save` emit nothing.
-## Dependencies: data, events, modifiers.
+## State: mastery xp of each tracked action and the pool of each `has_mastery` skill (F-09 levels, F-10 mxp, F-12 pool share up to
+## the F-13 cap, F-14 spending). Per-action bonuses are sources `mastery_step:<action_id>` (F-122) and `mastery_item:<action_id>`,
+## refreshed on every mastery level up; gathering milestones (F-103/F-108) also use `mastery_trade:<skill>`. Mastery nodes
+## (docs/01_GDD.md §6.3) cost F-15 of the pool cap and are permanent once bought (source `mastery_node:<node_id>`).
+## Signals go to the session EventBus after the state changed; `new_game`/`from_save` emit nothing. Dependencies: data, events, modifiers.
 
 const SAVE_KEY: StringName = &"mastery"
 const LOG_CATEGORY: String = "mastery"
@@ -307,15 +302,11 @@ func _load_nodes(skill_id: StringName, nodes: Variant) -> void:
 		Log.warn(LOG_CATEGORY, "invalid nodes for skill '%s': none owned" % skill_id)
 		return
 	for entry: Variant in nodes:
-		if not (entry is String or entry is StringName):
-			Log.warn(LOG_CATEGORY, "invalid mastery node entry '%s' of skill '%s' ignored" % [entry, skill_id])
-			continue
-		var node_id: StringName = StringName(entry)
-		var node: MasteryNodeDef = _node_defs.get(node_id)
+		var node: MasteryNodeDef = _node_defs.get(StringName(entry)) if entry is String or entry is StringName else null
 		if node == null or node.skill_id != skill_id:
-			Log.warn(LOG_CATEGORY, "unknown mastery node '%s' of skill '%s' ignored" % [node_id, skill_id])
+			Log.warn(LOG_CATEGORY, "invalid or unknown mastery node '%s' of skill '%s' ignored" % [entry, skill_id])
 			continue
-		_owned[node_id] = true
+		_owned[node.id] = true
 
 
 # Adds mastery xp (capped at the max level), refreshes the action's bonus on a level up, then emits.
@@ -387,12 +378,22 @@ func _apply_node_bonus(node: MasteryNodeDef) -> void:
 	_set_source(StringName(NODE_SOURCE_PREFIX + String(node.id)), node.modifiers)
 
 
-# int from an int or an integral float (JSON); null otherwise.
 func _read_int(v: Variant) -> Variant:
-	if v is int:
-		return v
-	if v is float:
-		var f: float = v
-		if f == floorf(f):
-			return int(f)
-	return null
+	return int(v) if v is int or (v is float and v == floorf(v)) else null
+
+
+## M24: xp of the skill's actions, pool and nodes go to 0 (unlearned discipline); sources rebuilt in one batch; then `mastery_pool_changed(s, 0)`.
+func reset_skill(skill_id: StringName) -> void:
+	if not _actions_of.has(skill_id):
+		return
+	_modifiers.begin_batch()
+	for action_id: StringName in _actions_of[skill_id]:
+		_xp[action_id] = 0
+		_apply_item_bonus(action_id)
+	if _milestones.is_gathering(skill_id):
+		_apply_trade_bonus(skill_id)
+	for node_id: StringName in _nodes_of[skill_id]:
+		_owned.erase(node_id)
+		_modifiers.clear_source(StringName(NODE_SOURCE_PREFIX + String(node_id)))
+	_modifiers.end_batch()
+	_change_pool(skill_id, 0)

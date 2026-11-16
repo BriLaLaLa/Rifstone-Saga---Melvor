@@ -76,15 +76,15 @@ func test_can_start_refusals_in_order() -> void:
 func test_choice_needs_level_50() -> void:
 	_give_all()
 	TestFactory.set_level(_session, FORGING, 49)
-	assert_eq(_session.actions.start_blueprint(BP, &"test_keen").reason, Reasons.INVALID_CHOICE)
+	assert_eq(_session.actions.enqueue_blueprint(BP, &"test_keen").reason, Reasons.INVALID_CHOICE)
 	TestFactory.set_level(_session, FORGING, 50)
-	assert_true(_session.actions.start_blueprint(BP, &"test_keen").ok)
+	assert_true(_session.actions.enqueue_blueprint(BP, &"test_keen").ok)
 
 
 func test_refused_start_changes_nothing() -> void:
 	TestFactory.give(_session, BP, 1)
 	_watch()
-	assert_eq(_session.actions.start_blueprint(BP).reason, Reasons.MISSING_INPUTS)
+	assert_eq(_session.actions.enqueue_blueprint(BP).reason, Reasons.MISSING_INPUTS)
 	assert_eq(_session.bank.get_count(BP), 1)
 	assert_false(_session.actions.is_running())
 	assert_eq(_log.size(), 0)
@@ -93,29 +93,29 @@ func test_refused_start_changes_nothing() -> void:
 func test_start_consumes_everything_and_emits_action_started() -> void:
 	_give_all()
 	_watch()
-	assert_true(_session.actions.start_blueprint(BP).ok)
+	assert_true(_session.actions.enqueue_blueprint(BP).ok)
 	for item_id: StringName in [BP, PLATE, HANDLE, RARE, RARE2]:
 		assert_eq(_session.bank.get_count(item_id), 0, String(item_id))
 	assert_true(_session.actions.is_running())
-	assert_true(_log.has("started main forging blueprint_craft"))
+	assert_true(_log.has("started queue forging blueprint_craft"))
 	var state: Dictionary = _session.actions.blueprint_state()
 	assert_eq(state["blueprint"], BP)
 	assert_eq(state["duration_ms"], 10 * MIN_MS)
 	assert_eq(state["elapsed_ms"], 0)
 	assert_false(state["waiting"])
-	assert_eq(_session.actions.get_lane()["interval_ms"], 10 * MIN_MS)
+	assert_eq(_session.actions.current()["interval_ms"], 10 * MIN_MS)
 
 
-func test_direct_start_is_refused() -> void:
-	assert_eq(_session.actions.start(FORGING, &"blueprint_craft").reason, Reasons.UNKNOWN_ID)
+func test_direct_enqueue_is_refused() -> void:
+	assert_eq(_session.actions.enqueue(FORGING, &"blueprint_craft", 1).reason, Reasons.UNKNOWN_ID)
 	assert_false(_session.actions.is_running())
 
 
 func test_stop_gives_everything_back() -> void:
 	_give_all()
-	_session.actions.start_blueprint(BP)
+	_session.actions.enqueue_blueprint(BP)
 	_session.actions.advance(MIN_MS)
-	_session.actions.stop()
+	_session.actions.cancel(0)
 	assert_eq(_session.bank.get_count(BP), 1)
 	assert_eq(_session.bank.get_count(PLATE), 5)
 	assert_eq(_session.bank.get_count(HANDLE), 1)
@@ -126,21 +126,21 @@ func test_stop_gives_everything_back() -> void:
 	assert_eq(_session.actions.stop_reasons_log(), [Reasons.STOPPED_BY_USER] as Array[StringName])
 
 
-func test_replaced_gives_everything_back() -> void:
+func test_dropping_the_discipline_jobs_gives_everything_back() -> void:
 	_give_all()
-	_session.actions.start_blueprint(BP)
-	TestFactory.give(_session, &"test_log", 2)
-	assert_true(_session.actions.start(&"test_craft", &"craft_plank").ok)
+	_session.actions.enqueue_blueprint(BP)
+	_session.actions.drop_jobs_of(FORGING)
 	assert_eq(_session.bank.get_count(BP), 1)
 	assert_eq(_session.bank.get_count(PLATE), 5)
-	assert_eq(_session.actions.stop_reasons_log(), [Reasons.REPLACED] as Array[StringName])
+	assert_false(_session.actions.is_running())
+	assert_eq(_session.actions.stop_reasons_log(), [Reasons.NOT_LEARNED] as Array[StringName])
 
 
 func test_completion_creates_a_masterwork_with_xp_and_signals() -> void:
 	_give_all()
 	TestFactory.set_level(_session, FORGING, 50)
 	var xp_before: int = _session.skills.get_xp(FORGING)
-	_session.actions.start_blueprint(BP, &"test_keen")
+	_session.actions.enqueue_blueprint(BP, &"test_keen")
 	_watch()
 	_session.actions.advance(10 * MIN_MS - 1)
 	assert_true(_session.actions.is_running())
@@ -170,7 +170,7 @@ func test_completion_creates_a_masterwork_with_xp_and_signals() -> void:
 
 func test_one_big_advance_finishes_offline() -> void:
 	_give_all()
-	_session.actions.start_blueprint(BP)
+	_session.actions.enqueue_blueprint(BP)
 	_session.actions.advance(12 * 60 * MIN_MS)
 	assert_false(_session.actions.is_running())
 	assert_eq(_new_pieces().size(), 1)
@@ -178,13 +178,15 @@ func test_one_big_advance_finishes_offline() -> void:
 
 func test_save_in_the_middle_resumes() -> void:
 	_give_all()
-	_session.actions.start_blueprint(BP)
+	_session.actions.enqueue_blueprint(BP)
 	_session.actions.advance(4 * MIN_MS)
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(_session.actions.to_save()))
-	var lane: Dictionary = (saved["lanes"] as Dictionary)["main"]
+	var lane: Dictionary = (saved["jobs"] as Array)[0]
+	assert_eq(lane["consumed"], true)
 	assert_eq(lane["blueprint"], String(BP))
 	assert_eq(int(lane["duration_ms"]), 10 * MIN_MS)
 	assert_eq(lane["action"], "blueprint_craft")
+	assert_eq(int(saved["elapsed_ms"]), 4 * MIN_MS)
 	var other: GameSession = autofree(TestFactory.session(99, BlueprintData.data()))
 	other.actions.from_save(saved)
 	assert_true(other.actions.is_running())
@@ -195,23 +197,23 @@ func test_save_in_the_middle_resumes() -> void:
 	assert_eq(other.armory.instances().size(), _kit_uids.size() + 1)
 
 
-func test_bad_saves_leave_the_lane_idle() -> void:
-	var entry: Dictionary = {"skill": "forging", "action": "blueprint_craft", "elapsed_ms": 5,
-			"blueprint": "no_such", "chosen_affix": "", "duration_ms": 1000}
-	_session.actions.from_save({"lanes": {"main": entry}})
+func test_bad_saves_leave_the_queue_empty() -> void:
+	var entry: Dictionary = {"skill": "forging", "action": "blueprint_craft",
+			"blueprint": "no_such", "chosen_affix": "", "duration_ms": 1000, "consumed": true}
+	_session.actions.from_save({"jobs": [entry], "elapsed_ms": 5})
 	assert_false(_session.actions.is_running())
 	entry["blueprint"] = String(BP)
 	entry["duration_ms"] = "soon"
-	_session.actions.from_save({"lanes": {"main": entry}})
+	_session.actions.from_save({"jobs": [entry], "elapsed_ms": 5})
 	assert_false(_session.actions.is_running())
 	entry["duration_ms"] = 1000.5
-	_session.actions.from_save({"lanes": {"main": entry}})
+	_session.actions.from_save({"jobs": [entry], "elapsed_ms": 5})
 	assert_false(_session.actions.is_running())
 
 
 func test_full_armory_at_the_end_waits_without_losing_anything() -> void:
 	_give_all()
-	_session.actions.start_blueprint(BP)
+	_session.actions.enqueue_blueprint(BP)
 	_fill_armory()
 	_watch()
 	_session.actions.advance(10 * MIN_MS)
@@ -230,7 +232,7 @@ func test_full_armory_at_the_end_waits_without_losing_anything() -> void:
 
 func test_no_rolls_while_the_armory_is_full() -> void:
 	_give_all()
-	_session.actions.start_blueprint(BP)
+	_session.actions.enqueue_blueprint(BP)
 	_fill_armory()
 	var before: Dictionary = _session.rng.to_save()
 	_session.actions.advance(10 * MIN_MS)
@@ -241,7 +243,7 @@ func test_item_rarity_pct_comes_from_the_action_context() -> void:
 	_give_all()
 	TestFactory.set_level(_session, FORGING, 99)
 	_session.modifiers.set_source(&"test", [Modifier.make(&"item_rarity_pct", 100.0)] as Array[Modifier])
-	_session.actions.start_blueprint(BP)
+	_session.actions.enqueue_blueprint(BP)
 	_session.actions.advance(10 * MIN_MS)
 	var piece: ItemInstance = _new_pieces()[0]
 	assert_eq(piece.rarity, &"masterwork")
@@ -252,7 +254,7 @@ func test_skill_interval_pct_shortens_the_work() -> void:
 	_give_all()
 	_session.modifiers.set_source(&"test", [Modifier.make(&"skill_interval_pct", -10.0, Modifier.SCOPE_SKILL,
 			FORGING)] as Array[Modifier])
-	_session.actions.start_blueprint(BP)
+	_session.actions.enqueue_blueprint(BP)
 	assert_eq(_session.actions.blueprint_state()["duration_ms"], 9 * MIN_MS)
 
 
@@ -365,7 +367,7 @@ func test_the_craft_makes_a_masterwork_with_the_level_of_the_piece_grade() -> vo
 	TestFactory.set_level(_session, FORGING, 30)
 	TestFactory.give(_session, MW_SWORD, 1)
 	_give_mw_sword_materials()
-	assert_true(_session.actions.start_blueprint(MW_SWORD).ok)
+	assert_true(_session.actions.enqueue_blueprint(MW_SWORD).ok)
 	for item_id: StringName in [&"test_plate_4", &"test_handle_4", &"test_log", &"test_plank", MW_SWORD]:
 		assert_eq(_session.bank.get_count(item_id), 0, "%s consumed" % item_id)
 	_session.actions.advance(31 * MIN_MS)
@@ -382,9 +384,9 @@ func test_stop_gives_the_two_rare_components_back() -> void:
 	TestFactory.set_level(_session, FORGING, 30)
 	TestFactory.give(_session, MW_SWORD, 1)
 	_give_mw_sword_materials()
-	assert_true(_session.actions.start_blueprint(MW_SWORD).ok)
+	assert_true(_session.actions.enqueue_blueprint(MW_SWORD).ok)
 	_session.actions.advance(MIN_MS)
-	_session.actions.stop()
+	_session.actions.cancel(0)
 	assert_eq(_session.bank.get_count(&"test_log"), 1)
 	assert_eq(_session.bank.get_count(&"test_plank"), 2)
 	assert_eq(_session.bank.get_count(&"test_plate_4"), 12)

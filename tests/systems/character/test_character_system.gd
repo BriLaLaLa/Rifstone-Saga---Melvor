@@ -121,6 +121,7 @@ func test_new_game_emits_nothing() -> void:
 
 func test_meets_requirements_mixed_keys() -> void:
 	TestFactory.set_character_level(_session, 5)
+	TestFactory.learn_discipline(_session, SKILL)
 	TestFactory.set_level(_session, SKILL, 3)
 	assert_true(_char.meets_requirements({}))
 	assert_true(_char.meets_requirements({"character": 5, String(SKILL): 3}))
