@@ -119,7 +119,7 @@ func test_a_stone_killed_by_one_hit_calls_nobody() -> void:
 	while s.combat.state() == CombatEngine.STATE_RIFTSTONE and guard < 200:
 		s.combat.advance(500)
 		guard += 1
-	assert_eq(s.combat.state(), CombatEngine.STATE_BETWEEN)
+	assert_eq(s.combat.state(), CombatEngine.STATE_TRAVEL)
 	assert_eq(count[0], 0, "a dead stone summons nothing")
 
 
@@ -134,7 +134,7 @@ func test_summoned_monsters_give_no_xp_gold_drops_or_kills() -> void:
 	while s.combat.state() == CombatEngine.STATE_RIFTSTONE and guard < 200:
 		s.combat.advance(500)
 		guard += 1
-	assert_eq(s.combat.state(), CombatEngine.STATE_BETWEEN, "the encounter ends when everything is dead")
+	assert_eq(s.combat.state(), CombatEngine.STATE_TRAVEL, "the encounter ends when everything is dead")
 	assert_eq(s.character.get_xp(), xp)
 	assert_eq(s.wallet.get_gold(), gold)
 	assert_true(s.combat.total_kills().is_empty(), "no kills")

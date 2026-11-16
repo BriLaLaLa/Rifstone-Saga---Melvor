@@ -152,7 +152,7 @@ func test_the_pending_miniboss_is_saved_and_the_fight_resumes_with_the_scaled_hp
 	var s: GameSession = _session(100)
 	s.combat.start(AREA)
 	var guard: int = 0
-	while s.combat.state() != CombatEngine.STATE_BETWEEN and guard < 4000:
+	while s.combat.state() != CombatEngine.STATE_TRAVEL and guard < 4000:
 		s.advance(100)
 		guard += 1
 	assert_true(s.combat.to_save()["miniboss_pending"], "a miniboss waits after the first encounter")

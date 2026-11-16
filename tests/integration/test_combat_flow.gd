@@ -260,13 +260,13 @@ func test_state_between_encounters_survives_a_save() -> void:
 	a.modifiers.set_source(BOOST, [] as Array[Modifier])   # test sources are not in the save
 	a.combat.start(AREA)
 	var guard: int = 0
-	while a.combat.state() != CombatEngine.STATE_BETWEEN and guard < 5000:
+	while a.combat.state() != CombatEngine.STATE_TRAVEL and guard < 5000:
 		a.advance(100)
 		guard += 1
-	assert_eq(a.combat.state(), CombatEngine.STATE_BETWEEN)
+	assert_eq(a.combat.state(), CombatEngine.STATE_TRAVEL)
 	var b: GameSession = autofree(TestFactory.session_no_kit(OTHER_SEED, TestFactory.real_data()))
 	assert_true(b.from_save(SaveCodec.decode(_blob(a))).ok)
-	assert_eq(b.combat.state(), CombatEngine.STATE_BETWEEN)
+	assert_eq(b.combat.state(), CombatEngine.STATE_TRAVEL)
 	assert_eq(int(b.combat.get_state()["between_ms"]), int(a.combat.get_state()["between_ms"]))
 	_run(a, 30000, 100)
 	_run(b, 30000, 100)

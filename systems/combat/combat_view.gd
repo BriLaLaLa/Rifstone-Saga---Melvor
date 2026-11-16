@@ -30,6 +30,7 @@ static func build(engine: CombatEngine, encounter: Encounter, abilities: Ability
 		"stone": snapshot.get("stone", {}), "skip_stone_level": snapshot.get("skip_stone_level", 0),
 		"enemies_alive": encounter.alive_count(),
 	}
+	view.merge(snapshot["cycle"])  # M24 (05_INTERFACES_M24 §5.33): travel_ms, travel_total_ms, next, node
 	if not (snapshot.get("fracture", {}) as Dictionary).is_empty():  # M13: only inside a Fracture
 		view["fracture"] = snapshot["fracture"]
 	if not (snapshot.get("dungeon", {}) as Dictionary).is_empty():  # M22: only inside a dungeon

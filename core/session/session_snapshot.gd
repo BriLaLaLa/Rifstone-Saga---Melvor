@@ -12,6 +12,8 @@ var gold: int = 0
 var kills: Dictionary[StringName, int] = {}
 var deaths: int = 0
 var food_eaten: int = 0
+var nodes_worked: int = 0  # M24: nodes worked and skipped (the counters of the slot)
+var nodes_skipped: int = 0
 
 
 static func take(session: GameSession) -> SessionSnapshot:
@@ -33,4 +35,6 @@ static func take(session: GameSession) -> SessionSnapshot:
 		snapshot.kills = session.combat.total_kills()
 		snapshot.deaths = session.combat.deaths()
 		snapshot.food_eaten = session.combat.food_eaten()
+		snapshot.nodes_worked = session.combat.node_counts()["worked"]
+		snapshot.nodes_skipped = session.combat.node_counts()["skipped"]
 	return snapshot

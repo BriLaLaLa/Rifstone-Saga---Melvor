@@ -29,7 +29,7 @@ func before_each() -> void:
 func test_no_byproduct_below_level_25() -> void:
 	var session: GameSession = _session_with_chance(100.0)
 	_set_mastery(session, {TWIG: _table.xp_for_level(24)})
-	var outcome: ActionOutcome = GatheringResolver.resolve(session, session.data.action(TWIG))
+	var outcome: ActionOutcome = _one(session, session.data.action(TWIG))
 	assert_false(outcome.outputs.has(RESIN))
 	assert_eq(session.bank.get_count(RESIN), 0)
 
@@ -38,18 +38,18 @@ func test_chance_100_always_gives_one_byproduct_of_the_action() -> void:
 	var session: GameSession = _session_with_chance(100.0)
 	_set_mastery(session, {TWIG: _table.xp_for_level(25), LOG_ACTION: _table.xp_for_level(25)})
 	for i: int in 10:
-		var outcome: ActionOutcome = GatheringResolver.resolve(session, session.data.action(TWIG))
+		var outcome: ActionOutcome = _one(session, session.data.action(TWIG))
 		assert_eq(outcome.outputs[RESIN], 1)
 		assert_false(outcome.outputs.has(SAP))
 	assert_eq(session.bank.get_count(RESIN), 10)
-	assert_eq(GatheringResolver.resolve(session, session.data.action(LOG_ACTION)).outputs[SAP], 1)
+	assert_eq(_one(session, session.data.action(LOG_ACTION)).outputs[SAP], 1)
 
 
 func test_chance_0_never_gives_a_byproduct() -> void:
 	var session: GameSession = _session_with_chance(0.0)
 	_set_mastery(session, {TWIG: _table.xp_for_level(25)})
 	for i: int in 200:
-		assert_false(GatheringResolver.resolve(session, session.data.action(TWIG)).outputs.has(RESIN))
+		assert_false(_one(session, session.data.action(TWIG)).outputs.has(RESIN))
 
 
 func test_the_byproduct_is_never_doubled() -> void:
@@ -57,7 +57,7 @@ func test_the_byproduct_is_never_doubled() -> void:
 	_set_mastery(session, {TWIG: _table.xp_for_level(25)})
 	var mods: Array[Modifier] = [Modifier.make(DOUBLE, 100.0)]
 	session.modifiers.set_source(&"test", mods)
-	var outcome: ActionOutcome = GatheringResolver.resolve(session, session.data.action(TWIG))
+	var outcome: ActionOutcome = _one(session, session.data.action(TWIG))
 	assert_eq(outcome.outputs[TWIG_ITEM], 2)
 	assert_eq(outcome.outputs[RESIN], 1)
 
@@ -76,7 +76,7 @@ func test_roll_order_is_double_then_shard_then_byproduct() -> void:
 		var doubled: bool = replica.randf() * 100.0 < double_pct
 		var shard: bool = replica.randf() * 100.0 < 50.0
 		var byproduct: bool = replica.randf() * 100.0 < chance
-		var outcome: ActionOutcome = GatheringResolver.resolve(_session, _session.data.action(TWIG))
+		var outcome: ActionOutcome = _one(_session, _session.data.action(TWIG))
 		assert_eq(outcome.outputs[TWIG_ITEM], 2 if doubled else 1)
 		assert_eq(outcome.shard, shard)
 		assert_eq(outcome.outputs.has(RESIN), byproduct)
@@ -87,7 +87,7 @@ func test_roll_order_is_double_then_shard_then_byproduct() -> void:
 ## An action without mastery has no mastery level, so no byproduct.
 func test_action_without_mastery_has_no_byproduct() -> void:
 	var session: GameSession = _session_with_chance(100.0)
-	assert_false(GatheringResolver.resolve(session, session.data.action(BUNDLE)).outputs.has(RESIN))
+	assert_false(_one(session, session.data.action(BUNDLE)).outputs.has(RESIN))
 
 
 # A session on the fixture content with `mastery.milestones.byproduct_chance_pct` = pct (config copy under user://).
@@ -114,3 +114,8 @@ func _write(path: String, text: String) -> void:
 	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
 	file.store_string(text)
 	file.close()
+
+
+## One unit at the full xp percentage = one gathering cycle (F-155 with `units` 1).
+func _one(s: GameSession, action: ActionDef) -> ActionOutcome:
+	return GatheringResolver.resolve_units(s, action, 1, 100.0)

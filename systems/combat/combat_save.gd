@@ -29,6 +29,7 @@ static func write(snapshot: Dictionary) -> Dictionary:
 		"food_eaten": snapshot["food_eaten"], "stone": snapshot["stone"],
 		"skip_stone_level": snapshot.get("skip_stone_level", 0),  # M15 (F-128): a slot setting, saved also when idle
 	}
+	result.merge(snapshot["cycle"])  # M24: travel_ms, next, node, nodes (the counters are saved also when idle)
 	if not idle and snapshot.get("wave") is Dictionary and not (snapshot["wave"] as Dictionary).is_empty():  # M15 (F-126)
 		result["wave"] = snapshot["wave"]
 	if not idle and snapshot.get("fracture") is Dictionary and not (snapshot["fracture"] as Dictionary).is_empty():  # M13
@@ -50,15 +51,21 @@ static func read(d: Dictionary, data: GameData, run: FractureRun = null, dungeon
 		"hand": 0, "between_ms": 0, "effects": {}, "abilities": {}, "buffs": {}, "fracture": {}, "dungeon": {},
 		"kills": _read_kills(d, data), "deaths": maxi(0, _int(d, "deaths")),
 		"food_eaten": maxi(0, _int(d, "food_eaten")), "skip_stone_level": _skip_level(d, data),
+		"cycle": CycleState.parse(d, data, &"idle", &""),
 	}
 	var saved_state := StringName(str(d.get("state", "idle")))
 	if not [CombatEngine.STATE_ENCOUNTER, CombatEngine.STATE_RIFTSTONE, CombatEngine.STATE_BETWEEN, CombatEngine.STATE_AWAIT,
+			CombatEngine.STATE_TRAVEL, CombatEngine.STATE_NODE,
 			CombatEngine.STATE_INTRO].has(saved_state):
 		return result
 	var area_id := StringName(str(d.get("area", "")))
 	var fracture: Variant = d.get("fracture")
 	var dungeon: Variant = d.get("dungeon")
 	var in_dungeon: bool = dungeon is Dictionary
+	var cycle_state: bool = saved_state == CombatEngine.STATE_TRAVEL or saved_state == CombatEngine.STATE_NODE
+	if cycle_state and (in_dungeon or fracture is Dictionary):
+		Log.warn(LOG_CATEGORY, "saved state '%s' inside a Fracture or a dungeon: idle" % saved_state)
+		return result
 	if in_dungeon:
 		if dungeon_run == null:
 			Log.warn(LOG_CATEGORY, "saved dungeon fight without a valid run: idle")
@@ -88,6 +95,10 @@ static func read(d: Dictionary, data: GameData, run: FractureRun = null, dungeon
 	var live: bool = encounter.alive_count() > 0
 	result["state"] = CombatEngine.STATE_BETWEEN if not live else (
 			CombatEngine.STATE_RIFTSTONE if encounter.has_stone() else CombatEngine.STATE_ENCOUNTER)
+	if not in_dungeon and not (fracture is Dictionary) and (cycle_state or result["state"] == CombatEngine.STATE_BETWEEN):  # M24 (§6b)
+		var cycle: Dictionary = CycleState.parse(d, data, saved_state if cycle_state else CombatEngine.STATE_BETWEEN, area_id)
+		result["cycle"] = cycle
+		result["state"] = cycle["state"]
 	if in_dungeon:  # no `between` in a dungeon: no live enemy = the scene of a stage or the wait for the next choice
 		result["state"] = CombatEngine.STATE_ENCOUNTER if live else (
 				CombatEngine.STATE_INTRO if saved_state == CombatEngine.STATE_INTRO else CombatEngine.STATE_AWAIT)
@@ -95,7 +106,9 @@ static func read(d: Dictionary, data: GameData, run: FractureRun = null, dungeon
 	result["player_hp"] = maxi(1, _int(d, "player_hp"))  # clamped to the maximum when the modifiers are rebuilt
 	result["player_timer_ms"] = maxi(0, _int(d, "player_timer_ms"))
 	result["between_ms"] = maxi(0, _int(d, "between_ms"))
-	if not live and saved_state != CombatEngine.STATE_BETWEEN and not in_dungeon:
+	if result["state"] == CombatEngine.STATE_TRAVEL or result["state"] == CombatEngine.STATE_NODE:
+		result["between_ms"] = 0
+	elif not live and saved_state != CombatEngine.STATE_BETWEEN and not in_dungeon:
 		result["between_ms"] = int(data.balance_value("combat.respawn_ms"))
 	result["effects"] = d.get("effects", {})
 	result["abilities"] = d.get("abilities", {})

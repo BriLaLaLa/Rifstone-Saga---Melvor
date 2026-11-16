@@ -28,6 +28,8 @@ func before_all() -> void:
 	DirAccess.make_dir_recursive_absolute(_tmp_config)
 	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_ROOT.path_join("balance.json")))
 	(balance["combat"] as Dictionary)["respawn_ms"] = 0
+	(balance["encounters"] as Dictionary)["travel_ms"] = 0  # M24 (F-153): no journey and no node: the fight of F-34 alone
+	(balance["encounters"] as Dictionary)["node_chance_pct"] = 0
 	(balance["rift_stone"] as Dictionary)["pity_kills"] = 1000000  # M15: a Rift Stone (450 hp, waves) is not the F-34 setup
 	(balance["miniboss"] as Dictionary)["chance_pct"] = 0.0  # M22 (F-139): a miniboss is not the F-34 setup either
 	_write("balance.json", JSON.stringify(balance))

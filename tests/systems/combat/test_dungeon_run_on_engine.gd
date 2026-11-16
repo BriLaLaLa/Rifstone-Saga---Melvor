@@ -206,7 +206,7 @@ func test_leave_at_a_fork_goes_back_to_the_area() -> void:
 	assert_eq((finished[0] as Array)[1], &"left")
 	assert_false(s.combat.in_dungeon())
 	assert_eq(s.combat.area_id(), AREA)
-	assert_eq(s.combat.state(), CombatEngine.STATE_ENCOUNTER)
+	assert_eq(s.combat.state(), CombatEngine.STATE_TRAVEL, "the way back to the area begins with a journey (V16)")
 
 
 # --- time and determinism ----------------------------------------------------------------------------------------------

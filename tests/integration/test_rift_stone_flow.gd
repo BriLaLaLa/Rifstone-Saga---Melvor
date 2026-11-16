@@ -132,7 +132,7 @@ func test_killing_the_stone_pays_xp_shards_and_the_stone_drops() -> void:
 	assert_true(bases.has(&"emberbronze_amulet") and bases.has(&"emberbronze_ring"), "one of each, once")
 	var blueprints: int = int(bag.get(&"bp_mw_hands_2", 0)) + s.bank.get_count(&"bp_mw_hands_2")
 	assert_eq(blueprints, 1, "the blueprint of the stone reaches the loot bag or the bank, never the Armory")
-	assert_eq(s.combat.state(), CombatEngine.STATE_BETWEEN, "then the usual wait before the next group")
+	assert_eq(s.combat.state(), CombatEngine.STATE_TRAVEL, "then the usual wait before the next group")
 
 
 func test_loot_of_the_stone_survives_death_rules_like_any_loot() -> void:

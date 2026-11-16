@@ -13,6 +13,10 @@ func _next_timer() -> int:
 			return held
 	if _state == STATE_BETWEEN:
 		return _between_ms
+	if _state == STATE_TRAVEL:
+		return _cy.travel_ms
+	if _state == STATE_NODE:
+		return _cy.node.duration_ms - _cy.node.elapsed_ms
 	var next: int = mini(mini(_player_timer_ms, _frac.next_pulse_ms()), _abilities.next_ms(_player_hp, player_stats().max_hp))
 	next = mini(next, _frac.next_boss_ms())
 	if _dg.fighting:
@@ -29,6 +33,12 @@ func _consume(ms: int) -> void:
 	_abilities.tick(ms)
 	if _state == STATE_BETWEEN:
 		_between_ms -= ms
+		return
+	if _state == STATE_TRAVEL:
+		_cy.travel_ms -= ms
+		return
+	if _state == STATE_NODE:
+		_cy.node.elapsed_ms += ms
 		return
 	_player_timer_ms -= ms
 	_frac.tick(ms)
@@ -47,6 +57,14 @@ func _resolve_instant() -> void:
 	if _state == STATE_BETWEEN:
 		if _between_ms <= 0:
 			_begin_encounter()
+		return
+	if _state == STATE_TRAVEL:
+		if _cy.travel_ms <= 0:
+			_arrive()
+		return
+	if _state == STATE_NODE:
+		if _cy.node.elapsed_ms >= _cy.node.duration_ms:
+			_finish_node()
 		return
 	if _player_timer_ms <= 0:
 		_player_attack()
@@ -295,19 +313,69 @@ func _kill(index: int, enemy: Encounter.Enemy) -> void:
 		_cleared()
 
 
-# The last enemy of the encounter is dead. In a dungeon the run waits for DungeonSystem; in an area the next encounter comes after
-# `BETWEEN`, and after a normal one (not a stone, a Fracture or a miniboss) the miniboss of the area may be next (F-139).
+# The last enemy of the encounter is dead. In a dungeon the run waits for DungeonSystem; in a Fracture the next group comes after
+# `BETWEEN`; in an area a journey starts (F-153), and after a normal encounter (not a stone, a Fracture or a miniboss) the miniboss
+# of the area may be next (F-139, rolled first).
 func _cleared() -> void:
 	if _dg.active():
 		_dungeon_cleared()
 		return
 	var normal: bool = _state == STATE_ENCOUNTER and not _frac.active() and not _encounter.has_miniboss()
 	_encounter = Encounter.new()
-	_state = STATE_BETWEEN
-	_between_ms = int(_session.data.balance_value("combat.respawn_ms"))
 	if normal and not _stone.pending and not _miniboss_pending:
 		_miniboss_pending = Miniboss.roll(_session.data.area(_area_id), _session.rng, _session.data)
+	if _frac.active():
+		_state = STATE_BETWEEN
+		_between_ms = int(_session.data.balance_value("combat.respawn_ms"))
+		_session.events.encounter_cleared.emit()
+		return
+	_start_travel()
 	_session.events.encounter_cleared.emit()
+	_announce_travel()
+
+
+# F-153: the journey to the next encounter of the area; the kind is decided now (a Rift Stone or a miniboss that waits: a fight).
+func _start_travel() -> void:
+	_state = STATE_TRAVEL
+	_cy.begin_travel(_area_id, _stone.pending or _miniboss_pending)
+
+
+func _announce_travel() -> void:
+	if _state == STATE_TRAVEL:  # a handler of an earlier signal may have stopped the fight
+		_session.events.travel_started.emit(_cy.next["kind"], _cy.next["skill"], _cy.travel_total_ms)
+
+
+# The end of the journey: the fight begins, or the node (worked, or skipped if the discipline is not learned).
+func _arrive() -> void:
+	var skill: StringName = _cy.next["skill"]
+	var is_node: bool = _cy.next["kind"] == EncounterCycle.NODE
+	_cy.clear()
+	var work: NodeWork = NodeWork.begin(_session, _area_id, skill) if is_node else null
+	if work == null:
+		_begin_encounter()
+		return
+	_cy.node = work
+	_state = STATE_NODE
+	_session.events.node_started.emit(work.skill_id, work.action_id, work.skipped, work.duration_ms)
+
+
+# F-155: the node is over; its units, xp and mastery come in one instant, then the journey starts again.
+func _finish_node() -> void:
+	var work: NodeWork = _cy.node
+	var outcome: ActionOutcome = work.finish(_session)
+	var reason: StringName = Reasons.NODE_DONE
+	if work.skipped:
+		reason = Reasons.NOT_LEARNED
+		_cy.skipped += 1
+	else:
+		_cy.worked += 1
+		if outcome.reason == Reasons.BANK_FULL:
+			reason = Reasons.BANK_FULL
+	_start_travel()
+	if outcome.ok:
+		_session.events.action_completed.emit(ActionRunner.NODE, work.skill_id, work.action_id, outcome.outputs)
+	_session.events.node_finished.emit(work.skill_id, work.action_id, outcome.units, reason)
+	_announce_travel()
 
 
 # F-141: a room or a stage of the dungeon is beaten: the engine waits, then tells DungeonSystem (it acts at once). The signals
