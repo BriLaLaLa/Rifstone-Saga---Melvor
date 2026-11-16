@@ -230,7 +230,7 @@ func test_ready_ability_fires_when_the_next_encounter_starts() -> void:
 		"hand": 0, "between_ms": 1000, "enemies": [], "abilities": {"t_strike": 0}, "buffs": {}, "loot": [],
 		"kills": {}, "deaths": 0, "food_eaten": 0}
 	_session.combat.from_save(saved)
-	_session.combat.advance(1000)
+	_session.combat.advance(int(_session.data.balance_value("encounters.travel_ms")))  # an area `between` loads as a full journey to a fight
 	assert_eq(_session.combat.state(), CombatEngine.STATE_ENCOUNTER)
 	assert_eq(_uses.size(), 1, "used the instant the pack appeared")
 
@@ -284,7 +284,7 @@ func test_ability_that_kills_the_last_enemy_ends_the_encounter() -> void:
 	_surehit()
 	_session.combat.from_save(_fight([EffectKit.enemy("test_monster_a", 1, HUGE)]))
 	_run(3000)
-	assert_eq(_session.combat.state(), CombatEngine.STATE_BETWEEN)
+	assert_eq(_session.combat.state(), CombatEngine.STATE_TRAVEL)
 	assert_eq(_uses.size(), 1, "the second ability had no target left")
 	assert_eq(_session.combat.kills(&"test_monster_a"), 1)
 

@@ -12,6 +12,8 @@ var gold_delta: int = 0
 var kills: Dictionary[StringName, int] = {}
 var deaths: int = 0
 var food_eaten: int = 0
+var nodes_worked: int = 0  # M24: nodes worked and skipped while away
+var nodes_skipped: int = 0
 var stop_reasons: Array[StringName] = []
 # Extras filled by OfflineSimulator (not part of the snapshots).
 var stop_times_ms: Array[int] = []  # offline time at which each stop reason happened (parallel to stop_reasons)
@@ -38,6 +40,8 @@ static func from_snapshots(before: SessionSnapshot, after: SessionSnapshot, elap
 	summary.kills = _diff(before.kills, after.kills)
 	summary.deaths = after.deaths - before.deaths
 	summary.food_eaten = after.food_eaten - before.food_eaten
+	summary.nodes_worked = after.nodes_worked - before.nodes_worked
+	summary.nodes_skipped = after.nodes_skipped - before.nodes_skipped
 	summary.stop_reasons = stop_reasons.duplicate()
 	return summary
 
@@ -45,7 +49,7 @@ static func from_snapshots(before: SessionSnapshot, after: SessionSnapshot, elap
 ## True when nothing happened: no gain, no loss, no kill, no stop.
 func is_empty() -> bool:
 	return (xp.is_empty() and levels.is_empty() and items.is_empty() and gold_delta == 0 and kills.is_empty()
-		and deaths == 0 and food_eaten == 0 and stop_reasons.is_empty() and pieces_stored == 0
+		and deaths == 0 and food_eaten == 0 and nodes_worked == 0 and nodes_skipped == 0 and stop_reasons.is_empty() and pieces_stored == 0
 		and pieces_dismantled == 0 and pieces_rejected == 0 and bank_rejected.is_empty()
 		and fractures.is_empty() and not dungeon_frozen)
 

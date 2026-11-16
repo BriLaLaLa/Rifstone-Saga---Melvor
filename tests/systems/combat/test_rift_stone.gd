@@ -193,7 +193,7 @@ func test_killing_the_stone_gives_xp_shards_and_drops() -> void:
 	while s.combat.state() == CombatEngine.STATE_RIFTSTONE and guard < 200:
 		s.combat.advance(100)
 		guard += 1
-	assert_eq(s.combat.state(), CombatEngine.STATE_BETWEEN, "the encounter is over")
+	assert_eq(s.combat.state(), CombatEngine.STATE_TRAVEL, "the encounter is over")
 	assert_eq(s.character.get_xp() - xp, floori(240.0 * float(s.data.balance_value("combat.kill_xp_mult")) * 1.2 + 1e-9), "F-28 x F-130: stone level 5 vs character level 1 (x1.2)")
 	assert_eq(s.wallet.get_gold(), gold, "no gold from a stone")
 	var bag: Dictionary = {}

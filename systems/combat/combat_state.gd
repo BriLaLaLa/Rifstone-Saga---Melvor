@@ -10,6 +10,8 @@ const STATE_BETWEEN: StringName = &"between"
 const STATE_RIFTSTONE: StringName = &"riftstone"  # M7
 const STATE_AWAIT: StringName = &"await"  # M22: between the rooms of a dungeon, nothing runs until DungeonSystem acts
 const STATE_INTRO: StringName = &"intro"  # M22: the entrance scene of a boss stage, only its timer runs
+const STATE_TRAVEL: StringName = &"travel"  # M24 (F-153): the journey to the next encounter of an area
+const STATE_NODE: StringName = &"node"  # M24 (F-155): a gathering node is being worked or skipped
 const PLAYER: int = -1
 
 var loot: LootBag
@@ -29,6 +31,8 @@ var _fx: EffectSet
 var _abilities: AbilityRunner
 var _frac: FractureCombat  # M13: the Fracture in progress, if any
 var _dg: DungeonCombat  # M22: the dungeon run in progress, if any
+var _cy: CycleState  # M24: journey, node and node counters of the area cycle
+var _travel_on_start: bool = false  # M24: the next `start` (the way back from a Fracture or a dungeon) begins with a journey
 var _resume_area: StringName = &""  # M13: the area to go back to once the instant being resolved is over
 var _resolving: bool = false  # an instant is being resolved inside `advance`: the way back waits for its end
 var _miniboss_pending: bool = false  # M22 (F-139): the next encounter of the area is its miniboss
@@ -47,6 +51,7 @@ func _init(session: GameSession) -> void:
 	_abilities = AbilityRunner.new(session)
 	_frac = FractureCombat.new(session)
 	_dg = DungeonCombat.new(session)
+	_cy = CycleState.new(session)
 	session.events.modifiers_changed.connect(_on_stats_source_changed)
 	session.events.equipment_changed.connect(_on_loadout_changed.unbind(2))
 	session.events.character_level_up.connect(_on_stats_source_changed.unbind(1))
@@ -126,7 +131,9 @@ func _resume() -> void:
 	var area: StringName = _resume_area
 	_resume_area = &""
 	_abilities.reset()
+	_travel_on_start = true  # the way back to the area begins with a journey (§35.1)
 	start(area)
+	_travel_on_start = false
 
 
 ## What the effect hooks see of the fight right now.

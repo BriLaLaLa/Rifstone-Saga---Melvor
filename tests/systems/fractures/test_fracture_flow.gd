@@ -108,7 +108,7 @@ func test_the_fight_in_the_area_stops_and_comes_back() -> void:
 	assert_eq(_s.combat.fracture_run().return_area, AREA)
 	FractureUtil.run_until(_s, _over)
 	assert_eq(_s.combat.area_id(), AREA, "back to the area")
-	assert_true(_s.combat.in_encounter())
+	assert_eq(_s.combat.state(), CombatEngine.STATE_TRAVEL, "the way back to the area begins with a journey (M24)")
 	assert_eq(_s.combat.get_state()["player_hp"], _s.combat.player_stats().max_hp)
 	assert_eq(_s.combat.loot.items(), [{"item": &"test_twig", "qty": 3}] as Array[Dictionary], "the loot bag is as it was")
 

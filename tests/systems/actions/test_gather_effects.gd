@@ -19,7 +19,7 @@ func _session(seed_value: int = 5) -> GameSession:
 
 
 func _resolve(s: GameSession, action: StringName) -> ActionOutcome:
-	return GatheringResolver.resolve(s, s.data.action(action))
+	return GatheringResolver.resolve_units(s, s.data.action(action), 1, 100.0)
 
 
 func test_gather_bonus_item_adds_one_item_to_the_product() -> void:

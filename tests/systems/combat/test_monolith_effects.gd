@@ -23,7 +23,7 @@ func _kill_the_stone(s: GameSession) -> void:
 	while s.combat.state() == CombatEngine.STATE_RIFTSTONE and guard < 200:
 		s.combat.advance(100)
 		guard += 1
-	assert_eq(s.combat.state(), CombatEngine.STATE_BETWEEN, "the stone is dead")
+	assert_eq(s.combat.state(), CombatEngine.STATE_TRAVEL, "the stone is dead")
 
 
 func _loot(s: GameSession) -> Dictionary[StringName, int]:

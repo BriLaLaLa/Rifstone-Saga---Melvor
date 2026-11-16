@@ -28,7 +28,11 @@ func start(area_id: StringName) -> CommandResult:
 	_player_hp = player_stats().max_hp
 	_session.events.combat_started.emit(area_id)
 	_session.events.player_hp_changed.emit(_player_hp, _player_hp)
-	_begin_encounter()
+	if _travel_on_start:  # the way back from a Fracture or a dungeon (§35.1)
+		_start_travel()
+		_announce_travel()
+	else:
+		_begin_encounter()
 	return CommandResult.success()
 
 
@@ -46,6 +50,7 @@ func stop(reason: StringName = Reasons.STOPPED_BY_USER) -> void:
 	_area_id = &""
 	_encounter = Encounter.new()
 	_between_ms = 0
+	_cy.clear()  # a journey or a node in progress is lost (no products)
 	_fx.reset()
 	_abilities.reset()
 	_stop_log.append(reason)
@@ -81,9 +86,14 @@ func abandon_fracture() -> void:
 		_resume()
 
 
-## M24-03 stub: the discipline of the node being worked; the node cycle (M24-04) completes it.
+## M24: the discipline of the node being worked (`&""` for a skipped node, a journey or a fight): `Disciplines` refuses to unlearn it.
 func node_skill() -> StringName:
-	return &""
+	return _cy.worked_skill()
+
+
+## M24: the nodes of the slot, {"worked": int, "skipped": int} (a node lost by a stop is not counted).
+func node_counts() -> Dictionary:
+	return {"worked": _cy.worked, "skipped": _cy.skipped}
 
 
 func in_fracture() -> bool:
@@ -240,6 +250,7 @@ func get_state() -> Dictionary:
 		"player_hp": _player_hp, "player_timer_ms": _player_timer_ms, "between_ms": _between_ms,
 		"rule": _fx.target_rule(), "fracture": _frac.view() if _frac.active() else {},
 		"stone": _stone.view(_encounter) if _state == STATE_RIFTSTONE else {}, "skip_stone_level": _stone.skip_level,
+		"cycle": _cy.view(_state),
 			"dungeon": _dg.view(_state) if _dg.active() else {}})
 
 
@@ -289,6 +300,7 @@ func to_save() -> Dictionary:
 		"fracture": _frac.to_save() if _frac.active() else {}, "skip_stone_level": _stone.skip_level,
 		"wave": _stone.wave_to_save() if _state == STATE_RIFTSTONE else {},
 		"dungeon": _dg.to_save() if _dg.active() else {}, "miniboss_pending": _miniboss_pending,
+		"cycle": _cy.to_save(_state == STATE_TRAVEL, _state == STATE_NODE),
 	})
 
 
@@ -330,3 +342,4 @@ func _apply(parsed: Dictionary) -> void:
 	_kills = parsed["kills"]
 	_deaths = parsed["deaths"]
 	_food_eaten = parsed["food_eaten"]
+	_cy.apply(parsed["cycle"])

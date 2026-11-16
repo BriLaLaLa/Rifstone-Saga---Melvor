@@ -76,7 +76,7 @@ func test_killing_a_stone_puts_the_piece_in_the_bag() -> void:
 	while s.combat.state() == CombatEngine.STATE_RIFTSTONE and guard < 100:
 		s.combat.advance(500)
 		guard += 1
-	assert_eq(s.combat.state(), CombatEngine.STATE_BETWEEN)
+	assert_eq(s.combat.state(), CombatEngine.STATE_TRAVEL)
 	var pieces: Array[ItemInstance] = s.combat.loot.pieces()
 	assert_gte(pieces.size(), 1, "at least the guaranteed piece")
 	assert_eq(s.armory.used(), 0, "the piece waits in the bag (Z1)")

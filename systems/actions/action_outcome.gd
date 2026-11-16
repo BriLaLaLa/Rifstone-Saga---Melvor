@@ -15,3 +15,6 @@ var mastery_xp: int = 0
 var shard: bool = false
 ## M12 (F-104): the cycle counted but the roll failed (`ok` stays true): `consumed` is partial, `outputs` empty, no mastery.
 var failed: bool = false
+
+## M24 (F-155): the units put in the bank by a gathering node (`GatheringResolver.resolve_units`).
+var units: int = 0

@@ -32,7 +32,7 @@ func test_engine_reflection_can_kill_the_attacker() -> void:
 		watch_signals(_session.events)
 		_session.combat.advance(100)
 		if _session.combat.kills(&"test_monster_a") == 1:
-			assert_eq(_session.combat.state(), CombatEngine.STATE_BETWEEN)
+			assert_eq(_session.combat.state(), CombatEngine.STATE_TRAVEL)
 			assert_signal_emitted_with_parameters(_session.events, "trait_triggered", [&"t_reflect"])
 			found = true
 			break

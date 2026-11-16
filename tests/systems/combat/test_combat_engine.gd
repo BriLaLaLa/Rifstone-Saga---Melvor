@@ -214,7 +214,7 @@ func test_drops_and_shard_chance() -> void:
 	assert_eq(other_shards, count.size(), "chance 100: always one rift_shard")
 
 
-func test_clearing_waits_respawn_ms_then_a_new_encounter() -> void:
+func test_clearing_starts_a_journey_then_the_announced_encounter() -> void:
 	_hero(_session)
 	watch_signals(_session.events)
 	_session.combat.start(AREA)
@@ -222,17 +222,18 @@ func test_clearing_waits_respawn_ms_then_a_new_encounter() -> void:
 	while _session.combat.state() == CombatEngine.STATE_ENCOUNTER and guard < 1000:
 		_session.combat.advance(100)
 		guard += 1
-	assert_eq(_session.combat.state(), CombatEngine.STATE_BETWEEN)
+	assert_eq(_session.combat.state(), CombatEngine.STATE_TRAVEL)
 	assert_signal_emitted(_session.events, "encounter_cleared")
-	var wait: int = int(_session.data.balance_value("combat.respawn_ms"))
-	var left: int = int(_session.combat.get_state()["between_ms"])
-	assert_between(left, 1, wait)
-	_session.combat.advance(left - 1)
-	assert_eq(_session.combat.state(), CombatEngine.STATE_BETWEEN)
+	assert_signal_emitted(_session.events, "travel_started")
+	var view: Dictionary = _session.combat.get_state()
+	var wait: int = int(_session.data.balance_value("encounters.travel_ms"))
+	assert_eq(int(view["travel_ms"]), wait)
+	assert_eq(int(view["travel_total_ms"]), wait)
+	_session.combat.advance(wait - 1)
+	assert_eq(_session.combat.state(), CombatEngine.STATE_TRAVEL)
 	_session.combat.advance(1)
-	assert_eq(_session.combat.state(), CombatEngine.STATE_ENCOUNTER)
-	assert_signal_emit_count(_session.events, "encounter_started", 2)
-
+	var kind: StringName = view["next"]["kind"]
+	assert_eq(_session.combat.state(), CombatEngine.STATE_ENCOUNTER if kind == &"fight" else CombatEngine.STATE_NODE)
 
 # --- order (F-76), target rules, packs -------------------------------------------------------------------------
 
@@ -273,7 +274,7 @@ func test_a_dead_enemy_does_not_strike_in_the_same_instant() -> void:
 		s.combat.advance(2800)
 		if _hits[0][2]:
 			assert_eq(_hits.size(), 1, "seed %d: killed first, no counter-attack" % seed_value)
-			assert_eq(s.combat.state(), CombatEngine.STATE_BETWEEN)
+			assert_eq(s.combat.state(), CombatEngine.STATE_TRAVEL)
 			found = true
 			break
 	assert_true(found)
