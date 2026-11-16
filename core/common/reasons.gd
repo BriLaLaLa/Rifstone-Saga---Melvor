@@ -81,3 +81,4 @@ const NOT_A_RECIPE := &"not_a_recipe"  # M24: the item is not a Recipe
 const QUEUE_FULL := &"queue_full"  # M24: the production queue has no free place
 const JOB_DONE := &"job_done"  # M24: stop reason of a finished production job
 const NODE_DONE := &"node_done"  # M24: a gathering node was worked to its end (node_finished)
+const TOO_HARD := &"too_hard"  # M25: the level of the discipline is below the `min_level` of the node (node_finished)

@@ -15,9 +15,13 @@ func _data(node_chance: float) -> GameData:
 	var data: GameData = GameData.load_from_dirs(TestFactory.REAL_CONTENT_ROOT, TestFactory.CONFIG_ROOT)
 	((data.get("_balance") as Dictionary)["encounters"] as Dictionary)["node_chance_pct"] = node_chance
 	((data.get("_balance") as Dictionary)["miniboss"] as Dictionary)["chance_pct"] = 0.0
+	((data.get("_balance") as Dictionary)["encounters"] as Dictionary)["rich_chance_pct"] = 0  # a normal node: 3 attempts, 80 units
+	((data.get("_balance") as Dictionary)["encounters"] as Dictionary)["yield_free_levels"] = 99  # yield 100
 	var entry := NodeEntryDef.new()
 	entry.skill = FORESTRY
 	entry.weight = 1
+	entry.difficulty = 10
+	entry.min_level = 1
 	data.area_nodes(AREA).entries = [entry]
 	return data
 
@@ -72,16 +76,26 @@ func test_a_cleared_fight_starts_a_journey_to_the_node_and_the_node_is_worked() 
 	assert_signal_emitted_with_parameters(s.events, "node_started", [FORESTRY, &"cut_redbirch", false, 12000])
 	assert_eq(s.combat.node_skill(), FORESTRY)
 	var node_view: Dictionary = s.combat.get_state()["node"]
-	assert_eq([node_view["skill"], node_view["skipped"], node_view["color"], node_view["units"]], [FORESTRY, false, &"orange", 80])
+	assert_eq([node_view["skill"], node_view["skipped"], node_view["color"], node_view["units"]], [FORESTRY, false, &"orange", 0])
+	assert_eq([node_view["attempts"], node_view["attempt"], node_view["rich"], node_view["units_planned"]], [3, 0, false, 80])
 	var bank_before: int = s.bank.get_count(LOG_ITEM)
-	s.combat.advance(11999)
+	s.combat.advance(3999)
 	assert_eq(s.combat.state(), CombatEngine.STATE_NODE)
-	assert_eq(s.bank.get_count(LOG_ITEM), bank_before, "nothing before the end")
+	assert_eq(s.bank.get_count(LOG_ITEM), bank_before, "nothing before the first attempt")
 	watch_signals(s.events)
+	s.combat.advance(1)
+	assert_signal_emitted_with_parameters(s.events, "node_attempt_done", [FORESTRY, &"cut_redbirch", 1, 3, 26, 26, &"orange"])
+	assert_eq(s.bank.get_count(LOG_ITEM), bank_before + 26)
+	assert_eq(s.combat.get_state()["node"]["last_attempt"]["units"], 26)
+	s.combat.advance(7999)
+	assert_eq(s.combat.state(), CombatEngine.STATE_NODE)
+	assert_eq(s.bank.get_count(LOG_ITEM), bank_before + 53, "two attempts are in")
 	s.combat.advance(1)
 	assert_eq(s.combat.state(), CombatEngine.STATE_TRAVEL)
 	assert_gte(s.bank.get_count(LOG_ITEM), bank_before + 80)
 	assert_signal_emitted_with_parameters(s.events, "node_finished", [FORESTRY, &"cut_redbirch", 80, Reasons.NODE_DONE])
+	assert_signal_emit_count(s.events, "node_attempt_done", 3)
+	assert_signal_emit_count(s.events, "action_completed", 3, "one per attempt")
 	assert_signal_emitted_with_parameters(s.events, "travel_started", [&"node", FORESTRY, travel_ms])
 	assert_eq(get_signal_parameters(s.events, "action_completed")[0], ActionRunner.NODE)
 	assert_eq(s.combat.node_counts(), {"worked": 1, "skipped": 0})
@@ -139,6 +153,48 @@ func test_a_full_deposit_closes_the_node_with_bank_full() -> void:
 	s.combat.advance(remaining)
 	assert_signal_emitted_with_parameters(s.events, "node_finished", [FORESTRY, &"cut_redbirch", 0, Reasons.BANK_FULL])
 	assert_signal_not_emitted(s.events, "action_completed")
+
+
+func test_a_level_below_the_minimum_skips_the_node_as_too_hard() -> void:
+	var s: GameSession = _session(100.0)
+	s.data.area_nodes(AREA).entries[0].min_level = 5
+	s.combat.start(AREA)
+	_until(s, _is(s, CombatEngine.STATE_NODE))
+	var view: Dictionary = s.combat.get_state()["node"]
+	assert_true(view["skipped"])
+	assert_eq(view["skip_reason"], Reasons.TOO_HARD)
+	watch_signals(s.events)
+	s.combat.advance(int(view["duration_ms"]))
+	assert_signal_emitted_with_parameters(s.events, "node_finished", [FORESTRY, &"cut_redbirch", 0, Reasons.TOO_HARD])
+	assert_signal_not_emitted(s.events, "node_attempt_done")
+	assert_eq(s.combat.node_counts(), {"worked": 0, "skipped": 1})
+
+
+func test_a_stop_in_the_middle_keeps_the_attempts_already_resolved() -> void:
+	# Q129: what is already in the Deposit stays; the attempts not resolved are lost and the node is not counted.
+	var s: GameSession = _session(100.0)
+	s.combat.start(AREA)
+	_until(s, _is(s, CombatEngine.STATE_NODE))
+	var before: int = s.bank.get_count(LOG_ITEM)
+	s.combat.advance(8000)
+	assert_eq(s.bank.get_count(LOG_ITEM), before + 53)
+	s.combat.stop()
+	assert_eq(s.bank.get_count(LOG_ITEM), before + 53)
+	assert_eq(s.combat.node_counts(), {"worked": 0, "skipped": 0})
+
+
+func test_a_node_in_the_middle_is_saved_and_loaded_with_its_attempts() -> void:
+	var s: GameSession = _session(100.0)
+	s.combat.start(AREA)
+	_until(s, _is(s, CombatEngine.STATE_NODE))
+	s.combat.advance(5000)
+	var saved: Dictionary = s.combat.to_save()
+	assert_eq([saved["node"]["attempts"], saved["node"]["attempt"], saved["node"]["rich"], saved["node"]["units"]], [3, 1, false, 26])
+	var other: GameSession = _session(100.0, true, SEED + 1)
+	other.combat.from_save(saved)
+	assert_eq(other.combat.to_save(), saved)
+	other.combat.advance(3000)
+	assert_eq(other.combat.get_state()["node"]["attempt"], 2)
 
 
 func test_discipline_busy_only_while_a_worked_node_runs() -> void:

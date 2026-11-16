@@ -58,10 +58,58 @@ static func node_duration_ms(session: GameSession, skill_id: StringName, action:
 	return maxi(int(session.data.balance_value("encounters.node_min_ms")), roundi(base * (1.0 + pct / 100.0)))
 
 
-## F-156: the closed form of the cycle (a reference for the simulation, not used by the game).
-## `p` = {travel_ms, node_chance_pct, fight_ms, skip_ms, node_units, weights: {skill: int}, learned: [skill], node_ms: {skill: int}}.
+## F-161: the difficulty `D` of the node of `skill_id` in the area (the cap of the area if the data has no value); 0 without such a node.
+static func difficulty(session: GameSession, area_id: StringName, skill_id: StringName) -> int:
+	var nodes: AreaNodesDef = session.data.area_nodes(area_id)
+	return nodes.difficulty_of(skill_id) if nodes != null else 0
+
+
+## F-162: the yield in percent of an attempt, from the skill level and the difficulty of the node.
+static func yield_pct(session: GameSession, level: int, difficulty_level: int) -> int:
+	var free: int = int(session.data.balance_value("encounters.yield_free_levels"))
+	var gap: int = difficulty_level - level
+	if gap <= free:
+		return 100
+	var loss: int = int(session.data.balance_value("encounters.yield_loss_pct"))
+	return maxi(int(session.data.balance_value("encounters.yield_min_pct")), 100 - (gap - free) * loss)
+
+
+## F-161: the number of attempts of a node, `encounters.attempts` (+ `rich_extra_attempts` if rich).
+static func attempts_for(session: GameSession, rich: bool) -> int:
+	var count: int = int(session.data.balance_value("encounters.attempts"))
+	return count + int(session.data.balance_value("encounters.rich_extra_attempts")) if rich else count
+
+
+## F-162: the units of the attempt `k` (1-based) of `attempts`, at least 1: the cumulative integer share of `Ne x yield / 100`.
+static func attempt_units(session: GameSession, k: int, attempts: int, rich: bool, yield_percent: int) -> int:
+	var planned: int = int(session.data.balance_value("encounters.node_units"))
+	if rich:
+		planned = planned * int(session.data.balance_value("encounters.rich_units_pct")) / 100
+	var upto: int = k * planned * yield_percent / (100 * attempts)
+	var before: int = (k - 1) * planned * yield_percent / (100 * attempts)
+	return maxi(1, upto - before)
+
+
+## F-161: the instant (ms from the start of the node) of the attempt `k` (1-based): `round(k x duration / attempts)`.
+static func attempt_time_ms(duration_ms: int, attempts: int, k: int) -> int:
+	return (2 * k * duration_ms + attempts) / (2 * attempts)
+
+
+## F-161: the duration of a rich node, `round(duration x rich_ms_pct / 100)`.
+static func rich_duration_ms(session: GameSession, duration_ms: int) -> int:
+	return (2 * duration_ms * int(session.data.balance_value("encounters.rich_ms_pct")) + 100) / 200
+
+
+## F-156 with F-165: the closed form of the cycle (a reference for the simulation, not used by the game).
+## `p` = {travel_ms, node_chance_pct, fight_ms, skip_ms, node_units, weights: {skill: int}, learned: [skill], node_ms: {skill: int},
+## rich_chance_pct, rich_ms_pct, rich_units_pct, yield: {skill: int}} (the last four are optional: without them, no rich nodes and
+## yield 100). `learned` = the disciplines that are worked (learned and `level >= min_level`).
 ## Returns {"cycle_ms", "per_hour", "fights_per_hour", "nodes_per_hour": {skill: float}, "units_per_hour": {skill: float}}.
 static func expected(p: Dictionary) -> Dictionary:
+	var rich: float = float(p.get("rich_chance_pct", 0)) / 100.0
+	var ms_mult: float = 1.0 + rich * (float(p.get("rich_ms_pct", 100)) / 100.0 - 1.0)
+	var units_mult: float = 1.0 + rich * (float(p.get("rich_units_pct", 100)) / 100.0 - 1.0)
+	var yields: Dictionary = p.get("yield", {}) as Dictionary
 	var q: float = float(p["node_chance_pct"]) / 100.0
 	var weights: Dictionary = p["weights"]
 	var learned: Array = p["learned"]
@@ -73,7 +121,7 @@ static func expected(p: Dictionary) -> Dictionary:
 		total += float(weights[skill])
 		if learned.has(skill):
 			learned_weight += float(weights[skill])
-			learned_ms += float(weights[skill]) * float(node_ms.get(skill, 0))
+			learned_ms += float(weights[skill]) * float(node_ms.get(skill, 0)) * ms_mult
 	var p_learned: float = learned_weight / total if total > 0.0 else 0.0
 	var mean_node: float = learned_ms / learned_weight if learned_weight > 0.0 else 0.0
 	var cycle: float = float(p["travel_ms"]) + (1.0 - q) * float(p["fight_ms"]) \
@@ -85,6 +133,6 @@ static func expected(p: Dictionary) -> Dictionary:
 		if weights.has(skill) and total > 0.0:
 			var nodes: float = q * float(weights[skill]) / total * per_hour
 			nodes_per_hour[skill] = nodes
-			units_per_hour[skill] = nodes * float(p["node_units"])
+			units_per_hour[skill] = nodes * float(p["node_units"]) * units_mult * float(yields.get(skill, 100)) / 100.0
 	return {"cycle_ms": cycle, "per_hour": per_hour, "fights_per_hour": (1.0 - q) * per_hour,
 		"nodes_per_hour": nodes_per_hour, "units_per_hour": units_per_hour}

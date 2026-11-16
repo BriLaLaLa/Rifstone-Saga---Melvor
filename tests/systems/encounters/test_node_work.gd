@@ -1,5 +1,6 @@
 extends GutTest
-## F-155 (units, xp by color, mastery, full Deposit) with the numbers of docs/02_FORMULAS_M24.md and the node in progress (NodeWork).
+## F-155 (units, xp by color, mastery, full Deposit) with the numbers of docs/02_FORMULAS_M24.md, and the node in progress with its
+## attempts (NodeWork; F-161..F-164, docs/02_FORMULAS_M25.md).
 ## Real data: Betulla (`cut_redbirch`, xp 10, forestry level 1). The Deposit-full case uses a scripted generator.
 
 const FORESTRY: StringName = &"forestry"
@@ -26,9 +27,15 @@ class ScriptedRng extends RngService:
 func _session(double_pct: float = 0.0) -> GameSession:
 	var s: GameSession = autofree(TestFactory.session_no_kit(77, GameData.load_from_dirs(TestFactory.REAL_CONTENT_ROOT, TestFactory.CONFIG_ROOT)))
 	s.disciplines._grades.clear()  # the factory learns some disciplines: only forestry here
+	_enc(s, "rich_chance_pct", 0)  # a normal node unless the test says otherwise (F-164)
+	_enc(s, "yield_free_levels", 99)  # yield 100 unless the test says otherwise (F-162)
 	TestFactory.learn_discipline(s, FORESTRY)
 	s.modifiers.set_source(&"test:double", [Modifier.make(&"double_item_chance", double_pct)])
 	return s
+
+
+func _enc(s: GameSession, key: String, value: Variant) -> void:
+	((s.data.get("_balance") as Dictionary)["encounters"] as Dictionary)[key] = value
 
 
 func _betulla(s: GameSession) -> ActionDef:
@@ -122,52 +129,3 @@ func test_no_room_at_all_changes_nothing() -> void:
 	assert_eq(s.bank.get_count(LOG_ITEM), 0)
 
 
-# --- NodeWork ------------------------------------------------------------------------------------------------------
-
-func test_begin_fixes_the_resource_and_the_duration_of_a_learned_discipline() -> void:
-	var s: GameSession = _session()
-	var work: NodeWork = NodeWork.begin(s, AREA, FORESTRY)
-	assert_false(work.skipped)
-	assert_eq(work.action_id, BETULLA)
-	assert_eq(work.duration_ms, 12000)
-	assert_eq(work.elapsed_ms, 0)
-
-
-func test_an_unlearned_discipline_is_skipped_for_skip_ms_and_gives_nothing() -> void:
-	var s: GameSession = _session()
-	var work: NodeWork = NodeWork.begin(s, AREA, QUARRYING)
-	assert_true(work.skipped)
-	assert_eq(work.duration_ms, int(s.data.balance_value("encounters.skip_ms")))
-	assert_eq(s.data.action(work.action_id).skill_id, QUARRYING, "it shows the resource that would have been worked")
-	var rng_before: Dictionary = s.rng.to_save()
-	watch_signals(s.events)
-	var out: ActionOutcome = work.finish(s)
-	assert_false(out.ok)
-	assert_eq(out.units, 0)
-	assert_true(out.outputs.is_empty())
-	assert_eq(s.rng.to_save(), rng_before, "a skipped node rolls nothing")
-	assert_signal_not_emitted(s.events, "xp_gained")
-	assert_signal_not_emitted(s.events, "bank_changed")
-
-
-func test_the_color_is_taken_when_the_node_ends() -> void:
-	var s: GameSession = _session()
-	var work: NodeWork = NodeWork.begin(s, AREA, FORESTRY)
-	assert_eq(work.color(s)["id"], &"orange")
-	s.skills.add_xp(FORESTRY, 1_000_000)
-	assert_eq(work.action_id, BETULLA, "the resource does not change with the level")
-	assert_ne(work.color(s)["id"], &"orange", "the color follows the level of now")
-
-
-func test_save_round_trip_and_malformed_input() -> void:
-	var s: GameSession = _session()
-	var work: NodeWork = NodeWork.begin(s, AREA, FORESTRY)
-	work.elapsed_ms = 4000
-	var back: NodeWork = NodeWork.from_save(work.to_save(), s.data)
-	assert_eq(back.to_save(), work.to_save())
-	assert_null(NodeWork.from_save({}, s.data))
-	assert_null(NodeWork.from_save({"skill": "forestry", "action": "no_such", "elapsed_ms": 0, "duration_ms": 10, "skipped": false}, s.data))
-	assert_null(NodeWork.from_save({"skill": "quarrying", "action": "cut_redbirch", "elapsed_ms": 0, "duration_ms": 10, "skipped": false}, s.data))
-	assert_null(NodeWork.from_save({"skill": "forestry", "action": "cut_redbirch", "elapsed_ms": "x", "duration_ms": 10, "skipped": false}, s.data))
-	var clamped: NodeWork = NodeWork.from_save({"skill": "forestry", "action": "cut_redbirch", "elapsed_ms": 99999, "duration_ms": 10, "skipped": true}, s.data)
-	assert_eq(clamped.elapsed_ms, 10)

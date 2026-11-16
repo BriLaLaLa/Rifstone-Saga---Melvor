@@ -83,7 +83,7 @@ static func parse(d: Dictionary, data: GameData, saved_state: StringName, area_i
 		return result
 	if saved_state == CombatState.STATE_NODE:
 		var saved_node: Variant = d.get("node")
-		var work: NodeWork = NodeWork.from_save(saved_node as Dictionary, data) if saved_node is Dictionary else null
+		var work: NodeWork = NodeWork.from_save(saved_node as Dictionary, data, area_id) if saved_node is Dictionary else null
 		if work != null and _in_area(data, area_id, work.skill_id):
 			result["state"] = CombatState.STATE_NODE
 			result["travel_ms"] = 0
@@ -114,10 +114,11 @@ func view(state: StringName) -> Dictionary:
 		result["travel_total_ms"] = travel_total_ms
 		result["next"] = next.duplicate()
 	elif state == CombatState.STATE_NODE and node != null:
-		var color: Dictionary = node.color(_session)
 		result["node"] = {"skill": node.skill_id, "action": node.action_id, "duration_ms": node.duration_ms,
-			"elapsed_ms": node.elapsed_ms, "skipped": node.skipped, "color": color["id"],
-			"units": 0 if node.skipped else int(_session.data.balance_value("encounters.node_units"))}
+			"elapsed_ms": node.elapsed_ms, "skipped": node.skipped, "skip_reason": node.skip_reason,
+			"color": node.color(_session)["id"], "attempts": node.attempts, "attempt": node.attempt, "rich": node.rich,
+			"difficulty": node.difficulty, "level": _session.skills.get_level(node.skill_id), "yield_pct": node.yield_pct(_session),
+			"units": node.units, "units_planned": node.units_planned(_session), "last_attempt": node.last_attempt.duplicate()}
 	return result
 
 

@@ -134,6 +134,20 @@ func test_closed_form_of_the_example() -> void:
 	assert_false((r["nodes_per_hour"] as Dictionary).has(&"c"), "an unlearned discipline gives no nodes")
 
 
+func test_closed_form_with_rich_nodes_of_f165() -> void:
+	var p: Dictionary = _params([&"a", &"b"])
+	p.merge({"rich_chance_pct": 10, "rich_ms_pct": 150, "rich_units_pct": 150, "yield": {&"a": 100, &"b": 100}})
+	var r: Dictionary = EncounterCycle.expected(p)
+	assert_almost_eq(float(r["cycle_ms"]), 41762.5, 0.001)
+	assert_almost_eq(float(r["per_hour"]), 86.20, 0.01)
+	assert_almost_eq(float(r["fights_per_hour"]), 64.65, 0.01)
+	assert_almost_eq(float(r["nodes_per_hour"][&"a"]) * 2.0, 10.78, 0.01)
+	assert_almost_eq(float(r["nodes_per_hour"][&"a"]), 5.39, 0.01)
+	assert_almost_eq(float(r["units_per_hour"][&"a"]), 452.6, 0.1)
+	p["yield"] = {&"a": 80, &"b": 100}
+	assert_almost_eq(float(EncounterCycle.expected(p)["units_per_hour"][&"a"]), 452.6 * 0.8, 0.1, "the yield of the discipline scales its units")
+
+
 func test_closed_form_without_disciplines_and_the_old_engine() -> void:
 	var none: Dictionary = EncounterCycle.expected(_params([]))
 	assert_almost_eq(float(none["cycle_ms"]), 40375.0, 0.001)

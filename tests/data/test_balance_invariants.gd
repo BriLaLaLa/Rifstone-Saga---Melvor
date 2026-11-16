@@ -44,6 +44,11 @@ func test_the_real_balance_has_the_values_of_the_m24_table() -> void:
 	assert_eq(int(data.balance_value("encounters.skip_ms")), 1500)
 	assert_eq(int(data.balance_value("encounters.node_units")), 80)
 	assert_eq((data.balance_value("encounters.colors") as Array).size(), 4)
+	# M25 (02_FORMULAS_M25.md §9c)
+	var attempts: Dictionary = {"attempts": 3, "yield_free_levels": 5, "yield_loss_pct": 4, "yield_min_pct": 25, "rich_chance_pct": 10,
+		"rich_extra_attempts": 2, "rich_units_pct": 150, "rich_ms_pct": 150}
+	for key: String in attempts:
+		assert_eq(int(data.balance_value("encounters.%s" % key)), attempts[key], key)
 	assert_eq(int(data.balance_value("disciplines.max_per_category")), 2)
 	assert_eq(int(data.balance_value("trainer.learn_gold")), 0)
 	assert_eq(int(data.balance_value("trainer.gold_base")), 250)
