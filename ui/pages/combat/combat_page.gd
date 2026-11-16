@@ -33,7 +33,7 @@ var _feed: CombatFeed = null
 var _map: CombatMap = null
 ## M24-06: the travel strip and the node panel, under the cards (05_INTERFACES_M24.md §7.o).
 var _travel: TravelMap = null
-var _node_panel: NodePanel = null
+var _node_card: NodeCard = null
 
 @onready var _margin: MarginContainer = %Margin
 @onready var _main: VBoxContainer = %Main
@@ -97,12 +97,12 @@ func _ready() -> void:
 	_map.area_chosen.connect(_on_area_chosen)
 	_travel = TravelMap.new()
 	_travel.name = "TravelMap"
-	_node_panel = NodePanel.new()
-	_node_panel.name = "NodePanel"
+	_node_card = NodeCard.new()
+	_node_card.name = "NodeCard"
 	_main.add_child(_travel)
-	_main.add_child(_node_panel)
+	_main.add_child(_node_card)
 	_main.move_child(_travel, _main.get_child_count() - 3)
-	_main.move_child(_node_panel, _main.get_child_count() - 2)
+	_main.move_child(_node_card, _main.get_child_count() - 2)
 	set_process(false)
 
 
@@ -146,6 +146,7 @@ func bind(session: GameSession) -> void:
 	_connect(events.trait_triggered, _on_trait_triggered)
 	_connect(events.character_xp_gained, _on_xp_gained)
 	_connect(events.gold_changed, _on_gold_changed)
+	_connect(events.node_attempt_done, _node_card.on_attempt_done)
 	_connect(events.skip_stone_changed, _skip_control.refresh.unbind(1))
 	for cycle_signal: StringName in CYCLE_SIGNALS:  # M24-04 signals: the header follows the cycle
 		if events.has_signal(cycle_signal):
@@ -181,7 +182,7 @@ func _process(_delta: float) -> void:
 		_player.tick(state)
 		_zone.refresh(_session, state)
 		_travel.refresh(state, _session.data, _session.disciplines)
-		_node_panel.refresh(state, _session.data)
+		_node_card.refresh(state, _session.data)
 		if CombatFracture.is_in(state):  # the ability timer and the shield move between events
 			_state_label.text = CombatFracture.state_text(state["fracture"], _state_base, _session.data)
 		_redraw_yield()

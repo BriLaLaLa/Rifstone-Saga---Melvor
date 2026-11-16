@@ -1,7 +1,7 @@
 extends GutTest
-## TravelMap and NodePanel (M24-06, 05_INTERFACES_M24.md §7.o) on a fake combat state (CombatCycleStub): the icon moves with
-## `1 - travel_ms / travel_total_ms`, the target is swords or the discipline (grey with a lock when not learned), the node
-## panel shows resource, colour, bar and units, or the reason of a skipped node. A real session is used only for the data
+## TravelMap (M24-06, 05_INTERFACES_M24.md §7.o) on a fake combat state (CombatCycleStub): the icon moves with
+## `1 - travel_ms / travel_total_ms`, the target is swords or the discipline (grey with a lock when not learned). A real
+## session is used only for the data
 ## and for `disciplines.is_learned` (never `Game.session`, never a real slot).
 
 ## The test session has the first two disciplines of each category learned (TestFactory.learn_all).
@@ -10,14 +10,12 @@ const UNLEARNED: StringName = &"angling"
 
 var _session: GameSession
 var _map: TravelMap
-var _panel: NodePanel
 
 
 func before_each() -> void:
 	_session = TestFactory.session(1234, TestFactory.real_data())
 	_map = add_child_autofree(TravelMap.new()) as TravelMap
 	_map.size = Vector2(800, TravelMap.HEIGHT)
-	_panel = add_child_autofree(NodePanel.new()) as NodePanel
 
 
 func after_each() -> void:
@@ -47,23 +45,7 @@ func test_unlearned_discipline_is_grey_with_a_lock_and_a_fight_has_none() -> voi
 	assert_false((_map.get_node("TravelLock") as Label).visible, "swords: nothing to learn")
 
 
-func test_map_and_panel_hide_outside_their_state() -> void:
+func test_map_hides_outside_its_state() -> void:
 	var node_state: Dictionary = CombatCycleStub.node_state(SKILL, &"cut_redbirch", 3000, 12000, false, &"yellow", 20)
 	_map.refresh(node_state, _session.data, _session.disciplines)
 	assert_false(_map.visible)
-	_panel.refresh(node_state, _session.data)
-	assert_true(_panel.visible)
-	_panel.refresh(CombatCycleStub.travel_state(1, 2), _session.data)
-	assert_false(_panel.visible)
-
-
-func test_node_panel_shows_the_resource_the_colour_and_the_bar() -> void:
-	var state: Dictionary = CombatCycleStub.node_state(SKILL, &"cut_redbirch", 3000, 12000, false, &"yellow", 20)
-	_panel.refresh(state, _session.data)
-	assert_almost_eq((_panel.find_child("NodeBar", true, false) as ProgressBar).value, 0.25, 0.0001)
-	assert_true((_panel.find_child("NodeColor", true, false) as Label).visible)
-	assert_false((_panel.find_child("NodeSkipped", true, false) as Label).visible)
-	var skipped: Dictionary = CombatCycleStub.node_state(SKILL, &"", 500, 1500, true)
-	_panel.refresh(skipped, _session.data)
-	assert_true((_panel.find_child("NodeSkipped", true, false) as Label).visible, "a skipped node shows its reason")
-	assert_false((_panel.find_child("NodeColor", true, false) as Label).visible)

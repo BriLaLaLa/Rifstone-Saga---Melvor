@@ -1,7 +1,7 @@
 extends GutTest
 ## M24-07: the M24 UI on the real data and the real engine (one check per link, not texts): `NodeColorPreview` loads the real
 ## `EncounterCycle` and the gathering card of the real SkillPage shows the colour line; `CombatTexts.color_id` reads the real
-## shape of `get_state()["node"]["color"]` and the NodePanel draws a worked node.
+## shape of `get_state()["node"]["color"]` and the NodeCard draws a worked node.
 
 const SKILL_SCENE: PackedScene = preload("res://ui/pages/skill/skill_page.tscn")
 const FORESTRY: StringName = &"forestry"
@@ -64,10 +64,10 @@ func test_the_real_node_state_is_read_by_the_texts_and_the_panel() -> void:
 			found = true
 			var id: StringName = CombatTexts.color_id(node["color"])
 			assert_true(CombatTexts.NODE_COLORS.has(id), "the real color '%s' is one the UI knows" % str(node["color"]))
-			var panel: NodePanel = NodePanel.new()
+			var panel: NodeCard = NodeCard.new()
 			add_child_autofree(panel)
 			panel.refresh(state, _session.data)
-			var label: Label = panel.find_child("NodeColor", true, false) as Label
+			var label: Label = panel.find_child("ColorLabel", true, false) as Label
 			assert_true(label.visible)
 			assert_ne(label.text, "", "the colour line is drawn")
 			break
