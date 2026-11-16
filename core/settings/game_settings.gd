@@ -29,6 +29,8 @@ const KEY_VOLUME: String = "volume"
 const KEY_LOG_LEVEL: String = "log_level"
 ## Reduced visual effects of the combat page (no breathing, pulses, shake, bar easing).
 const KEY_REDUCED_FX: String = "reduced_fx"
+## Debug time skip (M25-07): hours last chosen for "Avanza il tempo"; a setting, never part of a slot.
+const KEY_DEBUG_SKIP_HOURS: String = "debug_skip_hours"
 
 const AUTO_SCALE_REFERENCE_HEIGHT: float = 1080.0
 const AUTO_SCALE_STEP: float = 0.25
@@ -46,6 +48,7 @@ const DEFAULTS: Dictionary[String, Variant] = {
 	KEY_VOLUME: 0.8,
 	KEY_LOG_LEVEL: 1,
 	KEY_REDUCED_FX: false,
+	KEY_DEBUG_SKIP_HOURS: 1,
 }
 
 ## Path of the settings file; tests point it to a scratch folder.
@@ -194,6 +197,8 @@ static func _is_valid(key: String, value: Variant) -> bool:
 			return value is int and FPS_LIMITS.has(int(value))
 		KEY_VOLUME:
 			return (value is float or value is int) and float(value) >= 0.0 and float(value) <= 1.0
+		KEY_DEBUG_SKIP_HOURS:
+			return value is int and int(value) >= 1
 		KEY_LOG_LEVEL:
 			return value is int and int(value) >= 0 and int(value) < LOG_LEVELS.size()
 	return false

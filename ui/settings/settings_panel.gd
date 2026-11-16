@@ -24,6 +24,9 @@ const FPS_TEXT := "Limite FPS"
 const VSYNC_TEXT := "VSync"
 const VOLUME_TEXT := "Volume"
 const REDUCED_FX_TEXT := "Effetti visivi ridotti"
+const DEBUG_HEADER_TEXT := "Debug"
+const SKIP_TEXT := "Avanza il tempo (ore)"
+const SKIP_BUTTON_TEXT := "Avanza"
 const LOG_LEVEL_TEXT := "Livello dei log"
 const AUTO_SCALE_TEXT := "Automatica"
 const NO_LIMIT_TEXT := "Nessun limite"
@@ -53,6 +56,8 @@ var _log_level: OptionButton
 var _apply_button: Button
 var _close_button: Button
 var _quit_button: Button = null
+var _skip_hours: SpinBox = null
+var _skip_button: Button = null
 
 
 func _ready() -> void:
@@ -77,6 +82,8 @@ func _ready() -> void:
 	content.add_child(column)
 	_build_video(column)
 	_build_diagnostics(column)
+	if in_game:
+		_build_debug(column)
 	content.add_child(_separator())
 	_build_buttons(content)
 
@@ -133,6 +140,27 @@ func _build_diagnostics(column: VBoxContainer) -> void:
 	_log_level = _option(grid, LOG_LEVEL_TEXT, GameSettings.LOG_LEVELS, int(GameSettings.get_value(GameSettings.KEY_LOG_LEVEL)))
 
 
+func _build_debug(column: VBoxContainer) -> void:
+	var coordinator: GameScript = game if game != null else Game
+	if coordinator.session == null:
+		return
+	column.add_child(_header(DEBUG_HEADER_TEXT))
+	var grid: GridContainer = _grid(column)
+	_label(grid, SKIP_TEXT)
+	var row := HBoxContainer.new()
+	grid.add_child(row)
+	_skip_hours = SpinBox.new()
+	_skip_hours.min_value = 1
+	_skip_hours.max_value = DebugTimeSkip.max_hours(coordinator.session)
+	_skip_hours.step = 1
+	_skip_hours.value = clampi(int(GameSettings.get_value(GameSettings.KEY_DEBUG_SKIP_HOURS)), 1, int(_skip_hours.max_value))
+	row.add_child(_skip_hours)
+	_skip_button = Button.new()
+	_skip_button.text = SKIP_BUTTON_TEXT
+	_skip_button.pressed.connect(_skip_time)
+	row.add_child(_skip_button)
+
+
 func _build_buttons(parent: VBoxContainer) -> void:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", UiStyle.SETTINGS_BUTTON_ROW_SEPARATION)
@@ -172,6 +200,27 @@ func _apply() -> void:
 	GameSettings.save()
 	var window: Window = apply_window.call() as Window if apply_window.is_valid() else get_window()
 	GameSettings.apply(window)
+
+
+# Debug: passes the chosen hours through the offline path, remembers the choice (settings file), shows the summary.
+func _skip_time() -> void:
+	var coordinator: GameScript = game if game != null else Game
+	var session: GameSession = coordinator.session
+	if session == null or _skip_button.disabled:
+		return
+	var hours: int = int(_skip_hours.value)
+	GameSettings.set_value(GameSettings.KEY_DEBUG_SKIP_HOURS, hours)
+	GameSettings.save()
+	_skip_button.disabled = true
+	var was_paused: bool = GameClock.is_paused()
+	GameClock.set_paused(true)
+	var summary: OfflineSummary = await DebugTimeSkip.new().run(session, hours)
+	GameClock.set_paused(was_paused)
+	if not is_instance_valid(_skip_button):
+		return
+	_skip_button.disabled = false
+	if summary != null:
+		OfflineSummaryView.open(get_parent(), summary, session.data)
 
 
 func _close() -> void:
