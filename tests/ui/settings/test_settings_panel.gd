@@ -114,3 +114,10 @@ func test_main_menu_settings_button_opens_panel() -> void:
 	# M9-07: freeing a panel (OptionButton popups = Windows) in the frame it was built crashes Godot (signal 11) in the
 	# next UI test, about 7 runs out of 8; two frames of life avoid it.
 	await wait_process_frames(2)
+
+
+func test_debug_skip_section_only_in_game_with_session() -> void:
+	assert_false(_buttons(_panel(true)).has("Avanza"), "no session: no debug section")
+	_fake.session = autofree(TestFactory.session(3, TestFactory.real_data()))
+	assert_true(_buttons(_panel(true)).has("Avanza"))
+	assert_false(_buttons(_panel(false)).has("Avanza"))
