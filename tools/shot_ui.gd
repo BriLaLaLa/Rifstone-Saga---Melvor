@@ -29,6 +29,7 @@ func _run() -> void:
 	TestFactory.learn_discipline(session, &"forestry")
 	TestFactory.learn_discipline(session, &"forging")
 	session.village.from_save({"levels": {"auction_house": 3}})
+	session.wallet.add_gold(125440)  # gold, silver and copper all non zero in the top bar
 	var screen: MainScreen = (load(SCENE) as PackedScene).instantiate() as MainScreen
 	screen.session = session
 	get_tree().root.add_child.call_deferred(screen)

@@ -29,7 +29,7 @@ func after_each() -> void:
 
 func test_scene_instantiates_with_injected_session() -> void:
 	assert_eq(_page_host().current_page_id(), &"skill:test_gather", "first skill with a page")
-	assert_eq(_label(_top_bar(), "%GoldLabel").text, NumberFormat.format_int(_session.wallet.get_gold()))
+	assert_eq(_money(_top_bar()).plain_text(), Money.text(_session.wallet.get_gold(), _session.data.currency()))
 	assert_eq(_label(_top_bar(), "%BankLabel").text, "%s / %s" % [
 		NumberFormat.format_int(_session.deposit.used()), NumberFormat.format_int(_session.deposit.capacity())])
 	assert_true(_label(_top_bar(), "%SlotLabel").text.contains("Slot %d" % _session.slot))
@@ -119,7 +119,7 @@ func test_sidebar_level_follows_level_up() -> void:
 
 func test_top_bar_follows_gold_and_bank() -> void:
 	_session.wallet.add_gold(1250)
-	assert_eq(_label(_top_bar(), "%GoldLabel").text, NumberFormat.format_int(_session.wallet.get_gold()))
+	assert_eq(_money(_top_bar()).plain_text(), Money.text(_session.wallet.get_gold(), _session.data.currency()))
 	TestFactory.give(_session, &"test_twig", 3)
 	assert_eq(_label(_top_bar(), "%BankLabel").text, "%s / %s" % [
 		NumberFormat.format_int(_session.deposit.used()), NumberFormat.format_int(_session.deposit.capacity())])
@@ -130,9 +130,9 @@ func test_session_ended_disconnects_everything() -> void:
 	for signal_name: StringName in _baseline:
 		assert_eq(_count(signal_name), _baseline[signal_name], "%s back to the baseline" % signal_name)
 	assert_eq(_page_host().current_page_id(), &"", "page unbound and freed")
-	var gold_text: String = _label(_top_bar(), "%GoldLabel").text
+	var gold_text: String = _money(_top_bar()).plain_text()
 	_session.wallet.add_gold(10)
-	assert_eq(_label(_top_bar(), "%GoldLabel").text, gold_text, "no redraw after the end of the session")
+	assert_eq(_money(_top_bar()).plain_text(), gold_text, "no redraw after the end of the session")
 
 
 func test_freeing_the_screen_disconnects_everything() -> void:
@@ -187,6 +187,10 @@ func _top_bar() -> TopBar:
 
 func _sidebar() -> Sidebar:
 	return _screen.get_node("%Sidebar") as Sidebar
+
+
+func _money(node: Node) -> MoneyLabel:
+	return node.get_node("%GoldLabel") as MoneyLabel
 
 
 func _label(node: Node, path: String) -> Label:

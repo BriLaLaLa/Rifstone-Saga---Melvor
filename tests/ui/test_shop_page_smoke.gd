@@ -29,9 +29,9 @@ func test_one_row_per_entry_with_prices_from_the_shop() -> void:
 		assert_not_null(_row(entry.id), "row of %s" % entry.id)
 		assert_eq(_row_label(entry.id, "NameLabel").text, entry.name)
 		assert_eq(_row_label(entry.id, "PriceLabel").text,
-				"Prezzo: %s oro" % NumberFormat.format_int(_session.shop.price(entry.id)))
+				"Prezzo: %s" % Money.text(_session.shop.price(entry.id), _session.data.currency()))
 	assert_eq(_label("%TitleLabel").text, "Shop")
-	assert_eq(_label("%GoldLabel").text, "Oro: %s" % NumberFormat.format_int(_session.wallet.get_gold()))
+	assert_eq(_money("%GoldLabel").plain_text(), Money.text(_session.wallet.get_gold(), _session.data.currency()))
 
 
 func test_buy_disabled_with_reason_when_gold_is_missing() -> void:
@@ -39,9 +39,9 @@ func test_buy_disabled_with_reason_when_gold_is_missing() -> void:
 	var buy: Button = _buy(&"test_upgrade_1")
 	assert_true(buy.disabled)
 	assert_eq(_session.shop.can_buy(&"test_upgrade_1").reason, Reasons.NOT_ENOUGH_GOLD)
-	assert_eq(_row_label(&"test_upgrade_1", "ReasonLabel").text, "Oro insufficiente.")
+	assert_eq(_row_label(&"test_upgrade_1", "ReasonLabel").text, "Monete insufficienti.")
 	assert_true(_row_label(&"test_upgrade_1", "ReasonLabel").visible)
-	assert_eq(buy.tooltip_text, "Oro insufficiente.")
+	assert_eq(buy.tooltip_text, "Monete insufficienti.")
 
 
 func test_buy_enabled_when_can_buy_succeeds_and_buying_updates_the_page() -> void:
@@ -51,7 +51,7 @@ func test_buy_enabled_when_can_buy_succeeds_and_buying_updates_the_page() -> voi
 	var price: int = _session.shop.price(&"test_upgrade_1")
 	var buy: Button = _buy(&"test_upgrade_1")
 	assert_false(buy.disabled, "gold event refreshed the row")
-	assert_eq(_label("%GoldLabel").text, ShopPage.GOLD_TEXT % NumberFormat.format_int(gold))
+	assert_eq(_money("%GoldLabel").plain_text(), Money.text(gold, _session.data.currency()))
 	assert_false(_row_label(&"test_upgrade_1", "ReasonLabel").visible)
 	buy.pressed.emit()
 	assert_eq(_session.shop.purchase_count(&"test_upgrade_1"), 1)
@@ -104,9 +104,9 @@ func test_unbind_disconnects_everything() -> void:
 		var sig: Signal = Signal(_session.events, event_name)
 		for connection: Dictionary in sig.get_connections():
 			assert_ne((connection["callable"] as Callable).get_object(), _page, "%s still connected" % event_name)
-	var shown: String = _label("%GoldLabel").text
+	var shown: String = _money("%GoldLabel").plain_text()
 	_session.wallet.add_gold(1000)
-	assert_eq(_label("%GoldLabel").text, shown, "no refresh after unbind")
+	assert_eq(_money("%GoldLabel").plain_text(), shown, "no refresh after unbind")
 
 
 func _open() -> void:
@@ -114,6 +114,10 @@ func _open() -> void:
 	_page.page_id = &"shop"
 	add_child(_page)
 	_page.bind(_session)
+
+
+func _money(path: String) -> MoneyLabel:
+	return _page.get_node(path) as MoneyLabel
 
 
 func _label(path: String) -> Label:

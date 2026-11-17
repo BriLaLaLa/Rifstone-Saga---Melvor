@@ -19,7 +19,7 @@ static func rooms(data: GameData) -> Array[Array]:
 	for def: DungeonDef in data.dungeons():
 		for type: DungeonRoomType in def.room_types:
 			rows.append([def.name, ROOM_NAMES.get(type.id, String(type.id)), str(type.weight), str(type.min_layer),
-					EVENT_TEXTS.get(type.id, _composition(type, def)), _reward(type.reward)])
+					EVENT_TEXTS.get(type.id, _composition(type, def)), _reward(type.reward, data.currency())])
 	return rows
 
 
@@ -38,7 +38,7 @@ static func stages(data: GameData) -> Array[Array]:
 static func loot(data: GameData) -> Array[Array]:
 	var rows: Array[Array] = [["Dungeon", "Premio del boss", "Quantità"]]
 	for def: DungeonDef in data.dungeons():
-		rows.append([def.name, "Oro", _range(def.boss_gold)])
+		rows.append([def.name, "Monete", _money_range(def.boss_gold, data.currency())])
 		rows.append([def.name, "Polvere del Rift", _range(def.boss_dust)])
 		var pieces: PackedStringArray = PackedStringArray()
 		for piece: Dictionary in def.boss_pieces:
@@ -76,10 +76,10 @@ static func _range(value: Vector2i) -> String:
 	return "%d" % value.x if value.x == value.y else "%d - %d" % [value.x, value.y]
 
 
-static func _reward(reward: Dictionary) -> String:
+static func _reward(reward: Dictionary, currency: CurrencyParams) -> String:
 	var parts: PackedStringArray = PackedStringArray()
 	if reward.has("gold"):
-		parts.append("oro %s" % _range(reward["gold"] as Vector2i))
+		parts.append("monete %s" % _money_range(reward["gold"] as Vector2i, currency))
 	if reward.has("dust"):
 		parts.append("Polvere %s" % _range(reward["dust"] as Vector2i))
 	if reward.has("crystal_pct"):
@@ -87,3 +87,9 @@ static func _reward(reward: Dictionary) -> String:
 	if reward.has("piece_pct"):
 		parts.append("pezzo %s%%" % GuideIndex.num(float(reward["piece_pct"])))
 	return ", ".join(parts)
+
+
+static func _money_range(value: Vector2i, currency: CurrencyParams) -> String:
+	if value.x == value.y:
+		return Money.text(value.x, currency)
+	return "%s - %s" % [Money.text(value.x, currency), Money.text(value.y, currency)]

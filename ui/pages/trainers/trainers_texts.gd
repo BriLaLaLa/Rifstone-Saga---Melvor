@@ -5,7 +5,7 @@ extends RefCounted
 
 const TITLE_TEXT: String = "Maestri di mestiere"
 const SIDEBAR_TEXT: String = "Maestri"
-const GOLD_TEXT: String = "Oro: %s"
+const GOLD_CAPTION: String = "Monete:"
 const CATEGORY_TITLES: Dictionary[StringName, String] = {&"gathering": "Raccolta", &"artisan": "Produzione"}
 const SLOTS_TEXT: String = "%s/%s posti"
 const TRAINER_TEXT: String = "%s, %s"
@@ -13,9 +13,9 @@ const NOT_LEARNED_TEXT: String = "Non appresa"
 const GRADE_TEXT: String = "Grado: %s (livello massimo %s)"
 const LEVEL_TEXT: String = "Livello %s / %s"
 const LEVEL_UNLEARNED_TEXT: String = "Livello massimo al primo grado: %s"
-const COST_LEARN_TEXT: String = "Per imparare: %s oro"
+const COST_LEARN_TEXT: String = "Per imparare: %s"
 const COST_FREE_TEXT: String = "Per imparare: gratis"
-const COST_TRAIN_TEXT: String = "Grado successivo: %s (livello massimo %s, personaggio livello %s), %s oro"
+const COST_TRAIN_TEXT: String = "Grado successivo: %s (livello massimo %s, personaggio livello %s), %s"
 const MAX_GRADE_TEXT: String = "Grado massimo raggiunto"
 const EXTRA_SLOT_TEXT: String = "Posto extra"
 const FED_BY_DROPS_TEXT: String = "Si alimenta con i drop dei mostri"
@@ -24,7 +24,7 @@ const LEARN_TEXT: String = "Impara"
 const TRAIN_TEXT: String = "Grado successivo"
 const UNLEARN_TEXT: String = "Disimpara"
 const UNLEARN_TITLE: String = "Disimparare %s"
-const UNLEARN_QUESTION: String = "Disimparare %s costa %s oro. Perderai: %s. Vuoi procedere?"
+const UNLEARN_QUESTION: String = "Disimparare %s costa %s. Perderai: %s. Vuoi procedere?"
 const LOSS_LEVEL: String = "livello %s con %s XP"
 const LOSS_MASTERY: String = "la maestria e il suo pool (%s XP di pool)"
 const LOSS_JOBS: String = "%s lavori in coda"
@@ -36,7 +36,7 @@ const REFUSED_TEXTS: Dictionary[StringName, String] = {
 	Reasons.ALREADY_LEARNED: "Disciplina già appresa.",
 	Reasons.DISCIPLINE_SLOTS_FULL: "Non hai posti liberi in questa categoria: disimpara una disciplina.",
 	Reasons.REQUIREMENT_NOT_MET: "Il personaggio non ha ancora il livello richiesto.",
-	Reasons.NOT_ENOUGH_GOLD: "Oro insufficiente.",
+	Reasons.NOT_ENOUGH_GOLD: "Monete insufficienti.",
 	Reasons.NOT_LEARNED: "Disciplina non appresa.",
 	Reasons.MAX_GRADE: "Grado massimo già raggiunto.",
 	Reasons.LEVEL_TOO_LOW: "Il livello della disciplina è troppo basso per il grado successivo.",

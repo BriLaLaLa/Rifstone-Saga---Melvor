@@ -76,7 +76,10 @@ static func body(item: ItemDef, data: GameData) -> PackedStringArray:
 	if item.is_food():
 		lines.append("Cura %s punti vita" % _value(NumberFormat.format_int(item.food_heal)))
 	if item.value > 0:
-		lines.append(_muted("Valore: %s oro" % NumberFormat.format_int(item.value)))
+		if has_data and data.currency() != null:
+			lines.append(_muted("Valore: %s" % Money.text(item.value, data.currency())))
+		else:
+			Log.warn(LOG_CATEGORY, "tooltip of '%s' without currency: value hidden" % item.id)
 	else:
 		lines.append(_muted("Non vendibile"))
 	return lines

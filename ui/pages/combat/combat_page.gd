@@ -245,7 +245,7 @@ func _redraw_food() -> void:
 
 func _redraw_yield() -> void:
 	var now: int = _session.play_time_ms
-	_yield.redraw_values(_yield_values, now)
+	_yield.redraw_values(_yield_values, now, _session.data.currency())
 	_yield_window.text = CombatTexts.yield_window_text(_yield.window_ms(now))
 
 

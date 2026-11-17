@@ -101,8 +101,8 @@ static func build_grid(grid: GridContainer) -> Dictionary[StringName, Label]:
 
 
 ## Writes the rates per hour (kills, XP, gold) and per second (damage) into the labels of `build_grid`.
-func redraw_values(values: Dictionary[StringName, Label], now: int) -> void:
+func redraw_values(values: Dictionary[StringName, Label], now: int, currency: CurrencyParams) -> void:
 	values[KILLS].text = NumberFormat.format_int(per_hour(KILLS, now))
 	values[XP].text = NumberFormat.format_int(per_hour(XP, now))
-	values[GOLD].text = NumberFormat.format_int(per_hour(GOLD, now))
+	values[GOLD].text = Money.text(per_hour(GOLD, now), currency)
 	values[DAMAGE].text = NumberFormat.format_int(per_second(DAMAGE, now))

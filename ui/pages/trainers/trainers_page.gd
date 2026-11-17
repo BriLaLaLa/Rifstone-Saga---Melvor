@@ -19,7 +19,7 @@ var _connections: Array[Array] = []
 @onready var _margin: MarginContainer = %Margin
 @onready var _content: VBoxContainer = %Content
 @onready var _title_label: Label = %TitleLabel
-@onready var _gold_label: Label = %GoldLabel
+@onready var _gold_label: MoneyLabel = %GoldLabel
 @onready var _message_label: Label = %MessageLabel
 @onready var _gathering_title: Label = %GatheringTitle
 @onready var _artisan_title: Label = %ArtisanTitle
@@ -90,7 +90,8 @@ func _build_rows() -> void:
 func _refresh() -> void:
 	if _session == null:
 		return
-	_gold_label.text = TrainersTexts.GOLD_TEXT % NumberFormat.format_int(_session.wallet.get_gold())
+	_gold_label.caption = TrainersTexts.GOLD_CAPTION
+	_gold_label.set_amount(_session.wallet.get_gold(), _session.data.currency())
 	for category: StringName in _titles:
 		var total: int = _session.disciplines.learned(category).size() + _session.disciplines.free_slots(category)
 		_titles[category].text = TrainersTexts.title(category, _session.disciplines.learned(category).size(), total)
@@ -124,7 +125,7 @@ func _on_unlearn_requested(skill_id: StringName) -> void:
 		return
 	var skill: SkillDef = _session.data.skill(skill_id)
 	var text: String = TrainersTexts.UNLEARN_QUESTION % [skill.name,
-			NumberFormat.format_int(_session.disciplines.unlearn_cost(skill_id)), _loss_text(skill_id)]
+			Money.text(_session.disciplines.unlearn_cost(skill_id), _session.data.currency()), _loss_text(skill_id)]
 	var accepted: bool = await ConfirmDialog.ask(self, TrainersTexts.UNLEARN_TITLE % skill.name, text)
 	if accepted and _session != null:
 		_show_result(_session.disciplines.unlearn(skill_id))

@@ -97,7 +97,7 @@ func _rebuild() -> void:
 			_rows.append(row)
 	_no_board_label.visible = count == 0
 	for row: QuestRow in _rows:
-		row.refresh(_quests, _definitions)
+		row.refresh(_quests, _definitions, _session.data.currency())
 
 
 func _on_claim_requested(slot: int) -> void:

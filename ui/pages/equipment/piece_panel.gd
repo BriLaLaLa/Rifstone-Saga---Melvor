@@ -24,7 +24,7 @@ const UNEQUIP_TEXT: String = "Rimuovi"
 const LOCK_TEXT: String = "Blocca"
 const UNLOCK_TEXT: String = "Sblocca"
 const SALVAGE_TEXT: String = "Smantella"
-const SELL_TEXT: String = "Vendi (%s oro)"
+const SELL_TEXT: String = "Vendi (%s)"
 const SELL_LOCKED_TEXT: String = "Sblocca il pezzo per venderlo."
 const SELL_WORN_TEXT: String = "Rimuovi il pezzo per venderlo."
 const SELL_NOT_SELLABLE_TEXT: String = "Questo pezzo non si vende."
@@ -183,7 +183,7 @@ func _refresh_actions(inst: ItemInstance, base: ItemDef, worn_slot: StringName) 
 		note = SELL_NOT_SELLABLE_TEXT
 	_sell_note.text = note
 	_sell_note.visible = not note.is_empty()
-	_sell_button.text = SELL_TEXT % NumberFormat.format_int(gold)
+	_sell_button.text = SELL_TEXT % Money.text(gold, _session.data.currency())
 	_sell_button.disabled = not note.is_empty()
 	_salvage_button.disabled = worn or inst.locked
 

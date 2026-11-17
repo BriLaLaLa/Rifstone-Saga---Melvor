@@ -32,10 +32,10 @@ func test_trainer_grades_table_follows_the_data() -> void:
 		assert_eq(rows[index + 1][0], grades[index].name)
 		assert_eq(rows[index + 1][1], str(grades[index].cap))
 		assert_eq(rows[index + 1][2], str(grades[index].character_level))
-		assert_eq(rows[index + 1][3], GuideIndex.num(float(TrainerGradeDef.gold(_data, index + 1))))
-	assert_eq(rows[1][3], "0", "F-158: the first grade costs trainer.learn_gold")
-	assert_eq(rows[2][3], "25000", "F-158 gold(2)")
-	assert_eq(rows[5][3], "3125000", "F-158 gold(5)")
+		assert_eq(rows[index + 1][3], Money.text(TrainerGradeDef.gold(_data, index + 1), _data.currency()))
+	assert_eq(rows[1][3], "0r", "F-158: the first grade costs trainer.learn_gold")
+	assert_eq(rows[2][3], "2o 50a", "F-158 gold(2)")
+	assert_eq(rows[5][3], "312o 50a", "F-158 gold(5)")
 
 
 func test_engraver_recipes_table_shows_the_chance_range_for_crystals() -> void:

@@ -101,7 +101,7 @@ func refresh(session: GameSession) -> void:
 		var first: TrainerGradeDef = data.trainer_grade(1)
 		_level.text = TrainersTexts.LEVEL_UNLEARNED_TEXT % NumberFormat.format_int(first.cap if first != null else 0)
 		var gold: int = disciplines.next_grade_cost(id)
-		_cost.text = TrainersTexts.COST_FREE_TEXT if gold <= 0 else TrainersTexts.COST_LEARN_TEXT % NumberFormat.format_int(gold)
+		_cost.text = TrainersTexts.COST_FREE_TEXT if gold <= 0 else TrainersTexts.COST_LEARN_TEXT % Money.text(gold, data.currency())
 		var can: CommandResult = disciplines.can_learn(id)
 		_learn.disabled = not can.ok
 		hint = can.reason if not can.ok else &""
@@ -118,7 +118,7 @@ func refresh(session: GameSession) -> void:
 			_cost.text = TrainersTexts.MAX_GRADE_TEXT
 		else:
 			_cost.text = TrainersTexts.COST_TRAIN_TEXT % [next_def.name, NumberFormat.format_int(next_def.cap),
-					NumberFormat.format_int(next_def.character_level), NumberFormat.format_int(cost)]
+					NumberFormat.format_int(next_def.character_level), Money.text(cost, data.currency())]
 		var can_train: CommandResult = disciplines.can_train(id)
 		_train.disabled = not can_train.ok
 		hint = can_train.reason if not can_train.ok and can_train.reason != Reasons.MAX_GRADE else &""

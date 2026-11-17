@@ -15,7 +15,7 @@ const REFUSED_TEXTS: Dictionary[StringName, String] = {
 	Reasons.NOT_SELLABLE: "Questo pezzo non si vende.",
 	Reasons.NOT_FOOD: "Questo oggetto non è un cibo.",
 	Reasons.NOT_ENOUGH_ITEMS: "Mancano dei materiali: lingotti, frammenti del Rift o Sigillo.",
-	Reasons.NOT_ENOUGH_GOLD: "Non hai abbastanza oro.",
+	Reasons.NOT_ENOUGH_GOLD: "Non hai abbastanza monete.",
 	Reasons.UPGRADE_MAX: "Il pezzo è già al livello massimo di raffinazione.",
 	Reasons.BANK_FULL: "Il deposito è pieno: fai posto per i materiali dello smantellamento.",
 	Reasons.INVALID_AMOUNT: "Valore del filtro non valido.",

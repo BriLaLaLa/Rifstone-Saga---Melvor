@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://ui/screens/main/top_bar.gd" id="1_top_bar"]
+[ext_resource type="Script" path="res://ui/components/money/money_label.gd" id="99_money"]
 
 [node name="TopBar" type="PanelContainer"]
 custom_minimum_size = Vector2(0, 56)
@@ -11,23 +12,12 @@ script = ExtResource("1_top_bar")
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="GoldIcon" type="TextureRect" parent="Row"]
+[node name="GoldLabel" type="HBoxContainer" parent="Row"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(24, 24)
+script = ExtResource("99_money")
+custom_minimum_size = Vector2(170, 0)
 layout_mode = 2
-size_flags_vertical = 4
-tooltip_text = "Oro"
-expand_mode = 1
-stretch_mode = 5
-
-[node name="GoldLabel" type="Label" parent="Row"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(110, 0)
-layout_mode = 2
-tooltip_text = "Oro"
-mouse_filter = 1
-vertical_alignment = 1
-text = "0"
+tooltip_text = "Monete"
 
 [node name="BankIcon" type="TextureRect" parent="Row"]
 unique_name_in_owner = true

@@ -74,8 +74,8 @@ func _redraw_next(session: GameSession, inst: ItemInstance) -> void:
 			session.bank.get_count(handles.item_id) >= handles.qty)
 	var gold: int = int(step["gold"])
 	if gold > 0:
-		_add_line(_cost, ToolUpgradeTexts.COST_LINE % [ToolUpgradeTexts.GOLD_NAME, NumberFormat.format_int(
-				session.wallet.get_gold()), NumberFormat.format_int(gold)], session.wallet.get_gold() >= gold)
+		_add_line(_cost, ToolUpgradeTexts.COST_LINE % [ToolUpgradeTexts.GOLD_NAME, Money.text(
+				session.wallet.get_gold(), session.data.currency()), Money.text(gold, session.data.currency())], session.wallet.get_gold() >= gold)
 	var min_level: int = int(step["min_level"])
 	_level_label.text = ToolUpgradeTexts.MIN_LEVEL_TEXT % NumberFormat.format_int(min_level)
 	_level_label.add_theme_color_override("font_color",

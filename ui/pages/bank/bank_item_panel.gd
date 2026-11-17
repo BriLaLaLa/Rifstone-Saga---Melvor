@@ -28,7 +28,7 @@ const BAG_TEXT: String = "Metti nello slot"
 const SELL_TEXT: String = "Vendi"
 const SELL_ALL_BUT_ONE_TEXT: String = "Tutti tranne 1"
 const SELL_ALL_TEXT: String = "Tutti"
-const SELL_PREVIEW_TEXT: String = "Vendita di %s: %s oro"
+const SELL_PREVIEW_TEXT: String = "Vendita di %s: %s"
 const SELL_LOCKED_TEXT: String = "Sblocca l'oggetto per venderlo."
 const SELL_NOT_SELLABLE_TEXT: String = "Questo oggetto non si vende."
 const LEARN_RECIPE_TEXT: String = "Impara"
@@ -208,7 +208,7 @@ func _update_sell_preview() -> void:
 		return
 	var qty: int = int(_sell_slider.value)
 	var gold: int = _session.shop.sell_value(_item_id, qty)
-	_sell_preview.text = SELL_PREVIEW_TEXT % [NumberFormat.format_int(qty), NumberFormat.format_int(gold)]
+	_sell_preview.text = SELL_PREVIEW_TEXT % [NumberFormat.format_int(qty), Money.text(gold, _session.data.currency())]
 
 
 func _request_sell(qty: int) -> void:

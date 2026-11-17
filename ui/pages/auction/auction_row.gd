@@ -77,10 +77,10 @@ func refresh(auction: Object, session: GameSession, selected: bool, zebra: bool)
 	_trend_label.add_theme_color_override("font_color", trend_color(trend))
 	if mode == &"sell":
 		_avail_label.text = NumberFormat.format_int(session.bank.get_count(item_id))
-		_price_label.text = NumberFormat.format_int(int(auction.sell_quote(item_id, 1)))
-		_deposit_label.text = NumberFormat.format_int(session.shop.sell_value(item_id, 1))
+		_price_label.text = Money.text(int(auction.sell_quote(item_id, 1)), session.data.currency())
+		_deposit_label.text = Money.text(session.shop.sell_value(item_id, 1), session.data.currency())
 	else:
-		_price_label.text = NumberFormat.format_int(int(auction.buy_quote(item_id, 1)))
+		_price_label.text = Money.text(int(auction.buy_quote(item_id, 1)), session.data.currency())
 		if int(auction.level()) >= int(auction.buy_level(item_id)):
 			_avail_label.text = AuctionTexts.AVAILABLE_TEXT % [NumberFormat.format_int(int(auction.stock(item_id))),
 					NumberFormat.format_int(int(auction.stock_max(item_id)))]

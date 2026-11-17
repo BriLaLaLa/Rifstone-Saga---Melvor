@@ -8,7 +8,6 @@ extends PanelContainer
 
 signal menu_requested
 
-const GOLD_ICON: String = "coins"
 const BANK_ICON: String = "box"
 const MENU_ICON: String = "door-exit"
 const BANK_TEXT: String = "%s / %s"
@@ -16,8 +15,7 @@ const SLOT_TEXT: String = "%s  ·  Slot %d"
 
 var _session: GameSession = null
 
-@onready var _gold_icon: TextureRect = %GoldIcon
-@onready var _gold_label: Label = %GoldLabel
+@onready var _gold_label: MoneyLabel = %GoldLabel
 @onready var _bank_icon: TextureRect = %BankIcon
 @onready var _bank_label: Label = %BankLabel
 @onready var _slot_label: Label = %SlotLabel
@@ -26,8 +24,6 @@ var _session: GameSession = null
 
 func _ready() -> void:
 	custom_minimum_size.y = UiStyle.TOP_BAR_HEIGHT
-	_gold_icon.texture = UiStyle.icon(GOLD_ICON)
-	_gold_icon.modulate = UiStyle.GOLD
 	_bank_icon.texture = UiStyle.icon(BANK_ICON)
 	_bank_icon.modulate = UiStyle.GOLD
 	_menu_button.icon = UiStyle.icon(MENU_ICON)
@@ -73,7 +69,7 @@ func _on_events_player_renamed(_new_name: String) -> void:
 
 
 func _redraw_gold() -> void:
-	_gold_label.text = NumberFormat.format_int(_session.wallet.get_gold())
+	_gold_label.set_amount(_session.wallet.get_gold(), _session.data.currency())
 
 
 func _redraw_bank() -> void:

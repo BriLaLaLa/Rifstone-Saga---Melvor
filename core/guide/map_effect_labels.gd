@@ -14,7 +14,7 @@ const LABELS: Dictionary[StringName, String] = {
 	&"loot_qty_pct": "Quantità del bottino",
 	&"item_rarity_pct": "Rarità dei pezzi",
 	&"xp_pct": "XP del personaggio",
-	&"gold_drop_pct": "Oro dai mostri",
+	&"gold_drop_pct": "Monete dai mostri",
 	&"blueprint_pct": "Progetti",
 	&"dust_pct": "Polvere del Rift",
 	&"card_chance_pct": "Carte della Frattura",

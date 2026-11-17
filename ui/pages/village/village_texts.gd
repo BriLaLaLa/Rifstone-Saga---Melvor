@@ -3,7 +3,7 @@ extends RefCounted
 ## Italian texts of the Village page (docs/01_GDD.md §30, docs/05_INTERFACES.md §7.t). Presentation only: no game number here.
 
 const TITLE_TEXT: String = "Villaggio"
-const GOLD_TEXT: String = "Oro: %s"
+const GOLD_CAPTION: String = "Monete:"
 const BUILD_TEXT: String = "Costruisci"
 const UPGRADE_TEXT: String = "Migliora"
 const COMING_SOON_TEXT: String = "In arrivo"
@@ -16,7 +16,7 @@ const FIXED_EFFECT_TEXT: String = "Sblocca nuove bancarelle"
 const FIXED_EFFECT_TEXTS: Dictionary[StringName, String] = {&"auction_house": "Compravendita di materiali"}
 const EFFECT_LINE_TEXT: String = "%s %s"
 const COST_TITLE_TEXT: String = "Costo"
-const COST_GOLD_TEXT: String = "Oro: %s / %s"
+const COST_GOLD_TEXT: String = "Monete: %s / %s"
 const COST_ITEM_TEXT: String = "%s: %s / %s"
 const COST_MISSING_TEXT: String = " (mancano %s)"
 const REQUIRES_WOODWRIGHT_TEXT: String = "Richiede livello %s"
@@ -26,7 +26,7 @@ const REFUSED_TEXTS: Dictionary[StringName, String] = {
 	&"not_buildable": "Non ancora costruibile.",
 	&"max_level": "Livello massimo raggiunto.",
 	&"level_too_low": "Livello del personaggio troppo basso.",
-	&"not_enough_gold": "Oro insufficiente.",
+	&"not_enough_gold": "Monete insufficienti.",
 	&"not_enough_items": "Materiali insufficienti.",
 }
 ## Map view (docs/01_GDD.md §32).
