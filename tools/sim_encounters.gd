@@ -1,6 +1,6 @@
 extends SceneTree
-## Balance tool for the cycle of encounters (docs/02_FORMULAS_M24.md F-156, docs/05_INTERFACES_M24.md §8b, M24-07): drives the real
-## CombatEngine on a session built from the real data, with fights, journeys and gathering nodes, and checks the thresholds of F-156.
+## Balance tool for the cycle of encounters (docs/02_FORMULAS_M24.md F-156, docs/02_FORMULAS_M25.md F-161..F-165, M25 QA): drives the real
+## CombatEngine on a session built from the real data (attempts, yield, rich nodes), checks the thresholds of F-156 and the closed form F-165 (+-5%).
 ##
 ## Usage: godot --headless --path . -s tools/sim_encounters.gd [-- key=value ...]
 ##   hours=<n>          simulated hours (default 12)
@@ -10,6 +10,7 @@ extends SceneTree
 ##   seed=<n>           session seed (default 1234)
 ##   nodes=1|0          0 = reference "before M24": node_chance_pct 0 and travel_ms = combat.respawn_ms
 ##   slice=<s>          seconds between pins of the levels (default 30)
+##   tool=1|0           0 = clear the sources of skill_interval_pct (tools, mastery nodes) before the run (diagnosis Q123)
 ##   root=<res path>    content root (default res://data)
 ## The discipline levels are pinned at the step of the area's resource (F-154), the level of the character as in sim_combat.
 ## Exit 0 if every threshold passes, 1 otherwise. Nothing is written. GameData and the sessions use the Log autoload, which does not
@@ -21,7 +22,7 @@ const CYCLE_PATH: String = "res://systems/encounters/encounter_cycle.gd"
 const CONFIG_ROOT: String = "res://data/config"
 const HOUR_MS: int = 3600000
 const DEFAULTS: Dictionary = {
-	"hours": "12", "area": "redrock_plains", "level": "auto", "learned": "auto", "seed": "1234", "nodes": "1", "slice": "30",
+	"hours": "12", "area": "redrock_plains", "level": "auto", "learned": "auto", "seed": "1234", "nodes": "1", "slice": "30", "tool": "1",
 	"root": "res://data",
 }
 ## Thresholds of F-156 (the values are the document's, not game data).
@@ -102,13 +103,21 @@ static func report(opts: Dictionary, lines: PackedStringArray) -> PackedStringAr
 	if kills_ratio < KILLS_RATIO_MIN:
 		failures.append("(1) kills/h ratio %.3f under %.2f" % [kills_ratio, KILLS_RATIO_MIN])
 	lines.append("")
-	lines.append("closed form F-156 with the measured E_F %.0f ms (encounters/h, fights/h, nodes worked/h):" % row["fight_ms"])
+	lines.append("closed form F-165 (F-155 node durations, measured E_F %.0f ms; encounters/h, fights/h, nodes worked/h, units/h, node s):" % row["fight_ms"])
 	var expected: Dictionary = row["expected"]
 	var expected_nodes: float = 0.0
 	for value: Variant in (expected["nodes_per_hour"] as Dictionary).values():
 		expected_nodes += float(value)
 	var checks: Array = [["encounters/h", row["per_hour"], expected["per_hour"], 0.0], ["fights/h", row["fights_per_hour"], expected["fights_per_hour"], 0.0],
 		["nodes worked/h", row["worked_per_hour"], expected_nodes, 2.0 / sqrt(maxf(1.0, float(row["worked"])))]]
+	for skill: StringName in row["learned"]:
+		lines.append("  skill_interval_pct sources of %s at the end: %s" % [skill, row["interval_sources_%s" % skill]])
+	var rich_ms_mult: float = float(expected["ms_mult"])
+	for skill: StringName in row["learned"]:
+		var s: Dictionary = row["skills"][skill]
+		var noise: float = 2.0 / sqrt(maxf(1.0, s["worked_per_hour"] * row["hours"]))
+		checks.append(["%s units/h" % skill, s["units_per_hour"], (expected["units_per_hour"] as Dictionary)[skill], noise])
+		checks.append(["%s node s (F-155 x mM)" % skill, s["mean_ms"] / 1000.0, s["f155_ms"] * rich_ms_mult / 1000.0, noise])
 	for check: Array in checks:
 		var gap: float = (float(check[1]) - float(check[2])) / maxf(float(check[2]), 0.001)
 		var tolerance: float = maxf(CLOSED_FORM_TOLERANCE, float(check[3]))  # the node count carries its own sampling noise
@@ -150,6 +159,8 @@ static func measure(data: Object, opts: Dictionary, with_expected: bool) -> Dict
 		var missing: int = int(data.call("xp_table").xp_for_level(step.level)) - int(session.skills.get_xp(skill))
 		session.skills.add_xp(skill, missing)
 		pinned[skill] = int(session.skills.get_xp(skill))
+	if str(opts["tool"]) == "0":
+		_clear_interval_sources(session, learned, cycle, nodes_def, data)
 	var tally: Dictionary = _tally(session)
 	var total_ms: int = int(float(opts["hours"]) * HOUR_MS)
 	var slice_ms: int = maxi(1, int(float(opts["slice"]) * 1000.0))
@@ -180,21 +191,42 @@ static func measure(data: Object, opts: Dictionary, with_expected: bool) -> Dict
 	var params: Dictionary = {"travel_ms": int(data.call("balance_value", "encounters.travel_ms")),
 		"node_chance_pct": float(data.call("balance_value", "encounters.node_chance_pct")), "fight_ms": fight_ms,
 		"skip_ms": int(data.call("balance_value", "encounters.skip_ms")), "node_units": int(data.call("balance_value", "encounters.node_units")),
-		"weights": weights, "learned": learned, "node_ms": {}}
+		"weights": weights, "learned": learned, "node_ms": {}, "yield": {},
+		"rich_chance_pct": int(data.call("balance_value", "encounters.rich_chance_pct")),
+		"rich_ms_pct": int(data.call("balance_value", "encounters.rich_ms_pct")), "rich_units_pct": int(data.call("balance_value", "encounters.rich_units_pct"))}
 	for skill: StringName in learned:
 		var worked: int = int((tally["skill_worked"] as Dictionary).get(skill, 0))
 		var mean_ms: float = float((tally["skill_ms"] as Dictionary).get(skill, 0)) / maxf(1.0, float(worked))
-		(params["node_ms"] as Dictionary)[skill] = mean_ms
+		var step_def: Object = cycle.call("worked_action", data, skill, int(nodes_def.max_level), int(nodes_def.max_level))
+		var f155_ms: int = int(cycle.call("node_duration_ms", session, skill, step_def))
+		(params["node_ms"] as Dictionary)[skill] = f155_ms
+		var diff: int = int(cycle.call("difficulty", session, area.id, skill))
+		var parts: PackedStringArray = PackedStringArray()
+		for entry: Dictionary in session.modifiers.breakdown(&"skill_interval_pct", ModifierContext.for_action(skill, step_def.id)):
+			parts.append("%s %+.1f" % [entry["source"], entry["value"]])
+		row["interval_sources_%s" % skill] = ", ".join(parts)
+		(params["yield"] as Dictionary)[skill] =int(cycle.call("yield_pct", session, int(session.skills.get_level(skill)), diff))
 		var action: String = _top_key(tally["skill_actions"].get(skill, {}))
 		var def: Object = data.call("action", StringName(action)) if action != "" else null
 		var dedicated: float = float(HOUR_MS) / float(def.interval_ms) * float(def.xp) if def != null else 0.0
 		row["skills"][skill] = {"weight": int(weights.get(skill, 0)), "worked_per_hour": float(worked) / hours, "action": action,
 			"color": str(tally["last_color"].get(skill, "")), "units_per_hour": float((tally["skill_units"] as Dictionary).get(skill, 0)) / hours,
-			"xp_per_hour": float((tally["skill_xp"] as Dictionary).get(skill, 0)) / hours, "dedicated_xp": dedicated, "mean_ms": mean_ms}
+			"xp_per_hour": float((tally["skill_xp"] as Dictionary).get(skill, 0)) / hours, "dedicated_xp": dedicated, "mean_ms": mean_ms, "f155_ms": f155_ms}
 	if with_expected:
 		row["expected"] = cycle.call("expected", params)
+		var rich: float = float(params["rich_chance_pct"]) / 100.0
+		row["expected"]["ms_mult"] = 1.0 + rich * (float(params["rich_ms_pct"]) / 100.0 - 1.0)
 	session.free()
 	return row
+
+
+## Q123 diagnosis: clears every source that contributes to `skill_interval_pct` for the worked step of a learned discipline.
+static func _clear_interval_sources(session: Object, learned: Array[StringName], cycle: GDScript, nodes_def: Object, data: Object) -> void:
+	for skill: StringName in learned:
+		var step: Object = cycle.call("worked_action", data, skill, int(nodes_def.max_level), int(nodes_def.max_level))
+		var ctx: ModifierContext = ModifierContext.for_action(skill, step.id)
+		for entry: Dictionary in session.modifiers.breakdown(&"skill_interval_pct", ctx):
+			session.modifiers.clear_source(entry["source"])
 
 
 ## Learned disciplines: the argument, or the two gathering disciplines of the area with the highest weight (file order on a tie).
