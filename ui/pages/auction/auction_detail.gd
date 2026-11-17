@@ -25,6 +25,11 @@ var _category_label: Label = null
 var _info_label: Label = null
 var _price_label: Label = null
 var _trend_label: Label = null
+var _market_box: VBoxContainer = null
+var _buyers_label: Label = null
+var _sellers_label: Label = null
+var _demand_label: Label = null
+var _demand_hint: Label = null
 var _spin: SpinBox = null
 var _total_label: Label = null
 var _button: Button = null
@@ -72,6 +77,16 @@ func _ready() -> void:
 	_price_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_price_label.add_theme_color_override("font_color", UiStyle.GOLD_LIGHT)
 	_trend_label = _label("TrendLabel", &"", price_row)
+	_box.add_child(HSeparator.new())
+	_market_box = VBoxContainer.new()
+	_market_box.name = "MarketBox"
+	_box.add_child(_market_box)
+	_label("MarketCaption", &"HeaderLabel", _market_box).text = AuctionTexts.MARKET_TITLE_TEXT
+	_buyers_label = _label("BuyersLabel", &"", _market_box)
+	_sellers_label = _label("SellersLabel", &"", _market_box)
+	_demand_label = _label("DemandLabel", &"", _market_box)
+	_demand_hint = _label("DemandHint", &"MutedLabel", _market_box)
+	_demand_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_box.add_child(HSeparator.new())
 	_label("QuantityCaption", &"HeaderLabel").text = AuctionTexts.QUANTITY_TEXT
 	_spin = SpinBox.new()
@@ -125,6 +140,7 @@ func refresh(auction: Object, session: GameSession, mode: StringName, item_id: S
 	var trend: StringName = auction.trend(item_id)
 	_trend_label.text = AuctionTexts.trend_arrow_text(trend)
 	_trend_label.add_theme_color_override("font_color", AuctionRow.trend_color(trend))
+	_redraw_market(auction.population(item_id))
 	var owned: int = session.bank.get_count(item_id)
 	if selling:
 		_info_label.text = AuctionTexts.OWNED_TEXT % NumberFormat.format_int(owned) + "\n" + AuctionTexts.DEPOSIT_TEXT % \
@@ -150,6 +166,20 @@ func show_message(text: String, color: Color) -> void:
 	_message_label.text = text
 	_message_label.add_theme_color_override("font_color", color)
 	_message_label.visible = true
+
+
+## Buyers, sellers and demand from `AuctionHouse.population` (empty = item outside the list: block hidden).
+func _redraw_market(pop: Dictionary) -> void:
+	_market_box.visible = not pop.is_empty()
+	if pop.is_empty():
+		return
+	var demand: StringName = pop["demand"]
+	_buyers_label.text = AuctionTexts.BUYERS_TEXT % NumberFormat.format_int(int(pop["buyers"]))
+	_sellers_label.text = AuctionTexts.SELLERS_TEXT % NumberFormat.format_int(int(pop["sellers"]))
+	_demand_label.text = AuctionTexts.DEMAND_TEXT % AuctionTexts.demand_text(demand)
+	var color: Color = UiStyle.GOOD if demand == &"high" else (UiStyle.BAD if demand == &"low" else UiStyle.GOLD_LIGHT)
+	_demand_label.add_theme_color_override("font_color", color)
+	_demand_hint.text = AuctionTexts.demand_hint(demand)
 
 
 ## Total and button for the quantity picked now.

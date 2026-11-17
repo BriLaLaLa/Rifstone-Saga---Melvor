@@ -28,6 +28,7 @@ func buy_quote(_item_id: StringName, qty: int) -> int: return 11 * maxi(qty, 0)
 func stock(_item_id: StringName) -> int: return 5
 func stock_max(_item_id: StringName) -> int: return 9
 func trend(_item_id: StringName) -> StringName: return &"up"
+func population(_item_id: StringName) -> Dictionary: return {"buyers": 12, "sellers": 7, "demand": &"high"}
 
 
 func can_sell(_item_id: StringName, _qty: int) -> CommandResult:
