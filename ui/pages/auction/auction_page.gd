@@ -11,6 +11,7 @@ extends Page
 const AUCTION_FIELD: StringName = &"auction"
 const SELL: StringName = &"sell"
 const BUY: StringName = &"buy"
+const MINE: StringName = &"mine"
 const MARGIN: int = 16
 const SECTION_SEPARATION: int = 12
 const BODY_SEPARATION: int = 12
@@ -38,6 +39,7 @@ var _redraw_queued: bool = false
 @onready var _categories: AuctionCategoryTree = %Categories
 @onready var _items: AuctionList = %Items
 @onready var _detail: AuctionDetail = %Detail
+@onready var _mine: AuctionMine = %Mine
 
 
 func _ready() -> void:
@@ -47,7 +49,8 @@ func _ready() -> void:
 	_body.add_theme_constant_override("separation", BODY_SEPARATION)
 	(_level_label.get_parent() as BoxContainer).add_theme_constant_override("separation", HEADER_SEPARATION)
 	_title_label.text = AuctionTexts.TITLE_TEXT
-	_tabs.setup([{"id": BUY, "label": AuctionTexts.TAB_BUY_TEXT}, {"id": SELL, "label": AuctionTexts.TAB_SELL_TEXT}])
+	_tabs.setup([{"id": BUY, "label": AuctionTexts.TAB_BUY_TEXT}, {"id": SELL, "label": AuctionTexts.TAB_SELL_TEXT},
+			{"id": MINE, "label": AuctionTexts.TAB_MINE_TEXT}])
 	for tab: Node in _tabs.get_children():
 		(tab as Button).custom_minimum_size = TAB_MIN_SIZE
 	_tabs.tab_selected.connect(_on_tab_selected)
@@ -55,6 +58,8 @@ func _ready() -> void:
 	_categories.search_changed.connect(_on_search_changed)
 	_items.item_picked.connect(_on_item_picked)
 	_detail.trade_requested.connect(_on_trade_requested)
+	_detail.list_requested.connect(_on_list_requested)
+	_mine.cancel_requested.connect(_on_cancel_requested)
 
 
 ## Draws the page of `session` (nothing if the session has no auction house yet) and follows its changes.
@@ -76,6 +81,8 @@ func bind_with(session: GameSession, auction: Object) -> void:
 	events.bank_changed.connect(_on_bank_changed)
 	events.gold_changed.connect(_on_gold_changed)
 	events.village_upgraded.connect(_on_upgraded)
+	events.auction_listings_changed.connect(_queue_redraw)
+	events.mail_changed.connect(_on_mail_changed)
 	_rebuild()
 
 
@@ -85,7 +92,8 @@ func unbind() -> void:
 		var events: GameEvents = _session.events
 		for pair: Array in [[events.auction_sold, _on_sold], [events.auction_bought, _on_bought],
 				[events.auction_updated, _on_updated], [events.bank_changed, _on_bank_changed],
-				[events.gold_changed, _on_gold_changed], [events.village_upgraded, _on_upgraded]]:
+				[events.gold_changed, _on_gold_changed], [events.village_upgraded, _on_upgraded],
+				[events.auction_listings_changed, _queue_redraw], [events.mail_changed, _on_mail_changed]]:
 			var sig: Signal = pair[0]
 			var callback: Callable = pair[1]
 			if sig.is_connected(callback):
@@ -111,11 +119,15 @@ func _rebuild() -> void:
 	_level_label.visible = open
 	_level_label.text = AuctionTexts.LEVEL_TEXT % int(_auction.level())
 	_tabs.visible = open
-	_body.visible = open
+	_body.visible = open and _tab != MINE
+	_mine.visible = open and _tab == MINE
 	_info_label.visible = not open
 	_info_label.text = AuctionTexts.NOT_BUILT_TEXT
 	if not open:
 		_items.clear()
+		return
+	if _tab == MINE:
+		_mine.refresh(_auction, _session)
 		return
 	var base: Array[StringName] = _wanted_items()
 	if _selected != &"" and not base.has(_selected):
@@ -190,6 +202,32 @@ func _on_trade_requested(item_id: StringName, qty: int) -> void:
 	if not result.ok:
 		_detail.show_message(AuctionTexts.refused(result.reason), UiStyle.BAD)
 	_rebuild()
+
+
+func _on_list_requested(item_id: StringName, qty: int, price: int, duration_id: StringName) -> void:
+	if _auction == null:
+		return
+	var result: CommandResult = _auction.list_item(item_id, qty, price, duration_id)
+	if result.ok:
+		_detail.show_message(AuctionTexts.LISTED_TEXT % [NumberFormat.format_int(qty), _session.data.item(item_id).name],
+				UiStyle.GOOD)
+		_detail.reset_price()
+	else:
+		_detail.show_message(AuctionTexts.refused(result.reason), UiStyle.BAD)
+	_rebuild()
+
+
+func _on_cancel_requested(listing_id: int) -> void:
+	if _auction == null:
+		return
+	var result: CommandResult = _auction.cancel_listing(listing_id)
+	_mine.show_message(AuctionTexts.CANCELLED_TEXT if result.ok else AuctionTexts.refused(result.reason),
+			UiStyle.GOOD if result.ok else UiStyle.BAD)
+	_rebuild()
+
+
+func _on_mail_changed(_unread: int, _total: int) -> void:
+	_queue_redraw()
 
 
 ## Coalesces the redraws asked by several signals in the same frame.

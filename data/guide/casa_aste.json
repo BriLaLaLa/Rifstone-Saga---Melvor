@@ -3,14 +3,14 @@
     {"id": "guide_auction", "section": "first_steps", "title": "Casa d'Aste", "order": 6,
      "help_for": ["auction"],
      "blocks": [
-       {"type": "text", "text": "La Casa d'Aste è l'ottavo edificio del Villaggio: si compra e si vende. Si apre dal Villaggio o dalla barra laterale, e appena costruita permette di vendere subito."},
-       {"type": "heading", "text": "Vendere"},
-       {"type": "text", "text": "Si vendono materiali, componenti e cibo. Ogni pezzo venduto fa scendere un poco il prezzo di quell'oggetto, anche dentro la stessa vendita; col tempo il prezzo risale da solo. Accanto al prezzo vedi anche quanto pagherebbe il Deposito: se la Casa d'Aste paga meno, conviene aspettare o vendere al Deposito."},
+       {"type": "text", "text": "La Casa d'Aste è l'ottavo edificio del Villaggio. Scegli una categoria, poi un oggetto: vedi il libro con le inserzioni dalla meno cara, e quanti compratori, venditori e pezzi ci sono."},
+       {"type": "heading", "text": "Vendi subito"},
+       {"type": "text", "text": "Vende i pezzi al prezzo di mercato, che scende un poco a ogni pezzo. Il ricavo arriva in Posta."},
+       {"type": "heading", "text": "Metti in vendita"},
+       {"type": "text", "text": "Scegli quantità, prezzo (parti da quello suggerito) e durata. Paghi un deposito che non torna. Se un prezzo più basso ti supera, la tua inserzione non vende: abbassa il prezzo o aspetta. Le vendite e le inserzioni scadute arrivano in Posta; in Le mie inserzioni puoi annullare."},
        {"type": "heading", "text": "Comprare"},
-       {"type": "text", "text": "Si comprano solo componenti e cibo, e ogni oggetto richiede un livello della Casa d'Aste. Comprare costa sempre più di quanto rende vendere lo stesso pezzo. Le scorte si esauriscono con gli acquisti e si riforniscono col tempo."},
-       {"type": "heading", "text": "La freccia di tendenza"},
-       {"type": "text", "text": "Dice se il prezzo di un oggetto sta salendo, scendendo o è stabile. Il blocco Mercato mostra compratori, venditori e domanda; tutto avanza anche mentre sei via."},
-       {"type": "links", "targets": ["page:guide_village", "page:guide_deposit"]}
+       {"type": "text", "text": "Solo componenti e cibo, secondo il livello dell'edificio. La freccia dice se il prezzo sale o scende."},
+       {"type": "links", "targets": ["page:guide_mail", "page:guide_village"]}
      ]}
   ]
 }

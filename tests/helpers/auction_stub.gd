@@ -28,7 +28,53 @@ func buy_quote(_item_id: StringName, qty: int) -> int: return 11 * maxi(qty, 0)
 func stock(_item_id: StringName) -> int: return 5
 func stock_max(_item_id: StringName) -> int: return 9
 func trend(_item_id: StringName) -> StringName: return &"up"
-func population(_item_id: StringName) -> Dictionary: return {"buyers": 12, "sellers": 7, "demand": &"high"}
+func population(_item_id: StringName) -> Dictionary:
+	return {"buyers": 12, "sellers": 7, "demand": &"high", "listings": 2, "units": 9}
+
+
+# M27-08 additions (docs/05_INTERFACES_M27.md §5.39): book, listings, durations, listing commands.
+var list_calls: int = 0
+var cancel_calls: int = 0
+
+
+func book(_item_id: StringName) -> Array[Dictionary]:
+	return [{"price": 5, "qty": 3, "mine": false, "listing": 0}, {"price": 6, "qty": 2, "mine": true, "listing": 1}]
+
+
+func suggested_price(_item_id: StringName) -> int: return 6
+func max_price(_item_id: StringName) -> int: return 100000
+func max_listings() -> int: return 5
+func listing_deposit(_item_id: StringName, qty: int, _duration_id: StringName) -> int: return qty
+func listing_net(_item_id: StringName, qty: int, price: int) -> int: return qty * price
+
+
+func durations() -> Array[AuctionDuration]:
+	var duration: AuctionDuration = AuctionDuration.new()
+	duration.id = &"short"
+	duration.hours = 12
+	return [duration]
+
+
+func my_listings() -> Array[Dictionary]:
+	return [{"id": 1, "item": _listed[0], "qty": 2, "sold": 0, "earned": 0, "price": 6, "duration": &"short", "ends_in_ms": 3600000,
+			"status": &"undercut"}]
+
+
+func can_list(_item_id: StringName, _qty: int, _price: int, _duration_id: StringName) -> CommandResult:
+	return CommandResult.fail(forced_reason) if forced_reason != &"" else CommandResult.success()
+
+
+func list_item(item_id: StringName, qty: int, price: int, duration_id: StringName) -> CommandResult:
+	list_calls += 1
+	return can_list(item_id, qty, price, duration_id)
+
+
+func can_cancel(_listing_id: int) -> CommandResult: return CommandResult.success()
+
+
+func cancel_listing(_listing_id: int) -> CommandResult:
+	cancel_calls += 1
+	return CommandResult.success()
 
 
 func can_sell(_item_id: StringName, _qty: int) -> CommandResult:

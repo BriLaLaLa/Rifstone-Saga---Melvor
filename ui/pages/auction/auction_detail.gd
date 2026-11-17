@@ -6,10 +6,12 @@ extends PanelContainer
 ## SpinBox (presentation). The button sends `trade_requested`, the page issues the command.
 
 signal trade_requested(item_id: StringName, qty: int)
+signal list_requested(item_id: StringName, qty: int, price: int, duration_id: StringName)
 
 const SEPARATION: int = 10
 const MARGIN: int = 14
-const ICON_SIDE: int = 72
+const ICON_SIDE: int = 48
+const SCROLL_PAD: int = 14
 const BUTTON_HEIGHT: float = 52.0
 const SHORTCUTS: Array[int] = [1, 10, 100]
 
@@ -17,6 +19,7 @@ var _item_id: StringName = &""
 var _mode: StringName = &"sell"
 var _auction: Object = null
 var _currency: CurrencyParams = null
+var _session: GameSession = null
 var _max: int = 1
 var _empty_label: Label = null
 var _box: VBoxContainer = null
@@ -36,6 +39,11 @@ var _total_label: Label = null
 var _button: Button = null
 var _reason_label: Label = null
 var _message_label: Label = null
+var _listings_label: Label = null
+var _book_caption: Label = null
+var _book: AuctionOffersView = null
+var _sell_note: Label = null
+var _form: AuctionListForm = null
 
 
 func _ready() -> void:
@@ -46,6 +54,17 @@ func _ready() -> void:
 	add_child(margin)
 	var stack: VBoxContainer = VBoxContainer.new()
 	margin.add_child(stack)
+	var scroll: ScrollContainer = ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	stack.add_child(scroll)
+	var pad: MarginContainer = MarginContainer.new()  # keeps the content clear of the scroll bar
+	pad.add_theme_constant_override("margin_right", SCROLL_PAD)
+	pad.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	pad.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.add_child(pad)
+	var inner: VBoxContainer = VBoxContainer.new()
+	pad.add_child(inner)
 	_empty_label = Label.new()
 	_empty_label.name = "EmptyLabel"
 	_empty_label.theme_type_variation = &"HeaderLabel"
@@ -53,12 +72,12 @@ func _ready() -> void:
 	_empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_empty_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_empty_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	stack.add_child(_empty_label)
+	inner.add_child(_empty_label)
 	_box = VBoxContainer.new()
 	_box.name = "Detail"
 	_box.add_theme_constant_override("separation", SEPARATION)
 	_box.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	stack.add_child(_box)
+	inner.add_child(_box)
 	_icon = TextureRect.new()
 	_icon.custom_minimum_size = Vector2(ICON_SIDE, ICON_SIDE)
 	_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -79,15 +98,11 @@ func _ready() -> void:
 	_price_label.add_theme_color_override("font_color", UiStyle.GOLD_LIGHT)
 	_trend_label = _label("TrendLabel", &"", price_row)
 	_box.add_child(HSeparator.new())
-	_market_box = VBoxContainer.new()
-	_market_box.name = "MarketBox"
-	_box.add_child(_market_box)
-	_label("MarketCaption", &"HeaderLabel", _market_box).text = AuctionTexts.MARKET_TITLE_TEXT
-	_buyers_label = _label("BuyersLabel", &"", _market_box)
-	_sellers_label = _label("SellersLabel", &"", _market_box)
-	_demand_label = _label("DemandLabel", &"", _market_box)
-	_demand_hint = _label("DemandHint", &"MutedLabel", _market_box)
-	_demand_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_book_caption = _label("BookCaption", &"HeaderLabel")
+	_book_caption.text = AuctionTexts.BOOK_TITLE_TEXT
+	_book = AuctionOffersView.new()
+	_book.name = "Book"
+	_box.add_child(_book)
 	_box.add_child(HSeparator.new())
 	_label("QuantityCaption", &"HeaderLabel").text = AuctionTexts.QUANTITY_TEXT
 	_spin = SpinBox.new()
@@ -114,6 +129,25 @@ func _ready() -> void:
 	_reason_label = _label("ReasonLabel", &"")
 	_reason_label.add_theme_color_override("font_color", UiStyle.BAD)
 	_reason_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_sell_note = _label("SellNowNote", &"MutedLabel")
+	_sell_note.text = AuctionTexts.SELL_NOW_NOTE_TEXT
+	_box.add_child(HSeparator.new())
+	_form = AuctionListForm.new()
+	_form.name = "ListForm"
+	_form.list_requested.connect(func(id: StringName, qty: int, price: int, duration: StringName) -> void:
+		list_requested.emit(id, qty, price, duration))
+	_box.add_child(_form)
+	_box.add_child(HSeparator.new())
+	_market_box = VBoxContainer.new()
+	_market_box.name = "MarketBox"
+	_box.add_child(_market_box)
+	_label("MarketCaption", &"HeaderLabel", _market_box).text = AuctionTexts.MARKET_TITLE_TEXT
+	_buyers_label = _label("BuyersLabel", &"", _market_box)
+	_sellers_label = _label("SellersLabel", &"", _market_box)
+	_demand_label = _label("DemandLabel", &"", _market_box)
+	_demand_hint = _label("DemandHint", &"MutedLabel", _market_box)
+	_demand_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_listings_label = _label("ListingsLabel", &"", _market_box)
 	_message_label = _label("MessageLabel", &"", stack)
 	_message_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_message_label.visible = false
@@ -124,6 +158,7 @@ func _ready() -> void:
 ## item changes.
 func refresh(auction: Object, session: GameSession, mode: StringName, item_id: StringName) -> void:
 	_auction = auction
+	_session = session
 	_currency = session.data.currency()
 	_mode = mode
 	_show_detail(item_id != &"")
@@ -143,6 +178,9 @@ func refresh(auction: Object, session: GameSession, mode: StringName, item_id: S
 	_trend_label.text = AuctionTexts.trend_arrow_text(trend)
 	_trend_label.add_theme_color_override("font_color", AuctionRow.trend_color(trend))
 	_redraw_market(auction.population(item_id))
+	_book.show_book(auction.book(item_id), _currency)
+	_sell_note.visible = selling
+	_form.visible = selling
 	var owned: int = session.bank.get_count(item_id)
 	if selling:
 		_info_label.text = AuctionTexts.OWNED_TEXT % NumberFormat.format_int(owned) + "\n" + AuctionTexts.DEPOSIT_TEXT % \
@@ -157,7 +195,7 @@ func refresh(auction: Object, session: GameSession, mode: StringName, item_id: S
 		_max = maxi(int(auction.stock(item_id)), 1)
 	var unit: int = int(auction.sell_quote(item_id, 1) if selling else auction.buy_quote(item_id, 1))
 	_price_label.text = AuctionTexts.UNIT_PRICE_VALUE_TEXT % Money.text(unit, session.data.currency())
-	_button.text = AuctionTexts.TAB_SELL_TEXT if selling else AuctionTexts.TAB_BUY_TEXT
+	_button.text = AuctionTexts.SELL_NOW_TEXT if selling else AuctionTexts.TAB_BUY_TEXT
 	_spin.max_value = _max
 	_spin.set_value_no_signal(clampf(_spin.value, 1.0, float(_max)))
 	_redraw_trade()
@@ -182,6 +220,8 @@ func _redraw_market(pop: Dictionary) -> void:
 	var color: Color = UiStyle.GOOD if demand == &"high" else (UiStyle.BAD if demand == &"low" else UiStyle.GOLD_LIGHT)
 	_demand_label.add_theme_color_override("font_color", color)
 	_demand_hint.text = AuctionTexts.demand_hint(demand)
+	_listings_label.text = AuctionTexts.LISTINGS_TEXT % [NumberFormat.format_int(int(pop.get("listings", 0))),
+			NumberFormat.format_int(int(pop.get("units", 0)))]
 
 
 ## Total and button for the quantity picked now.
@@ -198,6 +238,13 @@ func _redraw_trade() -> void:
 	_button.tooltip_text = reason
 	_reason_label.text = reason
 	_reason_label.visible = not can.ok
+	if selling:
+		_form.refresh(_auction, _session, _item_id, qty)
+
+
+## Puts the suggested price back in the listing form (after a listing).
+func reset_price() -> void:
+	_form.reset_price()
 
 
 func _show_detail(on: bool) -> void:

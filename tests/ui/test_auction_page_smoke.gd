@@ -148,3 +148,104 @@ func test_mouse_click_on_a_category_rebuilds_the_tree_without_error() -> void:
 	await wait_physics_frames(2)
 	assert_not_null(tree.get_root().get_first_child(), "the tree was rebuilt, not emptied")
 	assert_gt(tree.get_root().get_first_child().get_child_count(), 0, "the categories are listed again")
+
+
+## M27-08, lesson (a): the whole listing flow with REAL mouse clicks (category of the tree, item row, Metti in vendita, the
+## "Le mie inserzioni" tab, Annulla), on the real module of a real session; the page keeps no state of its own.
+func test_real_clicks_list_an_item_then_cancel_the_listing() -> void:
+	_session = AuctionTestData.session(1)
+	TestFactory.make_roomy(_session)
+	var item: StringName = _session.auction.listed_items()[0]
+	TestFactory.give(_session, item, 5)
+	_session.wallet.add_gold(1000000)
+	var holder: Control = Control.new()
+	holder.size = Vector2(1100, 700)
+	add_child(holder)
+	_page = SCENE.instantiate()
+	holder.add_child(_page)
+	_page.bind(_session)
+	for layer: Node in get_tree().root.find_children("GutLayer", "CanvasLayer", true, false):
+		(layer as CanvasLayer).visible = false  # the GUT output panel must not catch the clicks
+	await wait_physics_frames(3)
+	await _click(_page.find_child("Tab_sell", true, false) as Control)
+	var tree: Tree = _page.find_child("CategoryTree", true, false) as Tree
+	var wanted: StringName = _session.data.item(item).category
+	var target: TreeItem = tree.get_root().get_first_child().get_first_child()
+	while target != null and target.get_metadata(0) != wanted:
+		target = target.get_next()
+	assert_not_null(target, "the category of the item is in the tree")
+	await _click_tree_item(tree, target)
+	var row: Control = _page.find_child("Row_%s" % item, true, false) as Control
+	assert_not_null(row)
+	await _click(row)
+	assert_true(_page.find_child("ListForm", true, false).visible, "the listing form of the selected item")
+	await _click(_page.find_child("ListButton", true, false) as Control)
+	assert_eq(_session.auction.my_listings().size(), 1, "one click, one listing")
+	assert_eq(_session.bank.get_count(item), 4)
+	await _click(_page.find_child("Tab_mine", true, false) as Control)
+	assert_true(_page.find_child("Mine", true, false).visible)
+	var listing_id: int = int(_session.auction.my_listings()[0]["id"])
+	await _click(_page.find_child("Cancel_%d" % listing_id, true, false) as Control)
+	assert_eq(_session.auction.my_listings().size(), 0, "Annulla removed the listing")
+	assert_gt(_session.mail.count(), 0, "the pieces come back by Mail")
+
+
+func test_stub_listing_form_and_mine_tab_send_one_command_each() -> void:
+	_session = AuctionTestData.session(1)
+	var listed: Array[StringName] = _session.auction.listed_items()
+	_session.bank.add(listed[0], 5)
+	var stub: AuctionStub = AuctionStub.new(listed, _session.auction.buyable_items())
+	_page = SCENE.instantiate()
+	add_child(_page)
+	_page.bind_with(_session, stub)
+	_page.find_child("Tab_sell", true, false).pressed.emit()
+	_rows()[0].row_clicked.emit(_rows()[0].item_id)
+	assert_true(_page.find_child("ListForm", true, false).visible)
+	stub.forced_reason = Reasons.LISTINGS_FULL
+	_page._rebuild()
+	assert_true((_page.find_child("ListButton", true, false) as Button).disabled, "the reason of can_list disables the button")
+	assert_true(_page.find_child("ListReasonLabel", true, false).visible)
+	stub.forced_reason = &""
+	_page._rebuild()
+	_page.find_child("ListButton", true, false).pressed.emit()
+	assert_eq(stub.list_calls, 1)
+	_page.find_child("Tab_mine", true, false).pressed.emit()
+	_page.find_child("Cancel_1", true, false).pressed.emit()
+	assert_eq(stub.cancel_calls, 1)
+
+
+## A real left click (press and release) on the centre of `control`, scrolled into view if it sits in a ScrollContainer.
+func _click(control: Control) -> void:
+	var node: Node = control.get_parent()
+	while node != null:
+		if node is ScrollContainer:
+			(node as ScrollContainer).ensure_control_visible(control)
+		node = node.get_parent()
+	await wait_process_frames(2)
+	await _click_at(control.get_global_rect().get_center(), control)
+
+
+func _click_tree_item(tree: Tree, item: TreeItem) -> void:
+	tree.scroll_to_item(item)
+	await wait_process_frames(1)
+	var rect: Rect2 = tree.get_item_area_rect(item)
+	await _click_at(tree.get_global_rect().position + rect.position + rect.size * 0.5, tree)
+
+
+func _click_at(at: Vector2, expected: Control) -> void:
+	var motion := InputEventMouseMotion.new()
+	motion.position = at
+	motion.global_position = at
+	get_viewport().push_input(motion, true)
+	await wait_process_frames(1)
+	assert_eq(get_viewport().gui_get_hovered_control(), expected, "the click lands on the control")
+	for pressed: bool in [true, false]:
+		var event := InputEventMouseButton.new()
+		event.button_index = MOUSE_BUTTON_LEFT
+		event.pressed = pressed
+		event.button_mask = MOUSE_BUTTON_MASK_LEFT if pressed else 0
+		event.position = at
+		event.global_position = at
+		get_viewport().push_input(event, true)
+		await wait_process_frames(1)
+	await wait_process_frames(3)

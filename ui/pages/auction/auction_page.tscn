@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://ui/pages/auction/auction_page.gd" id="1_page"]
 [ext_resource type="Script" path="res://ui/components/money/money_label.gd" id="99_money"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://ui/pages/auction/auction_category_tree.gd" id="3_tree"]
 [ext_resource type="Script" path="res://ui/pages/auction/auction_list.gd" id="4_list"]
 [ext_resource type="Script" path="res://ui/pages/auction/auction_detail.gd" id="5_detail"]
+[ext_resource type="Script" path="res://ui/pages/auction/auction_mine.gd" id="6_mine"]
 
 [node name="AuctionPage" type="Control"]
 layout_mode = 3
@@ -82,6 +83,13 @@ script = ExtResource("4_list")
 
 [node name="Detail" type="PanelContainer" parent="Margin/Content/Body"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(290, 0)
+custom_minimum_size = Vector2(370, 0)
 layout_mode = 2
 script = ExtResource("5_detail")
+
+[node name="Mine" type="VBoxContainer" parent="Margin/Content"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+script = ExtResource("6_mine")
