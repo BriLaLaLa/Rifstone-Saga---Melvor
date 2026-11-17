@@ -83,7 +83,8 @@ func redraw(session: GameSession) -> void:
 	for action: ActionDef in _actions:
 		_rows[action.id].show_state(session.disciplines.knows_recipe(action.id),
 				session.skills.meets_requirements({action.skill_id: action.level}),
-				craftable_count(action, session), action.level)
+				craftable_count(action, session), action.level,
+				StringName(session.professions.recipe_color(action.id).get("id", &"")))
 	_apply_filter()
 
 

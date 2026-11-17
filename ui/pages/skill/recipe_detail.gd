@@ -30,6 +30,8 @@ var _needed: Dictionary[StringName, int] = {}
 var _item_names: Dictionary[StringName, String] = {}
 var _product_labels: Dictionary[StringName, Label] = {}
 var _product_names: Dictionary[StringName, String] = {}
+var _progress_label: Label = null
+var _origin_label: Label = null
 var _chance_label: Label = null
 var _loss_label: Label = null
 var _controls: EnqueueControls = null
@@ -99,6 +101,12 @@ func redraw(session: GameSession) -> void:
 	_level_label.add_theme_color_override("font_color", UiStyle.TEXT_2 if unlocked else UiStyle.BAD)
 	_icon.modulate = Color.WHITE if unlocked else UiStyle.TEXT_DISABLED
 	_stats_label.text = _stats_text(session)
+	_progress_label.text = ProfessionUnlocks.progress_text(session, _action)
+	_progress_label.visible = not _progress_label.text.is_empty()
+	var color_id: StringName = StringName(session.professions.recipe_color(_action.id).get("id", &""))
+	_progress_label.add_theme_color_override("font_color", CombatTexts.NODE_COLORS.get(color_id, UiStyle.TEXT))
+	_origin_label.text = ProfessionUnlocks.origin_text(session, _action)
+	_origin_label.visible = not _origin_label.text.is_empty()
 	if _action.mastery and _mastery_bar != null:
 		_mastery_bar.set_xp(session.data.mastery_table(), session.mastery.get_mastery_xp(_action.id))
 		if _bonus_tag != null:
@@ -170,6 +178,9 @@ func _build_stats(action: ActionDef, data: GameData) -> void:
 	_stats_label = _label(line, "StatsLabel", "", &"")
 	_stats_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_stats_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_progress_label = _label(_box, "ProgressLabel", "", &"")
+	_origin_label = _label(_box, "OriginLabel", "", &"MutedLabel")
+	_origin_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	if action.mastery:
 		_bonus_tag = MasteryBonusTag.new()
 		line.add_child(_bonus_tag)
