@@ -7,6 +7,10 @@
     "dark_iron_clod", "black_iron_graphite", "silver_flake", "obsidian_geode", "astrite_glow", "riftite_vein",
     "perch_gill", "carp_bone", "pike_fin", "eel_roe", "sturgeon_caviar", "lantern_lure", "leviathan_pearl",
     "clover_seed", "mint_leaf", "sage_bud", "lily_petal", "bloom_pollen", "fern_spore", "thistle_burr", "orchid_nectar",
-    "recipe_tonic_1", "recipe_tonic_2", "recipe_tonic_3", "recipe_tonic_4", "recipe_tonic_5", "recipe_tonic_6", "recipe_tonic_7", "recipe_tonic_8"
+    "recipe_tonic_1", "recipe_tonic_2", "recipe_tonic_3", "recipe_tonic_4", "recipe_tonic_5", "recipe_tonic_6", "recipe_tonic_7", "recipe_tonic_8",
+    "recipe_forge_ashlead_plate", "recipe_forge_stormzinc_plate", "recipe_forge_duskcobalt_plate", "recipe_forge_glimmerite_plate", "recipe_forge_palecinnabar_plate", "recipe_forge_emberheart_plate", "recipe_forge_riftite_plate",
+    "recipe_carve_ashpine_shieldcore", "recipe_carve_ashpine_handle", "recipe_carve_thornalder_shieldcore", "recipe_carve_thornalder_handle", "recipe_carve_duskelm_shieldcore", "recipe_carve_duskelm_handle", "recipe_carve_shardcedar_shieldcore", "recipe_carve_shardcedar_handle",
+    "recipe_carve_veilcypress_shieldcore", "recipe_carve_veilcypress_handle", "recipe_carve_emberlarch_shieldcore", "recipe_carve_emberlarch_handle", "recipe_carve_riftspruce_shieldcore", "recipe_carve_riftspruce_handle",
+    "recipe_cook_ashgill", "recipe_cook_redscale", "recipe_cook_dusk_eel", "recipe_cook_shard_gar", "recipe_cook_mist_barbel", "recipe_cook_ember_sturgeon", "recipe_cook_riftmaw"
   ]
 }

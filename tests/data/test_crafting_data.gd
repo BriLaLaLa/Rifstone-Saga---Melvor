@@ -117,7 +117,9 @@ func _assert_recipe(skill: String, output: String, n: int, inputs: Array, interv
 	assert_eq(a["level"], float(GATHERING_TIERS[n - 1][0]), "%s level" % output)
 	assert_eq(a["interval_ms"], float(interval), "%s interval" % output)
 	assert_eq(a["xp"], float(xp), "%s xp" % output)
-	assert_eq((a["inputs"] as Array).size(), inputs.size(), "%s inputs" % output)
+	var last: Dictionary = (a["inputs"] as Array).back() as Dictionary  # M26-04: the schemes end with a reagent
+	var reagent_extra: int = 1 if str(last["item"]).begins_with("reagent_") else 0
+	assert_eq((a["inputs"] as Array).size(), inputs.size() + reagent_extra, "%s inputs" % output)
 	for index: int in mini((a["inputs"] as Array).size(), inputs.size()):
 		assert_eq(a["inputs"][index]["item"], inputs[index][0], "%s input %d" % [output, index])
 		assert_eq(a["inputs"][index]["qty"], float(inputs[index][1]), "%s input %d qty" % [output, index])
@@ -287,7 +289,7 @@ func test_unique_tools_follow_8_4_and_f94() -> void:
 
 func test_shop_follows_8_6() -> void:
 	var shop: Dictionary = _by_id("shop", "entries")
-	assert_eq(shop.size(), 5 + 15, "five base entries plus the 15 Market entries (M20-04)")
+	assert_eq(shop.size(), 5 + 28 + 12 + 15, "five base entries, 28 schemes and 12 reagents (M26-04), 15 Market entries (M20-04)")
 	assert_false(shop.has("bank_slot"))
 	assert_false(shop.has("armory_slot"))
 	var gold: Array[Array] = [

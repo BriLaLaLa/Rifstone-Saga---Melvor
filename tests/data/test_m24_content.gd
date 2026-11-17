@@ -120,8 +120,9 @@ func test_every_discover_action_has_a_dropped_recipe() -> void:
 			assert_not_null(recipe, String(action.id))
 			if recipe != null:
 				assert_eq(recipe.value, 0)
-				assert_true(dropped.has(recipe.id), "%s drops" % recipe.id)
-	assert_eq(count, 8)
+				var sold: bool = _data.shop_entry_selling(recipe.id) != null  # M26-04: schemes are sold, Tonics drop, never both
+				assert_true(dropped.has(recipe.id) != sold, "%s drops xor is sold" % recipe.id)
+	assert_eq(count, 8 + 28)
 
 
 func test_recipes_drop_from_the_area_of_their_step_about_every_two_hours() -> void:
