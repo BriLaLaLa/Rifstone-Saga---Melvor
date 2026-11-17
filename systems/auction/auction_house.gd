@@ -66,6 +66,7 @@ func buy_quote(item_id: StringName, qty: int) -> int: return _pricing.buy_quote(
 func stock(item_id: StringName) -> int: return _pricing.stock(item_id)
 func stock_max(item_id: StringName) -> int: return _pricing.stock_max(item_id)
 func trend(item_id: StringName) -> StringName: return _pricing.trend(item_id)
+func population(item_id: StringName) -> Dictionary: return _pricing.population(item_id)  # M26-08, F-173
 
 
 ## Checks in order: invalid_amount, unknown_id, not_tradable, requirement_not_met (not built), item_locked, not_enough_items,

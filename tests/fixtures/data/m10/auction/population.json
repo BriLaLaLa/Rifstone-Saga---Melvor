@@ -1,0 +1,8 @@
+{
+  "bands": [
+    {"max_value": 9, "buyers": 125, "sellers": 115},
+    {"max_value": 59, "buyers": 110, "sellers": 105},
+    {"max_value": 249, "buyers": 100, "sellers": 100},
+    {"buyers": 90, "sellers": 85}
+  ]
+}

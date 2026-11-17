@@ -20,7 +20,7 @@ const CONTENT_FILES: Dictionary[String, String] = {
 	"map_mods": MapIndex.MODS_FILE, "bosses": MapIndex.BOSSES_FILE,  # M13: mandatory (may be empty)
 	"village": VillageIndex.FILE,  # M19: mandatory (may be empty)
 	"quests": "quests/quests.json",  # M20: mandatory (may be empty)
-	"auction": AuctionIndex.FILE,  # M23: mandatory
+	"auction": AuctionIndex.FILE, "auction_population": AuctionIndex.POPULATION_FILE,  # M23, M26-08: mandatory
 	"disciplines": DisciplineIndex.TRAINERS_FILE,  # M24: mandatory (the grades; the Trainers may be empty)
 }
 const CONTENT_DIRS: Dictionary[String, String] = {
@@ -354,7 +354,7 @@ func _build(raw: Dictionary) -> void:
 	_loot.build(raw["loot_tables"] as Dictionary, errors)
 	_maps.build(_item_list, raw["map_mods"] as Dictionary, raw["bosses"] as Dictionary, _balance, errors)
 	_village.build(raw["village"] as Dictionary, errors)
-	_auction.build(_balance, raw["auction"] as Dictionary, errors)
+	_auction.build(_balance, raw["auction"] as Dictionary, raw["auction_population"] as Dictionary, errors)
 	_dungeons.build(raw.get("dungeons", {}) as Dictionary, _monsters, errors)
 	for path: String in raw["quests"]:
 		for d: Dictionary in DataBuildUtil.list(raw["quests"][path], "quests"):

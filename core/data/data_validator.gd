@@ -68,7 +68,7 @@ const DEPOSIT_BAG_SLOTS_MAX: int = 12  # format limit of deposit.bag_slots (docs
 const START_ITEM_FORBIDDEN_CATEGORIES: PackedStringArray = ["equipment", "tool", "map"]  # they live in the Armory only
 ## Sections made of one file (the others are folders, possibly empty).
 const SINGLE_FILE_SECTIONS: PackedStringArray = ["balance", "stats", "skills", "areas", "monsters", "shop", "affixes",
-	"rift_stones", "hints", "loot_tables", "map_mods", "bosses", "village", "quests", "auction", "disciplines"]
+	"rift_stones", "hints", "loot_tables", "map_mods", "bosses", "village", "quests", "auction", "auction_population", "disciplines"]
 const SKILL_CATEGORIES: PackedStringArray = ["gathering", "artisan"]
 const STAT_FIELDS: PackedStringArray = ["id", "name", "format", "min", "max", "description", "formula", "test"]
 const STAT_FORMULA_PATTERN: String = "^(F-[0-9]{2,3}|[0-9]+(\\.[0-9]+)*)$"
