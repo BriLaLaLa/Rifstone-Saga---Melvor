@@ -175,6 +175,52 @@ func test_freed_slot_takes_the_product() -> void:
 	assert_eq(session.bank.get_count(PLANK_ITEM), 1)
 
 
+# --- M26-03: colored recipes (F-167, F-168) ---------------------------------------------------------------------------------
+
+func test_colored_recipe_gives_the_expected_xp_and_keeps_the_rest() -> void:
+	TestFactory.give(_session, LOG_ITEM, 8)
+	TestFactory.set_level(_session, SKILL, 35)  # craft_tint 20/30/40, 8 xp: 250000 ppm
+	var before: int = _session.skills.get_xp(SKILL)
+	var gained: Array[int] = []
+	for _i: int in 4:
+		gained.append(ArtisanResolver.resolve(_session, _session.data.action(&"craft_tint"), _session.rng).xp)
+	assert_eq(gained, [2, 2, 2, 2] as Array[int])
+	assert_eq(_session.skills.get_xp(SKILL), before + 8)
+
+
+func test_grey_recipe_still_produces_but_gives_no_xp() -> void:
+	TestFactory.give(_session, LOG_ITEM, 1)
+	TestFactory.set_level(_session, SKILL, 40)
+	watch_signals(_session.events)
+	var outcome: ActionOutcome = ArtisanResolver.resolve(_session, _session.data.action(&"craft_tint"), _session.rng)
+	assert_true(outcome.ok)
+	assert_eq(outcome.xp, 0)
+	assert_eq(_session.bank.get_count(PLANK_ITEM), 1)
+	assert_signal_not_emitted(_session.events, "xp_gained")
+
+
+func test_skill_xp_pct_applies_after_the_colored_base() -> void:
+	var action := ActionDef.new()
+	action.id = &"plate"
+	action.skill_id = SKILL
+	action.xp = 33
+	action.colors = {&"yellow": 20, &"green": 30, &"grey": 40}
+	TestFactory.set_level(_session, SKILL, 25)
+	_set_mods([Modifier.make(&"skill_xp_pct", 10.0)])
+	assert_eq(ArtisanResolver.resolve(_session, action, _session.rng).xp, 26, "base 24, +10%")
+
+
+func test_colors_do_not_change_the_random_draws() -> void:
+	var other: GameSession = autofree(TestFactory.session())
+	TestFactory.give(_session, LOG_ITEM, 2)
+	TestFactory.give(other, LOG_ITEM, 2)
+	TestFactory.set_level(_session, SKILL, 35)
+	other.professions = null  # the resolver without the system: xp of today, same draws
+	ArtisanResolver.resolve(_session, _session.data.action(&"craft_tint"), _session.rng)
+	ArtisanResolver.resolve(other, _session.data.action(&"craft_tint"), other.rng)
+	assert_eq(_session.rng.to_save(), other.rng.to_save())
+
+
 func _action() -> ActionDef:
 	return _session.data.action(PLANK)
 

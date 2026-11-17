@@ -211,3 +211,52 @@ func test_save_and_reload_in_the_middle_of_rich_nodes_continues_the_same_evoluti
 	assert_eq(again["modules"]["combat"], first["modules"]["combat"], "save, load, save is identical")
 	loaded.advance(HOUR_MS / 2 - 7000)
 	_assert_same(straight, loaded, "straight vs save-reload (rich nodes)")
+
+
+# --- M26-03: colored recipes keep the equivalence (F-168, Q124) -------------------------------------------------------------
+
+# A forging queue on a copy of the real data where two recipes have colors (yellow and green around the start level).
+func _colored_session(seed_value: int = SEED) -> GameSession:
+	var data: GameData = GameData.load_from_dirs(TestFactory.REAL_CONTENT_ROOT, TestFactory.CONFIG_ROOT)
+	data.action(&"smelt_emberbronze").colors = {&"yellow": 5, &"green": 13, &"grey": 30}
+	data.action(&"forge_emberbronze_plate").colors = {&"yellow": 3, &"green": 8, &"grey": 25}
+	var s: GameSession = autofree(TestFactory.session_no_kit(seed_value, data))
+	s.disciplines.new_game()
+	TestFactory.set_character_level(s, 55)
+	TestFactory.make_roomy(s)
+	s.wallet.add_gold(1000)
+	assert_true(s.disciplines.learn(&"forging").ok)
+	TestFactory.set_level(s, &"forging", 10)
+	TestFactory.give(s, &"emberbronze_ore", 1_000_000)
+	assert_true(s.actions.enqueue(&"forging", &"smelt_emberbronze", 400, false).ok)
+	assert_true(s.actions.enqueue(&"forging", &"forge_emberbronze_plate", 300, false).ok)
+	assert_true(s.actions.enqueue(&"forging", &"smelt_emberbronze", 9999, false).ok)
+	assert_true(s.actions.enqueue(&"forging", &"forge_emberbronze_plate", 1, true).ok)
+	return s
+
+
+func test_colored_recipes_twelve_hours_are_the_same_whole_state() -> void:
+	var one: GameSession = _colored_session()
+	var ticks: GameSession = _colored_session()
+	var blocks: GameSession = _colored_session()
+	var twelve: int = 12 * HOUR_MS
+	one.advance(twelve)
+	_in_ticks(ticks, twelve)
+	_in_blocks(blocks, twelve, 60_000)
+	assert_gt(one.skills.get_xp(&"forging"), 0)
+	_assert_same(one, ticks, "colored 12 h block vs ticks")
+	_assert_same(one, blocks, "colored 12 h block vs blocks")
+
+
+func test_colored_recipes_save_and_reload_in_the_middle_is_the_same_whole_state() -> void:
+	var straight: GameSession = _colored_session()
+	var half: GameSession = _colored_session()
+	straight.advance(12 * HOUR_MS)
+	half.advance(6 * HOUR_MS)
+	var loaded: GameSession = _colored_session(SEED + 1)
+	var saved: Dictionary = SaveCodec.decode(SaveCodec.encode(half.to_save(0)))
+	assert_true(loaded.from_save(saved).ok)
+	assert_eq(loaded.to_save(0)["modules"]["professions"], half.to_save(0)["modules"]["professions"], "save, load, save is identical")
+	_assert_same(half, loaded, "right after the load")
+	loaded.advance(6 * HOUR_MS)
+	_assert_same(straight, loaded, "colored straight vs save-reload")
