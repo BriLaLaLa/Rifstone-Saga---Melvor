@@ -38,6 +38,21 @@ const SELECT_ITEM_TEXT: String = "Seleziona un oggetto"
 const QUANTITY_TEXT: String = "Quantità"
 const UNIT_PRICE_TEXT: String = "Prezzo unitario"
 const UNIT_PRICE_VALUE_TEXT: String = "%s oro"
+## Market population block of the detail panel (values come from `AuctionHouse.population`).
+const MARKET_TITLE_TEXT: String = "Mercato"
+const BUYERS_TEXT: String = "Compratori: %s"
+const SELLERS_TEXT: String = "Venditori: %s"
+const DEMAND_TEXT: String = "Domanda: %s"
+const DEMAND: Dictionary[StringName, String] = {
+	&"high": "Alta",
+	&"normal": "Nella media",
+	&"low": "Bassa",
+}
+const DEMAND_HINTS: Dictionary[StringName, String] = {
+	&"high": "Molti compratori: il mercato assorbe bene le vendite.",
+	&"normal": "Il mercato è in equilibrio.",
+	&"low": "Pochi compratori: i prezzi scendono più in fretta.",
+}
 ## Item category (`ItemDef.category`) -> Italian name shown in the tree.
 const CATEGORIES: Dictionary[StringName, String] = {
 	&"material": "Materiali",
@@ -91,6 +106,14 @@ static func trend_text(trend: StringName) -> String:
 
 static func trend_arrow_text(trend: StringName) -> String:
 	return TREND_ARROWS.get(trend, TREND_ARROWS[&"stable"]) + trend_text(trend)
+
+
+static func demand_text(demand: StringName) -> String:
+	return DEMAND.get(demand, DEMAND[&"normal"])
+
+
+static func demand_hint(demand: StringName) -> String:
+	return DEMAND_HINTS.get(demand, DEMAND_HINTS[&"normal"])
 
 
 static func category_name(category: StringName) -> String:

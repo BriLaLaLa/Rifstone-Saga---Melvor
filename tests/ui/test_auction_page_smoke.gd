@@ -72,6 +72,15 @@ func test_disabled_button_shows_the_reason_and_click_sends_one_command() -> void
 	assert_eq(stub.buy_calls, 1)
 
 
+func test_detail_shows_the_market_block() -> void:
+	_open(AuctionTestData.session(1))
+	_rows()[0].row_clicked.emit(_rows()[0].item_id)
+	var market: Control = _page.find_child("MarketBox", true, false)
+	assert_true(market.visible)
+	for label_name: String in ["BuyersLabel", "SellersLabel", "DemandLabel"]:
+		assert_ne((market.find_child(label_name, true, false) as Label).text, "")
+
+
 func test_layout_at_minimum_size_and_unbind() -> void:
 	_session = AuctionTestData.session(1)
 	for id: StringName in _session.auction.listed_items().slice(0, 12):
