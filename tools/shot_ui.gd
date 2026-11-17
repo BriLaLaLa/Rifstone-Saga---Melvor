@@ -46,6 +46,7 @@ func _run() -> void:
 				session.combat.advance(1000)
 		await _frames(8)
 		_save(page_id)
+	await _auction_shots(session, host, screen)
 	_queue_shot(session, host)
 	await _frames(8)
 	_save(&"skill_queue")
@@ -61,6 +62,26 @@ func _run() -> void:
 	await _node_shots(session, host)
 	print_rich("shots in ", ProjectSettings.globalize_path(_out))
 	get_tree().quit(0)
+
+
+## Auction House: buy tab with an item picked, then the sell tab (Deposit stocked with listed items) with an item picked.
+func _auction_shots(session: GameSession, host: PageHost, screen: Node) -> void:
+	for id: StringName in session.auction.listed_items().slice(0, 40):
+		TestFactory.give(session, id, 25)
+	host.show_page(&"auction")
+	await _frames(6)
+	var rows: Array[Node] = screen.find_children("Row_*", "AuctionRow", true, false)
+	if not rows.is_empty():
+		(rows[2 if rows.size() > 2 else 0] as AuctionRow).row_clicked.emit((rows[2 if rows.size() > 2 else 0] as AuctionRow).item_id)
+	await _frames(6)
+	_save(&"auction_buy")
+	(screen.find_child("Tab_sell", true, false) as Button).pressed.emit()
+	await _frames(6)
+	rows = screen.find_children("Row_*", "AuctionRow", true, false)
+	if not rows.is_empty():
+		(rows[1 if rows.size() > 1 else 0] as AuctionRow).row_clicked.emit((rows[1 if rows.size() > 1 else 0] as AuctionRow).item_id)
+	await _frames(6)
+	_save(&"auction_sell")
 
 
 func _queue_shot(session: GameSession, host: PageHost) -> void:
