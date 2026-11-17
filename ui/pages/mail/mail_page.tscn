@@ -1,0 +1,136 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://ui/pages/mail/mail_page.gd" id="1_page"]
+[ext_resource type="Script" path="res://ui/components/money/money_label.gd" id="2_money"]
+
+[node name="MailPage" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_page")
+
+[node name="Margin" type="MarginContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Content" type="VBoxContainer" parent="Margin"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Header" type="PanelContainer" parent="Margin/Content"]
+layout_mode = 2
+theme_type_variation = &"HudPanel"
+
+[node name="HeaderRow" type="HBoxContainer" parent="Margin/Content/Header"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="Margin/Content/Header/HeaderRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"TitleLabel"
+
+[node name="CountLabel" type="Label" parent="Margin/Content/Header/HeaderRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"MutedLabel"
+
+[node name="ReasonAllLabel" type="Label" parent="Margin/Content/Header/HeaderRow"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+
+[node name="CollectAllButton" type="Button" parent="Margin/Content/Header/HeaderRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 40)
+layout_mode = 2
+
+[node name="Body" type="HBoxContainer" parent="Margin/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ListScroll" type="ScrollContainer" parent="Margin/Content/Body"]
+custom_minimum_size = Vector2(430, 0)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="Rows" type="VBoxContainer" parent="Margin/Content/Body/ListScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Detail" type="PanelContainer" parent="Margin/Content/Body"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"HudPanel"
+
+[node name="DetailBox" type="VBoxContainer" parent="Margin/Content/Body/Detail"]
+layout_mode = 2
+
+[node name="EmptyLabel" type="Label" parent="Margin/Content/Body/Detail/DetailBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+autowrap_mode = 3
+
+[node name="Message" type="VBoxContainer" parent="Margin/Content/Body/Detail/DetailBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="SubjectLabel" type="Label" parent="Margin/Content/Body/Detail/DetailBox/Message"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+autowrap_mode = 3
+
+[node name="SenderLabel" type="Label" parent="Margin/Content/Body/Detail/DetailBox/Message"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+
+[node name="BodyLabel" type="Label" parent="Margin/Content/Body/Detail/DetailBox/Message"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="AttachmentTitle" type="Label" parent="Margin/Content/Body/Detail/DetailBox/Message"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+
+[node name="Attachment" type="VBoxContainer" parent="Margin/Content/Body/Detail/DetailBox/Message"]
+layout_mode = 2
+
+[node name="MoneyLabel" type="HBoxContainer" parent="Margin/Content/Body/Detail/DetailBox/Message/Attachment"]
+unique_name_in_owner = true
+layout_mode = 2
+script = ExtResource("2_money")
+
+[node name="ItemsBox" type="VBoxContainer" parent="Margin/Content/Body/Detail/DetailBox/Message/Attachment"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="CollectButton" type="Button" parent="Margin/Content/Body/Detail/DetailBox/Message"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 40)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="ReasonLabel" type="Label" parent="Margin/Content/Body/Detail/DetailBox/Message"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+autowrap_mode = 3

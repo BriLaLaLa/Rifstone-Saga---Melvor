@@ -71,7 +71,17 @@ func _redraw() -> void:
 	_section(OfflineTexts.SECTION_FRACTURES, _fracture_lines())
 	_section(OfflineTexts.SECTION_DUNGEON, _dungeon_lines())
 	_section(OfflineTexts.SECTION_ARMORY, _armory_lines())
+	_section(OfflineTexts.SECTION_MAIL, _mail_lines())
 	_section(OfflineTexts.SECTION_STOPS, _stop_lines(), UiStyle.OFFLINE_WARNING_COLOR)
+
+
+func _mail_lines() -> PackedStringArray:
+	var lines: PackedStringArray = PackedStringArray()
+	if _summary.mail_new == 1:
+		lines.append(OfflineTexts.MAIL_NEW_ONE_LINE)
+	elif _summary.mail_new > 1:
+		lines.append(OfflineTexts.MAIL_NEW_LINE % NumberFormat.format_int(_summary.mail_new))
+	return lines
 
 
 func _progress_lines() -> PackedStringArray:

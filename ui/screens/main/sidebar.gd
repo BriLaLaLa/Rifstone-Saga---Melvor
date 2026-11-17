@@ -30,6 +30,7 @@ const SECTIONS: Array[Dictionary] = [
 	{"page": &"trainers", "group": "Villaggio", "text": TrainersTexts.SIDEBAR_TEXT, "icon": "school"},
 	{"page": &"noticeboard", "group": "Villaggio", "text": NoticeboardTexts.TITLE_TEXT, "icon": "clipboard-list"},
 	{"page": &"auction", "group": "Villaggio", "text": AuctionTexts.TITLE_TEXT, "icon": "gavel"},
+	{"page": &"mail", "group": "Villaggio", "text": MailTexts.TITLE_TEXT, "icon": "mail"},
 	{"page": &"shop", "group": "Villaggio", "text": "Shop", "icon": "building-store"},
 	{"page": &"guide", "group": TAIL_GROUP, "text": "Guida", "icon": "book"},
 ]
@@ -69,6 +70,7 @@ func bind(session: GameSession, is_available: Callable) -> void:
 	_build_rows()
 	_session.events.level_up.connect(_on_events_level_up)
 	_session.events.discipline_changed.connect(_on_events_discipline_changed)
+	_session.events.mail_changed.connect(_on_mail_changed)
 	for sig: Signal in _work_signals(_session.events):
 		sig.connect(_on_work_changed)
 	_refresh_dots()
@@ -93,6 +95,7 @@ func _build_rows() -> void:
 		var icon: Texture2D = UiStyle.icon(section["icon"] as String)
 		_add_row(page_id, section["text"] as String, icon, _is_available.call(page_id) as bool)
 	set_current(_current)
+	_refresh_mail()
 
 
 func _add_discipline_rows() -> void:
@@ -120,6 +123,8 @@ func unbind() -> void:
 	if is_instance_valid(_session):
 		if _session.events.discipline_changed.is_connected(_on_events_discipline_changed):
 			_session.events.discipline_changed.disconnect(_on_events_discipline_changed)
+		if _session.events.mail_changed.is_connected(_on_mail_changed):
+			_session.events.mail_changed.disconnect(_on_mail_changed)
 		if _session.events.level_up.is_connected(_on_events_level_up):
 			_session.events.level_up.disconnect(_on_events_level_up)
 		for sig: Signal in _work_signals(_session.events):
@@ -265,6 +270,19 @@ func _on_events_discipline_changed(_skill_id: StringName, _grade: int) -> void:
 ## True when the dot of the entry `page_id` is lit, for tests.
 func is_working(page_id: StringName) -> bool:
 	return _dots.has(page_id) and _dots[page_id].visible
+
+
+func _on_mail_changed(_unread: int, _total: int) -> void:
+	_refresh_mail()
+
+
+## The Mail row shows the number of unread messages (read from the mailbox) in the place of the level.
+func _refresh_mail() -> void:
+	var row: Button = _rows.get(&"mail") as Button
+	if row == null or _session == null or not _available.get(&"mail", false):
+		return
+	var unread: int = _session.mail.unread()
+	(row.get_node("Side") as Label).text = NumberFormat.format_int(unread) if unread > 0 else ""
 
 
 func _on_row_pressed(page_id: StringName) -> void:

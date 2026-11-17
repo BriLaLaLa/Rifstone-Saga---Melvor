@@ -1,0 +1,14 @@
+{
+  "pages": [
+    {"id": "guide_mail", "section": "first_steps", "title": "Posta", "order": 9,
+     "help_for": ["mail"],
+     "blocks": [
+       {"type": "text", "text": "La Posta raccoglie i messaggi della {link:page:guide_auction|Casa d'Aste}: vendite concluse, vendite immediate, inserzioni scadute o annullate. Si apre dalla barra laterale, dove un numero indica i messaggi non letti."},
+       {"type": "heading", "text": "Leggere e ritirare"},
+       {"type": "text", "text": "Aprire un messaggio lo segna come letto. Il suo allegato, monete o oggetti, non arriva da solo: lo prendi con Ritira, oppure con Ritira tutto per svuotare la casella in un colpo. I messaggi non scadono mai."},
+       {"type": "heading", "text": "Deposito pieno"},
+       {"type": "text", "text": "Un messaggio con oggetti non può essere ritirato se nel {link:page:guide_deposit|Deposito} non c'è posto: resta in Posta, senza perdite, e accanto al pulsante compare il motivo. Fai spazio e riprova. Le monete si ritirano sempre."},
+       {"type": "links", "targets": ["page:guide_coins", "page:guide_deposit"]}
+     ]}
+  ]
+}
