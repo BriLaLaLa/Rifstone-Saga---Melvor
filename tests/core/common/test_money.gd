@@ -21,8 +21,8 @@ func test_the_split_examples() -> void:
 
 
 func test_the_text_examples() -> void:
-	var cases: Dictionary = {0: "0r", 7: "7r", 100: "1a", 10000: "1o", 12540: "1o 25a 40r", 125000: "12o 50a",
-			1000005: "100o 5r", 6760916: "676o 9a 16r", -250: "−2a 50r"}
+	var cases: Dictionary = {0: "0c", 7: "7c", 100: "1s", 10000: "1g", 12540: "1g 25s 40c", 125000: "12g 50s",
+			1000005: "100g 5c", 6760916: "676g 9s 16c", -250: "−2s 50c"}
 	for copper: int in cases:
 		assert_eq(Money.text(copper, _p), cases[copper], "text of %d" % copper)
 

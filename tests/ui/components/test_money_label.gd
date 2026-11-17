@@ -7,7 +7,7 @@ var _params: CurrencyParams = null
 func before_all() -> void:
 	_params = CurrencyParams.from_dict({
 		"copper_per_silver": 100, "silver_per_gold": 100,
-		"symbols": {"gold": "o", "silver": "a", "copper": "r"},
+		"symbols": {"gold": "g", "silver": "s", "copper": "c"},
 		"names": {"gold": "oro", "silver": "argento", "copper": "rame"},
 	})
 
@@ -21,7 +21,7 @@ func _make(copper: int) -> MoneyLabel:
 func test_zero_is_the_copper_coin() -> void:
 	var label: MoneyLabel = _make(0)
 	assert_eq(label.shown_coins(), [&"copper"] as Array[StringName])
-	assert_eq(label.plain_text(), "0r")
+	assert_eq(label.plain_text(), "0c")
 
 
 func test_seven_is_copper_only() -> void:
@@ -33,7 +33,7 @@ func test_seven_is_copper_only() -> void:
 func test_12540_is_one_gold_25_silver_40_copper() -> void:
 	var label: MoneyLabel = _make(12540)
 	assert_eq(label.shown_coins(), [&"gold", &"silver", &"copper"] as Array[StringName])
-	assert_eq(label.plain_text(), "1o 25a 40r")
+	assert_eq(label.plain_text(), "1g 25s 40c")
 
 
 func test_zero_parts_are_left_out() -> void:

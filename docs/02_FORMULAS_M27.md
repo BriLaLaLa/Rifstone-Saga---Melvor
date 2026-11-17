@@ -15,8 +15,8 @@ Nessuna stat nuova in `stats.json`; nessuna sorgente nuova in `ModifierService`.
 **Scomposizione** di `c ≥ 0`: `g = c ÷ CPG`; `s = (c mod CPG) ÷ CPS`; `r = c mod CPS`. Ricomposizione `c = g × CPG + s × CPS + r` (campi del prezzo nella UI, con `g, s, r ≥ 0`).
 **Testo** (`Money.text`): le parti diverse da zero in ordine oro, argento, rame, ognuna `<n><simbolo>`, separate da uno spazio; `c = 0` → `"0" + simbolo del rame`; `c < 0` →
 `"−" + testo(−c)` (solo per i delta). Simboli di `currency.symbols` (`o`, `a`, `r`; Q160). Nessun separatore delle migliaia.
-Esempi (= test, `tests/core/common/test_money.gd`): 0 → (0, 0, 0) **"0r"**; 7 → **"7r"**; 100 → (0, 1, 0) **"1a"**; 10.000 → **"1o"**; 12.540 → (1, 25, 40) **"1o 25a 40r"**;
-125.000 → **"12o 50a"**; 1.000.005 → (100, 0, 5) **"100o 5r"**; 6.760.916 → **"676o 9a 16r"**; −250 → **"−2a 50r"**. Ricomposizione (1, 25, 40) → 12.540; (0, 0, 0) → 0.
+Esempi (= test, `tests/core/common/test_money.gd`): 0 → (0, 0, 0) **"0c"**; 7 → **"7c"**; 100 → (0, 1, 0) **"1a"**; 10.000 → **"1o"**; 12.540 → (1, 25, 40) **"1g 25s 40c"**;
+125.000 → **"12g 50s"**; 1.000.005 → (100, 0, 5) **"100o 5r"**; 6.760.916 → **"676o 9a 16r"**; −250 → **"−2s 50c"**. Ricomposizione (1, 25, 40) → 12.540; (0, 0, 0) → 0.
 
 **Conversione una tantum (M27-03)**: `LEGACY` = **100** (costante storica `V11_COPPER_PER_GOLD` di `migration_10_to_11.gd`, congelata): **1 oro di prima = 1 argento = 100 rame**.
 - **Dati**: ogni campo di denaro elencato in `04_DATA_SCHEMA_M27.md` §32.2 si moltiplica per `LEGACY` (anche le coppie min-max e le liste); i rapporti (`*_growth`, `*_mult`,
@@ -25,7 +25,7 @@ Esempi (= test, `tests/core/common/test_money.gd`): 0 → (0, 0, 0) **"0r"**; 7 
   Per questo le formule dei generatori di `02_FORMULAS*.md` (F-131, F-134, F-170, F-171, gli importi di `gen_areas`, `gen_dungeon`, `gen_equipment`, `gen_market`…) si leggono
   **in argento** invariate e i dati rigenerati sono **esattamente** ×100 di quelli di M26 (`--check` di ogni generatore verde). I validatori che ricalcolano costi del Villaggio
   (F-131) e ricompense della Bacheca (F-134) arrotondano a `10 × CPS` rame (prima: a 10 oro): stesso risultato ×100.
-- **Salvataggio** v10 → v11: `wallet.gold` (intero ≥ 0, anche float intero del JSON) → `wallet.copper = gold × LEGACY`. Esempi: 1.250 → **125.000** ("12o 50a"); 0 → **0**;
+- **Salvataggio** v10 → v11: `wallet.gold` (intero ≥ 0, anche float intero del JSON) → `wallet.copper = gold × LEGACY`. Esempi: 1.250 → **125.000** ("12g 50s"); 0 → **0**;
   1250.0 → **125.000**; `"x"` o −5 → chiave tolta (il portafoglio carica 0 con `Log.warn`, come oggi); modulo `wallet` assente → resta assente (partita nuova).
 Esempi sui dati veri (= test, `tests/data/test_data_validity.gd`): `redbirch_grip` `value` 2 → **200**; `riftite_plate` 595 → **59.500**; `buy_recipe_forge_ashlead_plate`
 `cost.gold` 1.050 → **105.000** (F-170 in argento: `max(100, 50 × 21)` = 1.050 a); reagenti della Forgia (F-171 in argento) prezzi 2, 7, 21, 60 → **200, 700, 2.100, 6.000**,

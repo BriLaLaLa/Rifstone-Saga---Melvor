@@ -31,9 +31,9 @@ func test_the_accessor_gives_the_parameters() -> void:
 	assert_eq(p.silver_per_gold, 100)
 	assert_eq(p.copper_per_gold(), 10000)
 	assert_eq(p.round_unit(), 1000)
-	assert_eq(p.symbols[&"gold"], "o")
-	assert_eq(p.symbols[&"silver"], "a")
-	assert_eq(p.symbols[&"copper"], "r")
+	assert_eq(p.symbols[&"gold"], "g")
+	assert_eq(p.symbols[&"silver"], "s")
+	assert_eq(p.symbols[&"copper"], "c")
 	assert_eq(p.names[&"gold"], "Oro")
 	assert_eq(p.names[&"copper"], "Rame")
 

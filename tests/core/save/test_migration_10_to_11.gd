@@ -19,7 +19,7 @@ func _copper(out: Dictionary) -> Variant:
 
 func test_the_gold_becomes_copper_times_100() -> void:
 	assert_eq(Step.V11_COPPER_PER_GOLD, 100)
-	assert_eq(_copper(Step.migrate(_v10({"gold": 1250}))), 125000, "12o 50a")
+	assert_eq(_copper(Step.migrate(_v10({"gold": 1250}))), 125000, "12g 50s")
 	assert_eq(_copper(Step.migrate(_v10({"gold": 0}))), 0)
 	assert_eq(_copper(Step.migrate(_v10({"gold": 1250.0}))), 125000)
 	assert_typeof(_copper(Step.migrate(_v10({"gold": 1250.0}))), TYPE_INT)

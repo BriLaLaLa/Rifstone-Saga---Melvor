@@ -50,7 +50,7 @@ func shown_coins() -> Array[StringName]:
 	return out
 
 
-## The text of the drawn amount in the format of `Money.text` ("1o 25a 40r"), for tests.
+## The text of the drawn amount in the format of `Money.text` ("1g 25s 40c"), for tests.
 func plain_text() -> String:
 	var out: PackedStringArray = []
 	var minus: String = ""

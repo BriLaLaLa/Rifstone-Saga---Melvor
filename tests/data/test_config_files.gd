@@ -162,9 +162,9 @@ const EXPECTED_BALANCE: Dictionary = {
 	"mail.capacity": 50.0,  # M27-05
 	"currency.copper_per_silver": 100.0,
 	"currency.silver_per_gold": 100.0,
-	"currency.symbols.gold": "o",
-	"currency.symbols.silver": "a",
-	"currency.symbols.copper": "r",
+	"currency.symbols.gold": "g",
+	"currency.symbols.silver": "s",
+	"currency.symbols.copper": "c",
 	"currency.names.gold": "Oro",
 	"currency.names.silver": "Argento",
 	"currency.names.copper": "Rame",

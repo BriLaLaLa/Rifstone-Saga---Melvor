@@ -44,7 +44,7 @@ Validatori: sezione `currency` di `balance.json` (M27-02); `DataValidatorVillage
 class_name Money extends RefCounted                   # core/common/money.gd — logica pura, nessuno stato
 static func split(copper: int, p: CurrencyParams) -> Vector3i          # (oro, argento, rame) di |copper|
 static func from_parts(gold: int, silver: int, copper: int, p: CurrencyParams) -> int   # parti < 0 → Log.error e 0
-static func text(copper: int, p: CurrencyParams) -> String             # F-177: "1o 25a 40r", "0r", "−2a 50r"
+static func text(copper: int, p: CurrencyParams) -> String             # F-177: "1g 25s 40c", "0c", "−2s 50c"
 ```
 - **Wallet** (§5.4): firme, segnali e motivi **invariati**; gli importi sono in **rame**. `to_save()` → `{"copper": int}`; `from_save(d)` legge `copper` (assente, non intero o negativo →
   `Log.warn` e 0); una chiave `gold` in un save v11 è ignorata con `Log.warn`. `new_game` = `start.gold` (già convertito).

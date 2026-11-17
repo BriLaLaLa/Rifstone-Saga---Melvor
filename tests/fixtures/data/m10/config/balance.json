@@ -335,7 +335,7 @@
   "currency": {
     "copper_per_silver": 100,
     "silver_per_gold": 100,
-    "symbols": {"gold": "o", "silver": "a", "copper": "r"},
+    "symbols": {"gold": "g", "silver": "s", "copper": "c"},
     "names": {"gold": "Oro", "silver": "Argento", "copper": "Rame"}
   },
   "offline": {
