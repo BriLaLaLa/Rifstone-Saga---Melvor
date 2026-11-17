@@ -215,7 +215,8 @@ static func saturate_and_rebuy(data: GameData, id: StringName, seed_value: int) 
 	var pile: int = 2000
 	var gold: int = pricing.sell_quote(id, pile)
 	pricing.record_sale(id, pile)
-	pricing.advance((p.cap_ppm / p.recover_ppm) * p.block_ms)
+	var rec: int = int(AuctionMath.liquidity(data.item(id).value, AuctionMath.band_of(data.item(id).value, p), p)["rec"])
+	pricing.advance(AuctionMath.ceil_div(p.cap_ppm, rec) * p.block_ms)
 	var q: int = pricing.stock(id)
 	gold -= pricing.buy_quote(id, q)
 	var v: int = data.item(id).value
@@ -309,27 +310,31 @@ static func production(data: GameData) -> Dictionary:
 	var lines: Array[String] = []
 	var worst_low: float = INF
 	var worst_high: float = -INF
-	var eqs: Array[int] = [p.base_ppm - p.amp_ppm, p.base_ppm + p.amp_ppm]
 	var made: Dictionary = {}
 	for skill: SkillDef in data.skills():
 		for action: ActionDef in data.actions_for_skill(skill.id):
 			for out: ItemQty in action.outputs:
 				if action.interval_ms > 0 and not made.has(out.item_id):
 					made[out.item_id] = {"per_hour": HOUR_MS / action.interval_ms * out.qty, "raw": RAW_SKILLS.has(skill.id) and action.inputs.is_empty()}
-	var recover_h: float = float(p.cap_ppm / p.recover_ppm * p.block_ms) / HOUR_MS
-	var fill_h: float = 0.0
+	var rec_blocks: Dictionary = {}  # band index -> recovery blocks from the cap
+	var fill_blocks: Dictionary = {}  # band index -> slowest refill blocks from empty
 	var extra: Array[String] = []
 	for def: AuctionItemDef in data.auction_items():
+		var v: int = data.item(def.item).value
+		var band: AuctionPopulationBand = AuctionMath.band_of(v, p)
+		var liq: Dictionary = AuctionMath.liquidity(v, band, p)
 		if def.buy_level >= 1:
-			var cap: int = AuctionMath.stock_max(data.item(def.item).value, p)
-			fill_h = maxf(fill_h, float(AuctionMath.ceil_div(cap, AuctionMath.refill_per_block(cap, p)) * p.block_ms) / HOUR_MS)
+			var k: int = p.bands.find(band)
+			var cap: int = AuctionMath.stock_max(v, p)
+			rec_blocks[k] = AuctionMath.ceil_div(p.cap_ppm, int(liq["rec"]))
+			fill_blocks[k] = maxi(int(fill_blocks.get(k, 0)), AuctionMath.ceil_div(cap, int(liq["refill"])))
 		if not made.has(def.item):
 			continue
-		var v: int = data.item(def.item).value
 		var q: int = int((made[def.item] as Dictionary)["per_hour"])
 		var ratios: Array[float] = []
-		for eq: int in eqs:
-			ratios.append(float(AuctionMath.gold_of(v, AuctionMath.sale_sum_ppm(eq, 0, q, p))) / float(v * q))
+		for eq: int in _eq_range(band, p):
+			var idx: int = clampi(eq, p.min_ppm, p.max_ppm)
+			ratios.append(float(AuctionMath.gold_of(v, AuctionMath.sale_sum_ppm(idx, 0, q, p, int(liq["step"])))) / float(v * q))
 		if bool((made[def.item] as Dictionary)["raw"]):
 			worst_low = minf(worst_low, ratios[0])
 			worst_high = maxf(worst_high, ratios[1])
@@ -339,7 +344,19 @@ static func production(data: GameData) -> Dictionary:
 	if worst_low < RATIO_MIN or worst_high > RATIO_MAX:
 		failures.append("(5) raw ratio %.3f - %.3f outside %.2f - %.2f" % [worst_low, worst_high, RATIO_MIN, RATIO_MAX])
 	var text: String = "\n".join(lines)
-	text += "\nraw materials: ratio %.3f - %.3f (threshold %.2f - %.2f); %d components/food (no threshold):\n%s" % [
-		worst_low, worst_high, RATIO_MIN, RATIO_MAX, extra.size(), ", ".join(extra)]
-	text += "\nrecovery from the cap: %.2f h; slowest stock refill from empty: %.2f h" % [recover_h, fill_h]
+	text += "\nraw materials: ratio %.3f - %.3f (threshold %.2f - %.2f); min-max spread %.3f; %d components/food (no threshold):\n%s" % [
+		worst_low, worst_high, RATIO_MIN, RATIO_MAX, worst_high - worst_low, extra.size(), ", ".join(extra)]
+	for k: int in rec_blocks:
+		text += "\nband %d: recovery from the cap %d blocks (%.2f h), slowest stock refill from empty %d blocks (%.2f h)" % [
+			k + 1, rec_blocks[k], float(int(rec_blocks[k]) * p.block_ms) / HOUR_MS, fill_blocks[k], float(int(fill_blocks[k]) * p.block_ms) / HOUR_MS]
 	return {"failures": failures, "text": text}
+
+
+## Extreme equilibria of a band at saturation 0 (F-174): base -/+ amplitude with the extreme pressure (Bmin against Smax, Bmax against Smin).
+@warning_ignore("integer_division")
+static func _eq_range(band: AuctionPopulationBand, p: AuctionParams) -> Array[int]:
+	var b_lo: int = band.buyers * (ONE - p.pop_var_ppm) / ONE
+	var b_hi: int = band.buyers * (ONE + p.pop_var_ppm) / ONE
+	var s_lo: int = band.sellers * (ONE - p.pop_var_ppm) / ONE
+	var s_hi: int = band.sellers * (ONE + p.pop_var_ppm) / ONE
+	return [p.base_ppm - p.amp_ppm + AuctionMath.pressure(b_lo, s_hi, p), p.base_ppm + p.amp_ppm + AuctionMath.pressure(b_hi, s_lo, p)]
