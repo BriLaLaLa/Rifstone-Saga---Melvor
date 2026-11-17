@@ -115,6 +115,8 @@ func _materials_seconds(building: Dictionary, params: Dictionary, level: int) ->
 
 ## Seconds to make one unit of `item` from raw gathering: (interval + ingredients) / output quantity, recursive.
 func _seconds(item: String) -> float:
+	if item.begins_with("reagent_"):
+		return 0.0  # M26-04: reagents are bought from the merchants (F-171), no gathering time
 	var action: Dictionary = _producers.get(item, {})
 	if action.is_empty():
 		printerr("sim_village: no action produces '%s'" % item)

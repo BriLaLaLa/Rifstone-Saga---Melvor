@@ -64,7 +64,7 @@ func test_components_follow_8_2() -> void:
 		assert_eq(recipe.interval_ms, 2400)
 		assert_eq(recipe.xp, PLATE_XP[n - 1])
 		assert_true(recipe.mastery, "Q26: the plates give mastery like the smelting")
-		assert_eq(recipe.inputs.size(), 1)
+		assert_eq(recipe.inputs.size(), 1 if n == 1 else 2, "M26-04: from tier 2 the plate is a scheme with a reagent at the end")
 		assert_eq(recipe.inputs[0].item_id, StringName(METALS[n - 1] + "_ingot"))
 		assert_eq(recipe.inputs[0].qty, 2)
 		assert_eq(recipe.outputs[0].item_id, plate.id)
