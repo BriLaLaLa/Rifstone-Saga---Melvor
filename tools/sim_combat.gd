@@ -303,10 +303,10 @@ static func stone_estimate(data: Object, area: Object, session: Object) -> Array
 
 
 static func food_for_grade(data: Object, grade: int) -> StringName:
-	var tonics: Array[StringName] = []  # M24-07: Tonics (recipes to discover) are not the cooked ladder
+	var tonics: Array[StringName] = []  # dropped Tonics are not the cooked ladder (M24-07); sold schemes are (M26)
 	for action: Object in data.call("actions_for_skill", &"hearthcraft"):
-		for output: Object in (action.outputs if action.discover else []):
-			tonics.append(output.item_id)
+		var recipe: Object = data.call("recipe_item_for", action.id) if action.discover else null
+		if recipe != null and data.call("shop_entry_selling", recipe.id) == null: tonics.append_array(action.outputs.map(func(o: Object) -> StringName: return o.item_id))
 	var foods: Array[Object] = []
 	for item: Object in data.call("items"):
 		if item.category == &"food" and not tonics.has(item.id):
