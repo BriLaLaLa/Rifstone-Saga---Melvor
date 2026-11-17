@@ -36,11 +36,17 @@ Test: `tests/systems/encounters/test_attempts.gd`, `tests/systems/actions/test_g
 ## F-163 XP e maestria per tentativo
 Ad ogni tentativo `k` con `n_k` unità effettivamente messe, `L_k` il livello **prima** del tentativo:
 - **colore** (F-154) con `d = L_k − level(a)` → `xp_pct`; `base = floor(n_k × a.xp × xp_pct / 100)`, poi F-02 con `T(skill_xp_pct, ctx)`, poi F-160; `base` 0 → nessuna XP né segnale;
-- **maestria**: `mxp = n_k × F-10(a)` (F-10 con `L_k` e `R` prima del guadagno); pool: F-12 su `mxp` (una volta per tentativo).
-Un cambio di livello a metà nodo cambia colore e F-10 dal tentativo dopo. La risorsa non cambia mai nel nodo.
-Esempi (Betulla `xp` 10, F-10 = 3, `y` 100): arancione **260, 270, 270** (800, come F-155); giallo **130, 135, 135** (400); verde **52, 54, 54** (160);
-grigio **0**; maestria **78, 81, 81** (240). Con `y` 80, arancione: **210, 210, 220**. Doppio e Frammento: per unità, come F-155.
-Test: `tests/systems/encounters/test_node_work.gd`.
+- **maestria**: `mxp = n_k × F-10(a)`, con F-10 calcolata **prima di ogni tentativo** (livello di maestria della risorsa e rapporto `R` della disciplina di
+  quel momento, prima del guadagno); pool: F-12 su `mxp` (una volta per tentativo).
+Un cambio di livello della disciplina a metà nodo cambia il colore dal tentativo dopo; un cambio del livello di maestria (o di `R`) cambia F-10 dal tentativo dopo
+(anche più volte nello stesso nodo: la maestria sale già col primo tentativo). La risorsa non cambia mai nel nodo.
+Esempi (Betulla `xp` 10, maestria e pool a 0 all'inizio, `y` 100): arancione **260, 270, 270** (800, come F-155); giallo **130, 135, 135** (400); verde **52, 54, 54** (160);
+grigio **0**; maestria **78, 108, 108** (294): F-10 = 3 al primo tentativo (26 × 3), poi la maestria della Betulla passa al livello 4 e F-10 = 4 (27 × 4), al
+terzo è al livello 6 e F-10 resta 4 (27 × 4). Il test fissa la regola (`mxp` = `n_k` × F-10 del momento) e il primo valore (78); i successivi dipendono dalla
+tabella della maestria dei dati veri. Con `y` 80, arancione: **210, 210, 220**. Doppio e Frammento: per unità, come F-155.
+**Deposito pieno**: un tentativo in cui **nessuna** unità trova posto non conta (`attempt` non sale, nessuna XP, maestria né segnale) e chiude il nodo con `bank_full`;
+se ne entra almeno una, il tentativo conta con le unità messe e poi il nodo si chiude.
+Test: `tests/systems/encounters/test_node_attempts.gd` (e `test_node_work.gd`).
 
 ## F-164 Nodo ricco
 Quando un nodo **lavorato** inizia (`NodeWork.begin`, dopo i controlli di disciplina e `min_level`), **un** tiro `roll_pct(encounters.rich_chance_pct)` (10) su

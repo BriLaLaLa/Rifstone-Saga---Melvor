@@ -1,4 +1,4 @@
-# 05. Interfacce, M25: Nodi con tentativi (§3c, §5.33b, §6b, §7.p)
+# 05. Interfacce, M25: Nodi con tentativi (§3c, §5.33b, §5.33c, §6b, §7.p)
 
 Estensione di `05_INTERFACES_M24.md` §3b, §5.33, §6b, §7.o. Dove c'è conflitto vale questo file. Formule in `02_FORMULAS_M25.md`.
 
@@ -27,20 +27,49 @@ static func begin(session, area_id, skill_id) -> NodeWork      # F-154, F-161, u
 func due_attempts() -> int                                     # tentativi con t_k <= elapsed non ancora risolti
 func resolve_attempt(session) -> ActionOutcome                 # F-162/F-163: riusa GatheringResolver.resolve_units(units, xp_pct del colore di adesso); attempt += 1
 func is_complete() -> bool                                     # attempt == attempts (o chiuso da bank_full)
+func is_over() -> bool                                         # il nodo finisce adesso: saltato → elapsed >= duration; lavorato → is_complete()
+func end_reason() -> StringName                                # motivo di node_finished: skip_reason (saltato), bank_full (chiuso), altrimenti node_done
+func next_event_ms() -> int                                    # ms al prossimo tentativo (o alla fine di un nodo saltato); 0 se finito
+func yield_pct(session) -> int; func units_planned(session) -> int   # F-162 di adesso (0 per un nodo saltato)
 func color(session) -> Dictionary                              # invariato nel significato: colore di adesso
+func to_save() -> Dictionary
+static func from_save(raw: Dictionary, data: GameData, area_id: StringName) -> NodeWork   # area_id dà la difficoltà (F-161); null se malformato
 # toglie `finish` (sostituita da resolve_attempt)
 ```
+- **Deposito pieno**: se in un tentativo **nessuna** unità trova posto, `resolve_attempt` restituisce `ok` false con motivo `bank_full`, il tentativo **non conta**
+  (`attempt` e `units` invariati, nessun segnale del tentativo) e il nodo si chiude (`is_complete()` true, `end_reason()` = `bank_full`); con almeno un'unità
+  messa il tentativo conta (`ok` true, `reason` `bank_full`) e poi il nodo si chiude.
 `CombatEngine`: in `node`, a ogni avanzamento `elapsed += delta`; finché `due_attempts() > 0` risolve in ordine e emette i segnali di §3c, poi `node_finished`. Il resto del
 ciclo (`travel`, `fight`, morte, `stop`) è come in M24 (§5.33): un nodo interrotto perde **solo i tentativi non ancora risolti**: ciò che è già nel Deposito resta.
 
 **`get_state()["node"]`** (`{}` fuori dal nodo): `skill`, `action`, `duration_ms`, `elapsed_ms`, `skipped`, `skip_reason`, `color` (di adesso), `attempts`, `attempt` (risolti),
-`rich`, `difficulty`, `level` (della disciplina), `yield_pct` (di adesso, F-162), `units` (messe finora), `units_planned` (`floor(Ne × y / 100)` di adesso), `last_attempt`
+`rich`, `difficulty`, `level` (della disciplina), `yield_pct` (di adesso, F-162), `units` (unità **messe finora** nel nodo, somma dei tentativi risolti),
+`units_planned` (unità **previste** per tutto il nodo alla resa di adesso, `floor(Ne × y / 100)`; non è la somma garantita dei tentativi), `last_attempt`
 (`{}` o `{"units": int, "color": StringName, "xp": int}` dell'ultimo tentativo). `xp` è letta dai segnali/risultato del motore, mai calcolata dalla UI.
+
+**Dati (M25-03)**: `AreaNodesDef.difficulty_of(skill) -> int`, `min_level_of(skill) -> int`. Il validatore (`core/data/data_validator_disciplines.gd`)
+accetta nelle voci di `nodes.json` i campi facoltativi `difficulty` e `min_level` (interi 1..livello massimo) e rifiuta `min_level` > difficoltà effettiva
+(`difficulty` o, se assente, il `max_level` dell'area), come `04_DATA_SCHEMA_M25.md` §30.1.
+
+## 5.33c Strumento "Avanza il tempo" (M25-07; `01_GDD_M25.md` §36.9b)
+```
+# core/offline/debug_time_skip.gd
+class_name DebugTimeSkip extends RefCounted
+static func max_hours(session) -> int                          # ore intere permesse dal tetto offline.cap_ms (almeno 1)
+static func elapsed_ms(session, hours: int) -> int             # clamp(hours × 3.600.000, 0, offline.cap_ms)
+func run(session, hours: int, yield_frames: bool = true) -> OfflineSummary   # coroutine (await): da offline.min_ms in su OfflineSimulator.run
+                                                               # (eventi su session.events, riepilogo); sotto, advance_silently e null
+# core/settings/game_settings.gd
+const KEY_DEBUG_SKIP_HOURS := "debug_skip_hours"               # default 1; solo user://settings.cfg, mai nello slot
+```
+- UI: `SettingsPanel` (`ui/settings/settings_panel.gd`) ha la sezione **"Debug"** solo con una sessione aperta: SpinBox delle ore (1..`max_hours`) e pulsante
+  "Avanza"; mette in pausa `GameClock` durante il salto, salva la scelta in `GameSettings` e apre `OfflineSummaryView` con il riepilogo. Nessuno stato nella UI.
 
 ## 6b. Salvataggio: `format_version` resta **8**, additivo (M25-02)
 `combat.node` (solo se lavorato) guadagna `attempts: int`, `attempt: int`, `rich: bool`, `units: int` accanto a `skill`, `action`, `elapsed_ms`, `duration_ms`, `skipped`.
-Lettura tollerante: **se mancano** (nodo di un salvataggio della M24 in corso) il nodo riparte con `elapsed_ms` 0, `attempt` 0, `rich` false, `attempts` = `encounters.attempts`,
-durata ricalcolata (nessuna perdita di oggetti); valori incoerenti (`attempt` > `attempts`, negativi) → viaggio verso scontro, come un nodo malformato di M24. Salva → carica → salva identico.
+Un nodo **saltato** guadagna invece `skip_reason: String` (`not_learned` | `too_hard`; additivo: se manca o è diverso da `too_hard` vale `not_learned`).
+Lettura tollerante (`NodeWork.from_save(raw, data, area_id)`): **se manca uno dei quattro campi** (nodo lavorato di un salvataggio della M24 in corso) il nodo riparte
+con `elapsed_ms` 0, `attempt` 0, `units` 0, `rich` false, `attempts` = `encounters.attempts` e la **`duration_ms` salvata** (F-155 non è cambiata; nessuna perdita di oggetti); valori incoerenti (`attempt` > `attempts`, negativi) → viaggio verso scontro, come un nodo malformato di M24. Salva → carica → salva identico.
 Niente `migration_8_to_9`; `SAVE_VERSION` non cambia (verificare il test di versione).
 
 ## 7.p UI di M25 (nessuno stato di gioco nella UI; `01_GDD_M25.md` §36.5)
@@ -54,4 +83,6 @@ Niente `migration_8_to_9`; `SAVE_VERSION` non cambia (verificare il test di vers
 - Nello stato `node` la pagina Combattimento mostra `NodeCard` **al posto** del riquadro del bersaglio (`EnemyZone` resta per `fight`); `TravelMap` invariata.
 - Sul segnale `node_attempt_done` la scheda anima il numero del bottino e il segnaposto; tra un tentativo e l'altro legge solo `get_state()`; nessun calcolo di resa.
 - Particelle e sprite: nodi di Godot (`AnimatedSprite2D`, `CPUParticles2D`, `Tween`), non GIF; con `Window` ridotta o `reduced motion` (impostazione già esistente, se c'è) si fermano.
-- Layout verificato a 1280×720 e 1600×900 (M25-06).
+- Layout verificato a 1280×720 e 1600×900 (M25-06) con `tools/shot_ui.tscn` (`timeout 90 Godot --path . --resolution 1280x720 res://tools/shot_ui.tscn -- <out_dir> 1280x720`).
+- **Come è stata fatta (M25-04)**: senza file in `assets/nodes/<skill>/` (oggi) `NodeArt.build_frames` usa un segnaposto disegnato da codice (Q134);
+  `LootList` ha **una sola** `LootRow` (la risorsa del nodo, `units`), perché lo stato non porta il bottino per oggetto (Q133).
