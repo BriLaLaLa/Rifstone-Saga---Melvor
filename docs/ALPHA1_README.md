@@ -14,8 +14,8 @@ ancora tarati e alcune immagini sono segnaposto. Ci servono le vostre impression
 2. I mostri lasciano **pezzi di equipaggiamento** con rarità e bonus: tenete i migliori, **raffinateli** e incastonate le pietre.
 3. Tra uno scontro e l'altro il personaggio viaggia e a volte trova un **nodo** (albero, vena, banco di pesci, erbe): lo lavora da
    solo, in alcuni **tentativi**, e mette il bottino nel **Deposito**. Lavora solo i nodi delle discipline che avete imparato.
-4. Nel **Villaggio** i **Maestri** vi insegnano le discipline (al massimo 2 di raccolta e 2 di produzione); la produzione
-   (forgia, falegnameria, cucina) va in **coda** mentre combattete. Nel Villaggio ci sono anche Bacheca, Mercato e Casa d'Aste.
+4. Nel **Villaggio** i **Maestri** vi insegnano le discipline (al massimo 2 di raccolta e 2 di produzione; l'Incisore, che serve per le rune, è una produzione da imparare come le altre); la produzione
+   (forgia, falegnameria, cucina e alchimia, incisore: ne scegliete 2 su 4) va in **coda** mentre combattete. Nel Villaggio ci sono anche Bacheca, Mercato e Casa d'Aste.
 5. Il gioco va avanti **anche a gioco chiuso** (fino a 12 ore): al rientro un riepilogo "Mentre eri via…" vi dice cosa è successo.
 
 ## Provare l'offline e la progressione lenta: "Avanza il tempo"
