@@ -31,7 +31,7 @@ var _skip_control: SkipStoneControl = null
 var _feed: CombatFeed = null
 ## The clickable map of the areas (overlay, built in `_ready`).
 var _map: CombatMap = null
-## M24-06: the travel strip and the node panel, under the cards (05_INTERFACES_M24.md §7.o).
+## M24-06 / V27: the travel map and the node card, in the arena in place of the enemy zone.
 var _travel: TravelMap = null
 var _node_card: NodeCard = null
 
@@ -99,10 +99,9 @@ func _ready() -> void:
 	_travel.name = "TravelMap"
 	_node_card = NodeCard.new()
 	_node_card.name = "NodeCard"
-	_main.add_child(_travel)
-	_main.add_child(_node_card)
-	_main.move_child(_travel, _main.get_child_count() - 3)
-	_main.move_child(_node_card, _main.get_child_count() - 2)
+	for scene: Control in [_travel, _node_card]:  # they take the place of the enemy zone (see `_process`)
+		scene.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_zone.get_parent().add_child(scene)
 	set_process(false)
 
 
@@ -181,8 +180,9 @@ func _process(_delta: float) -> void:
 		var state: Dictionary = _session.combat.get_state()
 		_player.tick(state)
 		_zone.refresh(_session, state)
-		_travel.refresh(state, _session.data, _session.disciplines)
+		_travel.refresh(state)
 		_node_card.refresh(state, _session.data)
+		_zone.visible = not (_travel.visible or _node_card.visible)  # the map or the node replace the enemies
 		if CombatFracture.is_in(state):  # the ability timer and the shield move between events
 			_state_label.text = CombatFracture.state_text(state["fracture"], _state_base, _session.data)
 		_redraw_yield()

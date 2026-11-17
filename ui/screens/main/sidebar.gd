@@ -1,8 +1,8 @@
 class_name Sidebar
 extends PanelContainer
-## Left navigation of the main screen (docs/03_ARCHITECTURE.md §11): game sections (Personaggio, Combattimento,
-## Equipaggiamento (with the Armory), Bank, Shop) and every gathering/artisan skill of the data by category, with icon,
-## name and level.
+## Left navigation of the main screen (docs/03_ARCHITECTURE.md §11): game sections in titled groups (Personaggio,
+## Combattimento, Villaggio), then the learned disciplines (Raccolta, Produzione) and the Guida; each row has its own
+## icon, name and level.
 ##
 ## The rows are copies of the hidden `RowTemplate` and `SectionTemplate` of the scene (the layout lives there),
 ## built from the data in `bind`; a skill level is read from `session.skills` and redrawn on `level_up`.
@@ -15,30 +15,28 @@ signal page_requested(page_id: StringName)
 const LOG_CATEGORY: String = "ui"
 const COMING_SOON_TEXT: String = "In arrivo"
 const LEVEL_TEXT: String = "Liv. %s"
-const SECTIONS_TITLE: String = "Partita"
-## The Engraver row (M24): not a discipline, it sits in the Village group.
-const ENGRAVER_PAGE := &"skill:riftbinding"
-## Game sections, in order: page id, text, UI icon (UiStyle.icon).
+## Game sections, in order: page id, group title, text, UI icon (UiStyle.icon, one distinct icon per row). The learned
+## disciplines (Raccolta, Produzione) are inserted before the entries of the group `TAIL_GROUP` (the Guida, no title).
+const TAIL_GROUP: String = ""
 const SECTIONS: Array[Dictionary] = [
-	{"page": &"character", "text": "Personaggio", "icon": "user"},
-	{"page": &"combat", "text": ItemTooltipLines.COMBAT_TEXT, "icon": "sword"},
-	{"page": &"fractures", "text": FractureTexts.TITLE_TEXT, "icon": "skull"},
-	{"page": &"dungeon", "text": DungeonTexts.TITLE_TEXT, "icon": "door-exit"},
-	{"page": &"equipment", "text": "Equipaggiamento", "icon": "shirt"},
-	{"page": &"rift", "text": RiftTexts.TITLE_TEXT, "icon": "sparkles"},
-	{"page": &"bank", "text": "Deposito", "icon": "box"},
-	{"page": &"shop", "text": "Shop", "icon": "building-store"},
-	{"page": &"village", "text": VillageTexts.TITLE_TEXT, "icon": "coins"},
-	{"page": &"trainers", "text": TrainersTexts.SIDEBAR_TEXT, "icon": "star"},
-	{"page": ENGRAVER_PAGE, "text": "Incisore", "icon": "sparkles"},
-	{"page": &"noticeboard", "text": NoticeboardTexts.TITLE_TEXT, "icon": "star"},
-	{"page": &"auction", "text": AuctionTexts.TITLE_TEXT, "icon": "coins"},
-	{"page": &"guide", "text": "Guida", "icon": "star"},
+	{"page": &"character", "group": "Personaggio", "text": "Personaggio", "icon": "user"},
+	{"page": &"equipment", "group": "Personaggio", "text": "Equipaggiamento", "icon": "shirt"},
+	{"page": &"rift", "group": "Personaggio", "text": RiftTexts.TITLE_TEXT, "icon": "sparkles"},
+	{"page": &"bank", "group": "Personaggio", "text": "Deposito", "icon": "box"},
+	{"page": &"combat", "group": "Combattimento", "text": ItemTooltipLines.COMBAT_TEXT, "icon": "sword"},
+	{"page": &"fractures", "group": "Combattimento", "text": FractureTexts.TITLE_TEXT, "icon": "skull"},
+	{"page": &"dungeon", "group": "Combattimento", "text": DungeonTexts.TITLE_TEXT, "icon": "door-exit"},
+	{"page": &"village", "group": "Villaggio", "text": VillageTexts.TITLE_TEXT, "icon": "home"},
+	{"page": &"trainers", "group": "Villaggio", "text": TrainersTexts.SIDEBAR_TEXT, "icon": "school"},
+	{"page": &"noticeboard", "group": "Villaggio", "text": NoticeboardTexts.TITLE_TEXT, "icon": "clipboard-list"},
+	{"page": &"auction", "group": "Villaggio", "text": AuctionTexts.TITLE_TEXT, "icon": "gavel"},
+	{"page": &"shop", "group": "Villaggio", "text": "Shop", "icon": "building-store"},
+	{"page": &"guide", "group": TAIL_GROUP, "text": "Guida", "icon": "book"},
 ]
 ## Skill categories (04_DATA_SCHEMA.md §3) and their section titles, in order (combat skills no longer exist).
 const CATEGORY_TITLES: Dictionary[StringName, String] = {
 	&"gathering": "Raccolta",
-	&"artisan": "Artigianato",
+	&"artisan": "Produzione",
 }
 
 var _session: GameSession = null
@@ -77,23 +75,31 @@ func bind(session: GameSession, is_available: Callable) -> void:
 	_refresh_lock()
 
 
-## The rows: the game sections (the Trainers and the Engraver in the Village group) and, by category, only the
-## disciplines the player has learned (`disciplines.is_learned`).
+## The rows: the game sections by group and, by category, only the learned disciplines (`disciplines.is_learned`;
+## the Engraver is one of them).
 func _build_rows() -> void:
 	_clear_rows()
-	_add_section_title(SECTIONS_TITLE)
+	var last_group: String = "?"
+	var disciplines_done: bool = false
 	for section: Dictionary in SECTIONS:
+		var group: String = section["group"]
+		if group == TAIL_GROUP and not disciplines_done:
+			_add_discipline_rows()
+			disciplines_done = true
+		if group != last_group and group != TAIL_GROUP:
+			_add_section_title(group)
+		last_group = group
 		var page_id: StringName = section["page"]
 		var icon: Texture2D = UiStyle.icon(section["icon"] as String)
-		var row: Button = _add_row(page_id, section["text"] as String, icon, _is_available.call(page_id) as bool)
-		if page_id == ENGRAVER_PAGE:
-			_level_labels[&"riftbinding"] = row.get_node("Side") as Label
-			_redraw_level(&"riftbinding")
+		_add_row(page_id, section["text"] as String, icon, _is_available.call(page_id) as bool)
+	set_current(_current)
+
+
+func _add_discipline_rows() -> void:
 	for category: StringName in CATEGORY_TITLES:
 		var learned: Array[SkillDef] = []
 		for skill: SkillDef in _session.data.skills_by_category(category):
-			if StringName(PageHost.ROUTE_SKILL + PageHost.ROUTE_SEPARATOR + skill.id) != ENGRAVER_PAGE \
-					and _session.disciplines.is_learned(skill.id):
+			if _session.disciplines.is_learned(skill.id):
 				learned.append(skill)
 		if learned.is_empty():
 			continue
@@ -105,7 +111,6 @@ func _build_rows() -> void:
 			row.add_theme_color_override("icon_disabled_color", Color(skill.color, UiStyle.TEXT_DISABLED.a))
 			_level_labels[skill.id] = row.get_node("Side") as Label
 			_redraw_level(skill.id)
-	set_current(_current)
 
 
 ## Disconnects from the session's events; the rows stay as they are.
