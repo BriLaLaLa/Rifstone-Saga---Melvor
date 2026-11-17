@@ -1,7 +1,10 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://ui/pages/auction/auction_page.gd" id="1_page"]
 [ext_resource type="Script" path="res://ui/components/sub_tab_bar/sub_tab_bar.gd" id="2_tabs"]
+[ext_resource type="Script" path="res://ui/pages/auction/auction_category_tree.gd" id="3_tree"]
+[ext_resource type="Script" path="res://ui/pages/auction/auction_list.gd" id="4_list"]
+[ext_resource type="Script" path="res://ui/pages/auction/auction_detail.gd" id="5_detail"]
 
 [node name="AuctionPage" type="Control"]
 layout_mode = 3
@@ -38,6 +41,11 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"TitleLabel"
 
+[node name="LevelLabel" type="Label" parent="Margin/Content/Header/HeaderRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+
 [node name="GoldLabel" type="Label" parent="Margin/Content/Header/HeaderRow"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -47,25 +55,31 @@ unique_name_in_owner = true
 layout_mode = 2
 script = ExtResource("2_tabs")
 
-[node name="MessageLabel" type="Label" parent="Margin/Content"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-autowrap_mode = 3
-
 [node name="InfoLabel" type="Label" parent="Margin/Content"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 theme_type_variation = &"HeaderLabel"
 
-[node name="Scroll" type="ScrollContainer" parent="Margin/Content"]
+[node name="Body" type="HBoxContainer" parent="Margin/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-horizontal_scroll_mode = 0
 
-[node name="Rows" type="VBoxContainer" parent="Margin/Content/Scroll"]
+[node name="Categories" type="VBoxContainer" parent="Margin/Content/Body"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(210, 0)
+layout_mode = 2
+script = ExtResource("3_tree")
+
+[node name="Items" type="VBoxContainer" parent="Margin/Content/Body"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+script = ExtResource("4_list")
+
+[node name="Detail" type="PanelContainer" parent="Margin/Content/Body"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(290, 0)
+layout_mode = 2
+script = ExtResource("5_detail")
