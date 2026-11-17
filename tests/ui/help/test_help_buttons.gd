@@ -2,7 +2,7 @@ extends GutTest
 ## HelpButton and tooltip lines (M11-05): every game route has a "?" that opens an existing Guide page, item tooltips
 ## list at most three sources/uses, the stat tooltip shows the description of stats.json.
 
-const ROUTES: Array[StringName] = [&"bank", &"shop", &"equipment", &"character", &"combat", &"rift"]
+const ROUTES: Array[StringName] = [&"bank", &"shop", &"equipment", &"character", &"combat", &"rift", &"trainers"]
 
 var _session: GameSession
 var _host: PageHost

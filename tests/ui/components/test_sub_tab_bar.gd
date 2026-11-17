@@ -49,6 +49,15 @@ func test_bar_selects_the_first_tab_quietly_and_emits_on_select() -> void:
 	assert_eq(bar.current(), &"b")
 
 
+func test_select_releases_the_previous_tab_in_the_group() -> void:
+	var bar: SubTabBar = SubTabBar.new()
+	add_child_autofree(bar)
+	bar.setup([{"id": &"a", "label": "A"}, {"id": &"b", "label": "B"}])
+	bar.select(&"b")
+	assert_false((bar.get_node("Tab_a") as Button).button_pressed)
+	assert_true((bar.get_node("Tab_b") as Button).button_pressed)
+
+
 func test_engraver_has_the_four_tabs_and_shows_one_at_a_time() -> void:
 	_open(&"riftbinding")
 	var bar: SubTabBar = _bar()

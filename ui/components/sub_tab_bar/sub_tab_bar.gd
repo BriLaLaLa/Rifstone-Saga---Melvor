@@ -42,7 +42,7 @@ func setup(tabs: Array[Dictionary]) -> void:
 func select(id: StringName) -> void:
 	if not _buttons.has(id):
 		return
-	_buttons[id].set_pressed_no_signal(true)
+	_buttons[id].button_pressed = true  # updates the ButtonGroup (releases the previous tab), does not emit `pressed`
 	_on_pressed(id)
 
 

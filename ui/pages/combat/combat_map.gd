@@ -9,7 +9,7 @@ extends Control
 signal area_chosen(area_id: StringName)
 
 const PANEL_SIZE := Vector2(980.0, 560.0)
-const NODE_SIZE := Vector2(150.0, 64.0)
+const NODE_SIZE := Vector2(176.0, 54.0)  # name line + "levels - state" line: two neighbours never overlap
 const MAP_PADDING: int = 90
 
 var _panel: PanelContainer = null
@@ -101,8 +101,9 @@ func _make_node(area: AreaDef, unlocked: bool, running: bool) -> Button:
 			else (CombatTexts.MAP_AVAILABLE_TEXT if unlocked else CombatTexts.MAP_LOCKED_TEXT)
 	var lines: Array[String] = [area.name]
 	if area.level_min > 0:
-		lines.append(CombatTexts.MAP_LEVELS_TEXT % [area.level_min, area.level_max])
-	lines.append(state_text)
+		lines.append("%s  %s" % [CombatTexts.MAP_LEVELS_TEXT % [area.level_min, area.level_max], state_text])
+	else:
+		lines.append(state_text)
 	button.text = "\n".join(lines)
 	button.disabled = not unlocked
 	var border: Color = UiStyle.GOLD_LIGHT if running else (UiStyle.GOLD if unlocked else UiStyle.GOLD_DIM)

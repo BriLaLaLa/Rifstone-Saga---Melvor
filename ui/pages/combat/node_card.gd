@@ -9,6 +9,7 @@ const POP_SCALE: float = 1.25
 const POP_SECONDS: float = 0.25
 const COUNT_SECONDS: float = 0.4
 const PIP_SIZE: Vector2 = Vector2(22, 10)
+const BODY_SEPARATION: int = 12
 
 var _art: NodeArt = null
 var _title: Label = null
@@ -33,17 +34,32 @@ func _ready() -> void:
 	box.name = "NodeBox"
 	add_child(box)
 	_title = _add_label(box, "NodeTitle", &"HeaderLabel")
+	var body := HBoxContainer.new()  # art on the left, numbers on the right: keeps the card short at 1280x720
+	body.name = "NodeBody"
+	body.add_theme_constant_override("separation", BODY_SEPARATION)
+	box.add_child(body)
 	_art = NodeArt.new()
 	_art.name = "NodeArt"
-	box.add_child(_art)
-	_resource = _add_label(box, "ResourceLabel", &"")
-	_color = _add_label(box, "ColorLabel", &"")
-	_rich = _add_label(box, "RichBadge", &"")
+	_art.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	body.add_child(_art)
+	var info := VBoxContainer.new()
+	info.name = "NodeInfo"
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body.add_child(info)
+	_resource = _add_label(info, "ResourceLabel", &"")
+	_color = _add_label(info, "ColorLabel", &"")
+	_rich = _add_label(info, "RichBadge", &"")
 	_rich.text = NodeCardTexts.RICH_TEXT
 	_rich.add_theme_color_override("font_color", UiStyle.GOLD_LIGHT)
 	_pips = HBoxContainer.new()
 	_pips.name = "AttemptsRow"
-	box.add_child(_pips)
+	info.add_child(_pips)
+	_loot_title = _add_label(info, "LootTitle", &"MutedLabel")
+	_loot_title.text = NodeCardTexts.LOOT_TITLE_TEXT
+	_loot = VBoxContainer.new()
+	_loot.name = "LootList"
+	info.add_child(_loot)
+	_xp = _add_label(info, "XpLabel", &"MutedLabel")
 	_bar = ProgressBar.new()
 	_bar.name = "TimeBar"
 	_bar.max_value = 1.0
@@ -51,12 +67,6 @@ func _ready() -> void:
 	_bar.show_percentage = false
 	_bar.custom_minimum_size = Vector2(0, UiStyle.COMBAT_BAR_HEIGHT)
 	box.add_child(_bar)
-	_loot_title = _add_label(box, "LootTitle", &"MutedLabel")
-	_loot_title.text = NodeCardTexts.LOOT_TITLE_TEXT
-	_loot = VBoxContainer.new()
-	_loot.name = "LootList"
-	box.add_child(_loot)
-	_xp = _add_label(box, "XpLabel", &"MutedLabel")
 	_locked = _add_label(box, "LockedLabel", &"")
 	_locked.add_theme_color_override("font_color", UiStyle.BAD)
 	_locked.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

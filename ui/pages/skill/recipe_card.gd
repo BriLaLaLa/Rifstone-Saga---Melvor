@@ -59,7 +59,7 @@ func setup(action: ActionDef, data: GameData) -> void:
 		label.name = "Text"
 		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART  # the full name and count stay readable in narrow cards
 		row.add_child(label)
 		_ingredient_labels[item_id] = label
 		_item_names[item_id] = item.name
