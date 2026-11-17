@@ -2,6 +2,12 @@
   "skill": "test_craft",
   "actions": [
     {"id": "craft_plank", "name": "Tagliare assi di prova", "level": 1, "interval_ms": 2000, "xp": 8,
-     "mastery": true, "inputs": [{"item": "test_log", "qty": 2}], "outputs": [{"item": "test_plank", "qty": 1}]}
+     "mastery": true, "inputs": [{"item": "test_log", "qty": 2}], "outputs": [{"item": "test_plank", "qty": 1}]},
+    {"id": "craft_tint", "name": "Tinta di prova", "level": 2, "interval_ms": 2000, "xp": 8,
+     "mastery": false, "colors": {"yellow": 20, "green": 30, "grey": 40},
+     "inputs": [{"item": "test_log", "qty": 1}], "outputs": [{"item": "test_plank", "qty": 1}]},
+    {"id": "craft_scheme", "name": "Schema di prova", "level": 5, "interval_ms": 2000, "xp": 8,
+     "mastery": false, "discover": true, "colors": {"yellow": 25, "green": 35, "grey": 45},
+     "inputs": [{"item": "test_log", "qty": 2}, {"item": "reagent_test_craft_1", "qty": 1}], "outputs": [{"item": "test_plank", "qty": 1}]}
   ]
 }

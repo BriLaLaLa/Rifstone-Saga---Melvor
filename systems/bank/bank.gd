@@ -13,7 +13,7 @@ const SAVE_KEY: StringName = &"bank"
 const LOG_CATEGORY: String = "bank"
 const START_ITEMS_KEY: String = "start.items"
 ## docs/05_INTERFACES.md §5.5: category order of `sort_stacks`.
-const SORT_CATEGORIES: Array[StringName] = [&"material", &"bag", &"recipe", &"food", &"infusion", &"misc", &"stone",
+const SORT_CATEGORIES: Array[StringName] = [&"material", &"reagent", &"bag", &"recipe", &"food", &"infusion", &"misc", &"stone",
 		&"currency"]
 ## Categories held by the Armory as unique pieces: the bank rejects them (M4-05).
 const PIECE_CATEGORIES: Array[StringName] = [&"equipment", &"tool", &"map"]  # M13: Cards live in the CardStore

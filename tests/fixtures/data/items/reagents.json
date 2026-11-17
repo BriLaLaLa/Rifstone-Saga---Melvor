@@ -1,0 +1,7 @@
+{
+  "items": [
+    {"id": "reagent_test_craft_1", "name": "Reagente di prova", "category": "reagent",
+     "icon": "res://assets/icons/items/test_twig.png", "value": 1, "sort_order": 10,
+     "description": "Reagente di prova che serve a uno schema."}
+  ]
+}

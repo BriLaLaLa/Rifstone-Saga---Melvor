@@ -12,7 +12,7 @@ const ITEM_FILE_CATEGORIES: Dictionary[String, String] = {
 	"materials": "material", "components": "component", "blueprints": "blueprint", "equipment": "equipment",
 	"equipment_weapons": "equipment", "equipment_jewels": "equipment", "equipment_plate": "equipment",
 	"equipment_leather": "equipment", "equipment_cloth": "equipment", "equipment_masterwork": "equipment",
-	"equipment_legendary": "equipment", "tools": "tool", "tools_legendary": "tool", "food": "food", "infusions": "infusion",
+	"equipment_legendary": "equipment", "reagents": "reagent", "tools": "tool", "tools_legendary": "tool", "food": "food", "infusions": "infusion",
 	"misc": "misc", "stones": "stone", "currencies": "currency", "bags": "bag", "recipes": "recipe", "maps": "map",
 }
 const CURRENCY_EFFECTS: PackedStringArray = ["to_magic", "to_rare", "reroll"]
@@ -32,10 +32,10 @@ const OFFHAND_SLOT_KINDS: PackedStringArray = ["shield"]  # kinds of slot offhan
 const RIFT_SHARD_ID: StringName = &"rift_shard"
 const RIFT_SHARD_CATEGORY: String = "misc"
 const ACTION_FIELDS: PackedStringArray = ["id", "name", "level", "interval_ms", "xp", "mastery", "inputs",
-	"outputs", "icon", "single", "milestones", "kind", "discover"]
-const SHOP_CATEGORIES: PackedStringArray = ["bank", "combat", "tools", "materials", "market"]  # M8 adds "lanes"
+	"outputs", "icon", "single", "milestones", "kind", "discover", "colors"]
+const SHOP_CATEGORIES: PackedStringArray = ["bank", "combat", "tools", "materials", "market", "profession"]  # M8 adds "lanes"
 ## Vendors (stalls) the shop page groups the entries under; the page lists them in this order (P-04).
-const SHOP_VENDORS: PackedStringArray = ["bottegaia", "fabbro", "armaiolo", "mercante_armature", "mercato"]  # M12: "deposito" has no entries
+const SHOP_VENDORS: PackedStringArray = ["bottegaia", "fabbro", "armaiolo", "mercante_armature", "mercato", "falegname", "cuoco"]  # M12: "deposito" has no entries
 const SHOP_FIELDS: PackedStringArray = ["id", "name", "description", "category", "vendor", "cost", "max_purchases",
 	"requires", "effect"]
 
@@ -200,6 +200,7 @@ static func validate_actions(v: DataValidatorRules, files: Dictionary[String, Di
 			DataValidatorMilestones.action(v, e, skill, category)
 			DataValidatorEngraver.action(v, e, skill)
 			DataValidatorDisciplines.action(v, e, category, single)
+			DataValidatorProfessions.action(v, e, category, single)
 
 
 static func validate_shop(v: DataValidatorRules, files: Dictionary[String, Dictionary],

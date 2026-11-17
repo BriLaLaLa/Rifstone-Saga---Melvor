@@ -214,7 +214,6 @@ func area(id: StringName) -> AreaDef: return _find(_areas, id, "area") as AreaDe
 func areas() -> Array[AreaDef]: return _area_list.duplicate()
 
 func monster(id: StringName) -> MonsterDef: return _find(_monsters, id, "monster") as MonsterDef
-
 ## Existence checks without `push_error` (docs/05_INTERFACES.md §4).
 func has_area(id: StringName) -> bool: return _areas.has(id)
 func has_monster(id: StringName) -> bool: return _monsters.has(id)
@@ -232,6 +231,9 @@ func shop_entry(id: StringName) -> ShopEntryDef: return _find(_shop, id, "shop e
 
 ## Every shop entry, in file order.
 func shop_entries() -> Array[ShopEntryDef]: return _shop_list.duplicate()
+## M26 (docs/05_INTERFACES_M26.md §4c): the entries of a vendor in file order; the entry that sells an item (null, no error, if none).
+func shop_entries_of_vendor(vendor: StringName) -> Array[ShopEntryDef]: return ShopIndex.of_vendor(_shop_list, vendor)
+func shop_entry_selling(item_id: StringName) -> ShopEntryDef: return ShopIndex.selling(_shop_list, item_id)
 
 ## M19 (docs/04_DATA_SCHEMA.md §24): a Village building by id (null and an error if unknown); all of them, by `order`.
 func village_building(id: StringName) -> VillageBuildingDef: return _find(_village.by_id, id, "village building") as VillageBuildingDef
