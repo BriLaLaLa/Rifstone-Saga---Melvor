@@ -40,6 +40,7 @@ func _ready() -> void:
 func bind(session: GameSession) -> void:
 	unbind()
 	_session = session
+	HelpButton.attach(_title_label.get_parent(), session.data, &"trainers")
 	_build_rows()
 	var events: GameEvents = session.events
 	for pair: Array in [[events.discipline_changed, _on_discipline_changed], [events.gold_changed, _on_gold_changed],

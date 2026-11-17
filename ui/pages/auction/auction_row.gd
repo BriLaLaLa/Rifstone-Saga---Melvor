@@ -9,6 +9,7 @@ extends HBoxContainer
 signal trade_requested(item_id: StringName, qty: int)
 
 const SEPARATION: int = 14
+const SCROLLBAR_GAP: float = 12.0
 const ICON_SIDE: int = 32
 const NAME_WIDTH: float = 230.0
 const PRICE_WIDTH: float = 170.0
@@ -80,6 +81,10 @@ func setup(id: StringName, trade_mode: StringName) -> void:
 	_button.focus_mode = Control.FOCUS_NONE
 	_button.pressed.connect(func() -> void: trade_requested.emit(item_id, int(_spin.value)))
 	action.add_child(_button)
+	var edge: Control = Control.new()  # keeps the button away from the page scrollbar
+	edge.name = "ScrollbarGap"
+	edge.custom_minimum_size.x = SCROLLBAR_GAP
+	add_child(edge)
 
 
 ## Rereads the item from `auction` (an AuctionHouse) and `session`.
@@ -141,7 +146,7 @@ func _trend_color(trend: StringName) -> Color:
 			return UiStyle.GOOD
 		&"down":
 			return UiStyle.BAD
-	return UiStyle.GOLD_DIM
+	return UiStyle.GOLD  # readable on the window background (GOLD_DIM was too faint)
 
 
 func _column(width: float) -> VBoxContainer:
