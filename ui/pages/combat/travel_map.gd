@@ -1,102 +1,117 @@
 class_name TravelMap
 extends Control
-## Travel strip of the Combat page (docs/01_GDD_M24.md §35.11, 05_INTERFACES_M24.md §7.o): a path, the icon of the
-## character moving along it and the target (swords for a fight, the icon of the discipline for a node; grey with a
-## "Non appresa" marker when the discipline is not learned).
+## Little map shown in the Combat page, in place of the enemy zone, while the party travels to the next encounter
+## (state `travel`): a sketched landscape (hills, trees, a winding path) and the icon of the character walking along
+## the path. It shows neither nodes nor enemies: it only gives the idea of the journey. Drawn by code, no assets.
 ##
-## `refresh(state, data, disciplines)` reads `combat.get_state()` (`travel_ms`, `travel_total_ms`, `next`) and draws:
-## the position of the icon is `1 - travel_ms / travel_total_ms`. Visible only while travelling. No game state here.
+## `refresh(state)` reads `combat.get_state()` (`state`, `travel_ms`, `travel_total_ms`): the position of the icon is
+## `1 - travel_ms / travel_total_ms`. Visible only while travelling. The little walking bob stops with "Effetti visivi
+## ridotti". No game state here.
 
-const HEIGHT: float = 64.0
-const ICON_SIDE: float = 40.0
-const PATH_THICKNESS: float = 4.0
-const EDGE: float = 8.0
-const SWORD_ICON: String = "sword"
 const PLAYER_ICON: String = "user"
+const MIN_HEIGHT: float = 220.0
+const ICON_SIDE: float = 40.0
+const PATH_WIDTH: float = 6.0
+const PATH_STEPS: int = 48
+const EDGE: float = 0.08  ## fraction of the width left free at both ends of the path
+const BOB_PIXELS: float = 3.0
+const BOB_SPEED: float = 7.0
+const SKY_TOP := Color("26304a")
+const SKY_BOTTOM := Color("4a5a6e")
+const HILL_FAR := Color("2f4a3c")
+const HILL_NEAR := Color("3b5c42")
+const GROUND := Color("33472f")
+const PATH_COLOR := Color("b49a68")
+const TRUNK_COLOR := Color("4b3524")
+const LEAF_COLOR := Color("224a2b")
+const BORDER_WIDTH: int = 2
+## Trees: x fraction, y fraction (feet), height in pixels.
+const TREES: Array[Vector3] = [Vector3(0.05, 0.86, 54.0), Vector3(0.14, 0.40, 34.0), Vector3(0.27, 0.9, 62.0),
+		Vector3(0.40, 0.44, 30.0), Vector3(0.58, 0.42, 36.0), Vector3(0.70, 0.92, 58.0), Vector3(0.83, 0.46, 32.0),
+		Vector3(0.94, 0.88, 56.0)]
 
-var _path: ColorRect = null
-var _icon: TextureRect = null
-var _target: TextureRect = null
-var _label: Label = null
-var _lock: Label = null
 var _progress: float = 0.0
 
 
 func _ready() -> void:
-	custom_minimum_size = Vector2(0, HEIGHT)
-	_path = ColorRect.new()
-	_path.name = "TravelPath"
-	_path.color = UiStyle.GOLD_DIM
-	_path.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_path)
-	_icon = _make_icon("TravelIcon")
-	_icon.texture = UiStyle.icon(PLAYER_ICON)
-	_target = _make_icon("TravelTarget")
-	_label = Label.new()
-	_label.name = "TravelLabel"
-	_label.theme_type_variation = &"MutedLabel"
-	_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_label)
-	_lock = Label.new()
-	_lock.name = "TravelLock"
-	_lock.text = CombatTexts.TRAVEL_LOCKED_TEXT
-	_lock.add_theme_color_override("font_color", UiStyle.BAD)
-	_lock.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_lock.visible = false
-	add_child(_lock)
-	resized.connect(_layout)
-	_layout()
+	custom_minimum_size = Vector2(0, MIN_HEIGHT)
+	size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	clip_contents = true
+	visible = false
+	resized.connect(queue_redraw)
 
 
-## Draws the travel in `state` (combat.get_state()); `disciplines` answers `is_learned(skill_id)`.
-func refresh(state: Dictionary, data: GameData, disciplines: Object) -> void:
+## Draws the travel in `state` (combat.get_state()); hidden outside the `travel` state.
+func refresh(state: Dictionary) -> void:
 	var total: int = int(state.get("travel_total_ms", 0))
 	var left: int = int(state.get("travel_ms", 0))
 	visible = state.get("state", &"") == CombatTexts.STATE_TRAVEL
 	_progress = clampf(1.0 - float(left) / float(total), 0.0, 1.0) if total > 0 else 0.0
-	var next: Dictionary = state.get("next", {}) as Dictionary
-	var skill_id: StringName = StringName(next.get("skill", &""))
-	var is_node: bool = StringName(next.get("kind", &"fight")) == &"node" and skill_id != &""
-	var skill: SkillDef = data.skill(skill_id) if is_node else null
-	var learned: bool = true
-	if is_node and skill != null:
-		learned = bool(disciplines.call("is_learned", skill_id))
-		_target.texture = ItemSlotView.icon_of(skill.icon)
-		_label.text = CombatTexts.TRAVEL_NODE_TEXT % skill.name
-	else:
-		_target.texture = UiStyle.icon(SWORD_ICON)
-		_label.text = CombatTexts.TRAVEL_FIGHT_TEXT
-	_target.modulate = Color.WHITE if learned else UiStyle.TEXT_DISABLED
-	_target.tooltip_text = "" if learned else CombatTexts.TRAVEL_LOCKED_TIP
-	_lock.visible = not learned
-	_layout()
+	if visible:
+		queue_redraw()
 
 
-## Position of the icon along the path, 0 (start) to 1 (target), as last drawn.
+## Position of the icon along the path, 0 (start) to 1 (end), as last drawn.
 func progress() -> float:
 	return _progress
 
 
-func _make_icon(node_name: String) -> TextureRect:
-	var rect := TextureRect.new()
-	rect.name = node_name
-	rect.custom_minimum_size = Vector2(ICON_SIDE, ICON_SIDE)
-	rect.size = Vector2(ICON_SIDE, ICON_SIDE)
-	rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	add_child(rect)
-	return rect
+## Point of the path at `t` (0..1), in the coordinates of a rectangle of `area` size.
+static func path_point(t: float, area: Vector2) -> Vector2:
+	var x: float = lerpf(area.x * EDGE, area.x * (1.0 - EDGE), t)
+	var y: float = area.y * (0.66 + 0.12 * sin(t * TAU * 1.25 + 0.6))
+	return Vector2(x, y)
 
 
-func _layout() -> void:
-	if _path == null:
+func _draw() -> void:
+	var area: Vector2 = size
+	if area.x <= 0.0 or area.y <= 0.0:
 		return
-	var start_x: float = EDGE
-	var end_x: float = maxf(start_x, size.x - EDGE - ICON_SIDE)
-	var mid_y: float = (HEIGHT - ICON_SIDE) * 0.5
-	_path.position = Vector2(start_x + ICON_SIDE * 0.5, HEIGHT * 0.5 - PATH_THICKNESS * 0.5)
-	_path.size = Vector2(maxf(0.0, end_x - start_x), PATH_THICKNESS)
-	_icon.position = Vector2(lerpf(start_x, end_x, _progress), mid_y)
-	_target.position = Vector2(end_x, mid_y)
-	_label.position = Vector2(start_x, 0.0)
-	_lock.position = Vector2(maxf(start_x, end_x - _lock.size.x), HEIGHT - 20.0)
+	var horizon: float = area.y * 0.42
+	draw_rect(Rect2(Vector2.ZERO, Vector2(area.x, horizon)), SKY_TOP)
+	for i: int in 6:  # soft band of sky near the horizon
+		var band: float = float(i) / 6.0
+		draw_rect(Rect2(0.0, horizon * band, area.x, horizon / 6.0 + 1.0), SKY_TOP.lerp(SKY_BOTTOM, band))
+	draw_rect(Rect2(0.0, horizon, area.x, area.y - horizon), GROUND)
+	_draw_hill(area, 0.22, 0.28, 0.26, HILL_FAR)
+	_draw_hill(area, 0.62, 0.34, 0.2, HILL_FAR)
+	_draw_hill(area, 0.45, 0.4, 0.14, HILL_NEAR)
+	_draw_hill(area, 0.93, 0.26, 0.12, HILL_NEAR)
+	var points := PackedVector2Array()
+	for i: int in PATH_STEPS + 1:
+		points.append(path_point(float(i) / PATH_STEPS, area))
+	draw_polyline(points, PATH_COLOR.darkened(0.45), PATH_WIDTH + 4.0, true)
+	draw_polyline(points, PATH_COLOR, PATH_WIDTH, true)
+	for tree: Vector3 in TREES:
+		_draw_tree(Vector2(area.x * tree.x, area.y * tree.y), tree.z)
+	var bob: float = 0.0
+	if not CombatFx.reduced():
+		bob = absf(sin(Time.get_ticks_msec() * 0.001 * BOB_SPEED)) * BOB_PIXELS
+	var at: Vector2 = path_point(_progress, area)
+	var icon_rect := Rect2(at - Vector2(ICON_SIDE * 0.5, ICON_SIDE + bob - 4.0), Vector2(ICON_SIDE, ICON_SIDE))
+	draw_circle(at + Vector2(0.0, 2.0), ICON_SIDE * 0.3, Color(0.0, 0.0, 0.0, 0.3))
+	draw_texture_rect(UiStyle.icon(PLAYER_ICON), icon_rect, false, UiStyle.GOLD_LIGHT)
+	draw_rect(Rect2(Vector2.ZERO, area), UiStyle.COMBAT_ENEMY_BORDER, false, float(BORDER_WIDTH))
+
+
+func _process(_delta: float) -> void:
+	if visible and not CombatFx.reduced():
+		queue_redraw()  # the walking bob
+
+
+func _draw_hill(area: Vector2, center: float, half_width: float, height: float, color: Color) -> void:
+	var horizon: float = area.y * 0.42
+	var points := PackedVector2Array()
+	for i: int in 13:
+		var u: float = float(i) / 12.0 * 2.0 - 1.0  # -1..1 across the hill
+		points.append(Vector2(area.x * (center + u * half_width), horizon + area.y * 0.04 - area.y * height * (1.0 - u * u)))
+	draw_colored_polygon(points, color)
+
+
+func _draw_tree(feet: Vector2, tree_height: float) -> void:
+	var trunk := Rect2(feet.x - tree_height * 0.06, feet.y - tree_height * 0.3, tree_height * 0.12, tree_height * 0.3)
+	draw_rect(trunk, TRUNK_COLOR)
+	draw_colored_polygon(PackedVector2Array([Vector2(feet.x, feet.y - tree_height),
+			Vector2(feet.x + tree_height * 0.28, feet.y - tree_height * 0.25),
+			Vector2(feet.x - tree_height * 0.28, feet.y - tree_height * 0.25)]), LEAF_COLOR)

@@ -88,6 +88,13 @@ func set_skill(skill_id: StringName) -> void:
 	_particles.emitting = moving
 
 
+## Makes the art `factor` times bigger than the default (area and sprite).
+func set_zoom(factor: float) -> void:
+	custom_minimum_size = ART_SIZE * factor
+	if _sprite != null:
+		_sprite.scale = Vector2.ONE * SPRITE_SCALE * factor
+
+
 ## Tint of the particles (the colour of the node).
 func set_tint(color: Color) -> void:
 	if _particles != null:

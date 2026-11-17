@@ -10,6 +10,8 @@ const POP_SECONDS: float = 0.25
 const COUNT_SECONDS: float = 0.4
 const PIP_SIZE: Vector2 = Vector2(22, 10)
 const BODY_SEPARATION: int = 12
+const ART_ZOOM: float = 1.75
+const INFO_WIDTH: float = 260.0
 
 var _art: NodeArt = null
 var _title: Label = null
@@ -32,19 +34,24 @@ func _ready() -> void:
 	theme_type_variation = &"HudPanel"
 	var box := VBoxContainer.new()
 	box.name = "NodeBox"
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.add_theme_constant_override("separation", BODY_SEPARATION)
 	add_child(box)
-	_title = _add_label(box, "NodeTitle", &"HeaderLabel")
-	var body := HBoxContainer.new()  # art on the left, numbers on the right: keeps the card short at 1280x720
+	_title = _add_label(box, "NodeTitle", &"TitleLabel")
+	_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var body := HBoxContainer.new()  # art on the left, numbers on the right
 	body.name = "NodeBody"
-	body.add_theme_constant_override("separation", BODY_SEPARATION)
+	body.alignment = BoxContainer.ALIGNMENT_CENTER
+	body.add_theme_constant_override("separation", BODY_SEPARATION * 2)
 	box.add_child(body)
 	_art = NodeArt.new()
 	_art.name = "NodeArt"
-	_art.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	_art.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	body.add_child(_art)
+	_art.set_zoom(ART_ZOOM)
 	var info := VBoxContainer.new()
 	info.name = "NodeInfo"
-	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.custom_minimum_size.x = INFO_WIDTH
 	body.add_child(info)
 	_resource = _add_label(info, "ResourceLabel", &"")
 	_color = _add_label(info, "ColorLabel", &"")

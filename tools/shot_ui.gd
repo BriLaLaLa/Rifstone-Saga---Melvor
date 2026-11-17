@@ -57,6 +57,7 @@ func _run() -> void:
 		await _frames(8)
 		_save(&"combat_map")
 		(screen.find_child("CombatMap", true, false) as CombatMap).close()
+	await _travel_shot(session, host)
 	await _node_shots(session, host)
 	print_rich("shots in ", ProjectSettings.globalize_path(_out))
 	get_tree().quit(0)
@@ -72,6 +73,21 @@ func _queue_shot(session: GameSession, host: PageHost) -> void:
 			TestFactory.give(session, input.item_id, 200)
 		if session.actions.enqueue(&"forging", action.id, 5, count == 1).ok:
 			count += 1
+
+
+## Combat in the `travel` state (the little map in place of the enemies), half way.
+func _travel_shot(session: GameSession, host: PageHost) -> void:
+	session.combat.stop()
+	session.combat.start(&"redrock_plains")
+	for i: int in 4000:
+		if session.combat.state() == &"travel":
+			break
+		session.combat.advance(100)
+	for i: int in 8:
+		session.combat.advance(250)
+	host.show_page(&"combat")
+	await _frames(8)
+	_save(&"travel_live")
 
 
 func _node_shots(session: GameSession, host: PageHost) -> void:

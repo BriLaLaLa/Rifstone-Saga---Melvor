@@ -184,11 +184,7 @@ static func hit_line(player_pct: int, enemy_pct: int) -> String:
 	return HIT_PCT_TEXT % player_pct + " · " + ENEMY_HIT_PCT_TEXT % enemy_pct
 
 
-## Travel map and node panel (M24-06, docs/01_GDD_M24.md §35.11). Resource and skill names come from the data.
-const TRAVEL_FIGHT_TEXT: String = "Verso il prossimo scontro"
-const TRAVEL_NODE_TEXT: String = "Verso un nodo: %s"
-const TRAVEL_LOCKED_TEXT: String = "Non appresa"
-const TRAVEL_LOCKED_TIP: String = "Disciplina non appresa: il nodo verrà saltato. I Maestri la insegnano."
+## Node panel (M24-06, docs/01_GDD_M24.md §35.11). Resource and skill names come from the data.
 const NODE_TITLE_TEXT: String = "Nodo: %s"
 const NODE_RESOURCE_TEXT: String = "Risorsa: %s"
 const NODE_COLOR_TEXT: String = "Colore: %s"
