@@ -19,6 +19,7 @@ const UNLEARN_MIN_KEY: String = "trainer.unlearn_min_gold"
 const XP_CAP_KEY: String = "xp_curve.xp_cap"
 const SAVE_LEARNED_KEY: String = "learned"
 const SAVE_RECIPES_KEY: String = "recipes"
+const SAVE_EXTRA_KEY: String = "extra"
 
 var _session: GameSession
 var _data: GameData
@@ -27,6 +28,8 @@ var _events: GameEvents
 var _grades: Dictionary[StringName, int] = {}
 # Discovered recipe action ids, in order of discovery.
 var _recipes: Array[StringName] = []
+# Learned disciplines that occupy an extra slot (only a v8 -> v9 save creates one, docs/01_GDD_M25.md §37.2).
+var _extra: Array[StringName] = []
 
 
 func _init(session: GameSession) -> void:
@@ -63,8 +66,14 @@ func learned(category: StringName) -> Array[StringName]:
 	return result
 
 
+## Never negative, also with an extra slot.
 func free_slots(category: StringName) -> int:
-	return int(_data.balance_value(MAX_PER_CATEGORY_KEY)) - learned(category).size()
+	return maxi(0, int(_data.balance_value(MAX_PER_CATEGORY_KEY)) - learned(category).size())
+
+
+## True when the learned discipline occupies an extra slot (M25-11).
+func is_extra(skill_id: StringName) -> bool:
+	return _extra.has(skill_id)
 
 
 ## 1..n; 0 when not learned or not a discipline.
@@ -179,6 +188,7 @@ func unlearn(skill_id: StringName) -> CommandResult:
 	_session.skills.reset_skill(skill_id)
 	_session.mastery.reset_skill(skill_id)
 	_grades.erase(skill_id)
+	_release_extra(skill_id)
 	_events.discipline_changed.emit(skill_id, 0)
 	return CommandResult.success()
 
@@ -220,6 +230,7 @@ func learn_recipe(item_id: StringName) -> CommandResult:
 func new_game() -> void:
 	_grades.clear()
 	_recipes.clear()
+	_extra.clear()
 
 
 ## {"learned": {skill: grade}, "recipes": [action ids]} (docs/05_INTERFACES_M24.md §6b).
@@ -231,7 +242,11 @@ func to_save() -> Dictionary:
 	var recipes: Array = []
 	for action_id: StringName in _recipes:
 		recipes.append(String(action_id))
-	return {SAVE_LEARNED_KEY: learned_grades, SAVE_RECIPES_KEY: recipes}
+	var extra: Array = []
+	for skill_id: StringName in _data.disciplines():
+		if _extra.has(skill_id):
+			extra.append(String(skill_id))
+	return {SAVE_LEARNED_KEY: learned_grades, SAVE_RECIPES_KEY: recipes, SAVE_EXTRA_KEY: extra}
 
 
 ## Tolerant: skills that are unknown or not disciplines, and grades outside 1..n, are reported and dropped; more than the
@@ -239,7 +254,7 @@ func to_save() -> Dictionary:
 ## Then a discipline that is not learned but has xp (or mastery) is reset: "xp > 0 implies learned".
 func from_save(d: Dictionary) -> void:
 	new_game()
-	_load_learned(d.get(SAVE_LEARNED_KEY, {}))
+	_load_learned(d.get(SAVE_LEARNED_KEY, {}), d.get(SAVE_EXTRA_KEY, []))
 	_load_recipes(d.get(SAVE_RECIPES_KEY, []))
 	for skill_id: StringName in _data.disciplines():
 		if not _grades.has(skill_id) and _session.skills.get_xp(skill_id) > 0:
@@ -248,7 +263,7 @@ func from_save(d: Dictionary) -> void:
 			_session.mastery.reset_skill(skill_id)
 
 
-func _load_learned(raw: Variant) -> void:
+func _load_learned(raw: Variant, raw_extra: Variant) -> void:
 	if not raw is Dictionary:
 		Log.warn(LOG_CATEGORY, "invalid learned disciplines in save: none learned")
 		return
@@ -264,13 +279,54 @@ func _load_learned(raw: Variant) -> void:
 		else:
 			read[skill_id] = int(value)
 	var max_per: int = int(_data.balance_value(MAX_PER_CATEGORY_KEY))
+	var wanted: Array[StringName] = _read_extra(raw_extra, read)
 	for skill_id: StringName in _data.disciplines():  # in order of `order`
 		if not read.has(skill_id):
 			continue
-		if learned(category_of(skill_id)).size() >= max_per:
+		var allowed: int = max_per
+		for other: StringName in wanted:
+			if category_of(other) == category_of(skill_id):
+				allowed += 1
+		if learned(category_of(skill_id)).size() >= allowed:
 			Log.warn(LOG_CATEGORY, "too many '%s' disciplines in save: '%s' dropped" % [category_of(skill_id), skill_id])
 			continue
 		_grades[skill_id] = read[skill_id]
+	for skill_id: StringName in wanted:
+		if _grades.has(skill_id):
+			_extra.append(skill_id)
+	for category: StringName in [&"gathering", &"artisan"]:
+		if learned(category).size() <= max_per:
+			_clear_extra_of(category)
+
+
+# The valid entries of the save's `extra` (learned in the save, disciplines); the others are reported and dropped.
+func _read_extra(raw: Variant, read: Dictionary[StringName, int]) -> Array[StringName]:
+	var result: Array[StringName] = []
+	if not raw is Array:
+		Log.warn(LOG_CATEGORY, "invalid extra disciplines in save: none")
+		return result
+	for entry: Variant in raw as Array:
+		var skill_id := StringName(str(entry))
+		if is_discipline(skill_id) and read.has(skill_id):
+			if not result.has(skill_id):
+				result.append(skill_id)
+		else:
+			Log.warn(LOG_CATEGORY, "extra '%s' in the save is not a learned discipline: ignored" % skill_id)
+	return result
+
+
+func _clear_extra_of(category: StringName) -> void:
+	for skill_id: StringName in _extra.duplicate():
+		if category_of(skill_id) == category:
+			_extra.erase(skill_id)
+
+
+# After unlearning: the discipline leaves `extra`; with the category back within the limit the extra slots go away.
+func _release_extra(skill_id: StringName) -> void:
+	_extra.erase(skill_id)
+	var category: StringName = category_of(skill_id)
+	if learned(category).size() <= int(_data.balance_value(MAX_PER_CATEGORY_KEY)):
+		_clear_extra_of(category)
 
 
 func _load_recipes(raw: Variant) -> void:

@@ -12,6 +12,7 @@ var _page: SkillPage
 
 func before_each() -> void:
 	_session = TestFactory.session(1234, TestFactory.real_data())
+	TestFactory.learn_engraver(_session)
 
 
 func after_each() -> void:

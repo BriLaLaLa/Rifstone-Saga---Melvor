@@ -24,6 +24,8 @@
      "fed_by": ["forestry"]},
     {"skill": "hearthcraft", "name": "Fenna Focolare", "title": "Maestra di cucina e alchimia",
      "description": "Tiene un calderone sempre acceso: dentro bollono stufati e tonici. Ti insegna a unire pesce ed erbe.",
-     "fed_by": ["angling", "herbalism"]}
+     "fed_by": ["angling", "herbalism"]},
+    {"skill": "riftbinding", "name": "Corvo Sigillaluce", "title": "Maestro Incisore",
+     "description": "Incide rune sulla pietra con una mano sola e non ne sbaglia una. Ti insegna a leggere la Polvere del Rift e a farla restare dove la metti."}
   ]
 }

@@ -33,6 +33,6 @@
     {"id": "riftbinding", "name": "Incisore", "category": "artisan", "order": 8, "icon": "res://assets/icons/skills/riftbinding.svg",
      "color": "#9a5ce0",
      "description": "Cristallizza la Polvere del Rift, fonde le pietre e incide le rune da incastonare nell'Altare del Rift.",
-     "has_mastery": true}
+     "has_mastery": true, "discipline": true}
   ]
 }

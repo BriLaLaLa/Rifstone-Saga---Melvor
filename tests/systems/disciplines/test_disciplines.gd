@@ -22,12 +22,12 @@ func test_new_game_has_nothing_learned() -> void:
 	assert_eq(_d.learned(&"gathering"), [] as Array[StringName])
 	assert_eq(_d.free_slots(&"gathering"), 2)
 	assert_false(_d.is_learned(FORESTRY))
-	assert_true(_d.is_learned(RIFTBINDING), "not a discipline: always usable")
+	assert_false(_d.is_learned(RIFTBINDING), "the Incisore is a discipline since M25-11")
 	assert_false(_d.is_learned(&"nope"))
 	assert_eq(_d.grade(FORESTRY), 0)
 	assert_eq(_d.category_of(FORESTRY), &"gathering")
-	assert_eq(_d.category_of(RIFTBINDING), &"")
-	assert_eq(_d.to_save(), {"learned": {}, "recipes": []})
+	assert_eq(_d.category_of(RIFTBINDING), &"artisan")
+	assert_eq(_d.to_save(), {"learned": {}, "recipes": [], "extra": []})
 
 
 ## F-158: gold 0, 250, 1.250, 6.250, 31.250 (spent in total 39.000 up to grade 5).
@@ -37,7 +37,6 @@ func test_f158_gold_of_the_grades() -> void:
 		golds.append(TrainerGradeDef.gold(_s.data, g))
 	assert_eq(golds, [0, 250, 1250, 6250, 31250] as Array[int])
 	assert_eq(_d.next_grade_cost(FORESTRY), 0, "grade 0: the cost of grade 1")
-	assert_eq(_d.next_grade_cost(RIFTBINDING), -1)
 
 
 func test_learn_gives_grade_1_and_signals() -> void:
@@ -52,7 +51,6 @@ func test_learn_gives_grade_1_and_signals() -> void:
 
 func test_learn_refusals_in_order_and_nothing_changes() -> void:
 	assert_eq(_d.learn(&"nope").reason, Reasons.UNKNOWN_ID)
-	assert_eq(_d.learn(RIFTBINDING).reason, Reasons.NOT_A_DISCIPLINE)
 	assert_true(_d.learn(FORESTRY).ok)
 	assert_true(_d.learn(QUARRYING).ok)
 	watch_signals(_s.events)
@@ -66,7 +64,6 @@ func test_learn_refusals_in_order_and_nothing_changes() -> void:
 ## F-158 example: grade 2 needs the discipline at 15 (cap 20 - 5), the character at 15, 250 gold; the order of the refusals.
 func test_train_refusals_in_order_then_grade_2() -> void:
 	assert_eq(_d.train(FORESTRY).reason, Reasons.NOT_LEARNED)
-	assert_eq(_d.train(RIFTBINDING).reason, Reasons.NOT_A_DISCIPLINE)
 	assert_eq(_d.train(&"nope").reason, Reasons.UNKNOWN_ID)
 	_d.learn(FORESTRY)
 	TestFactory.set_level(_s, FORESTRY, 14)
@@ -111,7 +108,6 @@ func test_f159_unlearn_cost() -> void:
 
 func test_unlearn_refusals_and_atomicity() -> void:
 	assert_eq(_d.unlearn(FORESTRY).reason, Reasons.NOT_LEARNED)
-	assert_eq(_d.unlearn(RIFTBINDING).reason, Reasons.NOT_A_DISCIPLINE)
 	_d.learn(FORESTRY)
 	_s.wallet.spend(_s.wallet.get_gold())
 	_s.skills.add_xp(FORESTRY, 500)
@@ -191,7 +187,7 @@ func test_save_round_trip() -> void:
 	_d.learn(FORGING)
 	TestFactory.learn_discipline(_s, FORGING, 3)
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(_d.to_save()))
-	assert_eq(_d.to_save(), {"learned": {"forestry": 1, "forging": 3}, "recipes": []})
+	assert_eq(_d.to_save(), {"learned": {"forestry": 1, "forging": 3}, "recipes": [], "extra": []})
 	var other: GameSession = autofree(TestFactory.session_no_kit(2, TestFactory.real_data()))
 	other.disciplines.from_save(saved)
 	assert_eq(other.disciplines.to_save(), _d.to_save())
@@ -208,7 +204,7 @@ func test_from_save_is_tolerant() -> void:
 	_d.from_save({"learned": {"forestry": 1, "quarrying": 1, "angling": 1}})
 	assert_eq(_d.learned(&"gathering"), [FORESTRY, QUARRYING] as Array[StringName], "the first by order stay")
 	_d.from_save({"learned": "oops", "recipes": 5})
-	assert_eq(_d.to_save(), {"learned": {}, "recipes": []})
+	assert_eq(_d.to_save(), {"learned": {}, "recipes": [], "extra": []})
 
 
 func test_from_save_resets_a_discipline_with_xp_that_is_not_learned() -> void:

@@ -17,6 +17,7 @@ var _s: GameSession = null
 
 func before_each() -> void:
 	_s = TestFactory.session_no_kit(SEED, TestFactory.real_data())
+	TestFactory.learn_engraver(_s)
 
 
 func after_each() -> void:
@@ -58,6 +59,7 @@ func test_every_engraver_recipe_yields_its_item_with_xp_and_mastery() -> void:
 	for action: ActionDef in actions:
 		_s.free()
 		_s = TestFactory.session_no_kit(SEED, TestFactory.real_data())
+		TestFactory.learn_engraver(_s)
 		TestFactory.set_level(_s, SKILL, action.level)
 		var xp_start: int = _s.skills.get_xp(SKILL)
 		var crystallize: bool = action.kind == &"crystallize"
@@ -110,6 +112,7 @@ func test_sockets_unlock_at_the_balance_levels() -> void:
 			assert_eq(_s.rift.is_unlocked(j), j <= i, "socket %d at level %d" % [j, levels[i]])
 	# Just below a threshold the next socket is still locked.
 	var t: GameSession = TestFactory.session_no_kit(SEED, TestFactory.real_data())
+	TestFactory.learn_engraver(t)
 	TestFactory.set_level(t, SKILL, 79)
 	assert_false(t.rift.is_unlocked(4), "79 < 80")
 	t.free()

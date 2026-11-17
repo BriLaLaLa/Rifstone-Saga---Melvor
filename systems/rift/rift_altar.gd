@@ -35,6 +35,8 @@ func _init(session: GameSession) -> void:
 		_levels.append(int((entry as Dictionary)["level"]))
 	_sockets.resize(_levels.size())
 	_sockets.fill(&"")
+	_events.level_up.connect(_on_level_up)
+	_events.skill_reset.connect(_on_skill_reset)
 
 
 func socket_total() -> int:
@@ -43,6 +45,12 @@ func socket_total() -> int:
 
 func is_unlocked(index: int) -> bool:
 	return index >= 0 and index < _levels.size() and _skills.get_level(SKILL) >= _levels[index]
+
+
+## A socket with an infusion that is unlocked: only then its modifiers count (docs/01_GDD_M25.md §37.1). A locked socket keeps
+## its infusion, switched off.
+func is_active(index: int) -> bool:
+	return get_socket(index) != &"" and is_unlocked(index)
 
 
 ## &"" for an empty or unknown socket.
@@ -102,8 +110,8 @@ func to_save() -> Dictionary:
 	return {SOCKETS_KEY: saved}
 
 
-## Tolerant: bad list -> all empty; unknown or non-infusion ids, locked sockets and repeated unique infusions are
-## dropped with Log.warn; missing entries are empty, extra entries ignored.
+## Tolerant: bad list -> all empty; unknown or non-infusion ids and repeated unique infusions are dropped with Log.warn;
+## infusions in locked sockets are kept (switched off, M25-11); missing entries are empty, extra entries ignored.
 func from_save(d: Dictionary) -> void:
 	_sockets.fill(&"")
 	var saved: Variant = d.get(SOCKETS_KEY)
@@ -124,10 +132,20 @@ func from_save(d: Dictionary) -> void:
 		_sockets[i] = item_id
 
 
-# Sets (or clears, when empty) the source `rift_socket:<index>`.
+func _on_level_up(skill_id: StringName, _new_level: int) -> void:
+	if skill_id == SKILL:
+		rebuild_modifiers()
+
+
+func _on_skill_reset(skill_id: StringName) -> void:
+	if skill_id == SKILL:
+		rebuild_modifiers()
+
+
+# Sets (or clears, when empty or locked) the source `rift_socket:<index>`.
 func _apply_source(index: int) -> void:
 	var source_id: StringName = StringName(SOURCE_PREFIX + str(index))
-	if _sockets[index] == &"":
+	if not is_active(index):
 		_modifiers.clear_source(source_id)
 		return
 	_modifiers.set_source(source_id, _data.item(_sockets[index]).infusion_modifiers)

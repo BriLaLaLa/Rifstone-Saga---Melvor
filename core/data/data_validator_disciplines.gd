@@ -96,6 +96,7 @@ static func validate(v: DataValidatorRules, raw: Dictionary, strict: bool = STRI
 	for path: Variant in balance_files:
 		v.at_file(str(path))
 		validate_balance(v, balance_files[path] as Dictionary)
+		_slots(v, balance_files[path] as Dictionary, strict)
 	var trainer_files: Dictionary = raw.get("disciplines", {}) as Dictionary
 	for path: Variant in trainer_files:
 		v.at_file(str(path))
@@ -111,6 +112,30 @@ static func validate(v: DataValidatorRules, raw: Dictionary, strict: bool = STRI
 
 
 # --- balance ----------------------------------------------------------------------------------------------------
+
+# `disciplines.max_per_category` against the disciplines of each category (04_DATA_SCHEMA_M25.md §30.4): never more than the category
+# has; strict (real data): every gathering and artisan skill is a discipline and the choice is real (the limit is below the count).
+static func _slots(v: DataValidatorRules, balance: Dictionary, strict: bool) -> void:
+	var section: Variant = DataValidator.lookup(balance, "disciplines")
+	if not section is Dictionary or not DataValidatorRules.is_int((section as Dictionary).get("max_per_category")):
+		return
+	var max_per: int = int((section as Dictionary)["max_per_category"])
+	for category: String in DISCIPLINE_CATEGORIES:
+		var total: int = 0
+		var count: int = 0
+		for skill_id: StringName in v.skills:
+			var def: Dictionary = v.skills[skill_id]
+			if str(def.get("category")) != category:
+				continue
+			total += 1
+			if _is_true(def, "discipline"):
+				count += 1
+			elif strict:
+				v.fail("skill '%s' (%s) is not a discipline: every %s skill is learned from a Trainer" % [skill_id, category, category])
+		if count > 0 and max_per > count:
+			v.fail("field 'disciplines.max_per_category' (%d) is above the %d disciplines of the category '%s'" % [max_per, count, category])
+		elif strict and total > 0 and max_per >= count:
+			v.fail("field 'disciplines.max_per_category' (%d) must be below the %d disciplines of the category '%s'" % [max_per, count, category])
 
 static func _encounters(v: DataValidatorRules, section: Variant) -> void:
 	if not section is Dictionary:

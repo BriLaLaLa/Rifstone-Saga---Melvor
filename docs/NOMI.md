@@ -433,5 +433,6 @@ Skill nuova `herbalism` = **Erborista** (raccolta); `hearthcraft` si chiama ora 
 | `forging` | Tarsa Martelrosso | Maestra Fabbra |
 | `woodwright` | Osvaldo Pialla | Maestro Falegname |
 | `hearthcraft` | Fenna Focolare | Maestra di cucina e alchimia |
+| `riftbinding` | Corvo Sigillaluce | Maestro Incisore |
 
 Nodi di raccolta: nessun nome (nodi per disciplina e area, `data/encounters/nodes.json`). Maestria dell'Erborista: nodi `herbalism_n1_green_thumb` Mano verde, `n2_full_basket` Cesto colmo, `n3_field_notes` Taccuino dei prati, `n4_rift_bloom` Fiori del Rift, `n5_patient_eye` Occhio paziente, `n6_master` Maestro dei prati.

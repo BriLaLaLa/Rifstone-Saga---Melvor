@@ -9,7 +9,7 @@ const TONIC_HEAL: Array[int] = [30, 53, 83, 120, 165, 225, 300, 390]
 const TONIC_VALUE: Array[int] = [4, 12, 24, 40, 72, 120, 200, 340]
 const FISH: Array[StringName] = [&"brookfin", &"ashgill", &"redscale", &"dusk_eel", &"shard_gar", &"mist_barbel", &"ember_sturgeon", &"riftmaw"]
 const GATHERING: Array[StringName] = [&"forestry", &"quarrying", &"angling", &"herbalism"]
-const ARTISAN: Array[StringName] = [&"forging", &"woodwright", &"hearthcraft"]
+const ARTISAN: Array[StringName] = [&"forging", &"woodwright", &"hearthcraft", &"riftbinding"]
 
 var _data: GameData
 
@@ -22,7 +22,7 @@ func test_real_data_is_valid() -> void:
 	assert_eq(_data.errors, PackedStringArray())
 
 
-func test_four_gathering_and_three_artisan_disciplines() -> void:
+func test_four_gathering_and_four_artisan_disciplines() -> void:
 	var gathering: Array[StringName] = _data.disciplines(&"gathering")
 	var artisan: Array[StringName] = _data.disciplines(&"artisan")
 	gathering.sort()

@@ -186,6 +186,21 @@ static func learn_all(session: GameSession, grade: int = 0) -> void:
 			learn_discipline(session, ids[i], grade)
 
 
+## M25-11: the Incisore learned (top grade), as a normal slot: if the artisan limit would be exceeded, the last other production by
+## `order` that `learn_all` learned is dropped (a session whose save must load back identical never holds more than the limit).
+## A no-op in data where `riftbinding` is not a discipline.
+static func learn_engraver(session: GameSession, grade: int = 0) -> void:
+	var engraver: StringName = &"riftbinding"
+	if not session.disciplines.is_discipline(engraver):
+		return
+	var max_per: int = int(session.data.balance_value("disciplines.max_per_category"))
+	var others: Array[StringName] = session.disciplines.learned(&"artisan")
+	others.erase(engraver)
+	while others.size() >= max_per and not others.is_empty():
+		session.disciplines._grades.erase(others.pop_back())
+	learn_discipline(session, engraver, grade)
+
+
 ## A discipline at `grade` (0 = the top grade), set directly: it ignores `disciplines.max_per_category` and the costs.
 static func learn_discipline(session: GameSession, skill_id: StringName, grade: int = 0) -> void:
 	session.disciplines._grades[skill_id] = grade if grade > 0 else session.data.trainer_grades().size()

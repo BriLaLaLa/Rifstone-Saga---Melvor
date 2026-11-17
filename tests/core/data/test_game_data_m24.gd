@@ -20,10 +20,10 @@ func test_disciplines_by_category_in_order() -> void:
 	assert_false(_fixture.skill(&"riftbinding").discipline, "the Engraver is always available")
 
 
-func test_the_real_disciplines_are_the_seven_trades() -> void:
+func test_the_real_disciplines_are_the_eight_trades() -> void:
 	assert_eq(_real.disciplines(&"gathering"), [&"forestry", &"quarrying", &"angling", &"herbalism"] as Array[StringName])
-	assert_eq(_real.disciplines(&"artisan"), [&"forging", &"hearthcraft", &"woodwright"] as Array[StringName])
-	assert_false(_real.skill(&"riftbinding").discipline)
+	assert_eq(_real.disciplines(&"artisan"), [&"forging", &"hearthcraft", &"woodwright", &"riftbinding"] as Array[StringName])
+	assert_true(_real.skill(&"riftbinding").discipline)
 
 
 func test_trainer_grades_follow_f158() -> void:

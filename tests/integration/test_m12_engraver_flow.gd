@@ -47,6 +47,7 @@ func _new(data: GameData = null) -> GameSession:
 	if _s != null:
 		_s.free()
 	_s = TestFactory.session_no_kit(SEED, data if data != null else TestFactory.real_data())
+	TestFactory.learn_engraver(_s)
 	_completed = []
 	_stops = []
 	_s.events.action_completed.connect(func(_l: StringName, _k: StringName, a: StringName, o: Dictionary) -> void:

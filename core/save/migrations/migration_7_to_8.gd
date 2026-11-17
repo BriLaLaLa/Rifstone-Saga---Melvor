@@ -20,6 +20,9 @@ const CONTRACT_KINDS: Array[String] = ["forestry", "quarrying", "angling"]
 const CONTRACT_GRADES: Array[String] = ["apprentice", "journeyman", "expert", "master"]
 const CATEGORIES: Array[String] = ["gathering", "artisan"]
 const BLUEPRINT_ACTION: String = "blueprint_craft"
+## Frozen M24 rule (docs/05_INTERFACES_M25.md §6c): the Incisore is not a discipline in this migration whatever skills.json says
+## (from M25-11 it is, and migration_8_to_9.gd takes care of it).
+const V8_NON_DISCIPLINES: Array[String] = ["riftbinding"]
 
 
 static func migrate(d: Dictionary) -> Dictionary:
@@ -99,7 +102,7 @@ static func _learn(m: Dictionary, skills: Array[Dictionary], caps: Array[int], m
 	for category: String in CATEGORIES:
 		var candidates: Array[Dictionary] = []
 		for def: Dictionary in skills:
-			if def.get("discipline", false) != true or def.get("category") != category:
+			if not _is_discipline(def) or def.get("category") != category:
 				continue
 			var xp: int = _xp_of(m, str(def["id"]))
 			var in_progress: bool = category == "artisan" and str(lane.get("skill", "")) == str(def["id"])
@@ -131,7 +134,7 @@ static func _grade_for(level: int, caps: Array[int]) -> int:
 static func _drop_unlearned(m: Dictionary, skills: Array[Dictionary], learned: Dictionary) -> void:
 	for def: Dictionary in skills:
 		var id: String = str(def["id"])
-		if def.get("discipline", false) != true or learned.has(id):
+		if not _is_discipline(def) or learned.has(id):
 			continue
 		for key: String in ["skills", "mastery"]:
 			if m.get(key) is Dictionary:
@@ -148,7 +151,7 @@ static func _jobs(lane: Dictionary, skills: Array[Dictionary], learned: Dictiona
 			def = s
 	if def.is_empty() or def.get("category") != "artisan":
 		return result
-	if def.get("discipline", false) == true and not learned.has(skill_id):
+	if _is_discipline(def) and not learned.has(skill_id):
 		return result
 	var elapsed: int = maxi(0, int(lane.get("elapsed_ms", 0)))
 	if lane.has("blueprint"):
@@ -158,6 +161,11 @@ static func _jobs(lane: Dictionary, skills: Array[Dictionary], learned: Dictiona
 		result["jobs"] = [{"skill": skill_id, "action": str(lane.get("action", "")), "remaining": 0, "repeat": true}]
 	result["elapsed_ms"] = elapsed
 	return result
+
+
+# A discipline as in M24: the flag in skills.json, except the frozen exceptions (V8_NON_DISCIPLINES).
+static func _is_discipline(def: Dictionary) -> bool:
+	return def.get("discipline", false) == true and not V8_NON_DISCIPLINES.has(str(def.get("id", "")))
 
 
 static func _xp_of(m: Dictionary, skill_id: String) -> int:
