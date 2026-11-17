@@ -7,6 +7,6 @@
   ],
   "trainers": [
     {"skill": "test_gather", "name": "Maestro di prova", "title": "Maestro della raccolta", "description": "Insegna la raccolta di prova."},
-    {"skill": "test_craft", "name": "Maestra di prova", "title": "Maestra dell'artigianato", "description": "Insegna l'artigianato di prova.", "fed_by": ["test_gather"]}
+    {"skill": "test_craft", "name": "Maestra di prova", "title": "Maestra dell'artigianato", "description": "Insegna l'artigianato di prova.", "fed_by": ["test_gather"], "vendor": "fabbro"}
   ]
 }

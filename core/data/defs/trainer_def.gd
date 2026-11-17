@@ -8,6 +8,7 @@ var name: String = ""
 var title: String = ""
 var description: String = ""
 var fed_by: Array[StringName] = []
+var vendor: StringName = &""  # M26 (docs/04_DATA_SCHEMA_M26.md §31.5): the shop stall of the profession; &"" if none
 
 
 static func from_dict(d: Dictionary) -> TrainerDef:
@@ -20,4 +21,6 @@ static func from_dict(d: Dictionary) -> TrainerDef:
 	def.description = r.text("description")
 	if r.has("fed_by"):
 		def.fed_by = r.id_list("fed_by")
+	if r.has("vendor"):
+		def.vendor = r.id("vendor")
 	return def if r.ok else null

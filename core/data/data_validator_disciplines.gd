@@ -9,7 +9,7 @@ extends RefCounted
 const STRICT_REAL_DATA: bool = true
 const DISCIPLINE_CATEGORIES: PackedStringArray = ["gathering", "artisan"]
 const GRADE_FIELDS: PackedStringArray = ["id", "name", "cap", "character_level"]
-const TRAINER_FIELDS: PackedStringArray = ["skill", "name", "title", "description", "fed_by"]
+const TRAINER_FIELDS: PackedStringArray = ["skill", "name", "title", "description", "fed_by", "vendor"]
 const NODE_AREA_FIELDS: PackedStringArray = ["area", "max_level", "nodes"]
 const NODE_FIELDS: PackedStringArray = ["skill", "weight", "difficulty", "min_level"]
 const NODE_WEIGHT_TOTAL: int = 100  # the weights of an area sum to 100 (strict data)
@@ -109,6 +109,7 @@ static func validate(v: DataValidatorRules, raw: Dictionary, strict: bool = STRI
 		v.at_file(str(path))
 		_nodes_file(v, node_files[path] as Dictionary, _ids(raw, "areas", "areas"), _first_resources(raw), strict)
 	_recipes(v, raw, strict)
+	DataValidatorProfessions.validate(v, raw, strict)
 
 
 # --- balance ----------------------------------------------------------------------------------------------------
@@ -179,6 +180,7 @@ static func _trainers_file(v: DataValidatorRules, content: Dictionary, strict: b
 	v.keys(content, ["grades", "trainers"])
 	_grades(v, v.object_list(content, "grades", "", 1))
 	var seen: Dictionary[StringName, bool] = {}
+	var vendors: Dictionary[StringName, bool] = {}
 	var list: Array[Dictionary] = v.object_list(content, "trainers")
 	for index: int in list.size():
 		var t: Dictionary = list[index]
@@ -194,6 +196,7 @@ static func _trainers_file(v: DataValidatorRules, content: Dictionary, strict: b
 				v.fail("field '%s' must not be empty" % key)
 		if t.has("fed_by"):
 			_fed_by(v, t, id)
+		DataValidatorProfessions.trainer(v, t, id, vendors)
 	if strict:
 		v.at_file("section 'disciplines'")
 		for skill_id: StringName in v.skills:
@@ -335,11 +338,6 @@ static func _recipes(v: DataValidatorRules, raw: Dictionary, strict: bool) -> vo
 		if taught.has(action_id):
 			v.fail("recipe items '%s' and '%s' teach the same action '%s'" % [taught[action_id], item_id, action_id])
 		taught[action_id] = item_id
-	if not strict:
-		return
-	for action_id: StringName in v.actions:
-		if _is_true(v.actions[action_id], "discover") and not taught.has(action_id):
-			v.fail("`discover` action '%s' has no Recipe item" % action_id)
 	var dropped: Dictionary[StringName, bool] = {}
 	var tables: Dictionary = raw.get("loot_tables", {}) as Dictionary
 	for path: Variant in tables:
@@ -347,9 +345,23 @@ static func _recipes(v: DataValidatorRules, raw: Dictionary, strict: bool) -> vo
 			for entry: Variant in ((table as Dictionary).get("entries", []) as Array if table is Dictionary else []):
 				if entry is Dictionary and (entry as Dictionary).get("item") is String:
 					dropped[StringName((entry as Dictionary)["item"] as String)] = true
+	var sold: Dictionary[StringName, bool] = {}  # M26: the Recipes a shop entry gives (docs/04_DATA_SCHEMA_M26.md §31.2)
+	for entry_id: StringName in v.shop_entries:
+		var effect: Variant = v.shop_entries[entry_id].get("effect")
+		var given: Variant = (effect as Dictionary).get("item") if effect is Dictionary else null
+		if given is Dictionary and (given as Dictionary).get("item") is String:
+			sold[StringName((given as Dictionary)["item"] as String)] = true
 	for item_id: StringName in taught.values():
-		if not dropped.has(item_id):
-			v.fail("Recipe '%s' is in no loot table" % item_id)
+		if dropped.has(item_id) and sold.has(item_id):
+			v.fail("Recipe '%s' is both in a loot table and sold in the shop: only one of the two" % item_id)
+	if not strict:
+		return
+	for action_id: StringName in v.actions:
+		if _is_true(v.actions[action_id], "discover") and not taught.has(action_id):
+			v.fail("`discover` action '%s' has no Recipe item" % action_id)
+	for item_id: StringName in taught.values():
+		if not dropped.has(item_id) and not sold.has(item_id):
+			v.fail("Recipe '%s' is in no loot table and in no shop entry" % item_id)
 
 
 # A boolean field that is `true` (anything else, also a mistyped value, counts as false: the type is reported elsewhere).

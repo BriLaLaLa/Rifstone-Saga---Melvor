@@ -101,6 +101,26 @@
       }
     },
     {
+      "id": "buy_recipe_craft_scheme",
+      "name": "Schema: Schema di prova",
+      "category": "profession", "vendor": "fabbro",
+      "description": "Uno schema di prova.",
+      "cost": {"gold": 500},
+      "max_purchases": 1,
+      "requires": {"skills": {"test_craft": 5}},
+      "effect": {"item": {"item": "recipe_craft_scheme", "qty": 1}}
+    },
+    {
+      "id": "buy_reagent_test_craft_1",
+      "name": "Reagente di prova",
+      "category": "profession", "vendor": "fabbro",
+      "description": "Un reagente di prova.",
+      "cost": {"gold": 2},
+      "max_purchases": 0,
+      "requires": {"skills": {"test_craft": 5}},
+      "effect": {"item": {"item": "reagent_test_craft_1", "qty": 1}}
+    },
+    {
       "id": "auto_eat_1",
       "name": "Razioni da campo I",
       "category": "combat", "vendor": "bottegaia",

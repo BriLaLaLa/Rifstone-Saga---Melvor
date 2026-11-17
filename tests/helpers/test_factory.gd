@@ -204,3 +204,18 @@ static func learn_engraver(session: GameSession, grade: int = 0) -> void:
 ## A discipline at `grade` (0 = the top grade), set directly: it ignores `disciplines.max_per_category` and the costs.
 static func learn_discipline(session: GameSession, skill_id: StringName, grade: int = 0) -> void:
 	session.disciplines._grades[skill_id] = grade if grade > 0 else session.data.trainer_grades().size()
+
+
+## M26-02: every `discover` recipe of a skill becomes known, set directly (like `learn_discipline`): for tests on real data that queue a
+## recipe which became a scheme. It changes nothing else (no item, no gold, no event).
+static func teach_recipes(session: GameSession, skill_id: StringName) -> void:
+	for def: ActionDef in session.data.actions_for_skill(skill_id):
+		if def.discover and not session.disciplines._recipes.has(def.id):
+			session.disciplines._recipes.append(def.id)
+
+
+## M26-02: `qty` of every reagent of a skill (`reagent_<skill>_<n>`) into the Bank, through `give`.
+static func give_reagents(session: GameSession, skill_id: StringName, qty: int) -> void:
+	for def: ItemDef in session.data.items():
+		if def.category == &"reagent" and DataValidatorProfessions.reagent_skill(String(def.id)) == skill_id:
+			give(session, def.id, qty)

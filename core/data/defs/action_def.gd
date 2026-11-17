@@ -21,6 +21,9 @@ var single: bool = false  # M10: single-cycle action (04 §6); false when absent
 var milestones: Array[MilestoneDef] = []  # M12: gathering actions only (F-103), in the order 25/50/99
 var kind: StringName = &"craft"  # M12: `craft` (default) or `crystallize` (F-104), Incisore only
 var discover: bool = false  # M24: the recipe must be learned from a Recipe item (docs/04_DATA_SCHEMA_M24.md §29.5)
+var colors: Dictionary = {}  # M26 (docs/04_DATA_SCHEMA_M26.md §31.1): {&"yellow": int, &"green": int, &"grey": int} or {}
+
+const COLOR_KEYS: PackedStringArray = ["yellow", "green", "grey"]
 
 
 static func from_dict(d: Dictionary, file_skill_id: StringName = &"") -> ActionDef:
@@ -46,6 +49,11 @@ static func from_dict(d: Dictionary, file_skill_id: StringName = &"") -> ActionD
 		def.kind = r.id("kind")
 	if r.has("discover"):
 		def.discover = r.flag("discover")
+	if r.has("colors") and r.is_dict("colors"):
+		var raw_colors := DefReader.new(r.dict("colors"), r.context() + " colors")
+		for key: String in COLOR_KEYS:
+			def.colors[StringName(key)] = raw_colors.integer(key)
+		r.absorb(raw_colors.ok)
 	if r.has("milestones"):
 		for entry: Dictionary in r.dict_list("milestones"):
 			var milestone: MilestoneDef = MilestoneDef.from_dict(entry, def.id, file_skill_id)
@@ -68,6 +76,11 @@ static func _item_list(r: DefReader, key: String) -> Array[ItemQty]:
 		if item != null:
 			result.append(item)
 	return result
+
+
+## True when the action has the three thresholds of the colored level (M26, F-166).
+func has_colors() -> bool:
+	return not colors.is_empty()
 
 
 ## The milestone of the given type (M12), or null if the action has none.

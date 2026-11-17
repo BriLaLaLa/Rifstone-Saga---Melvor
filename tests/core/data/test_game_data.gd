@@ -82,7 +82,7 @@ func test_item_lookup() -> void:
 	assert_eq(item.food_heal, 20)
 	assert_true(_data.has_item(&"rift_shard"))
 	assert_false(_data.has_item(&"ghost_item"))
-	assert_eq(_data.items().size(), 83)  # M24-02: - 8 test Contracts, + 1 test Recipe; M22-02: + 1 test ticket; M14-01/02: + 7 test pieces (weapons per F-118, plate body); M12-02: + 8 contracts (2 gathering skills x 4 grades); M12-03: + 2 byproducts; M12-04: + 8 (dust, crystal, chip, 5 rune grades); M13-01: + 10 Cards; M13-03: + 4 boss piece bases
+	assert_eq(_data.items().size(), 85)  # M26-02: + 1 test reagent, + 1 test scheme Recipe; M24-02: - 8 test Contracts, + 1 test Recipe; M22-02: + 1 test ticket; M14-01/02: + 7 test pieces (weapons per F-118, plate body); M12-02: + 8 contracts (2 gathering skills x 4 grades); M12-03: + 2 byproducts; M12-04: + 8 (dust, crystal, chip, 5 rune grades); M13-01: + 10 Cards; M13-03: + 4 boss piece bases
 
 
 func test_unknown_ids_are_null_with_error() -> void:
@@ -107,7 +107,7 @@ func test_has_area_and_has_monster_do_not_log_errors() -> void:
 func test_lists_are_copies() -> void:
 	_data.items().clear()
 	_data.skills().clear()
-	assert_eq(_data.items().size(), 83)  # M24-02: - 8 test Contracts, + 1 test Recipe; M22-02: + 1 test ticket; M14-01/02: + 7 test pieces (weapons per F-118, plate body); M12-02: + 8 contracts (2 gathering skills x 4 grades); M12-03: + 2 byproducts; M12-04: + 8
+	assert_eq(_data.items().size(), 85)  # M26-02: + 1 test reagent, + 1 test scheme Recipe; M24-02: - 8 test Contracts, + 1 test Recipe; M22-02: + 1 test ticket; M14-01/02: + 7 test pieces (weapons per F-118, plate body); M12-02: + 8 contracts (2 gathering skills x 4 grades); M12-03: + 2 byproducts; M12-04: + 8
 	assert_eq(_data.skills().size(), 5)
 
 
@@ -183,7 +183,7 @@ func test_areas_and_monsters() -> void:
 func test_shop_entries_in_file_order() -> void:
 	assert_eq(_ids(_data.shop_entries()),
 			[&"test_pocket", &"test_upgrade_1", &"test_upgrade_2", &"test_buy_hatchet",
-					&"test_buy_log", &"auto_eat_1"] as Array[StringName])
+					&"test_buy_log", &"buy_recipe_craft_scheme", &"buy_reagent_test_craft_1", &"auto_eat_1"] as Array[StringName])
 	assert_eq(_data.shop_entry(&"test_buy_hatchet").effect_item.item_id, &"test_blade")
 
 
