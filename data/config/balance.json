@@ -346,7 +346,12 @@
     "buy": {"spread_pct": 150, "blueprint_margin_pct": 3},
     "stock": {"gold": 600000, "min": 5, "max": 500, "refill_pct_per_block": 1.4},
     "trend": {"blocks": 12, "threshold_pct": 1},
-    "population": {"ref": 100, "period_blocks": 36, "variation_pct": 20, "pressure_pct": 10, "demand_threshold_pct": 0.5}
+    "population": {"ref": 100, "period_blocks": 36, "variation_pct": 20, "pressure_pct": 10, "demand_threshold_pct": 0.5},
+    "book": {"persist_blocks": 6, "ask_min_pct": 0, "ask_max_pct": 25, "sellers_per_listing": 10, "min_listings": 4, "max_listings": 12, "fill_pct": 50, "fill_max_pct": 90},
+    "listing": {
+      "max_active": 10, "cut_pct": 5, "max_price_pct": 1000,
+      "durations": [{"id": "short", "hours": 12, "deposit_pct": 1}, {"id": "medium", "hours": 24, "deposit_pct": 2}, {"id": "long", "hours": 48, "deposit_pct": 4}]
+    }
   },
   "mail": {"capacity": 50},
   "currency": {

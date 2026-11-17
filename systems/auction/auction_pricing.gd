@@ -104,6 +104,69 @@ func population(item_id: StringName) -> Dictionary:
 	return {"buyers": pop.x, "sellers": pop.y, "demand": demand}
 
 
+func block() -> int:
+	return _block
+
+
+func pending_ms() -> int:
+	return _pending_ms
+
+
+## Milliseconds to the next market block, 1..block_ms.
+func ms_to_next_block() -> int:
+	return _p.block_ms - _pending_ms
+
+
+## `value` of the item in copper; 0 if it is not listed.
+func value_of(item_id: StringName) -> int:
+	return _value.get(item_id, 0)
+
+
+## F-178: the NPC listings of the item at the current block with the current saturation, `(price, qty)` by price then `j`;
+## `[]` if the item is not listed.
+@warning_ignore("integer_division")
+func npc_asks(item_id: StringName) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	if not _items.has(item_id):
+		return result
+	var epoch: int = _block / _p.book_persist
+	var index: int = _index(item_id)
+	var rows: Array[Vector3i] = []  # (price, j, qty)
+	for j: int in AuctionBook.listing_count(_population(item_id, _block).y, _p):
+		var price: int = AuctionBook.ask_price(_value[item_id], index, AuctionBook.ask_offset(item_id, _seed, epoch, j, _p))
+		rows.append(Vector3i(price, j, AuctionBook.ask_qty(item_id, _seed, epoch, j, _band[item_id].stack)))
+	rows.sort_custom(func(a: Vector3i, b: Vector3i) -> bool: return a.x < b.x or (a.x == b.x and a.y < b.y))
+	for row: Vector3i in rows:
+		result.append(Vector2i(row.x, row.z))
+	return result
+
+
+## F-179: the pieces the buyers take at the current block; 0 if the item is not listed.
+func demand(item_id: StringName) -> int:
+	if not _items.has(item_id):
+		return 0
+	var volume: int = 0
+	for ask: Vector2i in npc_asks(item_id):
+		volume += ask.y
+	var pop: Vector2i = _population(item_id, _block)
+	return AuctionBook.demand(volume, pop.x, pop.y, _p)
+
+
+## F-180: the highest price of a listing of the item.
+func max_price(item_id: StringName) -> int:
+	return AuctionBook.max_price(_value.get(item_id, 0), _p)
+
+
+## F-180: the deposit of a listing.
+func deposit(item_id: StringName, qty: int, duration: AuctionDuration) -> int:
+	return AuctionBook.deposit(_value.get(item_id, 0), qty, duration.deposit_ppm)
+
+
+## F-180: `qty * price` minus the commission.
+func listing_net(qty: int, price: int) -> int:
+	return qty * price - AuctionBook.cut(qty * price, _p)
+
+
 ## F-148: `sat = min(CAP, sat + qty * STEP)`. No checks (AuctionHouse does them).
 func record_sale(item_id: StringName, qty: int) -> void:
 	if not _items.has(item_id) or qty <= 0:

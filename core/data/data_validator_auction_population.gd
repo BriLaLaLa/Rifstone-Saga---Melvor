@@ -5,7 +5,7 @@ extends RefCounted
 
 const PARAM_KEYS: PackedStringArray = ["ref", "period_blocks", "variation_pct", "pressure_pct", "demand_threshold_pct"]
 const FILE_KEYS: PackedStringArray = ["bands"]
-const BAND_FIELDS: PackedStringArray = ["max_value", "buyers", "sellers"]
+const BAND_FIELDS: PackedStringArray = ["max_value", "buyers", "sellers", "stack"]
 
 
 ## `auction.population` of balance.json; true if every key is valid.
@@ -32,6 +32,7 @@ static func validate_bands(v: DataValidatorRules, content: Dictionary) -> bool:
 		v.keys(e, BAND_FIELDS)
 		v.integer(e, "buyers", 1.0)
 		v.integer(e, "sellers", 1.0)
+		v.integer(e, "stack", 1.0)
 		var is_last: bool = index == list.size() - 1
 		if is_last:
 			if e.has("max_value"):

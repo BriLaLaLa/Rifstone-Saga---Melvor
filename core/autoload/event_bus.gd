@@ -126,3 +126,4 @@ signal auction_sold(item_id: StringName, qty: int, gold: int)  # after bank_chan
 signal auction_bought(item_id: StringName, qty: int, gold: int)  # after gold_changed and bank_changed
 signal auction_updated(blocks: int)  # at least one market block passed in an advance (at most one per advance)
 signal mail_changed(unread: int, total: int)  # M27-05: after each delivery, merge, collect (collect_all: once), mark_read; never in new_game/from_save
+signal auction_listings_changed()  # M27-06: after list_item/cancel_listing and once per advance in which a listing sold, closed or expired

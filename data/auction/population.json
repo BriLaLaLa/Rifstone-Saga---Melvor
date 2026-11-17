@@ -1,8 +1,8 @@
 {
   "bands": [
-    {"max_value": 900, "buyers": 125, "sellers": 115},
-    {"max_value": 5900, "buyers": 110, "sellers": 105},
-    {"max_value": 24900, "buyers": 100, "sellers": 100},
-    {"buyers": 90, "sellers": 85}
+    {"max_value": 900, "buyers": 125, "sellers": 115, "stack": 200},
+    {"max_value": 5900, "buyers": 110, "sellers": 105, "stack": 60},
+    {"max_value": 24900, "buyers": 100, "sellers": 100, "stack": 20},
+    {"buyers": 90, "sellers": 85, "stack": 5}
   ]
 }

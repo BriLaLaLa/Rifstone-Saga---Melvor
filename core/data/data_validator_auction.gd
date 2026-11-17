@@ -11,7 +11,7 @@ const STRICT_REAL_DATA: bool = true
 const TRADED: PackedStringArray = ["material", "component", "food"]
 const BUYABLE: PackedStringArray = ["component", "food"]
 const PPM: int = 1000000
-const PARAM_KEYS: PackedStringArray = ["block_ms", "index", "drift", "saturation", "buy", "stock", "trend", "population"]
+const PARAM_KEYS: PackedStringArray = ["block_ms", "index", "drift", "saturation", "buy", "stock", "trend", "population", "book", "listing"]
 const ITEM_FIELDS: PackedStringArray = ["item", "buy_level"]
 
 
@@ -125,8 +125,11 @@ static func validate_balance(v: DataValidatorRules, balance: Dictionary) -> void
 	ok = v.integer(trend, "blocks", 1.0, DataValidatorRules.NO_LIMIT, "auction.trend") and ok
 	ok = v.number(trend, "threshold_pct", 0.0, DataValidatorRules.NO_LIMIT, "auction.trend") and ok
 	ok = DataValidatorAuctionPopulation.validate_params(v, auction) and ok
+	ok = DataValidatorAuctionBook.validate_params(v, auction) and ok
 	if ok:
-		_relations(v, AuctionParams.from_dict(auction))
+		var p: AuctionParams = AuctionParams.from_dict(auction)
+		_relations(v, p)
+		DataValidatorAuctionBook.relations(v, p)
 
 
 ## The files: `raw` is the whole raw data of DataValidator.
@@ -219,8 +222,11 @@ static func _check_items(v: DataValidatorRules, list: Array[Dictionary], max_lev
 			category = str(v.items[StringName(e["item"] as String)].get("category"))
 			if not TRADED.has(category):
 				v.fail("field 'item': '%s' is %s, not material, component or food" % [e["item"], category])
-			if float(v.items[StringName(e["item"] as String)].get("value", 0)) < 1.0:
+			var value: float = float(v.items[StringName(e["item"] as String)].get("value", 0))
+			if value < 1.0:
 				v.fail("field 'item': '%s' has no value" % e["item"])
+			elif value > DataValidatorAuctionBook.MAX_ITEM_VALUE:
+				v.fail("field 'item': '%s' is worth more than %d (F-178)" % [e["item"], DataValidatorAuctionBook.MAX_ITEM_VALUE])
 		if v.integer(e, "buy_level", 0.0, float(max_level) if max_level > 0 else DataValidatorRules.NO_LIMIT) \
 				and int(e["buy_level"]) > 0 and not category.is_empty() and not BUYABLE.has(category):
 			v.fail("field 'buy_level' must be 0 for a %s" % category)
