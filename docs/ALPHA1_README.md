@@ -5,7 +5,7 @@ ancora tarati e alcune immagini sono segnaposto. Ci servono le vostre impression
 
 ## Installazione
 1. Scompattate la cartella che vi abbiamo mandato dove volete (Windows, PC desktop).
-2. Avviate l'eseguibile (il file `.exe` nella cartella). Non serve installare altro.
+2. Avviate l'eseguibile (`RiftStoneSaga_Alpha1.exe`). Non serve installare altro.
 3. Dal menu: **Nuova partita** → scegliete uno slot (ce ne sono 4) → date un nome al personaggio.
 
 ## Come si gioca (in breve)
