@@ -9,9 +9,7 @@
        {"type": "heading", "text": "Comprare"},
        {"type": "text", "text": "Si comprano solo componenti e cibo, e ogni oggetto richiede un livello della Casa d'Aste. Comprare costa sempre più di quanto rende vendere lo stesso pezzo. Le scorte si esauriscono con gli acquisti e si riforniscono col tempo."},
        {"type": "heading", "text": "La freccia di tendenza"},
-       {"type": "text", "text": "Dice se il prezzo di un oggetto sta salendo, scendendo o è stabile. I prezzi cambiano piano e in modo diverso per ogni oggetto; il mercato avanza anche mentre sei via."},
-       {"type": "heading", "text": "Compratori, venditori e domanda"},
-       {"type": "text", "text": "Nel dettaglio di un oggetto il blocco Mercato mostra quanti compratori e quanti venditori ci sono e se la domanda è alta, nella media o bassa. Più compratori e meno venditori spingono il prezzo in su; il contrario lo fa scendere. Anche questo cambia col tempo e prosegue mentre sei via."},
+       {"type": "text", "text": "Dice se il prezzo di un oggetto sta salendo, scendendo o è stabile. Il blocco Mercato mostra compratori, venditori e domanda; tutto avanza anche mentre sei via."},
        {"type": "links", "targets": ["page:guide_village", "page:guide_deposit"]}
      ]}
   ]
