@@ -114,4 +114,4 @@ Il **primo import di una checkout nuova può andare in crash sui font** (segfaul
 l'import è innocuo.
 
 ## Stato
-Ultima milestone: m25-done (alpha-1). Storia e dettagli in docs/STATUS.md
+Ultima milestone: m26-done (Alpha 2). Storia e dettagli in docs/STATUS.md
