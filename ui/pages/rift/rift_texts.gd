@@ -5,6 +5,8 @@ extends RefCounted
 
 const TITLE_TEXT: String = "Altare del Rift"
 const INTRO_TEXT: String = "Le rune negli incavi restano attive. Toglierne una la distrugge."
+const NOT_LEARNED_TEXT: String = "Le rune si incidono con l'Incisore: imparalo dai Maestri del Villaggio."
+const OFF_TEXT: String = "Runa spenta: l'incavo è bloccato, si riaccende quando si sblocca."
 const SOCKET_TITLE_TEXT: String = "Incavo %d"
 const LOCKED_TEXT: String = "Si sblocca con %s al livello %d."
 const EMPTY_TEXT: String = "Libero — scegli una runa"
@@ -14,10 +16,11 @@ const CONFIRM_REMOVE_TEXT: String = "Distruggi"
 const CANCEL_TEXT: String = "Annulla"
 const REMOVE_WARNING_TEXT: String = "Togliere la runa la distrugge."
 const PICK_TITLE_TEXT: String = "Scegli una runa dal deposito per l'incavo %d"
-const NO_INFUSIONS_TEXT: String = "Non possiedi rune: si incidono con l'Incisore."
+const NO_INFUSIONS_TEXT: String = "Non possiedi rune: si incidono con l'Incisore, che si impara dai Maestri."
 const RUNES_TITLE_TEXT: String = "Rune nel deposito"
 const RUNE_LINE_TEXT: String = "%s  x%s"
 const CRAFT_RUNES_TEXT: String = "Incidi con l'Incisore"
+const LEARN_ENGRAVER_TEXT: String = "Impara l'Incisore dai Maestri"
 const SUMMARY_TITLE_TEXT: String = "Bonus attivi"
 const SUMMARY_NONE_TEXT: String = "Nessun bonus attivo."
 const SOCKETED_TEXT: String = "Runa incastonata: %s."
@@ -25,7 +28,7 @@ const REMOVED_TEXT: String = "Runa distrutta: %s."
 const NO_FREE_SOCKET_TEXT: String = "Nessun incavo libero: libera un incavo all'Altare del Rift."
 const UNIQUE_TEXT: String = "unica"
 const REFUSED_TEXTS: Dictionary[StringName, String] = {
-	Reasons.SOCKET_LOCKED: "L'incavo è ancora bloccato: sali di livello come Incisore.",
+	Reasons.SOCKET_LOCKED: "L'incavo è ancora bloccato: sali di livello come Incisore (si impara dai Maestri).",
 	Reasons.SOCKET_OCCUPIED: "L'incavo è già occupato: togli prima la runa (viene distrutta).",
 	Reasons.NOT_EQUIPPABLE: "Questo oggetto non si può incastonare.",
 	Reasons.REQUIREMENT_NOT_MET: "Questa runa è unica ed è già incastonata.",
@@ -79,6 +82,6 @@ static func summary_lines(session: GameSession) -> PackedStringArray:
 	var mods: Array[Modifier] = []
 	for i: int in session.rift.socket_total():
 		var item_id: StringName = session.rift.get_socket(i)
-		if item_id != &"":
+		if session.rift.is_active(i):
 			mods.append_array(session.data.item(item_id).infusion_modifiers)
 	return ItemTooltipLines.modifier_lines(mods, session.data)

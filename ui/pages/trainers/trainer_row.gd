@@ -73,8 +73,9 @@ func setup(skill: SkillDef, trainer: TrainerDef, data: GameData) -> void:
 			for source_id: StringName in trainer.fed_by:
 				var source: SkillDef = data.skill(source_id)
 				names.append(source.name if source != null else String(source_id))
-		_fed.visible = not names.is_empty()
-		_fed.text = TrainersTexts.FED_BY_TEXT % ", ".join(names)
+		var drops: bool = names.is_empty() and skill.category == &"artisan"  # no `fed_by`: drops of the monsters
+		_fed.visible = not names.is_empty() or drops
+		_fed.text = TrainersTexts.FED_BY_DROPS_TEXT if drops else TrainersTexts.FED_BY_TEXT % ", ".join(names)
 
 
 func skill_id() -> StringName:
@@ -107,6 +108,8 @@ func refresh(session: GameSession) -> void:
 	else:
 		var grade_def: TrainerGradeDef = data.trainer_grade(grade)
 		_status.text = TrainersTexts.GRADE_TEXT % [grade_def.name if grade_def != null else "", NumberFormat.format_int(cap)]
+		if disciplines.is_extra(id):
+			_status.text += "  (%s)" % TrainersTexts.EXTRA_SLOT_TEXT
 		_level.text = TrainersTexts.LEVEL_TEXT % [NumberFormat.format_int(session.skills.get_level(id)),
 				NumberFormat.format_int(cap)]
 		var next_def: TrainerGradeDef = data.trainer_grade(grade + 1)
