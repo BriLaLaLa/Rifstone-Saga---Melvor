@@ -64,7 +64,7 @@ static func origin_text(session: GameSession, action: ActionDef) -> String:
 	var need: int = int(entry.req_skills.get(action.skill_id, 0))
 	if session.skills.get_level(action.skill_id) < need:
 		return ProfessionTexts.ORIGIN_SCHEME_LEVEL_TEXT % [entry.name, NumberFormat.format_int(need)]
-	return ProfessionTexts.ORIGIN_SCHEME_BUY_TEXT % [entry.name, NumberFormat.format_int(session.shop.price(entry.id))]
+	return ProfessionTexts.ORIGIN_SCHEME_BUY_TEXT % [entry.name, Money.text(session.shop.price(entry.id), session.data.currency())]
 
 
 ## "Avanzamento: n% (colore)"; empty when the recipe has no colours.

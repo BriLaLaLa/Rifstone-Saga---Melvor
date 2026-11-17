@@ -52,7 +52,7 @@ func test_refine_box_shows_chance_and_cost_from_the_data() -> void:
 	assert_string_contains(box.title_text(), "+0")
 	assert_string_contains(box.chance_text(), "95")
 	assert_string_contains(box.costs_text(), _session.data.item(INGOT).name)
-	assert_string_contains(box.costs_text(), NumberFormat.format_int(int(cost["gold"])))
+	assert_string_contains(box.costs_text(), Money.text(int(cost["gold"]), _session.data.currency()))
 	assert_false(box.seal_visible(), "no Seal below the downgrade level")
 
 

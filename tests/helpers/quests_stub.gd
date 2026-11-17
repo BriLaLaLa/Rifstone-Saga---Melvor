@@ -22,7 +22,7 @@ class StubQuest:
 	var name: String = ""
 	var description: String = ""
 	var target: int = 10
-	var reward_gold: int = 120
+	var reward_gold: int = 12000
 	var reward_xp_skill: StringName = &"forestry"
 	var reward_xp: int = 50
 	var reward_items: Array[ItemQty] = []

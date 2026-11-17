@@ -34,7 +34,7 @@ func test_tool_upgrades_follow_balance() -> void:
 	var rows: Array[Array] = GuideTables.build("tool_upgrades", _data)
 	var levels: Array = _data.balance_value("tool_upgrade.levels") as Array
 	assert_eq(rows.size(), levels.size() + 1)
-	assert_eq(rows[1][4], GuideIndex.num(float((levels[0] as Dictionary)["gold"])))
+	assert_eq(rows[1][4], Money.text(int((levels[0] as Dictionary)["gold"]), _data.currency()))
 
 
 func test_affix_tiers_follow_the_affixes() -> void:

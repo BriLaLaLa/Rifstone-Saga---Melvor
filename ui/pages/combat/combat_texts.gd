@@ -96,7 +96,7 @@ const YIELD_WINDOW_MINUTES_TEXT: String = "ultimi %d min"
 const YIELD_WINDOW_ONE_MINUTE_TEXT: String = "ultimo minuto"
 const YIELD_WINDOW_SHORT_TEXT: String = "da pochi istanti"
 const YIELD_LABELS: Dictionary[StringName, String] = {
-	&"kills": "uccisioni/ora", &"xp": "XP/ora", &"gold": "oro/ora", &"damage": "danno/s",
+	&"kills": "uccisioni/ora", &"xp": "XP/ora", &"gold": "monete/ora", &"damage": "danno/s",
 }
 const LOG_SUMMARY_TEXT: String = "Registro: %s · %s · %s · %s"
 const LOG_HITS_ONE_TEXT: String = "1 colpo"

@@ -7,7 +7,7 @@ extends RefCounted
 const REFINE_TITLE: String = "Raffinazione +%d → +%d"
 const CHANCE_TEXT: String = "Probabilità di successo: %s%%"
 const COST_TITLE: String = "Costo del tentativo"
-const GOLD_NAME: String = "Oro"
+const GOLD_NAME: String = "Monete"
 const COST_LINE: String = "%s: %s (ne hai %s)"
 const FAIL_DOWN_TEXT: String = "In caso di fallimento i materiali sono persi e il pezzo scende a +%d."
 const FAIL_PLAIN_TEXT: String = "In caso di fallimento i materiali sono persi."
@@ -31,8 +31,8 @@ static func refine_info(session: GameSession, uid: int) -> Dictionary:
 	var chance: float = Upgrade.chance_pct(inst.upgrade, session.modifiers.total(Upgrade.STAT), data)
 	var lines: PackedStringArray = PackedStringArray()
 	if int(cost["gold"]) > 0:
-		lines.append(COST_LINE % [GOLD_NAME, NumberFormat.format_int(int(cost["gold"])),
-				NumberFormat.format_int(session.wallet.get_gold())])
+		lines.append(COST_LINE % [GOLD_NAME, Money.text(int(cost["gold"]), session.data.currency()),
+				Money.text(session.wallet.get_gold(), session.data.currency())])
 	_append_item_line(lines, session, cost["ingot"], int(cost["ingots"]))
 	_append_item_line(lines, session, Upgrade.SHARD_ITEM, int(cost["shards"]))
 	_append_item_line(lines, session, Upgrade.DUST_ITEM, int(cost["dust"]))

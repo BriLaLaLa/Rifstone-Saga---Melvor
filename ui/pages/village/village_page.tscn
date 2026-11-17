@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://ui/pages/village/village_page.gd" id="1_page"]
+[ext_resource type="Script" path="res://ui/components/money/money_label.gd" id="99_money"]
 [ext_resource type="Script" path="res://ui/pages/village/village_map.gd" id="2_map"]
 
 [node name="VillagePage" type="Control"]
@@ -51,11 +52,11 @@ layout_mode = 2
 focus_mode = 0
 toggle_mode = true
 
-[node name="GoldLabel" type="Label" parent="Margin/Content/Header/Row"]
+[node name="GoldLabel" type="HBoxContainer" parent="Margin/Content/Header/Row"]
 unique_name_in_owner = true
+script = ExtResource("99_money")
 layout_mode = 2
 size_flags_vertical = 4
-theme_type_variation = &"HeaderLabel"
 
 [node name="MessageLabel" type="Label" parent="Margin/Content"]
 unique_name_in_owner = true

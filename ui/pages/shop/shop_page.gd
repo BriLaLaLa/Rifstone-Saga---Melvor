@@ -10,8 +10,8 @@ extends Page
 ## bind (the definitions never change); the page keeps only references to its own nodes.
 
 const TITLE_TEXT: String = "Shop"
-const GOLD_TEXT: String = "Oro: %s"
-const PRICE_TEXT: String = "Prezzo: %s oro"
+const GOLD_CAPTION: String = "Monete:"
+const PRICE_TEXT: String = "Prezzo: %s"
 const COUNT_TEXT: String = "Acquisti: %s / %s"
 const BUY_TEXT: String = "Compra"
 const REQUIRES_TEXT: String = "Richiede: %s"
@@ -38,7 +38,7 @@ const REFUSED_TEXTS: Dictionary[StringName, String] = {
 	Reasons.MAX_PURCHASES: "Hai già acquistato il massimo.",
 	Reasons.REQUIREMENT_NOT_MET: "Requisiti non soddisfatti.",
 	Reasons.RECIPE_KNOWN: "Conosci già questa ricetta.",
-	Reasons.NOT_ENOUGH_GOLD: "Oro insufficiente.",
+	Reasons.NOT_ENOUGH_GOLD: "Monete insufficienti.",
 	Reasons.BANK_FULL: "Il deposito è pieno.",
 	Reasons.ARMORY_FULL: "L'Armeria è piena.",
 }
@@ -58,7 +58,7 @@ var _rows: Dictionary[StringName, Dictionary] = {}
 @onready var _margin: MarginContainer = %Margin
 @onready var _content: VBoxContainer = %Content
 @onready var _title_label: Label = %TitleLabel
-@onready var _gold_label: Label = %GoldLabel
+@onready var _gold_label: MoneyLabel = %GoldLabel
 @onready var _message_label: Label = %MessageLabel
 @onready var _list: VBoxContainer = %List
 
@@ -205,14 +205,15 @@ func _label(parent: Node, text: String, variation: StringName) -> Label:
 func _refresh() -> void:
 	if _session == null:
 		return
-	_gold_label.text = GOLD_TEXT % NumberFormat.format_int(_session.wallet.get_gold())
+	_gold_label.caption = GOLD_CAPTION
+	_gold_label.set_amount(_session.wallet.get_gold(), _session.data.currency())
 	for entry_id: StringName in _rows:
 		_refresh_row(_session.data.shop_entry(entry_id), _rows[entry_id])
 
 
 func _refresh_row(entry: ShopEntryDef, row: Dictionary) -> void:
 	var shop: Shop = _session.shop
-	row["price"].text = PRICE_TEXT % NumberFormat.format_int(shop.price(entry.id))
+	row["price"].text = PRICE_TEXT % Money.text(shop.price(entry.id), _session.data.currency())
 	var count_label: Label = row["count"]
 	count_label.visible = entry.max_purchases > 0
 	count_label.text = COUNT_TEXT % [NumberFormat.format_int(shop.purchase_count(entry.id)),

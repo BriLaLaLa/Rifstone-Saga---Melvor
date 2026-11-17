@@ -64,9 +64,9 @@ func test_the_grade_gold_table_of_f158() -> void:
 func test_the_trainer_grades_guide_table() -> void:
 	var rows: Array[Array] = GuideTables.build("trainer_grades", _real)
 	assert_eq(rows.size(), 6)
-	assert_eq(rows[0], ["Grado", "Livello massimo", "Livello del personaggio", "Oro"] as Array)
-	assert_eq(rows[2], ["Lavorante", "40", "15", "25000"] as Array)
-	assert_eq(rows[5], ["Luminare", "99", "75", "3125000"] as Array)
+	assert_eq(rows[0], ["Grado", "Livello massimo", "Livello del personaggio", "Monete"] as Array)
+	assert_eq(rows[2], ["Lavorante", "40", "15", "2o 50a"] as Array)
+	assert_eq(rows[5], ["Luminare", "99", "75", "312o 50a"] as Array)
 
 
 func test_trainer_is_null_without_error_when_absent() -> void:

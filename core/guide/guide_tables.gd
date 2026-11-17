@@ -141,21 +141,21 @@ static func _affix_tiers(data: GameData) -> Array[Array]:
 
 
 static func _refine_costs(data: GameData) -> Array[Array]:
-	var rows: Array[Array] = [["Raffinazione", "Successo (%)", "Oro per grado", "Lingotti", "Frammenti del Rift"]]
+	var rows: Array[Array] = [["Raffinazione", "Successo (%)", "Monete per grado", "Lingotti", "Frammenti del Rift"]]
 	var levels: Array = data.balance_value("upgrade.levels") as Array
 	for index: int in levels.size():
 		var row: Dictionary = levels[index] as Dictionary
-		rows.append(["+%d" % (index + 1), _n(float(row["success_pct"])), _n(float(row["gold_per_grade"])),
+		rows.append(["+%d" % (index + 1), _n(float(row["success_pct"])), Money.text(int(row["gold_per_grade"]), data.currency()),
 				_n(float(row["ingots"])), _n(float(row["shards"]))])
 	return rows
 
 
 static func _tool_upgrades(data: GameData) -> Array[Array]:
-	var rows: Array[Array] = [["Livello del mestiere", "Grado", "Piastre", "Manici", "Oro"]]
+	var rows: Array[Array] = [["Livello del mestiere", "Grado", "Piastre", "Manici", "Monete"]]
 	for row_variant: Variant in data.balance_value("tool_upgrade.levels") as Array:
 		var row: Dictionary = row_variant as Dictionary
 		rows.append([_n(float(row["min_level"])), _n(float(row["grade"])), _n(float(row["plates"])),
-				_n(float(row["handles"])), _n(float(row["gold"]))])
+				_n(float(row["handles"])), Money.text(int(row["gold"]), data.currency())])
 	return rows
 
 
@@ -236,11 +236,11 @@ static func _bags(data: GameData) -> Array[Array]:
 
 ## The Trainer grades (M24, F-158): name, level cap, character level and gold price of each grade.
 static func _trainer_grades(data: GameData) -> Array[Array]:
-	var rows: Array[Array] = [["Grado", "Livello massimo", "Livello del personaggio", "Oro"]]
+	var rows: Array[Array] = [["Grado", "Livello massimo", "Livello del personaggio", "Monete"]]
 	var grades: Array[TrainerGradeDef] = data.trainer_grades()
 	for index: int in grades.size():
 		var grade: TrainerGradeDef = grades[index]
-		rows.append([grade.name, str(grade.cap), str(grade.character_level), _n(float(TrainerGradeDef.gold(data, index + 1)))])
+		rows.append([grade.name, str(grade.cap), str(grade.character_level), Money.text(TrainerGradeDef.gold(data, index + 1), data.currency())])
 	return rows
 
 

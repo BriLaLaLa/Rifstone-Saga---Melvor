@@ -16,6 +16,7 @@ const SHORTCUTS: Array[int] = [1, 10, 100]
 var _item_id: StringName = &""
 var _mode: StringName = &"sell"
 var _auction: Object = null
+var _currency: CurrencyParams = null
 var _max: int = 1
 var _empty_label: Label = null
 var _box: VBoxContainer = null
@@ -123,6 +124,7 @@ func _ready() -> void:
 ## item changes.
 func refresh(auction: Object, session: GameSession, mode: StringName, item_id: StringName) -> void:
 	_auction = auction
+	_currency = session.data.currency()
 	_mode = mode
 	_show_detail(item_id != &"")
 	if item_id == &"":
@@ -144,7 +146,7 @@ func refresh(auction: Object, session: GameSession, mode: StringName, item_id: S
 	var owned: int = session.bank.get_count(item_id)
 	if selling:
 		_info_label.text = AuctionTexts.OWNED_TEXT % NumberFormat.format_int(owned) + "\n" + AuctionTexts.DEPOSIT_TEXT % \
-				NumberFormat.format_int(session.shop.sell_value(item_id, 1))
+				Money.text(session.shop.sell_value(item_id, 1), session.data.currency())
 		_max = maxi(owned, 1)
 	else:
 		if int(auction.level()) >= int(auction.buy_level(item_id)):
@@ -154,7 +156,7 @@ func refresh(auction: Object, session: GameSession, mode: StringName, item_id: S
 			_info_label.text = AuctionTexts.REQUIRES_TEXT % int(auction.buy_level(item_id))
 		_max = maxi(int(auction.stock(item_id)), 1)
 	var unit: int = int(auction.sell_quote(item_id, 1) if selling else auction.buy_quote(item_id, 1))
-	_price_label.text = AuctionTexts.UNIT_PRICE_VALUE_TEXT % NumberFormat.format_int(unit)
+	_price_label.text = AuctionTexts.UNIT_PRICE_VALUE_TEXT % Money.text(unit, session.data.currency())
 	_button.text = AuctionTexts.TAB_SELL_TEXT if selling else AuctionTexts.TAB_BUY_TEXT
 	_spin.max_value = _max
 	_spin.set_value_no_signal(clampf(_spin.value, 1.0, float(_max)))
@@ -189,7 +191,7 @@ func _redraw_trade() -> void:
 	var qty: int = int(_spin.value)
 	var selling: bool = _mode == &"sell"
 	var total: int = int(_auction.sell_quote(_item_id, qty) if selling else _auction.buy_quote(_item_id, qty))
-	_total_label.text = AuctionTexts.TOTAL_TEXT % NumberFormat.format_int(total)
+	_total_label.text = AuctionTexts.TOTAL_TEXT % Money.text(total, _currency)
 	var can: CommandResult = _auction.can_sell(_item_id, qty) if selling else _auction.can_buy(_item_id, qty)
 	var reason: String = "" if can.ok else AuctionTexts.refused(can.reason)
 	_button.disabled = not can.ok

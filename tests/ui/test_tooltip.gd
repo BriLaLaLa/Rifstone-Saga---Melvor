@@ -44,7 +44,7 @@ func test_show_item_weapon_lines() -> void:
 		"Stile Lama, un attacco ogni 2,4 s",
 		"Danno: 4 - 6",
 		"Precisione +8",
-		"Valore: 1.200 oro",
+		"Valore: 12a",
 		"Serve a: Smantellamento",
 	]))
 	assert_eq(_tooltip.footer_text().strip_edges(), "Spada a una mano per i test.")
@@ -72,14 +72,14 @@ func test_show_item_infusion_lines() -> void:
 func test_show_item_food_lines() -> void:
 	_show_item(&"test_ration", 5)
 	assert_eq(_lines(_tooltip.body_text()), PackedStringArray([
-		"Cura 20 punti vita", "Valore: 200 oro", "Serve a: Cibo"]))
+		"Cura 20 punti vita", "Valore: 2a", "Serve a: Cibo"]))
 
 
 func test_show_item_quantity_uses_thousands_separator() -> void:
 	_show_item(&"test_twig", 1250)
 	assert_eq(_lines(_tooltip.title_text()), PackedStringArray(["Rametto di prova", "Materiale  ·  Quantità: 1.250"]))
 	assert_eq(_lines(_tooltip.body_text()), PackedStringArray([
-		"Valore: 100 oro"]))
+		"Valore: 1a"]))
 
 
 func test_show_item_without_count_has_no_quantity() -> void:
@@ -147,7 +147,7 @@ func test_stat_formats_follow_registry_format() -> void:
 
 func test_item_without_data_hides_modifier_lines() -> void:
 	var lines: PackedStringArray = ItemTooltipLines.body(_data.item(&"test_blade"), null)
-	assert_eq(lines.size(), 1, "only the value line, no made-up labels")
+	assert_eq(lines.size(), 0, "no data: no modifier lines and no value line (no currency to format it)")
 
 
 func _show_item(item_id: StringName, count: int) -> void:

@@ -113,8 +113,8 @@ func _draw_cost(cost: Dictionary, session: GameSession) -> void:
 	_label(_cost_box, VillageTexts.COST_TITLE_TEXT, &"HeaderLabel")
 	var gold: int = int(cost.get("gold", 0))
 	if gold > 0:
-		_cost_line(VillageTexts.COST_GOLD_TEXT % [NumberFormat.format_int(session.wallet.get_gold()),
-				NumberFormat.format_int(gold)], gold - session.wallet.get_gold())
+		_cost_line(VillageTexts.COST_GOLD_TEXT % [Money.text(session.wallet.get_gold(), session.data.currency()),
+				Money.text(gold, session.data.currency())], gold - session.wallet.get_gold())
 	for row: Dictionary in cost.get("items", []):
 		var item_id: StringName = row["item"]
 		var qty: int = int(row["qty"])

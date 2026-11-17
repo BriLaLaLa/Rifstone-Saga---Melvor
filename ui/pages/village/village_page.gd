@@ -33,7 +33,7 @@ var _open_button: Button = null
 @onready var _margin: MarginContainer = %Margin
 @onready var _content: VBoxContainer = %Content
 @onready var _title_label: Label = %TitleLabel
-@onready var _gold_label: Label = %GoldLabel
+@onready var _gold_label: MoneyLabel = %GoldLabel
 @onready var _message_label: Label = %MessageLabel
 @onready var _map_button: Button = %MapButton
 @onready var _list_button: Button = %ListButton
@@ -138,7 +138,8 @@ func _build_boxes(definitions: Object) -> void:
 func _refresh() -> void:
 	if _session == null or _village == null:
 		return
-	_gold_label.text = VillageTexts.GOLD_TEXT % NumberFormat.format_int(_session.wallet.get_gold())
+	_gold_label.caption = VillageTexts.GOLD_CAPTION
+	_gold_label.set_amount(_session.wallet.get_gold(), _session.data.currency())
 	for box: VillageBox in _boxes.values():
 		box.refresh(_village, _session)
 	_map.refresh(_village, _session, _selected)

@@ -99,10 +99,10 @@ func _progress_lines() -> PackedStringArray:
 
 func _item_lines() -> PackedStringArray:
 	var lines: PackedStringArray = PackedStringArray()
-	if _summary.gold_delta > 0:
-		lines.append(OfflineTexts.GOLD_GAINED_LINE % NumberFormat.format_int(_summary.gold_delta))
-	elif _summary.gold_delta < 0:
-		lines.append(OfflineTexts.GOLD_SPENT_LINE % NumberFormat.format_int(-_summary.gold_delta))
+	if _data != null and _summary.gold_delta > 0:
+		lines.append(OfflineTexts.GOLD_GAINED_LINE % Money.text(_summary.gold_delta, _data.currency()))
+	elif _data != null and _summary.gold_delta < 0:
+		lines.append(OfflineTexts.GOLD_SPENT_LINE % Money.text(-_summary.gold_delta, _data.currency()))
 	for id: StringName in _sorted_by_name(_summary.items.keys()):
 		var amount: int = _summary.items[id]
 		if amount > 0:

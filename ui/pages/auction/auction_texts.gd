@@ -10,16 +10,16 @@ const NOT_BUILT_TEXT: String = "Costruisci la Casa d'Aste al Villaggio"
 const EMPTY_SELL_TEXT: String = "Non hai niente da vendere qui."
 const EMPTY_BUY_TEXT: String = "Niente da comprare."
 const EMPTY_FILTER_TEXT: String = "Nessun oggetto corrisponde alla ricerca."
-const GOLD_TEXT: String = "Oro: %s"
+const GOLD_CAPTION: String = "Monete:"
 const OWNED_TEXT: String = "Posseduti: %s"
-const PRICE_TEXT: String = "%s oro a pezzo"
+const PRICE_TEXT: String = "%s a pezzo"
 const DEPOSIT_TEXT: String = "Al Deposito: %s"
 const STOCK_TEXT: String = "Scorta: %s/%s"
 const REQUIRES_TEXT: String = "Richiede Casa d'Aste %s"
-const TOTAL_TEXT: String = "Totale: %s oro"
+const TOTAL_TEXT: String = "Totale: %s"
 const ALL_TEXT: String = "Tutti"
-const SOLD_TEXT: String = "Venduti %s x %s per %s oro."
-const BOUGHT_TEXT: String = "Comprati %s x %s per %s oro."
+const SOLD_TEXT: String = "Venduti %s x %s per %s."
+const BOUGHT_TEXT: String = "Comprati %s x %s per %s."
 ## Search field, category tree, list columns and detail panel.
 const SEARCH_PLACEHOLDER_TEXT: String = "Cerca per nome"
 const ALL_CATEGORIES_TEXT: String = "Tutte le categorie"
@@ -37,7 +37,7 @@ const SORT_DESC_TEXT: String = " ▼"
 const SELECT_ITEM_TEXT: String = "Seleziona un oggetto"
 const QUANTITY_TEXT: String = "Quantità"
 const UNIT_PRICE_TEXT: String = "Prezzo unitario"
-const UNIT_PRICE_VALUE_TEXT: String = "%s oro"
+const UNIT_PRICE_VALUE_TEXT: String = "%s"
 ## Market population block of the detail panel (values come from `AuctionHouse.population`).
 const MARKET_TITLE_TEXT: String = "Mercato"
 const BUYERS_TEXT: String = "Compratori: %s"
@@ -88,9 +88,9 @@ const REFUSED: Dictionary[StringName, String] = {
 	Reasons.REQUIREMENT_NOT_MET: "Casa d'Aste di livello troppo basso.",
 	Reasons.ITEM_LOCKED: "Oggetto bloccato nel Deposito.",
 	Reasons.NOT_ENOUGH_ITEMS: "Non ne hai abbastanza.",
-	Reasons.NOT_SELLABLE: "Il totale sarebbe 0 oro.",
+	Reasons.NOT_SELLABLE: "Il totale sarebbe 0 monete.",
 	Reasons.OUT_OF_STOCK: "Scorta esaurita.",
-	Reasons.NOT_ENOUGH_GOLD: "Oro insufficiente.",
+	Reasons.NOT_ENOUGH_GOLD: "Monete insufficienti.",
 	Reasons.BANK_FULL: "Il Deposito è pieno.",
 }
 const REFUSED_TEXT_DEFAULT: String = "Operazione non riuscita."

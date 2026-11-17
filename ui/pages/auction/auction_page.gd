@@ -31,7 +31,7 @@ var _redraw_queued: bool = false
 @onready var _content: VBoxContainer = %Content
 @onready var _title_label: Label = %TitleLabel
 @onready var _level_label: Label = %LevelLabel
-@onready var _gold_label: Label = %GoldLabel
+@onready var _gold_label: MoneyLabel = %GoldLabel
 @onready var _tabs: SubTabBar = %Tabs
 @onready var _info_label: Label = %InfoLabel
 @onready var _body: HBoxContainer = %Body
@@ -105,7 +105,8 @@ func _rebuild() -> void:
 	_redraw_queued = false
 	if _auction == null or _session == null:
 		return
-	_gold_label.text = AuctionTexts.GOLD_TEXT % NumberFormat.format_int(_session.wallet.get_gold())
+	_gold_label.caption = AuctionTexts.GOLD_CAPTION
+	_gold_label.set_amount(_session.wallet.get_gold(), _session.data.currency())
 	var open: bool = _auction.is_open()
 	_level_label.visible = open
 	_level_label.text = AuctionTexts.LEVEL_TEXT % int(_auction.level())
@@ -201,13 +202,13 @@ func _queue_redraw() -> void:
 
 func _on_sold(item_id: StringName, qty: int, gold: int) -> void:
 	_detail.show_message(AuctionTexts.SOLD_TEXT % [NumberFormat.format_int(qty), _session.data.item(item_id).name,
-			NumberFormat.format_int(gold)], UiStyle.GOOD)
+			Money.text(gold, _session.data.currency())], UiStyle.GOOD)
 	_queue_redraw()
 
 
 func _on_bought(item_id: StringName, qty: int, gold: int) -> void:
 	_detail.show_message(AuctionTexts.BOUGHT_TEXT % [NumberFormat.format_int(qty), _session.data.item(item_id).name,
-			NumberFormat.format_int(gold)], UiStyle.GOOD)
+			Money.text(gold, _session.data.currency())], UiStyle.GOOD)
 	_queue_redraw()
 
 

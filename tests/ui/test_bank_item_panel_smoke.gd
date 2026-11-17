@@ -34,9 +34,9 @@ func test_slider_preview_and_buttons_emit_quantities() -> void:
 	_open_panel(LOG)
 	var slider: HSlider = _panel.get_node("%SellSlider")
 	assert_eq(slider.max_value, 5.0)
-	assert_eq(_label("%SellPreview").text, "Vendita di 1: %s oro" % _session.shop.sell_value(LOG, 1))
+	assert_eq(_label("%SellPreview").text, "Vendita di 1: %s" % Money.text(_session.shop.sell_value(LOG, 1), _session.data.currency()))
 	slider.value = 3
-	assert_eq(_label("%SellPreview").text, "Vendita di 3: %s oro" % _session.shop.sell_value(LOG, 3))
+	assert_eq(_label("%SellPreview").text, "Vendita di 3: %s" % Money.text(_session.shop.sell_value(LOG, 3), _session.data.currency()))
 	_button("%SellButton").pressed.emit()
 	_button("%SellButOneButton").pressed.emit()
 	_button("%SellAllButton").pressed.emit()

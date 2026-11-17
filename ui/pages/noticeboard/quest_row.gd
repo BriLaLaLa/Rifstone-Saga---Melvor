@@ -86,7 +86,7 @@ func setup(slot_index: int) -> void:
 
 
 ## Rereads the slot from `quests` (a Quests, 5.28) and `definitions` (GameData-like).
-func refresh(quests: Object, definitions: Object) -> void:
+func refresh(quests: Object, definitions: Object, currency: CurrencyParams) -> void:
 	var quest_id: StringName = quests.quest_at(slot)
 	var filled: bool = quest_id != &""
 	_empty_label.visible = not filled
@@ -102,7 +102,7 @@ func refresh(quests: Object, definitions: Object) -> void:
 	_bar.max_value = maxi(target, 1)
 	_bar.value = progress
 	_bar_label.text = NoticeboardTexts.PROGRESS_TEXT % [NumberFormat.format_int(progress), NumberFormat.format_int(target)]
-	_draw_reward(def, definitions)
+	_draw_reward(def, definitions, currency)
 	var can: CommandResult = quests.can_claim(slot)
 	_claim_button.disabled = not can.ok
 	_abandon_button.disabled = false
@@ -113,7 +113,7 @@ func refresh(quests: Object, definitions: Object) -> void:
 	_reason_label.visible = not can.ok and can.reason != Reasons.QUEST_INCOMPLETE
 
 
-func _draw_reward(def: Object, definitions: Object) -> void:
+func _draw_reward(def: Object, definitions: Object, currency: CurrencyParams) -> void:
 	for child: Node in _reward_box.get_children():
 		_reward_box.remove_child(child)
 		child.queue_free()
@@ -123,7 +123,7 @@ func _draw_reward(def: Object, definitions: Object) -> void:
 	var parts: PackedStringArray = PackedStringArray()
 	var gold: int = int(def.get("reward_gold"))
 	if gold > 0:
-		parts.append(NoticeboardTexts.REWARD_GOLD_TEXT % NumberFormat.format_int(gold))
+		parts.append(NoticeboardTexts.REWARD_GOLD_TEXT % Money.text(gold, currency))
 	var xp_skill: StringName = def.get("reward_xp_skill")
 	var xp: int = int(def.get("reward_xp"))
 	if xp_skill != &"" and xp > 0:

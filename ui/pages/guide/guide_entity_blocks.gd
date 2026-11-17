@@ -72,7 +72,7 @@ func _item(id: StringName) -> Array[Dictionary]:
 	var def: ItemDef = _data.item(id)
 	if not GuideDrops.is_unlocked(id, _discoveries):
 		return [_plain(LOCKED_TEXT)]
-	var blocks: Array[Dictionary] = [_plain(def.description), _plain("Valore: %s oro" % GuideIndex.num(def.value))]
+	var blocks: Array[Dictionary] = [_plain(def.description), _plain("Valore: %s" % Money.text(def.value, _data.currency()))]
 	blocks.append(_heading(HEADING_SOURCES))
 	blocks.append_array(_ref_lines(_index.sources_visible(id, _discoveries)))
 	blocks.append(_heading(HEADING_USES))

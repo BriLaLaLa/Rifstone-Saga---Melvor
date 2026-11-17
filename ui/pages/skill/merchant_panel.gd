@@ -13,7 +13,7 @@ const BUTTON_MIN_WIDTH: float = 64.0
 var _data: GameData = null
 var _skill_id: StringName = &""
 var _session: GameSession = null
-var _gold: Label = null
+var _gold: MoneyLabel = null
 var _message: Label = null
 ## Entry id -> nodes of its row (presentation references).
 var _rows: Dictionary[StringName, Dictionary] = {}
@@ -29,9 +29,9 @@ func setup(data: GameData, skill_id: StringName) -> void:
 	if trainer != null:
 		vendor = trainer.vendor
 	_label(self, MerchantTexts.TITLE_TEXT % ShopPage.VENDOR_TEXTS.get(vendor, String(vendor)), &"HeaderLabel").name = "Title"
-	_gold = _label(self, "", &"")
+	_gold = MoneyLabel.new()
+	add_child(_gold)
 	_gold.name = "GoldLabel"
-	_gold.add_theme_color_override("font_color", UiStyle.GOLD_LIGHT)
 	_message = _label(self, "", &"")
 	_message.name = "MessageLabel"
 	_message.add_theme_color_override("font_color", UiStyle.BAD)
@@ -55,7 +55,8 @@ func setup(data: GameData, skill_id: StringName) -> void:
 ## Reads the session into every row.
 func redraw(session: GameSession) -> void:
 	_session = session
-	_gold.text = MerchantTexts.GOLD_TEXT % NumberFormat.format_int(session.wallet.get_gold())
+	_gold.caption = MerchantTexts.GOLD_CAPTION
+	_gold.set_amount(session.wallet.get_gold(), session.data.currency())
 	for entry_id: StringName in _rows:
 		var entry: ShopEntryDef = _data.shop_entry(entry_id)
 		if _rows[entry_id]["scheme"]:
@@ -149,7 +150,7 @@ func _refresh_scheme(entry: ShopEntryDef, row: Dictionary) -> void:
 	var buy: Button = buttons[0]
 	var reason: Label = row["reason"]
 	row["price"].visible = not known and not in_bank
-	row["price"].text = MerchantTexts.PRICE_TEXT % NumberFormat.format_int(_session.shop.price(entry.id))
+	row["price"].text = MerchantTexts.PRICE_TEXT % Money.text(_session.shop.price(entry.id), _session.data.currency())
 	row["owned"].visible = false
 	buy.visible = not known and not in_bank
 	(row["learn"] as Button).visible = in_bank and not known
@@ -176,7 +177,7 @@ func _refresh_scheme(entry: ShopEntryDef, row: Dictionary) -> void:
 func _refresh_reagent(entry: ShopEntryDef, row: Dictionary) -> void:
 	row["owned"].visible = true
 	row["owned"].text = MerchantTexts.OWNED_TEXT % NumberFormat.format_int(_session.bank.get_count(entry.effect_item.item_id))
-	row["price"].text = MerchantTexts.PRICE_EACH_TEXT % NumberFormat.format_int(_session.shop.price(entry.id))
+	row["price"].text = MerchantTexts.PRICE_EACH_TEXT % Money.text(_session.shop.price(entry.id), _session.data.currency())
 	var locked: bool = _session.shop.can_buy_many(entry.id, 1).reason == Reasons.REQUIREMENT_NOT_MET
 	row["state"].text = _locked_text(entry) if locked else MerchantTexts.STATE_BUY
 	row["state"].add_theme_color_override("font_color", UiStyle.BAD if locked else UiStyle.TEXT)

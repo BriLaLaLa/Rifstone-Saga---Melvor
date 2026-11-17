@@ -1,6 +1,7 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://ui/pages/auction/auction_page.gd" id="1_page"]
+[ext_resource type="Script" path="res://ui/components/money/money_label.gd" id="99_money"]
 [ext_resource type="Script" path="res://ui/components/sub_tab_bar/sub_tab_bar.gd" id="2_tabs"]
 [ext_resource type="Script" path="res://ui/pages/auction/auction_category_tree.gd" id="3_tree"]
 [ext_resource type="Script" path="res://ui/pages/auction/auction_list.gd" id="4_list"]
@@ -46,8 +47,9 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
 
-[node name="GoldLabel" type="Label" parent="Margin/Content/Header/HeaderRow"]
+[node name="GoldLabel" type="HBoxContainer" parent="Margin/Content/Header/HeaderRow"]
 unique_name_in_owner = true
+script = ExtResource("99_money")
 layout_mode = 2
 
 [node name="Tabs" type="HBoxContainer" parent="Margin/Content"]

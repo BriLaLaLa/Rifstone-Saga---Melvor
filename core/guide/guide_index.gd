@@ -172,7 +172,7 @@ func _build_sources() -> void:
 			_add_equipment_sources(def)
 	for entry_def: ShopEntryDef in _data.shop_entries():
 		if entry_def.effect_item != null:
-			var detail: String = "%s oro" % num(entry_def.cost_gold) if entry_def.cost_gold > 0 else ""
+			var detail: String = Money.text(entry_def.cost_gold, _data.currency()) if entry_def.cost_gold > 0 else ""
 			_add(_sources, entry_def.effect_item.item_id, GuideRef.make(GuideRef.KIND_SHOP, &"", entry_def.name, detail))
 	_add_starter_kit_sources()
 	for def: ItemDef in _data.items():

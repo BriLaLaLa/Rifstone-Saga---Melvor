@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://ui/pages/trainers/trainers_page.gd" id="1_page"]
+[ext_resource type="Script" path="res://ui/components/money/money_label.gd" id="99_money"]
 
 [node name="TrainersPage" type="Control"]
 layout_mode = 3
@@ -33,11 +34,12 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"TitleLabel"
 
-[node name="GoldLabel" type="Label" parent="Margin/Content/Header"]
+[node name="GoldLabel" type="HBoxContainer" parent="Margin/Content/Header"]
 unique_name_in_owner = true
+script = ExtResource("99_money")
 layout_mode = 2
 size_flags_horizontal = 3
-horizontal_alignment = 2
+alignment = 2
 
 [node name="MessageLabel" type="Label" parent="Margin/Content"]
 unique_name_in_owner = true
