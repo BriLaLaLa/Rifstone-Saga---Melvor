@@ -73,7 +73,7 @@ func test_spend_non_positive_is_invalid_amount() -> void:
 
 func test_to_save_format() -> void:
 	_session.wallet.add_gold(1200)
-	assert_eq(_session.wallet.to_save(), {"gold": _start_gold() + 1200})
+	assert_eq(_session.wallet.to_save(), {"copper": _start_gold() + 1200})
 
 
 func test_round_trip_through_json() -> void:
@@ -86,12 +86,24 @@ func test_round_trip_through_json() -> void:
 
 func test_from_save_with_bad_gold_loads_zero() -> void:
 	for bad: Variant in [-3, 2.5, "many", null]:
-		_session.wallet.from_save({"gold": bad})
+		_session.wallet.from_save({"copper": bad})
 		assert_eq(_session.wallet.get_gold(), 0, "gold %s" % str(bad))
 
 
 func test_from_save_does_not_emit() -> void:
 	watch_signals(_session.events)
-	_session.wallet.from_save({"gold": 40.0})
+	_session.wallet.from_save({"copper": 40.0})
 	assert_eq(_session.wallet.get_gold(), 40)
 	assert_signal_not_emitted(_session.events, "gold_changed")
+
+
+func test_a_gold_key_in_a_v11_wallet_is_ignored() -> void:
+	_session.wallet.from_save({"gold": 40, "copper": 4000})
+	assert_eq(_session.wallet.get_gold(), 4000)
+	_session.wallet.from_save({"gold": 40})
+	assert_eq(_session.wallet.get_gold(), 0, "a v10 wallet that was not migrated loads 0, not 40 copper")
+
+
+func test_the_wallet_is_saved_in_copper() -> void:
+	_session.wallet.new_game()
+	assert_eq(_session.wallet.to_save(), {"copper": _start_gold()})

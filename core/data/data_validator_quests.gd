@@ -11,6 +11,10 @@ const QUEST_FIELDS: PackedStringArray = ["id", "name", "description", "type", "t
 const PARAM_KEYS: PackedStringArray = ["tier_levels", "tier_window", "recent_memory", "gold_by_tier", "xp_unit_by_tier",
 	"kill_food_qty", "types"]
 const CRAFT_SKILLS: PackedStringArray = ["forging", "hearthcraft", "woodwright"]
+## M27 (F-177): the reward gold is rounded to `10 x currency.copper_per_silver` copper. The validator adds the value of balance.json to a copy of
+## `quest` under ROUND_UNIT_KEY; callers without a balance (generators, tests) get the one of today's data.
+const DEFAULT_ROUND_UNIT: int = 1000
+const ROUND_UNIT_KEY: String = "_round_unit"
 
 
 ## True for the `quest` section of balance.json (its fields are checked by `validate_balance`).
@@ -75,7 +79,8 @@ static func quest_for(type: String, skill: String, tier: int, params: Dictionary
 	var mult: int = int((spec.get("mult", {}) as Dictionary).get(skill, 1))
 	var target: int = (int(spec["base"]) + int(spec["per_tier"]) * (tier - 1)) * mult
 	var gold: float = float(int((params["gold_by_tier"] as Array)[tier - 1])) * float(spec["gold_mult"])
-	var reward: Dictionary = {"gold": int(floorf(gold / 10.0 + 0.5)) * 10}
+	var unit: int = int(params.get(ROUND_UNIT_KEY, DEFAULT_ROUND_UNIT))
+	var reward: Dictionary = {"gold": int(floorf(gold / float(unit) + 0.5)) * unit}
 	var character: int = int((params["tier_levels"] as Array)[tier - 1])
 	if type == "kill":
 		var food: String = "seared_" + DataValidatorVillage.FISH[tier - 1]
@@ -157,6 +162,12 @@ static func validate_balance(v: DataValidatorRules, balance: Dictionary) -> void
 static func validate(v: DataValidatorRules, files: Dictionary[String, Dictionary], balance_files: Dictionary[String, Dictionary],
 		items_files: Dictionary[String, Dictionary], actions_files: Dictionary[String, Dictionary]) -> void:
 	var params: Dictionary = _valid_params(balance_files)
+	var unit: int = DataValidatorCurrency.round_unit(balance_files)
+	if unit < 0:
+		params = {}  # the `currency` errors are reported by the balance validation
+	elif not params.is_empty():
+		params = params.duplicate()
+		params[ROUND_UNIT_KEY] = unit
 	var seen: Dictionary[StringName, bool] = {}
 	for path: String in files:
 		v.at_file(path)

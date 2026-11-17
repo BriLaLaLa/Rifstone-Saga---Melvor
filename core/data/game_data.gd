@@ -63,6 +63,7 @@ var _village: VillageIndex = VillageIndex.new()  # M19
 var _quests: Dictionary[StringName, QuestDef] = {}  # M20
 var _quest_list: Array[QuestDef] = []
 var _auction: AuctionIndex = AuctionIndex.new()  # M23
+var _currency: CurrencyParams = null  # M27
 var _dungeons: DungeonIndex = DungeonIndex.new()  # M22
 var _blueprint_list: Array[ItemDef] = []
 var _blueprint_by_base: Dictionary[StringName, ItemDef] = {}
@@ -101,24 +102,17 @@ func balance_value(path: String) -> Variant:
 	if value is Array:
 		return (value as Array).duplicate(true)
 	return value
-
 ## F-118: material grade (1..8) of a piece grade (1..15), `equipment.grade_material[g - 1]`; out of range: error, 0.
 func material_grade(piece_grade: int) -> int: return EquipmentGrades.entry(self, "equipment.grade_material", piece_grade)
-
 ## F-118: character level of a piece grade (1..15), `equipment.grade_levels[g - 1]`; out of range: error, 0.
 func grade_level(piece_grade: int) -> int: return EquipmentGrades.entry(self, "equipment.grade_levels", piece_grade)
-
 ## F-01 table from `xp_curve` (null when the data is not valid).
 func xp_table() -> XpTable: return _xp_table
-
 ## F-09 table from `mastery_curve` (null when the data is not valid).
 func mastery_table() -> XpTable: return _mastery_table
-
 ## F-71 table from `character_curve` (null when the data is not valid).
 func character_xp_table() -> XpTable: return _character_table
-
 func character_class(id: StringName) -> ClassDef: return _find(_classes, id, "class") as ClassDef
-
 ## Every class, by `order`.
 func classes() -> Array[ClassDef]: return _class_list.duplicate()
 
@@ -248,6 +242,8 @@ func auction_params() -> AuctionParams: return _auction.params
 func auction_items() -> Array[AuctionItemDef]: return _auction.list.duplicate()
 func auction_item(id: StringName) -> AuctionItemDef: return _auction.by_id.get(id) as AuctionItemDef
 func auction_building() -> StringName: return _village.auction_building()
+## M27 (docs/04_DATA_SCHEMA_M27.md §32.1): the `currency` parameters of balance.json (F-177).
+func currency() -> CurrencyParams: return _currency
 
 ## M22 (docs/04_DATA_SCHEMA.md §27): a dungeon by id (null and an error if unknown); all of them, by `order`; the dungeon a
 ## ticket item opens (null, without error, for any other item).
@@ -355,6 +351,9 @@ func _build(raw: Dictionary) -> void:
 	_maps.build(_item_list, raw["map_mods"] as Dictionary, raw["bosses"] as Dictionary, _balance, errors)
 	_village.build(raw["village"] as Dictionary, errors)
 	_auction.build(_balance, raw["auction"] as Dictionary, raw["auction_population"] as Dictionary, errors)
+	_currency = CurrencyParams.from_dict(_balance["currency"] as Dictionary)
+	if _currency == null:
+		errors.append("balance.json: key 'currency': cannot be built (see the log)")
 	_dungeons.build(raw.get("dungeons", {}) as Dictionary, _monsters, errors)
 	for path: String in raw["quests"]:
 		for d: Dictionary in DataBuildUtil.list(raw["quests"][path], "quests"):
@@ -389,6 +388,7 @@ func _clear() -> void:
 	_maps.clear()
 	_village.clear()
 	_auction.clear()
+	_currency = null
 	_dungeons.clear()
 	for list: Array in [_item_list, _skill_list, _action_list, _node_list, _area_list, _shop_list, _class_list,
 			_affix_list, _hint_list, _blueprint_list, _quest_list]:

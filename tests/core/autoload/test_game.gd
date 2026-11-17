@@ -167,7 +167,7 @@ func test_save_now_writes_and_signals() -> void:
 	assert_true(_game.save_now().ok)
 	assert_eq(_saves, [3] as Array[int])
 	var d: Dictionary = SaveService.read_slot(3)
-	assert_eq(int(d["modules"]["wallet"]["gold"]), _game.session.wallet.get_gold())
+	assert_eq(int(d["modules"]["wallet"]["copper"]), _game.session.wallet.get_gold())
 
 
 func test_end_session_frees_session_and_returns_to_menu() -> void:

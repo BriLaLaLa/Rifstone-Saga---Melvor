@@ -1,0 +1,517 @@
+{
+	"created_at_unix_ms": 0,
+	"format_version": 10,
+	"game_version": "0.1.0",
+	"modules": {
+		"actions": {
+			"elapsed_ms": 0,
+			"jobs": [],
+			"rng": {
+				"seed": 6845390213793855,
+				"state": "5429913543710461349"
+			}
+		},
+		"armory": {
+			"filter": {
+
+			},
+			"items": [
+				{
+					"affixes": [],
+					"base": "emberbronze_sword",
+					"ilvl": 1,
+					"locked": false,
+					"rarity": "common",
+					"sockets": [],
+					"uid": 1,
+					"upgrade": 0
+				},
+				{
+					"affixes": [],
+					"base": "emberbronze_greatsword",
+					"ilvl": 1,
+					"locked": false,
+					"rarity": "common",
+					"sockets": [],
+					"uid": 2,
+					"upgrade": 0
+				},
+				{
+					"affixes": [],
+					"base": "emberbronze_shield",
+					"ilvl": 1,
+					"locked": false,
+					"rarity": "common",
+					"sockets": [],
+					"uid": 3,
+					"upgrade": 0
+				},
+				{
+					"affixes": [],
+					"base": "unique_hatchet",
+					"ilvl": 1,
+					"locked": false,
+					"rarity": "common",
+					"sockets": [],
+					"uid": 4,
+					"upgrade": 0
+				},
+				{
+					"affixes": [],
+					"base": "unique_pick",
+					"ilvl": 1,
+					"locked": false,
+					"rarity": "common",
+					"sockets": [],
+					"uid": 5,
+					"upgrade": 0
+				},
+				{
+					"affixes": [],
+					"base": "unique_rod",
+					"ilvl": 1,
+					"locked": false,
+					"rarity": "common",
+					"sockets": [],
+					"uid": 6,
+					"upgrade": 0
+				}
+			],
+			"next_uid": 7
+		},
+		"auction": {
+			"block": 2,
+			"items": {
+				"redbirch_log": {
+					"sat": 27500
+				}
+			},
+			"pending_ms": 20000,
+			"seed": 2712
+		},
+		"bank": {
+			"stacks": [
+				{
+					"count": 20,
+					"item": "seared_brookfin",
+					"locked": false
+				},
+				{
+					"count": 100,
+					"item": "redbirch_log",
+					"locked": false
+				},
+				{
+					"count": 50,
+					"item": "emberbronze_ingot",
+					"locked": false
+				}
+			]
+		},
+		"cards": {
+			"items": [],
+			"next_uid": 1
+		},
+		"character": {
+			"class": "rift_blade",
+			"xp": 131034
+		},
+		"combat": {
+			"abilities": {
+
+			},
+			"area": "",
+			"between_ms": 0,
+			"buffs": {
+
+			},
+			"deaths": 0,
+			"effects": {
+
+			},
+			"enemies": [],
+			"food_eaten": 0,
+			"hand": 0,
+			"kills": {
+
+			},
+			"loot": {
+				"pieces": [],
+				"stacks": []
+			},
+			"next": {
+
+			},
+			"node": {
+
+			},
+			"nodes": {
+				"skipped": 0,
+				"worked": 0
+			},
+			"player_hp": 0,
+			"player_timer_ms": 0,
+			"skip_stone_level": 0,
+			"state": "idle",
+			"stone": {
+				"pending": false,
+				"since": 0,
+				"stone_id": ""
+			},
+			"travel_ms": 0
+		},
+		"deposit": {
+			"bags": [
+				"",
+				"",
+				"",
+				"",
+				"",
+				""
+			]
+		},
+		"disciplines": {
+			"extra": [],
+			"learned": {
+				"angling": 1,
+				"forestry": 1,
+				"forging": 1,
+				"hearthcraft": 1
+			},
+			"recipes": []
+		},
+		"discoveries": {
+			"items": [
+				"seared_brookfin",
+				"emberbronze_sword",
+				"emberbronze_greatsword",
+				"emberbronze_shield",
+				"unique_hatchet",
+				"unique_pick",
+				"unique_rod",
+				"redbirch_shieldcore",
+				"redbirch_handle",
+				"emberbronze_plate",
+				"redbirch_log",
+				"emberbronze_ore",
+				"emberbronze_ingot"
+			]
+		},
+		"dungeon": {
+			"pending": {
+
+			},
+			"run": {
+
+			},
+			"wins": {
+
+			}
+		},
+		"equipment": {
+			"food": "seared_brookfin",
+			"slots": {
+				"offhand": 3,
+				"tool_angling": 6,
+				"tool_forestry": 4,
+				"tool_quarrying": 5,
+				"weapon": 1
+			}
+		},
+		"fractures": {
+			"pending": {
+
+			},
+			"run": {
+
+			}
+		},
+		"hints": {
+			"seen": [
+				"first_level_ten"
+			]
+		},
+		"loadout": {
+			"abilities": [
+				"",
+				"",
+				""
+			],
+			"traits": [
+				"",
+				"",
+				"",
+				""
+			]
+		},
+		"mastery": {
+			"angling": {
+				"actions": {
+					"catch_ashgill": 0,
+					"catch_brookfin": 0,
+					"catch_dusk_eel": 0,
+					"catch_ember_sturgeon": 0,
+					"catch_mist_barbel": 0,
+					"catch_redscale": 0,
+					"catch_riftmaw": 0,
+					"catch_shard_gar": 0
+				},
+				"nodes": [],
+				"pool": 0
+			},
+			"forestry": {
+				"actions": {
+					"cut_ashpine": 0,
+					"cut_duskelm": 0,
+					"cut_emberlarch": 0,
+					"cut_redbirch": 0,
+					"cut_riftspruce": 0,
+					"cut_shardcedar": 0,
+					"cut_thornalder": 0,
+					"cut_veilcypress": 0
+				},
+				"nodes": [],
+				"pool": 0
+			},
+			"forging": {
+				"actions": {
+					"forge_ashlead_plate": 0,
+					"forge_duskcobalt_plate": 0,
+					"forge_emberbronze_plate": 0,
+					"forge_emberheart_plate": 0,
+					"forge_glimmerite_plate": 0,
+					"forge_palecinnabar_plate": 0,
+					"forge_riftite_plate": 0,
+					"forge_stormzinc_plate": 0,
+					"smelt_ashlead": 0,
+					"smelt_duskcobalt": 0,
+					"smelt_emberbronze": 100,
+					"smelt_emberheart": 0,
+					"smelt_glimmerite": 0,
+					"smelt_palecinnabar": 0,
+					"smelt_riftite": 0,
+					"smelt_stormzinc": 0
+				},
+				"nodes": [],
+				"pool": 0
+			},
+			"hearthcraft": {
+				"actions": {
+					"brew_tonic_1": 0,
+					"brew_tonic_2": 0,
+					"brew_tonic_3": 0,
+					"brew_tonic_4": 0,
+					"brew_tonic_5": 0,
+					"brew_tonic_6": 0,
+					"brew_tonic_7": 0,
+					"brew_tonic_8": 0,
+					"cook_ashgill": 0,
+					"cook_brookfin": 0,
+					"cook_dusk_eel": 0,
+					"cook_ember_sturgeon": 0,
+					"cook_mist_barbel": 0,
+					"cook_redscale": 0,
+					"cook_riftmaw": 0,
+					"cook_shard_gar": 0
+				},
+				"nodes": [],
+				"pool": 0
+			},
+			"herbalism": {
+				"actions": {
+					"gather_ash_mint": 0,
+					"gather_dusk_lily": 0,
+					"gather_ember_thistle": 0,
+					"gather_redrock_clover": 0,
+					"gather_rift_orchid": 0,
+					"gather_shard_bloom": 0,
+					"gather_thorn_sage": 0,
+					"gather_veil_fern": 0
+				},
+				"nodes": [],
+				"pool": 0
+			},
+			"quarrying": {
+				"actions": {
+					"quarry_ashlead": 0,
+					"quarry_duskcobalt": 0,
+					"quarry_emberbronze": 0,
+					"quarry_emberheart": 0,
+					"quarry_glimmerite": 0,
+					"quarry_palecinnabar": 0,
+					"quarry_riftite": 0,
+					"quarry_stormzinc": 0
+				},
+				"nodes": [],
+				"pool": 0
+			},
+			"riftbinding": {
+				"actions": {
+					"crystallize_crown": 0,
+					"crystallize_flux": 0,
+					"crystallize_spark": 0,
+					"engrave_bountiful": 0,
+					"engrave_bulwark": 0,
+					"engrave_deep_roots": 0,
+					"engrave_hearthfire": 0,
+					"engrave_keen_edge": 0,
+					"engrave_minor_aim": 0,
+					"engrave_minor_guard": 0,
+					"engrave_minor_vigor": 0,
+					"engrave_riftsense": 0,
+					"engrave_scholar": 0,
+					"engrave_stoneskin": 0,
+					"engrave_swift_hands": 0,
+					"fuse_ember_heart": 0,
+					"fuse_ember_stone": 0,
+					"fuse_eye_heart": 0,
+					"fuse_eye_stone": 0,
+					"fuse_root_heart": 0,
+					"fuse_root_stone": 0,
+					"fuse_shade_heart": 0,
+					"fuse_shade_stone": 0,
+					"make_minor_slab": 0,
+					"make_rune_slab": 0,
+					"upgrade_bountiful_2": 0,
+					"upgrade_bountiful_3": 0,
+					"upgrade_bountiful_4": 0,
+					"upgrade_bountiful_5": 0,
+					"upgrade_bulwark_2": 0,
+					"upgrade_bulwark_3": 0,
+					"upgrade_bulwark_4": 0,
+					"upgrade_bulwark_5": 0,
+					"upgrade_deep_roots_2": 0,
+					"upgrade_deep_roots_3": 0,
+					"upgrade_deep_roots_4": 0,
+					"upgrade_deep_roots_5": 0,
+					"upgrade_hearthfire_2": 0,
+					"upgrade_hearthfire_3": 0,
+					"upgrade_hearthfire_4": 0,
+					"upgrade_hearthfire_5": 0,
+					"upgrade_keen_edge_2": 0,
+					"upgrade_keen_edge_3": 0,
+					"upgrade_keen_edge_4": 0,
+					"upgrade_keen_edge_5": 0,
+					"upgrade_riftsense_2": 0,
+					"upgrade_riftsense_3": 0,
+					"upgrade_riftsense_4": 0,
+					"upgrade_riftsense_5": 0,
+					"upgrade_scholar_2": 0,
+					"upgrade_scholar_3": 0,
+					"upgrade_scholar_4": 0,
+					"upgrade_scholar_5": 0,
+					"upgrade_stoneskin_2": 0,
+					"upgrade_stoneskin_3": 0,
+					"upgrade_stoneskin_4": 0,
+					"upgrade_stoneskin_5": 0,
+					"upgrade_swift_hands_2": 0,
+					"upgrade_swift_hands_3": 0,
+					"upgrade_swift_hands_4": 0,
+					"upgrade_swift_hands_5": 0
+				},
+				"nodes": [],
+				"pool": 0
+			},
+			"woodwright": {
+				"actions": {
+					"carve_ashpine_grip": 0,
+					"carve_ashpine_handle": 0,
+					"carve_ashpine_shieldcore": 0,
+					"carve_duskelm_grip": 0,
+					"carve_duskelm_handle": 0,
+					"carve_duskelm_shieldcore": 0,
+					"carve_emberlarch_grip": 0,
+					"carve_emberlarch_handle": 0,
+					"carve_emberlarch_shieldcore": 0,
+					"carve_redbirch_grip": 0,
+					"carve_redbirch_handle": 0,
+					"carve_redbirch_shieldcore": 0,
+					"carve_riftspruce_grip": 0,
+					"carve_riftspruce_handle": 0,
+					"carve_riftspruce_shieldcore": 0,
+					"carve_shardcedar_grip": 0,
+					"carve_shardcedar_handle": 0,
+					"carve_shardcedar_shieldcore": 0,
+					"carve_thornalder_grip": 0,
+					"carve_thornalder_handle": 0,
+					"carve_thornalder_shieldcore": 0,
+					"carve_veilcypress_grip": 0,
+					"carve_veilcypress_handle": 0,
+					"carve_veilcypress_shieldcore": 0,
+					"sew_bag_canvas": 0,
+					"sew_bag_reinforced": 0
+				},
+				"nodes": [],
+				"pool": 0
+			}
+		},
+		"professions": {
+			"frac": {
+
+			}
+		},
+		"quests": {
+			"completed": 0,
+			"cursor": 0,
+			"recent": [],
+			"slots": []
+		},
+		"rift": {
+			"sockets": [
+				"",
+				"",
+				"",
+				"",
+				""
+			]
+		},
+		"shop": {
+			"purchases": {
+				"auto_eat_1": 1
+			}
+		},
+		"skills": {
+			"angling": {
+				"xp": 0
+			},
+			"forestry": {
+				"xp": 0
+			},
+			"forging": {
+				"xp": 400
+			},
+			"hearthcraft": {
+				"xp": 0
+			},
+			"herbalism": {
+				"xp": 0
+			},
+			"quarrying": {
+				"xp": 0
+			},
+			"riftbinding": {
+				"xp": 0
+			},
+			"woodwright": {
+				"xp": 0
+			}
+		},
+		"village": {
+			"levels": {
+				"auction_house": 1
+			}
+		},
+		"wallet": {
+			"gold": 200284
+		}
+	},
+	"play_time_ms": 620000,
+	"player_name": "",
+	"rng": {
+		"seed": 2711,
+		"state": "-2862991912020730083"
+	},
+	"saved_at_unix_ms": 1793603600000,
+	"slot": -1,
+	"total_level": 67
+}

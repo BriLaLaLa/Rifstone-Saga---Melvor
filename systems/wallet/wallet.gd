@@ -1,6 +1,6 @@
 class_name Wallet
 extends RefCounted
-## The player's gold (docs/01_GDD.md §8): the only currency, an integer >= 0.
+## The player's money (docs/01_GDD.md §8, F-177): the only currency, an integer >= 0 in copper (the `gold` names are historical, Q167).
 ##
 ## Every change emits `gold_changed(new_amount, delta)` on the session EventBus. `new_game` and `from_save` set the
 ## state without signals: the UI reads it after `session_started`.
@@ -49,14 +49,16 @@ func new_game() -> void:
 
 
 func to_save() -> Dictionary:
-	return {"gold": _gold}
+	return {"copper": _gold}
 
 
-## A missing, non-integral or negative `gold` is reported and loads as 0.
+## A missing, non-integral or negative `copper` is reported and loads as 0.
 func from_save(d: Dictionary) -> void:
-	var value: Variant = d.get("gold")
+	if d.has("gold"):
+		Log.warn(LOG_CATEGORY, "unexpected key 'gold' in a v11 wallet: ignored")
+	var value: Variant = d.get("copper")
 	_gold = 0
 	if (value is int or value is float) and float(value) == floorf(float(value)) and float(value) >= 0.0:
 		_gold = int(value)
 	else:
-		Log.warn(LOG_CATEGORY, "invalid gold %s in save: loaded as 0" % str(value))
+		Log.warn(LOG_CATEGORY, "invalid copper %s in save: loaded as 0" % str(value))

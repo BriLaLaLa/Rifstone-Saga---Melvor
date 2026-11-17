@@ -41,7 +41,7 @@ func test_write_then_read_round_trip() -> void:
 	assert_eq(_store.last_error, &"")
 	assert_eq(d["player_name"], "Davide")
 	assert_eq(int(d["total_level"]), 31)
-	assert_eq(int(d["modules"]["wallet"]["gold"]), 1250)
+	assert_eq(int(d["modules"]["wallet"]["copper"]), 1250)
 	assert_eq(d["format_version"], SaveMigrator.CURRENT_VERSION)
 
 
@@ -107,7 +107,7 @@ func test_corrupted_main_without_bak_reports_corrupted() -> void:
 
 func test_newer_version_is_unsupported() -> void:
 	var d: Dictionary = _payload("Future", 11)
-	d["format_version"] = 11
+	d["format_version"] = 12
 	_write_text(_store.slot_path(2), SaveCodec.encode(d))
 	assert_eq(_store.read_slot(2), {})
 	assert_eq(_store.last_error, Reasons.VERSION_UNSUPPORTED)
@@ -118,7 +118,7 @@ func test_newer_version_does_not_fall_back_on_bak() -> void:
 	_store.write_slot(2, _payload("Old", 1))
 	_store.write_slot(2, _payload("Old", 1))
 	var d: Dictionary = _payload("Future", 11)
-	d["format_version"] = 11
+	d["format_version"] = 12
 	_write_text(_store.slot_path(2), SaveCodec.encode(d))
 	assert_eq(_store.read_slot(2), {}, "loading the older .bak would later overwrite newer progress")
 	assert_eq(_store.last_error, Reasons.VERSION_UNSUPPORTED)
@@ -249,7 +249,7 @@ func _payload(player_name: String, total_level: int) -> Dictionary:
 		"saved_at_unix_ms": 1793603600000,
 		"play_time_ms": 3600000,
 		"total_level": total_level,
-		"modules": {"wallet": {"gold": 1250}},
+		"modules": {"wallet": {"copper": 1250}},
 	}
 
 

@@ -15,6 +15,10 @@ const SPEC_FIELDS: PackedStringArray = ["wood", "plate", "food", "gold_weight"]
 const LEVEL_FIELDS: PackedStringArray = ["level", "requires_woodwright", "gold", "items", "effect_value"]
 const FORBIDDEN_CATEGORIES: PackedStringArray = ["equipment", "tool", "map"]  # they live in the Armory, not in the Deposit
 const WEIGHT_EPSILON: float = 0.000001
+## M27 (F-177): the generated gold is rounded to `10 x currency.copper_per_silver` copper; the validator passes the value of balance.json,
+## the callers without a balance (generators, tests) the one of today's data.
+const DEFAULT_ROUND_UNIT: int = 1000
+const ROUND_UNIT_KEY: String = "_round_unit"  # derived entry added to the copy of `village` handed to the level checks
 const MAP_GAP_X: float = 0.22  # M21 (§26): two nodes need |dx| >= MAP_GAP_X or |dy| >= MAP_GAP_Y
 const MAP_GAP_Y: float = 0.16
 
@@ -26,7 +30,7 @@ static func is_known_key(path: String) -> bool:
 
 ## F-131/F-132: the generated level `level` (1..max_level) of a building `spec` (the hand-written parts of its entry: `effect`,
 ## `cost_spec`) with the `village` parameters of balance.json. Items are `{"item": String, "qty": int}`.
-static func levels_for(spec: Dictionary, params: Dictionary, level: int) -> Dictionary:
+static func levels_for(spec: Dictionary, params: Dictionary, level: int, round_unit: int = DEFAULT_ROUND_UNIT) -> Dictionary:
 	var cost: Dictionary = spec["cost_spec"] as Dictionary
 	var qty: Dictionary = params["qty"] as Dictionary
 	var items: Array[Dictionary] = []
@@ -43,7 +47,7 @@ static func levels_for(spec: Dictionary, params: Dictionary, level: int) -> Dict
 	if spec.has("effect"):
 		effect_value = float((spec["effect"] as Dictionary)["per_level"]) * float(level)
 	return {"level": level, "requires_woodwright": int((params["woodwright_levels"] as Array)[level - 1]),
-			"gold": int(floorf(gold / 10.0 + 0.5)) * 10, "items": items, "effect_value": effect_value}
+			"gold": int(floorf(gold / float(round_unit) + 0.5)) * round_unit, "items": items, "effect_value": effect_value}
 
 
 static func validate_balance(v: DataValidatorRules, balance: Dictionary) -> void:
@@ -76,6 +80,12 @@ static func validate_balance(v: DataValidatorRules, balance: Dictionary) -> void
 ## data/village/buildings.json. `balance_files` gives the parameters for the generated levels (skipped when invalid).
 static func validate(v: DataValidatorRules, files: Dictionary[String, Dictionary], balance_files: Dictionary[String, Dictionary]) -> void:
 	var params: Dictionary = _valid_params(balance_files)
+	var unit: int = DataValidatorCurrency.round_unit(balance_files)
+	if unit < 0:
+		params = {}  # the `currency` errors are reported by the balance validation
+	elif not params.is_empty():
+		params = params.duplicate()
+		params[ROUND_UNIT_KEY] = unit
 	var seen: Dictionary[StringName, bool] = {}
 	var orders: Dictionary[int, bool] = {}
 	var effect_keys: Dictionary[String, bool] = {}
@@ -122,7 +132,7 @@ static func _buildable(v: DataValidatorRules, e: Dictionary, params: Dictionary,
 		v.fail("field 'levels' needs exactly %d entries (village.max_level), got %d" % [int(params["max_level"]), levels.size()])
 	if effect_ok and spec_ok:
 		for index: int in mini(levels.size(), int(params["max_level"])):
-			_level(v, levels[index], levels_for(e, params, index + 1), index + 1)
+			_level(v, levels[index], levels_for(e, params, index + 1, int(params[ROUND_UNIT_KEY])), index + 1)
 
 
 # True if `unlocks_shop` is present and true (a non-bool is reported).

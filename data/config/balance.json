@@ -348,6 +348,12 @@
     "trend": {"blocks": 12, "threshold_pct": 1},
     "population": {"ref": 100, "period_blocks": 36, "variation_pct": 20, "pressure_pct": 10, "demand_threshold_pct": 0.5}
   },
+  "currency": {
+    "copper_per_silver": 100,
+    "silver_per_gold": 100,
+    "symbols": {"gold": "o", "silver": "a", "copper": "r"},
+    "names": {"gold": "Oro", "silver": "Argento", "copper": "Rame"}
+  },
   "offline": {
     "cap_ms": 43200000,
     "min_ms": 60000,
