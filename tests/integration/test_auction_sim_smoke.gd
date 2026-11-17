@@ -10,7 +10,8 @@ func _sim() -> GDScript:
 
 
 func test_arguments_are_parsed() -> void:
-	assert_eq(_sim().call("parse_args", PackedStringArray(["states=5", "strategies=7", "seed=3"])), {"states": 5, "strategies": 7, "seed": 3})
+	var opts: Dictionary = _sim().call("parse_args", PackedStringArray(["states=5", "strategies=7", "seed=3", "book_strategies=9"]))
+	assert_eq([opts["states"], opts["strategies"], opts["seed"], opts["book_strategies"]], [5, 7, 3, 9])
 	assert_true((_sim().call("parse_args", PackedStringArray(["nonsense=1"])) as Dictionary).has("error"))
 	assert_true((_sim().call("parse_args", PackedStringArray(["states=x"])) as Dictionary).has("error"))
 
@@ -39,3 +40,39 @@ func test_transformations_clock_and_production_have_no_failure() -> void:
 	assert_true(clock["same"])
 	var prod: Dictionary = _sim().call("production", data)
 	assert_eq(prod["failures"], [])
+
+
+const BOOK: String = "res://tools/sim_market_book.gd"
+
+
+func _book() -> GDScript:
+	return load(BOOK) as GDScript
+
+
+## M27-09 (F-182 thresholds 6-9): few cases of each check; the full run is the tool itself.
+func test_book_asks_respect_the_ceiling_and_the_counter() -> void:
+	var r: Dictionary = _book().call("check_asks", TestFactory.real_data(), 10, 11)
+	assert_eq(r["failures"], [])
+	assert_true(r["static_ok"], "(MIN + SPREAD) x PPM > MAX x (PPM + HI)")
+	assert_lt(float(r["max_over_ceiling"]), 1.0)
+	assert_lt(float(r["max_over_unit"]), 1.0)
+
+
+func test_listing_strategies_never_gain_without_risk() -> void:
+	var r: Dictionary = _book().call("check_strategies", TestFactory.real_data(), 4, 11)
+	assert_eq(r["failures"], [])
+	assert_lte(float(r["best_net"]), 0.0)
+	assert_gt(int(r["listings"]), 0, "the strategies do list")
+
+
+func test_listing_equivalence_of_the_clock() -> void:
+	var r: Dictionary = _book().call("check_equivalence", TestFactory.real_data(), 5)
+	assert_eq(r["failures"], [])
+	assert_gt(int(r["sold"]), 0)
+
+
+func test_listed_production_is_measured() -> void:
+	# The thresholds of (8) are measured, not asserted here (Q164): the numbers are in the report of M27-09.
+	var r: Dictionary = _book().call("check_production", TestFactory.real_data(), 5, 2)
+	assert_gt(float(r["max"]), float(r["min"]))
+	assert_gt(float(r["max"]), 0.0)

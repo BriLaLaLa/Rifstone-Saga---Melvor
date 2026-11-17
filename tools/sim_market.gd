@@ -23,7 +23,8 @@ func _initialize() -> void:
 
 
 static func parse_args(args: PackedStringArray) -> Dictionary:
-	var opts: Dictionary = {"states": 1000, "strategies": 10000, "seed": 2305}
+	var opts: Dictionary = {"states": 1000, "strategies": 10000, "seed": 2305,
+			"book_strategies": 2000, "book_states": 1000, "prod_states": 12}
 	for arg: String in args:
 		var key: String = arg.get_slice("=", 0)
 		if not opts.has(key) or not arg.get_slice("=", 1).is_valid_int():
@@ -53,6 +54,7 @@ func run(args: PackedStringArray) -> int:
 	print_rich(check_clock(data, int(opts["seed"])))
 	print_rich("== (5) 1 h of production sold at once against F-18")
 	print_rich(check_production(data))
+	_fails.append_array((load("res://tools/sim_market_book.gd") as GDScript).call("run", data, opts) as Array)
 	print_rich("elapsed %.1f s" % (float(Time.get_ticks_msec() - started) / 1000.0))
 	if _fails.is_empty():
 		print_rich("sim_market: all thresholds respected")
