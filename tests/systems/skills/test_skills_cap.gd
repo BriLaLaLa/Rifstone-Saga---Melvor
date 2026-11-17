@@ -61,6 +61,7 @@ func test_a_discipline_not_learned_gets_nothing() -> void:
 
 
 func test_a_skill_without_discipline_uses_the_global_cap() -> void:
+	_s = autofree(TestFactory.session_no_kit(1, TestFactory.fixture_data()))  # the real data have no skill without discipline
 	assert_eq(_s.skills.add_xp(&"riftbinding", 100), 100)
 
 

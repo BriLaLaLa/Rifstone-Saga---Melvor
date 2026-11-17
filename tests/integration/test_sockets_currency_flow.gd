@@ -15,6 +15,7 @@ var _s: GameSession = null
 
 func before_each() -> void:
 	_s = TestFactory.session_no_kit(SEED, TestFactory.real_data())
+	TestFactory.learn_engraver(_s)
 
 
 func after_each() -> void:
