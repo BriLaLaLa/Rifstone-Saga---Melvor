@@ -58,10 +58,10 @@ func _ready() -> void:
 	_button.name = "EnqueueButton"
 	_button.text = QueueTexts.ENQUEUE_TEXT
 	_button.theme_type_variation = &"AccentButton"
-	_button.custom_minimum_size = Vector2(0, 40)
+	_button.custom_minimum_size = Vector2(160, 40)
 	_button.focus_mode = Control.FOCUS_NONE
 	_button.pressed.connect(func() -> void: enqueue_requested.emit(int(_spin.value), _repeat.button_pressed))
-	add_child(_button)
+	line.add_child(_button)
 
 
 ## `usable`: the recipe can be put in the queue now (level reached); `known`: the recipe is discovered.

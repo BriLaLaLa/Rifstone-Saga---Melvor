@@ -91,7 +91,7 @@ func test_other_skills_have_their_own_panel_and_forging_has_none() -> void:
 	assert_not_null(_panel())
 	_page.free()
 	_open_skill(&"forging")
-	assert_null(_page.get_node("%Extras").get_child(0) as ToolUpgradePanel)
+	assert_null(_page.find_child("ToolUpgradePanel", true, false))
 
 
 func test_unbind_disconnects_everything() -> void:

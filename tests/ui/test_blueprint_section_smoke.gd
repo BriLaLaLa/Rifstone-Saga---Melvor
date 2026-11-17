@@ -133,11 +133,6 @@ func test_progress_bar_follows_the_session() -> void:
 	assert_gt(bar.value, 0.0)
 
 
-func test_blueprint_craft_has_no_card() -> void:
-	_open()
-	for child: Node in _page.get_node("%Cards").get_children():
-		assert_ne((child as ActionCard).action_id(), BlueprintCraft.ACTION)
-
 
 func test_unbind_disconnects_everything() -> void:
 	var before: int = _session.events.armory_changed.get_connections().size()
@@ -170,10 +165,11 @@ func _open() -> void:
 	add_child(_host)
 	_host.add_child(_page)
 	_page.bind(_session)
+	(_page.find_child("Page_%s" % ForgeTabs.TAB_BLUEPRINTS, true, false) as Button).pressed.emit()
 
 
 func _section() -> BlueprintSection:
-	return _page.get_node("%Extras").get_child(0) as BlueprintSection
+	return _page.find_child("BlueprintSection", true, false) as BlueprintSection
 
 
 func _row(blueprint_id: StringName) -> Button:

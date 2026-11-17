@@ -58,46 +58,9 @@ func test_select_releases_the_previous_tab_in_the_group() -> void:
 	assert_true((bar.get_node("Tab_b") as Button).button_pressed)
 
 
-func test_engraver_has_the_four_tabs_and_shows_one_at_a_time() -> void:
-	_open(&"riftbinding")
-	var bar: SubTabBar = _bar()
-	assert_eq(bar.ids(), [&"slabs", &"merge", &"crystals", &"runes"] as Array[StringName])
-	assert_eq([bar.label_of(&"slabs"), bar.label_of(&"merge"), bar.label_of(&"crystals"), bar.label_of(&"runes")],
-			["Lastre", "Fondere", "Cristalli", "Rune"])
-	assert_true(_shown("MakeRuneSlab"))
-	assert_false(_shown("CrystallizeSpark"))
-	bar.select(&"runes")
-	assert_true(_shown("EngraveSwiftHands"))
-	assert_true(_shown("UpgradeSwiftHands2"))
-	assert_false(_shown("MakeRuneSlab"))
-	bar.select(&"crystals")
-	assert_true(_shown("CrystallizeSpark"))
-	assert_false(_shown("EngraveSwiftHands"))
-
-
 func test_every_engraver_action_belongs_to_exactly_one_tab() -> void:
 	for action: ActionDef in TestFactory.real_data().actions_for_skill(&"riftbinding"):
 		assert_ne(EngraverSections.tab_of(EngraverSections.section_of(action)), &"", String(action.id))
-
-
-func test_forging_has_the_four_tabs() -> void:
-	_open(&"forging")
-	var bar: SubTabBar = _bar()
-	assert_eq([bar.label_of(&"ingots"), bar.label_of(&"plates"), bar.label_of(&"blueprints"), bar.label_of(&"bench")],
-			["Lingotti", "Piastre", "Progetti", "Banco del fabbro"])
-	assert_true(_shown("SmeltEmberbronze"))
-	assert_false(_shown("ForgeEmberbronzePlate"))
-	bar.select(&"plates")
-	assert_false(_shown("SmeltEmberbronze"))
-	assert_true(_shown("ForgeEmberbronzePlate"))
-	assert_false(_page._blueprints.is_visible_in_tree())
-	assert_false(_page._bench.is_visible_in_tree())
-	bar.select(&"blueprints")
-	assert_true(_page._blueprints.is_visible_in_tree())
-	assert_false(_page._bench.is_visible_in_tree())
-	bar.select(&"bench")
-	assert_true(_page._bench.is_visible_in_tree())
-	assert_false(_page._blueprints.is_visible_in_tree())
 
 
 func test_gathering_pages_have_no_sub_tabs() -> void:

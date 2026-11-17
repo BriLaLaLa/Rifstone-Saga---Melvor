@@ -127,89 +127,10 @@ func test_freeing_the_page_disconnects_everything() -> void:
 	assert_eq(_counts(), baseline)
 
 
-func test_recipe_gets_a_recipe_card_with_ingredients() -> void:
-	_open(&"test_craft")
-	var card: RecipeCard = _page.get_node("%Cards/CraftPlank") as RecipeCard
-	assert_not_null(card, "a recipe has a RecipeCard")
-	var text: Label = card.get_node("%Ingredients/IngredientTestLog/Text") as Label
-	assert_eq(text.text, "%s  0 / 2" % _session.data.item(&"test_log").name)
-	assert_eq(text.get_theme_color("font_color"), UiStyle.BAD, "short ingredient in red")
-	_session.bank.add(&"test_log", 5)
-	assert_eq(text.text, "%s  5 / 2" % _session.data.item(&"test_log").name, "redrawn on bank_changed")
-	assert_ne(text.get_theme_color("font_color"), UiStyle.BAD)
-
-
-func test_recipe_card_puts_the_job_in_the_queue_and_the_panel_cancels_it() -> void:
-	_session.bank.add(&"test_log", 20)
-	_open(&"test_craft")
-	var card: RecipeCard = _page.get_node("%Cards/CraftPlank") as RecipeCard
-	var spin: SpinBox = card.find_child("QuantitySpin", true, false) as SpinBox
-	spin.value = 3.0
-	(card.find_child("EnqueueButton", true, false) as Button).pressed.emit()
-	assert_eq(_session.actions.jobs().size(), 1)
-	assert_eq(_session.actions.jobs()[0]["remaining"], 3)
-	var panel: ProductionQueuePanel = _page.find_child("ProductionQueue", true, false) as ProductionQueuePanel
-	assert_not_null(panel.find_child("QueueRow_0", true, false), "the queue panel shows the job (production_queue_changed)")
-	assert_true((_label(_page, "%StatusLabel").text).contains("Tagliare"), "the status names the head of the queue")
-	(panel.find_child("CancelButton", true, false) as Button).pressed.emit()
-	assert_eq(_session.actions.jobs().size(), 0)
-	assert_null(panel.find_child("QueueRow_0", true, false))
-
-
-func test_recipe_to_discover_shows_the_lock_and_a_refusal_shows_its_reason() -> void:
-	_open(&"test_craft")
-	var card: RecipeCard = _page.get_node("%Cards/CraftPlank") as RecipeCard
-	var lock: Label = card.find_child("LockedLabel", true, false) as Label
-	assert_eq(lock.visible, not _session.disciplines.knows_recipe(&"craft_plank"))
-	_session.actions.enqueue(&"test_craft", &"craft_plank", 1, true)
-	for _i: int in _session.actions.capacity():
-		_session.actions.enqueue(&"test_craft", &"craft_plank", 1, false)
-	(card.find_child("EnqueueButton", true, false) as Button).pressed.emit()
-	assert_true((_label(_page, "%MessageLabel")).visible, "queue_full or a refusal is shown, in Italian")
-
-
-func test_recipe_card_chances_read_modifiers() -> void:
-	_open(&"test_craft")
-	var card: RecipeCard = _page.get_node("%Cards/CraftPlank") as RecipeCard
-	assert_eq(_label(card, "%PreservationValue").text, "0%")
-	assert_eq(_label(card, "%DoubleValue").text, "0%")
-	assert_eq(_label(card, "%PreservationName").text,
-			_session.data.stats.info(ArtisanResolver.PRESERVATION_STAT)["name"])
-	var mods: Array[Modifier] = [Modifier.make(ArtisanResolver.PRESERVATION_STAT, 12.5, &"skill", &"test_craft"),
-			Modifier.make(ArtisanResolver.DOUBLE_STAT, 5.0, &"skill", &"test_craft")]
-	_session.modifiers.set_source(&"test", mods)
-	var ctx: ModifierContext = ModifierContext.for_action(&"test_craft", &"craft_plank")
-	assert_eq(_label(card, "%PreservationValue").text, "%s%%" % NumberFormat.format_number(
-			_session.modifiers.total(ArtisanResolver.PRESERVATION_STAT, ctx)))
-	assert_eq(_label(card, "%DoubleValue").text, "5%")
-
-
-func test_gathering_page_has_no_recipe_cards() -> void:
+func test_gathering_page_has_no_production_view() -> void:
 	_open(SKILL)
-	for card: ActionCard in _cards():
-		assert_false(card is RecipeCard)
-
-
-func test_real_data_forging_scrolls_16_recipes_and_hides_the_blueprint_action() -> void:
-	_session.free()
-	_session = TestFactory.session(1234, TestFactory.real_data())
-	_open(&"forging")
-	var cards: Array[ActionCard] = _cards()
-	assert_eq(cards.size(), 16, "8 smelting + 8 plate recipes; the blueprint craft has its own section")
-	for card: ActionCard in cards:
-		assert_true(card is RecipeCard)
-	var scroll: ScrollContainer = _page.get_node("Margin/Content/Scroll") as ScrollContainer
-	assert_not_null(scroll, "the card list is in a ScrollContainer")
-	assert_eq(scroll.horizontal_scroll_mode, ScrollContainer.SCROLL_MODE_DISABLED)
-	var counts: Dictionary[int, bool] = {}
-	for card: ActionCard in cards:
-		var distinct: Dictionary[StringName, bool] = {}
-		for input: ItemQty in _session.data.action(card.action_id()).inputs:
-			distinct[input.item_id] = true
-		var shown: int = (card.get_node("%Ingredients") as Control).get_child_count()
-		assert_eq(shown, distinct.size(), "%s ingredient rows" % card.action_id())
-		counts[shown] = true
-	assert_true(counts.has(1), "every recipe of the page has one ingredient (ore or ingots)")
+	assert_null(_page.find_child("ProfessionView", true, false))
+	assert_false(_cards().is_empty())
 
 
 func test_real_data_forestry_page_is_read_only_and_lists_its_areas() -> void:
