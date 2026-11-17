@@ -58,7 +58,8 @@ func _exit_tree() -> void:
 
 
 func _signals(events: GameEvents) -> Array[Signal]:
-	return [events.infusion_socketed, events.infusion_removed, events.bank_changed, events.level_up]
+	return [events.infusion_socketed, events.infusion_removed, events.bank_changed, events.level_up,
+			events.discipline_changed, events.skill_reset]
 
 
 func _redraw_from_event(_a: Variant = null, _b: Variant = null, _c: Variant = null) -> void:
@@ -73,6 +74,8 @@ func _redraw() -> void:
 		child.queue_free()
 	for i: int in _session.rift.socket_total():
 		_sockets.add_child(_build_row(i))
+	_intro_label.text = RiftTexts.INTRO_TEXT if _session.disciplines.is_learned(RiftAltar.SKILL) \
+			else "%s\n%s" % [RiftTexts.INTRO_TEXT, RiftTexts.NOT_LEARNED_TEXT]
 	_redraw_picker()
 	_redraw_runes()
 	var lines: PackedStringArray = RiftTexts.summary_lines(_session)
@@ -101,23 +104,32 @@ func _build_row(index: int) -> PanelContainer:
 	row.add_child(state)
 	var item_id: StringName = rift.get_socket(index)
 	if not rift.is_unlocked(index):
-		state.text = "[color=#%s]%s[/color]" % [UiStyle.TEXT_DISABLED.to_html(false),
-				RiftTexts.LOCKED_TEXT % [RiftTexts.skill_name(_session), RiftTexts.unlock_level(_session, index)]]
+		var locked: String = RiftTexts.LOCKED_TEXT % [RiftTexts.skill_name(_session), RiftTexts.unlock_level(_session, index)]
+		if item_id == &"":
+			state.text = "[color=#%s]%s[/color]" % [UiStyle.TEXT_DISABLED.to_html(false), locked]
+		else:  # the rune stays in a locked socket, switched off (GDD M25 §37.1); it can still be removed
+			state.text = "[color=#%s]%s\n%s\n%s[/color]" % [UiStyle.TEXT_DISABLED.to_html(false),
+					ItemTooltipLines.escape(_session.data.item(item_id).name), RiftTexts.OFF_TEXT, locked]
+			_add_remove_controls(row, index)
 	elif item_id == &"":
 		state.text = "[color=#%s]%s[/color]" % [UiStyle.TEXT_2.to_html(false), RiftTexts.EMPTY_TEXT]
 		_add_button(row, "SocketButton", RiftTexts.SOCKET_BUTTON_TEXT, _on_socket_pressed.bind(index))
 	else:
 		state.text = _infusion_text(item_id)
-		if _removing == index:
-			var warn := Label.new()
-			warn.text = RiftTexts.REMOVE_WARNING_TEXT
-			warn.theme_type_variation = &"MutedLabel"
-			row.add_child(warn)
-			_add_button(row, "ConfirmRemoveButton", RiftTexts.CONFIRM_REMOVE_TEXT, _on_remove_confirmed.bind(index))
-			_add_button(row, "CancelRemoveButton", RiftTexts.CANCEL_TEXT, _on_remove_cancelled)
-		else:
-			_add_button(row, "RemoveButton", RiftTexts.REMOVE_BUTTON_TEXT, _on_remove_pressed.bind(index))
+		_add_remove_controls(row, index)
 	return panel
+
+
+func _add_remove_controls(row: HBoxContainer, index: int) -> void:
+	if _removing == index:
+		var warn := Label.new()
+		warn.text = RiftTexts.REMOVE_WARNING_TEXT
+		warn.theme_type_variation = &"MutedLabel"
+		row.add_child(warn)
+		_add_button(row, "ConfirmRemoveButton", RiftTexts.CONFIRM_REMOVE_TEXT, _on_remove_confirmed.bind(index))
+		_add_button(row, "CancelRemoveButton", RiftTexts.CANCEL_TEXT, _on_remove_cancelled)
+	else:
+		_add_button(row, "RemoveButton", RiftTexts.REMOVE_BUTTON_TEXT, _on_remove_pressed.bind(index))
 
 
 ## Name of the infusion in its color plus the modifiers (stat registry labels).
@@ -210,7 +222,7 @@ func _redraw_runes() -> void:
 		_runes_box.add_child(line)
 	var craft := Button.new()
 	craft.name = "CraftRunesButton"
-	craft.text = RiftTexts.CRAFT_RUNES_TEXT
+	craft.text = RiftTexts.CRAFT_RUNES_TEXT if _session.disciplines.is_learned(RiftAltar.SKILL) else RiftTexts.LEARN_ENGRAVER_TEXT
 	craft.focus_mode = Control.FOCUS_NONE
 	craft.custom_minimum_size.y = UiStyle.MENU_BUTTON_HEIGHT
 	craft.pressed.connect(_on_craft_runes_pressed)
@@ -222,9 +234,13 @@ func _on_craft_runes_pressed() -> void:
 	var node: Node = get_parent()
 	while node != null and not node is PageHost:
 		node = node.get_parent()
-	if node != null:
-		(node as PageHost).show_page(StringName("%s%s%s" % [PageHost.ROUTE_SKILL, PageHost.ROUTE_SEPARATOR,
-				RiftAltar.SKILL]))
+	if node == null:
+		return
+	if _session != null and not _session.disciplines.is_learned(RiftAltar.SKILL):
+		(node as PageHost).show_page(&"trainers")  # not learned: the page of the Trainers
+		return
+	(node as PageHost).show_page(StringName("%s%s%s" % [PageHost.ROUTE_SKILL, PageHost.ROUTE_SEPARATOR,
+			RiftAltar.SKILL]))
 
 
 # --- Commands ---------------------------------------------------------------------------------------------------
