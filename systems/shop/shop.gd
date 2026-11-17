@@ -56,42 +56,61 @@ func price(entry_id: StringName) -> int:
 	return entry.cost_gold
 
 
-## Checks in order: unknown_id, max_purchases, requirement_not_met, not_enough_gold, bank_full or armory_full
-## (item effects; equipment and tools go to the Armory as common pieces).
+## `can_buy_many(entry_id, 1)`.
 func can_buy(entry_id: StringName) -> CommandResult:
+	return can_buy_many(entry_id, 1)
+
+
+## Checks in order: invalid_amount (count <= 0, or count > 1 on an entry with max_purchases != 0), unknown_id, max_purchases,
+## requirement_not_met, recipe_known, not_enough_gold (count x price), bank_full or armory_full (item effects; equipment and
+## tools go to the Armory as common pieces).
+func can_buy_many(entry_id: StringName, count: int) -> CommandResult:
+	if count <= 0:
+		return CommandResult.fail(Reasons.INVALID_AMOUNT)
 	if not _entries.has(entry_id):
 		return CommandResult.fail(Reasons.UNKNOWN_ID)
 	var entry: ShopEntryDef = _entries[entry_id]
+	if count > 1 and entry.max_purchases != 0:
+		return CommandResult.fail(Reasons.INVALID_AMOUNT)
 	if entry.max_purchases > 0 and purchase_count(entry_id) >= entry.max_purchases:
 		return CommandResult.fail(Reasons.MAX_PURCHASES)
 	if not _requirements_met(entry):
 		return CommandResult.fail(Reasons.REQUIREMENT_NOT_MET)
-	if _wallet.get_gold() < price(entry_id):
+	if _recipe_known(entry):
+		return CommandResult.fail(Reasons.RECIPE_KNOWN)
+	if _wallet.get_gold() < price(entry_id) * count:
 		return CommandResult.fail(Reasons.NOT_ENOUGH_GOLD)
 	if entry.effect_item != null and _gives_pieces(entry):
-		if not _armory.can_add(entry.effect_item.qty):
+		if not _armory.can_add(entry.effect_item.qty * count):
 			return CommandResult.fail(Reasons.ARMORY_FULL)
 	elif entry.effect_item != null and not _bank.can_add(entry.effect_item.item_id):
 		return CommandResult.fail(Reasons.BANK_FULL)
 	return CommandResult.success()
 
 
-## Pays and applies the effect. Nothing is spent when the check fails.
+## `buy_many(entry_id, 1)`.
 func buy(entry_id: StringName) -> CommandResult:
-	var check: CommandResult = can_buy(entry_id)
+	return buy_many(entry_id, 1)
+
+
+## Pays `count x price` and applies the effect `count` times (an item as one bank add of `qty x count`); `shop_purchased` is emitted
+## once with the total. Nothing changes when a check fails.
+func buy_many(entry_id: StringName, count: int) -> CommandResult:
+	var check: CommandResult = can_buy_many(entry_id, count)
 	if not check.ok:
 		return check
 	var entry: ShopEntryDef = _entries[entry_id]
-	var paid: CommandResult = _wallet.spend(price(entry_id))
+	var total: int = price(entry_id) * count
+	var paid: CommandResult = _wallet.spend(total)
 	if not paid.ok:
 		return paid
 	if entry.effect_item != null:
-		var given: CommandResult = _give_item(entry.effect_item)
+		var given: CommandResult = _give_item(entry.effect_item, count)
 		if not given.ok:
-			# Cannot happen after can_buy; refund so that no gold is ever lost.
-			_wallet.add_gold(price(entry_id))
+			# Cannot happen after can_buy_many; refund so that no gold is ever lost.
+			_wallet.add_gold(total)
 			return given
-	_purchases[entry_id] = purchase_count(entry_id) + 1
+	_purchases[entry_id] = purchase_count(entry_id) + count
 	if not entry.effect_modifiers.is_empty():
 		_apply_source(entry)
 	_events.shop_purchased.emit(entry_id, _purchases[entry_id])
@@ -235,6 +254,14 @@ static func _as_positive_int(v: Variant) -> Variant:
 	return null
 
 
+# True when the entry gives a Recipe item whose action is already known (M26-06); no check without `disciplines`.
+func _recipe_known(entry: ShopEntryDef) -> bool:
+	if entry.effect_item == null or _session.disciplines == null or not _data.has_item(entry.effect_item.item_id):
+		return false
+	var item: ItemDef = _data.item(entry.effect_item.item_id)
+	return item.is_recipe() and _session.disciplines.knows_recipe(item.recipe_action)
+
+
 # True when the item effect is a unique piece (equipment or tool): it goes to the Armory, not to the bank.
 func _gives_pieces(entry: ShopEntryDef) -> bool:
 	return _is_piece(entry.effect_item.item_id)
@@ -245,10 +272,10 @@ func _is_piece(item_id: StringName) -> bool:
 
 
 # Bank stack, or `qty` common pieces of ilvl 1 in the Armory.
-func _give_item(effect: ItemQty) -> CommandResult:
+func _give_item(effect: ItemQty, count: int = 1) -> CommandResult:
 	if not _is_piece(effect.item_id):
-		return _bank.add(effect.item_id, effect.qty)
-	for i: int in effect.qty:
+		return _bank.add(effect.item_id, effect.qty * count)
+	for i: int in effect.qty * count:
 		if _armory.create(effect.item_id, PIECE_RARITY, PIECE_ILVL) == 0:
 			return CommandResult.fail(Reasons.ARMORY_FULL)
 	return CommandResult.success()
