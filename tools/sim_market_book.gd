@@ -204,6 +204,7 @@ static func check_production(data: GameData, seed_value: int, states: int) -> Di
 	var lo: float = INF
 	var hi: float = -INF
 	var full_lo: float = INF
+	var full_hi: float = -INF
 	var partial: int = 0
 	var total_states: int = 0
 	var per_band: Dictionary = {}  # band index -> [sold_sug, total_sug, wsum_sug, sold_hi, total_hi, wsum_hi]
@@ -249,11 +250,14 @@ static func check_production(data: GameData, seed_value: int, states: int) -> Di
 						partial += 1
 					else:
 						full_lo = minf(full_lo, ratio)
+						full_hi = maxf(full_hi, ratio)
 					hi = maxf(hi, ratio)
 		lines.append("%s: %d/h, suggested ratio %.3f - %.3f, sold %.0f%%" % [item_id, q, item_lo, item_hi, sold_frac * 100.0])
-	if lo < RATIO_MIN or hi > RATIO_MAX:
-		failures.append("(8) ratio against F-18 %.3f - %.3f outside %.2f - %.2f (no tuning: numbers to the Reviewer, Q164)" % [lo, hi, RATIO_MIN, RATIO_MAX])
-	var text: String = "\n".join(lines) + "\nratio min-max %.3f - %.3f (threshold %.2f - %.2f); states with less than 95%% sold in 12 h: %d of %d (min ratio among the fully sold: %.3f)" % [lo, hi, RATIO_MIN, RATIO_MAX, partial, total_states, full_lo]
+	# Q164 (decided at M27-10): the threshold applies to the states sold at least 95% in 12 h; a partial sale (the suggested
+	# price taken at a market top that then falls) is informative only, the unsold pieces come back by Mail.
+	if full_lo < RATIO_MIN or full_hi > RATIO_MAX:
+		failures.append("(8) ratio against F-18 among the states sold >= 95%% %.3f - %.3f outside %.2f - %.2f (no tuning: numbers to the Reviewer, Q164)" % [full_lo, full_hi, RATIO_MIN, RATIO_MAX])
+	var text: String = "\n".join(lines) + "\nratio among the states sold >= 95%% %.3f - %.3f (threshold %.2f - %.2f); all states %.3f - %.3f (informative, Q164); states with less than 95%% sold in 12 h: %d of %d" % [full_lo, full_hi, RATIO_MIN, RATIO_MAX, lo, hi, partial, total_states]
 	for band: int in per_band:
 		var row: Array = per_band[band]
 		text += "\nband %d: at the suggested price sold %.0f%%, mean sale time %.1f h; at +10%% sold %.0f%%, mean sale time %.1f h" % [

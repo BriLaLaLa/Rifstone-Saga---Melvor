@@ -22,7 +22,7 @@ static func from_parts(gold: int, silver: int, copper: int, p: CurrencyParams) -
 	return gold * p.copper_per_gold() + silver * p.copper_per_silver + copper
 
 
-## "1o 25a 40r": the non-zero parts in order gold, silver, copper; 0 is "0r"; a negative amount (only for deltas) has a minus sign.
+## "1g 25s 40c" (symbols from currency.symbols): the non-zero parts in order gold, silver, copper; 0 is "0c"; a negative amount (only for deltas) has a minus sign.
 static func text(copper: int, p: CurrencyParams) -> String:
 	if copper < 0:
 		return MINUS + text(-copper, p)

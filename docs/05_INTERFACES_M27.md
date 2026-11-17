@@ -169,9 +169,20 @@ func new_game() -> void; func to_save() -> Dictionary; func from_save(d: Diction
   `Money.text`); rotta `&"mail"` in `page_host.gd`; voce "Posta" nella barra laterale (gruppo Villaggio, icona `mail` del set Tabler) con il contatore dei non letti (`mail_changed`);
   aprire un messaggio = `mark_read`; **Ritira** (motivo accanto se `can_collect` fallisce), **Ritira tutto**; riga del riepilogo offline "n messaggi nuovi nella Posta".
 - **M27-08 (Casa d'Aste)**: `auction_detail.gd` mostra il **libro** (`book`, proprie inserzioni evidenziate) e il riepilogo (`population`: compratori, venditori, domanda, pezzi e
-  inserzioni); pannello di vendita con **Vendi subito** (come oggi, "il ricavo arriva in Posta") e **Metti in vendita** (quantità, prezzo con tre campi o/a/r ricomposti da
+  inserzioni); pannello di vendita con **Vendi subito** (come oggi, "il ricavo arriva in Posta") e **Metti in vendita** (quantità, prezzo con tre campi g/s/c ricomposti da
   `Money.from_parts` e precompilati col suggerito, durata da `durations()`, deposito `listing_deposit`, ricavo `listing_net`, motivo da `can_list`); scheda **Le mie inserzioni**
   (`my_listings`: oggetto, venduti/totale, prezzo, tempo rimasto, stato, **Annulla** con `can_cancel`). Redraw anche su `auction_listings_changed` e `mail_changed`.
 - **Test della UI** (lezione (a)): ogni comando nuovo ha un test con **clic vero** (`Viewport.push_input` con `InputEventMouseButton` premuto e rilasciato sul centro del controllo):
   Posta (riga, Ritira, Ritira tutto), Casa d'Aste (categoria dell'albero, oggetto, Metti in vendita, Annulla), barra laterale (voce Posta). Un solo smoke test per pagina; nessun
   test su testi esatti; screenshot a 1280×720 e 1600×900 in cartelle separate, guardati davvero.
+
+## Differenze del codice dal contratto (annotate a M27-10, accettate dal Reviewer)
+Nessuna firma del contratto è cambiata; il codice ha in più (tutto interno ai moduli, la UI usa solo `AuctionHouse` e `MailBox`):
+- `systems/auction/auction_view.gd` (`class_name AuctionView`, funzioni statiche senza stato `population`, `book`, `my_listings`): composizione di F-181 da `AuctionPricing` e
+  `AuctionListings`, usata solo da `AuctionHouse` per restare sotto ~330 righe.
+- `AuctionPricing`: anche `max_price(item_id)`, `deposit(item_id, qty, duration)`, `listing_net(qty, price)` (delegate da `AuctionHouse`); `AuctionBook.max_price(value, p)`.
+- `AuctionListings`: anche `clear()` e `drop_if(rejects: Callable)` (pulizia al caricamento).
+- Dati: `DataValidatorCurrency`, `DataValidatorAuctionBook` (separati da `DataValidatorAuction` per le righe), `MailIndex` (indice dei modelli della Posta per `GameData.mail_templates`).
+- UI: `ui/pages/auction/auction_offers_view.gd` (`AuctionOffersView`, libro e riepilogo), `auction_list_form.gd` (`AuctionListForm`, Metti in vendita), `auction_mine.gd` (`AuctionMine`,
+  Le mie inserzioni); `ui/pages/mail/` `MailPage`, `MailRow`, `MailTexts` come in §7.o.
+- Simboli delle monete **g/s/c** (`currency.symbols`, Q160), non o/a/r.

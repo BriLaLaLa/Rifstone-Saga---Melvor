@@ -15,8 +15,8 @@ Nessuna stat nuova in `stats.json`; nessuna sorgente nuova in `ModifierService`.
 **Scomposizione** di `c ≥ 0`: `g = c ÷ CPG`; `s = (c mod CPG) ÷ CPS`; `r = c mod CPS`. Ricomposizione `c = g × CPG + s × CPS + r` (campi del prezzo nella UI, con `g, s, r ≥ 0`).
 **Testo** (`Money.text`): le parti diverse da zero in ordine oro, argento, rame, ognuna `<n><simbolo>`, separate da uno spazio; `c = 0` → `"0" + simbolo del rame`; `c < 0` →
 `"−" + testo(−c)` (solo per i delta). Simboli di `currency.symbols` (`o`, `a`, `r`; Q160). Nessun separatore delle migliaia.
-Esempi (= test, `tests/core/common/test_money.gd`): 0 → (0, 0, 0) **"0c"**; 7 → **"7c"**; 100 → (0, 1, 0) **"1a"**; 10.000 → **"1o"**; 12.540 → (1, 25, 40) **"1g 25s 40c"**;
-125.000 → **"12g 50s"**; 1.000.005 → (100, 0, 5) **"100o 5r"**; 6.760.916 → **"676o 9a 16r"**; −250 → **"−2s 50c"**. Ricomposizione (1, 25, 40) → 12.540; (0, 0, 0) → 0.
+Esempi (= test, `tests/core/common/test_money.gd`): 0 → (0, 0, 0) **"0c"**; 7 → **"7c"**; 100 → (0, 1, 0) **"1s"**; 10.000 → **"1g"**; 12.540 → (1, 25, 40) **"1g 25s 40c"**;
+125.000 → **"12g 50s"**; 1.000.005 → (100, 0, 5) **"100g 5c"**; 6.760.916 → **"676g 9s 16c"**; −250 → **"−2s 50c"**. Ricomposizione (1, 25, 40) → 12.540; (0, 0, 0) → 0.
 
 **Conversione una tantum (M27-03)**: `LEGACY` = **100** (costante storica `V11_COPPER_PER_GOLD` di `migration_10_to_11.gd`, congelata): **1 oro di prima = 1 argento = 100 rame**.
 - **Dati**: ogni campo di denaro elencato in `04_DATA_SCHEMA_M27.md` §32.2 si moltiplica per `LEGACY` (anche le coppie min-max e le liste); i rapporti (`*_growth`, `*_mult`,
@@ -114,7 +114,8 @@ Esempi (= test, `seed` 12345, `redbirch_grip`, creazione al blocco 0 con `sat` 0
 - **Simulazione** (`tools/sim_market.gd`, M27-09; esce con 1 se una soglia salta; soglie (1)-(5) di F-176 invariate in rame): (6) per ogni oggetto in elenco e 1.000 stati casuali
   (blocco, `sat`): ogni `ask` ≤ il limite sopra e, se acquistabile, < `unit`; (7) 2.000 strategie casuali per oggetto acquistabile su 48 h (compra, metti in vendita a prezzi
   casuali, annulla, vendi subito, attendi, ritira la posta): **denaro finale + pezzi rimasti × `v·MAX` ≤ denaro iniziale**; (8) 1 h di produzione dei grezzi T1-T8 messa in vendita al
-  suggerito per 12 h: ricavo netto rispetto a F-18 **tra 0,85 e 1,40** e frazione venduta (stampata); (9) equivalenza di F-184 con 3 inserzioni. Stampa anche, per fascia, il tempo
+  suggerito per 12 h: ricavo netto rispetto a F-18 **tra 0,85 e 1,40 negli stati venduti almeno al 95%** (Q164, decisa a M27-10: una vendita parziale, il suggerito preso al
+  massimo del mercato che poi scende, rende 0,43-0,5 sui pezzi venduti e il resto torna per Posta; il minimo di tutti gli stati e la frazione venduta sono stampati, informativi); (9) equivalenza di F-184 con 3 inserzioni. Stampa anche, per fascia, il tempo
   medio di vendita al suggerito e a +10%. Se (8) salta: nessun ritocco, numeri al Reviewer (Q164).
 
 ## Filone C: Posta

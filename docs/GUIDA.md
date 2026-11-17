@@ -10,6 +10,10 @@
 > **M26 (Alpha 2, allineato da M26-12)**: pagine a mano nuove "Professioni" (`guide_professions`: colori delle ricette e avanzamento) e "Mercanti"
 > (`guide_merchants`: schemi, reagenti, botteghe) in `data/guide/professioni.json`. **Da fare** (dati, non in M26): la pagina "Casa d'Aste" (`guide_auction`, `casa_aste.json`) non parla
 > ancora di compratori, venditori e domanda (§38.8 la chiede aggiornata); il testo attuale resta corretto ma incompleto. Le ricette non si conoscono più solo per livello (`01_GDD_M26.md` §38.1-§38.3). Nomi di schemi e reagenti in `NOMI.md`; nessun numero copiato.
+>
+> **M27 (Casa d'Aste v2, allineato da M27-10)**: pagine a mano nuove "Monete" (`guide_coins`, `data/guide/monete.json`: rame, argento, oro) e "Posta"
+> (`guide_mail`, `posta.json`); "Casa d'Aste" (`guide_auction`) aggiornata da M27-08 (libro delle inserzioni, Metti in vendita, Vendi subito per Posta, Le mie inserzioni). Il denaro
+> nei testi si scrive "monete" e gli importi arrivano da `Money.text`; ogni pagina ≤ 160 parole (`test_guide_texts`). Altre pagine di meccanica: `data/guide/*.json` (17 file).
 
 Stato: **APPROVATA dall'utente** (2026-11-08). Nasce dalla prova dell'utente: "tante cose non si capiscono cosa
 facciano". Ispirazione: la **struttura** delle wiki dei giochi idle (pagina per mestiere, oggetto, mostro, meccanica),

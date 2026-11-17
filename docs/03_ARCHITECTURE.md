@@ -60,7 +60,9 @@ res://
 │   ├── shop/                     ← shop.gd
 │   ├── rift/                     ← rift_altar.gd (M8)
 │   ├── hints/                    ← hints_system.gd (M9)
-│   └── fractures/                ← card_store.gd, map_card.gd, map_card_roller.gd (M13-01); fracture_system.gd, fracture_run.gd, fracture_bag.gd, fracture_scaler.gd (M13-02)
+│   ├── fractures/                ← card_store.gd, map_card.gd, map_card_roller.gd (M13-01); fracture_system.gd, fracture_run.gd, fracture_bag.gd, fracture_scaler.gd (M13-02)
+│   ├── auction/                  ← auction_math.gd, auction_pricing.gd, auction_house.gd (M23); auction_book.gd, auction_listings.gd, auction_view.gd (M27, F-178…F-184)
+│   └── mail/                     ← mail_box.gd (M27, Posta, F-183)
 ├── data/
 │   ├── config/                   ← balance.json, stats.json
 │   ├── skills/skills.json        ← 7 skill di supporto

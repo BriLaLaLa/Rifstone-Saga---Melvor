@@ -329,10 +329,11 @@ il denaro diventa **rame, argento e oro** (1 oro di prima = 1 argento, tutto ×1
 (senza stato, dal seme e dal tempo) e la popolazione; il giocatore **mette in vendita** con prezzo, durata, deposito e commissione, e l'inserzione si vende a pezzi, resta "superata" quando il
 mercato scende, si vende dopo un rialzo o scade; i ricavi e i resi arrivano nella **Posta** da ritirare. Save **v11** (migrazione del portafoglio; inserzioni e posta additivi).
 Filoni: A monete (02, 03, 04), B libro (06, 08), C Posta (05, 07); QA 09; integrazione 10.
-**Giocabile**: la barra in alto mostra "o/a/r" con le monete colorate e un save dell'Alpha 2 si carica con lo stesso potere d'acquisto; selezionando un oggetto si vedono le inserzioni dalla meno
+**Giocabile**: la barra in alto mostra "g/s/c" con le monete colorate e un save dell'Alpha 2 si carica con lo stesso potere d'acquisto; selezionando un oggetto si vedono le inserzioni dalla meno
 cara e la popolazione; un'inserzione al prezzo suggerito si vende, una troppo cara resta "superata" e magari si vende dopo un rialzo, una mai raggiunta scade e torna per Posta; la Posta mostra i
 messaggi e Ritira accredita il portafoglio; comprare e rivendere perde sempre; 12 ore offline danno lo stesso stato del gioco acceso; la build Windows parte con partita nuova e con uno slot migrato.
 Nessuna ritaratura (Q122), Q151 intatta.
+**Chiusa (2026-11-17, tag `m27-done`)**: M27-02…M27-09 su main, M27-10 integrazione (Q164 e Q165 risolte, simboli g/s/c di Q160). Alpha 3 non dichiarata.
 
 ## M28+: Seconda classe, altri dungeon e boss (dopo M27; era M27+)
 Seconda classe con le sue armi (es. arco o bastone, con i suoi progetti e componenti del Falegname), supporti delle abilità, altri dungeon (solo dati: il sistema di M22 è generico), livelli di difficoltà dei dungeon, altri boss, elementi e resistenze;
