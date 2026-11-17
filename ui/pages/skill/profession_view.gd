@@ -16,6 +16,7 @@ var _list: RecipeList = null
 var _detail: RecipeDetail = null
 var _caption: Label = null
 var _unlocks: ProfessionUnlocks = null
+var _merchant: MerchantPanel = null
 var _pages: Dictionary[StringName, Control] = {}
 var _picked: StringName = &""
 ## The session of the last redraw, kept only to refresh the detail right after a pick (cleared by `forget_session`).
@@ -59,17 +60,23 @@ func setup(data: GameData, skill_id: StringName, pages: Dictionary[StringName, C
 	_caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_caption.visible = false
 	column.add_child(_caption)
-	_detail = RecipeDetail.new()
-	_detail.name = "RecipeDetail"
-	column.add_child(_detail)
 	_unlocks = ProfessionUnlocks.new()
 	_unlocks.setup(skill_id)
 	column.add_child(_unlocks)
+	_detail = RecipeDetail.new()
+	_detail.name = "RecipeDetail"
+	column.add_child(_detail)
 	for page_id: StringName in pages:
 		var node: Control = pages[page_id]
 		node.visible = false
 		column.add_child(node)
 		_pages[page_id] = node
+	if ProfessionCategories.has_merchant(data, skill_id):
+		_merchant = MerchantPanel.new()
+		_merchant.setup(data, skill_id)
+		_merchant.visible = false
+		column.add_child(_merchant)
+		_pages[ProfessionCategories.MERCHANT_PAGE] = _merchant
 	_list.recipe_selected.connect(show_recipe)
 	_list.page_selected.connect(show_page)
 	_detail.enqueue_requested.connect(func(action_id: StringName, count: int, repeat: bool) -> void:
@@ -86,6 +93,8 @@ func redraw(session: GameSession) -> void:
 			show_recipe(first)
 	_detail.redraw(session)
 	_unlocks.redraw(session, _detail.visible)
+	if _merchant != null:
+		_merchant.redraw(session)
 
 
 ## Picks a recipe: the detail shows it and the special pages hide.
@@ -130,6 +139,7 @@ func detail() -> RecipeDetail:
 
 
 
-
 func forget_session() -> void:
 	_session = null
+	if _merchant != null:
+		_merchant.forget_session()

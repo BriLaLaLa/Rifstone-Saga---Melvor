@@ -5,6 +5,13 @@ extends RefCounted
 ## list offers as entries after the sections. Any other craft has one section with all its recipes.
 
 const ALL: StringName = &"all"
+const MERCHANT_PAGE: StringName = &"merchant"
+
+
+## True when the profession has a vendor with something on sale (the "Mercante" entry of the list).
+static func has_merchant(data: GameData, skill_id: StringName) -> bool:
+	var trainer: TrainerDef = data.trainer(skill_id)
+	return trainer != null and trainer.vendor != &"" and not data.shop_entries_of_vendor(trainer.vendor).is_empty()
 
 
 ## `[{"id", "label"}]` of the recipe sections of `skill_id`, in the order they are drawn.

@@ -55,6 +55,13 @@ func setup(data: GameData, skill_id: StringName) -> void:
 		var page_id: StringName = StringName(page["id"])
 		entry.pressed.connect(func() -> void: page_selected.emit(page_id))
 		_specials[page_id] = entry
+	if ProfessionCategories.has_merchant(data, skill_id):
+		var merchant: RecipeRow = RecipeRow.new()
+		merchant.button_group = _group
+		add_child(merchant)
+		merchant.setup_special(ProfessionCategories.MERCHANT_PAGE, MerchantTexts.PAGE_LABEL)
+		merchant.pressed.connect(func() -> void: page_selected.emit(ProfessionCategories.MERCHANT_PAGE))
+		_specials[ProfessionCategories.MERCHANT_PAGE] = merchant
 	for section: Dictionary in ProfessionCategories.sections(skill_id):
 		_add_section(StringName(section["id"]), str(section["label"]))
 	for action: ActionDef in data.actions_for_skill(skill_id):
