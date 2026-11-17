@@ -27,3 +27,18 @@ const SECTION_OPEN_TEXT: String = "- %s"
 const SECTION_CLOSED_TEXT: String = "+ %s"
 const LEVEL_NEEDED_TEXT: String = "Richiede il livello %s"
 const LEVEL_OK_TEXT: String = "Livello %s"
+const PROGRESS_COLOR_TEXT: String = "Avanzamento: %s%%  (ricetta %s)"
+const COLOR_NAMES: Dictionary[StringName, String] = {
+	&"orange": "arancione", &"yellow": "gialla", &"green": "verde", &"grey": "grigia",
+}
+const ORIGIN_TRAINER_TEXT: String = "Origine: la insegna il Maestro."
+const ORIGIN_TRAINER_LOCKED_TEXT: String = "Origine: la insegna il Maestro. Non ancora appresa."
+const ORIGIN_DROP_TEXT: String = "Origine: si trova come bottino."
+const ORIGIN_SCHEME_KNOWN_TEXT: String = "Origine: schema dal mercante (%s). Schema appreso."
+const ORIGIN_SCHEME_LEVEL_TEXT: String = "Origine: schema dal mercante (%s). Non appreso: si vende dal livello %s."
+const ORIGIN_SCHEME_BUY_TEXT: String = "Origine: schema dal mercante (%s). Non appreso: costa %s oro."
+const UNLOCKS_TITLE: String = "Prossimi sblocchi"
+const UNLOCK_LINE_TEXT: String = "Liv. %s   %s   %s"
+const UNLOCK_KINDS: Dictionary[StringName, String] = {
+	&"trainer": "Ricetta del Maestro", &"scheme": "Schema in vendita", &"reagent": "Reagente in vendita",
+}

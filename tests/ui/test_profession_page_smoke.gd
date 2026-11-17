@@ -95,6 +95,19 @@ func test_forging_and_engraver_categories_and_special_pages() -> void:
 	assert_null(_page.find_child("Row_%s" % BlueprintCraft.ACTION, true, false), "the blueprint craft is no recipe row")
 
 
+func test_forging_shows_difficulty_colors_progress_origin_and_unlocks() -> void:
+	_session.free()
+	_session = TestFactory.session(1234, TestFactory.real_data())
+	_open(&"forging")
+	var row: RecipeRow = _page.find_child("Row_smelt_emberbronze", true, false) as RecipeRow
+	assert_not_null(row, "a coloured recipe row")
+	assert_not_null(_page.find_child("ProgressLabel", true, false), "the progress line")
+	assert_not_null(_page.find_child("OriginLabel", true, false), "the origin line")
+	assert_not_null(_page.find_child("ProfessionUnlocks", true, false), "the next unlocks box")
+	(_page.find_child("Page_%s" % ForgeTabs.TAB_BENCH, true, false) as Button).pressed.emit()
+	assert_false((_page.find_child("ProfessionUnlocks", true, false) as Control).visible, "hidden on the special pages")
+
+
 func test_unbind_disconnects_and_layout_fits_both_resolutions() -> void:
 	var before: int = _session.events.bank_changed.get_connections().size()
 	_open(CRAFT)

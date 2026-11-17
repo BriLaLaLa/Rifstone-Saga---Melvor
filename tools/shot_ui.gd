@@ -169,8 +169,15 @@ func _prof_shots(session: GameSession, host: PageHost) -> void:
 		host.show_page(StringName("skill:%s" % skill_id))
 		await _frames(8)
 		_save(StringName("prof_%s" % skill_id))
+	TestFactory.set_level(session, &"forging", 32)  # recipes of the four colours; the plates of tier 2+ are schemes (locked)
 	host.show_page(&"skill:forging")
-	await _frames(4)
+	await _frames(8)
+	_save(&"prof_forging_colors")
+	var locked: Node = host.find_child("Row_forge_ashlead_plate", true, false)
+	if locked is Button:
+		(locked as Button).pressed.emit()
+		await _frames(6)
+		_save(&"prof_forging_scheme")
 	var entry: Node = host.find_child("Page_blueprints", true, false)
 	if entry is Button:
 		(entry as Button).pressed.emit()

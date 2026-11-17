@@ -58,7 +58,8 @@ func action_id() -> StringName:
 
 
 ## `known`: the recipe is discovered; `unlocked`: the level is reached; `craftable`: units makeable with the bank now.
-func show_state(known: bool, unlocked: bool, craftable: int, level: int) -> void:
+## `color_id`: the difficulty colour of the recipe (Professions.recipe_color), `&""` for none.
+func show_state(known: bool, unlocked: bool, craftable: int, level: int, color_id: StringName = &"") -> void:
 	var color: Color = UiStyle.TEXT
 	var side: String = ""
 	var side_color: Color = UiStyle.TEXT_2
@@ -75,6 +76,8 @@ func show_state(known: bool, unlocked: bool, craftable: int, level: int) -> void
 		side_color = UiStyle.GOLD
 	else:
 		color = UiStyle.TEXT_2
+	if known and unlocked and CombatTexts.NODE_COLORS.has(color_id):
+		color = CombatTexts.NODE_COLORS[color_id]
 	_name_label.add_theme_color_override("font_color", color)
 	_side_label.text = side
 	_side_label.add_theme_color_override("font_color", side_color)

@@ -15,6 +15,7 @@ var _skill_id: StringName = &""
 var _list: RecipeList = null
 var _detail: RecipeDetail = null
 var _caption: Label = null
+var _unlocks: ProfessionUnlocks = null
 var _pages: Dictionary[StringName, Control] = {}
 var _picked: StringName = &""
 ## The session of the last redraw, kept only to refresh the detail right after a pick (cleared by `forget_session`).
@@ -61,6 +62,9 @@ func setup(data: GameData, skill_id: StringName, pages: Dictionary[StringName, C
 	_detail = RecipeDetail.new()
 	_detail.name = "RecipeDetail"
 	column.add_child(_detail)
+	_unlocks = ProfessionUnlocks.new()
+	_unlocks.setup(skill_id)
+	column.add_child(_unlocks)
 	for page_id: StringName in pages:
 		var node: Control = pages[page_id]
 		node.visible = false
@@ -81,6 +85,7 @@ func redraw(session: GameSession) -> void:
 		if first != &"":
 			show_recipe(first)
 	_detail.redraw(session)
+	_unlocks.redraw(session, _detail.visible)
 
 
 ## Picks a recipe: the detail shows it and the special pages hide.
@@ -97,12 +102,14 @@ func show_recipe(action_id: StringName) -> void:
 	_detail.show_action(action, _data)
 	if _session != null:
 		_detail.redraw(_session)
+		_unlocks.redraw(_session, true)
 
 
 ## Picks a special page (blueprints, bench): its node replaces the detail.
 func show_page(page_id: StringName) -> void:
 	_picked = page_id
 	_detail.visible = false
+	_unlocks.visible = false
 	for id: StringName in _pages:
 		_pages[id].visible = id == page_id
 	_caption.text = ForgeTabs.CAPTIONS.get(page_id, "")
