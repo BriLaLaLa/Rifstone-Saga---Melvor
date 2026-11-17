@@ -2123,3 +2123,5 @@ Casa d'Aste non si validano prima del validatore di M23-02; i parametri e l'elen
 I task M24-01…M24-08 (tabella, ordine, ownership, test) sono in **`07_TASKS_M24.md`** (questo file supera le 400 righe).
 
 I task M25-01…M25-09 (Alpha 1: nodi con tentativi) sono in **`07_TASKS_M25.md`**.
+
+I task M26-01…M26-12 (Alpha 2: professioni a colori, schemi dei mercanti, Casa d'Aste a popolazione) sono in **`07_TASKS_M26.md`**.

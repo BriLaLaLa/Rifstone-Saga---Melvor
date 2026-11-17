@@ -9,7 +9,7 @@ artigianato · 6 Maestria · 7 Deposito (ex Bank) · 8 Oro e shop · 9 Equipaggi
 11 Incisore e Altare del Rift (M8, M12) · 12 Progressione offline · 13 Feedback e notifiche · 14 Suggerimenti ·
 15 Modificatori e stat · 16 Impostazioni · 17 Fratture del Rift come mappe (M13) · 18 Azioni in parallelo (eliminate, M12) ·
 19 Personaggio e classe · 20 Tratti e abilità (M6) · 21 Armeria · 22 Rarità e affissi · 23 Raffinazione (M7) ·
-24 Monoliti del Rift (M7) · 25 Smantellamento e filtro (M7) · 26 Castoni e valute del Rift (M8) · 27 Guida in gioco (M11) · 28 Equipaggiamento vero (M14) · 29 Ritocchi UI dell'Alpha · 30 Villaggio (M19) · 31 Bacheca e Mercato (M20) · 32 Mappa del Villaggio (M21) · 33 Dungeon delle scimmie (M22) · 34 Casa d'Aste (M23) · 35 Incontri e Mestieri (M24, file `01_GDD_M24.md`)
+24 Monoliti del Rift (M7) · 25 Smantellamento e filtro (M7) · 26 Castoni e valute del Rift (M8) · 27 Guida in gioco (M11) · 28 Equipaggiamento vero (M14) · 29 Ritocchi UI dell'Alpha · 30 Villaggio (M19) · 31 Bacheca e Mercato (M20) · 32 Mappa del Villaggio (M21) · 33 Dungeon delle scimmie (M22) · 34 Casa d'Aste (M23) · 35 Incontri e Mestieri (M24, file `01_GDD_M24.md`) · 36-37 Nodi con tentativi (M25, file `01_GDD_M25.md`) · 38 Alpha 2 (M26, file `01_GDD_M26.md`)
 
 Direzione del gioco da M4 (decisioni D1-D6 in `DECISIONS_LOG.md`): il **combattimento è il cuore** (gruppi di mostri,
 bottino con rarità e affissi, potenziamento, build di tratti e abilità); raccolta e artigianato sono il ciclo di
@@ -1061,7 +1061,7 @@ aste reali. Testi in italiano originali; nome visibile **"Casa d'Aste"**.
   moltiplicano il valore (F-151, chiusura dell'arbitraggio) e i drop dei mostri restano un motivo per combattere (Q99).
 - L'elenco (`data/auction/auction_items.json`) è **generato** dalla regola sopra; nessun prezzo nel file: il valore base è il `value` dell'oggetto (V15).
 
-### 34.3 Prezzi (regole; numeri in F-146…F-152)
+### 34.3 Prezzi (regole; numeri in F-146…F-152) — **modificata in M26** (popolazione: `01_GDD_M26.md` §38.5, F-172…F-176)
 - **Indice di mercato** di un oggetto = equilibrio (un valore di base sopra il prezzo fisso, più la variazione lenta) meno la **saturazione** delle vendite recenti,
   limitato tra un **minimo** e un **tetto** dei dati. Prezzo di vendita di un pezzo = `value` × indice. Il giocatore non deve fare conti: vede il prezzo per pezzo, il
   totale dell'operazione e una freccia.
@@ -1111,3 +1111,9 @@ calcola nulla). Testi in `auction_texts.gd`. Guida: una pagina "Casa d'Aste" scr
 
 ## 35. Incontri e Mestieri (M24)
 In file separato: [`01_GDD_M24.md`](01_GDD_M24.md) (V16-V24). Sostituisce le parti di §3, §4, §4.1 (aiutanti, eliminati) e §5 indicate lì.
+
+## 36-37. Nodi con tentativi e ritocchi dell'Alpha 1 (M25)
+In file separato: [`01_GDD_M25.md`](01_GDD_M25.md) (V25-V29).
+
+## 38. Alpha 2: professioni a colori, schemi dei mercanti, Casa d'Aste a popolazione (M26)
+In file separato: [`01_GDD_M26.md`](01_GDD_M26.md) (V31-V32). Modifica §34.3-§34.4 (prezzi della Casa d'Aste) e §35.3-§35.5 (livello delle produzioni, ingredienti, ricette dal mercante).

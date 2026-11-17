@@ -11,7 +11,7 @@ qui nello stesso task.
 Convenzioni: `floor` = troncamento verso il basso, `round` = arrotondamento a metà verso l'alto (`roundi` di Godot),
 `clamp(x, a, b)`. `T(stat, ctx)` = valore totale della stat nel contesto (F-05). Percentuali "pct" = punti percentuali.
 
-**M24 (Incontri e Mestieri)**: F-153…F-160, le tabelle §8.10-§8.11 e le chiavi §9b sono in [`02_FORMULAS_M24.md`](02_FORMULAS_M24.md) (sezione §5l). **M25 (Nodi con tentativi)**: F-161…F-165 in [`02_FORMULAS_M25.md`](02_FORMULAS_M25.md) (modificano F-155 e F-156). Gli aiutanti e i Contratti (F-101, F-102, `helper.*`) sono **ELIMINATI in M24**.
+**M24 (Incontri e Mestieri)**: F-153…F-160, le tabelle §8.10-§8.11 e le chiavi §9b sono in [`02_FORMULAS_M24.md`](02_FORMULAS_M24.md) (sezione §5l). **M25 (Nodi con tentativi)**: F-161…F-165 in [`02_FORMULAS_M25.md`](02_FORMULAS_M25.md) (modificano F-155 e F-156). Gli aiutanti e i Contratti (F-101, F-102, `helper.*`) sono **ELIMINATI in M24**. **M26 (Alpha 2)**: F-166…F-176 e le chiavi §9d in [`02_FORMULAS_M26.md`](02_FORMULAS_M26.md) (sezione §5m; modificano F-147…F-152 della Casa d'Aste e l'XP delle ricette di produzione).
 
 ---
 
@@ -947,13 +947,13 @@ Vettori di prova (= test, `tests/systems/auction/test_auction_math.gd`): `fnv1a3
 Con `seed` 12345: nodi di `redbirch_grip` 61.184, −74.613, −57.080; di `riftite_plate` 36.080, −61.552, 22.407. `drift(redbirch_grip, 36)` = 61.184 + (−135.797 × 36) ÷ 72 = 61.184 − 67.898 = **−6.714**; `drift(redbirch_grip, 72)` = −74.613; `drift(riftite_plate, 12)` = 36.080 + (−97.632 × 12) ÷ 72 = **19.808**.
 Proprietà: stesso `seed`, `id` e `block` → stesso valore; `|drift| ≤ AMP` sempre.
 
-### F-147 Indice di mercato
+### F-147 Indice di mercato — **modificata in M26** (`02_FORMULAS_M26.md` F-172…F-176)
 `eq(id, block) = BASE + drift(id, block)` (in `BASE − AMP … BASE + AMP` = 1.070.000…1.230.000). `index(id) = clamp(eq − sat(id), MIN, MAX)`, `sat` = saturazione dell'oggetto (0 a riposo, 0 ≤ `sat` ≤ `CAP`).
 **Vincoli del validatore** (garantiscono le formule sotto): `0 < MIN < BASE − AMP`; `BASE + AMP ≤ MAX`; `MAX ≥ 1.000.000`; `CAP ≥ BASE + AMP − MIN` (il minimo si raggiunge sempre); `STEP ≥ 1`, `REC ≥ 1`.
 Con i vincoli il tetto non taglia mai l'equilibrio: `MAX` resta il limite di sicurezza e la base della garanzia di F-151.
 Esempi (= test, `seed` 12345): `redbirch_grip` al blocco 0 con `sat` 0 → 1.211.184 (121,1%); al blocco 36 → 1.143.286; con `sat` 550.000 al blocco 0 → 661.184 → **700.000** (minimo); `riftite_plate` al blocco 0 → 1.186.080.
 
-### F-148 Vendita e saturazione (forma chiusa)
+### F-148 Vendita e saturazione (forma chiusa) — **modificata in M26** (`02_FORMULAS_M26.md` F-172…F-176)
 Vendere `q ≥ 1` pezzi di valore `v` allo stesso blocco: il pezzo `k` (0…q−1) ha indice `idx_k = clamp(eq − sat − k·STEP, MIN, MAX)`. Con `x0 = eq − sat`:
 `n1 = 0` se `x0 ≤ MIN`, altrimenti `n1 = min(q, ceil_div(x0 − MIN, STEP))` (pezzi sopra il minimo); `Σ = n1·x0 − STEP·n1·(n1 − 1)/2 + (q − n1)·MIN`; **oro** `gold = (v × Σ) ÷ 1.000.000`.
 Dopo la vendita: `sat = min(CAP, sat + q·STEP)`. Prezzo mostrato per un pezzo = `gold` con `q = 1` = `(v × index) ÷ 1.000.000`. Venduto `gold = 0` → la vendita è rifiutata (`not_sellable`, nessun cambiamento).
@@ -964,11 +964,11 @@ Esempi (= test, `tests/systems/auction/test_auction_math.gd`; `eq` 1.150.000):
 Proprietà: la somma di forma chiusa coincide con la somma pezzo per pezzo (test su 1.000 casi casuali); spezzare una vendita nello stesso blocco cambia l'oro di al più 1 per ogni operazione in più (arrotondamento finale).
 **Ordine di grandezza** (stessi parametri): vendere 1 h di produzione di un grezzo T1 (1.200 pezzi) rende ≈ 1,00 × F-18, di un grezzo T8 (≈ 650 pezzi) ≈ 1,07 × F-18; la Casa d'Aste conviene per le quantità piccole e medie.
 
-### F-149 Recupero della saturazione (forma chiusa)
+### F-149 Recupero della saturazione (forma chiusa) — **modificata in M26** (`02_FORMULAS_M26.md` F-172…F-176)
 Ogni blocco intero: `sat = max(0, sat − n·REC)` per `n` blocchi (lineare, additiva in `n`). Recupero completo dal tetto: `CAP ÷ REC` = 110 blocchi = **9 h 10 min** (< 12 h di offline: dopo un'assenza piena il mercato è a riposo).
 Esempi (= test): `sat` 500.000, 30 blocchi → 350.000; 100 blocchi → 0; `advance` di 12 h con `sat` 550.000 → 0.
 
-### F-150 Scorte e rifornimento (forma chiusa)
+### F-150 Scorte e rifornimento (forma chiusa) — **modificata in M26** (`02_FORMULAS_M26.md` F-172…F-176)
 Solo per gli oggetti con `buy_level ≥ 1`. Scorta massima `S(v) = clamp(stock.gold ÷ v, stock.min, stock.max)`; rifornimento a blocco `r(S) = max(1, (S × REFILL + 500.000) ÷ 1.000.000)` (≈ 1,4% di `S`, almeno 1).
 La scorta parte piena (`S`); `buy(q)` la abbassa di `q`; ogni `n` blocchi: `stock = min(S, stock + n·r)`.
 Esempi (= test): `redbirch_grip` (`v` 2) → `S` 500, `r` 7 (piena da 0 in 72 blocchi = 6 h); `riftite_plate` (`v` 595) → `S` 10, `r` 1; `seared_riftmaw` (`v` 170) → `S` 35, `r` 1; `shardcedar_grip` (`v` 36) → `S` 166, `r` 2;
@@ -986,7 +986,7 @@ moltiplica fino a ×2 di valore, non si comprano). Per i **progetti** (gli unici
 Esempi (= test, `seed` 12345): `riftite_plate` al blocco 0, `sat` 0 (indice 1.186.080): `unit` = ⌈595 × 2.686.080 / 10⁶⌉ = ⌈1.598,2⌉ = **1.599**, vendita di un pezzo 705; con `sat` 500.000 (indice al minimo) `unit` = ⌈595 × 2,2⌉ = **1.309** > 743 (`v·MAX`);
 `redbirch_grip` (`v` 2): `unit` tra 5 e 6, vendita di un pezzo al più 2. Il test di proprietà (1.000 stati casuali per ogni oggetto acquistabile) verifica `unit` > vendita del pezzo al tetto e `unit` > `v`.
 
-### F-152 Tendenza
+### F-152 Tendenza — **modificata in M26** (`02_FORMULAS_M26.md` F-172…F-176)
 Senza vendite né acquisti: `now = index` al blocco `b` con `sat`; `next` = indice al blocco `b + trend.blocks` con `sat' = max(0, sat − trend.blocks·REC)` (F-146, F-147, F-149); `d = next − now`.
 `trend = up` se `d ≥ trend.threshold`, `down` se `d ≤ −trend.threshold`, altrimenti `stable`. È una previsione del modello (non una storia): la UI mostra la freccia, non la calcola.
 Esempi (= test, `seed` 12345): `redbirch_grip`, blocco 0, `sat` 0 → `now` 1.211.184, `next` 1.188.552, `d` −22.632 → **down**; stesso, `sat` 100.000 → 1.111.184 → 1.148.552, `d` +37.368 → **up**;

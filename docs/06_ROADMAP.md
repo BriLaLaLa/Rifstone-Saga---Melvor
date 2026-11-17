@@ -313,11 +313,22 @@ animata al posto del riquadro del bersaglio; poi verifica dei layout, ritocchi, 
 **Giocabile**: in un nodo la scheda mostra l'immagine animata, i tentativi che si completano uno alla volta, il bottino che sale e l'XP; un nodo ricco si riconosce; un personaggio di livello molto basso raccoglie poco ma mai zero;
 offline di 12 ore con nodi a tentativi dà lo stesso stato del gioco acceso; l'eseguibile Windows parte e si gioca. Nessuna ritaratura (Q122).
 
-## M26+: Seconda classe, altri dungeon e boss (dopo M25; era M25+)
+## M26: Alpha 2 (professioni a colori, schemi dei mercanti, Casa d'Aste a popolazione)
+Progettata da M26-01 (V31-V32, `01_GDD_M26.md` §38, `02_FORMULAS_M26.md` F-166…F-176, `04_DATA_SCHEMA_M26.md` §31, `05_INTERFACES_M26.md`, task in `07_TASKS_M26.md`, Q146-Q158):
+le ricette di Forgia, Falegnameria e Cucina hanno **colori** (arancione, giallo, verde, grigio) e il livello della professione sale creando, con la probabilità di avanzare come valore atteso
+dell'XP; **mercanti** per professione vendono **schemi** (28 ricette) e **reagenti**, con **sblocchi a soglie** di livello; la **Casa d'Aste** prende prezzi e liquidità da una **popolazione**
+di compratori e venditori senza stato. Save **v10** (migrazione che insegna gli schemi già alla portata). Tre filoni paralleli: A (03, 05), B (06, 07), C (08, 09, 10), dopo la fondamenta M26-02
+e il generatore dei dati M26-04; M26-11 misura e verifica l'equivalenza; M26-12 integra.
+**Giocabile**: una ricetta molto sotto il livello è grigia e non dà XP, una gialla dà meno XP di un'arancione; dal mercante della Forgia si compra lo schema della piastra di ferro al livello 10 e,
+con il fondente, la si mette in coda; la pagina mostra i prossimi sblocchi; la Casa d'Aste mostra compratori, venditori e domanda, e comprare e rivendere perde sempre oro; un save dell'alpha 1
+si carica senza perdite e gli schemi già alla portata sono noti; 12 ore offline danno lo stesso stato del gioco acceso. Nessuna ritaratura (Q122).
+
+## M27+: Seconda classe, altri dungeon e boss (dopo M26; era M26+)
 Seconda classe con le sue armi (es. arco o bastone, con i suoi progetti e componenti del Falegname), supporti delle abilità, altri dungeon (solo dati: il sistema di M22 è generico), livelli di difficoltà dei dungeon, altri boss, elementi e resistenze;
-modello a popolazione della Casa d'Aste (Q110), pozioni (Q112), attrezzo dell'Erboristeria (Q111).
+pozioni (Q112), attrezzo dell'Erboristeria (Q111), colori e mercante dell'Incisore (Q148).
 
 ## Percorso critico e parallelismo
+- M26: M26-01 → M26-02 → (M26-03 ∥ M26-08) → (M26-04 ∥ M26-09) → (M26-06 ∥ M26-10) → (M26-05 ∥ M26-11) → M26-07 → M26-12. M26-02 tocca i file comuni dei dati e va da solo; M26-05 e M26-07 toccano la stessa pagina della professione e non vanno in parallelo; dopo M26-04 la suite completa dipende dal riallineamento dei test sui dati veri (helper di M26-02).
 - M24: M24-01 → M24-02 → (M24-03 ∥ M24-05) → (M24-04 ∥ M24-06) → M24-07 → M24-08. M24-02 (rimozione degli aiutanti e schema dei dati) va da solo perché tocca file comuni; M24-03 (CORE: `systems/`, sessione, save) e M24-05 (DATA: `data/`, generatori) hanno file disgiunti; M24-04 (motore) e M24-06 (UI, con lo stub del ciclo) pure.
 - M23: M23-01 → (M23-02 ∥ M23-03) → M23-04 → M23-05 → M23-06. M23-02 (CORE: `core/data/**` del mercato, `systems/auction/**`, `game_session.gd`, `event_bus.gd`, `reasons.gd`) e M23-03 (DATA: `data/**`, generatori, validatore dei dati della Casa d'Aste) hanno file distinti (contratto fisso da M23-01); la UI (M23-04) parte con entrambi fusi.
 - M14: R-05 → M14-01 → M14-02 → M14-03 → M14-04 → (M14-05 ∥ M14-07) → (M14-08 ∥ M14-09) → M14-06 → M14-10 → M14-11. I primi quattro toccano file comuni (`core/data/**`, `event_bus.gd`, `game_session.gd`, `systems/combat/**`): in sequenza; la UI (M14-06) per ultima.

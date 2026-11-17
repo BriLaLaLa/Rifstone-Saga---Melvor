@@ -936,3 +936,9 @@ due edifici con `unlocks_auction`, `unlocks_auction` e `unlocks_shop` insieme, p
 
 ## 29. Incontri e Mestieri (M24; V16-V24, `01_GDD_M24.md` §35, `02_FORMULAS_M24.md` F-153…F-160)
 In file separato: [`04_DATA_SCHEMA_M24.md`](04_DATA_SCHEMA_M24.md). Eliminati in M24: la chiave `helper` di `balance.json` (§3), la categoria `contract` (§5) e i 12 contratti.
+
+## 30. Nodi con tentativi e Incisore come disciplina (M25)
+In file separato: [`04_DATA_SCHEMA_M25.md`](04_DATA_SCHEMA_M25.md).
+
+## 31. Alpha 2 (M26; V31-V32, `01_GDD_M26.md` §38, `02_FORMULAS_M26.md` F-166…F-176)
+In file separato: [`04_DATA_SCHEMA_M26.md`](04_DATA_SCHEMA_M26.md): `colors` delle azioni, categoria `reagent`, botteghe dei mercanti nello shop, `trainers[].vendor`, `data/auction/population.json` e `auction.population`.
