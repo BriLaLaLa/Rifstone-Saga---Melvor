@@ -309,6 +309,11 @@ sequenceDiagram
   migrazione: come per M4 e M10, nessun giocatore reale); gli "spazi" già comprati non contano più.
 - **Versione 5 (M14, Alpha)**: `format_version` 4 → 5 (Armatura e Barriera al posto della riduzione piatta, 15 gradi e basi nuove, chiave `discoveries`). I salvataggi v4 non si caricano (`version_unsupported`, nessuna migrazione).
 - **Versione 8 (M24)**: `format_version` 7 → 8 con `migration_7_to_8.gd` (non additiva: discipline, coda, motore con viaggio e nodo; v5-v7 in catena, `05_INTERFACES_M24.md` §6b).
+- **Versione 9 (M25)**: `format_version` 8 → 9 con `migration_8_to_9.gd` (Incisore come 4ª produzione, `disciplines.extra`; `05_INTERFACES_M25.md` §6c).
+- **Versione 10 (M26, Alpha 2)**: `format_version` 9 → 10 con `migration_9_to_10.gd` (schemi già alla portata delle discipline apprese e quelli in coda diventano noti;
+  modulo additivo `professions` con il resto di XP; `05_INTERFACES_M26.md` §6d, `01_GDD_M26.md` §38.7). Catena v5 … v9 → v10; `CURRENT_VERSION` = 10.
+- **Ricette e Casa d'Aste (M26)**: le ricette di produzione non si conoscono più solo per livello (colori, schemi e reagenti: `systems/professions/`, F-166…F-171);
+  i prezzi della Casa d'Aste non sono più un solo equilibrio fisso per oggetto ma dipendono dalla popolazione senza stato (F-172…F-176, `AuctionPricing`).
 - **Isolamento**: caricare lo slot B dopo lo slot A crea una `GameSession` nuova; niente sopravvive tra slot
   (test `tests/integration/test_slot_isolation.gd`).
 

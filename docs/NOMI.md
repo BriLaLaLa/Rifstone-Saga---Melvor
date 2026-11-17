@@ -436,3 +436,24 @@ Skill nuova `herbalism` = **Erborista** (raccolta); `hearthcraft` si chiama ora 
 | `riftbinding` | Corvo Sigillaluce | Maestro Incisore |
 
 Nodi di raccolta: nessun nome (nodi per disciplina e area, `data/encounters/nodes.json`). Maestria dell'Erborista: nodi `herbalism_n1_green_thumb` Mano verde, `n2_full_basket` Cesto colmo, `n3_field_notes` Taccuino dei prati, `n4_rift_bloom` Fiori del Rift, `n5_patient_eye` Occhio paziente, `n6_master` Maestro dei prati.
+
+## Alpha 2: schemi e reagenti (M26-04, `01_GDD_M26.md` §38.2)
+Skill delle produzioni: `forging` (Forgia), `woodwright` (Falegnameria), `hearthcraft` (Cucina e alchimia). L'Incisore non ha schemi né reagenti (Q148).
+
+### Reagenti (id `reagent_<skill>_<fascia>`, fasce 1-4 = gradini 2-3, 4-5, 6-7, 8)
+| Fascia | Forgia (`forging`) | Falegnameria (`woodwright`) | Cucina (`hearthcraft`) |
+|---|---|---|---|
+| 1 | Fondente di cenere | Cera d'api | Sale grosso |
+| 2 | Sale di tempra | Colla di ossa | Erbe aromatiche |
+| 3 | Limatura stellata | Olio di noce | Spezie di brace |
+| 4 | Nucleo di brace | Lacca del vespro | Aroma del Rift |
+
+### Schemi (28, id `recipe_<azione>`, nome "Schema: <prodotto>")
+- **Forgia (7)**: piastre dei gradini 2-8 (`recipe_forge_<metallo>_plate`, es. "Schema: Piastra di ferro").
+- **Falegnameria (14)**: telai dello scudo e manici dei gradini 2-8 (`recipe_carve_<legno>_shieldcore`, `recipe_carve_<legno>_handle`).
+- **Cucina (7)**: cotture dei gradini 2-8 (`recipe_cook_<pesce>`).
+- Il nome del prodotto viene dall'oggetto prodotto (tabelle sopra); le Ricette dei Tonici (`recipe_tonic_n`) restano "Ricetta: ..." e si trovano nei drop.
+
+### Voci dello shop e Guida
+- Voci `buy_recipe_<azione>` (uno schema, `max_purchases` 1) e `buy_reagent_<skill>_<fascia>` (illimitate), categoria `profession`; botteghe `fabbro`, `falegname`, `cuoco`.
+- Pagine della Guida scritte a mano: `guide_professions` (Professioni) e `guide_merchants` (Mercanti), in `data/guide/professioni.json`.

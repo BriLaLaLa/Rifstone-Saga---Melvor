@@ -221,6 +221,21 @@ I documenti sono già scritti con questi default. I numeri non presenti nella fo
 | Q157 | Bacheca: incarichi `craft` di una ricetta non ancora nota | **Default**: non sono candidati (F-135 + `knows_recipe`); quelli già assegnati restano (si completano imparando lo schema; gli acquisti non contano, §31.1) | M26-06 | Reviewer |
 | Q158 | Compratori e venditori mostrati nella Casa d'Aste sono numeri "veri"? | **Default**: indicativi (F-173), nessun personaggio simulato; la pagina li presenta come "circa N compratori" e la domanda alta/normale/bassa | M26-10 | utente |
 
+**Revisione di Q146-Q158 (M26-12, sul codice e sulle sim)**: tutti i default sono **applicati**; nessun ritocco dei numeri (Q122).
+- **Q146, Q147, Q156** (colori): `sim_professions` (M26-11) misura un rallentamento massimo del **+5%** alla salita al 99. Ore al 99 prima → dopo: Forgia 34,3 → 35,5;
+  Falegnameria 20,9 → 21,6; Cucina 52,4 → 54,1. Confermati; equivalenza offline verde (`test_m26_offline_equivalence`, colori, schemi e Casa d'Aste insieme).
+- **Q148, Q149, Q150, Q152, Q153, Q154, Q157**: applicati come da default (28 schemi: 7 Forgia, 14 Falegnameria, 7 Cucina; migrazione v9 → v10 con schemi noti gratis
+  e nessun reagente regalato). Restano aperti solo come scelta dell'utente sulle alternative.
+- **Q151 — APERTA (sostenibilità dei reagenti)**: schemi 70.700 (Forgia) / 60.600 (Falegnameria: 40.400 + 20.200) / 20.200 oro (Cucina). Reagenti consumati fino al 99:
+  **751k / 417k / 836k oro**, pari a circa **103 / 57 / 107 h di oro da combattimento** contro **35 / 22 / 54 h** di produzione per arrivare al 99. Il costo dei reagenti è
+  quindi 2-3 volte il tempo della salita. La sim **non conta i ricavi** della vendita dei prodotti (che coprono una parte del costo). Nessun ritocco (Q122): da decidere
+  con l'utente (prezzi dei reagenti più bassi, reagenti solo dal gradino 4, o lasciare così).
+- **Q155** (Casa d'Aste a popolazione): `sim_market` (M26-09) rispetta le soglie (1)-(5) con **500 strategie per oggetto** (il default di 10.000 non è stato completato:
+  circa 25 minuti). Rapporto F-18 dei grezzi 0,933-1,171; componenti di fascia alta 0,81-0,97 (nessuna soglia: informativo); recuperi 7,5-10,4 h (entro le 12 h di
+  F-175). Confermata; la sim completa a 10.000 resta da lanciare una volta fuori dalla suite.
+- **Q158**: applicata. Limiti noti della UI (dopo Alpha 2): fascia di valore non mostrata nel dettaglio della Casa d'Aste, nessuna vista "Le mie vendite", nessun
+  sottogruppo dei Materiali (`01_GDD_M26.md` §38.10). Pagina "Casa d'Aste" della Guida non ancora aggiornata alla popolazione (`GUIDA.md`).
+
 **Revisione di Q105-Q121 (M24-08, sul codice)**: **confermate e applicate** (nessuna decisione in sospeso): Q105, Q106, Q107, Q108 (migrazione v7 → v8), Q113,
 Q114 (`village.woodwright_levels` invariata), Q115 (`xp_capped`), Q116 (`unlearn` toglie solo XP, maestria, grado e lavori in coda), Q118, Q121. **Applicate,
 da rivedere più avanti**: Q109 (motore esatto; Q124 chiusa in M24-09), Q117 (valori in `balance.json`; soglie (2)-(3) in Q122), Q119 (costi in `balance.json`;
@@ -239,4 +254,4 @@ rivederli con l'oro/h), Q110, Q111, Q112, Q120 (M25+).
 | Q9 | Stance con bonus nascosti? | La stance è tolta: tutta l'XP va al personaggio (D3, F-28) | 2026-11-03 |
 | Q10 | Attacchi speciali o abilità delle armi? | Sì: abilità attive automatiche della classe, 2 per assetto (`01_GDD.md` §20.2, M6) | 2026-11-03 |
 | Q49 | Frequenza dei progetti (in 8 h offline nelle Miniere liv. 50 nessun progetto) | Verificata, nessuna ritaratura dei dati: ~1 progetto/h (mostri + 1 Pietra su 3) in tutte le aree; lo zero osservato era varianza (probabilità < 0,5% con il valore atteso). `sim_combat` riporta ora `bp/h` e `bp lost/h`. Confermata da M12-07 (`sim_m12`): 0,9-1,0 progetti/h | 2026-11-08 |
-| Q145 | Colori di difficoltà e skill-up per le ricette di produzione (F-154 vale solo per i nodi di raccolta): regola, probabilità di salire di livello, schemi dal mercante (V30) | **Rimandata ad Alpha 2**: nella UI le ricette hanno solo "normale / bloccata dal livello (grigio, Liv. N in rosso) / da scoprire"; nessuna formula inventata. **Ripresa in M26-01 (V31)**: F-166…F-171, `01_GDD_M26.md` §38.1-§38.3; domande aperte Q146-Q154 | Alpha 2 | utente, Reviewer |
+| Q145 | Colori di difficoltà e skill-up per le ricette di produzione (F-154 vale solo per i nodi di raccolta): regola, probabilità di salire di livello, schemi dal mercante (V30) | **Rimandata ad Alpha 2**: nella UI le ricette hanno solo "normale / bloccata dal livello (grigio, Liv. N in rosso) / da scoprire"; nessuna formula inventata. **Chiusa: superata da M26** (V31): colori, avanzamento e schemi dal mercante in F-166…F-171 e `01_GDD_M26.md` §38.1-§38.3, applicati e misurati (Q146-Q154, revisione di M26-12) | 2026-11-17 (M26-12) |

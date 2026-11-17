@@ -6,6 +6,10 @@
 > (`guide_disciplines`, tabella `trainer_grades`, aiuto della rotta `trainers`) e "Viaggio e nodi" (`guide_travel`) in `data/guide/mestieri.json`
 > e `primi_passi.json`; pagina dell'Erborista e delle Ricette come per gli altri mestieri e oggetti. Le pagine e le tabelle degli aiutanti e dei Contratti sono
 > eliminate. La regola "nessun numero scritto a mano" vale anche qui: "cinque gradi" è stato tolto dal testo (la tabella dai dati li elenca).
+>
+> **M26 (Alpha 2, allineato da M26-12)**: pagine a mano nuove "Professioni" (`guide_professions`: colori delle ricette e avanzamento) e "Mercanti"
+> (`guide_merchants`: schemi, reagenti, botteghe) in `data/guide/professioni.json`. **Da fare** (dati, non in M26): la pagina "Casa d'Aste" (`guide_auction`, `casa_aste.json`) non parla
+> ancora di compratori, venditori e domanda (§38.8 la chiede aggiornata); il testo attuale resta corretto ma incompleto. Le ricette non si conoscono più solo per livello (`01_GDD_M26.md` §38.1-§38.3). Nomi di schemi e reagenti in `NOMI.md`; nessun numero copiato.
 
 Stato: **APPROVATA dall'utente** (2026-11-08). Nasce dalla prova dell'utente: "tante cose non si capiscono cosa
 facciano". Ispirazione: la **struttura** delle wiki dei giochi idle (pagina per mestiere, oggetto, mostro, meccanica),

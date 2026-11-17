@@ -118,3 +118,5 @@ func population(item_id: StringName) -> Dictionary
   (`Shop.buy_many`); motivi dei pulsanti disabilitati da `can_buy_many`. Pagina Shop: nomi delle botteghe `falegname`, `cuoco` in `shop_texts.gd`.
 - **M26-10 (Casa d'Aste)**: `auction_detail.gd` mostra compratori, venditori e domanda (`AuctionHouse.population`), testi in `auction_texts.gd`.
 - Un solo smoke test per pagina toccata; nessun test su testi esatti.
+- **Limiti noti (M26-12)**: `auction_detail.gd` non mostra la fascia di valore (resta interna ad `AuctionPricing`: mostrarla chiede una lettura additiva in `population`);
+  nessuna vista "Le mie vendite"; nessun sottogruppo dei Materiali (`01_GDD_M26.md` §38.10). Da decidere dopo Alpha 2.

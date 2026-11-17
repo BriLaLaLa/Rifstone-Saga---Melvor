@@ -150,6 +150,8 @@ l'intervallo si ricalcola a ogni avvio di ciclo).
 **Interazioni**: Deposito (spazio), maestria (traguardi e nodi), skill (XP), modificatori (`for_helper`), offline (fase aiutanti del tick), Guida.
 
 ## 5. Azioni di artigianato (Fabbro, Cuoco, Falegname, Incisore) — **la corsia unica è SOSTITUITA in M24** dalla coda (`01_GDD_M24.md` §35.4)
+> **M26 (Alpha 2)**: una ricetta non si conosce più solo per livello. Le ricette di produzione hanno un **colore** che riduce l'XP (F-166…F-168) e un'**origine**
+> (Maestro, schema dal mercante con reagente, drop: F-169…F-171): `01_GDD_M26.md` §38.1-§38.3. L'Incisore resta senza colori né mercante (Q148).
 
 **Regole**
 - Ogni ricetta ha: livello richiesto, intervallo, XP, **ingredienti** (`inputs`, oggetto e quantità) e **prodotti**
@@ -1078,7 +1080,7 @@ aste reali. Testi in italiano originali; nome visibile **"Casa d'Aste"**.
 - **Scorte**: ogni oggetto acquistabile ha una scorta massima (più piccola per gli oggetti di valore alto) che parte piena, scende con gli acquisti e si riforma di un tanto
   per blocco di tempo (F-150).
 
-### 34.4 Tempo e offline
+### 34.4 Tempo e offline — **modificata in M26** (recupero e scorte dipendono dalla popolazione: `01_GDD_M26.md` §38.5-§38.6, F-175)
 - Il mercato ha un suo **orologio a blocchi** (F-145): il tempo di gioco si accumula e a ogni blocco intero la saturazione cala e le scorte crescono. Online e offline è lo
   stesso calcolo in **forma chiusa** su `n` blocchi (nessun calcolo per pezzo o per secondo): avanzare 12 ore in un colpo o a passi dà lo stesso stato (test).
 - **Offline**: il mercato avanza del tempo offline già limitato da F-40 (12 h); in 12 ore la saturazione massima si riassorbe del tutto e le scorte si riempiono. Nessun
@@ -1102,12 +1104,15 @@ aste reali. Testi in italiano originali; nome visibile **"Casa d'Aste"**.
 ### 34.6 Salvataggio
 Stato per slot, modulo nuovo **additivo** `auction` (nessuna migrazione, `format_version` 7 invariata): seme, orologio del mercato e, per i soli oggetti lontani dallo
 stato di riposo, saturazione e scorta. Chiave assente = mercato nuovo (tutto all'equilibrio, scorte piene). Nessuna impostazione in `settings.cfg`.
+La popolazione di M26 non aggiunge stato (§38.5): il modulo `auction` resta uguale; il save è oggi alla **versione 10** (M26, `01_GDD_M26.md` §38.7).
 
 ### 34.7 UI
 Pagina con due schede, **Vendi** e **Compra**. Vendi: gli oggetti ammessi presenti nel Deposito (icona, nome, posseduti, prezzo per pezzo qui e al Deposito, freccia
 di tendenza, quantità, totale previsto, **Vendi**). Compra: gli oggetti acquistabili (prezzo per pezzo, scorta `s/S`, gradino richiesto se bloccato, freccia, quantità,
 totale, **Compra**). Pulsanti disabilitati con il motivo. Prezzi, totali, scorte e tendenze vengono dal modulo (la UI non conosce la formula, non tiene stato, non
 calcola nulla). Testi in `auction_texts.gd`. Guida: una pagina "Casa d'Aste" scritta a mano (regole, nessun numero copiato).
+**M26**: il dettaglio mostra anche compratori e venditori indicativi e la domanda (`01_GDD_M26.md` §38.8). **Limiti noti dell'Alpha 2**: la fascia di valore
+dell'oggetto non è mostrata nel dettaglio; non c'è una vista "Le mie vendite"; i Materiali non hanno sottogruppi (un unico elenco).
 
 ## 35. Incontri e Mestieri (M24)
 In file separato: [`01_GDD_M24.md`](01_GDD_M24.md) (V16-V24). Sostituisce le parti di §3, §4, §4.1 (aiutanti, eliminati) e §5 indicate lì.
@@ -1117,3 +1122,4 @@ In file separato: [`01_GDD_M25.md`](01_GDD_M25.md) (V25-V29).
 
 ## 38. Alpha 2: professioni a colori, schemi dei mercanti, Casa d'Aste a popolazione (M26)
 In file separato: [`01_GDD_M26.md`](01_GDD_M26.md) (V31-V32). Modifica §34.3-§34.4 (prezzi della Casa d'Aste) e §35.3-§35.5 (livello delle produzioni, ingredienti, ricette dal mercante).
+Salvataggio alla **versione 10** (migrazione v9 → v10, §38.7). Limiti noti e misure di M26-09/M26-11: §38.10 di quel file e Q146-Q158 in `OPEN_QUESTIONS.md`.
