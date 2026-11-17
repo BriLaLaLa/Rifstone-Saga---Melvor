@@ -4,7 +4,7 @@ Questo è il **contratto**: firme pubbliche, segnali, formato del salvataggio. �
 perché i task possano procedere in parallelo. **Lo modifica solo il Reviewer/Integrator** (vedi `08_TEAM.md`); chi ha
 bisogno di un cambio apre una richiesta nel report del task e si ferma.
 **M24 (Incontri e Mestieri)**: le aggiunte e le sostituzioni del contratto sono in [`05_INTERFACES_M24.md`](05_INTERFACES_M24.md) (segnali §3b, GameData §4b, Disciplines §5.31, coda §5.32, ciclo §5.33, save v8 §6b, UI §7.o); in caso di differenza vale quel file. HelperSystem, i segnali `helper_*` e i motivi `no_helper`/`helper_not_better` sono eliminati.
-**M25 (Alpha 1)** e **M26 (Alpha 2)**: aggiunte del contratto in [`05_INTERFACES_M25.md`](05_INTERFACES_M25.md) e [`05_INTERFACES_M26.md`](05_INTERFACES_M26.md) (professioni §5.35, shop e migrazione §5.36, Casa d'Aste a popolazione §5.37, save v10 §6d, UI §7.r); in caso di differenza vale il file più recente.
+**M25 (Alpha 1)** e **M26 (Alpha 2)**: aggiunte del contratto in [`05_INTERFACES_M25.md`](05_INTERFACES_M25.md) e [`05_INTERFACES_M26.md`](05_INTERFACES_M26.md) (professioni §5.35, shop e migrazione §5.36, Casa d'Aste a popolazione §5.37, save v10 §6d, UI §7.r); in caso di differenza vale il file più recente. **M27 (Casa d'Aste v2)**: [`05_INTERFACES_M27.md`](05_INTERFACES_M27.md) (monete §5.38, Casa d'Aste v2 §5.39, Posta §5.40, save v11 §6e, UI §7.o).
 
 
 Regole generali:
@@ -667,7 +667,7 @@ const _PHASE_FRACTURES: int; const _PHASE_ACTIONS: int; const _PHASE_COMBAT: int
 - **M12**: `_create_systems()` crea `deposit` subito dopo `wallet` e prima di `bank`; `bank` e `armory` si registrano con `deposit.register_occupant(&"bank", bank.used)` e
   `(&"armory", armory.used)`. `to_save`/`from_save` aggiungono il modulo `deposit` (§6). (Il modulo `helpers` è **ELIMINATO in M24**; `disciplines` in `05_INTERFACES_M24.md` §5.34.)
 
-### 5.4 Wallet (`systems/wallet/wallet.gd`) — dipendenze: events
+### 5.4 Wallet (`systems/wallet/wallet.gd`) — dipendenze: events — **M27**: importi in rame, save `{"copper"}` (`05_INTERFACES_M27.md` §5.38)
 ```gdscript
 const SAVE_KEY := &"wallet"
 func get_gold() -> int
@@ -1928,7 +1928,7 @@ func in_dungeon() -> bool; func dungeon_run() -> DungeonRun    # null fuori
 `dungeon_paused_changed(paused)`, `dungeon_finished(outcome, rooms, pieces)`, `dungeon_bag_changed(stacks, pieces, cards)`, `dungeon_loot_lost(stacks, pieces, cards)`. **Motivi** (`Reasons`, M22-02): `DUNGEON_ACTIVE`, `DUNGEON_BAG_PENDING`, `NO_DUNGEON`, `NOT_AWAITING`, `NOT_FIGHTING`, `INVALID_CHOICE`, `DUNGEON_PAUSED`, `NOT_PAUSED`, `DUNGEON_WON`, `DUNGEON_FLED`
 (motivi di stop del combattimento senza area di ritorno, come `FRACTURE_WON`).
 
-### 5.30 Casa d'Aste (M23; `01_GDD.md` §34, `02_FORMULAS.md` F-145…F-152, `04_DATA_SCHEMA.md` §28) — cartella `systems/auction/` — **estesa in M26**: popolazione, `05_INTERFACES_M26.md` §5.37
+### 5.30 Casa d'Aste (M23; `01_GDD.md` §34, `02_FORMULAS.md` F-145…F-152, `04_DATA_SCHEMA.md` §28) — cartella `systems/auction/` — **estesa in M26**: popolazione, `05_INTERFACES_M26.md` §5.37; **in M27**: libro, inserzioni, Vendi subito per Posta, `05_INTERFACES_M27.md` §5.39
 Tre classi: `AuctionMath` (funzioni pure delle formule), `AuctionPricing` (**l'unica interfaccia dei prezzi**, V15: stato del mercato e formule nascoste), `AuctionHouse` (modulo di gioco: comandi, motivi,
 segnali, save, integrazione con Wallet, Bank/Deposito e Village). Nome "auction" ovunque (cartella, classi, chiave di save, pagina) per non confondersi con il **Mercato** (`market`, §5.28) dello shop.
 **Confine (V15)**: solo `AuctionPricing` usa `AuctionMath` e conosce indice, saturazione, nodi e margini; `AuctionHouse` usa solo i metodi pubblici di `AuctionPricing` qui sotto; la UI usa solo `AuctionHouse`.

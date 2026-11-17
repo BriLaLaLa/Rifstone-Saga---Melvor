@@ -323,11 +323,23 @@ e il generatore dei dati M26-04; M26-11 misura e verifica l'equivalenza; M26-12 
 con il fondente, la si mette in coda; la pagina mostra i prossimi sblocchi; la Casa d'Aste mostra compratori, venditori e domanda, e comprare e rivendere perde sempre oro; un save dell'alpha 1
 si carica senza perdite e gli schemi già alla portata sono noti; 12 ore offline danno lo stesso stato del gioco acceso. Nessuna ritaratura (Q122).
 
-## M27+: Seconda classe, altri dungeon e boss (dopo M26; era M26+)
+## M27: Casa d'Aste v2 (inserzioni simulate, Posta, monete)
+Progettata da M27-01 (V33-V34, `01_GDD_M27.md` §39, `02_FORMULAS_M27.md` F-177…F-184, `04_DATA_SCHEMA_M27.md` §32, `05_INTERFACES_M27.md`, task in `07_TASKS_M27.md`, Q159-Q170):
+il denaro diventa **rame, argento e oro** (1 oro di prima = 1 argento, tutto ×100, potere d'acquisto invariato); la Casa d'Aste mostra il **libro delle inserzioni** dei venditori simulati
+(senza stato, dal seme e dal tempo) e la popolazione; il giocatore **mette in vendita** con prezzo, durata, deposito e commissione, e l'inserzione si vende a pezzi, resta "superata" quando il
+mercato scende, si vende dopo un rialzo o scade; i ricavi e i resi arrivano nella **Posta** da ritirare. Save **v11** (migrazione del portafoglio; inserzioni e posta additivi).
+Filoni: A monete (02, 03, 04), B libro (06, 08), C Posta (05, 07); QA 09; integrazione 10.
+**Giocabile**: la barra in alto mostra "o/a/r" con le monete colorate e un save dell'Alpha 2 si carica con lo stesso potere d'acquisto; selezionando un oggetto si vedono le inserzioni dalla meno
+cara e la popolazione; un'inserzione al prezzo suggerito si vende, una troppo cara resta "superata" e magari si vende dopo un rialzo, una mai raggiunta scade e torna per Posta; la Posta mostra i
+messaggi e Ritira accredita il portafoglio; comprare e rivendere perde sempre; 12 ore offline danno lo stesso stato del gioco acceso; la build Windows parte con partita nuova e con uno slot migrato.
+Nessuna ritaratura (Q122), Q151 intatta.
+
+## M28+: Seconda classe, altri dungeon e boss (dopo M27; era M27+)
 Seconda classe con le sue armi (es. arco o bastone, con i suoi progetti e componenti del Falegname), supporti delle abilità, altri dungeon (solo dati: il sistema di M22 è generico), livelli di difficoltà dei dungeon, altri boss, elementi e resistenze;
 pozioni (Q112), attrezzo dell'Erboristeria (Q111), colori e mercante dell'Incisore (Q148).
 
 ## Percorso critico e parallelismo
+- M27: M27-01 → M27-02 → M27-03 → (M27-04 ∥ M27-05) → (M27-06 ∥ M27-07) → (M27-08 ∥ M27-09) → M27-10. M27-02 e M27-03 cambiano l'unità del denaro ovunque e vanno da soli (03 parte dal branch di 02; suite completa dopo 03); poi le coppie hanno file disgiunti (UI/core della Posta, core della Casa d'Aste/UI della Posta, UI della Casa d'Aste/QA).
 - M26: M26-01 → M26-02 → (M26-03 ∥ M26-08) → (M26-04 ∥ M26-09) → (M26-06 ∥ M26-10) → (M26-05 ∥ M26-11) → M26-07 → M26-12. M26-02 tocca i file comuni dei dati e va da solo; M26-05 e M26-07 toccano la stessa pagina della professione e non vanno in parallelo; dopo M26-04 la suite completa dipende dal riallineamento dei test sui dati veri (helper di M26-02).
 - M24: M24-01 → M24-02 → (M24-03 ∥ M24-05) → (M24-04 ∥ M24-06) → M24-07 → M24-08. M24-02 (rimozione degli aiutanti e schema dei dati) va da solo perché tocca file comuni; M24-03 (CORE: `systems/`, sessione, save) e M24-05 (DATA: `data/`, generatori) hanno file disgiunti; M24-04 (motore) e M24-06 (UI, con lo stub del ciclo) pure.
 - M23: M23-01 → (M23-02 ∥ M23-03) → M23-04 → M23-05 → M23-06. M23-02 (CORE: `core/data/**` del mercato, `systems/auction/**`, `game_session.gd`, `event_bus.gd`, `reasons.gd`) e M23-03 (DATA: `data/**`, generatori, validatore dei dati della Casa d'Aste) hanno file distinti (contratto fisso da M23-01); la UI (M23-04) parte con entrambi fusi.

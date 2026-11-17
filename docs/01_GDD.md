@@ -9,7 +9,7 @@ artigianato · 6 Maestria · 7 Deposito (ex Bank) · 8 Oro e shop · 9 Equipaggi
 11 Incisore e Altare del Rift (M8, M12) · 12 Progressione offline · 13 Feedback e notifiche · 14 Suggerimenti ·
 15 Modificatori e stat · 16 Impostazioni · 17 Fratture del Rift come mappe (M13) · 18 Azioni in parallelo (eliminate, M12) ·
 19 Personaggio e classe · 20 Tratti e abilità (M6) · 21 Armeria · 22 Rarità e affissi · 23 Raffinazione (M7) ·
-24 Monoliti del Rift (M7) · 25 Smantellamento e filtro (M7) · 26 Castoni e valute del Rift (M8) · 27 Guida in gioco (M11) · 28 Equipaggiamento vero (M14) · 29 Ritocchi UI dell'Alpha · 30 Villaggio (M19) · 31 Bacheca e Mercato (M20) · 32 Mappa del Villaggio (M21) · 33 Dungeon delle scimmie (M22) · 34 Casa d'Aste (M23) · 35 Incontri e Mestieri (M24, file `01_GDD_M24.md`) · 36-37 Nodi con tentativi (M25, file `01_GDD_M25.md`) · 38 Alpha 2 (M26, file `01_GDD_M26.md`)
+24 Monoliti del Rift (M7) · 25 Smantellamento e filtro (M7) · 26 Castoni e valute del Rift (M8) · 27 Guida in gioco (M11) · 28 Equipaggiamento vero (M14) · 29 Ritocchi UI dell'Alpha · 30 Villaggio (M19) · 31 Bacheca e Mercato (M20) · 32 Mappa del Villaggio (M21) · 33 Dungeon delle scimmie (M22) · 34 Casa d'Aste (M23) · 35 Incontri e Mestieri (M24, file `01_GDD_M24.md`) · 36-37 Nodi con tentativi (M25, file `01_GDD_M25.md`) · 38 Alpha 2 (M26, file `01_GDD_M26.md`) · 39 Casa d'Aste v2 e monete (M27, file `01_GDD_M27.md`)
 
 Direzione del gioco da M4 (decisioni D1-D6 in `DECISIONS_LOG.md`): il **combattimento è il cuore** (gruppi di mostri,
 bottino con rarità e affissi, potenziamento, build di tratti e abilità); raccolta e artigianato sono il ciclo di
@@ -281,7 +281,7 @@ Nell'Alpha la maestria deve essere **chiara e utile**. Vale per ogni azione con 
 comunque e blocca solo i nuovi ingressi); oggetto sconosciuto in un salvataggio (scartato, con avviso nel log); quantità ≤ 0 (rifiutata); borsa messa in uno slot occupato
 (`bag_slot_occupied`); oggetto che non è una borsa (`not_a_bag`).
 
-## 8. Oro e shop
+## 8. Oro e shop — **in parte SOSTITUITA in M27** (monete rame/argento/oro, tutti gli importi ×100: `01_GDD_M27.md` §39.1)
 
 **Regole**
 - Unica valuta: **Oro** (`gold`, intero ≥ 0).
@@ -1036,7 +1036,7 @@ nome, titolo e una frase del personaggio (testi nei dati). Gli stadi (`stages` d
 - **Nemici sempre tutti visibili**: nel Covo la vista dei nemici non si riduce mai a un contatore ("x11"): una **griglia di quadrati**, uno per nemico (fino a 16 insieme: Orda di 12, evocati), ognuno con la sua barra dei PV.
 - **Il boss si deve riconoscere**: per tutto lo scontro un indicatore fisso **"BOSS FINALE — Atto n/3"** con il progresso dei tre atti (Gorom, Ziki, il Re), intestazione "Stanza finale" (mai "?"), banner d'ingresso più forte per atto, il boss visivamente distinto dalle scorte.
 
-## 34. Casa d'Aste (M23; decisioni V14-V15, `M23_CASA_ASTE.md`; formule F-145…F-152; nessuna stat)
+## 34. Casa d'Aste (M23; decisioni V14-V15, `M23_CASA_ASTE.md`; formule F-145…F-152; nessuna stat) — **estesa in M27** (inserzioni, Posta, monete: `01_GDD_M27.md` §39)
 
 **Idea.** L'ottavo edificio del Villaggio: un banco dove si **vendono e comprano materiali, componenti e cibo** a prezzi che **si muovono**. Vendere molto dello stesso
 oggetto ne abbassa il prezzo; col tempo il prezzo **risale** da solo verso l'equilibrio, che a sua volta **oscilla piano** (una piccola variazione lenta, uguale a ogni
@@ -1123,3 +1123,7 @@ In file separato: [`01_GDD_M25.md`](01_GDD_M25.md) (V25-V29).
 ## 38. Alpha 2: professioni a colori, schemi dei mercanti, Casa d'Aste a popolazione (M26)
 In file separato: [`01_GDD_M26.md`](01_GDD_M26.md) (V31-V32). Modifica §34.3-§34.4 (prezzi della Casa d'Aste) e §35.3-§35.5 (livello delle produzioni, ingredienti, ricette dal mercante).
 Salvataggio alla **versione 10** (migrazione v9 → v10, §38.7). Limiti noti e misure di M26-09/M26-11: §38.10 di quel file e Q146-Q158 in `OPEN_QUESTIONS.md`.
+
+## 39. Casa d'Aste v2: inserzioni simulate, Posta, monete (M27)
+In file separato: [`01_GDD_M27.md`](01_GDD_M27.md) (V33-V34). Modifica §8 (monete rame/argento/oro, importi ×100) e §34.3, §34.5-§34.7 (libro delle inserzioni, inserzione del giocatore,
+Vendi subito per Posta, UI). Salvataggio alla **versione 11** (migrazione v10 → v11 del portafoglio, §39.7). Domande Q159-Q170 in `OPEN_QUESTIONS.md`.

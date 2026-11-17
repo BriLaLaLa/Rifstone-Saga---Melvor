@@ -2125,3 +2125,5 @@ I task M24-01…M24-08 (tabella, ordine, ownership, test) sono in **`07_TASKS_M2
 I task M25-01…M25-09 (Alpha 1: nodi con tentativi) sono in **`07_TASKS_M25.md`**.
 
 I task M26-01…M26-12 (Alpha 2: professioni a colori, schemi dei mercanti, Casa d'Aste a popolazione) sono in **`07_TASKS_M26.md`**.
+
+I task M27-01…M27-10 (Casa d'Aste v2: inserzioni simulate, Posta, monete) sono in **`07_TASKS_M27.md`**.

@@ -236,6 +236,23 @@ I documenti sono già scritti con questi default. I numeri non presenti nella fo
 - **Q158**: applicata. Limiti noti della UI (dopo Alpha 2): fascia di valore non mostrata nel dettaglio della Casa d'Aste, nessuna vista "Le mie vendite", nessun
   sottogruppo dei Materiali (`01_GDD_M26.md` §38.10). Pagina "Casa d'Aste" della Guida non ancora aggiornata alla popolazione (`GUIDA.md`).
 
+## Aperte da M27 (Casa d'Aste v2 e monete; `01_GDD_M27.md` §39, decisioni V33-V34)
+
+| # | Domanda | Default (prudente) | Quando | Chi |
+|---|---|---|---|---|
+| Q159 | Conversione delle monete: quanto vale un oro di prima? | **Default**: **1 argento** (= 100 rame; tutti gli importi ×100): prezzi del mercato con i "centesimi", rame/argento/oro tutti usati, interi sicuri. Alternative: ×1 (l'oro diventa rame: nessuna conversione dei dati, ma il mercato resta a scatti interi e un giocatore con 1.250 oro vede "12a 50r"); ×10.000 (l'oro resta oro, rame e argento solo frazioni; numeri enormi nei dati) | M27-02/03 | utente |
+| Q160 | Formato delle monete | **Default**: icone a moneta colorate nella UI e simboli italiani **o/a/r** nei testi ("1o 25a 40r"), nei dati (`currency.symbols`). Alternativa: "1g 25s 40c" dell'esempio della richiesta (si cambia solo il dato) | M27-04 | utente |
+| Q161 | Si possono comprare le singole inserzioni dei PNG? | **Default**: **no**: Compra resta il banco di F-151; il libro mostra la concorrenza dei venditori. Comprare dalle inserzioni a un prezzo vicino a quello di vendita permetterebbe di comprare in basso e rivendere dopo un rialzo (guadagno), contro V34; servirebbe una tassa d'acquisto di circa il 130% | M27-06 | utente |
+| Q162 | Anche Vendi subito paga per Posta? | **Default**: **sì** ("quando vendo alla Casa d'Aste… mail"), con raggruppamento per oggetto. Alternativa: accredito immediato come oggi | M27-06 | utente |
+| Q163 | Gli acquisti arrivano per Posta? | **Default**: **no**, subito nel Deposito come oggi (a Deposito pieno l'acquisto è rifiutato) | M27-06 | utente |
+| Q164 | Parametri del libro: ricarico 0-25%, epoca di 6 blocchi, 4-12 inserzioni (venditori ÷ 10), lotti 200/60/20/5 per fascia, domanda 50% del libro (massimo 90%) | **Default**: questi valori di partenza; M27-09 misura ricavo netto rispetto a F-18 (soglia 0,85-1,40), frazione venduta e tempi per fascia; nessun ritocco senza decisione (Q122) | M27-09 | utente, Reviewer |
+| Q165 | Costi dell'inserzione: commissione 5%, deposito 1/2/4% del valore dei pezzi per 12/24/48 h, al massimo 10 inserzioni, prezzo massimo 10 × valore | **Default**: questi (dati). Alternative: inserzioni in più con i livelli della Casa d'Aste; deposito sul prezzo invece che sul valore (si aggirerebbe mettendo prezzi bassi) | M27-06 | utente |
+| Q166 | Posta: capienza, scadenza, orario | **Default**: 50 messaggi per i comandi (Vendi subito e Metti in vendita rifiutati a casella piena), consegna automatica sempre garantita, **nessuna scadenza** e nessuna perdita, nessun orario; a Deposito pieno il messaggio resta. Alternative: scadenza a 30 giorni di gioco con reso; ora di arrivo (serve un orologio di gioco salvato) | M27-05 | utente |
+| Q167 | Nomi `gold` nel codice e nei dati | **Default**: restano (`gold` = denaro in rame), il save usa `copper`. Rinominare tutto (centinaia di chiavi, segnali, motivi) non dà nulla al giocatore e moltiplica i rischi | M27-02 | Reviewer |
+| Q168 | Arrotondamento fine a runtime (oro dei mostri con modificatori, miniboss, Fratture, dungeon, vendita e acquisto alla Casa d'Aste) | **Default**: accettato: differenze < 1 argento per operazione, in media nulle o a favore del giocatore; non è una ritaratura (Q122) | M27-03 | Reviewer |
+| Q169 | Annullare un'inserzione: costo | **Default**: solo il deposito perso, nessuna penale; i pezzi tornano per Posta. Alternativa: penale in percentuale del prezzo | M27-06 | utente |
+| Q170 | Un'inserzione si vende a pezzi o solo intera (lotti indivisibili)? | **Default**: **a pezzi** ("tutta o a pezzi" della richiesta), un messaggio per inserzione che si aggiorna finché non lo si ritira. Alternativa: lotti interi come nei MMO (più lenti e più rischiosi) | M27-06 | utente |
+
 **Revisione di Q105-Q121 (M24-08, sul codice)**: **confermate e applicate** (nessuna decisione in sospeso): Q105, Q106, Q107, Q108 (migrazione v7 → v8), Q113,
 Q114 (`village.woodwright_levels` invariata), Q115 (`xp_capped`), Q116 (`unlearn` toglie solo XP, maestria, grado e lavori in coda), Q118, Q121. **Applicate,
 da rivedere più avanti**: Q109 (motore esatto; Q124 chiusa in M24-09), Q117 (valori in `balance.json`; soglie (2)-(3) in Q122), Q119 (costi in `balance.json`;

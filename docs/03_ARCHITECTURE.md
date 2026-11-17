@@ -312,6 +312,8 @@ sequenceDiagram
 - **Versione 9 (M25)**: `format_version` 8 → 9 con `migration_8_to_9.gd` (Incisore come 4ª produzione, `disciplines.extra`; `05_INTERFACES_M25.md` §6c).
 - **Versione 10 (M26, Alpha 2)**: `format_version` 9 → 10 con `migration_9_to_10.gd` (schemi già alla portata delle discipline apprese e quelli in coda diventano noti;
   modulo additivo `professions` con il resto di XP; `05_INTERFACES_M26.md` §6d, `01_GDD_M26.md` §38.7). Catena v5 … v9 → v10; `CURRENT_VERSION` = 10.
+- **Versione 11 (M27, progettata da M27-01)**: `format_version` 10 → 11 con `migration_10_to_11.gd` (portafoglio in rame, `wallet.copper` = oro × 100); inserzioni dentro `auction`
+  e modulo nuovo `mail` (`systems/mail/`) additivi (`05_INTERFACES_M27.md` §6e, `01_GDD_M27.md` §39.7). Catena v5 … v10 → v11; `CURRENT_VERSION` = 11 da M27-02.
 - **Ricette e Casa d'Aste (M26)**: le ricette di produzione non si conoscono più solo per livello (colori, schemi e reagenti: `systems/professions/`, F-166…F-171);
   i prezzi della Casa d'Aste non sono più un solo equilibrio fisso per oggetto ma dipendono dalla popolazione senza stato (F-172…F-176, `AuctionPricing`).
 - **Isolamento**: caricare lo slot B dopo lo slot A crea una `GameSession` nuova; niente sopravvive tra slot

@@ -942,3 +942,6 @@ In file separato: [`04_DATA_SCHEMA_M25.md`](04_DATA_SCHEMA_M25.md).
 
 ## 31. Alpha 2 (M26; V31-V32, `01_GDD_M26.md` §38, `02_FORMULAS_M26.md` F-166…F-176)
 In file separato: [`04_DATA_SCHEMA_M26.md`](04_DATA_SCHEMA_M26.md): `colors` delle azioni, categoria `reagent`, botteghe dei mercanti nello shop, `trainers[].vendor`, `data/auction/population.json` e `auction.population`.
+
+## 32. Casa d'Aste v2 e monete (M27; V33-V34, `01_GDD_M27.md` §39, `02_FORMULAS_M27.md` F-177…F-184)
+In file separato: [`04_DATA_SCHEMA_M27.md`](04_DATA_SCHEMA_M27.md): `currency`, conversione ×100 dei campi di denaro, `stack` delle fasce, `auction.book`/`auction.listing`, `mail` e `data/mail/templates.json`.
