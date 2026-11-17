@@ -15,8 +15,8 @@ const FISH: PackedStringArray = [
 const HEAL: Array[int] = [20, 35, 55, 80, 110, 150, 200, 260]
 ## 02_FORMULAS.md §8.1, T1..T8: [level, interval_ms, xp, product qty, item value].
 const GATHERING_TIERS: Array[Array] = [
-	[1, 3000, 10, 1, 1], [10, 3200, 18, 1, 3], [20, 3500, 28, 1, 6], [30, 3800, 40, 1, 10],
-	[45, 4200, 58, 1, 18], [60, 4600, 80, 1, 30], [75, 5000, 108, 1, 50], [90, 5500, 145, 1, 85],
+	[1, 3000, 10, 1, 100], [10, 3200, 18, 1, 300], [20, 3500, 28, 1, 600], [30, 3800, 40, 1, 1000],
+	[45, 4200, 58, 1, 1800], [60, 4600, 80, 1, 3000], [75, 5000, 108, 1, 5000], [90, 5500, 145, 1, 8500],
 ]
 ## Armor rows (M14, F-118): [suffix, ingots, slot, weight of the slot in the set budget].
 const ARMOR_PIECES: Array[Array] = [
@@ -293,9 +293,9 @@ func test_shop_follows_8_6() -> void:
 	assert_false(shop.has("bank_slot"))
 	assert_false(shop.has("armory_slot"))
 	var gold: Array[Array] = [
-		["auto_eat_1", 2000, 1, "auto_eat_tier", 1], ["auto_eat_2", 25000, 1, "auto_eat_tier", 1],
-		["auto_eat_3", 250000, 1, "auto_eat_tier", 1], ["auto_loot", 50000, 1, "auto_loot", 1],
-		["loot_pocket", 5000, 3, "loot_bag_slots", 4],
+		["auto_eat_1", 200000, 1, "auto_eat_tier", 1], ["auto_eat_2", 2500000, 1, "auto_eat_tier", 1],
+		["auto_eat_3", 25000000, 1, "auto_eat_tier", 1], ["auto_loot", 5000000, 1, "auto_loot", 1],
+		["loot_pocket", 500000, 3, "loot_bag_slots", 4],
 	]
 	for g: Array in gold:
 		assert_eq(shop[g[0]]["cost"], {"gold": float(g[1])}, "%s cost" % g[0])

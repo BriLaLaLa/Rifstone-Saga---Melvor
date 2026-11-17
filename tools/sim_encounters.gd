@@ -75,7 +75,7 @@ static func report(opts: Dictionary, lines: PackedStringArray) -> PackedStringAr
 	var failures: PackedStringArray = PackedStringArray()
 	var row: Dictionary = measure(_load_data(opts), opts, str(opts["nodes"]) == "1")
 	lines.append("area %s, level %d, %.1f h, seed %s, nodes=%s" % [opts["area"], row["level"], row["hours"], opts["seed"], opts["nodes"]])
-	lines.append("| encounters/h | fights/h | kills/h | nodes worked/h | skipped/h | E_F s | deaths | recipes/h | gold/h |")
+	lines.append("| encounters/h | fights/h | kills/h | nodes worked/h | skipped/h | E_F s | deaths | recipes/h | copper/h |")
 	lines.append("|---|---|---|---|---|---|---|---|---|")
 	lines.append("| %.2f | %.2f | %.1f | %.2f | %.2f | %.2f | %d | %.2f | %.0f |" % [row["per_hour"], row["fights_per_hour"], row["kills_per_hour"],
 		row["worked_per_hour"], row["skipped_per_hour"], row["fight_ms"] / 1000.0, row["deaths"], row["recipes_per_hour"], row["gold_per_hour"]])

@@ -7,6 +7,7 @@ extends SceneTree
 ##
 ## Usage: godot --headless --path . -s tools/gen_professions.gd [-- --check]
 
+const GenMoney = preload("res://tools/gen_money.gd")  # amounts are computed in silver, written in copper (F-177)
 const SKILLS: Array[String] = ["forging", "woodwright", "hearthcraft"]
 const ACTIONS_PATH: String = "res://data/actions/%s.json"
 const RECIPES_PATH: String = "res://data/items/recipes.json"
@@ -152,7 +153,7 @@ static func build() -> Dictionary:
 		var gold: int = maxi(SCHEME_MIN_GOLD, SCHEME_VALUE_MULT * int(values[s["product"]]))
 		shop_rows.append("    " + JSON.stringify({"id": "buy_" + recipe_id, "name": scheme_name, "category": "profession",
 				"vendor": vendors[skill], "description": "Si impara dal mercante e resta tua: serve un reagente a ogni lavoro.",
-				"cost": {"gold": gold}, "max_purchases": 1, "requires": {"skills": {skill: s["level"]}},
+				"cost": {"gold": gold * GenMoney.cps()}, "max_purchases": 1, "requires": {"skills": {skill: s["level"]}},
 				"effect": {"item": {"item": recipe_id, "qty": 1}}}, "", false))
 	for skill: String in SKILLS:
 		for band: int in 4:
@@ -163,11 +164,11 @@ static func build() -> Dictionary:
 			var level: int = int(levels[(BAND_TIERS[band] as Array)[0] - 1])
 			var rname: String = (REAGENT_NAMES[skill] as Array)[band] as String
 			reagent_rows.append(_item_row({"id": item_id, "name": rname, "category": "reagent",
-					"icon": "res://assets/icons/items/%s.svg" % (REAGENT_ICONS[skill] as Array)[band], "value": value,
+					"icon": "res://assets/icons/items/%s.svg" % (REAGENT_ICONS[skill] as Array)[band], "value": value * GenMoney.cps(),
 					"sort_order": 10 + SKILLS.find(skill) * 100 + band * 10, "description": (REAGENT_TEXTS[skill] as Array)[band]}))
 			shop_rows.append("    " + JSON.stringify({"id": "buy_" + item_id, "name": rname, "category": "profession",
 					"vendor": vendors[skill], "description": "Un ingrediente per i lavori più delicati: se ne usa uno a ogni ciclo.",
-					"cost": {"gold": price}, "max_purchases": 0, "requires": {"skills": {skill: level}},
+					"cost": {"gold": price * GenMoney.cps()}, "max_purchases": 0, "requires": {"skills": {skill: level}},
 					"effect": {"item": {"item": item_id, "qty": 1}}}, "", false))
 	for skill: String in SKILLS:
 		out[ACTIONS_PATH % skill] = _actions_text(docs[skill] as Dictionary)
@@ -246,7 +247,12 @@ static func _vendors() -> Dictionary:
 
 
 static func _item_values() -> Dictionary:
-	return _item_field("value")
+	var cps: int = GenMoney.cps()  # the generator computes in silver (F-177)
+	var silver: Dictionary = {}
+	var copper: Dictionary = _item_field("value")
+	for id: Variant in copper:
+		silver[id] = int(copper[id]) / cps
+	return silver
 
 
 static func _item_names() -> Dictionary:

@@ -36,7 +36,7 @@ func test_a_new_market_saves_only_the_header() -> void:
 func test_only_items_away_from_rest_are_saved_with_the_keys_that_differ() -> void:
 	TestFactory.give(_s, LOG, 100)
 	_house.sell(LOG, 100)
-	_s.wallet.add_gold(100000)
+	_s.wallet.add_gold(10000000)
 	_house.buy(PLATE, 3)
 	_house.buy(GRIP, 1)
 	var items: Dictionary = _items(_house.to_save())
@@ -53,7 +53,7 @@ func test_round_trip_through_json_gives_the_same_prices_and_stock() -> void:
 	TestFactory.give(_s, GRIP, 50)
 	_house.sell(LOG, 500)
 	_house.sell(GRIP, 40)
-	_s.wallet.add_gold(100000)
+	_s.wallet.add_gold(10000000)
 	_house.buy(PLATE, 4)
 	_house.advance(7 * 300000 + 1234)
 	var file: Dictionary = JSON.parse_string(JSON.stringify(_s.to_save(1000))) as Dictionary

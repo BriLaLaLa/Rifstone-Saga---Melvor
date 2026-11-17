@@ -43,7 +43,7 @@ func test_the_kit_is_worn() -> void:
 func test_food_gold_and_purchases() -> void:
 	assert_eq(_session.equipment.get_food(), &"test_ration")
 	assert_eq(_session.bank.get_count(&"test_ration"), 20)
-	assert_eq(_session.wallet.get_gold(), 50, "the owned purchase costs nothing")
+	assert_eq(_session.wallet.get_gold(), 5000, "the owned purchase costs nothing")
 	assert_eq(_session.shop.purchase_count(&"test_upgrade_1"), 1)
 	assert_eq(_session.modifiers.total(&"auto_eat_tier"), 1.0, "the owned upgrade works from the start")
 	assert_eq(_session.shop.can_buy(&"test_upgrade_1").reason, Reasons.MAX_PURCHASES)
@@ -57,7 +57,7 @@ func test_a_unique_tool_is_not_sold_salvaged_or_taken_off() -> void:
 		assert_eq(_session.armory.salvage(uid).reason, Reasons.ITEM_UNIQUE)
 		assert_eq(_session.armory.set_locked(uid, true).reason, Reasons.ITEM_UNIQUE)
 		assert_eq(_session.equipment.get_uid(slot), uid)
-	assert_eq(_session.wallet.get_gold(), 50)
+	assert_eq(_session.wallet.get_gold(), 5000)
 
 
 func test_no_other_piece_goes_into_a_tool_slot() -> void:

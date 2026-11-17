@@ -17,7 +17,7 @@ func before_each() -> void:
 
 # Gold and items of storehouse level 1: 300 gold, 20 redbirch_shieldcore, 4 emberbronze_plate (Falegname 1).
 func _fund_storehouse_1() -> void:
-	_session.wallet.add_gold(300)
+	_session.wallet.add_gold(30000)
 	TestFactory.give(_session, &"redbirch_shieldcore", 20)
 	TestFactory.give(_session, &"emberbronze_plate", 4)
 
@@ -34,10 +34,10 @@ func test_buildings_in_order_all_buildable() -> void:
 
 func test_next_cost_is_the_next_level() -> void:
 	var cost: Dictionary = _village.next_cost(&"storehouse")
-	assert_eq(cost["gold"], 300)
+	assert_eq(cost["gold"], 30000)
 	assert_eq(cost["requires_woodwright"], 1)
 	assert_eq((cost["items"] as Array)[0], {"item": &"redbirch_shieldcore", "qty": 20})
-	assert_eq(_village.next_cost(&"market")["gold"], 300, "M20: the Market is buildable")
+	assert_eq(_village.next_cost(&"market")["gold"], 30000, "M20: the Market is buildable")
 	assert_eq(_village.next_cost(&"nothing"), {})
 
 
@@ -48,7 +48,7 @@ func test_can_upgrade_reasons_in_order() -> void:
 	assert_eq(_village.can_upgrade(&"storehouse").reason, Reasons.LEVEL_TOO_LOW, "before gold and items")
 	TestFactory.set_character_level(_session, 10)
 	assert_eq(_village.can_upgrade(&"storehouse").reason, Reasons.NOT_ENOUGH_GOLD, "before items")
-	_session.wallet.add_gold(420)
+	_session.wallet.add_gold(42000)
 	assert_eq(_village.can_upgrade(&"storehouse").reason, Reasons.NOT_ENOUGH_ITEMS)
 	TestFactory.give(_session, &"ashpine_shieldcore", 30)
 	TestFactory.give(_session, &"ashlead_plate", 5)
@@ -70,7 +70,7 @@ func test_upgrade_pays_everything_and_builds() -> void:
 	var result: CommandResult = _village.upgrade(&"storehouse")
 	assert_true(result.ok)
 	assert_eq(_village.level(&"storehouse"), 1)
-	assert_eq(_session.wallet.get_gold(), gold - 300)
+	assert_eq(_session.wallet.get_gold(), gold - 30000)
 	assert_eq(_session.bank.get_count(&"redbirch_shieldcore"), 0)
 	assert_eq(_session.bank.get_count(&"emberbronze_plate"), 0)
 	assert_eq(_upgraded, [[&"storehouse", 1]])
@@ -86,7 +86,7 @@ func test_upgrade_spends_locked_items() -> void:
 
 
 func test_failed_upgrade_changes_nothing() -> void:
-	_session.wallet.add_gold(300)
+	_session.wallet.add_gold(30000)
 	TestFactory.give(_session, &"redbirch_shieldcore", 20)
 	TestFactory.give(_session, &"emberbronze_plate", 3)
 	var gold: int = _session.wallet.get_gold()

@@ -141,12 +141,12 @@ func test_claim_pays_gold_food_and_assigns_the_next_quest() -> void:
 	_session.events.quests_changed.connect(func() -> void: log.append(["quests"]))
 	assert_true(_quests.can_claim(0).ok)
 	assert_true(_quests.claim(0).ok)
-	assert_eq(_session.wallet.get_gold(), gold + 80)
+	assert_eq(_session.wallet.get_gold(), gold + 8000)
 	assert_eq(_session.bank.get_count(&"seared_brookfin"), food + 20)
 	assert_eq(_quests.completed_total(), 1)
 	assert_eq(_quests.quest_at(0), &"gather_angling_t1", "kill_any_t1 is in the memory")
 	assert_eq(_quests.progress_at(0), 0)
-	assert_eq(log[0], ["gold", 80])
+	assert_eq(log[0], ["gold", 8000])
 	assert_eq(log.back(), ["quests"])
 	assert_eq(_quests.quest_at(1), &"gather_forestry_t1", "the other slots do not change")
 
@@ -157,7 +157,7 @@ func test_claim_pays_skill_xp() -> void:
 	var xp: int = _session.skills.get_xp(&"forestry")
 	assert_true(_quests.claim(1).ok)
 	assert_eq(_session.skills.get_xp(&"forestry") - xp, 400)
-	assert_eq(_session.wallet.get_gold() - int(_session.data.balance_value("start.gold")), 60)
+	assert_eq(_session.wallet.get_gold() - int(_session.data.balance_value("start.gold")), 6000)
 
 
 func test_bank_full_changes_nothing() -> void:

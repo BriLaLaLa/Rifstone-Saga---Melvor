@@ -1,6 +1,6 @@
 extends GutTest
 ## F-142 (docs/02_FORMULAS.md §5j): the prize of a room and of a stage. The example of the formula (a Capobranco with the
-## percentages at 100: a piece at least magic, a Crystal, Dust in 10-18, gold in 1.200-2.000) and with them at 0 (nothing,
+## percentages at 100: a piece at least magic, a Crystal, Dust in 10-18, gold in 120.000-200.000 copper) and with them at 0 (nothing,
 ## nothing rolled), the prize of the entrance and of the first stage through the system.
 
 var _s: GameSession = null
@@ -33,7 +33,7 @@ func _qty(item_id: StringName) -> int:
 func test_the_miniboss_example_with_certain_chances() -> void:
 	var gold: int = _s.wallet.get_gold()
 	DungeonRewards.room_reward(_miniboss_reward(100.0, 100.0), 50, _sink, _s)
-	assert_between(_s.wallet.get_gold() - gold, 1200, 2000)
+	assert_between(_s.wallet.get_gold() - gold, 120000, 200000)
 	assert_between(_qty(&"rift_dust"), 10, 18)
 	var crystals: int = 0
 	for id: StringName in DungeonRewards.crystal_ids(_s.data):
@@ -77,7 +77,7 @@ func test_the_bag_tells_the_ui() -> void:
 func test_clearing_the_entrance_pays_its_gold_and_opens_the_fork() -> void:
 	var gold: int = _s.wallet.get_gold()
 	_engine.open_and_clear_entrance()
-	assert_between(_s.wallet.get_gold() - gold, 200, 400)
+	assert_between(_s.wallet.get_gold() - gold, 20000, 40000)
 	assert_eq(_s.dungeon.run().cleared, 1)
 	assert_eq(_s.dungeon.run().phase, &"await")
 
@@ -89,14 +89,14 @@ func test_the_stage_prize_arrives_at_the_end_of_stages_one_and_two_only() -> voi
 	var dust_before: int = _stack_in_run(&"rift_dust")
 	_engine.end_intro()
 	_engine.clear_stage()
-	assert_between(_s.wallet.get_gold() - gold, 1500, 2500, "the right hand")
+	assert_between(_s.wallet.get_gold() - gold, 150000, 250000, "the right hand")
 	assert_between(_stack_in_run(&"rift_dust") - dust_before, 15, 25)
 	assert_eq(_s.dungeon.run().stage, 2)
 	assert_eq(_s.dungeon.run().phase, &"intro")
 	gold = _s.wallet.get_gold()
 	_engine.end_intro()
 	_engine.clear_stage()
-	assert_between(_s.wallet.get_gold() - gold, 1500, 2500, "the strategist")
+	assert_between(_s.wallet.get_gold() - gold, 150000, 250000, "the strategist")
 	assert_eq(_s.dungeon.run().cleared, 6, "the three stages are one room: the boss counts when the king falls")
 
 

@@ -18,8 +18,8 @@
       "evasion_bonus": 48,
       "damage_reduction": 14,
       "gold": [
-        200,
-        400
+        20000,
+        40000
       ],
       "rift_shard_chance": 100,
       "xp": 7000,
@@ -86,8 +86,8 @@
       "evasion_bonus": 52,
       "damage_reduction": 15,
       "gold": [
-        240,
-        480
+        24000,
+        48000
       ],
       "rift_shard_chance": 100,
       "xp": 8000,
@@ -159,8 +159,8 @@
       "evasion_bonus": 56,
       "damage_reduction": 16,
       "gold": [
-        280,
-        560
+        28000,
+        56000
       ],
       "rift_shard_chance": 100,
       "xp": 9000,
@@ -228,8 +228,8 @@
       "evasion_bonus": 112,
       "damage_reduction": 26,
       "gold": [
-        700,
-        1300
+        70000,
+        130000
       ],
       "rift_shard_chance": 100,
       "xp": 18000,
@@ -296,8 +296,8 @@
       "evasion_bonus": 116,
       "damage_reduction": 27,
       "gold": [
-        800,
-        1500
+        80000,
+        150000
       ],
       "rift_shard_chance": 100,
       "xp": 20000,
@@ -365,8 +365,8 @@
       "evasion_bonus": 120,
       "damage_reduction": 28,
       "gold": [
-        900,
-        1700
+        90000,
+        170000
       ],
       "rift_shard_chance": 100,
       "xp": 22000,
@@ -438,8 +438,8 @@
       "evasion_bonus": 124,
       "damage_reduction": 29,
       "gold": [
-        1000,
-        1900
+        100000,
+        190000
       ],
       "rift_shard_chance": 100,
       "xp": 24000,
@@ -506,8 +506,8 @@
       "evasion_bonus": 128,
       "damage_reduction": 30,
       "gold": [
-        1150,
-        2150
+        115000,
+        215000
       ],
       "rift_shard_chance": 100,
       "xp": 27000,
@@ -575,8 +575,8 @@
       "evasion_bonus": 132,
       "damage_reduction": 31,
       "gold": [
-        1300,
-        2400
+        130000,
+        240000
       ],
       "rift_shard_chance": 100,
       "xp": 30000,
@@ -648,8 +648,8 @@
       "evasion_bonus": 136,
       "damage_reduction": 32,
       "gold": [
-        1500,
-        2800
+        150000,
+        280000
       ],
       "rift_shard_chance": 100,
       "xp": 34000,

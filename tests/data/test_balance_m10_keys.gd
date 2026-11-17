@@ -74,7 +74,7 @@ func test_real_tool_upgrade_table_is_the_one_of_f94() -> void:
 	var grades: Array[int] = [1, 2, 3, 3, 4, 5, 6, 7, 8]
 	var plates: Array[int] = [2, 2, 3, 3, 4, 4, 5, 5, 6]
 	var handles: Array[int] = [1, 1, 1, 1, 2, 2, 2, 2, 3]
-	var gold: Array[int] = [100, 250, 600, 1200, 2500, 5000, 10000, 20000, 40000]
+	var gold: Array[int] = [10000, 25000, 60000, 120000, 250000, 500000, 1000000, 2000000, 4000000]
 	for i: int in 9:
 		var step: Dictionary = levels[i] as Dictionary
 		assert_eq(int(step["min_level"]), min_levels[i], "min_level +%d" % (i + 1))

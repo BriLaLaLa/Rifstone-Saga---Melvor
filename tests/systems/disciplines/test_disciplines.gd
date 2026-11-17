@@ -35,7 +35,7 @@ func test_f158_gold_of_the_grades() -> void:
 	var golds: Array[int] = []
 	for g: int in range(1, 6):
 		golds.append(TrainerGradeDef.gold(_s.data, g))
-	assert_eq(golds, [0, 250, 1250, 6250, 31250] as Array[int])
+	assert_eq(golds, [0, 25000, 125000, 625000, 3125000] as Array[int])
 	assert_eq(_d.next_grade_cost(FORESTRY), 0, "grade 0: the cost of grade 1")
 
 
@@ -45,7 +45,7 @@ func test_learn_gives_grade_1_and_signals() -> void:
 	assert_eq(_d.grade(FORESTRY), 1)
 	assert_eq(_d.level_cap(FORESTRY), 20)
 	assert_signal_emitted_with_parameters(_s.events, "discipline_changed", [FORESTRY, 1])
-	assert_eq(_d.next_grade_cost(FORESTRY), 250)
+	assert_eq(_d.next_grade_cost(FORESTRY), 25000)
 	assert_eq(_d.learn(FORESTRY).reason, Reasons.ALREADY_LEARNED)
 
 
@@ -73,7 +73,7 @@ func test_train_refusals_in_order_then_grade_2() -> void:
 	TestFactory.set_character_level(_s, 15)
 	assert_eq(_d.train(FORESTRY).reason, Reasons.NOT_ENOUGH_GOLD)
 	var gold: int = _s.wallet.get_gold()
-	_s.wallet.add_gold(250 - gold + 1)
+	_s.wallet.add_gold(25000 - gold + 1)
 	watch_signals(_s.events)
 	assert_true(_d.train(FORESTRY).ok)
 	assert_eq(_d.grade(FORESTRY), 2)
@@ -102,7 +102,7 @@ func test_f159_unlearn_cost() -> void:
 	for g: int in range(1, 6):
 		TestFactory.learn_discipline(_s, FORESTRY, g)
 		costs.append(_d.unlearn_cost(FORESTRY))
-	assert_eq(costs, [100, 125, 750, 3875, 19500] as Array[int])
+	assert_eq(costs, [10000, 12500, 75000, 387500, 1950000] as Array[int])
 	assert_eq(_d.unlearn_cost(QUARRYING), 0)
 
 
@@ -121,7 +121,7 @@ func test_unlearn_refusals_and_atomicity() -> void:
 func test_unlearn_resets_xp_mastery_nodes_and_jobs() -> void:
 	TestFactory.learn_discipline(_s, FORGING, 2)
 	TestFactory.learn_discipline(_s, FORESTRY, 1)
-	_s.wallet.add_gold(1000)
+	_s.wallet.add_gold(100000)
 	_s.skills.add_xp(FORESTRY, 3000)
 	var action: ActionDef = _s.data.mastery_actions_for_skill(FORESTRY)[0]
 	_s.mastery.add_for_action(action, 5)
@@ -131,7 +131,7 @@ func test_unlearn_resets_xp_mastery_nodes_and_jobs() -> void:
 	var gold: int = _s.wallet.get_gold()
 	watch_signals(_s.events)
 	assert_true(_d.unlearn(FORESTRY).ok)
-	assert_eq(_s.wallet.get_gold(), gold - 100)
+	assert_eq(_s.wallet.get_gold(), gold - 10000)
 	assert_eq(_d.grade(FORESTRY), 0)
 	assert_eq(_s.skills.get_xp(FORESTRY), 0)
 	assert_eq(_s.mastery.get_mastery_xp(action.id), 0)
@@ -157,7 +157,7 @@ func test_unlearn_gives_back_the_started_blueprint_materials() -> void:
 	for entry: ItemQty in BlueprintCraft.inputs(bp):
 		TestFactory.give(_s, entry.item_id, entry.qty)
 	TestFactory.give(_s, bp.id, 1)
-	_s.wallet.add_gold(500)
+	_s.wallet.add_gold(50000)
 	assert_true(_s.actions.enqueue_blueprint(bp.id).ok)
 	assert_eq(_s.bank.get_count(bp.id), 0, "the head consumed the blueprint")
 	assert_true(_d.unlearn(FORGING).ok)
@@ -167,7 +167,7 @@ func test_unlearn_gives_back_the_started_blueprint_materials() -> void:
 ## discipline_busy needs a node in progress: M24-04 tests it with the real node cycle (node_skill is a stub returning &"" here).
 func test_no_node_in_progress_does_not_block_unlearning() -> void:
 	_d.learn(FORESTRY)
-	_s.wallet.add_gold(500)
+	_s.wallet.add_gold(50000)
 	assert_eq(_s.combat.node_skill(), &"")
 	assert_true(_d.can_unlearn(FORESTRY).ok)
 
@@ -175,7 +175,7 @@ func test_no_node_in_progress_does_not_block_unlearning() -> void:
 func test_slots_free_up_after_unlearning() -> void:
 	_d.learn(FORESTRY)
 	_d.learn(QUARRYING)
-	_s.wallet.add_gold(100)
+	_s.wallet.add_gold(10000)
 	_d.unlearn(FORESTRY)
 	assert_true(_d.learn(ANGLING).ok)
 

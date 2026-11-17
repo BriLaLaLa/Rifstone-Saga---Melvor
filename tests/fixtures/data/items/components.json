@@ -5,7 +5,7 @@
       "name": "Piastra di rame",
       "category": "component",
       "icon": "res://assets/icons/items/emberbronze_plate.svg",
-      "value": 7,
+      "value": 700,
       "sort_order": 510,
       "description": "Lamiera battuta e rifinita: serve ai progetti dei pezzi e alla raffinazione degli attrezzi."
     },
@@ -14,7 +14,7 @@
       "name": "Piastra di ferro",
       "category": "component",
       "icon": "res://assets/icons/items/ashlead_plate.svg",
-      "value": 21,
+      "value": 2100,
       "sort_order": 520,
       "description": "Lamiera battuta e rifinita: serve ai progetti dei pezzi e alla raffinazione degli attrezzi."
     },
@@ -23,7 +23,7 @@
       "name": "Piastra di acciaio",
       "category": "component",
       "icon": "res://assets/icons/items/stormzinc_plate.svg",
-      "value": 42,
+      "value": 4200,
       "sort_order": 530,
       "description": "Lamiera battuta e rifinita: serve ai progetti dei pezzi e alla raffinazione degli attrezzi."
     },
@@ -32,7 +32,7 @@
       "name": "Piastra di acciaio nero",
       "category": "component",
       "icon": "res://assets/icons/items/duskcobalt_plate.svg",
-      "value": 70,
+      "value": 7000,
       "sort_order": 540,
       "description": "Lamiera battuta e rifinita: serve ai progetti dei pezzi e alla raffinazione degli attrezzi."
     },
@@ -41,7 +41,7 @@
       "name": "Piastra di argento runico",
       "category": "component",
       "icon": "res://assets/icons/items/glimmerite_plate.svg",
-      "value": 126,
+      "value": 12600,
       "sort_order": 550,
       "description": "Lamiera battuta e rifinita: serve ai progetti dei pezzi e alla raffinazione degli attrezzi."
     },
@@ -50,7 +50,7 @@
       "name": "Piastra di ossidiana",
       "category": "component",
       "icon": "res://assets/icons/items/palecinnabar_plate.svg",
-      "value": 210,
+      "value": 21000,
       "sort_order": 560,
       "description": "Lamiera battuta e rifinita: serve ai progetti dei pezzi e alla raffinazione degli attrezzi."
     },
@@ -59,7 +59,7 @@
       "name": "Piastra di astrite",
       "category": "component",
       "icon": "res://assets/icons/items/emberheart_plate.svg",
-      "value": 350,
+      "value": 35000,
       "sort_order": 570,
       "description": "Lamiera battuta e rifinita: serve ai progetti dei pezzi e alla raffinazione degli attrezzi."
     },
@@ -68,7 +68,7 @@
       "name": "Piastra di riftite",
       "category": "component",
       "icon": "res://assets/icons/items/riftite_plate.svg",
-      "value": 595,
+      "value": 59500,
       "sort_order": 580,
       "description": "Lamiera battuta e rifinita: serve ai progetti dei pezzi e alla raffinazione degli attrezzi."
     },
@@ -77,7 +77,7 @@
       "name": "Manico di betulla rossa",
       "category": "component",
       "icon": "res://assets/icons/items/redbirch_handle.svg",
-      "value": 2,
+      "value": 200,
       "sort_order": 610,
       "description": "Asta di legno levigata, pronta per essere montata su un attrezzo."
     },
@@ -86,7 +86,7 @@
       "name": "Manico di pino cenerino",
       "category": "component",
       "icon": "res://assets/icons/items/ashpine_handle.svg",
-      "value": 6,
+      "value": 600,
       "sort_order": 620,
       "description": "Asta di legno levigata, pronta per essere montata su un attrezzo."
     },
@@ -95,7 +95,7 @@
       "name": "Manico di ontano spinoso",
       "category": "component",
       "icon": "res://assets/icons/items/thornalder_handle.svg",
-      "value": 12,
+      "value": 1200,
       "sort_order": 630,
       "description": "Asta di legno levigata, pronta per essere montata su un attrezzo."
     },
@@ -104,7 +104,7 @@
       "name": "Manico di olmo del vespro",
       "category": "component",
       "icon": "res://assets/icons/items/duskelm_handle.svg",
-      "value": 20,
+      "value": 2000,
       "sort_order": 640,
       "description": "Asta di legno levigata, pronta per essere montata su un attrezzo."
     },
@@ -113,7 +113,7 @@
       "name": "Manico di cedro scheggiato",
       "category": "component",
       "icon": "res://assets/icons/items/shardcedar_handle.svg",
-      "value": 36,
+      "value": 3600,
       "sort_order": 650,
       "description": "Asta di legno levigata, pronta per essere montata su un attrezzo."
     },
@@ -122,7 +122,7 @@
       "name": "Manico di cipresso velato",
       "category": "component",
       "icon": "res://assets/icons/items/veilcypress_handle.svg",
-      "value": 60,
+      "value": 6000,
       "sort_order": 660,
       "description": "Asta di legno levigata, pronta per essere montata su un attrezzo."
     },
@@ -131,7 +131,7 @@
       "name": "Manico di larice di brace",
       "category": "component",
       "icon": "res://assets/icons/items/emberlarch_handle.svg",
-      "value": 100,
+      "value": 10000,
       "sort_order": 670,
       "description": "Asta di legno levigata, pronta per essere montata su un attrezzo."
     },
@@ -140,7 +140,7 @@
       "name": "Manico di abete del Rift",
       "category": "component",
       "icon": "res://assets/icons/items/riftspruce_handle.svg",
-      "value": 170,
+      "value": 17000,
       "sort_order": 680,
       "description": "Asta di legno levigata, pronta per essere montata su un attrezzo."
     }

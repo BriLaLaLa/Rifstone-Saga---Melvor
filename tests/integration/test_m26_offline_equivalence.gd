@@ -14,7 +14,7 @@ func _session() -> GameSession:
 	s.disciplines.new_game()
 	TestFactory.set_character_level(s, 55)
 	TestFactory.make_roomy(s)
-	s.wallet.add_gold(2_000_000)
+	s.wallet.add_gold(200_000_000)
 	for id: StringName in [&"forging", &"hearthcraft"]:
 		TestFactory.learn_discipline(s, id)
 	TestFactory.set_level(s, &"forging", 44)

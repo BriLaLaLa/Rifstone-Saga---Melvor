@@ -19,7 +19,9 @@ Thumbs.db
 
 # Saves and test slots (the game writes them under user://, never in the project)
 saves/
+!tests/fixtures/saves/
 slot_*.json
+!tests/fixtures/saves/*.json
 *.save
 
 # Local tool state

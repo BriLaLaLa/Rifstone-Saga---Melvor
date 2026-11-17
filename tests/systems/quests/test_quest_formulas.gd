@@ -6,6 +6,7 @@ const QUESTS_PATH: String = "res://data/quests/quests.json"
 
 var _gen: GDScript
 var _params: Dictionary
+var _currency: Dictionary
 var _items: Dictionary[String, Dictionary] = {}
 var _actions: Dictionary[String, Dictionary] = {}
 var _lookup: Dictionary
@@ -13,7 +14,9 @@ var _lookup: Dictionary
 
 func before_all() -> void:
 	_gen = load("res://tools/gen_quests.gd") as GDScript
-	_params = (JSON.parse_string(FileAccess.get_file_as_string("res://data/config/balance.json")) as Dictionary)["quest"]
+	var balance_doc: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/config/balance.json")) as Dictionary
+	_params = balance_doc["quest"]
+	_currency = balance_doc["currency"]
 	var items: Dictionary = _gen.call("read_dir", "res://data/items") as Dictionary
 	for path: String in items:
 		_items[path] = items[path] as Dictionary
@@ -35,12 +38,12 @@ func test_kill_examples() -> void:
 	var first: Dictionary = _quest("kill", "", 1)
 	assert_eq(first["id"], "kill_any_t1")
 	assert_eq(first["target"], 40)
-	assert_eq(first["reward"]["gold"], 80)
+	assert_eq(first["reward"]["gold"], 8000)
 	assert_eq(first["reward"]["items"], [{"item": "seared_brookfin", "qty": 20}])
 	assert_eq(first["requires"]["character"], 1)
 	var last: Dictionary = _quest("kill", "", 8)
 	assert_eq(last["target"], 96)
-	assert_eq(last["reward"]["gold"], 1030)
+	assert_eq(last["reward"]["gold"], 103000)
 	assert_eq(last["reward"]["items"], [{"item": "seared_riftmaw", "qty": 20}])
 	assert_eq(last["requires"]["character"], 90)
 	assert_false((last["reward"] as Dictionary).has("xp"))
@@ -50,13 +53,13 @@ func test_gather_examples() -> void:
 	var wood: Dictionary = _quest("gather", "forestry", 5)
 	assert_eq(wood["item"], "shardcedar_log")
 	assert_eq(wood["target"], 210)
-	assert_eq(wood["reward"]["gold"], 480)
+	assert_eq(wood["reward"]["gold"], 48000)
 	assert_eq(wood["reward"]["xp"], {"skill": "forestry", "amount": 2320})
 	assert_eq(wood["requires"], {"character": 45, "skills": {"forestry": 45}})
 	var fish: Dictionary = _quest("gather", "angling", 1)
 	assert_eq(fish["item"], "brookfin")
 	assert_eq(fish["target"], 150)
-	assert_eq(fish["reward"]["gold"], 60, "64 rounds to 60")
+	assert_eq(fish["reward"]["gold"], 6000, "64 a rounds to 60 a")
 	assert_eq(fish["reward"]["xp"]["amount"], 400)
 
 
@@ -64,13 +67,13 @@ func test_craft_examples() -> void:
 	var meal: Dictionary = _quest("craft", "hearthcraft", 3)
 	assert_eq(meal["item"], "seared_redscale")
 	assert_eq(meal["target"], 114)
-	assert_eq(meal["reward"]["gold"], 340)
+	assert_eq(meal["reward"]["gold"], 34000)
 	assert_eq(meal["reward"]["xp"], {"skill": "hearthcraft", "amount": 1680})
 	assert_eq(meal["requires"], {"character": 20, "skills": {"hearthcraft": 20}})
 	var grip: Dictionary = _quest("craft", "woodwright", 8)
 	assert_eq(grip["item"], "riftspruce_grip")
 	assert_eq(grip["target"], 232)
-	assert_eq(grip["reward"]["gold"], 1030)
+	assert_eq(grip["reward"]["gold"], 103000)
 	assert_eq(grip["reward"]["xp"]["amount"], 8700)
 	assert_eq(grip["requires"], {"character": 90, "skills": {"woodwright": 90}})
 	assert_eq(_quest("craft", "forging", 8)["target"], 58)
@@ -92,7 +95,7 @@ func test_file_has_64_quests_and_equals_the_regeneration() -> void:
 func _validate(written: Array) -> PackedStringArray:
 	var v := DataValidatorRules.new()
 	var files: Dictionary[String, Dictionary] = {"quests.json": {"quests": written}}
-	var balance: Dictionary[String, Dictionary] = {"balance.json": {"quest": _params}}
+	var balance: Dictionary[String, Dictionary] = {"balance.json": {"quest": _params, "currency": _currency}}
 	DataValidatorQuests.validate(v, files, balance, _items, _actions)
 	return v.errors
 

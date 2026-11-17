@@ -45,12 +45,12 @@ func test_parameters_and_bands() -> void:
 	var rows: Array = []
 	for band: AuctionPopulationBand in _params.bands:
 		rows.append([band.max_value, band.buyers, band.sellers])
-	assert_eq(rows, [[9, 125, 115], [59, 110, 105], [249, 100, 100], [-1, 90, 85]])
-	assert_eq(AuctionMath.band_of(9, _params).buyers, 125)
-	assert_eq(AuctionMath.band_of(10, _params).buyers, 110)
-	assert_eq(AuctionMath.band_of(249, _params).buyers, 100)
-	assert_eq(AuctionMath.band_of(250, _params).buyers, 90)
-	assert_eq(AuctionMath.band_of(1000000, _params).buyers, 90, "the open band has no ceiling")
+	assert_eq(rows, [[900, 125, 115], [5900, 110, 105], [24900, 100, 100], [-1, 90, 85]])
+	assert_eq(AuctionMath.band_of(900, _params).buyers, 125)
+	assert_eq(AuctionMath.band_of(1000, _params).buyers, 110)
+	assert_eq(AuctionMath.band_of(24900, _params).buyers, 100)
+	assert_eq(AuctionMath.band_of(25000, _params).buyers, 90)
+	assert_eq(AuctionMath.band_of(100000000, _params).buyers, 90, "the open band has no ceiling")
 
 
 # --- F-172 -----------------------------------------------------------------------------------------------------------
@@ -213,9 +213,9 @@ func test_trend_examples() -> void:
 
 func test_quotes_examples() -> void:
 	var pricing: AuctionPricing = _pricing()
-	assert_eq(pricing.buy_quote(PLATE, 1), 1605)
-	assert_eq(pricing.sell_quote(PLATE, 1), 711)
-	assert_eq(pricing.buy_quote(PLATE, 3), 3 * 1605)
+	assert_eq(pricing.buy_quote(PLATE, 1), 160402)
+	assert_eq(pricing.sell_quote(PLATE, 1), 71151)
+	assert_eq(pricing.buy_quote(PLATE, 3), 3 * 160402)
 
 
 func test_population_shown() -> void:

@@ -20,7 +20,7 @@
     {"id": "guide_bank_shop", "section": "first_steps", "title": "Shop", "order": 3,
      "help_for": ["shop"],
      "blocks": [
-       {"type": "text", "text": "Lo shop vende, per oro, Razioni da campo, la Raccolta automatica del bottino e la Tasca della borsa. Gli acquisti sono permanenti. Parti con {balance:start.gold|int} monete: l'oro arriva dai mostri e dalle vendite."},
+       {"type": "text", "text": "Lo shop vende, per monete, Razioni da campo, la Raccolta automatica del bottino e la Tasca della borsa. Gli acquisti sono permanenti. Parti con una piccola scorta di monete: arrivano dai mostri e dalle vendite."},
        {"type": "text", "text": "Lo spazio del Deposito non si compra: si ottiene con le borse, che trovi come bottino o costruisci. Vedi {link:page:guide_deposit|Deposito e borse}."},
        {"type": "links", "targets": ["page:guide_deposit", "stat:auto_loot", "stat:auto_eat_tier"]}
      ]}

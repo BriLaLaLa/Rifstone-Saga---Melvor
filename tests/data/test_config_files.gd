@@ -14,7 +14,7 @@ const EXPECTED_BALANCE: Dictionary = {
 	"slots.count": 4.0,
 	"player_name.min_length": 1.0,
 	"player_name.max_length": 24.0,
-	"start.gold": 50.0,
+	"start.gold": 5000.0,
 	"start.items.0.item": "seared_brookfin",
 	"start.items.0.qty": 20.0,
 	"start.armory.0.base": "emberbronze_sword",
@@ -159,6 +159,14 @@ const EXPECTED_BALANCE: Dictionary = {
 	"offline.cap_ms": 43200000.0,
 	"offline.min_ms": 60000.0,
 	"offline.chunk_ms": 60000.0,
+	"currency.copper_per_silver": 100.0,
+	"currency.silver_per_gold": 100.0,
+	"currency.symbols.gold": "o",
+	"currency.symbols.silver": "a",
+	"currency.symbols.copper": "r",
+	"currency.names.gold": "Oro",
+	"currency.names.silver": "Argento",
+	"currency.names.copper": "Rame",
 }
 
 ## The stats of M1-M6 and upgrade_success_pct (M7) of 02_FORMULAS.md §11: id -> [min, max, formula].

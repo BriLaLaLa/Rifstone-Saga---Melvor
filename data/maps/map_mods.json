@@ -55,7 +55,7 @@
     {
       "id": "brutal",
       "name": "Brutalità",
-      "description": "I mostri colpiscono più forte; l'oro cade a profusione.",
+      "description": "I mostri colpiscono più forte; le monete cadono a profusione.",
       "min_grade": 1,
       "weight": 8,
       "risk": {

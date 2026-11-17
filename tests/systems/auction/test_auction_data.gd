@@ -221,8 +221,8 @@ func test_the_real_blueprints_cost_more_than_their_piece_with_the_cheapest_parts
 		var value: int = data.item(row.item_id).value
 		var def: AuctionItemDef = data.auction_item(row.item_id)
 		cost += row.qty * (AuctionMath.buy_unit(value, p.min_ppm, p) if def != null and def.buy_level > 0 else value)
-	assert_eq(cost, 21630)
-	assert_eq(data.item(blueprint.blueprint.base_id).value, 20572)
+	assert_eq(cost, 2163000)
+	assert_eq(data.item(blueprint.blueprint.base_id).value, 2057200)
 
 
 func _generated() -> Array[Dictionary]:

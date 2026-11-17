@@ -457,3 +457,8 @@ Skill delle produzioni: `forging` (Forgia), `woodwright` (Falegnameria), `hearth
 ### Voci dello shop e Guida
 - Voci `buy_recipe_<azione>` (uno schema, `max_purchases` 1) e `buy_reagent_<skill>_<fascia>` (illimitate), categoria `profession`; botteghe `fabbro`, `falegname`, `cuoco`.
 - Pagine della Guida scritte a mano: `guide_professions` (Professioni) e `guide_merchants` (Mercanti), in `data/guide/professioni.json`.
+
+## Alpha 2: monete (M27-03, F-177)
+Tre monete, id `gold`, `silver`, `copper` (`balance.json` `currency`): **Oro** (simbolo `o`), **Argento** (`a`), **Rame** (`r`). 100 Rame = 1 Argento, 100 Argento = 1 Oro. Il denaro dei dati è un importo in Rame.
+Nei testi di gioco il denaro generico si chiama "monete" ("Monete dai mostri", id `gold_drop_pct` e affisso `prosperous` invariati). "Anello d'oro" (`palecinnabar_ring`) è un nome di materiale, non denaro: resta.
+Pagina della Guida: `guide_coins` "Monete" (`data/guide/monete.json`).

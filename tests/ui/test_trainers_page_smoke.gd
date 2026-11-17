@@ -56,7 +56,7 @@ func test_places_are_full_so_learning_is_refused_and_shows_the_reason() -> void:
 func test_unlearning_frees_a_place_and_redraws_on_the_event() -> void:
 	var result: CommandResult = _session.disciplines.unlearn(LEARNED)
 	if not result.ok:
-		_session.wallet.add_gold(100000)
+		_session.wallet.add_gold(10000000)
 		result = _session.disciplines.unlearn(LEARNED)
 	assert_true(result.ok)
 	assert_true((_row(LEARNED).find_child("LearnButton", true, false) as Button).visible, "redrawn on discipline_changed")

@@ -5,7 +5,7 @@
       "name": "Razione di prova",
       "category": "food",
       "icon": "res://assets/icons/items/test_ration.png",
-      "value": 2,
+      "value": 200,
       "sort_order": 10,
       "description": "Cura 20 punti vita.",
       "food": {
@@ -17,7 +17,7 @@
       "name": "Pinnarivo scottato",
       "category": "food",
       "icon": "res://assets/icons/items/seared_brookfin.svg",
-      "value": 2,
+      "value": 200,
       "sort_order": 20,
       "description": "Cura 20 punti vita.",
       "food": {

@@ -53,11 +53,11 @@ func test_the_grade_gold_table_of_f158() -> void:
 	var gold: Array[int] = []
 	for grade: int in range(1, 6):
 		gold.append(TrainerGradeDef.gold(_real, grade))
-	assert_eq(gold, [0, 250, 1250, 6250, 31250] as Array[int])
+	assert_eq(gold, [0, 25000, 125000, 625000, 3125000] as Array[int])
 	var total: int = 0
 	for value: int in gold:
 		total += value
-	assert_eq(total, 39000, "the total cost up to the fifth grade")
+	assert_eq(total, 3900000, "the total cost up to the fifth grade")
 	assert_eq(TrainerGradeDef.gold(_real, 0), 0)
 
 
@@ -65,8 +65,8 @@ func test_the_trainer_grades_guide_table() -> void:
 	var rows: Array[Array] = GuideTables.build("trainer_grades", _real)
 	assert_eq(rows.size(), 6)
 	assert_eq(rows[0], ["Grado", "Livello massimo", "Livello del personaggio", "Oro"] as Array)
-	assert_eq(rows[2], ["Lavorante", "40", "15", "250"] as Array)
-	assert_eq(rows[5], ["Luminare", "99", "75", "31250"] as Array)
+	assert_eq(rows[2], ["Lavorante", "40", "15", "25000"] as Array)
+	assert_eq(rows[5], ["Luminare", "99", "75", "3125000"] as Array)
 
 
 func test_trainer_is_null_without_error_when_absent() -> void:

@@ -111,7 +111,7 @@ func test_the_refinement_cost_follows_the_grade_of_the_material() -> void:
 	var uid: int = s.armory.add(_piece(CHEST))
 	var cost: Dictionary = Upgrade.cost(0, Upgrade.material_grade(s.armory.get_instance(uid), _data), _data)
 	assert_eq(Upgrade.material_grade(s.armory.get_instance(uid), _data), 6, "piece grade 11 -> material 6")
-	assert_eq(cost["gold"], 50 * 6)
+	assert_eq(cost["gold"], 5000 * 6)
 	assert_eq(cost["ingot"], &"palecinnabar_ingot")
 
 

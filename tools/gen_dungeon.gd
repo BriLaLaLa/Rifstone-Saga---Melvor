@@ -81,10 +81,12 @@ const BOSS: Dictionary = {"gold": [3000, 5000], "dust": [40, 60], "pieces": [{"r
 	"card_pct": 60, "card_grade": 4}
 
 var _balance: Dictionary = {}
+var _cps: int = 100  # copper per silver (F-177): the constants above are in silver, the data is written in copper
 
 
 func _init() -> void:
 	_balance = JSON.parse_string(FileAccess.get_file_as_string(BALANCE_PATH)) as Dictionary
+	_cps = (load("res://tools/gen_money.gd") as GDScript).call("cps") as int
 	var text: String = _document()
 	if OS.get_cmdline_user_args().has("--check"):
 		var same: bool = FileAccess.file_exists(OUT_PATH) and FileAccess.get_file_as_string(OUT_PATH) == text
@@ -162,7 +164,7 @@ func _monster(row: Array) -> Dictionary:
 		"power_bonus": maxi(0, roundi(float(row[7]) * (area_bonus + offset) - offset)),
 		"evasion_bonus": roundi(up * 1.2 * float(role[5])),
 		"damage_reduction": minf(25.0, roundf(0.27 * up * float(role[6]) * float(row[9]) * 2.0) / 2.0),
-		"gold": [maxi(1, roundi(base_hp * 0.08 * xp_mult)), maxi(2, roundi(base_hp * 0.16 * xp_mult))],
+		"gold": [maxi(1, roundi(base_hp * 0.08 * xp_mult)) * _cps, maxi(2, roundi(base_hp * 0.16 * xp_mult)) * _cps],
 		"rift_shard_chance": roundf((0.5 + 0.027 * level) * 4.0) / 4.0,
 		"xp": roundi(float(xp_spec["base"]) * pow(float(xp_spec["growth"]), float(level - 1)) * xp_mult),
 		"drops": [], "loot_tables": [LOOT_TABLE]}
@@ -171,7 +173,7 @@ func _monster(row: Array) -> Dictionary:
 # --- rooms, stages, boss -----------------------------------------------------------------------------------------
 
 func _rooms() -> String:
-	var entrance: Dictionary = {"size": ENTRANCE["size"], "pool": _pool(ENTRANCE["pool"] as Array), "reward": ENTRANCE["reward"]}
+	var entrance: Dictionary = {"size": ENTRANCE["size"], "pool": _pool(ENTRANCE["pool"] as Array), "reward": _money(ENTRANCE["reward"] as Dictionary)}
 	var types: Array = []
 	for t: Array in TYPES:
 		var e: Dictionary = {"id": t[0], "weight": t[1], "min_layer": t[2]}
@@ -182,7 +184,7 @@ func _rooms() -> String:
 		elif comp.has("fixed"):
 			e["fixed"] = comp["fixed"]
 		if t[0] != "trap" and t[0] != "rest":
-			e["reward"] = t[4]
+			e["reward"] = _money(t[4] as Dictionary)
 		types.append(e)
 	var trap: Dictionary = {"kinds": TRAP["kinds"], "dash_hp_pct": TRAP["dash_hp_pct"],
 		"ambush": {"size": TRAP["ambush_size"], "pool": _pool(SIDE_POOL)}, "reward": TRAP["reward"]}
@@ -197,7 +199,7 @@ func _stages() -> Array:
 	for s: Array in STAGES:
 		var e: Dictionary = {"id": s[0], "monster": s[1], "escorts": s[2], "intro_ms": s[3], "title": s[4], "quote": s[5]}
 		if not (s[6] as Dictionary).is_empty():
-			e["reward"] = s[6]
+			e["reward"] = _money(s[6] as Dictionary)
 		e["ability"] = s[7]
 		result.append(e)
 	return result
@@ -207,6 +209,14 @@ func _boss() -> Dictionary:
 	var drops: Array = []
 	for d: Array in BOSS_DROPS:
 		drops.append({"item": d[0], "chance_pct": d[1], "qty": d[2]})
-	var boss: Dictionary = BOSS.duplicate(true)
+	var boss: Dictionary = _money(BOSS)
 	boss["drops"] = drops
 	return boss
+
+
+## A copy of `src` whose "gold" range (in silver) is converted to copper.
+func _money(src: Dictionary) -> Dictionary:
+	var out: Dictionary = src.duplicate(true)
+	if out.has("gold"):
+		out["gold"] = (out["gold"] as Array).map(func(v: Variant) -> int: return int(v) * _cps)
+	return out

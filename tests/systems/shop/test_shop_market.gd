@@ -10,7 +10,7 @@ func before_each() -> void:
 	_session = TestFactory.session_no_kit(11, TestFactory.real_data())
 	add_child_autofree(_session)
 	_shop = _session.shop
-	_session.wallet.add_gold(200000 - _session.wallet.get_gold())
+	_session.wallet.add_gold(20000000 - _session.wallet.get_gold())
 
 
 func _market(level: int) -> void:
@@ -40,7 +40,7 @@ func test_shelves_add_up_to_the_deposit_capacity() -> void:
 	assert_eq(_session.modifiers.total(&"deposit_slots"), 8.0)
 	assert_eq(_session.deposit.capacity(), before + 8, "F-133: 60 + 8 = 68 without other buildings")
 	assert_eq(_shop.can_buy(&"market_shelf_1").reason, Reasons.MAX_PURCHASES)
-	assert_eq(_session.wallet.get_gold(), 200000 - 2000 - 12000)
+	assert_eq(_session.wallet.get_gold(), 20000000 - 200000 - 1200000)
 
 
 func test_requirement_is_checked_before_gold() -> void:
@@ -62,4 +62,4 @@ func test_the_fifteen_entries_of_the_real_data() -> void:
 		assert_eq(entry.max_purchases, 1)
 		assert_true(entry.req_village.has(&"market"), str(entry.id))
 	assert_eq(count, 15)
-	assert_eq(total, 314000, "F-136: 314.000 gold in total")
+	assert_eq(total, 31400000, "F-136: 314.000 a (silver) in total")

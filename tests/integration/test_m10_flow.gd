@@ -18,7 +18,7 @@ const MIN_LEVELS: Array[int] = [1, 10, 20, 25, 35, 50, 65, 80, 90]
 const GRADES: Array[int] = [1, 2, 3, 3, 4, 5, 6, 7, 8]
 const PLATES: Array[int] = [2, 2, 3, 3, 4, 4, 5, 5, 6]
 const HANDLES: Array[int] = [1, 1, 1, 1, 2, 2, 2, 2, 3]
-const GOLD: Array[int] = [100, 250, 600, 1200, 2500, 5000, 10000, 20000, 40000]
+const GOLD: Array[int] = [10000, 25000, 60000, 120000, 250000, 500000, 1000000, 2000000, 4000000]
 # tool slot -> [skill, extra stat, total at +5, total at +9]
 const TOOLS: Dictionary[StringName, Array] = {
 	&"tool_forestry": [&"forestry", &"double_item_chance", 2.0, 5.0],
@@ -135,7 +135,7 @@ func test_a_piece_is_not_a_tool_and_the_refinement_needs_gold_and_items() -> voi
 	assert_eq(_session.armory.upgrade_tool(9999).reason, Reasons.UNKNOWN_ID)
 	var hatchet: int = _session.armory.tool_uid(&"tool_forestry")
 	assert_eq(_session.armory.upgrade_tool(hatchet).reason, Reasons.NOT_ENOUGH_GOLD)
-	_session.wallet.add_gold(100)
+	_session.wallet.add_gold(10000)
 	assert_eq(_session.armory.upgrade_tool(hatchet).reason, Reasons.NOT_ENOUGH_ITEMS)
 	assert_eq(_session.armory.get_instance(hatchet).upgrade, 0)
 

@@ -186,11 +186,11 @@ func test_a_reagent_must_be_unlimited() -> void:
 
 func test_the_price_must_be_above_the_value_of_what_is_sold() -> void:
 	var raw: Dictionary = V.fixture_raw()
-	_shop(raw, "buy_reagent_test_craft_1")["cost"] = {"gold": 1}
-	_expect(raw, ["shop entry 'buy_reagent_test_craft_1'", "field 'cost.gold' (1) must be above the value of the item sold (1)"])
+	_shop(raw, "buy_reagent_test_craft_1")["cost"] = {"gold": 100}
+	_expect(raw, ["shop entry 'buy_reagent_test_craft_1'", "field 'cost.gold' (100) must be above the value of the item sold (100)"])
 	var raw_qty: Dictionary = V.fixture_raw()
 	_shop(raw_qty, "test_buy_log")["effect"]["item"]["qty"] = 10
-	_expect(raw_qty, ["shop entry 'test_buy_log'", "field 'cost.gold' (20) must be above the value of the item sold (30)"])
+	_expect(raw_qty, ["shop entry 'test_buy_log'", "field 'cost.gold' (2000) must be above the value of the item sold (3000)"])
 
 
 func test_a_profession_entry_sells_only_a_recipe_or_a_reagent() -> void:

@@ -20,7 +20,7 @@ func test_the_engraver_is_learned_like_any_production() -> void:
 	assert_eq(_d.category_of(E), &"artisan")
 	assert_true(_d.learn(E).ok)
 	assert_eq(_d.grade(E), 1)
-	assert_eq(_d.next_grade_cost(E), 250)
+	assert_eq(_d.next_grade_cost(E), 25000)
 	assert_false(_d.is_extra(E))
 
 

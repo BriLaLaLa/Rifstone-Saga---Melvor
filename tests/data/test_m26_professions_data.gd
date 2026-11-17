@@ -5,13 +5,13 @@ extends GutTest
 const SKILLS: Array[StringName] = [&"forging", &"woodwright", &"hearthcraft"]
 const VENDORS: Dictionary = {&"forging": &"fabbro", &"woodwright": &"falegname", &"hearthcraft": &"cuoco"}
 const SCHEME_COUNT: Dictionary = {&"forging": 7, &"woodwright": 14, &"hearthcraft": 7}
-## F-170: total gold of the schemes of a skill.
-const SCHEME_TOTAL: Dictionary = {&"forging": 70700, &"woodwright": 60600, &"hearthcraft": 20200}
+## F-170: total copper of the schemes of a skill.
+const SCHEME_TOTAL: Dictionary = {&"forging": 7070000, &"woodwright": 6060000, &"hearthcraft": 2020000}
 ## F-171: [price, value] of the four reagents of a skill; unlock level 10, 30, 60, 90.
 const REAGENTS: Dictionary = {
-	&"forging": [[2, 0], [7, 1], [21, 5], [60, 15]],
-	&"woodwright": [[1, 0], [2, 0], [6, 1], [17, 4]],
-	&"hearthcraft": [[1, 0], [2, 0], [6, 1], [17, 4]],
+	&"forging": [[200, 0], [700, 100], [2100, 500], [6000, 1500]],
+	&"woodwright": [[100, 0], [200, 0], [600, 100], [1700, 400]],
+	&"hearthcraft": [[100, 0], [200, 0], [600, 100], [1700, 400]],
 }
 const BAND_LEVELS: Array[int] = [10, 30, 60, 90]
 const TIER_LEVELS: Array[int] = [1, 10, 20, 30, 45, 60, 75, 90]
@@ -78,11 +78,11 @@ func test_scheme_prices_follow_f170() -> void:
 			assert_eq(recipe.value, 0)
 			totals[skill] += entry.cost_gold
 	assert_eq(totals, SCHEME_TOTAL)
-	assert_eq(_data.shop_entry(&"buy_recipe_forge_ashlead_plate").cost_gold, 1050)
-	assert_eq(_data.shop_entry(&"buy_recipe_forge_riftite_plate").cost_gold, 29750)
-	assert_eq(_data.shop_entry(&"buy_recipe_carve_ashpine_handle").cost_gold, 300)
-	assert_eq(_data.shop_entry(&"buy_recipe_cook_ashgill").cost_gold, 300)
-	assert_eq(_data.shop_entry(&"buy_recipe_carve_riftspruce_shieldcore").cost_gold, 17000)
+	assert_eq(_data.shop_entry(&"buy_recipe_forge_ashlead_plate").cost_gold, 105000)
+	assert_eq(_data.shop_entry(&"buy_recipe_forge_riftite_plate").cost_gold, 2975000)
+	assert_eq(_data.shop_entry(&"buy_recipe_carve_ashpine_handle").cost_gold, 30000)
+	assert_eq(_data.shop_entry(&"buy_recipe_cook_ashgill").cost_gold, 30000)
+	assert_eq(_data.shop_entry(&"buy_recipe_carve_riftspruce_shieldcore").cost_gold, 1700000)
 
 
 func test_12_reagents_with_f171_prices_and_values() -> void:

@@ -46,7 +46,7 @@ func test_buy_disabled_with_reason_when_gold_is_missing() -> void:
 
 func test_buy_enabled_when_can_buy_succeeds_and_buying_updates_the_page() -> void:
 	_open()
-	_session.wallet.add_gold(1000)
+	_session.wallet.add_gold(100000)
 	var gold: int = _session.wallet.get_gold()
 	var price: int = _session.shop.price(&"test_upgrade_1")
 	var buy: Button = _buy(&"test_upgrade_1")
@@ -63,7 +63,7 @@ func test_buy_enabled_when_can_buy_succeeds_and_buying_updates_the_page() -> voi
 
 func test_missing_requirements_are_listed() -> void:
 	_open()
-	_session.wallet.add_gold(5000)
+	_session.wallet.add_gold(500000)
 	var text: String = _row_label(&"test_upgrade_2", "RequiresLabel").text
 	assert_true(text.begins_with("Richiede: "))
 	assert_string_contains(text, "Miglioria di prova I")
@@ -76,7 +76,7 @@ func test_missing_requirements_are_listed() -> void:
 
 func test_unlimited_entry_has_no_counter_and_item_entry_fills_the_armory() -> void:
 	_open()
-	_session.wallet.add_gold(150)
+	_session.wallet.add_gold(15000)
 	assert_false(_row_label(&"test_buy_hatchet", "CountLabel").visible)
 	assert_true(_row_label(&"test_upgrade_1", "CountLabel").visible)
 	assert_false(_buy(&"test_buy_hatchet").disabled)
@@ -88,7 +88,7 @@ func test_unlimited_entry_has_no_counter_and_item_entry_fills_the_armory() -> vo
 func test_character_requirement_is_listed_and_follows_the_level() -> void:
 	_session.data.shop_entry(&"test_buy_hatchet").req_character = 5
 	_open()
-	_session.wallet.add_gold(500)
+	_session.wallet.add_gold(50000)
 	assert_string_contains(_row_label(&"test_buy_hatchet", "RequiresLabel").text, "livello del personaggio 5")
 	assert_true(_buy(&"test_buy_hatchet").disabled)
 	_session.character.add_xp(_session.data.character_xp_table().xp_for_level(5))
@@ -105,7 +105,7 @@ func test_unbind_disconnects_everything() -> void:
 		for connection: Dictionary in sig.get_connections():
 			assert_ne((connection["callable"] as Callable).get_object(), _page, "%s still connected" % event_name)
 	var shown: String = _label("%GoldLabel").text
-	_session.wallet.add_gold(10)
+	_session.wallet.add_gold(1000)
 	assert_eq(_label("%GoldLabel").text, shown, "no refresh after unbind")
 
 
@@ -165,7 +165,7 @@ func test_market_stall_and_village_requirement_text() -> void:
 	var missing: Array[String] = page.missing_village(required)
 	assert_eq(missing.size(), 1, "level 0 does not satisfy the requirement")
 	assert_true(missing[0].contains("1"))
-	real.wallet.add_gold(300)
+	real.wallet.add_gold(30000)
 	TestFactory.give(real, &"redbirch_shieldcore", 20)
 	TestFactory.give(real, &"emberbronze_plate", 4)
 	assert_true(real.village.upgrade(&"storehouse").ok)

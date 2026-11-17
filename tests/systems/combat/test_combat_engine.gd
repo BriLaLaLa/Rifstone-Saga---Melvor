@@ -155,7 +155,7 @@ func test_gold_drop_pct() -> void:
 		_fight_until_kills(plain, 1)
 		_fight_until_kills(boosted, 1)
 		var rolled: int = plain.wallet.get_gold() - start_gold
-		assert_between(rolled, 1, 12, "within the gold range of the monsters")
+		assert_between(rolled, 100, 1200, "within the gold range of the monsters")
 		assert_eq(boosted.wallet.get_gold() - start_gold, floori(rolled * 1.25), "seed %d" % seed_value)
 
 
@@ -167,7 +167,7 @@ func _gold_per_kill(session: GameSession, count: int) -> Array[int]:
 
 
 func test_gold_example_roll_ten_with_25_pct_gives_twelve() -> void:
-	# F-31 example: roll 10 (monster B, gold 5-12), +25% -> 12. Same seed -> same kills and rolls in both sessions.
+	# F-31 example (copper, F-177): a roll of monster B (gold 500-1200), e.g. 1000, +25% -> floor(1250). Same seed -> same kills and rolls in both sessions.
 	var found: bool = false
 	for seed_value: int in range(1, 40):
 		var plain: GameSession = _new_session(seed_value)
@@ -178,12 +178,12 @@ func test_gold_example_roll_ten_with_25_pct_gives_twelve() -> void:
 		var a: Array[int] = _gold_per_kill(plain, 30)
 		var b: Array[int] = _gold_per_kill(boosted, 30)
 		assert_eq(a.size(), b.size(), "seed %d: same kills" % seed_value)
-		var at: int = a.find(10)
+		var at: int = a.find_custom(func(gain: int) -> bool: return gain >= 500)  # a roll of monster B
 		if at >= 0:
-			assert_eq(b[at], 12, "seed %d: roll 10 with +25%% -> 12" % seed_value)
+			assert_eq(b[at], floori(a[at] * 1.25), "seed %d: the roll with +25%%" % seed_value)
 			found = true
 			break
-	assert_true(found, "some seed rolls 10 gold")
+	assert_true(found, "some seed rolls a gold of monster B")
 
 
 func test_drops_and_shard_chance() -> void:

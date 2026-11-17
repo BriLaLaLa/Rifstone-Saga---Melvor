@@ -49,7 +49,7 @@ func test_button_follows_can_upgrade_and_upgrade_is_called_once_per_click() -> v
 	assert_true(button.disabled)
 	assert_eq(_stub.can_upgrade(&"inn").reason, Reasons.NOT_ENOUGH_GOLD)
 	assert_true((_page.find_child("Box_inn", true, false).find_child("ReasonLabel", true, false) as Label).visible)
-	_session.wallet.add_gold(1000)
+	_session.wallet.add_gold(100000)
 	_session.bank.add(_stub.cost_item, 10)
 	assert_false(_button(&"inn").disabled)
 	assert_eq(_stub.upgrade_calls, 0)
@@ -59,7 +59,7 @@ func test_button_follows_can_upgrade_and_upgrade_is_called_once_per_click() -> v
 
 
 func test_forced_reason_disables_the_button() -> void:
-	_session.wallet.add_gold(1000)
+	_session.wallet.add_gold(100000)
 	_session.bank.add(_stub.cost_item, 10)
 	_stub.forced_reason = &"level_too_low"
 	_session.wallet.add_gold(1)
@@ -85,7 +85,7 @@ func test_map_view_nodes_states_selection_open_and_views() -> void:
 	_session.wallet.add_gold(1)
 	assert_eq(map.state_of(&"inn"), VillageNodeState.LOCKED)
 	_stub.forced_reason = &""
-	_session.wallet.add_gold(1000)
+	_session.wallet.add_gold(100000)
 	_session.bank.add(_stub.cost_item, 10)
 	assert_eq(map.state_of(&"inn"), VillageNodeState.READY)
 	# selecting a node changes the detail box; "Apri" is disabled at level 0 and enabled once built
@@ -124,7 +124,7 @@ func test_bind_with_the_real_session_village() -> void:
 	page.bind(real)
 	for id: StringName in real.village.buildings():
 		assert_not_null(page.find_child("Box_%s" % id, true, false), "box %s" % id)
-	real.wallet.add_gold(300)
+	real.wallet.add_gold(30000)
 	TestFactory.give(real, &"redbirch_shieldcore", 20)
 	TestFactory.give(real, &"emberbronze_plate", 4)
 	var button: Button = page.find_child("Box_storehouse", true, false).find_child("UpgradeButton", true, false) as Button

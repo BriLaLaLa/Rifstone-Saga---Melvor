@@ -37,7 +37,7 @@ func _qty(item_id: StringName) -> int:
 func test_the_guaranteed_part_of_the_loot() -> void:
 	var gold: int = _s.wallet.get_gold()
 	DungeonRewards.boss_loot(_s, _sink, _def(0.0, 0.0))
-	assert_between(_s.wallet.get_gold() - gold, 3000, 5000)
+	assert_between(_s.wallet.get_gold() - gold, 300000, 500000)
 	assert_between(_qty(&"rift_dust"), 40, 60)
 	var pieces: Array[ItemInstance] = _bag.pieces()
 	assert_eq(pieces.size(), 2)

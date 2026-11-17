@@ -69,14 +69,21 @@ func test_can_sell_reasons_in_order() -> void:
 
 
 func test_not_sellable_when_the_total_is_zero() -> void:
+	var item: ItemDef = _s.data.item(LOG)
+	var real_value: int = item.value
+	item.value = 1  # F-177: with the value in copper the zero total needs a one-copper item (restored below)
+	_s = AuctionTestData.session(8)
+	add_child_autofree(_s)
+	_house = _s.auction
 	TestFactory.give(_s, LOG, 6000)
 	assert_true(_house.sell(LOG, 5000).ok)
-	assert_eq(_house.sell_quote(LOG, 1), 0, "1 gold at the minimum index rounds to 0")
+	assert_eq(_house.sell_quote(LOG, 1), 0, "1 copper at the minimum index rounds to 0")
 	var gold: int = _s.wallet.get_gold()
 	assert_eq(_house.can_sell(LOG, 1).reason, Reasons.NOT_SELLABLE)
 	assert_eq(_house.sell(LOG, 1).reason, Reasons.NOT_SELLABLE)
 	assert_eq(_s.wallet.get_gold(), gold)
 	assert_eq(_s.bank.get_count(LOG), 1000, "nothing changed")
+	item.value = real_value
 
 
 func test_sell_pays_the_quote_computed_before_the_saturation() -> void:
@@ -112,12 +119,12 @@ func test_can_buy_reasons_in_order() -> void:
 	assert_lt(_s.wallet.get_gold(), _house.buy_quote(PLATE, 1))
 	assert_eq(_house.can_buy(PLATE, 11).reason, Reasons.OUT_OF_STOCK, "stock comes before gold")
 	assert_eq(_house.can_buy(PLATE, 1).reason, Reasons.NOT_ENOUGH_GOLD)
-	_s.wallet.add_gold(100000)
+	_s.wallet.add_gold(10000000)
 	assert_true(_house.can_buy(PLATE, 1).ok)
 
 
 func test_buy_spends_then_adds_and_emits_in_order() -> void:
-	_s.wallet.add_gold(10000)
+	_s.wallet.add_gold(1000000)
 	var price: int = _house.buy_quote(GRIP, 20)
 	var gold: int = _s.wallet.get_gold()
 	_seen.clear()
@@ -129,7 +136,7 @@ func test_buy_spends_then_adds_and_emits_in_order() -> void:
 
 
 func test_buying_does_not_change_the_price_and_selling_does_not_refill_the_stock() -> void:
-	_s.wallet.add_gold(100000)
+	_s.wallet.add_gold(10000000)
 	var buy_price: int = _house.buy_quote(PLATE, 1)
 	_house.buy(PLATE, 4)
 	assert_eq(_house.buy_quote(PLATE, 1), buy_price)
@@ -153,7 +160,7 @@ func test_a_rejected_command_changes_nothing() -> void:
 
 
 func test_bank_full_blocks_a_new_stack_but_not_an_existing_one() -> void:
-	_s.wallet.add_gold(100000)
+	_s.wallet.add_gold(10000000)
 	_house.buy(GRIP, 1)
 	for def: ItemDef in _s.data.items():
 		if _s.bank.free_boxes() <= 0:

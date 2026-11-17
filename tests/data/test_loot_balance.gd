@@ -4,7 +4,7 @@ extends GutTest
 
 const BALANCE_PATH: String = "res://data/config/balance.json"
 const SUCCESS: Array[int] = [95, 90, 85, 75, 65, 55, 45, 35, 25]
-const GOLD: Array[int] = [50, 100, 200, 400, 800, 1600, 3200, 6400, 12800]
+const GOLD: Array[int] = [5000, 10000, 20000, 40000, 80000, 160000, 320000, 640000, 1280000]
 const INGOTS: Array[int] = [1, 1, 2, 2, 3, 3, 4, 4, 5]
 const SHARDS: Array[int] = [0, 0, 0, 0, 0, 5, 10, 15, 20]
 const DUST: Array[int] = [0, 0, 0, 0, 10, 20, 30, 40, 50]  # M14 (F-86, Q71)

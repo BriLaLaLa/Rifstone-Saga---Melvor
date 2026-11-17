@@ -10,7 +10,7 @@ const MIN_LEVELS: Array[int] = [1, 10, 20, 25, 35, 50, 65, 80, 90]
 const GRADES: Array[int] = [1, 2, 3, 3, 4, 5, 6, 7, 8]
 const PLATES: Array[int] = [2, 2, 3, 3, 4, 4, 5, 5, 6]
 const HANDLES: Array[int] = [1, 1, 1, 1, 2, 2, 2, 2, 3]
-const GOLD: Array[int] = [100, 250, 600, 1200, 2500, 5000, 10000, 20000, 40000]
+const GOLD: Array[int] = [10000, 25000, 60000, 120000, 250000, 500000, 1000000, 2000000, 4000000]
 
 var _data: GameData = BlueprintData.data()
 var _session: GameSession = null
@@ -69,7 +69,7 @@ func test_interval_examples() -> void:
 
 ## Pickaxe +0 -> +1 with the quarrier at level 1: 2 plates of grade 1, 1 handle, 100 gold.
 func test_first_step_costs_and_effect() -> void:
-	_session.wallet.add_gold(150)
+	_session.wallet.add_gold(15000)
 	TestFactory.give(_session, _plate(1), 3)
 	TestFactory.give(_session, _handle(1), 2)
 	var uid: int = _session.armory.tool_uid(&"tool_quarrying")
@@ -77,7 +77,7 @@ func test_first_step_costs_and_effect() -> void:
 	watch_signals(_session.events)
 	assert_true(_session.armory.upgrade_tool(uid).ok)
 	assert_eq(_session.armory.get_instance(uid).upgrade, 1)
-	assert_eq(_session.wallet.get_gold(), gold_before - 100)
+	assert_eq(_session.wallet.get_gold(), gold_before - 10000)
 	assert_eq(_session.bank.get_count(_plate(1)), 1)
 	assert_eq(_session.bank.get_count(_handle(1)), 1)
 	assert_signal_emitted_with_parameters(_session.events, "item_upgraded", [uid, true, 1])
@@ -135,9 +135,9 @@ func test_refusals_in_order() -> void:
 	assert_eq(_session.armory.upgrade_tool(999).reason, Reasons.UNKNOWN_ID)
 	var piece: int = _session.armory.create(&"test_blade", &"common", 1)
 	assert_eq(_session.armory.upgrade_tool(piece).reason, Reasons.NOT_A_TOOL)
-	# +1 needs gold 100 and 2 plates + 1 handle: no gold first, then no items.
+	# +1 needs gold 10000 and 2 plates + 1 handle: no gold first, then no items.
 	assert_eq(_session.armory.upgrade_tool(_uid).reason, Reasons.NOT_ENOUGH_GOLD)
-	_session.wallet.add_gold(100)
+	_session.wallet.add_gold(10000)
 	assert_eq(_session.armory.upgrade_tool(_uid).reason, Reasons.NOT_ENOUGH_ITEMS)
 	TestFactory.give(_session, _plate(1), 2)
 	assert_eq(_session.armory.upgrade_tool(_uid).reason, Reasons.NOT_ENOUGH_ITEMS, "the handle is missing")

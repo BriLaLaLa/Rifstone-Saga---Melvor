@@ -29,7 +29,7 @@ func _session(seed_value: int = SEED) -> GameSession:
 func _played() -> GameSession:
 	var s: GameSession = _session()
 	TestFactory.set_character_level(s, 12)
-	s.wallet.add_gold(100000)
+	s.wallet.add_gold(10000000)
 	TestFactory.give(s, INGOT, 100)
 	TestFactory.give(s, SHARD, 100)
 	TestFactory.give(s, &"rift_dust", 2000)
@@ -187,7 +187,7 @@ func test_item_rarity_pct_changes_the_rarity_of_the_drops_end_to_end() -> void:
 func test_upgrade_success_pct_changes_the_refinement_end_to_end() -> void:
 	# F-86: +8 -> +9 has a base chance of 25%; with +300% it is min(100, 25 x 4) = 100.
 	var s: GameSession = _session()
-	s.wallet.add_gold(2000000)
+	s.wallet.add_gold(200000000)
 	TestFactory.give(s, INGOT, 1000)
 	TestFactory.give(s, SHARD, 1000)
 	TestFactory.give(s, &"rift_dust", 2000)

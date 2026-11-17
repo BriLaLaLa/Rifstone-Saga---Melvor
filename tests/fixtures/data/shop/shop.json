@@ -6,7 +6,7 @@
       "category": "combat", "vendor": "bottegaia",
       "description": "Una tasca in più.",
       "cost": {
-        "gold": 100
+        "gold": 10000
       },
       "max_purchases": 150,
       "requires": {},
@@ -25,7 +25,7 @@
       "category": "bank", "vendor": "bottegaia",
       "description": "Primo livello.",
       "cost": {
-        "gold": 1000
+        "gold": 100000
       },
       "max_purchases": 1,
       "requires": {},
@@ -44,7 +44,7 @@
       "category": "bank", "vendor": "bottegaia",
       "description": "Secondo livello.",
       "cost": {
-        "gold": 5000
+        "gold": 500000
       },
       "max_purchases": 1,
       "requires": {
@@ -72,7 +72,7 @@
       "category": "materials", "vendor": "bottegaia",
       "description": "Un ramo.",
       "cost": {
-        "gold": 150
+        "gold": 15000
       },
       "max_purchases": 0,
       "requires": {},
@@ -89,7 +89,7 @@
       "category": "materials", "vendor": "bottegaia",
       "description": "Un tronco.",
       "cost": {
-        "gold": 20
+        "gold": 2000
       },
       "max_purchases": 0,
       "requires": {},
@@ -105,7 +105,7 @@
       "name": "Schema: Schema di prova",
       "category": "profession", "vendor": "fabbro",
       "description": "Uno schema di prova.",
-      "cost": {"gold": 500},
+      "cost": {"gold": 50000},
       "max_purchases": 1,
       "requires": {"skills": {"test_craft": 5}},
       "effect": {"item": {"item": "recipe_craft_scheme", "qty": 1}}
@@ -115,7 +115,7 @@
       "name": "Reagente di prova",
       "category": "profession", "vendor": "fabbro",
       "description": "Un reagente di prova.",
-      "cost": {"gold": 2},
+      "cost": {"gold": 200},
       "max_purchases": 0,
       "requires": {"skills": {"test_craft": 5}},
       "effect": {"item": {"item": "reagent_test_craft_1", "qty": 1}}
@@ -126,7 +126,7 @@
       "category": "combat", "vendor": "bottegaia",
       "description": "Prima razione.",
       "cost": {
-        "gold": 2000
+        "gold": 200000
       },
       "max_purchases": 1,
       "requires": {},

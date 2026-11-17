@@ -175,8 +175,8 @@ func test_areas_and_monsters() -> void:
 	assert_eq(area.packs[1].monster_ids, [&"test_monster_a", &"test_monster_b"] as Array[StringName])
 	var monster: MonsterDef = _data.monster(&"test_monster_b")
 	assert_eq(monster.xp, 200)
-	assert_eq(monster.gold_min, 5)
-	assert_eq(monster.gold_max, 12)
+	assert_eq(monster.gold_min, 500)
+	assert_eq(monster.gold_max, 1200)
 	assert_eq(monster.drops.size(), 2)
 
 

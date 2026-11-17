@@ -64,7 +64,7 @@ func run(args: PackedStringArray) -> int:
 ## Drops per 30 minutes in each area at the level of its monsters (grade of the set from the level, see sim_combat).
 static func drops_report(data: Object, opts: Dictionary) -> PackedStringArray:
 	var out: PackedStringArray = PackedStringArray()
-	out.append("| area | kills/h | pieces/30 min | magic/30 min | hours per rare | projects/h | dust/h | gold/h |")
+	out.append("| area | kills/h | pieces/30 min | magic/30 min | hours per rare | projects/h | dust/h | copper/h |")
 	out.append("|---|---|---|---|---|---|---|---|")
 	for area: Object in data.call("areas"):
 		var row: Dictionary = area_drops(data, area, float(opts["hours"]), int(opts["seed"]))

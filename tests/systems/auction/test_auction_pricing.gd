@@ -38,9 +38,9 @@ func test_listing_and_levels() -> void:
 
 func test_quotes_at_rest() -> void:
 	var value: int = _data.item(PLATE).value
-	assert_eq(_p.sell_quote(PLATE, 1), 711)
-	assert_eq(_p.buy_quote(PLATE, 1), 1605)
-	assert_eq(_p.buy_quote(PLATE, 3), 3 * 1605)
+	assert_eq(_p.sell_quote(PLATE, 1), 71151)
+	assert_eq(_p.buy_quote(PLATE, 1), 160402)
+	assert_eq(_p.buy_quote(PLATE, 3), 3 * 160402)
 	assert_eq(_p.sell_quote(PLATE, 0), 0)
 	assert_eq(_p.sell_quote(&"test_unknown", 5), 0)
 	assert_eq(_p.buy_quote(LOG, 5), 0, "not for sale")

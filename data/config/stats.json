@@ -172,11 +172,11 @@
     },
     {
       "id": "gold_drop_pct",
-      "name": "Oro dai mostri",
+      "name": "Monete dai mostri",
       "format": "pct",
       "min": 0,
       "max": 1000,
-      "description": "Aumenta l'oro lasciato dai mostri sconfitti.",
+      "description": "Aumenta le monete lasciate dai mostri sconfitti.",
       "formula": "F-31",
       "test": "tests/systems/combat/test_combat_engine.gd::test_gold_drop_pct"
     },

@@ -14,7 +14,7 @@ const RECOMMENDED: int = 45
 static func tickets_report(data: Object, opts: Dictionary, stats: Dictionary, lines: PackedStringArray) -> PackedStringArray:
 	var failures: PackedStringArray = PackedStringArray()
 	lines.append("")
-	lines.append("| area | level | kills/h | encounters/h | miniboss/h (encounters x chance) | monoliths/h (kills x chance) | tickets/h (expected) | hours per ticket | gold/h | rare+/h | hp% per encounter |")
+	lines.append("| area | level | kills/h | encounters/h | miniboss/h (encounters x chance) | monoliths/h (kills x chance) | tickets/h (expected) | hours per ticket | copper/h | rare+/h | hp% per encounter |")
 	lines.append("|---|---|---|---|---|---|---|---|---|---|---|")
 	var rates: Array[float] = []
 	var focus_area: Dictionary = {}

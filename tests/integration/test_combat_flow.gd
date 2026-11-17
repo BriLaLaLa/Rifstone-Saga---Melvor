@@ -236,7 +236,7 @@ func test_save_load_in_the_middle_of_a_fight_is_identical_and_continues_identica
 	TestFactory.set_character_level(a, 40)
 	TestFactory.give(a, FOOD, 200)  # M17-04: packs of up to 8 monsters eat more
 	a.equipment.set_food(FOOD)
-	a.wallet.add_gold(2000)
+	a.wallet.add_gold(200000)
 	assert_true(a.shop.buy(&"auto_eat_1").ok)
 	a.combat.start(AREA)
 	_run(a, 400000)

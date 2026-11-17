@@ -17,8 +17,8 @@ const REMOVED_SKILLS: PackedStringArray = ["blade", "marksmanship", "arcana", "v
 const REMOVED_ITEM_SUFFIXES: PackedStringArray = ["_blade", "_bow", "_staff"]
 ## 02_FORMULAS.md §8.1, T1..T8: [level, interval_ms, xp, product qty, item value].
 const GATHERING_TIERS: Array[Array] = [
-	[1, 3000, 10, 1, 1], [10, 3200, 18, 1, 3], [20, 3500, 28, 1, 6], [30, 3800, 40, 1, 10],
-	[45, 4200, 58, 1, 18], [60, 4600, 80, 1, 30], [75, 5000, 108, 1, 50], [90, 5500, 145, 1, 85],
+	[1, 3000, 10, 1, 100], [10, 3200, 18, 1, 300], [20, 3500, 28, 1, 600], [30, 3800, 40, 1, 1000],
+	[45, 4200, 58, 1, 1800], [60, 4600, 80, 1, 3000], [75, 5000, 108, 1, 5000], [90, 5500, 145, 1, 8500],
 ]
 ## Gathering skills whose actions exist (M1: forestry; M2: quarrying and angling).
 const GATHERING_WITH_ACTIONS: PackedStringArray = ["forestry", "quarrying", "angling", "herbalism"]
@@ -366,3 +366,41 @@ func test_currencies_cover_the_three_effects_with_a_recipe() -> void:
 			if not (a["outputs"] as Array).is_empty() and a["outputs"][0]["item"] == id:
 				recipes += 1
 		assert_eq(recipes, 1, "recipes of %s" % id)
+
+
+## F-177 (M27-03): the examples of the one-off conversion on the real data (every money field x 100).
+func test_money_examples_of_f177() -> void:
+	var data: GameData = TestFactory.real_data()
+	assert_eq(data.item(&"redbirch_grip").value, 200)
+	assert_eq(data.item(&"riftite_plate").value, 59500)
+	assert_eq(data.shop_entry(&"buy_recipe_forge_ashlead_plate").cost_gold, 105000)
+	var prices: Array[int] = []
+	var values: Array[int] = []
+	for band: int in range(1, 5):
+		prices.append(data.shop_entry(StringName("buy_reagent_forging_%d" % band)).cost_gold)
+		values.append(data.item(StringName("reagent_forging_%d" % band)).value)
+	assert_eq(prices, [200, 700, 2100, 6000] as Array[int])
+	assert_eq(values, [0, 100, 500, 1500] as Array[int])
+	assert_eq(int(data.balance_value("start.gold")), 5000)
+	assert_eq(int(data.balance_value("auction.stock.gold")), 600000)
+	assert_eq(int((data.balance_value("quest.gold_by_tier") as Array)[0]), 8000)
+	var maxima: Array[int] = []
+	for band: AuctionPopulationBand in data.auction_params().bands:
+		maxima.append(band.max_value)
+	assert_eq(maxima.slice(0, 3), [900, 5900, 24900] as Array[int])
+	var levels: Array = data.village_building(&"auction_house").levels
+	assert_eq([levels[0]["gold"], levels[3]["gold"], levels[7]["gold"]], [30000, 82000, 316000])
+	assert_eq(data.currency().copper_per_silver, 100)
+
+
+## F-177: the stock cap S(v) (F-150) and the population band (F-172) do not change with the unit: numerator and denominator scale together.
+func test_money_invariants_of_f177() -> void:
+	var data: GameData = TestFactory.real_data()
+	var params: AuctionParams = data.auction_params()
+	var want: Array = [[&"redbirch_grip", 500, 0], [&"riftite_plate", 10, 3], [&"shardcedar_grip", 166, 1], [&"seared_riftmaw", 35, 2]]
+	for row: Array in want:
+		var value: int = data.item(row[0]).value
+		assert_eq(AuctionMath.stock_max(value, params), row[1], "S of %s" % row[0])
+		assert_eq(params.bands.find(AuctionMath.band_of(value, params)), row[2], "band of %s" % row[0])
+	assert_eq(data.item(&"shardcedar_grip").value, 3600)
+	assert_eq(data.item(&"seared_riftmaw").value, 17000)

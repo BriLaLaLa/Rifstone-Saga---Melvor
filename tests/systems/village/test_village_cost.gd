@@ -30,7 +30,7 @@ func test_storehouse_level_3() -> void:
 	assert_eq(_qty(row, &"thornalder_shieldcore"), 40)
 	assert_eq(_qty(row, &"stormzinc_plate"), 8)
 	assert_eq((row["items"] as Array).size(), 2)
-	assert_eq(row["gold"], 590, "588 rounds to 590")
+	assert_eq(row["gold"], 59000, "588 a rounds to 590 a")
 	assert_eq(row["requires_woodwright"], 20)
 
 
@@ -38,7 +38,7 @@ func test_inn_level_8() -> void:
 	var row: Dictionary = _level(&"inn", 8)
 	assert_eq(_qty(row, &"riftspruce_grip"), 90)
 	assert_eq(_qty(row, &"seared_riftmaw"), 58)
-	assert_eq(row["gold"], 2530, "0.8 x 3162.4 = 2529.9 -> 2530")
+	assert_eq(row["gold"], 253000, "0.8 x 3162.4 = 2529.9 a -> 2530 a")
 	assert_eq(row["requires_woodwright"], 90)
 
 
@@ -46,7 +46,7 @@ func test_forge_level_1() -> void:
 	var row: Dictionary = _level(&"forge", 1)
 	assert_eq(_qty(row, &"redbirch_handle"), 20)
 	assert_eq(_qty(row, &"emberbronze_plate"), 8)
-	assert_eq(row["gold"], 300)
+	assert_eq(row["gold"], 30000)
 	assert_eq(row["requires_woodwright"], 1)
 
 
@@ -54,7 +54,7 @@ func test_sawmill_level_5() -> void:
 	var row: Dictionary = _level(&"sawmill", 5)
 	assert_eq(_qty(row, &"shardcedar_grip"), 90)
 	assert_eq(_qty(row, &"shardcedar_handle"), 90)
-	assert_eq(row["gold"], 690, "0.6 x 1152.48 = 691.5 -> 690")
+	assert_eq(row["gold"], 69000, "0.6 x 1152.48 = 691.5 a -> 690 a")
 	assert_eq(row["requires_woodwright"], 45)
 
 
@@ -62,7 +62,7 @@ func test_loot_shed_level_2() -> void:
 	var row: Dictionary = _level(&"loot_shed", 2)
 	assert_eq(_qty(row, &"ashpine_handle"), 30)
 	assert_eq(_qty(row, &"ashlead_plate"), 6)
-	assert_eq(row["gold"], 340, "0.8 x 420 = 336 -> 340")
+	assert_eq(row["gold"], 34000, "0.8 x 420 = 336 a -> 340 a")
 	assert_eq(row["requires_woodwright"], 10)
 
 
@@ -73,19 +73,19 @@ func test_auction_house_levels_1_4_8() -> void:
 	assert_eq(_qty(row, &"redbirch_handle"), 10)
 	assert_eq(_qty(row, &"emberbronze_plate"), 4)
 	assert_eq((row["items"] as Array).size(), 3)
-	assert_eq(row["gold"], 300)
+	assert_eq(row["gold"], 30000)
 	assert_eq(row["requires_woodwright"], 1)
 	row = _level(&"auction_house", 4)
 	assert_eq(_qty(row, &"duskelm_shieldcore"), 25)
 	assert_eq(_qty(row, &"duskelm_handle"), 25)
 	assert_eq(_qty(row, &"duskcobalt_plate"), 10)
-	assert_eq(row["gold"], 820)
+	assert_eq(row["gold"], 82000)
 	assert_eq(row["requires_woodwright"], 30)
 	row = _level(&"auction_house", 8)
 	assert_eq(_qty(row, &"riftspruce_shieldcore"), 45)
 	assert_eq(_qty(row, &"riftspruce_handle"), 45)
 	assert_eq(_qty(row, &"riftite_plate"), 18)
-	assert_eq(row["gold"], 3160)
+	assert_eq(row["gold"], 316000)
 	assert_eq(row["requires_woodwright"], 90)
 	assert_eq(row["effect_value"], 0.0)
 
@@ -95,7 +95,7 @@ func test_base_gold_table() -> void:
 			"gold_weight": 1.0}, "effect": {"per_level": 1.0}}
 	for level: int in range(1, 9):
 		gold.append(int(GenVillage.levels_for(spec, _params, level)["gold"]))
-	assert_eq(gold, [300, 420, 590, 820, 1150, 1610, 2260, 3160] as Array[int])
+	assert_eq(gold, [30000, 42000, 59000, 82000, 115000, 161000, 226000, 316000] as Array[int])
 
 
 func test_base_quantity_tables() -> void:

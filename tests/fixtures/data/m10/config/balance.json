@@ -11,7 +11,7 @@
   },
   "_doc": "Fixture of M10 (docs/04_DATA_SCHEMA.md §18): balance.json of the loot reform with the ids of the fixture items. Not the real game data.",
   "start": {
-    "gold": 50,
+    "gold": 5000,
     "items": [{"item": "test_ration", "qty": 20}],
     "armory": [{"base": "test_blade", "equip": "weapon"}, {"base": "test_greatsword", "equip": ""},
                {"base": "test_shield", "equip": "offhand"}],
@@ -56,7 +56,7 @@
   "village": {
     "max_level": 8,
     "woodwright_levels": [1, 10, 20, 30, 45, 60, 75, 90],
-    "gold_base": 300,
+    "gold_base": 30000,
     "gold_growth": 1.4,
     "qty": {
       "wood": {"base": 20, "per_level": 20},
@@ -68,7 +68,7 @@
     "tier_levels": [1, 10, 20, 30, 45, 60, 75, 90],
     "tier_window": 3,
     "recent_memory": 6,
-    "gold_by_tier": [80, 250, 340, 380, 600, 800, 950, 1030],
+    "gold_by_tier": [8000, 25000, 34000, 38000, 60000, 80000, 95000, 103000],
     "xp_unit_by_tier": [10, 18, 28, 40, 58, 80, 108, 145],
     "kill_food_qty": 20,
     "types": {
@@ -100,7 +100,7 @@
     ]
   },
   "disciplines": {"max_per_category": 2},
-  "trainer": {"learn_gold": 0, "gold_base": 250, "gold_growth": 5, "skill_margin": 5, "unlearn_pct": 50, "unlearn_min_gold": 100},
+  "trainer": {"learn_gold": 0, "gold_base": 25000, "gold_growth": 5, "skill_margin": 5, "unlearn_pct": 50, "unlearn_min_gold": 10000},
   "production": {"queue_slots": 5, "max_job_count": 9999},
   "engraver": {
     "crystal_chance_min_pct": 40,
@@ -218,15 +218,15 @@
   },
   "upgrade": {
     "levels": [
-      {"success_pct": 95, "gold_per_grade": 50, "ingots": 1, "shards": 0},
-      {"success_pct": 90, "gold_per_grade": 100, "ingots": 1, "shards": 0},
-      {"success_pct": 85, "gold_per_grade": 200, "ingots": 2, "shards": 0},
-      {"success_pct": 75, "gold_per_grade": 400, "ingots": 2, "shards": 0},
-      {"success_pct": 65, "gold_per_grade": 800, "ingots": 3, "shards": 0},
-      {"success_pct": 55, "gold_per_grade": 1600, "ingots": 3, "shards": 5},
-      {"success_pct": 45, "gold_per_grade": 3200, "ingots": 4, "shards": 10},
-      {"success_pct": 35, "gold_per_grade": 6400, "ingots": 4, "shards": 15},
-      {"success_pct": 25, "gold_per_grade": 12800, "ingots": 5, "shards": 20}
+      {"success_pct": 95, "gold_per_grade": 5000, "ingots": 1, "shards": 0},
+      {"success_pct": 90, "gold_per_grade": 10000, "ingots": 1, "shards": 0},
+      {"success_pct": 85, "gold_per_grade": 20000, "ingots": 2, "shards": 0},
+      {"success_pct": 75, "gold_per_grade": 40000, "ingots": 2, "shards": 0},
+      {"success_pct": 65, "gold_per_grade": 80000, "ingots": 3, "shards": 0},
+      {"success_pct": 55, "gold_per_grade": 160000, "ingots": 3, "shards": 5},
+      {"success_pct": 45, "gold_per_grade": 320000, "ingots": 4, "shards": 10},
+      {"success_pct": 35, "gold_per_grade": 640000, "ingots": 4, "shards": 15},
+      {"success_pct": 25, "gold_per_grade": 1280000, "ingots": 5, "shards": 20}
     ],
     "downgrade_from": 4,
     "mod_pct_per_level": 10,
@@ -253,15 +253,15 @@
     "handle_items": ["test_handle_1", "test_handle_2", "test_handle_3", "test_handle_4", "test_handle_5", "test_handle_6",
       "test_handle_7", "test_handle_8"],
     "levels": [
-      {"min_level": 1, "grade": 1, "plates": 2, "handles": 1, "gold": 100},
-      {"min_level": 10, "grade": 2, "plates": 2, "handles": 1, "gold": 250},
-      {"min_level": 20, "grade": 3, "plates": 3, "handles": 1, "gold": 600},
-      {"min_level": 25, "grade": 3, "plates": 3, "handles": 1, "gold": 1200},
-      {"min_level": 35, "grade": 4, "plates": 4, "handles": 2, "gold": 2500},
-      {"min_level": 50, "grade": 5, "plates": 4, "handles": 2, "gold": 5000},
-      {"min_level": 65, "grade": 6, "plates": 5, "handles": 2, "gold": 10000},
-      {"min_level": 80, "grade": 7, "plates": 5, "handles": 2, "gold": 20000},
-      {"min_level": 90, "grade": 8, "plates": 6, "handles": 3, "gold": 40000}
+      {"min_level": 1, "grade": 1, "plates": 2, "handles": 1, "gold": 10000},
+      {"min_level": 10, "grade": 2, "plates": 2, "handles": 1, "gold": 25000},
+      {"min_level": 20, "grade": 3, "plates": 3, "handles": 1, "gold": 60000},
+      {"min_level": 25, "grade": 3, "plates": 3, "handles": 1, "gold": 120000},
+      {"min_level": 35, "grade": 4, "plates": 4, "handles": 2, "gold": 250000},
+      {"min_level": 50, "grade": 5, "plates": 4, "handles": 2, "gold": 500000},
+      {"min_level": 65, "grade": 6, "plates": 5, "handles": 2, "gold": 1000000},
+      {"min_level": 80, "grade": 7, "plates": 5, "handles": 2, "gold": 2000000},
+      {"min_level": 90, "grade": 8, "plates": 6, "handles": 3, "gold": 4000000}
     ]
   },
   "metin": {
@@ -327,9 +327,15 @@
     "drift": {"amplitude_pct": 8, "period_blocks": 72},
     "saturation": {"per_unit_pct": 0.025, "max_pct": 56, "recover_pct_per_block": 0.5},
     "buy": {"spread_pct": 150, "blueprint_margin_pct": 3},
-    "stock": {"gold": 6000, "min": 5, "max": 500, "refill_pct_per_block": 1.4},
+    "stock": {"gold": 600000, "min": 5, "max": 500, "refill_pct_per_block": 1.4},
     "trend": {"blocks": 12, "threshold_pct": 1},
     "population": {"ref": 100, "period_blocks": 36, "variation_pct": 20, "pressure_pct": 10, "demand_threshold_pct": 0.5}
+  },
+  "currency": {
+    "copper_per_silver": 100,
+    "silver_per_gold": 100,
+    "symbols": {"gold": "o", "silver": "a", "copper": "r"},
+    "names": {"gold": "Oro", "silver": "Argento", "copper": "Rame"}
   },
   "offline": {
     "cap_ms": 43200000,

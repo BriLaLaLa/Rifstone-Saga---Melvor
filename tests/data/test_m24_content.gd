@@ -3,10 +3,10 @@ extends GutTest
 ## their Recipes, the Trainers, the nodes of every area, the Engraver slab.
 
 const TIER_LEVELS: Array[int] = [1, 10, 20, 30, 45, 60, 75, 90]
-const HERB_VALUES: Array[int] = [1, 3, 6, 10, 18, 30, 50, 85]
+const HERB_VALUES: Array[int] = [100, 300, 600, 1000, 1800, 3000, 5000, 8500]
 const TONIC_XP: Array[int] = [12, 21, 33, 48, 69, 96, 129, 174]
 const TONIC_HEAL: Array[int] = [30, 53, 83, 120, 165, 225, 300, 390]
-const TONIC_VALUE: Array[int] = [4, 12, 24, 40, 72, 120, 200, 340]
+const TONIC_VALUE: Array[int] = [400, 1200, 2400, 4000, 7200, 12000, 20000, 34000]
 const FISH: Array[StringName] = [&"brookfin", &"ashgill", &"redscale", &"dusk_eel", &"shard_gar", &"mist_barbel", &"ember_sturgeon", &"riftmaw"]
 const GATHERING: Array[StringName] = [&"forestry", &"quarrying", &"angling", &"herbalism"]
 const ARTISAN: Array[StringName] = [&"forging", &"woodwright", &"hearthcraft", &"riftbinding"]

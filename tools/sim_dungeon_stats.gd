@@ -33,7 +33,7 @@ static func check_level(level: int, s: Dictionary) -> PackedStringArray:
 		failures.append("rare or better per won run %.2f < 1.2" % s["rare"])
 	check_range(failures, "dust per won run", s["dust"], 70.0, 130.0)
 	check_range(failures, "crystals per won run", s["crystals"], 3.0, 6.0)
-	check_range(failures, "gold per won run", s["gold"], 6000.0, 12000.0)
+	check_range(failures, "copper per won run (F-177: the bounds are the former gold ones x 100)", s["gold"], 600000.0, 1200000.0)
 	check_range(failures, "legendaries per won run (sampled, loose)", s["legend_win"], 0.08, 0.40)
 	return failures
 

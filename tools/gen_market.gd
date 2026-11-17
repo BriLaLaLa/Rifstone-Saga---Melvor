@@ -5,6 +5,7 @@ extends SceneTree
 ##
 ## Usage: godot --headless --path . -s tools/gen_market.gd [-- --check]
 
+const GenMoney = preload("res://tools/gen_money.gd")  # amounts below are in silver (F-177)
 const SHOP_PATH: String = "res://data/shop/shop.json"
 const MARKER: String = '    {"id":"market_'
 const TAIL: String = "\n  ]\n}\n"
@@ -69,4 +70,4 @@ static func _entry(id: String, entry_name: String, description: String, gold: in
 	if scope != "":
 		modifier["scope"] = scope
 	return {"id": id, "name": entry_name, "category": "market", "vendor": "mercato", "description": description,
-			"cost": {"gold": gold}, "max_purchases": 1, "requires": requires, "effect": {"modifiers": [modifier]}}
+			"cost": {"gold": gold * GenMoney.cps()}, "max_purchases": 1, "requires": requires, "effect": {"modifiers": [modifier]}}

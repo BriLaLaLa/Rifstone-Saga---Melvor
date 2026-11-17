@@ -21,7 +21,7 @@ var _room: Array[int] = []
 const DOWNGRADE_FROM: int = 4
 const MAX_LEVEL: int = 9
 # F-86 table (docs/02_FORMULAS.md): gold per grade, ingots, shards for N -> N+1.
-const GOLD_PER_GRADE: Array[int] = [50, 100, 200, 400, 800, 1600, 3200, 6400, 12800]
+const GOLD_PER_GRADE: Array[int] = [5000, 10000, 20000, 40000, 80000, 160000, 320000, 640000, 1280000]
 const INGOTS: Array[int] = [1, 1, 2, 2, 3, 3, 4, 4, 5]
 const SHARDS: Array[int] = [0, 0, 0, 0, 0, 5, 10, 15, 20]
 
@@ -162,7 +162,7 @@ func _cost(level: int) -> Dictionary:
 func _stock(s: GameSession, seals: int) -> void:
 	if s.wallet.get_gold() > 0:
 		s.wallet.spend(s.wallet.get_gold())
-	s.wallet.add_gold(5000000)
+	s.wallet.add_gold(500000000)
 	if s.bank.get_count(INGOT) > 0:
 		s.bank.remove(INGOT, s.bank.get_count(INGOT))
 	TestFactory.give(s, INGOT, 5000)

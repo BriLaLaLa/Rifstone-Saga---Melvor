@@ -12,7 +12,7 @@
      "blocks": [
        {"type": "text", "text": "Ogni mestiere di produzione ha il suo mercante: il Fabbro, il Falegname e il Cuoco hanno una bottega nella pagina Shop e una scheda nella pagina del mestiere. Sono sempre aperti, e le loro merci si sbloccano salendo di livello nel mestiere."},
        {"type": "heading", "text": "Schemi e reagenti"},
-       {"type": "text", "text": "Gli schemi costano oro e si comprano una volta sola: diventano una Ricetta nel Deposito, da imparare. Uno schema che conosci già non si compra di nuovo. I reagenti si comprano in quantità e sono di quattro fasce, una per ogni gruppo di gradini."},
+       {"type": "text", "text": "Gli schemi costano monete e si comprano una volta sola: diventano una Ricetta nel Deposito, da imparare. Uno schema che conosci già non si compra di nuovo. I reagenti si comprano in quantità e sono di quattro fasce, una per ogni gruppo di gradini."},
        {"type": "text", "text": "Comprare per rivendere non conviene: i reagenti non si vendono alla Casa d'Aste e il Deposito li paga molto meno di quanto costano."},
        {"type": "links", "targets": ["page:guide_professions", "page:guide_deposit", "page:guide_auction"]}
      ]}

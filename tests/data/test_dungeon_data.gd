@@ -108,14 +108,14 @@ func test_rewards_follow_f142_and_f143() -> void:
 	var by_type: Dictionary = {}
 	for t: Dictionary in rooms["types"]:
 		by_type[t["id"]] = t
-	_eq((by_type["miniboss"]["reward"] as Dictionary), {"gold": [1200, 2000], "dust": [10, 18], "crystal_pct": 25, "piece_pct": 70})
-	_eq((by_type["elite"]["reward"] as Dictionary), {"gold": [600, 1200], "piece_pct": 40})
-	_eq((by_type["horde"]["reward"] as Dictionary), {"gold": [400, 800], "dust": [4, 8]})
-	_eq(((rooms["entrance"] as Dictionary)["reward"] as Dictionary), {"gold": [200, 400]})
+	_eq((by_type["miniboss"]["reward"] as Dictionary), {"gold": [120000, 200000], "dust": [10, 18], "crystal_pct": 25, "piece_pct": 70})
+	_eq((by_type["elite"]["reward"] as Dictionary), {"gold": [60000, 120000], "piece_pct": 40})
+	_eq((by_type["horde"]["reward"] as Dictionary), {"gold": [40000, 80000], "dust": [4, 8]})
+	_eq(((rooms["entrance"] as Dictionary)["reward"] as Dictionary), {"gold": [20000, 40000]})
 	for stage: Dictionary in (_den["stages"] as Array).slice(0, 2):
-		_eq(stage["reward"], {"gold": [1500, 2500], "dust": [15, 25], "crystal_pct": 60, "piece_pct": 60})
+		_eq(stage["reward"], {"gold": [150000, 250000], "dust": [15, 25], "crystal_pct": 60, "piece_pct": 60})
 	var boss: Dictionary = _den["boss"] as Dictionary
-	_eq([boss["gold"], boss["dust"], boss["crystals"], boss["card_pct"], boss["card_grade"]], [[3000, 5000], [40, 60], 2, 60, 4])
+	_eq([boss["gold"], boss["dust"], boss["crystals"], boss["card_pct"], boss["card_grade"]], [[300000, 500000], [40, 60], 2, 60, 4])
 	_eq(boss["pieces"], [{"rarity": "rare"}, {"min_rarity": "magic"}])
 	_eq((boss["drops"] as Array).size(), 4)
 	for d: Dictionary in boss["drops"]:

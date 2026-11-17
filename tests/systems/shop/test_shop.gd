@@ -39,13 +39,13 @@ func _gold(amount: int) -> void:
 
 
 func test_price_is_the_fixed_gold_cost() -> void:
-	assert_eq(_shop.price(&"test_pocket"), 100)
+	assert_eq(_shop.price(&"test_pocket"), 10000)
 	_shop.from_save({"purchases": {"test_pocket": 30}})
-	assert_eq(_shop.price(&"test_pocket"), 100, "M12: no price formulas, the cost does not grow")
+	assert_eq(_shop.price(&"test_pocket"), 10000, "M12: no price formulas, the cost does not grow")
 	_shop.new_game()
-	_gold(1000)
+	_gold(100000)
 	assert_true(_shop.buy(&"test_pocket").ok)
-	assert_eq(_session.wallet.get_gold(), _start_gold() + 1000 - 100)
+	assert_eq(_session.wallet.get_gold(), _start_gold() + 100000 - 10000)
 	assert_eq(_shop.price(&"ghost"), 0)
 
 
@@ -54,7 +54,7 @@ func _start_gold() -> int:
 
 
 func test_f19_modifier_scaled_by_purchases() -> void:
-	_gold(2000)
+	_gold(200000)
 	_shop.buy(&"test_pocket")
 	_shop.buy(&"test_pocket")
 	assert_true(_session.modifiers.has_source(&"shop:test_pocket"))
@@ -71,7 +71,7 @@ func test_unknown_and_not_enough_gold() -> void:
 
 
 func test_requirements_and_max_purchases() -> void:
-	_gold(10000)
+	_gold(1000000)
 	assert_eq(_shop.buy(&"test_upgrade_2").reason, Reasons.REQUIREMENT_NOT_MET, "needs entry first")
 	assert_true(_shop.buy(&"test_upgrade_1").ok)
 	assert_eq(_shop.buy(&"test_upgrade_1").reason, Reasons.MAX_PURCHASES)
@@ -89,7 +89,7 @@ func test_requirements_and_max_purchases() -> void:
 
 
 func test_piece_effect_goes_to_armory_and_is_repeatable() -> void:
-	_gold(300)
+	_gold(30000)
 	assert_true(_shop.buy(&"test_buy_hatchet").ok)
 	assert_true(_shop.buy(&"test_buy_hatchet").ok)
 	assert_eq(_session.bank.get_count(&"test_blade"), 0, "a piece is never in the bank")
@@ -105,7 +105,7 @@ func test_piece_effect_goes_to_armory_and_is_repeatable() -> void:
 
 func test_buy_piece_with_full_armory_keeps_gold() -> void:
 	var small: GameSession = autofree(TestFactory.session(1234, _small_data))
-	small.wallet.add_gold(1000)
+	small.wallet.add_gold(100000)
 	TestFactory.give_piece(small, &"test_blade")
 	assert_false(small.armory.can_add(1), "the Armory must be full for this test")
 	var gold: int = small.wallet.get_gold()
@@ -165,7 +165,7 @@ func test_sell_rejections() -> void:
 
 func test_signals() -> void:
 	watch_signals(_session.events)
-	_gold(500)
+	_gold(50000)
 	_shop.buy(&"test_pocket")
 	assert_signal_emitted_with_parameters(_session.events, "shop_purchased", [&"test_pocket", 1])
 	TestFactory.give(_session, &"test_log", 2)
@@ -175,7 +175,7 @@ func test_signals() -> void:
 
 
 func test_save_round_trip_rebuilds_modifiers() -> void:
-	_gold(2000)
+	_gold(200000)
 	_shop.buy(&"test_pocket")
 	_shop.buy(&"test_pocket")
 	var saved: Dictionary = _session.to_save(0)
@@ -197,16 +197,16 @@ func _write(path: String, text: String) -> void:
 
 
 func test_buy_item_effect_goes_to_the_bank() -> void:
-	_gold(100)
+	_gold(10000)
 	var before: int = _session.wallet.get_gold()
 	assert_true(_shop.buy(&"test_buy_log").ok)
 	assert_eq(_session.bank.get_count(&"test_log"), 1)
-	assert_eq(_session.wallet.get_gold(), before - 20)
+	assert_eq(_session.wallet.get_gold(), before - 2000)
 
 
 func test_buy_item_with_full_bank_keeps_gold() -> void:
 	var small: GameSession = autofree(TestFactory.session(1234, _small_data))
-	small.wallet.add_gold(100)
+	small.wallet.add_gold(10000)
 	TestFactory.give(small, &"test_twig", 1)
 	assert_false(small.bank.can_add(&"test_log"), "the bank must be full for this test")
 	var gold: int = small.wallet.get_gold()

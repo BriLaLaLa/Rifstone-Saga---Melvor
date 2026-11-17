@@ -76,7 +76,7 @@ func _stock(session: GameSession, gold: int, items: Dictionary) -> void:
 
 func test_table_matches_formula_doc() -> void:
 	var success: Array[int] = [95, 90, 85, 75, 65, 55, 45, 35, 25]
-	var gold: Array[int] = [50, 100, 200, 400, 800, 1600, 3200, 6400, 12800]
+	var gold: Array[int] = [5000, 10000, 20000, 40000, 80000, 160000, 320000, 640000, 1280000]
 	var ingots: Array[int] = [1, 1, 2, 2, 3, 3, 4, 4, 5]
 	var shards: Array[int] = [0, 0, 0, 0, 0, 5, 10, 15, 20]
 	assert_eq(Upgrade.max_level(_data), 9)
@@ -103,7 +103,7 @@ func test_failed_level_downgrades_from_four() -> void:
 
 func test_cost_t4_sword_plus5() -> void:
 	var cost: Dictionary = Upgrade.cost(5, _data.material_grade(_data.item(SWORD_T4).equip.grade), _data)
-	assert_eq(int(cost["gold"]), 6400)
+	assert_eq(int(cost["gold"]), 640000)
 	assert_eq(cost["ingot"], INGOT_T4)
 	assert_eq(int(cost["ingots"]), 3)
 	assert_eq(int(cost["shards"]), 5)
@@ -113,7 +113,7 @@ func test_upgrade_success_pct() -> void:
 	# The stat feeds the chance: at +8 -> +9 (25%) a +300% bonus makes the attempt certain.
 	var session: GameSession = _session_with_roll(25.0, false)
 	var uid: int = _piece(session, SWORD_T4, 8)
-	_stock(session, 100000, {INGOT_T4: 5, SHARD: 20, DUST: 50})
+	_stock(session, 10000000, {INGOT_T4: 5, SHARD: 20, DUST: 50})
 	session.modifiers.set_source(&"test:upg", [Modifier.make(Upgrade.STAT, 300.0)])
 	assert_eq(Upgrade.chance_pct(8, session.modifiers.total(Upgrade.STAT), _data), 100.0)
 	assert_true(session.armory.upgrade(uid).ok)
@@ -123,12 +123,12 @@ func test_upgrade_success_pct() -> void:
 func test_success_spends_materials_and_raises_level() -> void:
 	var session: GameSession = _session_with_roll(95.0, true)
 	var uid: int = _piece(session, SWORD_T1, 0)
-	_stock(session, 80, {INGOT_T1: 3})
+	_stock(session, 8000, {INGOT_T1: 3})
 	watch_signals(session.events)
 	var result: CommandResult = session.armory.upgrade(uid)
 	assert_true(result.ok)
 	assert_eq(session.armory.get_instance(uid).upgrade, 1)
-	assert_eq(session.wallet.get_gold(), 30, "50 gold spent")
+	assert_eq(session.wallet.get_gold(), 3000, "50 gold spent")
 	assert_eq(session.bank.get_count(INGOT_T1), 2)
 	assert_signal_emitted_with_parameters(session.events, "item_upgraded", [uid, true, 1])
 	assert_signal_emitted_with_parameters(session.events, "armory_changed", [uid, &"updated"])
@@ -137,11 +137,11 @@ func test_success_spends_materials_and_raises_level() -> void:
 func test_failure_from_plus5_loses_a_level_and_materials() -> void:
 	var session: GameSession = _session_with_roll(55.0, false)
 	var uid: int = _piece(session, SWORD_T4, 5)
-	_stock(session, 7000, {INGOT_T4: 4, SHARD: 6, DUST: 25})
+	_stock(session, 700000, {INGOT_T4: 4, SHARD: 6, DUST: 25})
 	watch_signals(session.events)
 	assert_true(session.armory.upgrade(uid).ok)
 	assert_eq(session.armory.get_instance(uid).upgrade, 4)
-	assert_eq(session.wallet.get_gold(), 600, "6400 spent")
+	assert_eq(session.wallet.get_gold(), 60000, "6400 spent")
 	assert_eq(session.bank.get_count(INGOT_T4), 1)
 	assert_eq(session.bank.get_count(SHARD), 1)
 	assert_eq(session.bank.get_count(DUST), 5, "20 Rift Dust spent (upgrade.levels[5].dust, M14)")
@@ -151,7 +151,7 @@ func test_failure_from_plus5_loses_a_level_and_materials() -> void:
 func test_failure_from_plus3_keeps_the_level() -> void:
 	var session: GameSession = _session_with_roll(75.0, false)
 	var uid: int = _piece(session, SWORD_T1, 3)
-	_stock(session, 400, {INGOT_T1: 2})
+	_stock(session, 40000, {INGOT_T1: 2})
 	assert_true(session.armory.upgrade(uid).ok)
 	assert_eq(session.armory.get_instance(uid).upgrade, 3)
 	assert_eq(session.wallet.get_gold(), 0, "materials lost anyway")
@@ -162,7 +162,7 @@ func test_failure_from_plus3_keeps_the_level() -> void:
 func test_seal_prevents_the_downgrade_and_is_consumed() -> void:
 	var session: GameSession = _session_with_roll(55.0, false, _seal_data)
 	var uid: int = _piece(session, SWORD_T1, 5)
-	_stock(session, 1600, {INGOT_T1: 3, SHARD: 5, DUST: 20, SEAL: 2})
+	_stock(session, 160000, {INGOT_T1: 3, SHARD: 5, DUST: 20, SEAL: 2})
 	assert_true(session.armory.upgrade(uid, true).ok)
 	assert_eq(session.armory.get_instance(uid).upgrade, 5, "kept")
 	assert_eq(session.bank.get_count(SEAL), 1, "one Seal consumed")
@@ -171,7 +171,7 @@ func test_seal_prevents_the_downgrade_and_is_consumed() -> void:
 func test_seal_is_kept_on_success() -> void:
 	var session: GameSession = _session_with_roll(55.0, true, _seal_data)
 	var uid: int = _piece(session, SWORD_T1, 5)
-	_stock(session, 1600, {INGOT_T1: 3, SHARD: 5, DUST: 20, SEAL: 1})
+	_stock(session, 160000, {INGOT_T1: 3, SHARD: 5, DUST: 20, SEAL: 1})
 	assert_true(session.armory.upgrade(uid, true).ok)
 	assert_eq(session.armory.get_instance(uid).upgrade, 6)
 	assert_eq(session.bank.get_count(SEAL), 1, "not consumed on success")
@@ -180,18 +180,18 @@ func test_seal_is_kept_on_success() -> void:
 func test_seal_missing_fails_without_changes() -> void:
 	var session: GameSession = _session_with_roll(55.0, false, _seal_data)
 	var uid: int = _piece(session, SWORD_T1, 5)
-	_stock(session, 1600, {INGOT_T1: 3, SHARD: 5, DUST: 20})
+	_stock(session, 160000, {INGOT_T1: 3, SHARD: 5, DUST: 20})
 	var result: CommandResult = session.armory.upgrade(uid, true)
 	assert_false(result.ok)
 	assert_eq(result.reason, Reasons.NOT_ENOUGH_ITEMS)
-	assert_eq(session.wallet.get_gold(), 1600)
+	assert_eq(session.wallet.get_gold(), 160000)
 	assert_eq(session.armory.get_instance(uid).upgrade, 5)
 
 
 func test_seal_is_not_needed_below_the_threshold() -> void:
 	var session: GameSession = _session_with_roll(85.0, false, _seal_data)
 	var uid: int = _piece(session, SWORD_T1, 2)
-	_stock(session, 200, {INGOT_T1: 2})
+	_stock(session, 20000, {INGOT_T1: 2})
 	assert_true(session.armory.upgrade(uid, true).ok, "no Seal in the bank, none required")
 	assert_eq(session.armory.get_instance(uid).upgrade, 2)
 
@@ -202,11 +202,11 @@ func test_rejections_change_nothing() -> void:
 	assert_eq(session.armory.upgrade(999).reason, Reasons.UNKNOWN_ID)
 	_set_gold(session, 0)
 	assert_eq(session.armory.upgrade(uid).reason, Reasons.NOT_ENOUGH_GOLD, "gold is checked first")
-	_set_gold(session, 6400)
+	_set_gold(session, 640000)
 	assert_eq(session.armory.upgrade(uid).reason, Reasons.NOT_ENOUGH_ITEMS, "no ingots")
 	TestFactory.give(session, INGOT_T4, 3)
 	assert_eq(session.armory.upgrade(uid).reason, Reasons.NOT_ENOUGH_ITEMS, "no shards")
-	assert_eq(session.wallet.get_gold(), 6400)
+	assert_eq(session.wallet.get_gold(), 640000)
 	assert_eq(session.bank.get_count(INGOT_T4), 3)
 	assert_eq(session.armory.get_instance(uid).upgrade, 5)
 
@@ -214,11 +214,11 @@ func test_rejections_change_nothing() -> void:
 func test_max_level_is_rejected() -> void:
 	var session: GameSession = autofree(TestFactory.session(3, _data))
 	var uid: int = _piece(session, SWORD_T1, 9)
-	_stock(session, 1000000, {INGOT_T1: 10, SHARD: 100})
+	_stock(session, 100000000, {INGOT_T1: 10, SHARD: 100})
 	var result: CommandResult = session.armory.upgrade(uid)
 	assert_false(result.ok)
 	assert_eq(result.reason, Reasons.UPGRADE_MAX)
-	assert_eq(session.wallet.get_gold(), 1000000)
+	assert_eq(session.wallet.get_gold(), 100000000)
 
 
 ## F-93: the source `skill_level:forging` gives `upgrade_success_pct` = 0.4 x level (level_modifiers of the skill); with
@@ -257,7 +257,7 @@ func test_dust_is_part_of_the_cost() -> void:
 func test_missing_dust_refuses_the_refinement_without_changes() -> void:
 	var session: GameSession = _session_with_roll(1.0, true)
 	var uid: int = _piece(session, SWORD_T4, 5)
-	_stock(session, 100000, {INGOT_T4: 5, SHARD: 20, DUST: 19})
+	_stock(session, 10000000, {INGOT_T4: 5, SHARD: 20, DUST: 19})
 	var result: CommandResult = session.armory.upgrade(uid)
 	assert_false(result.ok)
 	assert_eq(result.reason, Reasons.NOT_ENOUGH_ITEMS)

@@ -11,16 +11,16 @@
      "help_for": ["trainers"],
      "blocks": [
        {"type": "text", "text": "Le discipline sono i mestieri che si imparano dai Maestri del Villaggio: quattro di raccolta (Boscaiolo, Minatore, Pescatore, Erborista) e quattro di produzione (Fabbro, Falegname, Cuoco e alchimista, Incisore). Se ne imparano al massimo {balance:disciplines.max_per_category|int} per categoria. Senza l'Incisore non si incidono rune."},
-       {"type": "text", "text": "Ogni Maestro insegna i gradi della tabella qui sotto. Il grado fissa il livello massimo della disciplina: oltre, l'esperienza si perde. Per il grado successivo servono la disciplina a {balance:trainer.skill_margin|int} livelli dal limite, un certo livello del personaggio e oro."},
+       {"type": "text", "text": "Ogni Maestro insegna i gradi della tabella qui sotto. Il grado fissa il livello massimo della disciplina: oltre, l'esperienza si perde. Per il grado successivo servono la disciplina a {balance:trainer.skill_margin|int} livelli dal limite, un certo livello del personaggio e monete."},
        {"type": "table", "source": "trainer_grades"},
-       {"type": "text", "text": "Disimparare costa oro e azzera tutto l'avanzamento della disciplina: esperienza, maestria e nodi dell'albero. Restano gli oggetti, l'attrezzo e le ricette già scoperte."},
+       {"type": "text", "text": "Disimparare costa monete e azzera tutto l'avanzamento della disciplina: esperienza, maestria e nodi dell'albero. Restano gli oggetti, l'attrezzo e le ricette già scoperte."},
        {"type": "text", "text": "Le materie grezze non si comprano: il Fabbro vive del Minatore, il Falegname del Boscaiolo, il Cuoco e alchimista di Pescatore ed Erborista. Le Ricette dei Tonici si trovano nei bottini delle aree."},
        {"type": "links", "targets": ["page:guide_travel", "page:guide_auction", "page:guide_mastery", "page:guide_tools"]}
      ]},
     {"id": "guide_tools", "section": "crafts", "title": "Attrezzi", "order": 2,
      "blocks": [
        {"type": "text", "text": "Accetta, Piccone e Canna da pesca sono attrezzi unici, uno per mestiere di raccolta: li hai dall'inizio e non si tolgono né si vendono."},
-       {"type": "text", "text": "Si raffinano senza rischio da zero a nove: ogni passo costa oro e componenti del grado (piastre del Fabbro e manici del Falegname) e chiede un livello minimo del mestiere. Ogni passo accelera il lavoro ({stat:skill_interval_pct}); ai passi alti arrivano piccoli bonus di raccolta."},
+       {"type": "text", "text": "Si raffinano senza rischio da zero a nove: ogni passo costa monete e componenti del grado (piastre del Fabbro e manici del Falegname) e chiede un livello minimo del mestiere. Ogni passo accelera il lavoro ({stat:skill_interval_pct}); ai passi alti arrivano piccoli bonus di raccolta."},
        {"type": "table", "source": "tool_upgrades"}
      ]}
   ]

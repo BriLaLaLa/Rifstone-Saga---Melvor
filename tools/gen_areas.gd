@@ -178,6 +178,7 @@ func _monster(m: Array, index: int, drops: Dictionary) -> Dictionary:
 	var hp: int = maxi(1, roundi(hp_at(level) * float(role[2]) * HP_SCALE[index]))
 	var up: float = float(maxi(0, level - 1))
 	var xp_spec: Dictionary = (_balance["combat"] as Dictionary)["monster_xp"] as Dictionary
+	var cps: int = int((_balance["currency"] as Dictionary)["copper_per_silver"])
 	return {
 		"id": m[0], "name": m[1], "icon": ICON_DIR + (m[5] as String) + ".svg", "description": m[6], "hp": hp,
 		"style": m[4] if m[4] != "" else role[0], "attack_interval_ms": roundi(float(role[1]) * INTERVAL_SCALE[index] / 100.0) * 100,
@@ -185,7 +186,7 @@ func _monster(m: Array, index: int, drops: Dictionary) -> Dictionary:
 		"accuracy_bonus": roundi(up * 1.15 * float(role[3])), "power_bonus": roundi(up * 0.9 * float(role[4]) * scale),
 		"evasion_bonus": roundi(up * 1.2 * float(role[5])),
 		"damage_reduction": minf(25.0, roundf(0.27 * up * float(role[6]) * 2.0) / 2.0),
-		"gold": [maxi(1, roundi(hp * 0.08)), maxi(2, roundi(hp * 0.16))],
+		"gold": [maxi(1, roundi(hp * 0.08)) * cps, maxi(2, roundi(hp * 0.16)) * cps],  # computed in silver (F-177)
 		"rift_shard_chance": roundf((0.5 + 0.027 * level) * 4.0) / 4.0,
 		"xp": roundi(float(xp_spec["base"]) * pow(float(xp_spec["growth"]), float(level - 1))),
 		"drops": drops[m[0]]}

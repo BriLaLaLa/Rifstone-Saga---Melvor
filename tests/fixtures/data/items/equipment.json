@@ -5,7 +5,7 @@
       "name": "Spada di prova",
       "category": "equipment",
       "icon": "res://assets/icons/items/test_blade.png",
-      "value": 12,
+      "value": 1200,
       "sort_order": 100,
       "description": "Spada a una mano per i test.",
       "equip": {
@@ -35,7 +35,7 @@
       "name": "Spadone di prova",
       "category": "equipment",
       "icon": "res://assets/icons/items/test_greatsword.png",
-      "value": 30,
+      "value": 3000,
       "sort_order": 110,
       "description": "Arma a due mani per i test.",
       "equip": {
@@ -60,7 +60,7 @@
       "name": "Scudo di prova",
       "category": "equipment",
       "icon": "res://assets/icons/items/test_shield.png",
-      "value": 15,
+      "value": 1500,
       "sort_order": 120,
       "description": "Oggetto per la mano secondaria.",
       "equip": {
@@ -82,7 +82,7 @@
       "name": "Elmo di prova",
       "category": "equipment",
       "icon": "res://assets/icons/items/test_helm.png",
-      "value": 15,
+      "value": 1500,
       "sort_order": 130,
       "description": "Armatura per la testa.",
       "equip": {
@@ -103,7 +103,7 @@
       "name": "Elmo alto di prova",
       "category": "equipment",
       "icon": "res://assets/icons/items/test_helm_high.png",
-      "value": 40,
+      "value": 4000,
       "sort_order": 140,
       "description": "Richiede il livello 10 del personaggio.",
       "equip": {
@@ -126,7 +126,7 @@
       "name": "Spada di bronzo di brace",
       "category": "equipment",
       "icon": "res://assets/icons/items/emberbronze_sword.svg",
-      "value": 14,
+      "value": 1400,
       "sort_order": 101,
       "description": "Una spada a una mano forgiata con bronzo di brace.",
       "equip": {
@@ -156,7 +156,7 @@
       "name": "Spadone di bronzo di brace",
       "category": "equipment",
       "icon": "res://assets/icons/items/emberbronze_greatsword.svg",
-      "value": 22,
+      "value": 2200,
       "sort_order": 201,
       "description": "Una lama lunga e pesante da impugnare a due mani, in bronzo di brace.",
       "equip": {
@@ -186,7 +186,7 @@
       "name": "Scudo di bronzo di brace",
       "category": "equipment",
       "icon": "res://assets/icons/items/emberbronze_shield.svg",
-      "value": 20,
+      "value": 2000,
       "sort_order": 901,
       "description": "Protezione forgiata con bronzo di brace.",
       "equip": {
@@ -218,7 +218,7 @@
       "name": "Spada del boss di prova",
       "category": "equipment",
       "icon": "res://assets/icons/items/test_blade.png",
-      "value": 20,
+      "value": 2000,
       "sort_order": 400,
       "description": "Base di grado 5 per i pezzi garantiti dei boss.",
       "equip": {
@@ -241,7 +241,7 @@
       "name": "Spadone del boss di prova",
       "category": "equipment",
       "icon": "res://assets/icons/items/test_blade.png",
-      "value": 20,
+      "value": 2000,
       "sort_order": 410,
       "description": "Base di grado 5 per i pezzi garantiti dei boss.",
       "equip": {
@@ -264,7 +264,7 @@
       "name": "Elmo del boss di prova",
       "category": "equipment",
       "icon": "res://assets/icons/items/test_helm.png",
-      "value": 20,
+      "value": 2000,
       "sort_order": 420,
       "description": "Base di grado 5 per i pezzi garantiti dei boss.",
       "equip": {
@@ -285,7 +285,7 @@
       "name": "Elmo alto del boss di prova",
       "category": "equipment",
       "icon": "res://assets/icons/items/test_helm_high.png",
-      "value": 30,
+      "value": 3000,
       "sort_order": 430,
       "description": "Base di grado 6 per i pezzi garantiti dei boss.",
       "equip": {
@@ -306,7 +306,7 @@
       "name": "test_sword_g1",
       "category": "equipment",
       "icon": "res://assets/icons/items/test_blade.png",
-      "value": 20,
+      "value": 2000,
       "sort_order": 500,
       "description": "Arma di prova con i numeri di F-118.",
       "equip": {
@@ -329,7 +329,7 @@
       "name": "test_sword_g8",
       "category": "equipment",
       "icon": "res://assets/icons/items/test_blade.png",
-      "value": 20,
+      "value": 2000,
       "sort_order": 510,
       "description": "Arma di prova con i numeri di F-118.",
       "equip": {
@@ -352,7 +352,7 @@
       "name": "test_sword_g15",
       "category": "equipment",
       "icon": "res://assets/icons/items/test_blade.png",
-      "value": 20,
+      "value": 2000,
       "sort_order": 520,
       "description": "Arma di prova con i numeri di F-118.",
       "equip": {
@@ -375,7 +375,7 @@
       "name": "test_greatsword_g1",
       "category": "equipment",
       "icon": "res://assets/icons/items/test_blade.png",
-      "value": 20,
+      "value": 2000,
       "sort_order": 530,
       "description": "Arma di prova con i numeri di F-118.",
       "equip": {
@@ -398,7 +398,7 @@
       "name": "test_greatsword_g8",
       "category": "equipment",
       "icon": "res://assets/icons/items/test_blade.png",
-      "value": 20,
+      "value": 2000,
       "sort_order": 540,
       "description": "Arma di prova con i numeri di F-118.",
       "equip": {
@@ -421,7 +421,7 @@
       "name": "test_greatsword_g15",
       "category": "equipment",
       "icon": "res://assets/icons/items/test_blade.png",
-      "value": 20,
+      "value": 2000,
       "sort_order": 550,
       "description": "Arma di prova con i numeri di F-118.",
       "equip": {
@@ -444,7 +444,7 @@
       "name": "test_plate_body_11",
       "category": "equipment",
       "icon": "res://assets/icons/items/test_helm.png",
-      "value": 20,
+      "value": 2000,
       "sort_order": 560,
       "description": "Pezzo di prova (Piastre, grado 11).",
       "equip": {

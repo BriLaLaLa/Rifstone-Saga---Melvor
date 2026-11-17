@@ -77,7 +77,7 @@ static func report(data: Object, opts: Dictionary, lines: PackedStringArray) -> 
 	var policies: Array[String] = [str(opts["policy"])]
 	if str(opts["policy"]) == "both":
 		policies = ["random", "cautious"]
-	lines.append("| level | policy | runs | won % | min (mean/p90) | food runs % / mean / max | pieces | rare+ | dust | crystals | gold | cards | legend/win | legend/run |")
+	lines.append("| level | policy | runs | won % | min (mean/p90) | food runs % / mean / max | pieces | rare+ | dust | crystals | copper | cards | legend/win | legend/run |")
 	lines.append("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
 	var stats: Dictionary = {}
 	for policy: String in policies:

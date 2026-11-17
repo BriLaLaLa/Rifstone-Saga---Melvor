@@ -9,7 +9,7 @@
      ]},
     {"id": "guide_refining", "section": "loot", "title": "Raffinazione", "order": 2,
      "blocks": [
-       {"type": "text", "text": "Dal Banco del fabbro, nella pagina {link:skill:forging|Fabbro}, puoi raffinare armi e armature, da zero fino a nove. Ogni passo costa oro, lingotti del grado del pezzo e, più in alto, frammenti del Rift; la riuscita cala a ogni passo."},
+       {"type": "text", "text": "Dal Banco del fabbro, nella pagina {link:skill:forging|Fabbro}, puoi raffinare armi e armature, da zero fino a nove. Ogni passo costa monete, lingotti del grado del pezzo e, più in alto, frammenti del Rift; la riuscita cala a ogni passo."},
        {"type": "text", "text": "Se fallisci perdi i materiali e, dal passo {balance:upgrade.downgrade_from|int} in poi, il pezzo scende di un livello. Non si distrugge mai. Il {link:item:warding_seal|Sigillo di protezione} evita la discesa. Il livello da Fabbro aiuta ({stat:upgrade_success_pct})."},
        {"type": "table", "source": "refine_costs"}
      ]},
@@ -22,7 +22,7 @@
      "blocks": [
        {"type": "text", "text": "Le valute del Rift si cristallizzano dalla Polvere del Rift con l'{link:skill:riftbinding|Incisore} e si usano dal Banco del fabbro della pagina Fabbro: cambiano la rarità di un pezzo."},
        {"type": "text", "text": "{link:item:currency_spark|Il Cristallo del risveglio} rende magico un pezzo comune. {link:item:currency_crown|Il Cristallo dell'ascesa} rende raro un pezzo magico. {link:item:currency_flux|Il Cristallo del mutamento} ritira gli affissi senza toccare la rarità."},
-       {"type": "text", "text": "L'oro è un'altra cosa: serve per lo shop e la raffinazione."}
+       {"type": "text", "text": "Le monete sono un'altra cosa: servono per lo shop e la raffinazione."}
      ]},
     {"id": "guide_salvage", "section": "loot", "title": "Smantellamento e filtro", "order": 5,
      "blocks": [

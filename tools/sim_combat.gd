@@ -69,7 +69,7 @@ func run(args: PackedStringArray) -> int:
 ## Runs every requested measurement and returns the table lines.
 static func report(data: Object, opts: Dictionary) -> PackedStringArray:
 	var lines: PackedStringArray = PackedStringArray()
-	lines.append("| area | scope | grade | level | tier | deaths/h | kills/h | xp/h | gold/h | food/h |")
+	lines.append("| area | scope | grade | level | tier | deaths/h | kills/h | xp/h | copper/h | food/h |")
 	lines.append("|---|---|---|---|---|---|---|---|---|---|")
 	var loot_lines: PackedStringArray = PackedStringArray()
 	loot_lines.append("| area | scope | pieces/h | magic/h | rare/h | stones/h | stone kills/h | stone deaths/h | stone ttk s | stone hp lost % | bp/h | bp lost/h | dust/h |")
@@ -100,7 +100,7 @@ static func report(data: Object, opts: Dictionary) -> PackedStringArray:
 ## ingots, shards and Seals, without the Seal (a failure from +4 drops a level) and with it (a failure keeps the level).
 static func refine_report(data: Object) -> PackedStringArray:
 	var out: PackedStringArray = PackedStringArray()
-	out.append("| grade | target | seal | attempts | gold | ingots | shards | seals |")
+	out.append("| grade | target | seal | attempts | copper | ingots | shards | seals |")
 	out.append("|---|---|---|---|---|---|---|---|")
 	var table: Array = data.call("balance_value", "upgrade.levels")
 	var from_level: int = int(data.call("balance_value", "upgrade.downgrade_from"))

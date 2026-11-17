@@ -16,7 +16,7 @@ const MAP_POS: Dictionary[StringName, Vector2] = {
 }
 const PAGES: Dictionary[StringName, StringName] = {&"noticeboard": &"noticeboard", &"market": &"shop"}
 const PER_LEVEL: float = 4.0
-const GOLD_PER_LEVEL: int = 100
+const GOLD_PER_LEVEL: int = 10000
 
 var forced_reason: StringName = &""
 var upgrade_calls: int = 0

@@ -34,7 +34,7 @@ func test_market_entry_locked_then_open() -> void:
 	var page: ShopPage = SHOP_SCENE.instantiate()
 	add_child(page)
 	page.bind(_session)
-	_session.wallet.add_gold(5000)
+	_session.wallet.add_gold(500000)
 	var entry: ShopEntryDef = _session.data.shop_entry(ENTRY)
 	assert_eq(entry.req_village.get(&"market", 0), 1)
 	var check: CommandResult = _session.shop.can_buy(ENTRY)

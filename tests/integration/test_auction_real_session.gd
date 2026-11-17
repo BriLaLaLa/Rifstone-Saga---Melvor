@@ -42,7 +42,7 @@ func test_closed_until_built_then_open_with_the_real_cost() -> void:
 	assert_false(s.auction.is_open())
 	assert_eq(s.auction.can_sell(LOG, 1).reason, Reasons.REQUIREMENT_NOT_MET)
 	var cost: Dictionary = s.village.next_cost(&"auction_house")
-	assert_eq(int(cost["gold"]), 300, "F-145 level 1")
+	assert_eq(int(cost["gold"]), 30000, "F-145 level 1")
 	_build(s)
 	assert_true(s.auction.is_open())
 	assert_eq(s.auction.level(), 1)

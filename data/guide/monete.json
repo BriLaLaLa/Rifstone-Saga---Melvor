@@ -1,0 +1,13 @@
+{
+  "pages": [
+    {"id": "guide_coins", "section": "first_steps", "title": "Monete", "order": 8,
+     "blocks": [
+       {"type": "text", "text": "Il denaro del Rift si conta in tre monete: Oro, Argento e Rame. Cento Rame fanno un Argento e cento Argenti fanno un Oro. Ogni prezzo, ricompensa e valore è un importo in Rame, mostrato con le monete più grandi possibili."},
+       {"type": "heading", "text": "Dove arrivano"},
+       {"type": "text", "text": "I mostri e i dungeon lasciano monete, e gli incarichi della {link:page:guide_noticeboard|Bacheca} le pagano alla riscossione. Anche la vendita alla {link:page:guide_auction|Casa d'Aste} ne porta in cassa."},
+       {"type": "heading", "text": "Dove si spendono"},
+       {"type": "text", "text": "Lo shop, i Maestri, il Villaggio, la raffinazione e gli attrezzi chiedono monete. Un importo piccolo si legge in Rame, uno grande in Oro e Argento: il valore è sempre lo stesso."},
+       {"type": "links", "targets": ["page:guide_bank_shop", "page:guide_village"]}
+     ]}
+  ]
+}

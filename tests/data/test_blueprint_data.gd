@@ -50,7 +50,7 @@ func test_counts_of_the_new_categories() -> void:
 
 
 func test_components_follow_8_2() -> void:
-	var ore_values: Array[int] = [1, 3, 6, 10, 18, 30, 50, 85]
+	var ore_values: Array[int] = [100, 300, 600, 1000, 1800, 3000, 5000, 8500]
 	for n: int in range(1, 9):
 		var plate: ItemDef = _data.item(StringName(METALS[n - 1] + "_plate"))
 		assert_eq(plate.category, &"component", plate.id)
@@ -175,7 +175,7 @@ func test_start_kit_uses_existing_grade_one_items() -> void:
 	var food: ItemDef = _data.item(StringName(_data.balance_value("start.food") as String))
 	assert_eq(food.food_heal, 20)
 	assert_true(_data.shop_entry(&"auto_eat_1") != null)
-	assert_eq(_data.shop_entry(&"auto_eat_1").cost_gold, 2000, "kept in the shop data, owned from the start")
+	assert_eq(_data.shop_entry(&"auto_eat_1").cost_gold, 200000, "kept in the shop data, owned from the start")
 
 
 func test_every_drop_material_has_a_source() -> void:

@@ -218,11 +218,10 @@ func _id(slot: String, material: String, g: int) -> String:
 
 
 func _value(slot: String, g: int) -> int:
-	if slot == "ring":
-		return RING_VALUE[g - 1]
-	if slot == "neck":
-		return NECK_VALUE[g - 1]
-	return roundi(PLATE_VALUE[g - 1] * float(SLOT_VALUE_MULT[slot]))
+	var silver: int = roundi(PLATE_VALUE[g - 1] * float(SLOT_VALUE_MULT.get(slot, 0)))  # silver tables, copper data (F-177)
+	if slot == "ring" or slot == "neck":
+		silver = (RING_VALUE if slot == "ring" else NECK_VALUE)[g - 1]
+	return silver * int((_balance["currency"] as Dictionary)["copper_per_silver"])
 
 
 func _level(g: int) -> int:
@@ -367,7 +366,7 @@ func _legendary_tool(row: Array, n: int) -> Dictionary:
 		"modifiers": [{"stat": "skill_interval_pct", "value": stats[0], "scope": "skill:%s" % skill},
 			{"stat": "double_item_chance", "value": stats[1], "scope": "skill:%s" % skill}],
 		"legendary": {"source": {"type": "monolith", "id": MONOLITHS[row[3]], "chance_pct": 0.3}, "effects": [row[4]]}}
-	var item: Dictionary = _item(id, row[1], _icon_for("tool_" + kind, "plate", "legendary", id), 100 * int(row[2]),
+	var item: Dictionary = _item(id, row[1], _icon_for("tool_" + kind, "plate", "legendary", id), 100 * int(row[2]) * int((_balance["currency"] as Dictionary)["copper_per_silver"]),
 			2000 + int(row[2]) + n, row[5], equip)
 	item["category"] = "tool"
 	return item

@@ -67,7 +67,7 @@ func test_the_dungeon_is_built() -> void:
 	assert_eq(def.exit_weights, [5, 3, 2] as Array[int])
 	assert_eq(def.room_types.size(), 6)
 	assert_eq(def.trap_kinds.size(), 3)
-	assert_eq(def.boss_gold, Vector2i(3000, 5000))
+	assert_eq(def.boss_gold, Vector2i(300000, 500000))
 	assert_eq(def.boss_pieces.size(), 2)
 	assert_eq(def.boss_pieces[0], {"rarity": &"rare"})
 	assert_eq(def.boss_pieces[1], {"min_rarity": &"magic"})
@@ -92,7 +92,7 @@ func test_the_three_stages_resolve_their_monsters() -> void:
 	assert_eq(def.stages[2].ability.type, BossAbilityDef.SHIELD)
 	assert_true(def.stages[2].escorts.is_empty())
 	assert_true(def.stages[2].reward.is_empty())
-	assert_eq(def.stages[0].reward["gold"], Vector2i(1500, 2500))
+	assert_eq(def.stages[0].reward["gold"], Vector2i(150000, 250000))
 	assert_eq(def.stages[2].intro_ms, 5500)
 
 

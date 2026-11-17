@@ -20,7 +20,7 @@ func test_parameters_in_ppm() -> void:
 	assert_eq(_p.block_ms, 300000)
 	assert_eq([_p.base_ppm, _p.min_ppm, _p.max_ppm, _p.amp_ppm], [1150000, 700000, 1260000, 80000])
 	assert_eq([_p.step_ppm, _p.cap_ppm, _p.recover_ppm, _p.spread_ppm, _p.refill_ppm], [250, 560000, 5000, 1500000, 14000])
-	assert_eq([_p.period_blocks, _p.stock_gold, _p.stock_min, _p.stock_max], [72, 6000, 5, 500])
+	assert_eq([_p.period_blocks, _p.stock_gold, _p.stock_min, _p.stock_max], [72, 600000, 5, 500])
 	assert_eq([_p.trend_blocks, _p.trend_threshold_ppm], [12, 10000])
 
 
@@ -96,12 +96,12 @@ func test_stock_examples() -> void:
 
 func test_buy_examples() -> void:
 	var plate_value: int = _value(PLATE)
-	assert_eq(AuctionMath.buy_unit(plate_value, 1186080, _p), 1599)
-	assert_eq(AuctionMath.gold_of(plate_value, AuctionMath.sale_sum_ppm(1186080, 0, 1, _p)), 705)
-	assert_eq(AuctionMath.buy_unit(plate_value, 700000, _p), 1309)
+	assert_eq(AuctionMath.buy_unit(plate_value, 1186080, _p), 159822)
+	assert_eq(AuctionMath.gold_of(plate_value, AuctionMath.sale_sum_ppm(1186080, 0, 1, _p)), 70571)
+	assert_eq(AuctionMath.buy_unit(plate_value, 700000, _p), 130900)
 	assert_gt(AuctionMath.buy_unit(plate_value, 700000, _p), plate_value * _p.max_ppm / 1000000, "above the best possible sale")
 	var grip_unit: int = AuctionMath.buy_unit(_value(GRIP), 1000000, _p)
-	assert_between(grip_unit, 5, 6)
+	assert_between(grip_unit, 500, 600)
 
 
 func test_buying_always_costs_more_than_any_sale_for_every_buyable_item() -> void:
