@@ -20,7 +20,7 @@ const CONTENT_FILES: Dictionary[String, String] = {
 	"map_mods": MapIndex.MODS_FILE, "bosses": MapIndex.BOSSES_FILE,  # M13: mandatory (may be empty)
 	"village": VillageIndex.FILE,  # M19: mandatory (may be empty)
 	"quests": "quests/quests.json",  # M20: mandatory (may be empty)
-	"auction": AuctionIndex.FILE, "auction_population": AuctionIndex.POPULATION_FILE,  # M23, M26-08: mandatory
+	"auction": AuctionIndex.FILE, "auction_population": AuctionIndex.POPULATION_FILE, "mail": MailIndex.FILE,  # M23, M26-08, M27-05: mandatory
 	"disciplines": DisciplineIndex.TRAINERS_FILE,  # M24: mandatory (the grades; the Trainers may be empty)
 }
 const CONTENT_DIRS: Dictionary[String, String] = {
@@ -64,6 +64,7 @@ var _quests: Dictionary[StringName, QuestDef] = {}  # M20
 var _quest_list: Array[QuestDef] = []
 var _auction: AuctionIndex = AuctionIndex.new()  # M23
 var _currency: CurrencyParams = null  # M27
+var _mail: MailIndex = MailIndex.new()  # M27-05
 var _dungeons: DungeonIndex = DungeonIndex.new()  # M22
 var _blueprint_list: Array[ItemDef] = []
 var _blueprint_by_base: Dictionary[StringName, ItemDef] = {}
@@ -244,6 +245,8 @@ func auction_item(id: StringName) -> AuctionItemDef: return _auction.by_id.get(i
 func auction_building() -> StringName: return _village.auction_building()
 ## M27 (docs/04_DATA_SCHEMA_M27.md §32.1): the `currency` parameters of balance.json (F-177).
 func currency() -> CurrencyParams: return _currency
+## M27-05 (§32.5): the Mail text models of a kind in file order; [] if none.
+func mail_templates(kind: StringName) -> Array[MailTemplateDef]: return _mail.of_kind(kind)
 
 ## M22 (docs/04_DATA_SCHEMA.md §27): a dungeon by id (null and an error if unknown); all of them, by `order`; the dungeon a
 ## ticket item opens (null, without error, for any other item).
@@ -265,19 +268,14 @@ func recipe_item_for(action_id: StringName) -> ItemDef:
 	return null
 
 func hint(id: StringName) -> HintDef: return _find(_hints, id, "hint") as HintDef
-
 ## Every hint, in file order.
 func hints() -> Array[HintDef]: return _hint_list.duplicate()
-
 ## M12: a loot table by id; null and an error if unknown.
 func loot_table(id: StringName) -> LootTableDef: return _find(_loot.by_id, id, "loot table") as LootTableDef
-
 ## M12: every loot table, in file order (empty without data/combat/loot_tables.json).
 func loot_tables() -> Array[LootTableDef]: return _loot.list.duplicate()
-
 ## M11: the hand-written Guide pages by section, order and id.
 func guide_pages() -> Array[GuidePageDef]: return _guide.list.duplicate()
-
 func guide_page(id: StringName) -> GuidePageDef: return _find(_guide.by_id, id, "guide page") as GuidePageDef
 
 ## {"no_source": Array[StringName], "no_use": Array[StringName]} (empty lists without data/guide/exceptions.json).
@@ -351,6 +349,7 @@ func _build(raw: Dictionary) -> void:
 	_maps.build(_item_list, raw["map_mods"] as Dictionary, raw["bosses"] as Dictionary, _balance, errors)
 	_village.build(raw["village"] as Dictionary, errors)
 	_auction.build(_balance, raw["auction"] as Dictionary, raw["auction_population"] as Dictionary, errors)
+	_mail.build(raw["mail"] as Dictionary, errors)
 	_currency = CurrencyParams.from_dict(_balance["currency"] as Dictionary)
 	if _currency == null:
 		errors.append("balance.json: key 'currency': cannot be built (see the log)")
@@ -389,6 +388,7 @@ func _clear() -> void:
 	_village.clear()
 	_auction.clear()
 	_currency = null
+	_mail.clear()
 	_dungeons.clear()
 	for list: Array in [_item_list, _skill_list, _action_list, _node_list, _area_list, _shop_list, _class_list,
 			_affix_list, _hint_list, _blueprint_list, _quest_list]:

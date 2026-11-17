@@ -68,7 +68,7 @@ const DEPOSIT_BAG_SLOTS_MAX: int = 12  # format limit of deposit.bag_slots (docs
 const START_ITEM_FORBIDDEN_CATEGORIES: PackedStringArray = ["equipment", "tool", "map"]  # they live in the Armory only
 ## Sections made of one file (the others are folders, possibly empty).
 const SINGLE_FILE_SECTIONS: PackedStringArray = ["balance", "stats", "skills", "areas", "monsters", "shop", "affixes",
-	"rift_stones", "hints", "loot_tables", "map_mods", "bosses", "village", "quests", "auction", "auction_population", "disciplines"]
+	"rift_stones", "hints", "loot_tables", "map_mods", "bosses", "village", "quests", "auction", "auction_population", "mail", "disciplines"]
 const SKILL_CATEGORIES: PackedStringArray = ["gathering", "artisan"]
 const STAT_FIELDS: PackedStringArray = ["id", "name", "format", "min", "max", "description", "formula", "test"]
 const STAT_FORMULA_PATTERN: String = "^(F-[0-9]{2,3}|[0-9]+(\\.[0-9]+)*)$"
@@ -122,6 +122,7 @@ static func validate(raw: Dictionary, errors: PackedStringArray) -> void:
 	DataValidatorVillage.validate(v, _files(raw, "village"), _files(raw, "balance"))
 	DataValidatorQuests.validate(v, _files(raw, "quests"), _files(raw, "balance"), _files(raw, "items"), _files(raw, "actions"))
 	DataValidatorAuction.validate(v, raw)
+	DataValidatorMail.validate(v, raw)
 	DataValidatorDisciplines.validate(v, raw, DataValidatorDisciplines.STRICT_REAL_DATA and DataValidatorDisciplines.is_real_data(raw))
 	errors.append_array(v.errors)
 
@@ -193,7 +194,6 @@ static func _collect_classes(v: DataValidatorRules, files: Dictionary[String, Di
 		if files[path].get("id") is String:
 			v.classes[StringName(files[path]["id"] as String)] = files[path]
 
-
 # --- balance.json ------------------------------------------------------------------------------------------------
 
 static func _validate_balance(v: DataValidatorRules, files: Dictionary[String, Dictionary]) -> void:
@@ -261,7 +261,7 @@ static func _unknown_balance_keys(v: DataValidatorRules, node: Dictionary, prefi
 		if str(key) == DataValidatorRules.DOC_KEY or path in REQUIRED_BALANCE_KEYS \
 				or path in DataValidatorM10Balance.M10_REQUIRED_KEYS or path in DataValidatorM10Balance.LEGACY_KEYS \
 				or DataValidatorFracture.is_known_key(path) or DataValidatorM14.is_known_key(path) \
-				or DataValidatorMetin.is_known_key(path) or DataValidatorVillage.is_known_key(path) or DataValidatorQuests.is_known_key(path) or DataValidatorDungeon.is_known_key(path) or DataValidatorAuction.is_known_key(path) or DataValidatorDisciplines.is_known_key(path) or DataValidatorCurrency.is_known_key(path):
+				or DataValidatorMetin.is_known_key(path) or DataValidatorVillage.is_known_key(path) or DataValidatorQuests.is_known_key(path) or DataValidatorDungeon.is_known_key(path) or DataValidatorAuction.is_known_key(path) or DataValidatorDisciplines.is_known_key(path) or DataValidatorCurrency.is_known_key(path) or DataValidatorMail.is_known_key(path):
 			continue
 		var is_prefix: bool = false
 		for required: String in REQUIRED_BALANCE_KEYS:

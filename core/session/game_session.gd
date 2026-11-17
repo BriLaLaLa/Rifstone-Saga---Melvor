@@ -47,6 +47,7 @@ var hints: HintsSystem
 var discoveries: Discoveries  # M14-07
 var village: Village  # M19-02
 var quests: Quests  # M20-02
+var mail: MailBox  # M27-05
 var auction: AuctionHouse  # M23-02
 # The other system fields of docs/05_INTERFACES.md §5.3 are declared by the task that creates each system.
 var slot: int = -1
@@ -200,6 +201,8 @@ func _create_systems() -> void:
 	_join(Village.SAVE_KEY, village.new_game, village.to_save, village.from_save, village.rebuild_modifiers)
 	quests = Quests.new(self)
 	_join(Quests.SAVE_KEY, quests.new_game, quests.to_save, quests.from_save, quests.refill)
+	mail = MailBox.new(self)
+	_join(MailBox.SAVE_KEY, mail.new_game, mail.to_save, mail.from_save)
 	auction = AuctionHouse.new(self)
 	_join(AuctionHouse.SAVE_KEY, auction.new_game, auction.to_save, auction.from_save)
 	_tick(_PHASE_AUCTION, auction.advance)

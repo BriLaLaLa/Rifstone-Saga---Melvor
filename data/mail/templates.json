@@ -1,0 +1,8 @@
+{"templates": [
+  {"kind": "auction_sold", "sender": "Casa d'Aste", "subject": "Hanno comprato: {item}", "body": "Buone notizie: {qty} x {item} hanno trovato casa, a {price} l'uno. Nella busta ci sono {money}."},
+  {"kind": "auction_sold", "sender": "Casa d'Aste", "subject": "Un affare concluso: {item}", "body": "Il banditore ha battuto il martelletto: {qty} x {item}. Ti aspettano {money}, da ritirare quando vuoi."},
+  {"kind": "auction_sale", "sender": "Banco dei Mercanti", "subject": "Venduto subito: {item}", "body": "Il banco ha preso al volo {qty} x {item}. Il compenso, {money}, è nella busta."},
+  {"kind": "auction_sale", "sender": "Banco dei Mercanti", "subject": "Scambio rapido: {item}", "body": "Hai ceduto {qty} x {item} senza aspettare. Ecco {money}, ben contati."},
+  {"kind": "auction_expired", "sender": "Casa d'Aste", "subject": "Nessuno ha preso {item}", "body": "L'inserzione è scaduta senza acquirenti: {qty} x {item} tornano da te. Magari con un prezzo più gentile."},
+  {"kind": "auction_cancelled", "sender": "Casa d'Aste", "subject": "Inserzione ritirata: {item}", "body": "Hai tolto l'inserzione come richiesto. {qty} x {item} ti aspettano nella busta."}
+]}

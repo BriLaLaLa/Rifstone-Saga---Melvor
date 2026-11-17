@@ -159,6 +159,7 @@ const EXPECTED_BALANCE: Dictionary = {
 	"offline.cap_ms": 43200000.0,
 	"offline.min_ms": 60000.0,
 	"offline.chunk_ms": 60000.0,
+	"mail.capacity": 50.0,  # M27-05
 	"currency.copper_per_silver": 100.0,
 	"currency.silver_per_gold": 100.0,
 	"currency.symbols.gold": "o",

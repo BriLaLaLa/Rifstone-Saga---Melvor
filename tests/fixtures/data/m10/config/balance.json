@@ -331,6 +331,7 @@
     "trend": {"blocks": 12, "threshold_pct": 1},
     "population": {"ref": 100, "period_blocks": 36, "variation_pct": 20, "pressure_pct": 10, "demand_threshold_pct": 0.5}
   },
+  "mail": {"capacity": 50},
   "currency": {
     "copper_per_silver": 100,
     "silver_per_gold": 100,

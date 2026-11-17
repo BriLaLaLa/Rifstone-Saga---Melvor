@@ -14,6 +14,7 @@ var deaths: int = 0
 var food_eaten: int = 0
 var nodes_worked: int = 0  # M24: nodes worked and skipped (the counters of the slot)
 var nodes_skipped: int = 0
+var mail_unread: int = 0  # M27-05
 
 
 static func take(session: GameSession) -> SessionSnapshot:
@@ -31,6 +32,8 @@ static func take(session: GameSession) -> SessionSnapshot:
 			snapshot.bank[stack["item"]] = stack["count"]
 	if session.wallet != null:
 		snapshot.gold = session.wallet.get_gold()
+	if session.mail != null:
+		snapshot.mail_unread = session.mail.unread()
 	if session.combat != null:
 		snapshot.kills = session.combat.total_kills()
 		snapshot.deaths = session.combat.deaths()
