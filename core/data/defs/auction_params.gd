@@ -22,6 +22,13 @@ var stock_max: int = 0
 var refill_ppm: int = 0
 var trend_blocks: int = 0
 var trend_threshold_ppm: int = 0
+# M26-08 population (F-172…F-176): `auction.population` and the bands of data/auction/population.json (set by AuctionIndex).
+var pop_ref: int = 0
+var pop_period_blocks: int = 0
+var pop_var_ppm: int = 0
+var pop_press_ppm: int = 0
+var pop_demand_ppm: int = 0
+var bands: Array[AuctionPopulationBand] = []
 
 
 static func from_dict(d: Dictionary) -> AuctionParams:
@@ -49,7 +56,13 @@ static func from_dict(d: Dictionary) -> AuctionParams:
 	var trend := DefReader.new(r.dict("trend"), "balance auction.trend")
 	p.trend_blocks = trend.integer("blocks")
 	p.trend_threshold_ppm = ppm(trend.number("threshold_pct"))
-	for child: DefReader in [index, drift, sat, buy, stock, trend]:
+	var pop := DefReader.new(r.dict("population"), "balance auction.population")
+	p.pop_ref = pop.integer("ref")
+	p.pop_period_blocks = pop.integer("period_blocks")
+	p.pop_var_ppm = ppm(pop.number("variation_pct"))
+	p.pop_press_ppm = ppm(pop.number("pressure_pct"))
+	p.pop_demand_ppm = ppm(pop.number("demand_threshold_pct"))
+	for child: DefReader in [index, drift, sat, buy, stock, trend, pop]:
 		r.absorb(child.ok)
 	return p if r.ok else null
 

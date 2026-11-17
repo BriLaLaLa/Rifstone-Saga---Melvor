@@ -11,7 +11,7 @@ const STRICT_REAL_DATA: bool = true
 const TRADED: PackedStringArray = ["material", "component", "food"]
 const BUYABLE: PackedStringArray = ["component", "food"]
 const PPM: int = 1000000
-const PARAM_KEYS: PackedStringArray = ["block_ms", "index", "drift", "saturation", "buy", "stock", "trend"]
+const PARAM_KEYS: PackedStringArray = ["block_ms", "index", "drift", "saturation", "buy", "stock", "trend", "population"]
 const ITEM_FIELDS: PackedStringArray = ["item", "buy_level"]
 
 
@@ -124,6 +124,7 @@ static func validate_balance(v: DataValidatorRules, balance: Dictionary) -> void
 	v.keys(trend, ["blocks", "threshold_pct"], "auction.trend")
 	ok = v.integer(trend, "blocks", 1.0, DataValidatorRules.NO_LIMIT, "auction.trend") and ok
 	ok = v.number(trend, "threshold_pct", 0.0, DataValidatorRules.NO_LIMIT, "auction.trend") and ok
+	ok = DataValidatorAuctionPopulation.validate_params(v, auction) and ok
 	if ok:
 		_relations(v, AuctionParams.from_dict(auction))
 
@@ -136,6 +137,7 @@ static func validate(v: DataValidatorRules, raw: Dictionary) -> void:
 		validate_balance(v, balance_files[path] as Dictionary)
 	var balance: Dictionary = _first(raw, "balance")
 	var params: AuctionParams = _valid_params(balance)
+	_population(v, raw, params, balance)
 	var village: Dictionary = _first(raw, "village")
 	var buildings: Array = village.get("buildings", []) as Array if village.get("buildings") is Array else []
 	_building_rules(v, raw, buildings)
@@ -176,6 +178,20 @@ static func _relations(v: DataValidatorRules, p: AuctionParams) -> void:
 		v.fail("key 'auction.buy.spread_pct' must be above max_pct - min_pct (F-151: buying and selling back must lose gold)")
 	if p.stock_max < p.stock_min:
 		v.fail("key 'auction.stock.max' must be at least 'min'")
+
+
+# M26-08: the population file and, when both it and the parameters are valid, the F-174 bounds (the bands are set on `params`).
+@warning_ignore("integer_division")
+static func _population(v: DataValidatorRules, raw: Dictionary, params: AuctionParams, balance: Dictionary) -> void:
+	var files: Dictionary = raw.get("auction_population", {}) as Dictionary
+	for path: Variant in files:
+		v.at_file(str(path))
+		var content: Dictionary = files[path] as Dictionary
+		if DataValidatorAuctionPopulation.validate_bands(v, content) and params != null:
+			params.bands = AuctionPopulationBand.list_from(content)
+			var block_ms: int = maxi(1, int(DataValidator.lookup(balance, "auction.block_ms")))
+			var cap_ms: Variant = DataValidator.lookup(balance, "offline.cap_ms")
+			DataValidatorAuctionPopulation.relations(v, params, int(cap_ms) / block_ms if DataValidatorRules.is_int(cap_ms) else 0)
 
 
 # `auction` of balance.json as AuctionParams when valid (null otherwise: reported by validate_balance).

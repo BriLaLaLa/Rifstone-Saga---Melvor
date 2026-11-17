@@ -40,7 +40,7 @@ func test_only_items_away_from_rest_are_saved_with_the_keys_that_differ() -> voi
 	_house.buy(PLATE, 3)
 	_house.buy(GRIP, 1)
 	var items: Dictionary = _items(_house.to_save())
-	assert_eq(items["redbirch_log"], {"sat": 25000})
+	assert_eq(items["redbirch_log"], {"sat": 20000})
 	assert_eq(items["riftite_plate"], {"stock": 7})
 	assert_eq(items["redbirch_grip"], {"stock": 499})
 	assert_eq(items.size(), 3)

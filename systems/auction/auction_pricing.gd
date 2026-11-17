@@ -20,6 +20,8 @@ var _block: int = 0
 var _pending_ms: int = 0
 var _sat: Dictionary[StringName, int] = {}
 var _stock: Dictionary[StringName, int] = {}
+var _band: Dictionary[StringName, AuctionPopulationBand] = {}  # F-172: constant per item
+var _liq: Dictionary[StringName, Dictionary] = {}  # F-172: {"step", "rec", "refill"} per item
 
 
 func _init(data: GameData) -> void:
@@ -27,6 +29,8 @@ func _init(data: GameData) -> void:
 	for def: AuctionItemDef in data.auction_items():
 		_items[def.item] = def
 		_value[def.item] = data.item(def.item).value
+		_band[def.item] = AuctionMath.band_of(_value[def.item], _p)
+		_liq[def.item] = AuctionMath.liquidity(_value[def.item], _band[def.item], _p)
 
 
 ## New market: block 0, every item at rest (saturation 0, full stock).
@@ -54,7 +58,7 @@ func buy_level(item_id: StringName) -> int:
 func sell_quote(item_id: StringName, qty: int) -> int:
 	if not _items.has(item_id) or qty <= 0:
 		return 0
-	return AuctionMath.gold_of(_value[item_id], AuctionMath.sale_sum_ppm(_equilibrium(item_id), _sat.get(item_id, 0), qty, _p))
+	return AuctionMath.gold_of(_value[item_id], AuctionMath.sale_sum_ppm(_equilibrium(item_id, _block), _sat.get(item_id, 0), qty, _p, _liq[item_id]["step"]))
 
 
 ## F-151: `qty * unit`; 0 if the item cannot be bought or `qty <= 0` (the stock is not looked at).
@@ -81,16 +85,30 @@ func trend(item_id: StringName) -> StringName:
 	if not _items.has(item_id):
 		return STABLE
 	var ahead: int = _p.trend_blocks
-	var sat_next: int = maxi(0, _sat.get(item_id, 0) - ahead * _p.recover_ppm)
-	var eq_next: int = _p.base_ppm + AuctionMath.drift(item_id, _seed, _block + ahead, _p)
+	var sat_next: int = maxi(0, _sat.get(item_id, 0) - ahead * int(_liq[item_id]["rec"]))
+	var eq_next: int = _equilibrium(item_id, _block + ahead)
 	return AuctionMath.trend_of(_index(item_id), AuctionMath.index_ppm(eq_next, sat_next, _p), _p)
+
+
+## F-173, F-176: the population of the item now, `{"buyers", "sellers", "demand": &"high"|&"normal"|&"low"}`; `{}` if not listed.
+func population(item_id: StringName) -> Dictionary:
+	if not _items.has(item_id):
+		return {}
+	var pop: Vector2i = _population(item_id, _block)
+	var press: int = AuctionMath.pressure(pop.x, pop.y, _p)
+	var demand: StringName = &"normal"
+	if press >= _p.pop_demand_ppm:
+		demand = &"high"
+	elif press <= -_p.pop_demand_ppm:
+		demand = &"low"
+	return {"buyers": pop.x, "sellers": pop.y, "demand": demand}
 
 
 ## F-148: `sat = min(CAP, sat + qty * STEP)`. No checks (AuctionHouse does them).
 func record_sale(item_id: StringName, qty: int) -> void:
 	if not _items.has(item_id) or qty <= 0:
 		return
-	_sat[item_id] = mini(_p.cap_ppm, _sat.get(item_id, 0) + qty * _p.step_ppm)
+	_sat[item_id] = mini(_p.cap_ppm, _sat.get(item_id, 0) + qty * int(_liq[item_id]["step"]))
 
 
 ## F-150: `stock -= qty`, never below 0.
@@ -116,14 +134,14 @@ func advance(delta_ms: int) -> int:
 		return 0
 	_block += blocks
 	for id: StringName in _sat.keys():
-		var left: int = maxi(0, _sat[id] - blocks * _p.recover_ppm)
+		var left: int = maxi(0, _sat[id] - blocks * int(_liq[id]["rec"]))
 		if left == 0:
 			_sat.erase(id)
 		else:
 			_sat[id] = left
 	for id: StringName in _stock.keys():
 		var cap: int = stock_max(id)
-		var refilled: int = mini(cap, _stock[id] + blocks * AuctionMath.refill_per_block(cap, _p))
+		var refilled: int = mini(cap, _stock[id] + blocks * int(_liq[id]["refill"]))
 		if refilled >= cap:
 			_stock.erase(id)
 		else:
@@ -186,13 +204,21 @@ func _load_item(id: StringName, entry: Dictionary) -> void:
 			_stock[id] = value
 
 
-# F-147: equilibrium of the item now, and its index (equilibrium minus saturation, limited).
-func _equilibrium(item_id: StringName) -> int:
-	return _p.base_ppm + AuctionMath.drift(item_id, _seed, _block, _p)
+# F-174: equilibrium of the item at `block` (base + slow drift + population pressure), and its index now.
+func _equilibrium(item_id: StringName, block: int) -> int:
+	var pop: Vector2i = _population(item_id, block)
+	return _p.base_ppm + AuctionMath.drift(item_id, _seed, block, _p) + AuctionMath.pressure(pop.x, pop.y, _p)
+
+
+# F-173: (buyers, sellers) of the item at `block`.
+func _population(item_id: StringName, block: int) -> Vector2i:
+	var band: AuctionPopulationBand = _band[item_id]
+	return AuctionMath.population(band.buyers, band.sellers, AuctionMath.wave(item_id, "b", _seed, block, _p),
+			AuctionMath.wave(item_id, "s", _seed, block, _p))
 
 
 func _index(item_id: StringName) -> int:
-	return AuctionMath.index_ppm(_equilibrium(item_id), _sat.get(item_id, 0), _p)
+	return AuctionMath.index_ppm(_equilibrium(item_id, _block), _sat.get(item_id, 0), _p)
 
 
 func _warn_zero(key: String, raw: Variant) -> int:

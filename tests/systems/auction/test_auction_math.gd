@@ -18,8 +18,8 @@ func _value(id: StringName) -> int:
 
 func test_parameters_in_ppm() -> void:
 	assert_eq(_p.block_ms, 300000)
-	assert_eq([_p.base_ppm, _p.min_ppm, _p.max_ppm, _p.amp_ppm], [1150000, 700000, 1250000, 80000])
-	assert_eq([_p.step_ppm, _p.cap_ppm, _p.recover_ppm, _p.spread_ppm, _p.refill_ppm], [250, 550000, 5000, 1500000, 14000])
+	assert_eq([_p.base_ppm, _p.min_ppm, _p.max_ppm, _p.amp_ppm], [1150000, 700000, 1260000, 80000])
+	assert_eq([_p.step_ppm, _p.cap_ppm, _p.recover_ppm, _p.spread_ppm, _p.refill_ppm], [250, 560000, 5000, 1500000, 14000])
 	assert_eq([_p.period_blocks, _p.stock_gold, _p.stock_min, _p.stock_max], [72, 6000, 5, 500])
 	assert_eq([_p.trend_blocks, _p.trend_threshold_ppm], [12, 10000])
 

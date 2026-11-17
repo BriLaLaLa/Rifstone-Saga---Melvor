@@ -323,12 +323,13 @@
   "miniboss": {"chance_pct": 1.5, "hp_mult": 4.0, "power_mult": 1.5, "xp_mult": 4.0, "gold_mult": 4.0},
   "auction": {
     "block_ms": 300000,
-    "index": {"base_pct": 115, "min_pct": 70, "max_pct": 125},
+    "index": {"base_pct": 115, "min_pct": 70, "max_pct": 126},
     "drift": {"amplitude_pct": 8, "period_blocks": 72},
-    "saturation": {"per_unit_pct": 0.025, "max_pct": 55, "recover_pct_per_block": 0.5},
+    "saturation": {"per_unit_pct": 0.025, "max_pct": 56, "recover_pct_per_block": 0.5},
     "buy": {"spread_pct": 150, "blueprint_margin_pct": 3},
     "stock": {"gold": 6000, "min": 5, "max": 500, "refill_pct_per_block": 1.4},
-    "trend": {"blocks": 12, "threshold_pct": 1}
+    "trend": {"blocks": 12, "threshold_pct": 1},
+    "population": {"ref": 100, "period_blocks": 36, "variation_pct": 20, "pressure_pct": 10, "demand_threshold_pct": 0.5}
   },
   "offline": {
     "cap_ms": 43200000,

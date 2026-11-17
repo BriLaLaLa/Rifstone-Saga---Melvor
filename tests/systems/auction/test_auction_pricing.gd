@@ -38,9 +38,9 @@ func test_listing_and_levels() -> void:
 
 func test_quotes_at_rest() -> void:
 	var value: int = _data.item(PLATE).value
-	assert_eq(_p.sell_quote(PLATE, 1), 705)
-	assert_eq(_p.buy_quote(PLATE, 1), 1599)
-	assert_eq(_p.buy_quote(PLATE, 3), 3 * 1599)
+	assert_eq(_p.sell_quote(PLATE, 1), 711)
+	assert_eq(_p.buy_quote(PLATE, 1), 1605)
+	assert_eq(_p.buy_quote(PLATE, 3), 3 * 1605)
 	assert_eq(_p.sell_quote(PLATE, 0), 0)
 	assert_eq(_p.sell_quote(&"test_unknown", 5), 0)
 	assert_eq(_p.buy_quote(LOG, 5), 0, "not for sale")
@@ -54,7 +54,7 @@ func test_selling_lowers_the_price_of_that_item_only() -> void:
 	_p.record_sale(PLATE, 400)
 	assert_lt(_p.sell_quote(PLATE, 1), before)
 	assert_eq(_p.sell_quote(GRIP, 1), other_before)
-	assert_eq(_p.buy_quote(PLATE, 1), AuctionMath.buy_unit(_data.item(PLATE).value, 1186080 - 100000, _data.auction_params()), "the buy price follows the index")
+	assert_eq(_p.buy_quote(PLATE, 1), AuctionMath.buy_unit(_data.item(PLATE).value, 1195823 - 400 * 277, _data.auction_params()), "the buy price follows the index")
 
 
 func test_saturation_has_a_ceiling_and_the_price_a_floor() -> void:
@@ -89,12 +89,12 @@ func test_stock_refill_examples() -> void:
 
 
 func test_saturation_recovery_examples() -> void:
-	_p.record_sale(LOG, 2000)  # 500.000
+	_p.record_sale(LOG, 2500)  # 500.000 (STEP_i 200, F-172)
 	_p.advance(30 * 300000)
-	assert_eq(_sat_of(_p, LOG), 350000)
+	assert_eq(_sat_of(_p, LOG), 312500)
 	_p.advance(80 * 300000)
-	assert_eq(_sat_of(_p, LOG), 0, "100 blocks in total")
-	_p.record_sale(LOG, 2200)  # the cap, 550.000
+	assert_eq(_sat_of(_p, LOG), 0, "110 blocks in total")
+	_p.record_sale(LOG, 2800)  # the cap, 560.000
 	_p.advance(12 * HOUR_MS)
 	assert_false((_p.to_save()["items"] as Dictionary).has("redbirch_log"), "12 hours of offline: at rest")
 

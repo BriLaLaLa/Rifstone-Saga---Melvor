@@ -4,6 +4,7 @@ extends RefCounted
 ## and the items of data/auction/auction_items.json (docs/04_DATA_SCHEMA.md §28), in file order.
 
 const FILE: String = "auction/auction_items.json"
+const POPULATION_FILE: String = "auction/population.json"  # M26-08
 
 var params: AuctionParams = null
 var by_id: Dictionary[StringName, AuctionItemDef] = {}
@@ -11,10 +12,17 @@ var list: Array[AuctionItemDef] = []
 
 
 ## `raw` is `{path: top-level object}` of the single file; a Def that cannot be built is reported in `errors`.
-func build(balance: Dictionary, raw: Dictionary, errors: PackedStringArray) -> void:
+func build(balance: Dictionary, raw: Dictionary, population: Dictionary, errors: PackedStringArray) -> void:
 	params = AuctionParams.from_dict(balance["auction"] as Dictionary)
 	if params == null:
 		errors.append("balance.json: key 'auction': cannot be built (see the log)")
+	for path: String in population:
+		var content: Dictionary = population[path] as Dictionary
+		var bands: Array[AuctionPopulationBand] = AuctionPopulationBand.list_from(content)
+		if params != null:
+			params.bands = bands
+		if bands.size() != (content.get("bands") as Array).size():
+			errors.append("%s: a population band cannot be built (see the log)" % path)
 	for path: String in raw:
 		for d: Variant in (raw[path]["items"] as Array):
 			var def: AuctionItemDef = AuctionItemDef.from_dict(d as Dictionary)
