@@ -102,9 +102,9 @@ func test_forging_page_hosts_the_bench_and_unbind_disconnects_it() -> void:
 	add_child(skill_page)
 	skill_page.bind(_session)
 	var bench: ForgeBench = null
-	for node: Node in skill_page.get_node("%Extras").get_children():
+	for node: Node in skill_page.find_children("*", "VBoxContainer", true, false):
 		if node is ForgeBench:
-			bench = node
+			bench = node as ForgeBench
 	assert_not_null(bench, "Banco del fabbro in the Forging page")
 	bench.select(uid)
 	assert_eq(bench.selected_uid(), uid)

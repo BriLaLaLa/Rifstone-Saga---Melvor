@@ -90,7 +90,8 @@ func test_crafting_cards_have_the_row_too() -> void:
 	if action == null:
 		pass_test("forging has no mastery actions in the data")
 		return
-	var row: Node = _page.find_child(String(action.id).to_pascal_case(), true, false).find_child("MasteryStepRow", true, false)
+	(_page.find_child("ProfessionView", true, false) as ProfessionView).show_recipe(action.id)
+	var row: Node = _page.find_child("RecipeDetail", true, false).find_child("MasteryStepRow", true, false)
 	assert_not_null(row)
 
 

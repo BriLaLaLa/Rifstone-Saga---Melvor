@@ -50,6 +50,7 @@ func _run() -> void:
 	_queue_shot(session, host)
 	await _frames(8)
 	_save(&"skill_queue")
+	await _prof_shots(session, host)
 	host.show_page(&"combat")
 	await _frames(4)
 	var map_button: Node = screen.find_child("MapButton", true, false)
@@ -156,3 +157,22 @@ func _frames(count: int) -> void:
 func _save(name: StringName) -> void:
 	var image: Image = get_tree().root.get_texture().get_image()
 	image.save_png("%s/%s.png" % [ProjectSettings.globalize_path(_out), String(name).replace(":", "_")])
+
+
+## Other production pages (woodwright, riftbinding) and the blueprint page of the forge, with some stock in the Deposit.
+func _prof_shots(session: GameSession, host: PageHost) -> void:
+	for skill_id: StringName in [&"woodwright", &"riftbinding"]:
+		TestFactory.learn_discipline(session, skill_id)
+		for action: ActionDef in session.data.actions_for_skill(skill_id).slice(0, 8):
+			for input: ItemQty in action.inputs:
+				TestFactory.give(session, input.item_id, 6)
+		host.show_page(StringName("skill:%s" % skill_id))
+		await _frames(8)
+		_save(StringName("prof_%s" % skill_id))
+	host.show_page(&"skill:forging")
+	await _frames(4)
+	var entry: Node = host.find_child("Page_blueprints", true, false)
+	if entry is Button:
+		(entry as Button).pressed.emit()
+		await _frames(6)
+		_save(&"prof_blueprints")

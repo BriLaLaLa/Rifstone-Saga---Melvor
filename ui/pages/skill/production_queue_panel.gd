@@ -11,6 +11,7 @@ signal refused(reason: StringName)
 
 const ROW_PREFIX: String = "QueueRow_"
 const BAR_HEIGHT: float = 10.0
+const ROWS_HEIGHT: float = 100.0
 const HEADER_SEPARATION: int = 16
 const LINE_SEPARATION: int = 8
 
@@ -54,9 +55,15 @@ func _ready() -> void:
 	_empty.text = QueueTexts.EMPTY_TEXT
 	_empty.theme_type_variation = &"MutedLabel"
 	box.add_child(_empty)
+	var scroll := ScrollContainer.new()  # a strip at the bottom of the page: a long queue scrolls instead of growing
+	scroll.name = "QueueScroll"
+	scroll.custom_minimum_size = Vector2(0, ROWS_HEIGHT)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	box.add_child(scroll)
 	_rows = VBoxContainer.new()
 	_rows.name = "QueueRows"
-	box.add_child(_rows)
+	_rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(_rows)
 	set_process(false)
 
 
@@ -99,6 +106,7 @@ func refresh() -> void:
 	_title.text = QueueTexts.TITLE_TEXT + "  " + QueueTexts.COUNT_TEXT % [jobs.size(), actions.capacity()]
 	_total.text = QueueTexts.TOTAL_TEXT % QueueTexts.duration(actions.estimate_ms()) if not jobs.is_empty() else ""
 	_empty.visible = jobs.is_empty()
+	(_rows.get_parent() as Control).visible = not jobs.is_empty()
 	_refresh_waiting()
 	for child: Node in _rows.get_children():
 		_rows.remove_child(child)

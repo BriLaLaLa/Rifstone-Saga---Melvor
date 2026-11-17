@@ -16,7 +16,6 @@ extends Page
 signal page_requested(page_id: StringName)
 
 const CARD_SCENE: PackedScene = preload("res://ui/pages/skill/action_card.tscn")
-const RECIPE_CARD_SCENE: PackedScene = preload("res://ui/pages/skill/recipe_card.tscn")
 const MASTERY_PANEL_SCENE: PackedScene = preload("res://ui/pages/mastery/mastery_panel.tscn")
 const BLUEPRINT_SECTION_SCENE: PackedScene = preload("res://ui/pages/skill/blueprint_section.tscn")
 const TOOL_PANEL_SCENE: PackedScene = preload("res://ui/pages/skill/tool_upgrade_panel.tscn")
@@ -39,9 +38,8 @@ var _bench: ForgeBench = null
 ## The production queue of the artisan pages and the Engraver; the "Si trova in" line of a gathering page.
 var _queue: ProductionQueuePanel = null
 var _top: Control = null
-var _tabs: SkillTabs = SkillTabs.new()
-## Flow container of each Engraver section (presentation), by section id.
-var _section_flows: Dictionary[StringName, HFlowContainer] = {}
+## Body of a production page (recipe list and detail); null on a gathering page.
+var _view: ProfessionView = null
 
 @onready var _skill_icon: TextureRect = %SkillIcon
 @onready var _name_label: Label = %NameLabel
@@ -51,6 +49,8 @@ var _section_flows: Dictionary[StringName, HFlowContainer] = {}
 @onready var _message_label: Label = %MessageLabel
 @onready var _card_list: HFlowContainer = %Cards
 @onready var _extras: VBoxContainer = %Extras
+@onready var _content: VBoxContainer = %Content
+@onready var _scroll: ScrollContainer = %Scroll
 @onready var _mastery_button: Button = %MasteryButton
 
 
@@ -78,7 +78,6 @@ func bind(session: GameSession) -> void:
 	_build_pool_bar()
 	_build_extras()
 	_build_cards()
-	_tabs.build(_skill.id, _extras, _cards, _session.data, _blueprints, _bench)
 	var events: GameEvents = _session.events
 	events.xp_gained.connect(_on_events_xp_gained)
 	events.level_up.connect(_on_events_level_up)
@@ -89,7 +88,7 @@ func bind(session: GameSession) -> void:
 	events.production_queue_changed.connect(_on_events_queue_changed)
 	events.discipline_changed.connect(_on_events_discipline_changed)
 	events.recipe_learned.connect(_on_events_recipe_learned)
-	if _has_recipe_cards() or _blueprints != null or _tool_panel != null:
+	if _view != null or _blueprints != null or _tool_panel != null:
 		events.bank_changed.connect(_on_events_bank_changed)
 		events.armory_changed.connect(_on_events_extras_changed)
 		events.blueprint_crafted.connect(_on_events_extras_changed)
@@ -134,6 +133,8 @@ func unbind() -> void:
 	_skill = null
 	_blueprints = null
 	_tool_panel = null
+	if _view != null and is_instance_valid(_view):
+		_view.forget_session()
 	_bench = null
 
 
@@ -152,23 +153,17 @@ func _build_cards() -> void:
 		_card_list.remove_child(child)
 		child.queue_free()
 	_cards.clear()
+	if not _is_gathering():
+		return  # the recipes of a production page are the rows of the ProfessionView
 	for action: ActionDef in _session.data.actions_for_skill(_skill.id):
-		if action.id == BlueprintCraft.ACTION:
-			continue  # started from the BlueprintSection, not from a card
-		var scene: PackedScene = RECIPE_CARD_SCENE if not action.inputs.is_empty() else CARD_SCENE
-		var action_card: ActionCard = scene.instantiate() as ActionCard
-		_card_parent(action).add_child(action_card)
+		var action_card: ActionCard = CARD_SCENE.instantiate() as ActionCard
+		_card_list.add_child(action_card)
 		action_card.setup(action, _session.data)
-		if action_card is RecipeCard:
-			(action_card as RecipeCard).enqueue_requested.connect(_on_enqueue_requested)
 		_cards[action.id] = action_card
 
 
-## Where the card of `action` goes: the card list, or for the Engraver the flow of its section (inside `Extras`).
-func _card_parent(action: ActionDef) -> Container:
-	if _skill.id != EngraverSections.SKILL:
-		return _card_list
-	return EngraverSections.flow_for(_extras, _section_flows, action)
+func _is_gathering() -> bool:
+	return _skill.category == &"gathering"
 
 
 func _redraw() -> void:
@@ -261,9 +256,6 @@ func _on_events_modifiers_changed() -> void:
 
 func _on_events_bank_changed(_item_id: StringName, _new_count: int, _delta: int) -> void:
 	_redraw_extras()
-	for action_id: StringName in _cards:
-		if _cards[action_id] is RecipeCard:
-			_cards[action_id].redraw(_session)
 
 
 ## Opens the mastery window of the skill (bound to the session while open) or closes it.
@@ -281,14 +273,7 @@ func _on_mastery_button_pressed() -> void:
 	_mastery_panel.open_window()
 
 
-func _has_recipe_cards() -> bool:
-	for action_id: StringName in _cards:
-		if _cards[action_id] is RecipeCard:
-			return true
-	return false
-
-
-## M10: the blueprint section of the Forging page and the tool panel of the gathering skills, in `Extras`.
+## M10: the tool panel of the gathering skills in `Extras`; a production page gets its ProfessionView and the queue strip.
 func _build_extras() -> void:
 	for child: Node in _extras.get_children():
 		_extras.remove_child(child)
@@ -296,38 +281,54 @@ func _build_extras() -> void:
 	_blueprints = null
 	_tool_panel = null
 	_bench = null
-	_section_flows.clear()
-	_tabs.clear()
 	_clear_top()
-	if _skill.category == &"gathering":
+	_scroll.visible = _is_gathering()
+	if _is_gathering():
 		_add_top(GatheringInfo.build_label(_session.data, _skill.id))
-	else:  # artisan pages and the Engraver: the production queue on top
-		_queue = ProductionQueuePanel.new()
-		_queue.name = "ProductionQueue"
-		_add_top(_queue)
-		_queue.bind(_session)
-		_queue.refused.connect(_show_refusal)
+		if TOOL_SKILLS.has(_skill.id):
+			_tool_panel = TOOL_PANEL_SCENE.instantiate() as ToolUpgradePanel
+			_extras.add_child(_tool_panel)
+			_tool_panel.setup(_skill.id)
+			_tool_panel.upgrade_requested.connect(_on_tool_upgrade_requested)
+		return
+	_build_production()
+
+
+## The recipe list and detail (with the blueprint and bench pages of the Forging) and the queue strip at the bottom.
+func _build_production() -> void:
+	var pages: Dictionary[StringName, Control] = {}
 	if _skill.id == BlueprintCraft.SKILL:
 		_blueprints = BLUEPRINT_SECTION_SCENE.instantiate() as BlueprintSection
-		_extras.add_child(_blueprints)
+		_bench = ForgeBench.new()
+		_bench.name = "ForgeBench"
+		pages[ForgeTabs.TAB_BLUEPRINTS] = _blueprints
+		pages[ForgeTabs.TAB_BENCH] = _bench
+	_view = ProfessionView.new()
+	_view.name = "ProfessionView"
+	_content.add_child(_view)
+	_content.move_child(_view, _scroll.get_index())
+	_view.setup(_session.data, _skill.id, pages)
+	_view.enqueue_requested.connect(_on_enqueue_requested)
+	if _blueprints != null:
 		_blueprints.setup(_session.data)
 		_blueprints.start_requested.connect(_on_blueprint_start_requested)
 		_blueprints.stop_requested.connect(_on_blueprint_stop_requested)
-		_bench = ForgeBench.new()
-		_extras.add_child(_bench)
 		_bench.bind(_session)
-	elif TOOL_SKILLS.has(_skill.id):
-		_tool_panel = TOOL_PANEL_SCENE.instantiate() as ToolUpgradePanel
-		_extras.add_child(_tool_panel)
-		_tool_panel.setup(_skill.id)
-		_tool_panel.upgrade_requested.connect(_on_tool_upgrade_requested)
+	_queue = ProductionQueuePanel.new()
+	_queue.name = "ProductionQueue"
+	_add_top(_queue)
+	_queue.bind(_session)
+	_queue.refused.connect(_show_refusal)
 
 
-## The node above `Extras` (the queue or the "Si trova in" line): presentation, replaced at each bind.
+## The node outside the card list (the "Si trova in" line above the cards, or the queue strip at the bottom).
 func _add_top(node: Control) -> void:
 	_top = node
-	_extras.get_parent().add_child(node)
-	_extras.get_parent().move_child(node, _extras.get_index())
+	if _is_gathering():
+		_extras.get_parent().add_child(node)
+		_extras.get_parent().move_child(node, _extras.get_index())
+	else:
+		_content.add_child(node)
 
 
 func _clear_top() -> void:
@@ -336,11 +337,17 @@ func _clear_top() -> void:
 	if _top != null and is_instance_valid(_top):
 		_top.get_parent().remove_child(_top)
 		_top.queue_free()
+	if _view != null and is_instance_valid(_view):
+		_view.get_parent().remove_child(_view)
+		_view.queue_free()
 	_top = null
 	_queue = null
+	_view = null
 
 
 func _redraw_extras() -> void:
+	if _view != null:
+		_view.redraw(_session)
 	if _blueprints != null:
 		_blueprints.redraw(_session)
 	if _tool_panel != null:

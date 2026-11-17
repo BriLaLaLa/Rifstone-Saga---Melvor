@@ -114,8 +114,9 @@ func test_craft_card_shows_owned_products_and_bonus_tag_holds_the_mastery_lines(
 	var product: StringName = action.outputs[0].item_id
 	TestFactory.give(_session, product, 37)
 	var page: SkillPage = _open_skill(&"forging")
-	var card: Node = page.find_child(String(action.id).to_pascal_case(), true, false)
-	var label: Label = card.find_child("Product%sLabel" % String(product).to_pascal_case(), true, false) as Label
+	(page.find_child("ProfessionView", true, false) as ProfessionView).show_recipe(action.id)
+	var card: Node = page.find_child("RecipeDetail", true, false)
+	var label: Label = card.find_child("Product%s" % String(product).to_pascal_case(), true, false).find_child("Text", true, false) as Label
 	assert_not_null(label)
 	assert_string_contains(label.text, "37")
 	var tag: MasteryBonusTag = card.find_child("BonusTag", true, false) as MasteryBonusTag
