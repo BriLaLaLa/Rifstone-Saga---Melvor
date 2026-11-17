@@ -7,6 +7,7 @@ extends RefCounted
 var max_value: int = -1
 var buyers: int = 0
 var sellers: int = 0
+var stack: int = 1  # M27-06: the largest quantity of one NPC listing (F-178)
 
 
 static func from_dict(d: Dictionary) -> AuctionPopulationBand:
@@ -16,6 +17,7 @@ static func from_dict(d: Dictionary) -> AuctionPopulationBand:
 		band.max_value = r.integer("max_value")
 	band.buyers = r.integer("buyers")
 	band.sellers = r.integer("sellers")
+	band.stack = r.integer("stack")
 	return band if r.ok else null
 
 

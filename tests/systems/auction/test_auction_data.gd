@@ -244,3 +244,65 @@ func _all_actions(data: GameData) -> Array[ActionDef]:
 	for skill: SkillDef in data.skills():
 		result.append_array(data.actions_for_skill(skill.id))
 	return result
+
+
+# --- M27-06: book, listings, stack (docs/04_DATA_SCHEMA_M27.md §32.3-§32.4, F-182) ---
+
+func _bands(raw: Dictionary) -> Array:
+	return (raw["auction_population"]["res://data/auction/population.json"] as Dictionary)["bands"] as Array
+
+
+func _section(raw: Dictionary, key: String) -> Dictionary:
+	return _balance(raw)[key] as Dictionary
+
+
+func test_book_and_listing_parameters_of_the_real_data() -> void:
+	var p: AuctionParams = TestFactory.real_data().auction_params()
+	assert_eq([p.book_persist, p.book_sellers_per_listing, p.book_min_listings, p.book_max_listings, p.listing_max_active], [6, 10, 4, 12, 10])
+	assert_eq(p.durations[2].id, &"long")
+	assert_eq(p.durations[2].blocks, 576)
+	assert_eq(p.durations[1].deposit_ppm, 20000)
+
+
+func test_rejects_a_stack_that_is_zero_or_missing() -> void:
+	var errors: PackedStringArray = _errors(func(raw: Dictionary) -> void: (_bands(raw)[0] as Dictionary)["stack"] = 0)
+	assert_true(_mentions(errors, "stack"), str(errors))
+	errors = _errors(func(raw: Dictionary) -> void: (_bands(raw)[1] as Dictionary).erase("stack"))
+	assert_true(_mentions(errors, "stack"), str(errors))
+
+
+func test_rejects_bad_book_values() -> void:
+	var errors: PackedStringArray = _errors(func(raw: Dictionary) -> void: (_section(raw, "book"))["ask_max_pct"] = 0)
+	assert_true(_mentions(errors, "ask_min_pct"), str(errors))
+	errors = _errors(func(raw: Dictionary) -> void: (_section(raw, "book"))["fill_max_pct"] = 100)
+	assert_true(_mentions(errors, "fill_max_pct"), str(errors))
+	errors = _errors(func(raw: Dictionary) -> void: (_section(raw, "book"))["min_listings"] = 13)
+	assert_true(_mentions(errors, "min_listings"), str(errors))
+	errors = _errors(func(raw: Dictionary) -> void: (_section(raw, "book"))["invented"] = 1)
+	assert_true(_mentions(errors, "invented"), str(errors))
+
+
+func test_rejects_a_book_that_allows_a_gain_without_risk() -> void:
+	var errors: PackedStringArray = _errors(func(raw: Dictionary) -> void: (_section(raw, "book"))["ask_max_pct"] = 80)
+	assert_true(_mentions(errors, "F-182"), str(errors))
+
+
+func test_rejects_bad_durations() -> void:
+	var errors: PackedStringArray = _errors(func(raw: Dictionary) -> void:
+		((_section(raw, "listing"))["durations"] as Array)[1]["id"] = "short")
+	assert_true(_mentions(errors, "duplicate duration"), str(errors))
+	errors = _errors(func(raw: Dictionary) -> void: (raw["balance"]["res://data/config/balance.json"]["auction"] as Dictionary)["block_ms"] = 420000)
+	assert_true(_mentions(errors, "whole number of market blocks"), str(errors))
+	errors = _errors(func(raw: Dictionary) -> void: (_section(raw, "listing"))["durations"] = [])
+	assert_gt(errors.size(), 0)
+	errors = _errors(func(raw: Dictionary) -> void: (_section(raw, "listing"))["cut_pct"] = 100)
+	assert_true(_mentions(errors, "cut_pct"), str(errors))
+
+
+func test_rejects_a_listed_item_worth_more_than_the_limit() -> void:
+	var errors: PackedStringArray = _errors(func(raw: Dictionary) -> void:
+		for path: Variant in raw["items"]:
+			for e: Variant in (raw["items"][path] as Dictionary).get("items", []) as Array:
+				if (e as Dictionary).get("id") == "redbirch_grip":
+					(e as Dictionary)["value"] = 2000000)
+	assert_true(_mentions(errors, "F-178"), str(errors))

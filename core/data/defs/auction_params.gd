@@ -29,6 +29,19 @@ var pop_var_ppm: int = 0
 var pop_press_ppm: int = 0
 var pop_demand_ppm: int = 0
 var bands: Array[AuctionPopulationBand] = []
+# M27-06 book and player listings (F-178…F-182): `auction.book`, `auction.listing`.
+var book_persist: int = 0
+var book_lo_ppm: int = 0
+var book_hi_ppm: int = 0
+var book_sellers_per_listing: int = 0
+var book_min_listings: int = 0
+var book_max_listings: int = 0
+var book_fill_ppm: int = 0
+var book_fill_max_ppm: int = 0
+var listing_max_active: int = 0
+var listing_cut_ppm: int = 0
+var listing_max_price_ppm: int = 0
+var durations: Array[AuctionDuration] = []
 
 
 static func from_dict(d: Dictionary) -> AuctionParams:
@@ -62,7 +75,26 @@ static func from_dict(d: Dictionary) -> AuctionParams:
 	p.pop_var_ppm = ppm(pop.number("variation_pct"))
 	p.pop_press_ppm = ppm(pop.number("pressure_pct"))
 	p.pop_demand_ppm = ppm(pop.number("demand_threshold_pct"))
-	for child: DefReader in [index, drift, sat, buy, stock, trend, pop]:
+	var book := DefReader.new(r.dict("book"), "balance auction.book")
+	p.book_persist = book.integer("persist_blocks")
+	p.book_lo_ppm = ppm(book.number("ask_min_pct"))
+	p.book_hi_ppm = ppm(book.number("ask_max_pct"))
+	p.book_sellers_per_listing = book.integer("sellers_per_listing")
+	p.book_min_listings = book.integer("min_listings")
+	p.book_max_listings = book.integer("max_listings")
+	p.book_fill_ppm = ppm(book.number("fill_pct"))
+	p.book_fill_max_ppm = ppm(book.number("fill_max_pct"))
+	var listing := DefReader.new(r.dict("listing"), "balance auction.listing")
+	p.listing_max_active = listing.integer("max_active")
+	p.listing_cut_ppm = ppm(listing.number("cut_pct"))
+	p.listing_max_price_ppm = ppm(listing.number("max_price_pct"))
+	for row: Dictionary in listing.dict_list("durations"):
+		var duration: AuctionDuration = AuctionDuration.from_dict(row, p.block_ms)
+		if duration == null:
+			listing.fail("a duration cannot be built")
+		else:
+			p.durations.append(duration)
+	for child: DefReader in [index, drift, sat, buy, stock, trend, pop, book, listing]:
 		r.absorb(child.ok)
 	return p if r.ok else null
 

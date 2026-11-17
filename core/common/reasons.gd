@@ -83,3 +83,5 @@ const JOB_DONE := &"job_done"  # M24: stop reason of a finished production job
 const NODE_DONE := &"node_done"  # M24: a gathering node was worked to its end (node_finished)
 const TOO_HARD := &"too_hard"  # M25: the level of the discipline is below the `min_level` of the node (node_finished)
 const MAILBOX_FULL := &"mailbox_full"  # M27-05: the Mail has no room for a new message (commands that create mail)
+const INVALID_PRICE := &"invalid_price"  # M27-06: the price of a listing is below 1 or above the maximum
+const LISTINGS_FULL := &"listings_full"  # M27-06: the player has the maximum of active listings

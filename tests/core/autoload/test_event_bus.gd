@@ -104,6 +104,8 @@ const EXPECTED: Dictionary = {
 	"auction_sold": [["item_id", SN, ""], ["qty", I, ""], ["gold", I, ""]],
 	"auction_bought": [["item_id", SN, ""], ["qty", I, ""], ["gold", I, ""]],
 	"auction_updated": [["blocks", I, ""]],
+	"mail_changed": [["unread", I, ""], ["total", I, ""]],
+	"auction_listings_changed": [],
 }
 
 const REMOVED_SIGNALS: PackedStringArray = ["fracture_closed"]  # the timed Fracture is gone (R-04)

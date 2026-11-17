@@ -93,10 +93,11 @@ func test_sell_pays_the_quote_computed_before_the_saturation() -> void:
 	_seen.clear()
 	var result: CommandResult = _house.sell(PLATE, 100)
 	assert_true(result.ok)
-	assert_eq(_s.wallet.get_gold(), gold + quote)
+	assert_eq(_s.wallet.get_gold(), gold, "the money goes to the Mail, not to the wallet (M27-06)")
+	assert_eq(_s.mail.messages()[0]["money"], quote)
 	assert_eq(_s.bank.get_count(PLATE), 0)
 	assert_lt(_house.sell_quote(PLATE, 100), quote, "the price dropped")
-	assert_eq(_seen, [["bank", PLATE, 0, -100], ["gold", gold + quote, quote], ["sold", PLATE, 100, quote]], "order of §5.30; no item_sold")
+	assert_eq(_seen, [["bank", PLATE, 0, -100], ["sold", PLATE, 100, quote]], "no gold_changed and no item_sold")
 
 
 func test_selling_in_two_parts_gives_the_same_gold_within_one() -> void:
@@ -105,7 +106,9 @@ func test_selling_in_two_parts_gives_the_same_gold_within_one() -> void:
 	var whole: int = _house.sell_quote(GRIP, 100)
 	_house.sell(GRIP, 60)
 	_house.sell(GRIP, 40)
-	assert_between(_s.wallet.get_gold() - start, whole - 1, whole)
+	assert_eq(_s.wallet.get_gold(), start)
+	assert_eq(_s.mail.count(), 1, "one message for the same item")
+	assert_between(int(_s.mail.messages()[0]["money"]), whole - 1, whole)
 
 
 func test_can_buy_reasons_in_order() -> void:
