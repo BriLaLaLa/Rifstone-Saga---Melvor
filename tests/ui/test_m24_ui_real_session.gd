@@ -67,8 +67,8 @@ func test_the_real_node_state_is_read_by_the_texts_and_the_panel() -> void:
 			var panel: NodeCard = NodeCard.new()
 			add_child_autofree(panel)
 			panel.refresh(state, _session.data)
-			var label: Label = panel.find_child("ColorLabel", true, false) as Label
-			assert_true(label.visible)
-			assert_ne(label.text, "", "the colour line is drawn")
+			var label: Label = panel.find_child("LootRow", true, false) as Label
+			assert_not_null(label)
+			assert_ne(label.text, "", "the loot line is drawn")
 			break
 	assert_true(found, "a worked node was reached")
