@@ -2175,6 +2175,7 @@ func unbind() -> void
 func set_current(page_id: StringName) -> void
 # Da M4-09: voci fisse Personaggio, Combattimento, Armeria, Equipaggiamento, Bank, Shop (Altare da M8), poi le skill di
 # raccolta e artigianato dai dati (le 5 skill di combattimento non esistono più; niente voci "In arrivo" per loro).
+# Da M25-12 (V28): gruppi e icone di `05_INTERFACES_M25.md` §7.p1 (firme e segnali invariati).
 
 class_name TopBar extends PanelContainer        # ui/screens/main/top_bar.gd (+ .tscn): oro, caselle, nome · slot, Menu
 signal menu_requested

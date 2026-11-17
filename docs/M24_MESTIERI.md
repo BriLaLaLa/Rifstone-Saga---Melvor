@@ -56,7 +56,7 @@ offline fino a 12 ore, regole di `CLAUDE.md` (clean room, data-driven, un solo s
 
 ## Decisioni fissate dall'utente (2026-11-16)
 - **Aiutanti**: eliminati.
-- **A. Incisore**: **non è una disciplina da scegliere**. È una funzione presente nel Villaggio (per tutti, serve l'Altare).
+- **A. Incisore**: **non è una disciplina da scegliere**. È una funzione presente nel Villaggio (per tutti, serve l'Altare). **Superata il 2026-11-17 da V27**: si impara dai Maestri come 4ª produzione (2 su 4), `01_GDD_M25.md` §37.1.
 - **B. Nodi di discipline non apprese**: compaiono e si saltano ("vedi un filone, non sai estrarlo"); mostrano ciò che manca e spingono al mercato.
 - **C. Disimparare**: si può cambiare disciplina, con un costo e la **perdita totale** dell'avanzamento di quella disciplina (come in WoW).
 - **D. Produzione**: coda di lavori **in parallelo** al ciclo.

@@ -13,6 +13,7 @@ fuori dal ramo strict (test `tests/core/data/test_strict_real_data.gd`); le rego
 | `discipline` | bool | facoltativo, default `false`. `true` = si impara dai Maestri (§35.3). Ammesso solo per `category` `gathering` o `artisan` |
 Dati veri (M24-02 per le 6 skill esistenti, M24-05 per la nuova): `true` per `forestry`, `quarrying`, `angling`, `herbalism`, `forging`, `woodwright`,
 `hearthcraft`; `false` (assente) per `riftbinding`. `tests/data/test_data_validity.gd` (M24-05) controlla **4** discipline `gathering` e **3** `artisan`.
+**Da M25-11 (V27)**: anche `riftbinding` è `true` e il conteggio è 4 + 4 (`04_DATA_SCHEMA_M25.md` §30.4).
 Skill nuova (M24-05): `{"id": "herbalism", "name": "Erborista", "category": "gathering", "order": …, "icon": "res://assets/icons/skills/herbalism.svg",
 "color": "#…", "description": "…", "has_mastery": true, "discipline": true}`; `hearthcraft.name` = "Cuoco e alchimista" (Q113). Classe: `SkillDef.discipline: bool`.
 

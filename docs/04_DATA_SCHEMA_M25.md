@@ -1,6 +1,6 @@
 # 04. Schema dati, §30: Nodi con tentativi (M25)
 
-Estensione di `04_DATA_SCHEMA_M24.md` §29.3 e §29.6. Le formule sono in `02_FORMULAS_M25.md` (F-161…F-164).
+Estensione di `04_DATA_SCHEMA_M24.md` §29.3 e §29.6. Le formule sono in `02_FORMULAS_M25.md` (F-161…F-164). §30.4 (M25-10): Incisore come disciplina (§29.1, §29.2).
 
 ## 30.1 `data/encounters/nodes.json`: campi nuovi (facoltativi)
 Per ogni voce di `nodes` di un'area:
@@ -21,3 +21,21 @@ mancante, `rich_units_pct` < 100, `yield_min_pct` 0, `min_level` > `difficulty`.
 ## 30.3 Immagini animate dei nodi (`assets/nodes/`)
 Per ogni disciplina di raccolta una cartella `assets/nodes/<skill_id>/` con i fotogrammi `frame_0.svg` … `frame_N.svg` (4-8, stesso riquadro) e un'icona `ricco.svg` per il badge;
 la UI costruisce lo `SpriteFrames` dai file per convenzione (nessun JSON). Le particelle sono configurate nella scena della scheda (nessun asset). Nomi originali (clean room).
+
+## 30.4 Incisore come disciplina (M25-11; V27, `01_GDD_M25.md` §37.1)
+Nessun campo nuovo e nessuna chiave nuova di `balance.json`: cambiano solo valori e regole del validatore.
+- `data/skills/skills.json`: `riftbinding` riceve `"discipline": true` (categoria `artisan` invariata). Così i dati veri hanno **4** discipline `gathering` e **4**
+  `artisan`; `tests/data/test_data_validity.gd` passa da 4 + 3 a **4 + 4** (sostituisce la riga di `04_DATA_SCHEMA_M24.md` §29.1 "false (assente) per `riftbinding`").
+- `data/disciplines/trainers.json`: una voce `trainers[]` per `riftbinding` (`name`, `title`, `description` originali, `NOMI.md`), **senza `fed_by`**. I `grades`
+  restano comuni a tutti i Maestri (nessun valore per disciplina).
+- **Validatore** (`core/data/data_validator_disciplines.gd`):
+  - sempre (struttura): `disciplines.max_per_category` ≤ numero di discipline di **ogni** categoria che ne ha almeno una (non si può chiedere di sceglierne più di
+    quante ce ne sono);
+  - con `STRICT_REAL_DATA = true` e dati veri (§29, criterio `is_real_data`): **ogni** skill `gathering` e `artisan` ha `discipline: true` (nessuna produzione o
+    raccolta fuori dai Maestri) e `max_per_category` è **strettamente minore** del numero di discipline di ogni categoria (la scelta "2 su 4" esiste davvero);
+    ogni disciplina ha il suo Maestro (regola esistente).
+  - Casi rifiutati nuovi in `tests/core/data/test_data_validator_disciplines.gd`: `max_per_category` maggiore delle discipline di una categoria (fixture); nei dati
+    veri, una skill `artisan` senza `discipline` e `max_per_category` uguale al numero delle discipline di una categoria.
+- **Fixture**: invariate (restano una skill non disciplina per i casi `not_a_discipline` e le fixture restano fuori dal ramo strict).
+- Le costanti `riftbinding` nel codice (`RiftAltar.SKILL`, `Salvage.ENGRAVER_SKILL`, `GuideTables.ENGRAVER_SKILL`, `DataValidatorEngraver.SKILL`,
+  `DataValidatorHints.SOCKET_SKILL`) restano: identificano la skill, non il suo stato di disciplina.

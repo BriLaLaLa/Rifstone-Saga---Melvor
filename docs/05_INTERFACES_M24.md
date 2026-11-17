@@ -61,7 +61,7 @@ class_name Disciplines extends RefCounted
 const SAVE_KEY := &"disciplines"
 func is_discipline(skill_id: StringName) -> bool
 func category_of(skill_id: StringName) -> StringName      # &"gathering" | &"artisan" per una disciplina, &"" altrimenti
-func is_learned(skill_id: StringName) -> bool             # disciplina appresa, oppure skill nota che non è una disciplina (Incisore); false se sconosciuta
+func is_learned(skill_id: StringName) -> bool             # disciplina appresa, oppure skill nota che non è una disciplina; false se sconosciuta (da M25-11 l'Incisore è disciplina: §5.31b di 05_INTERFACES_M25.md)
 func learned(category: StringName) -> Array[StringName]   # apprese della categoria, ordine `order`
 func free_slots(category: StringName) -> int              # disciplines.max_per_category − apprese
 func grade(skill_id: StringName) -> int                   # 1…n; 0 se non appresa o non disciplina
@@ -180,7 +180,7 @@ func node_skill() -> StringName           # disciplina del nodo in corso (lavora
   (`from_save`: skills → mastery → disciplines → actions → … → combat). Fasi di `advance`: fratture → azioni (coda) → combattimento → Casa d'Aste.
 
 ## 6b. Formato del salvataggio v8 (M24-03; motore M24-04)
-`SaveMigrator.CURRENT_VERSION` = **8**; v5, v6, v7 si migrano in catena; v1-v4 restano `version_unsupported`. Moduli cambiati:
+`SaveMigrator.CURRENT_VERSION` = **8**; v5, v6, v7 si migrano in catena; v1-v4 restano `version_unsupported` (**da M25-11 = 9**, `05_INTERFACES_M25.md` §6c). Moduli cambiati:
 ```json
 "disciplines": {"learned": {"forestry": 2, "quarrying": 1, "forging": 3, "woodwright": 1}, "recipes": ["brew_tonic_1"]},
 "actions": {"jobs": [{"skill": "forging", "action": "smelt_emberbronze", "remaining": 30, "repeat": false},

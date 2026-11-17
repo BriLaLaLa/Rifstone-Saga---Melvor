@@ -1,4 +1,4 @@
-# 05. Interfacce, M25: Nodi con tentativi (§3c, §5.33b, §5.33c, §6b, §7.p)
+# 05. Interfacce, M25: Nodi con tentativi (§3c, §5.33b, §5.33c, §6b, §7.p) e ritocchi dopo Alpha 1 (§5.31b, §6c, §7.p1, §7.p2)
 
 Estensione di `05_INTERFACES_M24.md` §3b, §5.33, §6b, §7.o. Dove c'è conflitto vale questo file. Formule in `02_FORMULAS_M25.md`.
 
@@ -86,3 +86,80 @@ Niente `migration_8_to_9`; `SAVE_VERSION` non cambia (verificare il test di vers
 - Layout verificato a 1280×720 e 1600×900 (M25-06) con `tools/shot_ui.tscn` (`timeout 90 Godot --path . --resolution 1280x720 res://tools/shot_ui.tscn -- <out_dir> 1280x720`).
 - **Come è stata fatta (M25-04)**: senza file in `assets/nodes/<skill>/` (oggi) `NodeArt.build_frames` usa un segnaposto disegnato da codice (Q134);
   `LootList` ha **una sola** `LootRow` (la risorsa del nodo, `units`), perché lo stato non porta il bottino per oggetto (Q133).
+- **Da M25-13 (V29)** la scheda sta nell'`Arena` al posto di `EnemyZone` e `TravelMap` è tolta: vale §7.p2.
+
+---
+# Aggiunte di M25-10 (V27-V29; `01_GDD_M25.md` §37): §5.31b, §6c, §7.p1, §7.p2
+
+## 5.31b Disciplines e Altare con l'Incisore come disciplina (M25-11; `01_GDD_M25.md` §37.1-§37.2)
+Nessun motivo nuovo, nessun segnale nuovo. `riftbinding` diventa disciplina **solo nei dati** (§30.4 dello schema): `can_learn`/`learn`/`train`/`unlearn`,
+`level_cap`, `xp_max` e `ActionRunner.enqueue` (`not_learned`) lo trattano già. Aggiunte e cambi in `systems/disciplines/disciplines.gd` (§5.31 di `05_INTERFACES_M24.md`):
+```gdscript
+func free_slots(category: StringName) -> int    # CAMBIATA: maxi(0, disciplines.max_per_category − apprese) (mai negativa con un posto in più)
+func is_extra(skill_id: StringName) -> bool     # NUOVA: true se la disciplina appresa occupa un posto in più (§37.2, `extra` del save)
+```
+- `is_learned` invariata (una skill nota che non è disciplina resta `true`: nei dati veri non ce ne sono più, nelle fixture sì).
+- **Posto in più** (`extra`): solo la migrazione v8 → v9 lo crea; nessun comando lo aggiunge. `can_learn` di una disciplina della categoria → `discipline_slots_full`
+  finché `free_slots` è 0. Dopo `unlearn(s)`: `s` esce da `extra`; se le apprese della categoria sono ≤ `max_per_category`, `extra` perde le voci di quella categoria.
+  Nessun segnale in più (`discipline_changed(s, 0)` come oggi).
+- `from_save` (tollerante, aggiunta): `extra` = Array di id; voci non apprese, non discipline o sconosciute → `Log.warn` e scartate; per categoria il limite di
+  lettura è `max_per_category` + le voci di `extra` della categoria (oltre: prime per `order`, come oggi); se dopo la lettura le apprese sono ≤ `max_per_category`,
+  `extra` della categoria si svuota. `to_save` scrive sempre `extra` (ordine `order`, `[]` se vuoto). `new_game`: `extra` vuoto.
+- File oltre 400 righe: se `disciplines.gd` (321 oggi) supera il limite, il salvataggio passa in un helper interno `systems/disciplines/disciplines_save.gd` (non API).
+- **RiftAltar** (`systems/rift/rift_altar.gd`): la sorgente `rift_socket:<i>` esiste solo se l'incavo ha una runa **ed è sbloccato**; `rebuild_modifiers()` anche
+  su `level_up(riftbinding, …)` e `skill_reset(riftbinding)`. `from_save` **tiene** le rune negli incavi bloccati (correggere il commento che dice "dropped").
+  `socket()` su incavo bloccato → `socket_locked` (invariato); `clear_socket()` su incavo bloccato con runa: permesso (la runa si distrugge, `infusion_removed`).
+  Lettura nuova: `func is_active(index: int) -> bool` (runa presente e incavo sbloccato).
+- `SaveMigrator.CURRENT_VERSION` = **9**.
+
+## 6c. Salvataggio v9 (M25-11; `01_GDD_M25.md` §37.2)
+```json
+"disciplines": {"learned": {"forging": 3, "woodwright": 1, "riftbinding": 2, "forestry": 2, "angling": 1}, "recipes": [], "extra": ["riftbinding"]}
+```
+- **`migration_8_to_9.gd`** (`core/save/migrations/`, `static func migrate(d) -> Dictionary`, copia profonda; legge `res://data/skills/skills.json` (categorie),
+  `res://data/disciplines/trainers.json` (tetti dei gradi) e `res://data/config/balance.json` (`xp_curve`, `disciplines.max_per_category`) come
+  `migration_7_to_8.gd`); costante storica `ENGRAVER := "riftbinding"`. Tutto in `modules`:
+  1. **avanzamento** = `skills.riftbinding.xp` > 0 **oppure** almeno un lavoro di `actions.jobs` con `skill` = `riftbinding`;
+  2. con avanzamento e `riftbinding` non già in `disciplines.learned`: `learned.riftbinding` = il grado più piccolo con `cap ≥` livello (F-158, la funzione
+     `_grade_for` di `migration_7_to_8.gd`), senza oro; se le altre `artisan` apprese sono già ≥ `max_per_category` → `extra` = `["riftbinding"]`, altrimenti `extra` = `[]`;
+  3. senza avanzamento: nessun cambio (`extra` = `[]`);
+  4. tutto il resto invariato (`skills`, `mastery`, `actions`, `rift`, `combat`).
+- **`migration_7_to_8.gd` congelata**: costante storica (es. `V8_NON_DISCIPLINES: Array[String] = ["riftbinding"]`) esclusa da `_learn`, `_drop_unlearned` e dal
+  controllo di `_jobs` (l'Incisore resta com'era in M24 qualunque sia `skills.json`). `tests/core/save/test_migration_7_to_8.gd` resta verde con i dati nuovi.
+- Catena: v5, v6, v7, v8 → v9. Test della versione (`SaveMigrator.CURRENT_VERSION` = 9) nei test di migrazione che oggi controllano 8.
+
+## 7.p1 Menu laterale (M25-12; `01_GDD_M25.md` §37.3)
+```gdscript
+# ui/screens/main/sidebar.gd — Sidebar: firme e segnali invariati (page_requested, bind, unbind, set_current; §7 di 05_INTERFACES.md)
+# SECTIONS + SECTIONS_TITLE ("Partita") sostituite da GROUPS: Array di {"title": String, "entries": [{"page", "text", "icon"}]} nell'ordine di §37.3;
+# poi i gruppi RACCOLTA e PRODUZIONE dai dati (solo disciplines.is_learned, ordine `order`); in fondo Guida, senza titolo.
+# Tolto il caso speciale ENGRAVER_PAGE (l'Incisore è una voce di PRODUZIONE come le altre, con il livello a lato).
+# Titolo di un gruppo vuoto nascosto. Testi dei titoli in un file *_texts (es. ui/screens/main/sidebar_texts.gd).
+```
+- Icone nuove in `assets/icons/ui/` (Tabler, MIT): `home`, `school`, `clipboard-list`, `gavel`, `book` (Q142). Nessuna rotta nuova o cambiata.
+- **TrainersPage/TrainerRow**: quattro righe nel riquadro Produzione; con un posto in più l'intestazione mostra le apprese sul limite (es. "3/2 posti") e la riga
+  dell'Incisore il testo `EXTRA_SLOT_TEXT` ("Posto in più dal salvataggio precedente") se `disciplines.is_extra`; una produzione senza `fed_by` mostra
+  `FED_BY_DROPS_TEXT` ("Si alimenta con i drop dei mostri"). Testi in `trainers_texts.gd`.
+- **Pagina dell'Altare** (`ui/pages/rift/`): se `!disciplines.is_learned(&"riftbinding")` un testo (`RiftTexts`) "Le rune si incidono con l'Incisore: imparalo dai
+  Maestri del Villaggio"; un incavo con runa e `!rift.is_active(i)` mostra "Spenta: incavo bloccato". Nessun calcolo nella UI.
+- Smoke test: `tests/ui/test_sidebar_groups.gd` (ordine dei gruppi, nessuna icona ripetuta tra le voci fisse confrontando `resource_path`, voce `skill:riftbinding`
+  presente solo se appreso, gruppo vuoto senza titolo); `test_sidebar_dungeon_lock.gd` e `test_trainers_page_smoke.gd` aggiornati, non duplicati.
+
+## 7.p2 Area del bersaglio e mappetta (M25-13; `01_GDD_M25.md` §37.4)
+```gdscript
+# ui/pages/combat/target_view.gd — class_name TargetView extends RefCounted (solo presentazione)
+static func for_state(state: Dictionary) -> StringName   # &"travel" se state["state"] == "travel"; &"node" se "node"; &"enemies" altrimenti
+# ui/pages/combat/travel_minimap.gd — class_name TravelMiniMap extends Control (disegno in _draw(), nessuno stato di gioco)
+func refresh(state: Dictionary) -> void   # legge solo "area", "travel_ms", "travel_total_ms"; ridisegna se cambia l'area
+func progress() -> float                  # clamp(1 − travel_ms / travel_total_ms, 0, 1); 1 se travel_total_ms ≤ 0
+# nodi per i test: HeroIcon (TextureRect: icona della classe dai dati, altrimenti UiStyle "user"), TravelLabel ("In viaggio…", testo in combat_texts.gd)
+```
+- `EnemyZone`, `NodeCard` e `TravelMiniMap` sono fratelli nello stesso posto dell'`Arena` (`Margin/Main/Arena`, a destra di `PlayerColumn`); se ne vede **uno** secondo
+  `TargetView.for_state`; `VsBox` visibile solo con `EnemyZone`; stessa dimensione minima per tutte e tre.
+- Decorazioni della mappetta: deterministiche dall'id dell'area (`hash` della stringa), nessun `RandomNumberGenerator` con seme casuale, nessun accesso a
+  `RngService`. Dondolio dell'icona fermo con "Effetti visivi ridotti".
+- **Tolti**: `ui/pages/combat/travel_map.gd` (+ `.uid`), `tests/ui/test_travel_map_smoke.gd` (+ `.uid`), la scheda del nodo in `_main` sotto l'`Arena`.
+  §7.o di `05_INTERFACES_M24.md` (TravelMap) e la riga "TravelMap invariata" di §7.p sono superate.
+- `combat_page.gd` è a 397 righe: la scelta della vista va in `TargetView` e il resto del cablaggio in un helper interno se serve; nessun file oltre 400 righe.
+- Smoke test: `tests/ui/test_travel_minimap_smoke.gd` (`progress` a inizio, metà, fine e con totale 0; `HeroIcon` avanza; `TargetView.for_state` per i tre casi);
+  `tests/ui/test_combat_page_smoke.gd` aggiornato (in `travel` è visibile solo la mappetta, in `node` solo la scheda).
