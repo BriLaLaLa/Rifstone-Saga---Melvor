@@ -48,7 +48,9 @@ static func resolve(session: GameSession, action: ActionDef, rng: RngService) ->
 		assert(added.ok, "bank.add failed after the room check")
 	outcome.consumed = consumed
 	outcome.outputs = produced
-	outcome.xp = session.skills.add_xp(action.skill_id, action.xp, ctx)
+	var xp_base: int = action.xp if session.professions == null else session.professions.craft_xp_base(action)  # F-168
+	if xp_base > 0:
+		outcome.xp = session.skills.add_xp(action.skill_id, xp_base, ctx)
 	outcome.mastery_xp = session.mastery.add_for_action(action)
 	outcome.ok = true
 	return outcome
