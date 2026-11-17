@@ -25,6 +25,8 @@ const COMING_SOON_TEXT: String = "In arrivo"
 const VENDOR_TEXTS: Dictionary[StringName, String] = {
 	&"bottegaia": "Bottegaia",
 	&"fabbro": "Fabbro",
+	&"falegname": "Falegname",
+	&"cuoco": "Cuoco",
 	&"deposito": "Deposito",
 	&"armaiolo": "Armaiolo",
 	&"mercante_armature": "Mercante d'armature",
@@ -35,6 +37,7 @@ const REFUSED_TEXTS: Dictionary[StringName, String] = {
 	Reasons.UNKNOWN_ID: "Voce non disponibile.",
 	Reasons.MAX_PURCHASES: "Hai già acquistato il massimo.",
 	Reasons.REQUIREMENT_NOT_MET: "Requisiti non soddisfatti.",
+	Reasons.RECIPE_KNOWN: "Conosci già questa ricetta.",
 	Reasons.NOT_ENOUGH_GOLD: "Oro insufficiente.",
 	Reasons.BANK_FULL: "Il deposito è pieno.",
 	Reasons.ARMORY_FULL: "L'Armeria è piena.",

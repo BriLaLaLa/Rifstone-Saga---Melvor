@@ -7,32 +7,31 @@ const COUNT: int = 3
 const BOX_SEPARATION: int = 6
 
 var _skill_id: StringName = &""
-var _lines: VBoxContainer = null
+var _lines: HFlowContainer = null
 
 
 func setup(skill_id: StringName) -> void:
 	_skill_id = skill_id
 	name = "ProfessionUnlocks"
 	theme_type_variation = &"HudPanel"
-	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", BOX_SEPARATION)
+	var box := HFlowContainer.new()  # one compact row (it sits above the detail, always in sight)
+	box.add_theme_constant_override("h_separation", BOX_SEPARATION * 3)
 	add_child(box)
 	var title := Label.new()
 	title.name = "Title"
 	title.text = ProfessionTexts.UNLOCKS_TITLE
 	title.theme_type_variation = &"HeaderLabel"
 	box.add_child(title)
-	_lines = VBoxContainer.new()
-	_lines.name = "Lines"
-	box.add_child(_lines)
+	_lines = box
 	visible = false
 
 
 ## Reads the next unlocks; `allowed` is false while a special page replaces the recipe detail.
 func redraw(session: GameSession, allowed: bool) -> void:
 	for child: Node in _lines.get_children():
-		_lines.remove_child(child)
-		child.queue_free()
+		if child.name != "Title":
+			_lines.remove_child(child)
+			child.queue_free()
 	var rows: Array[Dictionary] = session.professions.next_unlocks(_skill_id, COUNT)
 	for row: Dictionary in rows:
 		var label := Label.new()

@@ -51,6 +51,7 @@ func _run() -> void:
 	await _frames(8)
 	_save(&"skill_queue")
 	await _prof_shots(session, host)
+	await _merchant_shots(session, host)
 	host.show_page(&"combat")
 	await _frames(4)
 	var map_button: Node = screen.find_child("MapButton", true, false)
@@ -183,3 +184,24 @@ func _prof_shots(session: GameSession, host: PageHost) -> void:
 		(entry as Button).pressed.emit()
 		await _frames(6)
 		_save(&"prof_blueprints")
+
+
+## Mercante tab of the Forging page: a known scheme, a bought one still to learn, a buyable one, a locked one, the reagents.
+func _merchant_shots(session: GameSession, host: PageHost) -> void:
+	session.wallet.add_gold(50000)
+	session.shop.buy_many(&"buy_recipe_forge_ashlead_plate", 1)
+	session.disciplines.learn_recipe(&"recipe_forge_ashlead_plate")
+	session.shop.buy_many(&"buy_recipe_forge_stormzinc_plate", 1)
+	session.shop.buy_many(&"buy_reagent_forging_1", 10)
+	host.show_page(&"skill:forging")
+	await _frames(6)
+	var entry: Node = host.find_child("Page_merchant", true, false)
+	if entry is Button:
+		(entry as Button).pressed.emit()
+		await _frames(6)
+		_save(&"merchant_forging")
+		session.wallet.spend(session.wallet.get_gold() - 5)
+		var scroll: ScrollContainer = host.find_child("DetailScroll", true, false) as ScrollContainer
+		scroll.scroll_vertical = 100000
+		await _frames(6)
+		_save(&"merchant_forging_reagents")
