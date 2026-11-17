@@ -144,10 +144,13 @@ func refill_slots() -> int:
 	if _paying:
 		return 0
 	var assigned: int = 0
+	var unknown_crafts: Array[StringName] = _unknown_craft_quests()
 	for slot: int in slot_count():
 		if _ids[slot] != &"":
 			continue
-		var choice: Dictionary = QuestPicker.pick(_data.quests(), _cursor, _recent, _active_ids(), _character.get_level(),
+		var excluded: Array[StringName] = _active_ids()
+		excluded.append_array(unknown_crafts)
+		var choice: Dictionary = QuestPicker.pick(_data.quests(), _cursor, _recent, excluded, _character.get_level(),
 				_skill_levels(), _params)
 		if (choice["id"] as StringName) == &"":
 			break
@@ -314,6 +317,32 @@ func _skill_levels() -> Dictionary:
 	for skill_id: StringName in _data.disciplines():
 		levels[skill_id] = _skills.get_level(skill_id) if _session.disciplines.is_learned(skill_id) else 0
 	return levels
+
+
+# M26-06 (docs/01_GDD_M26.md §38.4): the craft quests whose item is produced only by recipes the player does not know. A quest whose
+# item no action produces is left alone. They are passed to the picker as not candidates (assigned quests are not affected).
+func _unknown_craft_quests() -> Array[StringName]:
+	var result: Array[StringName] = []
+	if _session.disciplines == null:
+		return result
+	var wanted: Dictionary = {}
+	for def: QuestDef in _data.quests():
+		if def.type == &"craft":
+			wanted[def.item] = false
+	if wanted.is_empty():
+		return result
+	var produced: Dictionary = {}
+	for skill_id: StringName in _data.disciplines():
+		for action: ActionDef in _data.actions_for_skill(skill_id):
+			for out: ItemQty in action.outputs:
+				if wanted.has(out.item_id):
+					produced[out.item_id] = true
+					if _session.disciplines.knows_recipe(action.id):
+						wanted[out.item_id] = true
+	for def: QuestDef in _data.quests():
+		if def.type == &"craft" and produced.has(def.item) and not wanted[def.item]:
+			result.append(def.id)
+	return result
 
 
 func _memory() -> int:

@@ -25,7 +25,7 @@ func _v6(area: String, level: int, state: String = "encounter") -> Dictionary:
 func test_the_save_is_migrated_to_the_current_version() -> void:
 	var out: Dictionary = SaveMigrator.migrate(_v6("redrock_plains", 1))
 	assert_eq(out["format_version"], SaveMigrator.CURRENT_VERSION)
-	assert_eq(SaveMigrator.CURRENT_VERSION, 9)
+	assert_eq(SaveMigrator.CURRENT_VERSION, 10)
 
 
 func test_a_missing_area_becomes_the_area_of_the_character_level() -> void:
@@ -73,6 +73,6 @@ func test_a_v6_session_save_loads_in_the_current_game() -> void:
 	saved["format_version"] = 6
 	((saved["modules"] as Dictionary)["combat"] as Dictionary)["area"] = "cracked_mines"  # exists: kept
 	var migrated: Dictionary = SaveMigrator.migrate(saved)
-	assert_eq(migrated["format_version"], 9)
+	assert_eq(migrated["format_version"], 10)
 	var other: GameSession = autofree(TestFactory.session_no_kit(2, TestFactory.real_data()))
 	assert_true(other.from_save(migrated).ok)
