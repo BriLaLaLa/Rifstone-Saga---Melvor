@@ -120,3 +120,31 @@ func _rows() -> Array[AuctionRow]:
 
 func _button() -> Button:
 	return _page.find_child("TradeButton", true, false)
+
+
+## Regression: a real mouse click on a category used to rebuild the Tree from inside its own `item_selected` signal,
+## where `create_item` returns null ("Cannot call method 'set_text' on a null value"). The click is sent through the
+## Tree's input path, which is what blocks it; `select()` alone does not.
+func test_mouse_click_on_a_category_rebuilds_the_tree_without_error() -> void:
+	_session = AuctionTestData.session(1)
+	_page = SCENE.instantiate()
+	add_child(_page)
+	_page.bind(_session)
+	await wait_physics_frames(2)
+	var tree: Tree = _page.find_child("CategoryTree", true, false) as Tree
+	var all_item: TreeItem = tree.get_root().get_first_child()
+	assert_gt(all_item.get_child_count(), 0, "the categories are listed")
+	var target: TreeItem = all_item.get_first_child()
+	tree.scroll_to_item(target)
+	var rect: Rect2 = tree.get_item_area_rect(target)
+	var click := InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.pressed = true
+	click.position = tree.get_global_rect().position + rect.position + rect.size * 0.5
+	click.global_position = click.position
+	tree.get_viewport().push_input(click, true)
+	click.pressed = false
+	tree.get_viewport().push_input(click, true)
+	await wait_physics_frames(2)
+	assert_not_null(tree.get_root().get_first_child(), "the tree was rebuilt, not emptied")
+	assert_gt(tree.get_root().get_first_child().get_child_count(), 0, "the categories are listed again")

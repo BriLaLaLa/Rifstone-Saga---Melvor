@@ -65,4 +65,6 @@ func _on_item_selected() -> void:
 		return
 	var item: TreeItem = _tree.get_selected()
 	if item != null:
-		category_picked.emit(item.get_metadata(0))
+		# Deferred: a Tree refuses to clear or create items while it emits `item_selected` for a mouse click
+		# (`create_item` returns null), and the page rebuilds this tree in answer to the pick.
+		category_picked.emit.call_deferred(item.get_metadata(0))
