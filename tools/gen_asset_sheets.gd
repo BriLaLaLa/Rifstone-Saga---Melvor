@@ -1,14 +1,11 @@
 extends SceneTree
-## Writes docs/ASSET_MOSTRI.md: every creature (monsters, area minibosses, dungeon monsters, fracture bosses)
+## Writes docs/PROMPT_MOSTRI.md: every creature (monsters, area minibosses, dungeon monsters, fracture bosses)
 ## grouped into sheets of at most 8, with the target file name and a ready-to-paste prompt per sheet.
 ## Run: godot --headless --path . -s tools/gen_asset_sheets.gd
 
-const OUT := "res://docs/ASSET_MOSTRI.md"
-const SHEET_SIZE := 8
-const STYLE := "Stile fisso per TUTTE le richieste: icone fantasy dipinte a mano, vista frontale o 3/4, contorno scuro spesso, " \
-	+ "palette terrosa e satura (rosso ruggine, verde muschio, grigio pietra, oro spento), un solo soggetto per riquadro, " \
-	+ "centrato, fondo trasparente, nessun testo, nessuna cornice, leggibile a 64x64 pixel. Riquadri quadrati uguali, " \
-	+ "griglia 4 colonne x 2 righe, margine di 16 px tra i riquadri."
+const OUT := "res://docs/PROMPT_MOSTRI.md"
+const SHEET_SIZE := 6
+const PROMPT_HEAD := "Crea UN'UNICA immagine: un foglio di icone di gioco fantasy con %d creature, in una griglia di 3 colonne x %d righe. Riquadri quadrati e della stessa dimensione, con 24 pixel di spazio vuoto tra l'uno e l'altro. Una sola creatura per riquadro, centrata, tutta visibile.\n\nStile identico per tutte: fantasy dipinto a mano, vista frontale o di tre quarti, contorno scuro spesso, palette terrosa e satura (rosso ruggine, verde muschio, grigio pietra, oro spento), leggibile anche rimpicciolita a 64x64 pixel. Sfondo unico di colore uniforme (grigio chiaro piatto) attorno ai riquadri, senza gradienti. Nessun testo, nessuna lettera, nessun numero, nessuna cornice."
 
 
 func _initialize() -> void:
@@ -18,9 +15,9 @@ func _initialize() -> void:
 		by_id[m["id"]] = m
 	var areas: Array = _load("res://data/combat/areas.json").get("areas", [])
 	var seen: Dictionary = {}
-	var lines: PackedStringArray = ["# Mostri: elenco per i fogli di icone", "",
+	var lines: PackedStringArray = ["# Prompt per i fogli di icone dei mostri", "",
 		"Generato da `tools/gen_asset_sheets.gd`. Non modificare a mano.", "",
-		"**Stile (incollalo in testa a ogni richiesta):** " + STYLE, ""]
+		"Ogni blocco è un prompt completo: copialo in Gemini, salva il PNG col numero del foglio (es. `foglio_01.png`).", ""]
 	var sheet_no := 1
 	for a: Dictionary in areas:
 		var ids: Array = []
@@ -33,7 +30,7 @@ func _initialize() -> void:
 			if not seen.has(mid) and String(mid).begins_with("miniboss_" + String(a["id"])):
 				seen[mid] = true
 				ids.append(mid)
-		sheet_no = _emit(lines, "Area: %s (livelli %s-%s)" % [a.get("name", a["id"]), a.get("level_min", "?"), a.get("level_max", "?")], ids, by_id, sheet_no)
+		sheet_no = _emit(lines, "Area: %s (livelli %s-%s)" % [a.get("name", a["id"]), int(a.get("level_min", 0)), int(a.get("level_max", 0))], ids, by_id, sheet_no)
 	var rest: Array = []
 	for mid: String in by_id.keys():
 		if not seen.has(mid):
@@ -76,7 +73,12 @@ func _emit(lines: PackedStringArray, title: String, ids: Array, defs: Dictionary
 			lines.append("| %d | `assets/icons/monsters/%s.png` | %s | %s |" % [k + 1, chunk[k], d.get("name", ""), d.get("description", "")])
 			names.append("%d) %s: %s" % [k + 1, d.get("name", ""), d.get("description", "")])
 		lines.append("")
-		lines.append("Prompt: `Foglio di %d icone di creature, ordine da sinistra a destra e dall'alto in basso. %s`" % [chunk.size(), "; ".join(names)])
+		var rows: int = (chunk.size() + 2) / 3
+		var extra: String = " Soggetti grandi e imponenti, ma sempre interi dentro il proprio riquadro." if title.begins_with("Boss") else ""
+		lines.append("Prompt da incollare:")
+		lines.append("```")
+		lines.append(PROMPT_HEAD % [chunk.size(), rows] + extra + "\n\nCreature, da sinistra a destra e dall'alto in basso:\n" + "\n".join(names))
+		lines.append("```")
 		lines.append("")
 		sheet_no += 1
 		i += SHEET_SIZE
