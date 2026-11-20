@@ -138,6 +138,7 @@ func bind(session: GameSession) -> void:
 	_connect(events.loot_bag_changed, resync.unbind(2))
 	_connect(events.equipment_changed, _on_equipment_changed)
 	_connect(events.combat_hit, _on_combat_hit)
+	_connect(events.combat_condition_damage, _feed.condition_damage)
 	_connect(events.player_died, _on_player_died)
 	_connect(events.character_level_up, _on_character_level_up)
 	_connect(events.traits_changed, static_resync)

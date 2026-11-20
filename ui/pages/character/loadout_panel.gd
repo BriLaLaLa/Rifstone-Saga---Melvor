@@ -16,6 +16,9 @@ const GRID_SEPARATION: int = 8
 var _session: GameSession = null
 ## Per kind: {"note": Label, "summary": Label, "grid": GridContainer, "cards": Array[LoadoutCard]}.
 var _sections: Dictionary[StringName, Dictionary] = {}
+## Presentation only (GDD M28 §40.9): show just the entries of the current setup (chosen ones always stay visible).
+var _only_current: bool = true
+var _toggle: CheckButton = null
 
 @onready var _tabs: TabContainer = %Tabs
 @onready var _trait_rows: VBoxContainer = %TraitRows
@@ -24,6 +27,14 @@ var _sections: Dictionary[StringName, Dictionary] = {}
 
 
 func _ready() -> void:
+	_toggle = CheckButton.new()
+	_toggle.name = "OnlyCurrentToggle"
+	_toggle.text = LoadoutTexts.ONLY_CURRENT_TEXT
+	_toggle.button_pressed = _only_current
+	_toggle.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	_toggle.toggled.connect(_on_only_current_toggled)
+	_tabs.get_parent().add_child(_toggle)
+	_tabs.get_parent().move_child(_toggle, 0)
 	_tabs.set_tab_title(_tabs.get_tab_idx_from_control(_trait_rows), LoadoutTexts.TRAITS_TITLE)
 	_tabs.set_tab_title(_tabs.get_tab_idx_from_control(_ability_rows), LoadoutTexts.ABILITIES_TITLE)
 	_message.add_theme_color_override("font_color", UiStyle.BAD)
@@ -99,6 +110,7 @@ func _refresh_section(kind: StringName, class_def: ClassDef, locked: bool) -> vo
 		var unlock_text: String = LoadoutTexts.UNLOCK_TEXT % entry.unlock_level if level < entry.unlock_level \
 				else LoadoutTexts.UNLOCKED_TEXT % entry.unlock_level
 		var warning: String = LoadoutTexts.NOT_FOR_SETUP_TEXT if slot >= 0 and not entry.allows_setup(setup_id) else ""
+		(cards[i] as LoadoutCard).visible = slot >= 0 or not _only_current or entry.allows_setup(setup_id)
 		var description: String = LoadoutDescribe.trait_text(entry, _session.data, class_def) if is_trait \
 				else LoadoutDescribe.ability_text(entry, _session.data, class_def)
 		(cards[i] as LoadoutCard).show_entry(entry.id, entry.name, description, unlock_text,
@@ -112,10 +124,20 @@ func _summary_text(open: int, total: int, is_trait: bool) -> String:
 	return LoadoutTexts.SLOTS_OPEN_TEXT % [open, total]
 
 
+## The entries of the class ordered by unlock level (the order of the file for equal levels).
 func _entries(class_def: ClassDef, is_trait: bool) -> Array:
 	if class_def == null:
 		return []
-	return class_def.traits if is_trait else class_def.abilities
+	var source: Array = class_def.traits if is_trait else class_def.abilities
+	var sorted: Array = source.duplicate()
+	sorted.sort_custom(func(a: Variant, b: Variant) -> bool:
+		return a.unlock_level < b.unlock_level or (a.unlock_level == b.unlock_level and source.find(a) < source.find(b)))
+	return sorted
+
+
+func _on_only_current_toggled(pressed: bool) -> void:
+	_only_current = pressed
+	refresh()
 
 
 func _chosen_id(is_trait: bool, slot: int) -> StringName:

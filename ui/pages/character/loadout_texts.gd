@@ -5,6 +5,7 @@ extends RefCounted
 const PANEL_TITLE: String = "Tratti e abilità"
 const TRAITS_TITLE: String = "Tratti"
 const ABILITIES_TITLE: String = "Abilità"
+const ONLY_CURRENT_TEXT: String = "Solo assetto attuale"
 const SLOTS_OPEN_TEXT: String = "Slot aperti: %d di %d"
 const SLOTS_NEXT_TEXT: String = "Slot aperti: %d di %d (il prossimo al livello %d)"
 const UNLOCK_TEXT: String = "Si sblocca al livello %d"

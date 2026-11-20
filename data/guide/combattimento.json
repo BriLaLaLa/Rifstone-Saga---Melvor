@@ -20,12 +20,14 @@
      "blocks": [
        {"type": "text", "text": "I tratti sono regole speciali del combattimento, come {link:trait:chain_cleave|Fendente a catena}. Ognuno si sblocca a un livello del personaggio; ne equipaggi pochi, in slot che si aprono salendo di livello."},
        {"type": "text", "text": "Si cambiano liberamente tra un incontro e l'altro, mai durante. Alcuni valgono solo con certi assetti."},
-       {"type": "table", "source": "traits"}
+       {"type": "table", "source": "traits"},
+       {"type": "links", "targets": ["page:guide_conditions"]}
      ]},
     {"id": "guide_abilities", "section": "character", "title": "Abilità", "order": 5,
      "blocks": [
        {"type": "text", "text": "Le abilità, come {link:ability:whirl|Mulinello}, partono da sole quando la ricarica finisce e c'è un bersaglio. Hanno pochi slot, aperti dal livello. Un'abilità che non appartiene all'assetto attuale resta equipaggiata ma spenta."},
-       {"type": "table", "source": "abilities"}
+       {"type": "table", "source": "abilities"},
+       {"type": "links", "targets": ["page:guide_conditions"]}
      ]},
     {"id": "guide_food", "section": "character", "title": "Cibo e Razioni", "order": 6,
      "blocks": [
