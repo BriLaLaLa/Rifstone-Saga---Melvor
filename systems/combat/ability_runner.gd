@@ -83,6 +83,9 @@ func take_due(encounter: Encounter, hp: int, stats: CombatantStats, rule: String
 			AbilityDef.KIND_BUFF:
 				_buffs[def.id] = def.duration_ms
 				_session.modifiers.set_source(_source(def.id), def.modifiers)
+			AbilityDef.KIND_WARD:
+				use.ward = _ward_amount_of(def, stats.max_hp, mult_of)
+				use.ward_ms = def.duration_ms
 		return use
 	return null
 
@@ -148,11 +151,18 @@ func _timer(def: AbilityDef) -> int:
 	return _timers.get(def.id, def.cooldown_ms)
 
 
-func _usable(def: AbilityDef, hp: int, max_hp: int, _ward_amount: int = 0, _mult_of: Callable = Callable()) -> bool:
+func _usable(def: AbilityDef, hp: int, max_hp: int, ward_amount: int = 0, mult_of: Callable = Callable()) -> bool:
 	match def.kind:
 		AbilityDef.KIND_HEAL:
 			return hp < max_hp
+		AbilityDef.KIND_WARD:  # F-191: only if it would give more than the Ward the player has now
+			return _ward_amount_of(def, max_hp, mult_of) > ward_amount
 	return true
+
+
+# F-189, F-191: the Ward an ability of kind `ward` gives, `floor(max_hp * ward_pct / 100 * A)`.
+func _ward_amount_of(def: AbilityDef, max_hp: int, mult_of: Callable) -> int:
+	return int(floor(float(max_hp) * def.ward_pct / 100.0 * _mult(mult_of, def, -1) + CombatMath.EPSILON))
 
 
 # M28 (F-190): the `M` of a hit of `def` on `target_index`, or the factor of an amount (-1); 1.0 without a Callable.
@@ -163,15 +173,26 @@ static func _mult(mult_of: Callable, def: AbilityDef, target_index: int) -> floa
 # F-80: all the rolls first, in target order (hit, then damage on a hit); no block (enemies do not block).
 func _roll_hits(def: AbilityDef, encounter: Encounter, stats: CombatantStats, rule: StringName, use: Use, mult_of: Callable) -> void:
 	if def.kind == AbilityDef.KIND_STRIKE:
-		if encounter.target(rule) >= 0:
-			use.targets.append(encounter.target(rule))
+		var target: int = encounter.target(def.target_rule if def.target_rule != &"" else rule)
+		if target >= 0:
+			for _hit: int in def.hits:  # the hits stay on the same list, on the same target (F-191)
+				use.targets.append(target)
 	else:
 		use.targets = encounter.alive_indices()
 		if def.targets > 0 and use.targets.size() > def.targets:
 			use.targets.resize(def.targets)
 	for index: int in use.targets:
-		use.attacks.append(Encounter.roll_power_attack(stats, encounter.enemies[index].stats, def.power_mult, _mult(mult_of, def, index),
-				_session.rng, _session.data))
+		var enemy: Encounter.Enemy = encounter.enemies[index]
+		var mult: float = _mult(mult_of, def, index)
+		if def.execute_mult != 1.0 and float(enemy.hp) * 100.0 <= float(enemy.stats.max_hp) * def.execute_hp_pct:
+			mult *= def.execute_mult  # F-191 `execute`: read when the rolls are made
+		var attack: Dictionary = Encounter.roll_power_attack(stats, enemy.stats, def.power_mult, mult, _session.rng, _session.data)
+		if attack["damage"] > 0:
+			if not def.applies.is_empty():
+				attack["applies"] = def.applies
+			if def.drain_pct > 0.0:
+				attack["drain"] = int(floor(float(attack["damage"]) * def.drain_pct / 100.0 + CombatMath.EPSILON))
+		use.attacks.append(attack)
 
 
 ## F-192 `kill_cooldown_cut`: every cooldown that runs is cut by `ms` (never under 0); the duration of the buffs does not change.
