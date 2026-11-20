@@ -19,6 +19,7 @@ func _open_encounter() -> void:
 	_player_timer_ms = player_stats(_hand).attack_interval_ms
 	var ctx: EffectContext = _ctx()
 	_fx.encounter_start(ctx)
+	_grant_ward(ctx)  # F-192 ward_on at encounter_start
 	_player_timer_ms = ctx.player_timer_ms
 	_session.events.encounter_started.emit(_encounter.monster_ids())
 
