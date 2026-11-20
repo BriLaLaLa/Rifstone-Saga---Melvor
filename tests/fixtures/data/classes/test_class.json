@@ -38,7 +38,7 @@
     {"id": "test_focus_combo", "name": "Sguardo di prova", "description": "Sempre lo stesso bersaglio.",
      "unlock_level": 90, "setups": [],
      "effects": [{"type": "focus_combo", "params": {"pct": 6, "max": 5}}], "modifiers": []},
-    {"id": "test_riposte", "name": "Risposta di prova", "description": "Contrattacca dopo una parata.",
+    {"id": "test_riposte", "name": "Risposta di prova", "description": "Risponde dopo una parata.",
      "unlock_level": 90, "setups": [],
      "effects": [{"type": "riposte", "params": {"on": "block", "mult": 0.8}}], "modifiers": []},
     {"id": "test_damage_trade", "name": "Scambio di prova", "description": "Più danno dato e subito.",

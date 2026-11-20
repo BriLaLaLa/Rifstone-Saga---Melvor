@@ -109,6 +109,8 @@ const EXPECTED_BALANCE: Dictionary = {
 	"combat.crowd_threshold": 8.0,
 	"combat.skip_stone_level": 0.0,
 	"combat.kill_xp_mult": 0.05,
+	"combat.conditions.tick_ms": 1000.0,
+	"combat.conditions.stagger_immunity_ms": 4000.0,
 	"character_curve.base": 70.0,
 	"character_curve.growth": 1.1,
 	"character_curve.linear": 8.0,

@@ -274,7 +274,7 @@ func _session_for(setups: Array[StringName], level: int) -> GameSession:
 func test_every_trait_of_the_class_can_be_chosen_and_fought_with() -> void:
 	var def: ClassDef = TestFactory.real_data().character_class(&"rift_blade")
 	assert_not_null(def)
-	assert_eq(def.traits.size(), 12)
+	assert_eq(def.traits.size(), 31)
 	for t: TraitDef in def.traits:
 		var s: GameSession = _session_for(t.setups, maxi(LEVEL, t.unlock_level))
 		assert_true(s.loadout.set_trait(0, t.id).ok, "%s can be chosen" % t.id)
@@ -287,7 +287,7 @@ func test_every_trait_of_the_class_can_be_chosen_and_fought_with() -> void:
 
 func test_every_ability_of_the_class_is_used_in_its_setup() -> void:
 	var def: ClassDef = TestFactory.real_data().character_class(&"rift_blade")
-	assert_eq(def.abilities.size(), 6)
+	assert_eq(def.abilities.size(), 19)
 	for a: AbilityDef in def.abilities:
 		var s: GameSession = _session_for(a.setups, maxi(LEVEL, a.unlock_level))
 		assert_true(s.loadout.set_ability(0, a.id).ok, "%s can be chosen" % a.id)
