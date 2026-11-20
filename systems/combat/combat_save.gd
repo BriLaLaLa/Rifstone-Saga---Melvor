@@ -36,6 +36,10 @@ static func write(snapshot: Dictionary) -> Dictionary:
 		result["fracture"] = snapshot["fracture"]
 	if not idle and snapshot.get("dungeon") is Dictionary and not (snapshot["dungeon"] as Dictionary).is_empty():  # M22
 		result["dungeon"] = snapshot["dungeon"]
+	if not idle and not (snapshot.get("ward", {}) as Dictionary).is_empty():  # M28 (F-189): additive, absent = no Ward
+		result["ward"] = snapshot["ward"]
+	if not idle and int(snapshot.get("cond_clock_ms", -1)) >= 0:  # M28 (F-186): the Bleed clock, only while someone bleeds
+		result["cond_clock_ms"] = snapshot["cond_clock_ms"]
 	if snapshot.get("miniboss_pending") == true:  # M22 (F-139): additive, absent = false
 		result["miniboss_pending"] = true
 	return result
@@ -48,7 +52,7 @@ static func write(snapshot: Dictionary) -> Dictionary:
 static func read(d: Dictionary, data: GameData, run: FractureRun = null, dungeon_run: DungeonRun = null) -> Dictionary:
 	var result: Dictionary = {
 		"state": CombatEngine.STATE_IDLE, "area": &"", "encounter": null, "player_hp": 0, "player_timer_ms": 0,
-		"hand": 0, "between_ms": 0, "effects": {}, "abilities": {}, "buffs": {}, "fracture": {}, "dungeon": {},
+		"hand": 0, "between_ms": 0, "effects": {}, "abilities": {}, "buffs": {}, "fracture": {}, "dungeon": {}, "ward": {}, "cond_clock_ms": -1,
 		"kills": _read_kills(d, data), "deaths": maxi(0, _int(d, "deaths")),
 		"food_eaten": maxi(0, _int(d, "food_eaten")), "skip_stone_level": _skip_level(d, data),
 		"cycle": CycleState.parse(d, data, &"idle", &""),
@@ -113,6 +117,8 @@ static func read(d: Dictionary, data: GameData, run: FractureRun = null, dungeon
 	result["effects"] = d.get("effects", {})
 	result["abilities"] = d.get("abilities", {})
 	result["buffs"] = d.get("buffs", {})
+	result["ward"] = d.get("ward", {})  # M28 (§6f): read by `PlayerWard.from_save`, tolerant
+	result["cond_clock_ms"] = _clock_ms(d)
 	return result
 
 
@@ -140,6 +146,16 @@ static func _skip_level(d: Dictionary, data: GameData) -> int:
 		Log.warn(LOG_CATEGORY, "saved skip_stone_level %s is not 0..99: reset to 0" % JSON.stringify(saved))
 		return 0
 	return int(data.balance_value("combat.skip_stone_level"))
+
+
+# M28 (§6f): `cond_clock_ms` is a number >= 0 (-1 = absent or malformed: the engine decides from the enemies).
+static func _clock_ms(d: Dictionary) -> int:
+	var saved: Variant = d.get("cond_clock_ms")
+	if saved is int or saved is float:
+		return maxi(0, int(saved))
+	if d.has("cond_clock_ms"):
+		Log.warn(LOG_CATEGORY, "saved cond_clock_ms %s is not a number: dropped" % JSON.stringify(saved))
+	return -1
 
 
 static func _int(d: Dictionary, key: String) -> int:

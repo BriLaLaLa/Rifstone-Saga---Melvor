@@ -25,6 +25,7 @@ func start(area_id: StringName) -> CommandResult:
 	_area_id = area_id
 	_hand = 0
 	_fx.reset()
+	_clear_conditions()
 	_player_hp = player_stats().max_hp
 	_session.events.combat_started.emit(area_id)
 	_session.events.player_hp_changed.emit(_player_hp, _player_hp)
@@ -52,6 +53,7 @@ func stop(reason: StringName = Reasons.STOPPED_BY_USER) -> void:
 	_between_ms = 0
 	_cy.clear()  # a journey or a node in progress is lost (no products)
 	_fx.reset()
+	_clear_conditions()
 	_abilities.reset()
 	_stop_log.append(reason)
 	_set_hp(player_stats().max_hp)
@@ -71,6 +73,7 @@ func start_fracture(run: FractureRun) -> CommandResult:
 	_area_id = &""
 	_hand = 0
 	_fx.reset()
+	_clear_conditions()
 	_player_hp = player_stats().max_hp
 	_session.events.combat_started.emit(&"")
 	_session.events.player_hp_changed.emit(_player_hp, _player_hp)
@@ -116,6 +119,7 @@ func start_dungeon(run: DungeonRun) -> CommandResult:
 	_area_id = &""
 	_hand = 0
 	_fx.reset()
+	_clear_conditions()
 	_encounter = Encounter.new()
 	_state = STATE_AWAIT
 	_player_hp = player_stats().max_hp
@@ -250,7 +254,7 @@ func get_state() -> Dictionary:
 		"player_hp": _player_hp, "player_timer_ms": _player_timer_ms, "between_ms": _between_ms,
 		"rule": _fx.target_rule(), "fracture": _frac.view() if _frac.active() else {},
 		"stone": _stone.view(_encounter) if _state == STATE_RIFTSTONE else {}, "skip_stone_level": _stone.skip_level,
-		"cycle": _cy.view(_state),
+		"cycle": _cy.view(_state), "ward": _ward.to_save(),
 			"dungeon": _dg.view(_state) if _dg.active() else {}})
 
 
@@ -277,6 +281,7 @@ func new_game() -> void:
 	_stop_log = []
 	_stats = [null, null]
 	_fx.reset()
+	_clear_conditions()
 	_abilities.reset()
 	_frac.end()
 	_dg.end()
@@ -300,7 +305,8 @@ func to_save() -> Dictionary:
 		"fracture": _frac.to_save() if _frac.active() else {}, "skip_stone_level": _stone.skip_level,
 		"wave": _stone.wave_to_save() if _state == STATE_RIFTSTONE else {},
 		"dungeon": _dg.to_save() if _dg.active() else {}, "miniboss_pending": _miniboss_pending,
-		"cycle": _cy.to_save(_state == STATE_TRAVEL, _state == STATE_NODE),
+		"cycle": _cy.to_save(_state == STATE_TRAVEL, _state == STATE_NODE), "ward": _ward.to_save(),
+		"cond_clock_ms": _clock.ms if in_encounter() and _any_bleeding() else -1,
 	})
 
 
@@ -329,6 +335,10 @@ func from_save(d: Dictionary) -> void:
 		_stone.wave_from_save(d.get("wave"))
 	_fx.from_save(parsed["effects"])
 	_abilities.from_save(parsed["abilities"], parsed["buffs"])
+	_ward = PlayerWard.from_save(parsed["ward"])
+	if in_encounter() and _any_bleeding():  # M28 (§6f): the clock is on only while someone bleeds (a missing one starts full)
+		var tick_ms: int = _session.data.conditions().tick_ms
+		_clock.ms = tick_ms if parsed["cond_clock_ms"] < 0 else mini(parsed["cond_clock_ms"], tick_ms)
 
 
 func _apply(parsed: Dictionary) -> void:

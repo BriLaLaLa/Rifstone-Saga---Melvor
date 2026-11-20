@@ -16,6 +16,7 @@ class Enemy extends RefCounted:
 	var timer_ms: int = 0
 	var pulse_damage: int = 0  # > 0: a Rift Stone (F-87); its "attack" is the pulse, `timer_ms` the time to the next one
 	var summoned: bool = false  # M13 (F-112): called by a boss; gives no xp, gold or drops
+	var conditions := EnemyConditions.new()  # M28 (F-185): none at the start, gone with the encounter
 
 	func _init(monster: MonsterDef, data: GameData, pulse: int = 0) -> void:
 		def = monster
@@ -29,6 +30,14 @@ class Enemy extends RefCounted:
 
 	func is_stone() -> bool:
 		return pulse_damage > 0
+
+	## F-188: a Monolith and a boss of a Fracture never stagger (the chief of a dungeon stage is known to `DungeonCombat`).
+	func stagger_immune() -> bool:
+		return is_stone() or (def is ScaledMonsterDef and (def as ScaledMonsterDef).is_boss)
+
+	## F-185, F-187: a Monolith is immune to Weaken (its "attack" is the fixed pulse, F-125) and to Stagger.
+	func immune_to(condition: StringName) -> bool:
+		return (is_stone() and condition == ConditionApply.WEAKEN) or (condition == ConditionApply.STAGGER and stagger_immune())
 
 var enemies: Array[Enemy] = []
 
@@ -72,7 +81,9 @@ static func from_save(entries: Array, data: GameData, run: FractureRun = null) -
 			enemy = RiftStone.enemy(data.rift_stone(monster_id), data)
 		enemy.summoned = d.get("summoned") == true
 		enemy.hp = clampi(int(d["hp"]), 0, enemy.stats.max_hp)
-		enemy.timer_ms = clampi(int(d.get("timer_ms", enemy.timer_ms)), 0, enemy.stats.attack_interval_ms)
+		enemy.conditions = EnemyConditions.from_save(d.get("cond"))  # M28 (§6f)
+		# A Stagger lengthens the timer (F-188): never over the interval plus the window that is still open.
+		enemy.timer_ms = clampi(int(d.get("timer_ms", enemy.timer_ms)), 0, enemy.stats.attack_interval_ms + enemy.conditions.stagger_ms)
 		result.enemies.append(enemy)
 	return result
 
@@ -108,6 +119,8 @@ func to_save() -> Array:
 		var saved: Dictionary = {"monster": String(enemy.def.id), "hp": enemy.hp, "timer_ms": enemy.timer_ms}
 		if enemy.summoned:
 			saved["summoned"] = true
+		if not enemy.conditions.is_empty():  # M28 (§6f): only what is on
+			saved["cond"] = enemy.conditions.to_save()
 		out.append(saved)
 	return out
 
@@ -225,6 +238,28 @@ static func roll_attack(attacker: CombatantStats, defender: CombatantStats, bloc
 	var base_dr: float = defender.reduction_against(attacker.style, attacker.level, data)
 	var dr: float = CombatMath.effective_dr(base_dr, relation, data) * dr_mult
 	var damage: int = CombatMath.triangle_damage(raw, relation, data)
+	if damage_mult != 1.0:
+		damage = int(floor(float(damage) * damage_mult + CombatMath.EPSILON))
+	result["damage"] = CombatMath.damage_after_dr(damage, dr)
+	return result
+
+
+## F-190: one hit of an ability or a counter-attack (kinds A and C): hit (F-23), the raw damage (F-22) scaled by `power_mult`
+## (floored), the triangle (F-24), `damage_mult` (the `M` of F-190, floored; 1.0 = none), then the reduction of the defender (F-25;
+## `dr_mult` as in `roll_attack`). No block (enemies do not block). With `damage_mult` 1.0 it draws and gives what `AbilityRunner`
+## did before M28 (the same two rolls). Same result shape as `roll_attack`.
+static func roll_power_attack(attacker: CombatantStats, defender: CombatantStats, power_mult: float, damage_mult: float,
+		rng: RngService, data: GameData, dr_mult: float = 1.0) -> Dictionary:
+	var result: Dictionary = {"hit": false, "blocked": false, "damage": 0}
+	if rng.randf() >= CombatMath.hit_chance(attacker.accuracy, defender.evasion, data):
+		return result
+	result["hit"] = true
+	var raw: int = rng.randi_range(attacker.min_hit, attacker.max_hit)
+	var scaled: int = int(floor(float(raw) * power_mult + CombatMath.EPSILON))
+	var relation: StringName = CombatMath.triangle(attacker.style, defender.style, data)
+	var base_dr: float = defender.reduction_against(attacker.style, attacker.level, data)
+	var dr: float = CombatMath.effective_dr(base_dr, relation, data) * dr_mult
+	var damage: int = CombatMath.triangle_damage(scaled, relation, data)
 	if damage_mult != 1.0:
 		damage = int(floor(float(damage) * damage_mult + CombatMath.EPSILON))
 	result["damage"] = CombatMath.damage_after_dr(damage, dr)

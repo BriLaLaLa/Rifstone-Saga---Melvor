@@ -74,6 +74,7 @@ signal loot_bag_changed(used: int, capacity: int)
 signal loot_lost(item_id: StringName, qty: int)
 signal trait_triggered(trait_id: StringName)
 signal ability_used(ability_id: StringName, targets: Array[int])
+signal combat_condition_damage(target: int, damage: int, condition: StringName)  # M28 (F-186): one per tick and enemy, before the damage
 
 # Shop and Rift Altar
 signal shop_purchased(entry_id: StringName, count: int)

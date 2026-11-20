@@ -17,6 +17,9 @@ class Use extends RefCounted:
 	var targets: Array[int] = []
 	var attacks: Array[Dictionary] = []  # {"hit", "blocked", "damage"}, same order as `targets`
 	var heal: int = 0
+	var ward: int = 0  # M28 (F-191): the Ward the ability grants (0 = none) and its time
+	var ward_ms: int = 0
+	var kind: StringName = &""  # the kind of the ability (`on_ability`, F-192)
 
 var _session: GameSession
 var _timers: Dictionary[StringName, int] = {}  # remaining ms to the next use
@@ -50,28 +53,33 @@ func tick(ms: int) -> void:
 
 
 ## Ms to the next ability use during an encounter (0 = ready now), `NO_TIMER` if none can happen.
-func next_ms(hp: int, max_hp: int) -> int:
+func next_ms(hp: int, max_hp: int, ward_amount: int = 0, mult_of: Callable = Callable()) -> int:
 	var next: int = NO_TIMER
 	for def: AbilityDef in _session.loadout.active_abilities():
-		if _usable(def, hp, max_hp):
+		if _usable(def, hp, max_hp, ward_amount, mult_of):
 			next = mini(next, maxi(_timer(def), _buffs.get(def.id, 0)))  # a buff is used again once it ends
 	return next
 
 
 ## The first ready and usable ability in slot order, used now (cooldown restarts); null if none.
-## `stats` are the player's, `rule` the F-76 target rule.
-func take_due(encounter: Encounter, hp: int, stats: CombatantStats, rule: StringName) -> Use:
+## `stats` are the player's, `rule` the F-76 target rule. M28 (F-190, F-191): `mult_of(def, target_index)` gives the `M` of a hit
+## on that target (>= 0) or the factor of the amount of a heal (-1); an empty Callable is 1.0. `ward_amount` is the Ward of
+## the player now. With both at their defaults it rolls and returns what it did before M28.
+func take_due(encounter: Encounter, hp: int, stats: CombatantStats, rule: StringName,
+		mult_of: Callable = Callable(), ward_amount: int = 0) -> Use:
 	for def: AbilityDef in _session.loadout.active_abilities():
-		if _timer(def) > 0 or _buffs.has(def.id) or not _usable(def, hp, stats.max_hp):
+		if _timer(def) > 0 or _buffs.has(def.id) or not _usable(def, hp, stats.max_hp, ward_amount, mult_of):
 			continue
 		_timers[def.id] = def.cooldown_ms
 		var use := Use.new()
 		use.id = def.id
+		use.kind = def.kind
 		match def.kind:
 			AbilityDef.KIND_STRIKE, AbilityDef.KIND_CLEAVE:
-				_roll_hits(def, encounter, stats, rule, use)
+				_roll_hits(def, encounter, stats, rule, use, mult_of)
 			AbilityDef.KIND_HEAL:
-				use.heal = int(floor(float(stats.max_hp) * def.heal_pct / 100.0 + CombatMath.EPSILON))
+				var heal_mult: float = _mult(mult_of, def, -1)
+				use.heal = int(floor(float(stats.max_hp) * def.heal_pct / 100.0 * heal_mult + CombatMath.EPSILON))
 			AbilityDef.KIND_BUFF:
 				_buffs[def.id] = def.duration_ms
 				_session.modifiers.set_source(_source(def.id), def.modifiers)
@@ -140,15 +148,20 @@ func _timer(def: AbilityDef) -> int:
 	return _timers.get(def.id, def.cooldown_ms)
 
 
-func _usable(def: AbilityDef, hp: int, max_hp: int) -> bool:
+func _usable(def: AbilityDef, hp: int, max_hp: int, _ward_amount: int = 0, _mult_of: Callable = Callable()) -> bool:
 	match def.kind:
 		AbilityDef.KIND_HEAL:
 			return hp < max_hp
 	return true
 
 
+# M28 (F-190): the `M` of a hit of `def` on `target_index`, or the factor of an amount (-1); 1.0 without a Callable.
+static func _mult(mult_of: Callable, def: AbilityDef, target_index: int) -> float:
+	return float(mult_of.call(def, target_index)) if mult_of.is_valid() else 1.0
+
+
 # F-80: all the rolls first, in target order (hit, then damage on a hit); no block (enemies do not block).
-func _roll_hits(def: AbilityDef, encounter: Encounter, stats: CombatantStats, rule: StringName, use: Use) -> void:
+func _roll_hits(def: AbilityDef, encounter: Encounter, stats: CombatantStats, rule: StringName, use: Use, mult_of: Callable) -> void:
 	if def.kind == AbilityDef.KIND_STRIKE:
 		if encounter.target(rule) >= 0:
 			use.targets.append(encounter.target(rule))
@@ -157,22 +170,16 @@ func _roll_hits(def: AbilityDef, encounter: Encounter, stats: CombatantStats, ru
 		if def.targets > 0 and use.targets.size() > def.targets:
 			use.targets.resize(def.targets)
 	for index: int in use.targets:
-		use.attacks.append(_roll(def, stats, encounter.enemies[index].stats))
+		use.attacks.append(Encounter.roll_power_attack(stats, encounter.enemies[index].stats, def.power_mult, _mult(mult_of, def, index),
+				_session.rng, _session.data))
 
 
-func _roll(def: AbilityDef, attacker: CombatantStats, defender: CombatantStats) -> Dictionary:
-	var data: GameData = _session.data
-	var result: Dictionary = {"hit": false, "blocked": false, "damage": 0}
-	if _session.rng.randf() >= CombatMath.hit_chance(attacker.accuracy, defender.evasion, data):
-		return result
-	result["hit"] = true
-	var raw: int = _session.rng.randi_range(attacker.min_hit, attacker.max_hit)
-	var scaled: int = int(floor(float(raw) * def.power_mult + CombatMath.EPSILON))
-	var relation: StringName = CombatMath.triangle(attacker.style, defender.style, data)
-	var base_dr: float = defender.reduction_against(attacker.style, attacker.level, data)
-	var dr: float = CombatMath.effective_dr(base_dr, relation, data)
-	result["damage"] = CombatMath.damage_after_dr(CombatMath.triangle_damage(scaled, relation, data), dr)
-	return result
+## F-192 `kill_cooldown_cut`: every cooldown that runs is cut by `ms` (never under 0); the duration of the buffs does not change.
+func cut_cooldowns(ms: int) -> void:
+	if ms <= 0:
+		return
+	for def: AbilityDef in _session.loadout.active_abilities():
+		_timers[def.id] = maxi(0, _timer(def) - ms)
 
 
 func _clear_buffs() -> void:

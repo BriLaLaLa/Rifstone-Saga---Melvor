@@ -32,6 +32,8 @@ var _abilities: AbilityRunner
 var _frac: FractureCombat  # M13: the Fracture in progress, if any
 var _dg: DungeonCombat  # M22: the dungeon run in progress, if any
 var _cy: CycleState  # M24: journey, node and node counters of the area cycle
+var _ward: PlayerWard = PlayerWard.new()  # M28 (F-189): the Ward of the player
+var _clock: BleedClock = BleedClock.new()  # M28 (F-186): the one clock of the Bleed of the encounter
 var _travel_on_start: bool = false  # M24: the next `start` (the way back from a Fracture or a dungeon) begins with a journey
 var _resume_area: StringName = &""  # M13: the area to go back to once the instant being resolved is over
 var _resolving: bool = false  # an instant is being resolved inside `advance`: the way back waits for its end
@@ -144,6 +146,88 @@ func _ctx() -> EffectContext:
 	ctx.player_timer_ms = _player_timer_ms
 	ctx.rng = _session.rng
 	return ctx
+
+
+## M28 (F-185): the Ward and the Bleed clock end with the fight (a new combat, `stop`, a death).
+func _clear_conditions() -> void:
+	_ward.clear()
+	_clock.reset()
+
+
+## M28 (F-190): the context of a hit of the player on the enemy at `index` (`kind` = an `EffectContext.HIT_*`) as the effects see it.
+func _hit_ctx(index: int, enemy: Encounter.Enemy, kind: StringName, primary: int = -1, ability_kind: StringName = &"") -> EffectContext:
+	var ctx: EffectContext = _ctx()
+	ctx.hit_kind = kind
+	ctx.ability_kind = ability_kind
+	ctx.target_index = index
+	ctx.primary_index = primary
+	ctx.target_hp = enemy.hp
+	ctx.target_max_hp = enemy.stats.max_hp
+	ctx.target_conditions = enemy.conditions
+	ctx.alive_count = _encounter.alive_count()
+	return ctx
+
+
+## M28 (F-190): the factors of `M` that come from the effects and from the Expose of the target (1.0 for none).
+func _hit_mult(index: int, kind: StringName, primary: int = -1, ability_kind: StringName = &"") -> float:
+	var enemy: Encounter.Enemy = _encounter.enemies[index]
+	var mult: float = _fx.hit_mult(_hit_ctx(index, enemy, kind, primary, ability_kind))
+	var cond: EnemyConditions = enemy.conditions
+	return mult * (1.0 + cond.expose_pct / 100.0) if cond.expose_ms > 0 else mult
+
+
+## M28 (F-190, F-191): what `AbilityRunner` asks for: the `M` of an ability hit on `target_index`, or (-1) the factor of its amount.
+func _ability_mult(def: AbilityDef, target_index: int) -> float:
+	if target_index >= 0:
+		return _hit_mult(target_index, EffectContext.HIT_ABILITY, -1, def.kind)
+	var ctx: EffectContext = _ctx()
+	ctx.ability_kind = def.kind
+	return _fx.amount_mult(ctx)
+
+
+## M28 (F-193): d1, the damage of the attack from the enemy at `source` (-1 or less: the pulse) after its Weaken (F-187) and the
+## `damage_trade` of the effects (at least 1); `damage` itself, with no float step, when neither applies.
+func _incoming_damage(source: int, damage: int) -> int:
+	var taken: float = _fx.incoming_mult(_ctx())
+	var weaken_pct: float = 0.0
+	if source >= 0 and source < _encounter.enemies.size() and _encounter.enemies[source].conditions.weaken_ms > 0:
+		weaken_pct = _encounter.enemies[source].conditions.weaken_pct
+	if weaken_pct <= 0.0 and taken == 1.0:
+		return damage
+	return maxi(1, int(floor(float(damage) * (1.0 - weaken_pct / 100.0) * taken + CombatMath.EPSILON)))
+
+
+## M28 (F-189): the Ward that an effect asks for in `ctx` (`ward_pct` of the maximum hp for `ward_ms`).
+func _grant_ward(ctx: EffectContext) -> void:
+	if ctx.ward_pct > 0.0 and ctx.ward_ms > 0:
+		_ward.grant(int(floor(float(ctx.player_max_hp) * ctx.ward_pct / 100.0 + CombatMath.EPSILON)), ctx.ward_ms)
+
+
+## M28 (F-185): applies `app` to the enemy at `index`, hit for `damage` and still alive; a Bleed starts the clock (F-186).
+func _apply_condition(index: int, app: ConditionApply, damage: int) -> void:
+	var enemy: Encounter.Enemy = _encounter.enemies[index]
+	if enemy.immune_to(app.condition) or (app.condition == ConditionApply.STAGGER and _dg.fighting and _dg.is_chief(enemy)):
+		return
+	var params: ConditionParams = _session.data.conditions()
+	enemy.timer_ms = enemy.conditions.apply(app, damage, enemy.timer_ms, true, params)
+	if enemy.conditions.bleeds():
+		_clock.start_if_idle(params)
+
+
+func _any_bleeding() -> bool:
+	for enemy: Encounter.Enemy in _encounter.enemies:
+		if enemy.alive() and enemy.conditions.bleeds():
+			return true
+	return false
+
+
+# The targets of an ability without repeats, in the order of the first hit (`ability_used`, 05_INTERFACES_M28.md §3f).
+static func _distinct(targets: Array[int]) -> Array[int]:
+	var out: Array[int] = []
+	for index: int in targets:
+		if not out.has(index):
+			out.append(index)
+	return out
 
 
 func _set_hp(hp: int) -> void:
