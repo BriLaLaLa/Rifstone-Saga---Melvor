@@ -89,3 +89,6 @@ Smantellamento e filtro; Pietre del Rift; Progetti; Maestria; Attrezzi; Altare d
 - Ogni pagina del gioco ha il suo "?".
 - Testi in italiano, chiari, al massimo ~150 parole per pagina di meccanica; nomi da `docs/NOMI.md`.
 - Layout a 1600×900 e 1280×720.
+
+> **M28 (Abilità e tratti v2, allineato da M28-10)**: pagina a mano nuova "Condizioni" (`data/guide/condizioni.json`, sezione `character`: Sanguinamento, Fiacchezza, Breccia, Sbilanciamento, Riparo),
+> collegata dalle pagine Tratti e Abilità; i testi dei 31 tratti e delle 19 abilità vengono da `LoadoutDescribe` (nessun numero scritto a mano). Ogni pagina ≤ 160 parole.

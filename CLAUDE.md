@@ -114,4 +114,4 @@ Il **primo import di una checkout nuova può andare in crash sui font** (segfaul
 l'import è innocuo.
 
 ## Stato
-Ultima milestone: m27-done (Casa d'Aste v2, monete, Posta; Alpha 3 non dichiarata). Storia e dettagli in docs/STATUS.md
+Ultima milestone: m28-done (Abilità e tratti v2: condizioni, 19 abilità, 31 tratti; m27-done = Casa d'Aste v2, Alpha 3 non dichiarata). Storia e dettagli in docs/STATUS.md

@@ -138,8 +138,11 @@ contiene `L`, per ogni assetto (`greatsword`, `sword_shield`, `dual`, `sword`). 
 - **(1) Nessuno domina**: in ogni gruppo nessuna voce `x` ha insieme `K_x ≥ 1,10 × max K` delle altre, `D_x ≤` e `F_x ≤` di tutte le altre.
 - **(2) Nessuno è inutile**: ogni voce, in almeno un gruppo in cui è disponibile, ha `K ≥ 0,85 ×` mediana del gruppo **oppure** il `D` o l'`F` più basso del gruppo (ruolo difensivo);
   una voce di sola utilità (`target_rule`, `opening_strike`) è esente.
-- **(3) Nessuna corsa alla potenza**: per ogni assetto e `L`, il migliore di tre equipaggiamenti completi con i contenuti di M28 (offensivo, difensivo, sinergia: elencati nel report di M28-08)
-  ha `K ≤ 1,15 ×` quello di `loadout=auto` (i contenuti di M27, che restano primi nel file) e `D` non più alto.
+- **(3) Nessuna corsa alla potenza** (ridefinita da M28-10, Q178): per ogni assetto e `L`, il migliore di tre equipaggiamenti completi con i contenuti di M28 (offensivo, difensivo, sinergia:
+  elencati nel report di M28-08) ha `K ≤ 1,15 ×` quello del **miglior equipaggiamento completo di soli contenuti M27** (tre equipaggiamenti M27 offensivo/difensivo/sinergia, stesso metodo,
+  il migliore per `K`) e `D` non più alto. Dove manca il riferimento M27 (Spada sola, senza abilità M27) (3) è **non applicabile** e annotato. `loadout=auto` **non** è più il riferimento M27:
+  dopo M28 riempie slot prima vuoti con i contenuti nuovi; il riferimento M27 puro della sim è `traits=m27 abilities=m27` (primi tratti M27 in ordine di file, non i migliori).
+  Misure di M28-09 (K/h): M27 puro ben scelto greatsword L50 1023, L80 917, L95 805, dual L50 661; offensivo con i contenuti nuovi 1007, 796, 681, 560 (sotto il riferimento).
 - **(4) Nessuna regressione**: `loadout=auto` dà gli stessi numeri di `main` prima di M28 (stessi tiri).
 Se (1)-(3) falliscono si ritoccano **solo** i valori dei contenuti nuovi (M28-09), mai quelli esistenti né l'economia (Q122, Q178).
 

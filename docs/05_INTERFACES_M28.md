@@ -156,3 +156,19 @@ Un save di M27 si carica identico (nessuna chiave nuova); un save di M28 caricat
   `assets/icons/conditions/{bleed,weaken,expose,stagger,ward}.svg` (segnaposto).
 - **Guida**: pagina `data/guide/condizioni.json` (≤ 160 parole, sezione `character`), collegata dalle pagine Tratti e Abilità.
 - Smoke test: `tests/ui/test_loadout_panel_smoke.gd` (clic **veri** sull'interruttore e su una carta), `tests/ui/test_combat_conditions_smoke.gd` (stato con condizioni e Riparo disegnato).
+
+## 8. Deviazioni dal contratto emerse in M28 (M28-10)
+Il codice differisce in questi punti dal testo sopra; vale il codice, il contratto è allineato qui.
+- **M28-03**: `DataValidatorM14` è agganciato a `DataValidatorConditions`; `game_data.gd` compattato (resta sotto le 400 righe).
+- `AbilityRunner.next_ms(hp, max_hp, ward_amount, mult_of, ward_ms)`: parametri in più rispetto alla firma di §5.10c (la scadenza del Riparo è un evento per `next_ms`, M28-08b).
+- `EffectContext.HIT_EXTRA`: costante nuova per i colpi aggiuntivi delle abilità `hits`.
+- `Enemy.immune_to` e `stagger_immune` (Monolito e boss: immuni alle condizioni/Sbilanciamento, Q175).
+- Il timer del nemico nel save è limitato a `interval + stagger_ms` (lettura tollerante).
+- `cut_cooldowns(ms <= 0)` ritorna subito; Riparo e orologio del Sanguinamento sono azzerati a start, stop, morte e fine dell'incontro.
+- `StackBase`: classe base comune degli accumuli dei tratti nuovi.
+- **Da unificare**: la validazione delle condizioni è duplicata in `_effect_condition` e `DataValidatorAbilities.apply_entry`.
+- F-194 (3) ridefinita (`02_FORMULAS_M28.md`, Q178): riferimento = miglior equipaggiamento M27 puro; `loadout=auto` non è più il riferimento M27.
+
+## 9. Esito di Q171-Q182
+Tutte con il default del design (vedi `OPEN_QUESTIONS.md`): slot invariati, critico e albero rimandati, "Sciame di tagli", immunità 4 s, un solo orologio, Fiacchezza sul danno del nemico,
+filtro "Solo assetto attuale", `setup=sword`, niente tipi nuovi nei leggendari, tabelle approvate; Q178 con la ridefinizione di (3).
