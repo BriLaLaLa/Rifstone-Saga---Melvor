@@ -31,7 +31,7 @@ func _initialize() -> void:
 	var f := FileAccess.open(OUT, FileAccess.WRITE)
 	f.store_string("\n".join(lines) + "\n")
 	f.close()
-	print("gen_item_sheets: %d icons, %d sheets -> %s" % [seen.size(), sheet_no - 1, OUT])
+	print_rich("gen_item_sheets: %d icons, %d sheets -> %s" % [seen.size(), sheet_no - 1, OUT])
 	quit(0)
 
 

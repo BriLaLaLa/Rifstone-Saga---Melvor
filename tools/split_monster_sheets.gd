@@ -42,7 +42,7 @@ func _initialize() -> void:
 				push_error("cannot save " + path)
 				failed = true
 			ids_done.append(ids[k])
-		print("sheet %d: %d tiles ok (grid %d found)" % [n, ids.size(), tiles.size()])
+		print_rich("sheet %d: %d tiles ok (grid %d found)" % [n, ids.size(), tiles.size()])
 	if not failed and not args.has("--no-data"):
 		_rewire(ids_done)
 	quit(1 if failed else 0)
@@ -147,4 +147,4 @@ func _rewire(ids: Array) -> void:
 		var w := FileAccess.open(path, FileAccess.WRITE)
 		w.store_string(text)
 		w.close()
-		print("%s: %d icons repointed" % [path, changed])
+		print_rich("%s: %d icons repointed" % [path, changed])
