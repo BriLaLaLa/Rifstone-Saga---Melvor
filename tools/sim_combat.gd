@@ -8,7 +8,8 @@ extends SceneTree
 ##   hours=<n>            simulated hours per measurement (default 1)
 ##   seed=<n>             session seed (default 1234)
 ##   grade=auto|<n>       grade of the forged set and of the food (auto = highest grade the area's level can wear)
-##   setup=sword_shield|greatsword|dual   weapon assembly (default sword_shield)
+##   setup=sword_shield|greatsword|dual|sword   weapon assembly (default sword_shield)
+##   traits=<id,id>|none, abilities=<id,id>|none   explicit loadout in slot order (default `-` = follow loadout=; tools/sim_loadout.gd)
 ##   level=auto|<n>       character level, kept fixed during the run (auto = mean attack level of the area's monsters)
 ##   tier=auto|<n>        field rations tier (auto = the shop tiers whose requirement the level meets)
 ##   food=<n>, slice=<s>  pieces of food at the start (default 1000000), seconds between level pins (default 30)
@@ -25,12 +26,13 @@ const EVENTS_PATH: String = "res://core/autoload/event_bus.gd"
 const CONFIG_ROOT: String = "res://data/config"
 const HOUR_MS: int = 3600000
 const SimXp := preload("res://tools/sim_xp.gd")
+const SimLoadout := preload("res://tools/sim_loadout.gd")
 const ARMOR_SLOTS: Array[StringName] = [&"body", &"legs", &"head", &"feet", &"hands"]
 
 const DEFAULTS: Dictionary = {
 	"area": "all", "scope": "both", "hours": "1", "seed": "1234", "grade": "auto", "setup": "sword_shield",
 	"level": "auto", "tier": "auto", "food": "1000000", "slice": "30", "root": "res://data", "loot": "0",
-	"loadout": "none", "material": "plate",
+	"loadout": "none", "material": "plate", "traits": "-", "abilities": "-",
 }
 
 
@@ -198,8 +200,7 @@ static func measure(data: Object, area: Object, scope: String, opts: Dictionary)
 	var session: Object = _new_session(data, int(opts["seed"]))
 	var xp_before: int = _set_level(session, level)
 	_equip_set(session, grade, StringName(str(opts["setup"])), StringName(str(opts["material"])))
-	if opts["loadout"] == "auto":
-		_fill_loadout(session, data)
+	SimLoadout.apply(session, data, opts)
 	var food_id: StringName = food_for_grade(data, grade)
 	session.bank.add(food_id, int(opts["food"]))
 	session.equipment.set_food(food_id)
@@ -355,6 +356,8 @@ static func _equip_set(session: Object, grade: int, setup: StringName, material:
 		&"dual":
 			worn.append(by_slot["weapon/sword"])
 			worn.append(by_slot["weapon/sword"])
+		&"sword":
+			worn.append(by_slot["weapon/sword"])
 		_:
 			worn.append(by_slot["weapon/sword"])
 			worn.append(by_slot["offhand/shield"])
@@ -366,28 +369,14 @@ static func _equip_set(session: Object, grade: int, setup: StringName, material:
 		var result: Object = session.equipment.equip(uid, slot)
 		if not result.ok:
 			printerr("sim_combat: cannot equip %s: %s" % [base_id, result.reason])
+	if setup == &"sword" and session.equipment.get_uid(&"offhand") != 0:  # the starting shield stays worn otherwise
+		session.equipment.unequip(&"offhand")
 
 
 ## Fills the open slots with the first trait / ability (file order) that is unlocked, allowed by the worn assembly and
 ## not yet chosen: a neutral, reproducible choice, not the best one.
 static func _fill_loadout(session: Object, data: Object) -> void:
-	var def: Object = data.call("character_class", session.character.class_id())
-	var setup_id: StringName = session.equipment.setup()
-	var level: int = session.character.get_level()
-	var chosen: Array[StringName] = []
-	for i: int in range(session.loadout.trait_slots()):
-		for entry: Object in def.traits:
-			if entry.unlock_level <= level and entry.allows_setup(setup_id) and not chosen.has(entry.id):
-				if session.loadout.set_trait(i, entry.id).ok:
-					chosen.append(entry.id)
-					break
-	chosen.clear()
-	for i: int in range(session.loadout.ability_slots()):
-		for entry: Object in def.abilities:
-			if entry.unlock_level <= level and entry.allows_setup(setup_id) and not chosen.has(entry.id):
-				if session.loadout.set_ability(i, entry.id).ok:
-					chosen.append(entry.id)
-					break
+	SimLoadout.apply(session, data, {"loadout": "auto", "traits": "-", "abilities": "-"})
 
 
 static func _set_tier(session: Object, tier: int) -> void:
