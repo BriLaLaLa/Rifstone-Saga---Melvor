@@ -132,6 +132,17 @@ Sciame di tagli (era Raffica di lame, Q174).
 Cambiano: Sete di brace → **Sete di sangue**; Brace vitale → **Linfa vitale**; Maglio del Rift → **Colpo
 spaccaossa**; Respiro di brace → **Seconda forza**.
 
+**M28-06** (tabelle §40.6-§40.7 di `01_GDD_M28.md`, approvate): 19 tratti e 13 abilità nuovi, nomi originali e unici.
+Tratti (`id` = nome): `momentum` Slancio; `battle_rhythm` Ritmo di battaglia; `heavy_iron` Peso del ferro; `fixed_gaze` Occhio fisso;
+`shield_answer` Risposta dello scudo; `dodge_dance` Danza schiva; `open_wounds` Ferite aperte; `foe_reading` Lettura
+dell'avversario; `living_bulwark` Bastione vivente; `colossus` Colosso; `blood_scent` Odore del sangue; `fighters_breath`
+Respiro del combattente; `twin_wounds` Ferite gemelle; `technique_echo` Eco della tecnica; `duelist` Duellante;
+`blood_barter` Baratto di sangue; `patient_wrath` Collera paziente; `sentence` Sentenza; `battle_crust` Scorza di battaglia.
+Abilità: `lunge` Affondo; `guard_probe` Colpo alla guardia; `quake_slam` Schianto; `high_guard` Guardia alta; `cross_cuts`
+Tagli incrociati; `deep_cut` Taglio profondo; `guard_breaker` Spezzaguardia; `shield_toll` Rintocco dello scudo; `cut_storm`
+Pioggia di tagli; `final_thrust` Stoccata finale; `last_swing` Ultimo fendente; `tight_defense` Difesa serrata;
+`thirsting_blade` Lama assetata. Q174 applicata nei dati: `blade_volley` ora si chiama **Sciame di tagli** (id invariato).
+
 ## Pietre, valute, rune, oggetti speciali
 (Le righe sui nomi di pietre, valute e rune sono **sostituite dalla Riforma 2**, vedi la sezione in fondo: restano
 qui come storico.)

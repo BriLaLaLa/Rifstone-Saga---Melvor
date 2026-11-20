@@ -148,7 +148,7 @@ func test_every_trait_effect_type_used_by_the_class_has_its_test_file() -> void:
 	for t: TraitDef in def.traits:
 		for e: TraitEffectDef in t.effects:
 			seen[e.type] = true
-	assert_eq(seen.size(), 8, "the class uses all 8 effect types of F-81")
+	assert_eq(seen.size(), 21, "the class uses the 8 effect types of F-81, 2 of F-120 and 11 of F-192")
 	for type: StringName in seen:
 		var path: String = "res://tests/systems/combat/effects/test_%s.gd" % type
 		assert_true(FileAccess.file_exists(path), "%s: %s exists" % [type, path])

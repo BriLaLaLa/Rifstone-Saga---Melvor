@@ -40,7 +40,7 @@ const FIXED: Dictionary = {
 	"rift_thorns": "Spine del Rift", "cornered_fury": "Furia alle strette", "giant_breaker": "Spezzagiganti",
 	"greedy_fangs": "Zanne fameliche", "ember_thirst": "Sete di sangue", "blood_ember": "Linfa vitale",
 	"whirl": "Mulinello", "shield_bash": "Colpo di scudo", "twin_frenzy": "Frenesia gemella",
-	"blade_volley": "Raffica di lame", "rift_maul": "Colpo spaccaossa", "ember_breath": "Seconda forza",
+	"blade_volley": "Sciame di tagli", "rift_maul": "Colpo spaccaossa", "ember_breath": "Seconda forza",
 	"stone_ember_chip": "Scheggia di forza", "stone_ember_stone": "Pietra di forza", "stone_ember_heart": "Pietra perfetta di forza",
 	"stone_eye_chip": "Scheggia di precisione", "stone_eye_stone": "Pietra di precisione",
 	"stone_eye_heart": "Pietra perfetta di precisione", "stone_shade_chip": "Scheggia di agilità",
