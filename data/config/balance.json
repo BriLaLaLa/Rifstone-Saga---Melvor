@@ -159,6 +159,7 @@
     "dual_wield": {
       "interval_mult": 0.75
     },
+    "conditions": {"tick_ms": 1000, "stagger_immunity_ms": 4000},
     "hp_base": 50,
     "hp_per_level": 10,
     "max_pack_size": 8,

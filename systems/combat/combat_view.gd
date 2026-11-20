@@ -15,7 +15,8 @@ static func build(engine: CombatEngine, encounter: Encounter, abilities: Ability
 		var entry: Dictionary = {"monster": enemy.def.id, "hp": enemy.hp, "max_hp": enemy.stats.max_hp,
 			"timer_ms": enemy.timer_ms, "interval_ms": enemy.stats.attack_interval_ms,
 			"hit_pct": CombatMath.hit_pct(player_acc, enemy.stats.evasion, data),
-			"enemy_hit_pct": CombatMath.hit_pct(enemy.stats.accuracy, me.evasion, data)}
+			"enemy_hit_pct": CombatMath.hit_pct(enemy.stats.accuracy, me.evasion, data),
+			"conditions": enemy.conditions.view() if enemy.alive() else {}}  # M28 (F-185)
 		if enemy.summoned:
 			entry["summoned"] = true
 		enemies.append(entry)
@@ -29,6 +30,7 @@ static func build(engine: CombatEngine, encounter: Encounter, abilities: Ability
 		# M15 (05 §5.25): the stone of the fight ({} outside it), the skip setting and the number of living enemies
 		"stone": snapshot.get("stone", {}), "skip_stone_level": snapshot.get("skip_stone_level", 0),
 		"enemies_alive": encounter.alive_count(),
+		"ward": snapshot.get("ward", {}),  # M28 (F-189): {"amount", "ms"}, {} without one
 	}
 	view.merge(snapshot["cycle"])  # M24 (05_INTERFACES_M24 §5.33): travel_ms, travel_total_ms, next, node
 	if not (snapshot.get("fracture", {}) as Dictionary).is_empty():  # M13: only inside a Fracture

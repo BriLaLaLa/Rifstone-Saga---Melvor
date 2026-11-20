@@ -86,3 +86,40 @@ func to_save() -> Dictionary:
 
 func from_save(_d: Dictionary) -> void:
 	pass
+
+
+# --- M28 (docs/05_INTERFACES_M28.md §5.10c): the hooks of the conditions and of the new types, all neutral here ---------------------
+
+## F-192 `on_evade`: an enemy attack missed the player (F-23); never for a pulse or a Monolith.
+func on_evade(_ctx: EffectContext) -> void:
+	pass
+
+
+## F-192 `on_ability`: the player used an ability (`ctx.ability_kind`), after its hits and its heal or Ward.
+func on_ability(_ctx: EffectContext) -> void:
+	pass
+
+
+## F-190: this effect's factor of `M` for a hit of the player (`ctx.hit_kind`, `ctx.target_*`, `ctx.alive_count`).
+func hit_mult(_ctx: EffectContext) -> float:
+	return 1.0
+
+
+## F-193: the factor of the damage the player takes (`damage_trade`).
+func incoming_mult(_ctx: EffectContext) -> float:
+	return 1.0
+
+
+## F-191, F-192 `ability_mult`: the factor of the amount of a heal or a Ward of an ability (`ctx.ability_kind`).
+func amount_mult(_ctx: EffectContext) -> float:
+	return 1.0
+
+
+## F-192 `stack_haste`: the factor of the timer of the next base attack.
+func base_timer_mult(_ctx: EffectContext) -> float:
+	return 1.0
+
+
+## True for the types that keep a state in `to_save` (at most one effect per trait).
+func has_state() -> bool:
+	return false

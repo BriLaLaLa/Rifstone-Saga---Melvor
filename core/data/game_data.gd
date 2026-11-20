@@ -23,9 +23,7 @@ const CONTENT_FILES: Dictionary[String, String] = {
 	"auction": AuctionIndex.FILE, "auction_population": AuctionIndex.POPULATION_FILE, "mail": MailIndex.FILE,  # M23, M26-08, M27-05: mandatory
 	"disciplines": DisciplineIndex.TRAINERS_FILE,  # M24: mandatory (the grades; the Trainers may be empty)
 }
-const CONTENT_DIRS: Dictionary[String, String] = {
-	"items": "items", "actions": "actions", "mastery": "mastery", "classes": "classes",
-}
+const CONTENT_DIRS: Dictionary[String, String] = {"items": "items", "actions": "actions", "mastery": "mastery", "classes": "classes"}
 
 var errors: PackedStringArray = []
 var stats: StatRegistry = StatRegistry.new()
@@ -64,6 +62,7 @@ var _quests: Dictionary[StringName, QuestDef] = {}  # M20
 var _quest_list: Array[QuestDef] = []
 var _auction: AuctionIndex = AuctionIndex.new()  # M23
 var _currency: CurrencyParams = null  # M27
+var _conditions: ConditionParams = null  # M28-03
 var _mail: MailIndex = MailIndex.new()  # M27-05
 var _dungeons: DungeonIndex = DungeonIndex.new()  # M22
 var _blueprint_list: Array[ItemDef] = []
@@ -98,10 +97,8 @@ func balance_value(path: String) -> Variant:
 	if value == null:
 		Log.error(LOG_CATEGORY, "balance key '%s' not found" % path)
 		return null
-	if value is Dictionary:
-		return (value as Dictionary).duplicate(true)
-	if value is Array:
-		return (value as Array).duplicate(true)
+	if value is Dictionary or value is Array:
+		return value.duplicate(true)
 	return value
 ## F-118: material grade (1..8) of a piece grade (1..15), `equipment.grade_material[g - 1]`; out of range: error, 0.
 func material_grade(piece_grade: int) -> int: return EquipmentGrades.entry(self, "equipment.grade_material", piece_grade)
@@ -245,6 +242,7 @@ func auction_item(id: StringName) -> AuctionItemDef: return _auction.by_id.get(i
 func auction_building() -> StringName: return _village.auction_building()
 ## M27 (docs/04_DATA_SCHEMA_M27.md §32.1): the `currency` parameters of balance.json (F-177).
 func currency() -> CurrencyParams: return _currency
+func conditions() -> ConditionParams: return _conditions  # M28-03 (§33.1): `combat.conditions` of balance.json
 ## M27-05 (§32.5): the Mail text models of a kind in file order; [] if none.
 func mail_templates(kind: StringName) -> Array[MailTemplateDef]: return _mail.of_kind(kind)
 
@@ -351,8 +349,9 @@ func _build(raw: Dictionary) -> void:
 	_auction.build(_balance, raw["auction"] as Dictionary, raw["auction_population"] as Dictionary, errors)
 	_mail.build(raw["mail"] as Dictionary, errors)
 	_currency = CurrencyParams.from_dict(_balance["currency"] as Dictionary)
-	if _currency == null:
-		errors.append("balance.json: key 'currency': cannot be built (see the log)")
+	_conditions = ConditionParams.from_dict((_balance["combat"] as Dictionary)["conditions"] as Dictionary)
+	if _currency == null or _conditions == null:
+		errors.append("balance.json: key 'currency' or 'combat.conditions': cannot be built (see the log)")
 	_dungeons.build(raw.get("dungeons", {}) as Dictionary, _monsters, errors)
 	for path: String in raw["quests"]:
 		for d: Dictionary in DataBuildUtil.list(raw["quests"][path], "quests"):
@@ -388,6 +387,7 @@ func _clear() -> void:
 	_village.clear()
 	_auction.clear()
 	_currency = null
+	_conditions = null
 	_mail.clear()
 	_dungeons.clear()
 	for list: Array in [_item_list, _skill_list, _action_list, _node_list, _area_list, _shop_list, _class_list,

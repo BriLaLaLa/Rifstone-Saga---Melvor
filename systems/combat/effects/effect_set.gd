@@ -164,6 +164,55 @@ func damaged(ctx: EffectContext, damage: int) -> void:
 	_flush(ctx)
 
 
+## M28 (F-192): `on_evade` and `on_ability`, then the factors of the effects, each a product in slot order.
+func evade(ctx: EffectContext) -> void:
+	for effect: TraitEffect in effects():
+		effect.on_evade(ctx)
+	_flush(ctx)
+
+
+func ability(ctx: EffectContext) -> void:
+	for effect: TraitEffect in effects():
+		effect.on_ability(ctx)
+	_flush(ctx)
+
+
+## F-190: the product of the factors of `M` for the hit described by `ctx` (1.0 without effects that have one).
+func hit_mult(ctx: EffectContext) -> float:
+	var mult: float = 1.0
+	for effect: TraitEffect in effects():
+		mult *= effect.hit_mult(ctx)
+	_flush(ctx)
+	return mult
+
+
+## F-193 `damage_trade`: the product of the factors of the damage taken.
+func incoming_mult(ctx: EffectContext) -> float:
+	var mult: float = 1.0
+	for effect: TraitEffect in effects():
+		mult *= effect.incoming_mult(ctx)
+	_flush(ctx)
+	return mult
+
+
+## F-191 `ability_mult`: the product of the factors of the amount of a heal or a Ward.
+func amount_mult(ctx: EffectContext) -> float:
+	var mult: float = 1.0
+	for effect: TraitEffect in effects():
+		mult *= effect.amount_mult(ctx)
+	_flush(ctx)
+	return mult
+
+
+## F-192 `stack_haste`: the product of the factors of the timer of the next base attack.
+func base_timer_mult(ctx: EffectContext) -> float:
+	var mult: float = 1.0
+	for effect: TraitEffect in effects():
+		mult *= effect.base_timer_mult(ctx)
+	_flush(ctx)
+	return mult
+
+
 ## `on_low_hp`: true if some effect forbids F-30 now (that effect is reported as triggered).
 func blocks_auto_eat(ctx: EffectContext) -> bool:
 	var blocked: bool = false

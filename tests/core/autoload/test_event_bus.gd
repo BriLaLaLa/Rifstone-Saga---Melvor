@@ -67,6 +67,7 @@ const EXPECTED: Dictionary = {
 	"loot_lost": [["item_id", SN, ""], ["qty", I, ""]],
 	"trait_triggered": [["trait_id", SN, ""]],
 	"ability_used": [["ability_id", SN, ""], ["targets", TYPE_ARRAY, ""]],
+	"combat_condition_damage": [["target", I, ""], ["damage", I, ""], ["condition", SN, ""]],
 	"shop_purchased": [["entry_id", SN, ""], ["count", I, ""]],
 	"item_sold": [["item_id", SN, ""], ["qty", I, ""], ["gold", I, ""]],
 	"village_upgraded": [["building_id", SN, ""], ["new_level", I, ""]],
