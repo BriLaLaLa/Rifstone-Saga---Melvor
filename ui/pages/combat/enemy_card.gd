@@ -24,6 +24,7 @@ var _halo: Panel = null
 ## Presentation: HP bar value being eased towards the real one (large card only); -1 = snap on the next draw.
 var _hp_eased: float = -1.0
 var _hp_target: int = 0
+var _conditions: ConditionStrip = null
 
 @onready var _box: BoxContainer = %Box
 @onready var _portrait: Control = %Portrait
@@ -67,6 +68,8 @@ func _ready() -> void:
 	_timer_bar.custom_minimum_size.y = UiStyle.COMBAT_TIMER_BAR_HEIGHT if large else 5
 	_hp_bar.show_percentage = false
 	_timer_bar.show_percentage = false
+	_conditions = ConditionStrip.new()
+	_details.add_child(_conditions)
 	UiStyle.style_bar(_hp_bar, UiStyle.HP)
 	UiStyle.style_bar(_timer_bar, UiStyle.COMBAT_TIMER_COLOR)
 	_icon.pivot_offset = _portrait.custom_minimum_size / 2.0
@@ -152,6 +155,17 @@ func redraw(hp: int, max_hp: int, timer_ms: int, interval_ms: int) -> void:
 	else:
 		_stop_fade()
 		modulate.a = 1.0
+
+
+## Conditions of this enemy as read from the state (`enemies[i].conditions`); `tick_ms` = the Bleed tick of the balance data.
+## A dead enemy shows none.
+func set_conditions(conditions: Dictionary, tick_ms: int) -> void:
+	_conditions.show_conditions({} if _dead else conditions, tick_ms)
+
+
+## Conditions strip, for tests.
+func conditions_strip() -> ConditionStrip:
+	return _conditions
 
 
 ## Floating number or word over the portrait.

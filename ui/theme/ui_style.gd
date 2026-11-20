@@ -171,6 +171,18 @@ const COMBAT_LOW_HP_SEC: float = 0.35
 const COMBAT_HIT_POP_SCALE: float = 1.5
 const COMBAT_HIT_HUGE_FONT_SIZE: int = 42
 const COMBAT_PARRY_COLOR := Color("7fb8ff")
+## M28 conditions (GDD M28 §40.3): colour of the chip, of the number of the Bleed ticks and of the Ward layer.
+const COMBAT_BLEED_COLOR := Color("d6405a")
+const COMBAT_WEAKEN_COLOR := Color("c9a45c")
+const COMBAT_EXPOSE_COLOR := Color("e08a4e")
+const COMBAT_STAGGER_COLOR := Color("b8a2ff")
+const COMBAT_WARD_COLOR := Color("5fc4d6")
+const COMBAT_CONDITION_COLORS: Dictionary[StringName, Color] = {
+	&"bleed": COMBAT_BLEED_COLOR, &"weaken": COMBAT_WEAKEN_COLOR, &"expose": COMBAT_EXPOSE_COLOR,
+	&"stagger": COMBAT_STAGGER_COLOR, &"ward": COMBAT_WARD_COLOR,
+}
+const COMBAT_CONDITION_ICON_SIDE: int = 16
+const COMBAT_WARD_BAR_HEIGHT: int = 8
 
 # Offline screens (M9-02).
 const OFFLINE_DIM := Color(0.02, 0.015, 0.03, 0.82)

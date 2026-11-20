@@ -20,7 +20,6 @@ const REFLECT_TEXT: String = "Chi ti colpisce perde il %s%% del danno che ti inf
 const LEECH_TEXT: String = "Recuperi il %s%% del danno inflitto in PV."
 const BONUS_TEXT: String = "Bonus: %s."
 const STAT_VALUE_TEXT: String = "%s %s"
-const STRIKE_TEXT: String = "Colpisce il primo nemico con il %s%% della potenza."
 const CLEAVE_ALL_TEXT: String = "Colpisce tutti i nemici con il %s%% della potenza."
 const CLEAVE_TEXT: String = "Colpisce i primi %d nemici con il %s%% della potenza."
 const HEAL_TEXT: String = "Cura il %s%% dei PV."
@@ -48,7 +47,7 @@ static func ability_text(def: AbilityDef, data: GameData, class_def: ClassDef) -
 	var what: String = ""
 	match def.kind:
 		AbilityDef.KIND_STRIKE:
-			what = STRIKE_TEXT % _pct(def.power_mult * PCT_FACTOR)
+			what = LoadoutDescribeEffects.strike_text(def, _pct(def.power_mult * PCT_FACTOR))
 		AbilityDef.KIND_CLEAVE:
 			what = CLEAVE_ALL_TEXT % _pct(def.power_mult * PCT_FACTOR) if def.targets <= 0 \
 					else CLEAVE_TEXT % [def.targets, _pct(def.power_mult * PCT_FACTOR)]
@@ -57,8 +56,12 @@ static func ability_text(def: AbilityDef, data: GameData, class_def: ClassDef) -
 		AbilityDef.KIND_BUFF:
 			what = BUFF_TEXT % [NumberFormat.format_seconds(def.duration_ms),
 					LIST_SEPARATOR.join(_modifier_texts(def.modifiers, data))]
+		AbilityDef.KIND_WARD:
+			what = LoadoutDescribeEffects.ward_text(def)
 		_:
 			what = UNKNOWN_EFFECT_TEXT
+	if def.kind == AbilityDef.KIND_STRIKE or def.kind == AbilityDef.KIND_CLEAVE:
+		what += LoadoutDescribeEffects.ability_extras(def)
 	return "%s\n%s · %s" % [what, COOLDOWN_TEXT % NumberFormat.format_seconds(def.cooldown_ms),
 			_setups_text(def.setups, class_def)]
 
@@ -83,7 +86,8 @@ static func _effect_text(effect: TraitEffectDef, data: GameData) -> String:
 			return REFLECT_TEXT % _pct(float(p["pct"]))
 		&"leech_pct":
 			return LEECH_TEXT % _pct(float(p["pct"]))
-	return UNKNOWN_EFFECT_TEXT
+	var text: String = LoadoutDescribeEffects.effect_text(effect.type, p, data)
+	return text if text != "" else UNKNOWN_EFFECT_TEXT
 
 
 static func _trade_text(p: Dictionary, data: GameData) -> String:

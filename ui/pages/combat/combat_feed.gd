@@ -47,6 +47,12 @@ func hit(attacker: int, target: int, hit_done: bool, damage: int, blocked: bool)
 			_log_hit(CombatTexts.LOG_ENEMY_HIT_TEXT, CombatTexts.LOG_ENEMY_MISS_TEXT, _taken, state, attacker, hit_done, damage)
 
 
+## Number of a condition tick (`combat_condition_damage`: the Bleed) on the enemy `target`, in the colour of that condition.
+func condition_damage(target: int, damage: int, condition: StringName) -> void:
+	_zone.show_hit(target, CombatTexts.HIT_TEXT % NumberFormat.format_int(damage),
+			UiStyle.COMBAT_CONDITION_COLORS.get(condition, UiStyle.TEXT), false, false, damage)
+
+
 func kill(index: int) -> void:
 	_zone.play_death(index)
 	_yield.record(CombatYield.KILLS, 1, _session.play_time_ms)

@@ -1,9 +1,7 @@
 class_name PlayerColumn
 extends PanelContainer
-## Player side of the combat page (docs/UI_GDR.md §2, gold frame): portrait (class icon), name, level and setup,
-## triangle reminder, HP and attack bars, ability slots with their cooldown, trait slots and the 12-slot equipment
-## grid with the shared piece tooltip.
-##
+## Player side of the combat page (docs/UI_GDR.md §2, gold frame): portrait, name, level and setup, triangle reminder,
+## Ward strip (M28) and HP and attack bars, ability slots with cooldown, trait slots, the 12-slot equipment grid.
 ## `refresh_static` rereads names, loadout, equipment (on the matching signals); `tick` moves bars and cooldowns every
 ## frame from `combat.get_state()`. Keeps only its nodes and presentation flags; abilities and traits: `session.loadout`.
 
@@ -32,6 +30,7 @@ var _shake: Tween = null
 @onready var _level: Label = %LevelLabel
 @onready var _xp_bar: XpBar = %XpBar
 @onready var _hint: Label = %HintLabel
+@onready var _ward: WardStrip = %WardStrip
 @onready var _hp_title: Label = %HpTitle
 @onready var _hp_label: Label = %HpLabel
 @onready var _hp_bar: ProgressBar = %HpBar
@@ -103,6 +102,7 @@ func xp_text() -> String:
 
 ## Moves the bars and the cooldowns from `state` (`combat.get_state()`).
 func tick(state: Dictionary) -> void:
+	_ward.tick(state)
 	var hp: int = state["player_hp"]
 	var max_hp: int = state["player_max_hp"]
 	_hp_bar.max_value = maxf(1.0, max_hp)

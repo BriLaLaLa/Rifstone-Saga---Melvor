@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://ui/pages/combat/player_column.gd" id="1_col"]
+[ext_resource type="Script" path="res://ui/pages/combat/ward_strip.gd" id="3_ward"]
 [ext_resource type="PackedScene" path="res://ui/components/progress/xp_bar.tscn" id="2_xp"]
 
 [node name="PlayerColumn" type="PanelContainer"]
@@ -90,6 +91,11 @@ size_flags_horizontal = 3
 [node name="HpLabel" type="Label" parent="Scroll/Box/HpRow"]
 unique_name_in_owner = true
 layout_mode = 2
+
+[node name="WardStrip" type="VBoxContainer" parent="Scroll/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+script = ExtResource("3_ward")
 
 [node name="HpBar" type="ProgressBar" parent="Scroll/Box"]
 unique_name_in_owner = true

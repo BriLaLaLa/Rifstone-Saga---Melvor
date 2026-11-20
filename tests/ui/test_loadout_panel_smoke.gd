@@ -120,3 +120,124 @@ func test_unbind_disconnects_everything() -> void:
 	for event_name: StringName in OBSERVED:
 		for connection: Dictionary in Signal(_session.events, event_name).get_connections():
 			assert_ne((connection["callable"] as Callable).get_object(), _page, "%s still connected" % event_name)
+
+
+# --- M28-07: the real data, the real main screen and REAL mouse clicks (the toggle and a card) ---
+
+const MAIN_SCENE: PackedScene = preload("res://ui/screens/main/main_screen.tscn")
+
+
+func _real_screen() -> Array:
+	var real: GameSession = TestFactory.session(77, TestFactory.real_data())
+	TestFactory.set_character_level(real, 30)
+	var screen: MainScreen = MAIN_SCENE.instantiate() as MainScreen
+	screen.session = real
+	add_child(screen)
+	# the output panel of the GUT runner must not catch the clicks of the test
+	for layer: Node in get_tree().root.find_children("GutLayer", "CanvasLayer", true, false):
+		(layer as CanvasLayer).visible = false
+	(screen.find_child("PageHost", true, false) as PageHost).show_page(&"character")
+	await wait_process_frames(3)
+	var hint_card: HintCard = screen.find_child("HintCard", true, false) as HintCard
+	while hint_card != null and hint_card.current_hint() != &"":  # the modal hints of a new game would catch the clicks
+		hint_card.close_current()
+	await wait_process_frames(2)
+	return [real, screen]
+
+
+func _visible_cards(panel: LoadoutPanel, kind: StringName, class_def: ClassDef) -> int:
+	var count: int = 0
+	for entry: Variant in (class_def.traits if kind == LoadoutPanel.KIND_TRAIT else class_def.abilities):
+		if panel.card(kind, entry.id).visible:
+			count += 1
+	return count
+
+
+## A real left click (motion, press, release) on the centre of `control`, scrolled into view first.
+func _real_click(control: Control) -> void:
+	var parent: Node = control.get_parent()
+	while parent != null and not parent is ScrollContainer:
+		parent = parent.get_parent()
+	if parent != null:
+		(parent as ScrollContainer).ensure_control_visible(control)
+		await wait_process_frames(2)
+	var at: Vector2 = control.get_global_rect().get_center()
+	var motion := InputEventMouseMotion.new()
+	motion.position = at
+	motion.global_position = at
+	get_viewport().push_input(motion, true)
+	await wait_process_frames(1)
+	assert_eq(get_viewport().gui_get_hovered_control(), control, "the click lands on the control")
+	for pressed: bool in [true, false]:
+		var event := InputEventMouseButton.new()
+		event.button_index = MOUSE_BUTTON_LEFT
+		event.pressed = pressed
+		event.button_mask = MOUSE_BUTTON_MASK_LEFT if pressed else 0
+		event.position = at
+		event.global_position = at
+		get_viewport().push_input(event, true)
+		await wait_process_frames(1)
+	await wait_process_frames(2)
+
+
+func test_real_clicks_on_the_toggle_and_on_a_card() -> void:
+	var made: Array = await _real_screen()
+	var real: GameSession = made[0]
+	var screen: MainScreen = made[1]
+	var panel: LoadoutPanel = screen.find_child("LoadoutPanel", true, false) as LoadoutPanel
+	var class_def: ClassDef = real.character.class_def()
+	var toggle: CheckButton = panel.find_child("OnlyCurrentToggle", true, false) as CheckButton
+	assert_not_null(toggle)
+	assert_true(toggle.button_pressed, "on by default")
+	var total: int = class_def.traits.size()
+	var shown: int = _visible_cards(panel, LoadoutPanel.KIND_TRAIT, class_def)
+	assert_gt(shown, 0)
+	assert_lt(shown, total, "the entries of the other setups are hidden")
+	await _real_click(toggle)
+	assert_false(toggle.button_pressed)
+	assert_eq(_visible_cards(panel, LoadoutPanel.KIND_TRAIT, class_def), total, "all the traits")
+	await _real_click(toggle)
+	assert_eq(_visible_cards(panel, LoadoutPanel.KIND_TRAIT, class_def), shown)
+	# the cards are ordered by unlock level
+	var grid: Node = panel.card(LoadoutPanel.KIND_TRAIT, class_def.traits[0].id).get_parent()
+	var levels: Array[int] = []
+	for child: Node in grid.get_children():
+		for def: TraitDef in class_def.traits:
+			if "Card_%s" % def.id == child.name:
+				levels.append(def.unlock_level)
+	assert_eq(levels.size(), total)
+	var sorted: Array[int] = levels.duplicate()
+	sorted.sort()
+	assert_eq(levels, sorted, "ordered by unlock level")
+	# a click on a visible card chooses it (the command of Loadout), a second one empties the slot
+	var first: LoadoutCard = null
+	for child: Node in grid.get_children():
+		if first == null and (child as Control).visible and (child as LoadoutCard).is_clickable():
+			first = child as LoadoutCard
+	assert_not_null(first)
+	await _real_click(first)
+	assert_eq(String(real.loadout.get_trait(0)), String(first.entry_id()))
+	assert_ne(first.state_text(), "")
+	await _real_click(first)
+	assert_eq(String(real.loadout.get_trait(0)), "")
+	screen.free()
+	real.free()
+
+
+func test_chosen_card_stays_visible_when_filtered() -> void:
+	var made: Array = await _real_screen()
+	var real: GameSession = made[0]
+	var screen: MainScreen = made[1]
+	var panel: LoadoutPanel = screen.find_child("LoadoutPanel", true, false) as LoadoutPanel
+	var class_def: ClassDef = real.character.class_def()
+	var other: TraitDef = null
+	for def: TraitDef in class_def.traits:
+		if not def.allows_setup(real.equipment.setup()) and def.unlock_level <= real.character.get_level():
+			other = def
+	assert_not_null(other, "a trait of another setup")
+	assert_false(panel.card(LoadoutPanel.KIND_TRAIT, other.id).visible)
+	assert_true(real.loadout.set_trait(0, other.id).ok)
+	panel.refresh()
+	assert_true(panel.card(LoadoutPanel.KIND_TRAIT, other.id).visible, "a chosen entry is never hidden")
+	screen.free()
+	real.free()

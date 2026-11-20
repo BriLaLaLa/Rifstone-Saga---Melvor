@@ -1,0 +1,12 @@
+{
+  "pages": [
+    {"id": "guide_conditions", "section": "character", "title": "Condizioni", "order": 9,
+     "blocks": [
+       {"type": "text", "text": "Alcuni tratti e abilità lasciano condizioni sui nemici. Compaiono come icone con i secondi rimasti sul riquadro del nemico; il Riparo, che protegge te, sta sopra la barra dei punti ferita."},
+       {"type": "text", "text": "Sanguinamento: una parte del danno del colpo viene inflitta di nuovo, a scatti ogni {balance:combat.conditions.tick_ms|sec} secondi. Fiacchezza: il nemico ti fa meno danno. Breccia: i tuoi colpi su di lui fanno di più. Rinnovandole vale il valore più alto."},
+       {"type": "text", "text": "Sbilanciamento: il suo prossimo attacco arriva più tardi; poi il nemico è immune per {balance:combat.conditions.stagger_immunity_ms|sec} secondi. Boss e Monoliti non si sbilanciano."},
+       {"type": "text", "text": "Riparo: assorbe il danno che subisci finché si esaurisce o scade. Le condizioni nascono solo da un colpo a segno e spariscono con l'incontro."},
+       {"type": "links", "targets": ["page:guide_traits", "page:guide_abilities"]}
+     ]}
+  ]
+}
