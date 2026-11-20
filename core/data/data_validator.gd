@@ -6,8 +6,7 @@ extends RefCounted
 ## (single-file sections have one entry). The paths appear in the messages and give the file name that the schema
 ## compares with (`skill` of actions and mastery files, `category` of items, `id` of classes). Every problem is
 ## appended to `errors` as `<file>: <kind> '<id>': <message>`, never pushed to the debugger. Toolkit, mastery:
-## DataValidatorRules; items, actions, shop: DataValidatorItems; areas, monsters, classes, affixes:
-## DataValidatorClasses.
+## DataValidatorRules; items, actions, shop: DataValidatorItems; areas, monsters, classes, affixes: DataValidatorClasses; abilities: DataValidatorAbilities.
 
 ## Every key of 02_FORMULAS.md §9 of the MVP, as dotted paths. Values that are objects in the table are listed
 ## by their fields; arrays are leaves. M7 adds `fractures.*`, M8 `parallel.*`.
@@ -105,6 +104,7 @@ static func validate(raw: Dictionary, errors: PackedStringArray) -> void:
 	DataValidatorClasses.validate_areas(v, _files(raw, "areas"))
 	DataValidatorClasses.validate_monsters(v, _files(raw, "monsters"))
 	DataValidatorClasses.validate_classes(v, _files(raw, "classes"))
+	DataValidatorAbilities.validate_classes(v, _files(raw, "classes"))  # M28-02: the abilities, split from the traits
 	DataValidatorClasses.validate_affixes(v, _files(raw, "affixes"))
 	DataValidatorStones.validate(v, _files(raw, "rift_stones"), _files(raw, "areas"))
 	DataValidatorFracture.validate_areas(v, _files(raw, "balance"), _files(raw, "areas"))

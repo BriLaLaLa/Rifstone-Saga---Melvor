@@ -5,11 +5,8 @@ extends RefCounted
 ## balance.json (F-78). Written with the toolkit of DataValidatorRules.
 
 const TRAIT_FIELDS: PackedStringArray = ["id", "name", "description", "unlock_level", "setups", "effects", "modifiers"]
-const ABILITY_FIELDS: PackedStringArray = ["id", "name", "description", "unlock_level", "setups", "kind", "cooldown_ms",
-	"params"]
 const EFFECT_FIELDS: PackedStringArray = ["type", "params"]
 const TARGET_RULES: PackedStringArray = ["first", "lowest_hp", "highest_hp"]  # F-76
-const ABILITY_KINDS: PackedStringArray = ["strike", "cleave", "heal", "buff"]
 # Stats `stat_trade` can scale: the ones that feed a combat number (F-81 map, CombatantStats.scale_stat).
 const STAT_TRADE_STATS: PackedStringArray = ["accuracy_bonus", "accuracy_pct", "evasion_bonus", "evasion_pct",
 	"power_bonus", "power_pct", "max_hp_flat", "armor", "barrier", "block_chance"]
@@ -17,7 +14,6 @@ const SLOT_LEVEL_KEYS: PackedStringArray = ["traits.slot_levels", "abilities.slo
 # Format limits (not design values) of the parameters.
 const NTH_MAX: int = 20
 const MULT_MAX: float = 10.0
-const BUFF_MIN_DURATION_MS: int = 1000
 const SLOT_COUNT_MAX: int = 8
 
 static var _id_regex: RegEx = RegEx.create_from_string(DataValidatorRules.ID_PATTERN)
@@ -29,10 +25,6 @@ static func validate_class_lists(v: DataValidatorRules, c: Dictionary) -> void:
 	var traits: Array[Dictionary] = v.object_list(c, "traits")
 	for index: int in traits.size():
 		_trait(v, traits[index], index, setup_ids, seen)
-	seen = {}
-	var abilities: Array[Dictionary] = v.object_list(c, "abilities")
-	for index: int in abilities.size():
-		_ability(v, abilities[index], index, setup_ids, seen)
 
 
 static func _setup_ids(c: Dictionary) -> Dictionary[String, bool]:
@@ -70,35 +62,6 @@ static func _trait(v: DataValidatorRules, e: Dictionary, index: int, setup_ids: 
 	for effect_index: int in effects.size():
 		_effect(v, effects[effect_index], "%s.effects[%d]" % [prefix, effect_index])
 	v.modifiers(e, "modifiers", prefix)
-
-
-static func _ability(v: DataValidatorRules, e: Dictionary, index: int, setup_ids: Dictionary[String, bool],
-		seen: Dictionary[StringName, bool]) -> void:
-	var prefix: String = "abilities[%d]" % index
-	_common(v, e, prefix, setup_ids, seen, ABILITY_FIELDS)
-	v.integer(e, "cooldown_ms", maxf(v.min_attack_interval_ms, 1), DataValidatorRules.NO_LIMIT, prefix)
-	var kind_ok: bool = v.one_of(e, "kind", ABILITY_KINDS, prefix)
-	var params: Dictionary = v.object(e, "params", prefix)
-	if not kind_ok or not e.get("params") is Dictionary:
-		return
-	var at: String = prefix + ".params"
-	match e["kind"]:
-		"strike":
-			v.keys(params, ["power_mult"], at)
-			v.number(params, "power_mult", 0.0, MULT_MAX, at, true)
-		"cleave":
-			v.keys(params, ["power_mult", "targets"], at)
-			v.number(params, "power_mult", 0.0, MULT_MAX, at, true)
-			v.integer(params, "targets", 0, DataValidatorRules.NO_LIMIT, at)
-		"heal":
-			v.keys(params, ["heal_pct"], at)
-			v.number(params, "heal_pct", 1.0, 100.0, at)
-		"buff":
-			v.keys(params, ["modifiers", "duration_ms"], at)
-			v.modifiers(params, "modifiers", at)
-			if params.get("modifiers") is Array and (params["modifiers"] as Array).is_empty():
-				v.fail("field '%s.modifiers' needs at least 1 entries" % at)
-			v.integer(params, "duration_ms", BUFF_MIN_DURATION_MS, DataValidatorRules.NO_LIMIT, at)
 
 
 ## One effect `{"type", "params"}` of F-81 (also used by the effects of the legendaries, DataValidatorLegendary).
