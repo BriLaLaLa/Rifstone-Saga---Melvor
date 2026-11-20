@@ -3,6 +3,8 @@ extends GutTest
 ## engine gives the same events, hp and random generator state as before the conditions were wired in. The numbers were recorded
 ## from `main` (1568b0e) before the engine was touched: 2 h of fight, fixed seed, three assemblies, a quiet case in each of two areas
 ## and two cases with weak gear and little food (deaths, the loot bag lost).
+## M28-06: the four cases that reach level 30 (mines, weak gear sword_shield) were re-recorded: the new traits and abilities, appended
+## after the old ones, fill the slots that stayed empty (verified: with the M27 rift_blade.json the old numbers come back).
 
 const Rig := preload("res://tests/systems/combat/combat_regression_rig.gd")
 const SEED: int = 1234
@@ -37,22 +39,22 @@ func test_dual_plains() -> void:
 
 func test_sword_shield_mines() -> void:
 	_check(&"cracked_mines", &"sword_shield", -4, 0,
-			{"deaths": 0, "events": 26833, "food": 485, "hash": 8689767175370441463, "kills": 925, "rng": 3401925336})
+			{"deaths": 0, "events": 26509, "food": 401, "hash": 8907143056429198199, "kills": 925, "rng": 3401925336})
 
 
 func test_greatsword_mines() -> void:
 	_check(&"cracked_mines", &"greatsword", -4, 0,
-			{"deaths": 0, "events": 30662, "food": 778, "hash": 8884716108105007507, "kills": 1044, "rng": 2482867834})
+			{"deaths": 0, "events": 28920, "food": 589, "hash": 9202982194096669069, "kills": 1250, "rng": 1993799300})
 
 
 func test_dual_mines() -> void:
 	_check(&"cracked_mines", &"dual", -4, 0,
-			{"deaths": 0, "events": 32778, "food": 748, "hash": 5486399411839162937, "kills": 838, "rng": 2361128376})
+			{"deaths": 0, "events": 34965, "food": 705, "hash": 5534287392357155274, "kills": 895, "rng": 1087087418})
 
 
 func test_weak_gear_sword_shield() -> void:
 	_check(&"cracked_mines", &"sword_shield", -4, 4,
-			{"deaths": 186, "events": 14642, "food": 30, "hash": 7207199079807063643, "kills": 302, "rng": 691805859}, 30)
+			{"deaths": 160, "events": 14961, "food": 30, "hash": 3882544513423752090, "kills": 337, "rng": 659808001}, 30)
 
 
 func test_weak_gear_dual() -> void:
