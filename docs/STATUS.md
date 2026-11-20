@@ -3,6 +3,11 @@
 Aggiornato dall'Orchestratore (unico che modifica questo file). Stati: TODO / IN_PROGRESS / REVIEW / DONE / BLOCKED.
 Se la sessione si interrompe, si riparte da qui.
 
+- **M28 Abilità e tratti v2 (IN_PROGRESS, 2026-11-20)**: richiesta dell'utente (V35-V36), task in `docs/07_TASKS_M28.md`. **M28-01 design DONE** (commit `docs: M28-01 design abilità e tratti v2`):
+  `01_GDD_M28.md` §40 (condizioni Sanguinamento/Fiacchezza/Breccia/Sbilanciamento e Riparo; **19 abilità** e **31 tratti** in tabella §40.6-§40.7), `02_FORMULAS_M28.md` F-185…F-194,
+  `04_DATA_SCHEMA_M28.md` §33, `05_INTERFACES_M28.md` (save v11 additivo), Q171-Q182 (slot invariati, critico e albero rimandati, nome di "Raffica di lame"). Ordine: 02 → 03 (da solo) →
+  04 ∥ 05 → 06 → 07 ∥ 08 → [09] → 10. **Prossimo**: l'utente legge e corregge l'elenco di §40.6-§40.7 (Q182) e decide Q171/Q174; poi M28-02 (refactor `CombatCycle`, COMBAT).
+
 - **M27 Casa d'Aste v2, monete e Posta (DONE 2026-11-17, tag `m27-done`, Alpha 3 non dichiarata)**: richiesta dell'utente `docs/M27_PROMPT_CASA_ASTE_V2.md` (V33-V34), task in
   `docs/07_TASKS_M27.md`. M27-01 design (`1826b43`); M27-02 monete in rame, `Money`, save **v11** con `migration_10_to_11` (`987e886`); M27-03 dati ×100 (`85c36c9`); M27-04 `MoneyLabel`
   e importi della UI (`f961faa`, merge `656d163`); M27-05 `MailBox` (`552c7ac`); M27-06 libro e inserzioni `AuctionBook`/`AuctionListings`/`AuctionView` (`bf724ba`, merge `ae20b15`);

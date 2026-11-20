@@ -56,7 +56,8 @@ res://
 │   ├── combat/                   ← combat_engine.gd, combat_math.gd, combatant_stats.gd, auto_eat.gd, loot_bag.gd,
 │   │   │                           ability_runner.gd (M6)
 │   │                               weapon_math.gd, armor_math.gd, equipment_drop.gd, legendary_roller.gd (M14, F-22, F-117, F-120, F-121)
-│   │   └── effects/              ← trait_effect.gd + un file per tipo di effetto (M6, F-81)
+│   │   ├── effects/              ← trait_effect.gd + un file per tipo di effetto (M6, F-81; M28: 12 tipi di F-192)
+│   │   └── conditions/           ← enemy_conditions.gd, player_ward.gd, bleed_clock.gd (M28, F-185…F-189); combat_cycle.gd accanto a combat_fight.gd (M28-02)
 │   ├── shop/                     ← shop.gd
 │   ├── rift/                     ← rift_altar.gd (M8)
 │   ├── hints/                    ← hints_system.gd (M9)
@@ -316,6 +317,7 @@ sequenceDiagram
   modulo additivo `professions` con il resto di XP; `05_INTERFACES_M26.md` §6d, `01_GDD_M26.md` §38.7). Catena v5 … v9 → v10; `CURRENT_VERSION` = 10.
 - **Versione 11 (M27, progettata da M27-01)**: `format_version` 10 → 11 con `migration_10_to_11.gd` (portafoglio in rame, `wallet.copper` = oro × 100); inserzioni dentro `auction`
   e modulo nuovo `mail` (`systems/mail/`) additivi (`05_INTERFACES_M27.md` §6e, `01_GDD_M27.md` §39.7). Catena v5 … v10 → v11; `CURRENT_VERSION` = 11 da M27-02.
+- **M28 (progettata da M28-01)**: `format_version` resta **11**; condizioni dei nemici (`combat.enemies[i].cond`), orologio del Sanguinamento (`combat.cond_clock_ms`) e Riparo (`combat.ward`) sono aggiunte **additive** (`05_INTERFACES_M28.md` §6f); nessuna migrazione.
 - **Ricette e Casa d'Aste (M26)**: le ricette di produzione non si conoscono più solo per livello (colori, schemi e reagenti: `systems/professions/`, F-166…F-171);
   i prezzi della Casa d'Aste non sono più un solo equilibrio fisso per oggetto ma dipendono dalla popolazione senza stato (F-172…F-176, `AuctionPricing`).
 - **Isolamento**: caricare lo slot B dopo lo slot A crea una `GameSession` nuova; niente sopravvive tra slot

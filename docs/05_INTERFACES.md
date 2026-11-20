@@ -4,7 +4,7 @@ Questo è il **contratto**: firme pubbliche, segnali, formato del salvataggio. �
 perché i task possano procedere in parallelo. **Lo modifica solo il Reviewer/Integrator** (vedi `08_TEAM.md`); chi ha
 bisogno di un cambio apre una richiesta nel report del task e si ferma.
 **M24 (Incontri e Mestieri)**: le aggiunte e le sostituzioni del contratto sono in [`05_INTERFACES_M24.md`](05_INTERFACES_M24.md) (segnali §3b, GameData §4b, Disciplines §5.31, coda §5.32, ciclo §5.33, save v8 §6b, UI §7.o); in caso di differenza vale quel file. HelperSystem, i segnali `helper_*` e i motivi `no_helper`/`helper_not_better` sono eliminati.
-**M25 (Alpha 1)** e **M26 (Alpha 2)**: aggiunte del contratto in [`05_INTERFACES_M25.md`](05_INTERFACES_M25.md) e [`05_INTERFACES_M26.md`](05_INTERFACES_M26.md) (professioni §5.35, shop e migrazione §5.36, Casa d'Aste a popolazione §5.37, save v10 §6d, UI §7.r); in caso di differenza vale il file più recente. **M27 (Casa d'Aste v2)**: [`05_INTERFACES_M27.md`](05_INTERFACES_M27.md) (monete §5.38, Casa d'Aste v2 §5.39, Posta §5.40, save v11 §6e, UI §7.o).
+**M25 (Alpha 1)** e **M26 (Alpha 2)**: aggiunte del contratto in [`05_INTERFACES_M25.md`](05_INTERFACES_M25.md) e [`05_INTERFACES_M26.md`](05_INTERFACES_M26.md) (professioni §5.35, shop e migrazione §5.36, Casa d'Aste a popolazione §5.37, save v10 §6d, UI §7.r); in caso di differenza vale il file più recente. **M27 (Casa d'Aste v2)**: [`05_INTERFACES_M27.md`](05_INTERFACES_M27.md) (monete §5.38, Casa d'Aste v2 §5.39, Posta §5.40, save v11 §6e, UI §7.o). **M28 (Abilità e tratti v2)**: [`05_INTERFACES_M28.md`](05_INTERFACES_M28.md) (segnale §3f, `ConditionApply` §4e, condizioni e cablaggio del motore §5.10b, effetti e abilità §5.10c, save v11 additivo §6f, UI §7.aa).
 
 
 Regole generali:
@@ -951,7 +951,7 @@ Comportamento:
   cibo non valido → nessuno; una chiave `stance` (save v1) non arriva mai (v1 non si carica). Chiama
   `armory.set_worn(uid, true, true)` (`quiet`) per i pezzi indossati. Nessun segnale.
 
-### 5.10 Combattimento (`systems/combat/`) — dipendenze: data, events, modifiers, rng, bank, wallet, character, equipment, armory, loadout (M6), actions (solo `stop`)
+### 5.10 Combattimento (`systems/combat/`) — dipendenze: data, events, modifiers, rng, bank, wallet, character, equipment, armory, loadout (M6), actions (solo `stop`) — **estesa in M28** (`05_INTERFACES_M28.md` §5.10b-§5.10c)
 Firme da M5 (motore a eventi e gruppi, `01_GDD.md` §10); `CombatMath` da M5-01.
 ```gdscript
 class_name CombatMath extends RefCounted

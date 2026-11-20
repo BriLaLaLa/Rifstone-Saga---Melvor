@@ -9,7 +9,7 @@ artigianato · 6 Maestria · 7 Deposito (ex Bank) · 8 Oro e shop · 9 Equipaggi
 11 Incisore e Altare del Rift (M8, M12) · 12 Progressione offline · 13 Feedback e notifiche · 14 Suggerimenti ·
 15 Modificatori e stat · 16 Impostazioni · 17 Fratture del Rift come mappe (M13) · 18 Azioni in parallelo (eliminate, M12) ·
 19 Personaggio e classe · 20 Tratti e abilità (M6) · 21 Armeria · 22 Rarità e affissi · 23 Raffinazione (M7) ·
-24 Monoliti del Rift (M7) · 25 Smantellamento e filtro (M7) · 26 Castoni e valute del Rift (M8) · 27 Guida in gioco (M11) · 28 Equipaggiamento vero (M14) · 29 Ritocchi UI dell'Alpha · 30 Villaggio (M19) · 31 Bacheca e Mercato (M20) · 32 Mappa del Villaggio (M21) · 33 Dungeon delle scimmie (M22) · 34 Casa d'Aste (M23) · 35 Incontri e Mestieri (M24, file `01_GDD_M24.md`) · 36-37 Nodi con tentativi (M25, file `01_GDD_M25.md`) · 38 Alpha 2 (M26, file `01_GDD_M26.md`) · 39 Casa d'Aste v2 e monete (M27, file `01_GDD_M27.md`)
+24 Monoliti del Rift (M7) · 25 Smantellamento e filtro (M7) · 26 Castoni e valute del Rift (M8) · 27 Guida in gioco (M11) · 28 Equipaggiamento vero (M14) · 29 Ritocchi UI dell'Alpha · 30 Villaggio (M19) · 31 Bacheca e Mercato (M20) · 32 Mappa del Villaggio (M21) · 33 Dungeon delle scimmie (M22) · 34 Casa d'Aste (M23) · 35 Incontri e Mestieri (M24, file `01_GDD_M24.md`) · 36-37 Nodi con tentativi (M25, file `01_GDD_M25.md`) · 38 Alpha 2 (M26, file `01_GDD_M26.md`) · 39 Casa d'Aste v2 e monete (M27, file `01_GDD_M27.md`) · 40 Abilità e tratti v2 (M28, file `01_GDD_M28.md`)
 
 Direzione del gioco da M4 (decisioni D1-D6 in `DECISIONS_LOG.md`): il **combattimento è il cuore** (gruppi di mostri,
 bottino con rarità e affissi, potenziamento, build di tratti e abilità); raccolta e artigianato sono il ciclo di
@@ -614,7 +614,7 @@ del giocatore restano in una sola corsia (`main`).
 **Casi limite**: classe del save sconosciuta (`Log.warn`, classe `character.start_class`); XP oltre il tetto troncata;
 più livelli in un colpo (un evento per livello).
 
-## 20. Tratti e abilità (M6)
+## 20. Tratti e abilità (M6) — **estesa in M28** (condizioni, 19 abilità, 31 tratti, tipi di effetto nuovi: `01_GDD_M28.md` §40)
 
 ### 20.1 Tratti (D4)
 - Ogni tratto della classe si sblocca a un livello del personaggio (`unlock_level`). Se ne equipaggiano pochi: gli
@@ -623,14 +623,14 @@ più livelli in un colpo (un evento per livello).
   (sorgente `trait:<id>`). Un tratto solo di modificatori è vietato (sarebbe una stat).
 - Si cambiano liberamente fuori dal combattimento o in `BETWEEN`, mai in `ENCOUNTER` (`combat_active`).
 - Un tratto con `setups` vale solo con uno di quegli assetti (altrimenti resta equipaggiato ma spento).
-- MVP: **12 tratti** costruiti sugli 8 tipi di effetto di F-81, con nomi e testi originali.
+- MVP: **12 tratti** costruiti sugli 8 tipi di effetto di F-81, con nomi e testi originali. **M28**: 31 tratti, tipi di F-192 e tipi di combattimento di F-120 (`01_GDD_M28.md` §40.5, §40.7).
 
 ### 20.2 Abilità attive
 - Slot: `abilities.slot_levels` (F-78, Q36: 2, il 3° al livello 30). Partono **da sole** quando la ricarica scade e c'è
   un bersaglio valido (F-79); ordine di slot a parità di istante (F-76).
 - Tipi: `strike` (colpo pesante su un bersaglio), `cleave` (tutti o i primi N), `heal` (cura), `buff` (modificatori
   temporanei, sorgente `ability:<id>`) (F-80).
-- La classe dell'MVP ha **6 abilità**: 2 per assetto (spadone, spada e scudo, due spade), con ruoli diversi (area o
+- La classe dell'MVP ha **6 abilità** (**M28**: 19, tipo `ward` e parametri nuovi, `01_GDD_M28.md` §40.4, §40.6): 2 per assetto (spadone, spada e scudo, due spade), con ruoli diversi (area o
   bersaglio singolo, difesa o attacco). Un'abilità non ammessa dall'assetto attuale resta equipaggiata ma spenta.
 - Si cambiano con le stesse regole dei tratti. Dopo l'MVP: supporti da incastonare nelle abilità.
 
@@ -1127,3 +1127,7 @@ Salvataggio alla **versione 10** (migrazione v9 → v10, §38.7). Limiti noti e 
 ## 39. Casa d'Aste v2: inserzioni simulate, Posta, monete (M27)
 In file separato: [`01_GDD_M27.md`](01_GDD_M27.md) (V33-V34). Modifica §8 (monete rame/argento/oro, importi ×100) e §34.3, §34.5-§34.7 (libro delle inserzioni, inserzione del giocatore,
 Vendi subito per Posta, UI). Salvataggio alla **versione 11** (migrazione v10 → v11 del portafoglio, §39.7). Domande Q159-Q170 in `OPEN_QUESTIONS.md`.
+
+## 40. Abilità e tratti v2 (M28)
+In file separato: [`01_GDD_M28.md`](01_GDD_M28.md) (V35-V36). Estende §20: condizioni (Sanguinamento, Fiacchezza, Breccia, Sbilanciamento, Riparo), 19 abilità (tipo `ward` e parametri
+nuovi dei colpi), 31 tratti (12 tipi di effetto nuovi), slot invariati. Salvataggio **v11** con aggiunte additive (§40.8). Domande Q171-Q182 in `OPEN_QUESTIONS.md`.

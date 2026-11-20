@@ -511,7 +511,7 @@ La cartella delle fixture **non** contiene `config/`: `TestFactory` carica il co
 `stats.json` da `res://data/config/` con `GameData.load_from_dirs(content_root, config_root)`. Così parametri e stat
 restano definiti in un solo posto.
 
-## 14. `data/classes/<id>.json` (M4; tratti e abilità da M6)
+## 14. `data/classes/<id>.json` (M4; tratti e abilità da M6) — **estesa in M28** (`04_DATA_SCHEMA_M28.md` §33)
 
 Un file per classe (D2). Nell'MVP solo `rift_blade.json`.
 ```json
@@ -945,3 +945,6 @@ In file separato: [`04_DATA_SCHEMA_M26.md`](04_DATA_SCHEMA_M26.md): `colors` del
 
 ## 32. Casa d'Aste v2 e monete (M27; V33-V34, `01_GDD_M27.md` §39, `02_FORMULAS_M27.md` F-177…F-184)
 In file separato: [`04_DATA_SCHEMA_M27.md`](04_DATA_SCHEMA_M27.md): `currency`, conversione ×100 dei campi di denaro, `stack` delle fasce, `auction.book`/`auction.listing`, `mail` e `data/mail/templates.json`.
+
+## 33. Abilità e tratti v2 (M28; V35-V36, `01_GDD_M28.md` §40, `02_FORMULAS_M28.md` F-185…F-194)
+In file separato: [`04_DATA_SCHEMA_M28.md`](04_DATA_SCHEMA_M28.md): `combat.conditions`, applicazione di una condizione, parametri nuovi delle abilità e tipo `ward`, tipi di effetto dei tratti di F-192, contenuto di `rift_blade.json`.

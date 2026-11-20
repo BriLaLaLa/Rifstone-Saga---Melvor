@@ -11,7 +11,7 @@ qui nello stesso task.
 Convenzioni: `floor` = troncamento verso il basso, `round` = arrotondamento a metà verso l'alto (`roundi` di Godot),
 `clamp(x, a, b)`. `T(stat, ctx)` = valore totale della stat nel contesto (F-05). Percentuali "pct" = punti percentuali.
 
-**M24 (Incontri e Mestieri)**: F-153…F-160, le tabelle §8.10-§8.11 e le chiavi §9b sono in [`02_FORMULAS_M24.md`](02_FORMULAS_M24.md) (sezione §5l). **M25 (Nodi con tentativi)**: F-161…F-165 in [`02_FORMULAS_M25.md`](02_FORMULAS_M25.md) (modificano F-155 e F-156). Gli aiutanti e i Contratti (F-101, F-102, `helper.*`) sono **ELIMINATI in M24**. **M26 (Alpha 2)**: F-166…F-176 e le chiavi §9d in [`02_FORMULAS_M26.md`](02_FORMULAS_M26.md) (sezione §5m; modificano F-147…F-152 della Casa d'Aste e l'XP delle ricette di produzione). **M27 (Casa d'Aste v2)**: F-177…F-184 e le chiavi §9e in [`02_FORMULAS_M27.md`](02_FORMULAS_M27.md) (sezione §5n): monete in rame (**gli importi in oro degli esempi precedenti si leggono in argento**, F-177), libro delle inserzioni, inserzioni del giocatore, Posta.
+**M24 (Incontri e Mestieri)**: F-153…F-160, le tabelle §8.10-§8.11 e le chiavi §9b sono in [`02_FORMULAS_M24.md`](02_FORMULAS_M24.md) (sezione §5l). **M25 (Nodi con tentativi)**: F-161…F-165 in [`02_FORMULAS_M25.md`](02_FORMULAS_M25.md) (modificano F-155 e F-156). Gli aiutanti e i Contratti (F-101, F-102, `helper.*`) sono **ELIMINATI in M24**. **M26 (Alpha 2)**: F-166…F-176 e le chiavi §9d in [`02_FORMULAS_M26.md`](02_FORMULAS_M26.md) (sezione §5m; modificano F-147…F-152 della Casa d'Aste e l'XP delle ricette di produzione). **M27 (Casa d'Aste v2)**: F-177…F-184 e le chiavi §9e in [`02_FORMULAS_M27.md`](02_FORMULAS_M27.md) (sezione §5n): monete in rame (**gli importi in oro degli esempi precedenti si leggono in argento**, F-177), libro delle inserzioni, inserzioni del giocatore, Posta. **M28 (Abilità e tratti v2)**: F-185…F-194 e le chiavi §9f in [`02_FORMULAS_M28.md`](02_FORMULAS_M28.md) (sezione §5o): condizioni, moltiplicatore unico `M` del danno del giocatore, abilità con parametri nuovi e tipo `ward`, 12 tipi di effetto dei tratti, ordine di risoluzione e danno subito (estendono F-76, F-79…F-81), criterio di equilibrio.
 
 ---
 
@@ -341,7 +341,7 @@ Precisazioni (M6-03): i colpi delle abilità usano le stat della mano 0 e non so
 Esempi: tiro 30, `power_mult` 2,0, neutro, DR 10 → 60 → **54**; `heal_pct` 20 con 170 PV max e 100 PV → **134**;
 buff 6000 ms usato a t=8000 → attivo fino a 14000. Test: `test_abilities.gd`.
 
-### F-81 Tipi di effetto dei tratti (M6)
+### F-81 Tipi di effetto dei tratti (M6) — **estesa in M28** (F-192 in `02_FORMULAS_M28.md`)
 | Tipo | Parametri | Aggancio | Regola | Esempio |
 |---|---|---|---|---|
 | `every_nth_attack_all` | `n` | `on_before_attack` | ogni `n`-esimo attacco base (contatore del combattimento) colpisce tutti i nemici vivi, un tiro F-23 e F-22 per bersaglio | n 3 → attacchi 3, 6, 9 |

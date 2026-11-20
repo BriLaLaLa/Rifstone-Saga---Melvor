@@ -253,6 +253,23 @@ I documenti sono già scritti con questi default. I numeri non presenti nella fo
 | Q169 | Annullare un'inserzione: costo | **Default**: solo il deposito perso, nessuna penale; i pezzi tornano per Posta. Alternativa: penale in percentuale del prezzo | M27-06 | utente |
 | Q170 | Un'inserzione si vende a pezzi o solo intera (lotti indivisibili)? | **Default**: **a pezzi** ("tutta o a pezzi" della richiesta), un messaggio per inserzione che si aggiorna finché non lo si ritira. Alternativa: lotti interi come nei MMO (più lenti e più rischiosi) | M27-06 | utente |
 
+## Aperte da M28 (Abilità e tratti v2; `01_GDD_M28.md` §40, decisioni V35-V36)
+
+| # | Domanda | Default (prudente) | Quando | Chi |
+|---|---|---|---|---|
+| Q171 | Slot di tratti e abilità: aggiungerne con i contenuti nuovi? | **Default**: **invariati** (`[1, 10, 25, 50]` e `[1, 1, 30]`): le opzioni crescono (20 tratti e 4-5 abilità per assetto), la potenza no; uno slot in più alzerebbe le uccisioni/h e sposterebbe la banda delle ore al 99 (B1, Q122). Alternativa: 5° tratto al 75 e 4ª abilità al 60, da misurare con F-194 (3) e `sim_progress` in una milestone di ritaratura | prima di M28-06 | utente |
+| Q172 | Colpo critico | **Rimandato** (V36): servirebbe una stat nuova nel registro (probabilità e moltiplicatore), affissi, testi e un **tiro nuovo** del generatore a ogni colpo (cambia la sequenza di tutti i combattimenti, anche senza contenuti nuovi). Proposta per dopo: `crit_chance`/`crit_mult` come stat con effetto, test e un tiro dopo F-22; nessun tratto di M28 ne dipende | dopo M28 | utente |
+| Q173 | Albero delle passive | **Rimandato** (V36) a quando ci saranno più classi; i tratti a slot restano il sistema delle passive | M29+ | utente |
+| Q174 | "Raffica di lame" (`blade_volley`) è la traduzione letterale del nome di un'abilità di un altro gioco | **Default**: cambiare **solo il nome visibile** in "Sciame di tagli" (id invariato, nessun effetto sul save) in M28-06, per la regola dei nomi originali. Alternativa: lasciarlo | M28-06 | utente |
+| Q175 | Sbilanciamento: immunità e boss | **Default**: immunità 4 s dopo ogni Sbilanciamento (`combat.conditions.stagger_immunity_ms`); boss di Fratture e dungeon e Monoliti immuni; i miniboss no. Alternativa: boss con durata dimezzata invece dell'immunità | M28-03 | utente |
+| Q176 | Sanguinamento: scatto e cumulo | **Default**: scatto di 1 s con un solo orologio per incontro; le somme rimaste si **sommano** e gli scatti ripartono dal più lungo. Alternative: vale solo il più forte (meno sinergie); scatto più lungo se l'offline rallenta oltre 1,5× (misura di M28-08) | M28-03, M28-08 | Reviewer |
+| Q177 | Fiacchezza: su quali danni? | **Default**: su tutto il danno di quel nemico (attacco base e abilità del boss), non sull'impulso della Frattura (senza sorgente) né sul Monolito (immune) | M28-03 | utente |
+| Q178 | Soglie di F-194 (1,10 dominanza; 0,85 utilità; +15% potenza complessiva) e cosa fare se falliscono | **Default**: queste soglie; se falliscono si ritoccano solo le voci nuove (M28-09, massimo 2 giri), poi decide il Reviewer; mai le voci esistenti né l'economia | M28-08 | Reviewer |
+| Q179 | Elenco dei tratti nella pagina Personaggio (31 carte) | **Default**: interruttore "Solo assetto attuale" acceso e ordine per livello di sblocco; nessuna ricerca né categorie. Alternativa: schede per tipo (danno, difesa, controllo) | M28-07 | utente |
+| Q180 | `sim_combat` non simula la Spada sola | **Default**: M28-08 aggiunge `setup=sword`; `loadout=auto` resta quello di oggi | M28-08 | Reviewer |
+| Q181 | I tipi di effetto nuovi anche nei leggendari? | **Default**: **no**, l'elenco di F-120 resta chiuso (i leggendari esistenti non cambiano); si potrà aprire con i leggendari futuri | M28-05 | utente |
+| Q182 | Nomi, livelli e valori dell'elenco di §40.6-§40.7 | **Default**: quelli delle tabelle (originali, valori di partenza stimati sul danno al secondo delle abilità esistenti); l'utente li corregge **prima** di M28-03; le correzioni passano dal Reviewer nei documenti | prima di M28-03 | utente |
+
 **Revisione di Q105-Q121 (M24-08, sul codice)**: **confermate e applicate** (nessuna decisione in sospeso): Q105, Q106, Q107, Q108 (migrazione v7 → v8), Q113,
 Q114 (`village.woodwright_levels` invariata), Q115 (`xp_capped`), Q116 (`unlearn` toglie solo XP, maestria, grado e lavori in coda), Q118, Q121. **Applicate,
 da rivedere più avanti**: Q109 (motore esatto; Q124 chiusa in M24-09), Q117 (valori in `balance.json`; soglie (2)-(3) in Q122), Q119 (costi in `balance.json`;

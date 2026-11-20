@@ -335,11 +335,24 @@ messaggi e Ritira accredita il portafoglio; comprare e rivendere perde sempre; 1
 Nessuna ritaratura (Q122), Q151 intatta.
 **Chiusa (2026-11-17, tag `m27-done`)**: M27-02…M27-09 su main, M27-10 integrazione (Q164 e Q165 risolte, simboli g/s/c di Q160). Alpha 3 non dichiarata.
 
-## M28+: Seconda classe, altri dungeon e boss (dopo M27; era M27+)
+## M28: Abilità e tratti v2 (condizioni, 19 abilità, 31 tratti)
+Progettata da M28-01 (V35-V36, `01_GDD_M28.md` §40, `02_FORMULAS_M28.md` F-185…F-194, `04_DATA_SCHEMA_M28.md` §33, `05_INTERFACES_M28.md`, task in `07_TASKS_M28.md`, Q171-Q182):
+quattro **condizioni** sui nemici (Sanguinamento, Fiacchezza, Breccia, Sbilanciamento) e il **Riparo** del personaggio, tutte deterministiche; abilità da 6 a **19** (5 per assetto, 4 per la
+Spada sola che prima non ne aveva) fino al livello 80; tratti da 12 a **31** fino al livello 95 con accumuli, combo, contrattacchi, scambi e sinergie con le abilità; slot invariati (Q171).
+Save v11 additivo. Fuori scope: albero delle passive, critico (Q172), classi nuove, ritaratura dell'economia, Q151.
+Ordine: 02 refactor → 03 motore (da solo) → 04 abilità ∥ 05 tratti → 06 dati → 07 UI ∥ 08 QA → [09 ritocchi] → 10 integrazione.
+**Giocabile**: con la Spada sola compaiono le abilità; salendo di livello dal 30 al 95 si sblocca qualcosa di nuovo ogni pochi livelli; in combattimento si vedono Sanguinamento, Sbilanciamento
+(il nemico attacca più tardi), Breccia, Fiacchezza e il Riparo sulla barra dei PV; un equipaggiamento "a Sanguinamento" (Tagli incrociati, Ferite gemelle, Odore del sangue) uccide come uno
+classico ma in modo diverso; `sim_combat` mostra che nessun tratto né abilità domina e che il migliore equipaggiamento non supera di oltre il 15% quello di M27; un salvataggio di M27 si carica
+identico e 12 ore offline danno lo stesso stato del gioco acceso.
+
+## M29+: Seconda classe, altri dungeon e boss (dopo M28; era M28+)
 Seconda classe con le sue armi (es. arco o bastone, con i suoi progetti e componenti del Falegname), supporti delle abilità, altri dungeon (solo dati: il sistema di M22 è generico), livelli di difficoltà dei dungeon, altri boss, elementi e resistenze;
 pozioni (Q112), attrezzo dell'Erboristeria (Q111), colori e mercante dell'Incisore (Q148).
 
 ## Percorso critico e parallelismo
+- M28: M28-01 → M28-02 → M28-03 → (M28-04 ∥ M28-05) → M28-06 → (M28-07 ∥ M28-08) → [M28-09] → M28-10. 02 e 03 toccano il motore (`combat_fight.gd` a 397 righe) e vanno da soli; 03 posa tutti i
+  punti di chiamata con default neutri, così abilità (04) e tratti (05) hanno file disgiunti; poi UI (07) e QA (08) sono disgiunti. L'utente corregge l'elenco di §40.6-§40.7 prima di 03.
 - M27: M27-01 → M27-02 → M27-03 → (M27-04 ∥ M27-05) → (M27-06 ∥ M27-07) → (M27-08 ∥ M27-09) → M27-10. M27-02 e M27-03 cambiano l'unità del denaro ovunque e vanno da soli (03 parte dal branch di 02; suite completa dopo 03); poi le coppie hanno file disgiunti (UI/core della Posta, core della Casa d'Aste/UI della Posta, UI della Casa d'Aste/QA).
 - M26: M26-01 → M26-02 → (M26-03 ∥ M26-08) → (M26-04 ∥ M26-09) → (M26-06 ∥ M26-10) → (M26-05 ∥ M26-11) → M26-07 → M26-12. M26-02 tocca i file comuni dei dati e va da solo; M26-05 e M26-07 toccano la stessa pagina della professione e non vanno in parallelo; dopo M26-04 la suite completa dipende dal riallineamento dei test sui dati veri (helper di M26-02).
 - M24: M24-01 → M24-02 → (M24-03 ∥ M24-05) → (M24-04 ∥ M24-06) → M24-07 → M24-08. M24-02 (rimozione degli aiutanti e schema dei dati) va da solo perché tocca file comuni; M24-03 (CORE: `systems/`, sessione, save) e M24-05 (DATA: `data/`, generatori) hanno file disgiunti; M24-04 (motore) e M24-06 (UI, con lo stub del ciclo) pure.
