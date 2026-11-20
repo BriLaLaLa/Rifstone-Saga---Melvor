@@ -4,7 +4,10 @@ extends GutTest
 
 const EFFECT_TYPES: Array[String] = ["every_nth_attack_all", "on_kill_timer_cut", "low_hp_damage_mult", "stat_trade",
 	"target_rule", "reflect_pct", "leech_pct", "opening_strike"]
-const COMBAT_SETUPS: Array[String] = ["greatsword", "sword_shield", "dual_swords"]
+const M28_EFFECT_TYPES: Array[String] = ["stack_damage", "stack_haste", "focus_combo", "riposte", "damage_trade", "apply_on_hit",
+	"status_damage_mult", "kill_cooldown_cut", "after_ability_mult", "ward_on", "lone_target_mult", "hit_cap_pct", "execute_mult"]
+const COMBAT_SETUPS: Array[String] = ["greatsword", "sword_shield", "dual_swords", "sword"]
+const ABILITIES_PER_SETUP: Dictionary = {"greatsword": 5, "sword_shield": 5, "dual_swords": 5, "sword": 4}
 
 var _class: Dictionary = {}
 var _stats: Dictionary = {}
@@ -18,8 +21,39 @@ func before_all() -> void:
 
 
 func test_counts() -> void:
-	assert_eq((_class["traits"] as Array).size(), 12)
-	assert_eq((_class["abilities"] as Array).size(), 6)
+	assert_eq((_class["traits"] as Array).size(), 31)
+	assert_eq((_class["abilities"] as Array).size(), 19)
+
+
+func test_m28_effect_types_and_ability_params_are_used() -> void:
+	var used: Dictionary = {}
+	for t: Dictionary in _class["traits"] as Array:
+		for e: Dictionary in t["effects"] as Array:
+			used[e["type"]] = true
+	for type: String in M28_EFFECT_TYPES:
+		assert_true(used.has(type), "trait type %s used" % type)
+	var kinds: Dictionary = {}
+	var params: Dictionary = {}
+	for a: Dictionary in _class["abilities"] as Array:
+		kinds[a["kind"]] = true
+		for key: Variant in (a["params"] as Dictionary).keys():
+			params[key] = true
+	assert_true(kinds.has("ward"), "ability kind ward")
+	for key: String in ["hits", "target", "execute", "apply", "drain_pct"]:
+		assert_true(params.has(key), "ability param %s used" % key)
+
+
+func test_blade_volley_is_renamed_and_the_first_entries_are_unchanged() -> void:
+	var abilities: Array = _class["abilities"] as Array
+	assert_eq((abilities[5] as Dictionary)["id"], "blade_volley")
+	assert_eq((abilities[5] as Dictionary)["name"], "Sciame di tagli")
+	var first_traits: Array[String] = ["chain_cleave", "first_blood", "ember_thirst", "hunters_eye", "last_stand", "stone_stance",
+		"glass_edge", "rift_thorns", "cornered_fury", "blood_ember", "giant_breaker", "greedy_fangs"]
+	for i: int in first_traits.size():
+		assert_eq(((_class["traits"] as Array)[i] as Dictionary)["id"], first_traits[i])
+	var first_abilities: Array[String] = ["whirl", "rift_maul", "shield_bash", "ember_breath", "twin_frenzy", "blade_volley"]
+	for i: int in first_abilities.size():
+		assert_eq((abilities[i] as Dictionary)["id"], first_abilities[i])
 
 
 func test_all_eight_effect_types_are_used() -> void:
@@ -43,7 +77,7 @@ func test_ids_and_names_are_unique() -> void:
 			names[e["name"]] = true
 
 
-func test_two_abilities_per_combat_setup_with_a_level_one() -> void:
+func test_abilities_per_combat_setup_with_a_level_one() -> void:
 	for setup: String in COMBAT_SETUPS:
 		var count: int = 0
 		var first_level: int = 99
@@ -51,7 +85,7 @@ func test_two_abilities_per_combat_setup_with_a_level_one() -> void:
 			if (a["setups"] as Array).has(setup):
 				count += 1
 				first_level = mini(first_level, int(a["unlock_level"]))
-		assert_eq(count, 2, "abilities of %s" % setup)
+		assert_eq(count, int(ABILITIES_PER_SETUP[setup]), "abilities of %s" % setup)
 		assert_eq(first_level, 1, "%s has a level 1 ability" % setup)
 
 
@@ -59,7 +93,7 @@ func test_ability_roles_are_varied() -> void:
 	var kinds: Dictionary = {}
 	for a: Dictionary in _class["abilities"] as Array:
 		kinds[a["kind"]] = true
-	for kind: String in ["strike", "cleave", "heal", "buff"]:
+	for kind: String in ["strike", "cleave", "heal", "buff", "ward"]:
 		assert_true(kinds.has(kind), "kind %s" % kind)
 
 
