@@ -1,7 +1,7 @@
 class_name DataValidatorDungeonTickets
 extends RefCounted
 ## Part of DataValidator (internal, not API for other modules): the tickets of the dungeons (docs/04_DATA_SCHEMA.md §27).
-## A ticket is a `misc` item with `value` 0 and a `dungeon` id; every dungeon has exactly one. It may drop only from the
+## A ticket is a `misc` item with a `dungeon` id (it drops, so value >= 1: DataValidatorSellableDrops); every dungeon has exactly one. It may drop only from the
 ## minibosses of the areas whose last level reaches the level required by the dungeon (the first areas have no ticket)
 ## and from the loot tables of the Rift Stones of those areas; nowhere else.
 
@@ -35,7 +35,7 @@ static func validate(v: DataValidatorRules, raw: Dictionary) -> void:
 	_tables(v, raw, tickets, required, levels)
 
 
-# The items with a `dungeon` field: category misc, value 0, a known dungeon. Returns item id -> dungeon id.
+# The items with a `dungeon` field: category misc, a known dungeon. Returns item id -> dungeon id.
 static func _tickets(v: DataValidatorRules, raw: Dictionary, required: Dictionary[StringName, int]) -> Dictionary[StringName, StringName]:
 	var result: Dictionary[StringName, StringName] = {}
 	var files: Dictionary = DataValidatorDungeon.section(raw, "items")
@@ -50,8 +50,6 @@ static func _tickets(v: DataValidatorRules, raw: Dictionary, required: Dictionar
 			var id: StringName = v.at_entry("item", index, item)
 			if str(item.get("category")) != "misc":
 				v.fail("field 'dungeon': only a `misc` item can be a ticket")
-			if not DataValidatorRules.is_int(item.get("value")) or int(item["value"]) != 0:
-				v.fail("a ticket must have value 0 (it cannot be sold)")
 			if not v.text(item, "dungeon") or not required.has(StringName(item["dungeon"] as String)):
 				if item.get("dungeon") is String:
 					v.fail("field 'dungeon': unknown dungeon '%s'" % item["dungeon"])

@@ -27,7 +27,7 @@ func test_five_bags_with_their_source() -> void:
 	for item: ItemDef in _data.items():
 		if item.category == &"bag":
 			slots[item.id] = item.bag_slots
-			assert_eq(item.value, 0, "%s is not for sale" % item.id)
+			assert_true(item.value >= 1 or item.id in [&"bag_canvas", &"bag_reinforced"], "%s drops, so it is sold (Q183)" % item.id)
 	assert_eq(slots, {&"bag_canvas": 6, &"bag_leather": 10, &"bag_reinforced": 14, &"bag_wayfarer": 18, &"bag_runic": 24})
 	var canvas: ActionDef = _data.action(&"sew_bag_canvas")
 	assert_eq([canvas.level, canvas.outputs[0].item_id, canvas.outputs[0].qty], [1, &"bag_canvas", 1])

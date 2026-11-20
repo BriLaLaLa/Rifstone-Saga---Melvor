@@ -285,7 +285,7 @@ comunque e blocca solo i nuovi ingressi); oggetto sconosciuto in un salvataggio 
 
 **Regole**
 - Unica valuta: **Oro** (`gold`, intero ≥ 0).
-- Vendere: oro = `item.value × quantità` (F-18). Oggetti con `value = 0` non si vendono.
+- Vendere: oro = `item.value × quantità` (F-18). Oggetti con `value = 0` non si vendono. **Nota (V37, Q183)**: ogni oggetto che può cadere come drop (pietre, Cristalli, borse trovate, Progetti, Biglietti, ricette Tonico, Sigillo, Frammento del Rift) ha `value` >= 1 e si vende; restano a 0 solo le Carte, gli attrezzi unici, le ricette comprate e gli oggetti non droppabili.
 - Lo shop ha voci (`data/shop/shop.json`), per categoria:
   - ~~**Deposito**: "Spazio nel deposito" e "Spazio nell'armeria"~~: **tolti in M12** (W2); la capienza cresce con le borse (§7). La categoria `bank` esiste ma non ha voci;
   - **Combattimento**: "Razioni da campo I/II/III" (stat `auto_eat_tier`, una alla volta, in ordine; **le Razioni da
@@ -972,7 +972,7 @@ costruisce una mappa a livelli (il giocatore non la vede, §33.2); l'ultima stan
 a stanze dei giochi d'azione, solo come meccanica; nomi, testi e numeri originali. Il sistema è **generico** (`data/dungeons/`): altri dungeon sono solo dati nuovi (M24+).
 
 ### 33.1 Biglietto, requisiti, miniboss
-- **Biglietto del Covo delle Scimmie** (`dungeon_ticket_monkey_den`): oggetto della categoria `misc` con il campo `dungeon` (id del dungeon, `04_DATA_SCHEMA.md` §27); impilabile nella Bank, **non vendibile**, si consuma **all'ingresso** (non si recupera).
+- **Biglietto del Covo delle Scimmie** (`dungeon_ticket_monkey_den`): oggetto della categoria `misc` con il campo `dungeon` (id del dungeon, `04_DATA_SCHEMA.md` §27); impilabile nella Bank, **non vendibile** (V37, Q183: ora vale 1000 monete di rame e si vende), si consuma **all'ingresso** (non si recupera).
 - **Fonti** (F-139): i **miniboss** delle aree e i **Monoliti** (tabelle di drop F-32) delle aree 4-10; mai dai mostri comuni, dalle Fratture o dallo shop (Q91). Obiettivo: un Biglietto ogni **1,5-2,5 ore** di combattimento nelle aree giuste.
 - **Requisito**: livello del personaggio 40; **consigliato 45** (aree 5-6). Nessun requisito di equipaggiamento.
 - **Miniboss (Z8, ora fissato)**: ogni area ha **un miniboss** (10, uno per area, campo `miniboss` di `areas.json`): un mostro dell'area con PV, danno e XP molto maggiori (F-139) che compare in un **incontro a sé** con due mostri dell'area di scorta. Dopo ogni incontro

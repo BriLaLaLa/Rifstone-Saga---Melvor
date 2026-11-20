@@ -120,10 +120,10 @@ func test_rare_component_is_a_material() -> void:
 	expect_error(raw, [BLUEPRINTS, "item 'bp_test_blade'", "blueprint.rare_components[0].item': 'test_plate_1' must be a material"])
 
 
-func test_blueprint_is_not_sellable() -> void:
+func test_blueprint_must_be_sellable() -> void:
 	var raw: Dictionary = m10_raw()
-	item_of(raw, BLUEPRINTS, "bp_test_blade")["value"] = 5
-	expect_error(raw, [BLUEPRINTS, "item 'bp_test_blade'", "must have 'value' 0"])
+	item_of(raw, BLUEPRINTS, "bp_test_blade")["value"] = 0
+	expect_error(raw, [ "item 'bp_test_blade'", "droppable item must have 'value' >= 1"])
 
 
 func test_blueprint_drops_once() -> void:
@@ -177,7 +177,7 @@ func test_blueprint_def_fields() -> void:
 	assert_eq(def.blueprint.rare_components[0].item_id, &"test_log")
 	assert_eq(def.blueprint.rare_components[0].qty, 2)
 	assert_eq(def.blueprint.rare_components[1].item_id, &"test_plank")
-	assert_eq(def.value, 0)
+	assert_gte(def.value, 1)
 
 
 func test_component_def() -> void:

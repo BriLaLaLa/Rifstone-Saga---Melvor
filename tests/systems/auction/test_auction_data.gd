@@ -47,7 +47,7 @@ func _mentions(errors: PackedStringArray, text: String) -> bool:
 func test_the_real_data_is_valid_and_has_the_list() -> void:
 	assert_eq(_errors(func(_raw: Dictionary) -> void: pass), PackedStringArray())
 	var data: GameData = TestFactory.real_data()
-	assert_eq(data.auction_items().size(), 109)
+	assert_eq(data.auction_items().size(), 110)
 	var buyable: int = 0
 	var per_step: Dictionary = {}
 	for def: AuctionItemDef in data.auction_items():
@@ -76,7 +76,7 @@ func test_the_generator_tool_delegates_to_the_rule() -> void:
 	var gen: GDScript = load("res://tools/gen_auction.gd") as GDScript
 	var from_tool: Array = gen.call("entries", _all("res://data/items", "items"), _all("res://data/actions", "actions"),
 			TestFactory.real_data().balance_value("village.woodwright_levels")) as Array
-	assert_eq(from_tool.size(), 109)
+	assert_eq(from_tool.size(), 110)
 
 
 func test_generation_rule_on_a_small_table() -> void:

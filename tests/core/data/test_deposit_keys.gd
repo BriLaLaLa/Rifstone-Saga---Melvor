@@ -125,12 +125,6 @@ func test_bag_slots_range() -> void:
 	_expect(raw, [BAGS, "item 'test_bag_large'", "bag.slots", "<= 100"])
 
 
-func test_bag_value_must_be_zero() -> void:
-	var raw: Dictionary = V.fixture_raw()
-	_bag(raw, 0)["value"] = 5
-	_expect(raw, [BAGS, "item 'test_bag_small'", "value 0"])
-
-
 func test_bag_object_is_forbidden_on_other_categories() -> void:
 	var raw: Dictionary = V.fixture_raw()
 	var materials: Array = V.file_of(raw, "items", "materials.json")["items"] as Array

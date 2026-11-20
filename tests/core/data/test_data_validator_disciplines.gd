@@ -246,13 +246,10 @@ func test_a_recipe_of_an_action_without_discover() -> void:
 	_expect(raw, ["recipes.json", "'craft_plank' has no 'discover: true'"])
 
 
-func test_a_recipe_needs_its_sub_object_and_a_zero_value() -> void:
+func test_a_recipe_needs_its_sub_object() -> void:
 	var raw: Dictionary = _raw()
 	V.entry_of(raw, "items", "recipes.json", "items", 0).erase("recipe")
 	_expect(raw, ["recipes.json", "missing field 'recipe'"])
-	var raw_value: Dictionary = _raw()
-	V.entry_of(raw_value, "items", "recipes.json", "items", 0)["value"] = 5
-	_expect(raw_value, ["recipes.json", "a Recipe must have value 0"])
 	var raw_other: Dictionary = _raw()
 	V.entry_of(raw_other, "items", "materials.json", "items", 0)["recipe"] = {"action": "craft_secret"}
 	_expect(raw_other, ["materials.json", "'recipe' is not allowed"])

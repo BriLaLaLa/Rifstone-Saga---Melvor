@@ -103,7 +103,7 @@ func test_blueprints_follow_the_table_of_8_2_times_the_cost_multiplier() -> void
 			if bp == null:
 				continue
 			assert_eq(bp.id, StringName("bp_%s" % base_id))
-			assert_eq(bp.value, 0)
+			assert_eq(bp.value, maxi(100, roundi(_data.item(base_id).value * 0.05)), "%s: 5%% of the base, at least 100 (Q183)" % bp.id)
 			assert_eq(bp.blueprint.grade, m, "%s: the grade of the material" % bp.id)
 			assert_true(_data.item(base_id).equip.masterwork, "%s crafts a Masterwork" % bp.id)
 			assert_true(FileAccess.file_exists(bp.icon), bp.icon)

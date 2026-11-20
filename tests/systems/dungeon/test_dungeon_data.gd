@@ -244,12 +244,6 @@ func test_a_dungeon_without_ticket_is_rejected() -> void:
 	_expect(raw, ["0 tickets", "exactly 1 is needed"])
 
 
-func test_a_ticket_is_a_misc_item_without_value() -> void:
-	var raw: Dictionary = _raw()
-	((V.file_of(raw, "items", "misc.json")["items"] as Array)[1] as Dictionary)["value"] = 5
-	_expect(raw, ["a ticket must have value 0"])
-
-
 func test_a_ticket_of_an_unknown_dungeon_is_rejected() -> void:
 	var raw: Dictionary = _raw()
 	((V.file_of(raw, "items", "misc.json")["items"] as Array)[1] as Dictionary)["dungeon"] = "nowhere"

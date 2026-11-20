@@ -153,10 +153,10 @@ func test_f18_sell() -> void:
 
 func test_sell_rejections() -> void:
 	TestFactory.give(_session, &"test_log", 5)
-	TestFactory.give(_session, &"rift_shard", 1)
+	TestFactory.give(_session, &"test_infusion", 1)
 	assert_eq(_shop.sell(&"test_log", 0).reason, Reasons.INVALID_AMOUNT)
 	assert_eq(_shop.sell(&"nope", 1).reason, Reasons.UNKNOWN_ID)
-	assert_eq(_shop.sell(&"rift_shard", 1).reason, Reasons.NOT_SELLABLE)
+	assert_eq(_shop.sell(&"test_infusion", 1).reason, Reasons.NOT_SELLABLE)
 	assert_eq(_shop.sell(&"test_log", 6).reason, Reasons.NOT_ENOUGH_ITEMS)
 	_session.bank.set_locked(&"test_log", true)
 	assert_eq(_shop.sell(&"test_log", 1).reason, Reasons.ITEM_LOCKED)

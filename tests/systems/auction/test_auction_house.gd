@@ -30,7 +30,7 @@ func test_level_and_listing() -> void:
 	assert_eq(_s.data.auction_building(), &"auction_house")
 	assert_eq(_house.level(), 8)
 	assert_true(_house.is_open())
-	assert_eq(_house.listed_items().size(), 109)
+	assert_eq(_house.listed_items().size(), 110)
 	assert_eq(_house.buyable_items().size(), 48)
 	assert_eq(_house.listed_items()[0], LOG, "file order")
 	assert_eq(_house.buy_level(PLATE), 8)

@@ -51,8 +51,6 @@ static func recipe_item(v: DataValidatorRules, e: Dictionary) -> void:
 	v.keys(recipe, ["action"], "recipe")
 	if v.ref(recipe, "action", v.actions, "action", "recipe") and not _is_true(v.actions[StringName(recipe["action"] as String)], "discover"):
 		v.fail("field 'recipe.action': '%s' has no 'discover: true'" % recipe["action"])
-	if DataValidatorRules.is_int(e.get("value")) and int(e["value"]) != 0:
-		v.fail("a Recipe must have value 0 (it cannot be sold)")
 
 
 ## balance.json `encounters`, `disciplines`, `trainer`, `production` (04_DATA_SCHEMA_M24.md §29.6).

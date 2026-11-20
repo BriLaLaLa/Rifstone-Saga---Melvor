@@ -15,7 +15,7 @@ func _raw() -> Dictionary:
 		"icon": "res://assets/icons/items/test_helm.png", "value": 0, "sort_order": 900, "description": "Prova.",
 		"equip": {"slot": "body", "grade": 11, "material": "plate", "masterwork": true, "requirements": {"character": 50},
 			"modifiers": [{"stat": "armor", "value": 121}]}})
-	raw["items"][BLUEPRINTS_PATH] = {"items": [{"id": "bp_mw_chest", "name": "Progetto", "category": "blueprint", "value": 0,
+	raw["items"][BLUEPRINTS_PATH] = {"items": [{"id": "bp_mw_chest", "name": "Progetto", "category": "blueprint", "value": 5,
 		"sort_order": 1, "icon": "res://assets/icons/items/bp_test_blade.png", "description": "Prova.",
 		"blueprint": {"base": "mw_chest", "grade": 6, "inputs": [{"item": "test_plank", "qty": 12}],
 			"rare_components": [{"item": "test_log", "qty": 1}, {"item": "test_twig", "qty": 1}]}}]}

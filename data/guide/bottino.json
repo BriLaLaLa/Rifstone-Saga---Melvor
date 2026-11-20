@@ -22,7 +22,7 @@
      "blocks": [
        {"type": "text", "text": "Le valute del Rift si cristallizzano dalla Polvere del Rift con l'{link:skill:riftbinding|Incisore} e si usano dal Banco del fabbro della pagina Fabbro: cambiano la rarità di un pezzo."},
        {"type": "text", "text": "{link:item:currency_spark|Il Cristallo del risveglio} rende magico un pezzo comune. {link:item:currency_crown|Il Cristallo dell'ascesa} rende raro un pezzo magico. {link:item:currency_flux|Il Cristallo del mutamento} ritira gli affissi senza toccare la rarità."},
-       {"type": "text", "text": "Le monete sono un'altra cosa: servono per lo shop e la raffinazione."}
+       {"type": "text", "text": "Le monete sono un'altra cosa: servono per lo shop e la raffinazione. Tutto ciò che cade (pietre, valute, borse, progetti, biglietti, ricette) si può vendere dal Deposito per qualche moneta, così nulla resta bloccato; le Carte della Frattura no, si smantellano in Polvere del Rift."}
      ]},
     {"id": "guide_salvage", "section": "loot", "title": "Smantellamento e filtro", "order": 5,
      "blocks": [

@@ -38,8 +38,6 @@ static func level_modifiers(v: DataValidatorRules, e: Dictionary) -> void:
 static func blueprint(v: DataValidatorRules, e: Dictionary) -> void:
 	var bp: Dictionary = e["blueprint"] as Dictionary
 	v.keys(bp, BLUEPRINT_FIELDS, "blueprint")
-	if DataValidatorRules.is_int(e.get("value")) and int(e["value"]) != 0:
-		v.fail("a blueprint must have 'value' 0 (not sellable)")
 	v.integer(bp, "grade", 1.0, float(GRADE_COUNT), "blueprint")
 	var base: Dictionary = item_of(v, bp, "base", "blueprint")
 	if not base.is_empty():

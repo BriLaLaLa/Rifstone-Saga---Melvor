@@ -168,7 +168,7 @@ ognuno `{"items": [...]}`. Campi comuni:
 | `name`, `description` | String | |
 | `category` | String | `material`, `component` (M10), `blueprint` (M10), `equipment`, `tool`, `food`, `infusion`, `misc`, `bag` (M12), `contract` (M12); deve corrispondere al file |
 | `icon` | String | `res://assets/icons/items/…`, `.svg` o `.png` (i segnaposto di M1-12 sono SVG 64×64) |
-| `value` | int ≥ 0 | oro dato dalla vendita (F-18); 0 = non vendibile |
+| `value` | int ≥ 0 | rame dato dalla vendita (F-18); 0 = non vendibile. **Ogni oggetto che può cadere come drop ha `value` >= 1** (V37, Q183; regola del validatore `DataValidatorSellableDrops`): voci di tabelle di drop, `drops` di aree, mostri, Monoliti, boss e dungeon, `rift_shard`, `rift_dust`, ogni Progetto e ogni Cristallo. Eccezioni: le Carte (`map`), gli attrezzi unici, le ricette comprate e gli oggetti non droppabili (borse di tela e rinforzata, rune, reagenti) |
 | `sort_order` | int | ordinamento nella bank dentro la categoria |
 | `equip` | object | obbligatorio per `equipment` e `tool`, vietato per gli altri |
 | `food` | object | obbligatorio per `food`, vietato per gli altri |
@@ -234,7 +234,7 @@ impugnature, telai degli scudi e manici di grado 1-8; i lingotti restano `materi
 `{"base": id di una base equipment, "grade": 1..8, "inputs": [{item, qty}] (componenti di grado, almeno 1),
 "rare_component": {item, qty}}` (`rare_component.item` è un `material` di drop di un mostro). Il validatore controlla: `base`
 esiste, è `equipment` (non `tool`, non anello/amuleto) e ha lo stesso `grade`; `inputs` sono `component` o `material` esistenti;
-**una sola** `blueprint` per base; `value` 0 (non vendibile). Esempio:
+**una sola** `blueprint` per base; `value` >= 1 (circa 5% del valore della base del Capolavoro, minimo 100: V37, Q183). Esempio:
 ```json
 {"id": "bp_claymore", "name": "Progetto: Claymore", "category": "blueprint", "value": 0, "sort_order": 10,
  "icon": "res://assets/icons/items/bp_claymore.svg", "description": "Lo schema di una Claymore.",

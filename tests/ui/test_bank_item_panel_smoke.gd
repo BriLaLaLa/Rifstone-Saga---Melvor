@@ -6,7 +6,7 @@ extends GutTest
 const PANEL_SCENE: PackedScene = preload("res://ui/pages/bank/bank_item_panel.tscn")
 const PAGE_SCENE: PackedScene = preload("res://ui/pages/bank/bank_page.tscn")
 const LOG := &"test_log"
-const SHARD := &"rift_shard"
+const SHARD := &"test_infusion"
 
 var _session: GameSession
 var _panel: BankItemPanel

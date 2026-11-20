@@ -166,7 +166,7 @@ func test_the_ticket_only_where_the_schema_says() -> void:
 			assert_ne(d["item"], str(TICKET))
 	var ticket: ItemDef = _data.item(TICKET)
 	_eq(ticket.category, &"misc")
-	_eq(ticket.value, 0)
+	_eq(ticket.value, 1000)
 
 
 ## F-139/F-144 (M22-07, measured by tools/sim_dungeon.gd with the hero of the area): about 530 kills/hour and 134 encounters/hour,

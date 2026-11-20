@@ -56,6 +56,7 @@
     {"item":"knight_plate","buy_level":0},
     {"item":"colossus_shard","buy_level":0},
     {"item":"threshold_ash","buy_level":0},
+    {"item":"warding_seal","buy_level":0},
     {"item":"rift_dust","buy_level":0},
     {"item":"birch_resin","buy_level":0},
     {"item":"copper_nugget","buy_level":0},

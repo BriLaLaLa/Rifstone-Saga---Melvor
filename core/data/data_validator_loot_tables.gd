@@ -40,6 +40,7 @@ static func validate(v: DataValidatorRules, files: Dictionary[String, Dictionary
 				if list[index].has("loot_tables"):
 					for id: Variant in v.id_list(list[index], "loot_tables", known, "loot table", 0):
 						used[StringName(id as String)] = true
+	DataValidatorSellableDrops.validate(v, files, owners)
 	if table_file.is_empty():
 		return
 	v.at_file(table_file)

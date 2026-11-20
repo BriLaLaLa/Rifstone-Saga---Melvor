@@ -93,8 +93,6 @@ static func _item(v: DataValidatorRules, e: Dictionary, file_category: String) -
 	if _sub_object(v, e, "bag", category == "bag"):
 		v.keys(e["bag"] as Dictionary, ["slots"], "bag")
 		v.integer(e["bag"] as Dictionary, "slots", 1, BAG_SLOTS_MAX, "bag")
-		if DataValidatorRules.is_int(e.get("value")) and int(e["value"]) != 0:
-			v.fail("a bag must have value 0 (it cannot be sold)")
 	if _sub_object(v, e, "recipe", category == "recipe"):
 		DataValidatorDisciplines.recipe_item(v, e)
 	if _sub_object(v, e, "map", category == "map"):
