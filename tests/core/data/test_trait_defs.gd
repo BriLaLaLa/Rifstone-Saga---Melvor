@@ -109,7 +109,7 @@ func test_ability_bad_kind_or_missing_param_is_null() -> void:
 
 func test_class_lists_from_fixture_data() -> void:
 	var def: ClassDef = TestFactory.fixture_data().character_class(&"test_class")
-	assert_eq(def.traits.size(), 5)
+	assert_eq(def.traits.size(), 18)  # M28-05: five of M6 and one per new effect type (plus the F-120 types)
 	assert_eq(def.abilities.size(), 4)
 	assert_eq(def.traits[1].id, &"test_cut")
 	assert_eq(def.abilities[3].kind, AbilityDef.KIND_BUFF)

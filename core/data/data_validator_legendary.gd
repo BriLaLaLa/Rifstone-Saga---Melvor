@@ -61,6 +61,9 @@ static func _effect(v: DataValidatorRules, effect: Dictionary, prefix: String, s
 		return
 	var type: String = effect["type"] as String
 	_placement(v, type, prefix, slot, is_tool_slot)
+	if DataValidatorTraits.M28_TYPES.has(type):  # M28: the list of F-120 stays closed, the types of F-192 are for traits only
+		v.fail("field '%s.type': '%s' is a trait effect (F-192), not allowed on a legendary" % [prefix, type])
+		return
 	if not F120_TYPES.has(type):
 		var params: Dictionary = effect.duplicate()
 		params.erase("type")

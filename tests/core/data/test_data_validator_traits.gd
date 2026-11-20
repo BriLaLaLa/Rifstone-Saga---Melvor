@@ -181,3 +181,146 @@ func test_equal_levels_are_allowed() -> void:
 	var raw: Dictionary = V.fixture_raw()
 	_balance(raw)["abilities"] = {"slot_levels": [1, 1, 30]}
 	assert_eq(V.validate(raw), PackedStringArray())
+
+
+# --- M28-05: the types of F-192 and the combat types of F-120 in a trait (docs/04_DATA_SCHEMA_M28.md §33.4, §33.6) ----------
+
+const M28_FIRST_TRAIT: int = 5  # the fixture traits after the five of M6: one per new type, then the F-120 types
+
+
+func _with(raw: Dictionary, index: int, params: Dictionary) -> void:
+	_effect(raw, index)["params"] = params
+
+
+func test_every_new_type_has_a_valid_fixture_trait() -> void:
+	var seen: Dictionary[String, bool] = {}
+	for entry: Variant in _class(V.fixture_raw())["traits"] as Array:
+		for effect: Variant in (entry as Dictionary)["effects"] as Array:
+			seen[(effect as Dictionary)["type"] as String] = true
+	for type: String in DataValidatorTraits.M28_TYPES:
+		assert_true(seen.has(type), "a fixture trait with %s" % type)
+	for type: String in ["execute_mult", "hit_cap_pct", "armor_pierce_pct", "kill_heal_pct", "block_heal_pct", "stat_convert", "double_hit_pct"]:
+		assert_true(seen.has(type), "a fixture trait with %s" % type)
+	assert_eq(V.validate(V.fixture_raw()), PackedStringArray())
+
+
+func test_stack_types_reject_a_bad_gain_lose_or_max() -> void:
+	var raw: Dictionary = V.fixture_raw()
+	_with(raw, M28_FIRST_TRAIT, {"gain": "heal", "pct": 5, "max": 5, "lose": "damaged"})
+	_with(raw, M28_FIRST_TRAIT + 1, {"gain": "kill", "pct": 3, "max": 0, "lose": "encounter"})
+	_with(raw, M28_FIRST_TRAIT + 2, {"pct": 60, "max": 21})
+	_expect(raw, [CLASS_FILE, "traits[5].effects[0].params.gain", "must be one of"])
+	_expect(raw, [CLASS_FILE, "traits[6].effects[0].params.max"])
+	_expect(raw, [CLASS_FILE, "traits[7].effects[0].params.pct"])
+	_expect(raw, [CLASS_FILE, "traits[7].effects[0].params.max"])
+	_with(raw, M28_FIRST_TRAIT, {"gain": "kill", "pct": 5, "max": 5, "lose": "never"})
+	_expect(raw, [CLASS_FILE, "traits[5].effects[0].params.lose", "must be one of"])
+	_with(raw, M28_FIRST_TRAIT, {"gain": "kill", "pct": 5, "max": 5})
+	_expect(raw, [CLASS_FILE, "missing field 'traits[5].effects[0].params.lose'"])
+
+
+func test_damage_trade_needs_both_fields() -> void:
+	var raw: Dictionary = V.fixture_raw()
+	_with(raw, M28_FIRST_TRAIT + 4, {"dealt_pct": 25})
+	_expect(raw, [CLASS_FILE, "missing field 'traits[9].effects[0].params.taken_pct'"])
+	_with(raw, M28_FIRST_TRAIT + 4, {"dealt_pct": 201, "taken_pct": 0})
+	_expect(raw, [CLASS_FILE, "traits[9].effects[0].params.dealt_pct"])
+	_expect(raw, [CLASS_FILE, "traits[9].effects[0].params.taken_pct"])
+
+
+func test_ability_mult_kinds() -> void:
+	var raw: Dictionary = V.fixture_raw()
+	_with(raw, M28_FIRST_TRAIT + 10, {"kinds": [], "pct": 25})
+	_expect(raw, [CLASS_FILE, "traits[15].effects[0].params.kinds"])
+	_with(raw, M28_FIRST_TRAIT + 10, {"kinds": ["strike", "buff"], "pct": 25})
+	_expect(raw, [CLASS_FILE, "traits[15].effects[0].params.kinds", "'buff'"])
+	_with(raw, M28_FIRST_TRAIT + 10, {"kinds": ["heal", "heal"], "pct": 25})
+	_expect(raw, [CLASS_FILE, "traits[15].effects[0].params.kinds", "duplicate"])
+	_with(raw, M28_FIRST_TRAIT + 10, {"kinds": ["strike", "cleave", "heal", "ward"], "pct": 200})
+	assert_eq(V.validate(raw), PackedStringArray())
+
+
+func test_apply_on_hit_follows_the_condition_rules() -> void:
+	var raw: Dictionary = V.fixture_raw()
+	_with(raw, M28_FIRST_TRAIT + 5, {"every": 3, "condition": "stagger", "pct": 10, "ms": 1000})
+	_expect(raw, [CLASS_FILE, "traits[10].effects[0].params.pct", "stagger has no pct"])
+	_with(raw, M28_FIRST_TRAIT + 5, {"every": 3, "condition": "stagger", "ms": 1000})
+	assert_eq(V.validate(raw), PackedStringArray())
+	_with(raw, M28_FIRST_TRAIT + 5, {"every": 21, "condition": "weaken", "pct": 95, "ms": 4000})
+	_expect(raw, [CLASS_FILE, "traits[10].effects[0].params.every"])
+	_expect(raw, [CLASS_FILE, "traits[10].effects[0].params.pct"])
+	_with(raw, M28_FIRST_TRAIT + 5, {"every": 3, "condition": "burn", "pct": 10, "ms": 4000})
+	_expect(raw, [CLASS_FILE, "traits[10].effects[0].params.condition", "must be one of"])
+	_with(raw, M28_FIRST_TRAIT + 5, {"every": 3, "condition": "bleed", "ms": 4000})
+	_expect(raw, [CLASS_FILE, "missing field 'traits[10].effects[0].params.pct'"])
+	_with(raw, M28_FIRST_TRAIT + 5, {"every": 3, "condition": "bleed", "pct": 40, "ms": 999})
+	_expect(raw, [CLASS_FILE, "traits[10].effects[0].params.ms"])
+
+
+func test_the_other_new_types_check_their_ranges() -> void:
+	var raw: Dictionary = V.fixture_raw()
+	_with(raw, M28_FIRST_TRAIT + 2, {"pct": 6, "max": 5, "extra": 1})
+	_with(raw, M28_FIRST_TRAIT + 3, {"on": "kill", "mult": 11})
+	_with(raw, M28_FIRST_TRAIT + 6, {"condition": "bleed", "pct": 0})
+	_with(raw, M28_FIRST_TRAIT + 7, {"ms": 0})
+	_with(raw, M28_FIRST_TRAIT + 8, {"mult": 1})
+	_with(raw, M28_FIRST_TRAIT + 9, {"on": "kill", "pct": 8, "ms": 999})
+	_with(raw, M28_FIRST_TRAIT + 11, {"pct": 201})
+	_expect(raw, [CLASS_FILE, "traits[7].effects[0].params.extra", "unknown field"])
+	_expect(raw, [CLASS_FILE, "traits[8].effects[0].params.on", "must be one of"])
+	_expect(raw, [CLASS_FILE, "traits[8].effects[0].params.mult"])
+	_expect(raw, [CLASS_FILE, "traits[11].effects[0].params.pct"])
+	_expect(raw, [CLASS_FILE, "traits[12].effects[0].params.ms"])
+	_expect(raw, [CLASS_FILE, "traits[13].effects[0].params.mult"])
+	_expect(raw, [CLASS_FILE, "traits[14].effects[0].params.ms"])
+	_expect(raw, [CLASS_FILE, "traits[16].effects[0].params.pct"])
+
+
+func test_at_most_one_effect_with_a_state_per_trait() -> void:
+	var raw: Dictionary = V.fixture_raw()
+	(_trait(raw, M28_FIRST_TRAIT)["effects"] as Array).append({"type": "apply_on_hit",
+			"params": {"every": 3, "condition": "bleed", "pct": 40, "ms": 4000}})
+	_expect(raw, [CLASS_FILE, "traits[5].effects", "at most one effect with a state"])
+	(_trait(raw, M28_FIRST_TRAIT)["effects"] as Array).pop_back()
+	(_trait(raw, M28_FIRST_TRAIT)["effects"] as Array).append({"type": "ward_on", "params": {"on": "block", "pct": 5, "ms": 2000}})
+	assert_eq(V.validate(raw), PackedStringArray(), "one with a state and others without is fine")
+	(_trait(raw, 0)["effects"] as Array).append({"type": "every_nth_attack_all", "params": {"n": 2}})
+	_expect(raw, [CLASS_FILE, "traits[0].effects", "at most one effect with a state"])
+
+
+func test_the_f120_combat_types_are_checked_in_a_trait() -> void:
+	var raw: Dictionary = V.fixture_raw()
+	var effects: Array = _trait(raw, M28_FIRST_TRAIT + 12)["effects"] as Array
+	(effects[0] as Dictionary)["params"] = {"hp_pct": 30, "mult": 1}
+	(effects[1] as Dictionary)["params"] = {"pct": 0}
+	(effects[2] as Dictionary)["params"] = {"pct": 101}
+	(effects[5] as Dictionary)["params"] = {"from": "armor", "to": "armor", "pct": 50}
+	(effects[6] as Dictionary)["params"] = {"pct": 50, "extra": 1}
+	_expect(raw, [CLASS_FILE, "traits[17].effects[0].params.mult"])
+	_expect(raw, [CLASS_FILE, "traits[17].effects[1].params.pct"])
+	_expect(raw, [CLASS_FILE, "traits[17].effects[2].params.pct"])
+	_expect(raw, [CLASS_FILE, "traits[17].effects[5].params", "must differ"])
+	_expect(raw, [CLASS_FILE, "traits[17].effects[6].params.extra", "unknown field"])
+	(effects[5] as Dictionary)["params"] = {"from": "ghost", "to": "armor", "pct": 50}
+	_expect(raw, [CLASS_FILE, "traits[17].effects[5].params.from", "not in stats.json"])
+
+
+func test_gathering_monolith_and_card_types_are_rejected_in_a_trait() -> void:
+	var raw: Dictionary = V.fixture_raw()
+	for type: String in ["gather_bonus_item", "gather_grade_up_pct", "byproduct_mult", "monolith_loot_mult", "card_drop_mult"]:
+		_effect(raw, 1)["type"] = type
+		_effect(raw, 1)["params"] = {"mult": 2}
+		_expect(raw, [CLASS_FILE, "traits[1].effects[0].type", type, "not allowed in a trait"])
+
+
+func test_a_trait_effect_of_f192_is_rejected_on_a_legendary() -> void:
+	var raw: Dictionary = V.fixture_raw()
+	var equipment: Dictionary = V.file_of(raw, "items", "equipment.json")
+	var extra: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://tests/fixtures/data/m14/equipment.json"))
+	(equipment["items"] as Array).append_array(extra["items"] as Array)
+	assert_eq(V.validate(raw), PackedStringArray())
+	for entry: Variant in equipment["items"] as Array:
+		if (entry as Dictionary)["id"] == "fx_leg_cap":
+			(((entry as Dictionary)["equip"] as Dictionary)["legendary"] as Dictionary)["effects"] = [
+					{"type": "stack_damage", "gain": "kill", "pct": 5, "max": 5, "lose": "damaged"}]
+	_expect(raw, ["item 'fx_leg_cap'", "equip.legendary.effects[0].type", "stack_damage", "not allowed on a legendary"])
