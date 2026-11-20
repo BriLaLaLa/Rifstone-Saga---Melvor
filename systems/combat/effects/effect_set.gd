@@ -67,6 +67,30 @@ static func create_typed(trait_id: StringName, type: StringName, p: Dictionary) 
 			return GatherGradeUpPct.new(trait_id, p)
 		&"byproduct_mult":
 			return ByproductMult.new(trait_id, p)
+		&"stack_damage":
+			return StackDamage.new(trait_id, p)
+		&"stack_haste":
+			return StackHaste.new(trait_id, p)
+		&"focus_combo":
+			return FocusCombo.new(trait_id, p)
+		&"riposte":
+			return Riposte.new(trait_id, p)
+		&"damage_trade":
+			return DamageTrade.new(trait_id, p)
+		&"apply_on_hit":
+			return ApplyOnHit.new(trait_id, p)
+		&"status_damage_mult":
+			return StatusDamageMult.new(trait_id, p)
+		&"kill_cooldown_cut":
+			return KillCooldownCut.new(trait_id, p)
+		&"after_ability_mult":
+			return AfterAbilityMult.new(trait_id, p)
+		&"ward_on":
+			return WardOn.new(trait_id, p)
+		&"ability_mult":
+			return AbilityMult.new(trait_id, p)
+		&"lone_target_mult":
+			return LoneTargetMult.new(trait_id, p)
 	Log.error(LOG_CATEGORY, "'%s': unknown effect type '%s'" % [trait_id, type])
 	return null
 
