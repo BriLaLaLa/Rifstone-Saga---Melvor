@@ -128,7 +128,7 @@ strega, Polvere di miniera, Velo dello spettro, Placca del caduto, Scheggia di c
 ## Tratti e abilità
 Restano: Fendente a catena, Primo sangue, Occhio del cacciatore, Ultimo bastione, Postura di roccia, Lama di vetro,
 Spine del Rift, Furia alle strette, Spezzagiganti, Zanne fameliche; Mulinello, Colpo di scudo, Frenesia gemella,
-Raffica di lame.
+Sciame di tagli (era Raffica di lame, Q174).
 Cambiano: Sete di brace → **Sete di sangue**; Brace vitale → **Linfa vitale**; Maglio del Rift → **Colpo
 spaccaossa**; Respiro di brace → **Seconda forza**.
 
