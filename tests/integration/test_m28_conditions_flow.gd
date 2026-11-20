@@ -205,9 +205,6 @@ func test_a_ward_ability_starts_again_when_the_ward_of_the_encounter_runs_out() 
 	var late: int = int(when["used"]) - expired_at
 	gut.p("Ward ends at %d ms, Guardia alta used at %d ms: %d ms later" % [expired_at, int(when["used"]), late])
 	assert_gte(late, 0, "never before the Ward runs out")
-	if late > TICK_MS:
-		pending("BUG M28-08-01: next_ms of the engine ignores the end of the Ward, a `ward` ability waits for the next event (%d ms late)" % late)
-		return
 	assert_lte(late, TICK_MS, "used when the Ward runs out")
 
 
@@ -223,7 +220,5 @@ func test_the_late_ward_ability_is_the_same_in_ticks_and_in_one_block() -> void:
 	for _i: int in 600:
 		ticks.advance(TICK_MS)
 	var diff: Array = _diff(_combat_of(ticks), _combat_of(one))
-	if not diff.is_empty():
-		pending("BUG M28-08-01: ticks and one block differ, the ability is used at the next tick vs at the next event: %s" % str(diff))
-		return
+	assert_true(diff.is_empty(), "ticks and one block are the same: %s" % str(diff))
 	assert_eq(ticks.rng.to_save(), one.rng.to_save())

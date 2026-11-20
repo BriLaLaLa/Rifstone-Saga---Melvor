@@ -18,7 +18,7 @@ func _next_timer() -> int:
 	if _state == STATE_NODE:
 		return _cy.node.next_event_ms()
 	var next: int = mini(mini(_player_timer_ms, _frac.next_pulse_ms()),
-			_abilities.next_ms(_player_hp, player_stats().max_hp, _ward.amount, _ability_mult))
+			_abilities.next_ms(_player_hp, player_stats().max_hp, _ward.amount, _ability_mult, _ward.ms))
 	next = mini(mini(next, _frac.next_boss_ms()), _clock.next_ms())  # M28 (F-186): the Bleed clock
 	if _dg.fighting:
 		next = mini(next, _dg.next_ability_ms(_encounter))
