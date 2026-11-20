@@ -53,11 +53,15 @@ func tick(ms: int) -> void:
 
 
 ## Ms to the next ability use during an encounter (0 = ready now), `NO_TIMER` if none can happen.
-func next_ms(hp: int, max_hp: int, ward_amount: int = 0, mult_of: Callable = Callable()) -> int:
+## M28-08b: `ward_ms` is the time the Ward has left; a `ward` ability that the Ward blocks becomes usable when it ends (event).
+func next_ms(hp: int, max_hp: int, ward_amount: int = 0, mult_of: Callable = Callable(), ward_ms: int = 0) -> int:
 	var next: int = NO_TIMER
 	for def: AbilityDef in _session.loadout.active_abilities():
+		var wait: int = maxi(_timer(def), _buffs.get(def.id, 0))  # a buff is used again once it ends
 		if _usable(def, hp, max_hp, ward_amount, mult_of):
-			next = mini(next, maxi(_timer(def), _buffs.get(def.id, 0)))  # a buff is used again once it ends
+			next = mini(next, wait)
+		elif def.kind == AbilityDef.KIND_WARD and ward_ms > 0 and _ward_amount_of(def, max_hp, mult_of) > 0:
+			next = mini(next, maxi(wait, ward_ms))  # once the Ward is gone the amount is above 0
 	return next
 
 
