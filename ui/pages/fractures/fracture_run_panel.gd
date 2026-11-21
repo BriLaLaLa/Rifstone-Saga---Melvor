@@ -1,13 +1,18 @@
 class_name FractureRunPanel
 extends VBoxContainer
 ## The Fracture in progress (docs/05_INTERFACES.md §7.v): grade, "Gruppo N/30" bar, the boss, the active modifiers and the
-## Fracture bag. Everything is read from `session.fractures.state()` at every `redraw`; the panel keeps no data.
+## Fracture bag list (`FractureBagList`, kept between redraws for its open details). Everything is read from
+## `session.fractures.state()` at every `redraw`.
 
 const SEPARATION: int = 8
 const BAR_HEIGHT: int = 18
 
 
+var _bag_list: FractureBagList = FractureBagList.new()
+
+
 func _init() -> void:
+	_bag_list.name = "BagList"
 	add_theme_constant_override("separation", SEPARATION)
 
 
@@ -15,7 +20,8 @@ func _init() -> void:
 func redraw(session: GameSession) -> void:
 	for child: Node in get_children():
 		remove_child(child)
-		child.queue_free()
+		if child != _bag_list:
+			child.queue_free()
 	var state: Dictionary = session.fractures.state()
 	visible = not state.is_empty()
 	if state.is_empty():
@@ -34,8 +40,9 @@ func redraw(session: GameSession) -> void:
 				FractureTexts.effect_line(effect)], &"")
 		add_child(line)
 	add_child(_label("BagTitle", FractureTexts.BAG_TITLE_TEXT, &"HeaderLabel"))
-	var bag_text: String = FractureTexts.bag_text(state["bag"] as Dictionary)
-	add_child(_label("BagText", bag_text if bag_text != "" else FractureTexts.BAG_EMPTY_TEXT, &"MutedLabel"))
+	add_child(_label("BagRule", FractureTexts.BAG_RULE_TEXT, &"MutedLabel"))
+	add_child(_bag_list)
+	_bag_list.redraw(session)
 
 
 func _progress(state: Dictionary) -> VBoxContainer:
@@ -72,3 +79,8 @@ func _label(node_name: String, text: String, variation: StringName) -> Label:
 	if variation != &"":
 		label.theme_type_variation = variation
 	return label
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE and is_instance_valid(_bag_list) and _bag_list.get_parent() == null:
+		_bag_list.free()

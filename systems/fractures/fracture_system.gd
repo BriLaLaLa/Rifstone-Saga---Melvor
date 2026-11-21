@@ -40,6 +40,20 @@ func state() -> Dictionary:
 		"boss": _run.boss_started, "bag": counts}
 
 
+## Read-only list of the Fracture bag for the UI (M29-02): `{"stacks": [{"item", "qty"}], "pieces": Array[ItemInstance],
+## "cards": Array[MapCard]}` in insertion order, all copies; `{}` outside the Fracture.
+func bag_contents() -> Dictionary:
+	if _run == null:
+		return {}
+	var pieces: Array[ItemInstance] = []
+	for inst: ItemInstance in _run.bag.pieces():
+		pieces.append(inst.duplicate_instance())
+	var cards: Array[MapCard] = []
+	for card: MapCard in _run.bag.cards():
+		cards.append(card.duplicate_card())
+	return {"stacks": _run.bag.stacks(), "pieces": pieces, "cards": cards}
+
+
 ## unknown_id, fracture_active, fracture_bag_pending (in this order). The Card is consumed now.
 func open(card_uid: int) -> CommandResult:
 	if not _session.cards.has(card_uid):

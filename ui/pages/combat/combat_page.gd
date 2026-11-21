@@ -136,6 +136,7 @@ func bind(session: GameSession) -> void:
 	_connect(events.food_changed, _on_food_changed)
 	_connect(events.bank_changed, resync.unbind(3))
 	_connect(events.loot_bag_changed, resync.unbind(2))
+	_connect(events.fracture_bag_changed, resync.unbind(3))
 	_connect(events.equipment_changed, _on_equipment_changed)
 	_connect(events.combat_hit, _on_combat_hit)
 	_connect(events.combat_condition_damage, _feed.condition_damage)

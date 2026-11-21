@@ -43,7 +43,7 @@ func test_shows_grade_group_modifiers_and_empty_bag() -> void:
 	assert_not_null(mod)
 	assert_true(mod.text.begins_with(_s.data.map_mod(&"sturdy").name), mod.text)
 	assert_true(mod.text.contains("PV dei mostri +"), mod.text)
-	assert_eq(_label("BagText").text, FractureTexts.BAG_EMPTY_TEXT)
+	assert_not_null(_label("BagEmpty"))
 
 
 func test_without_modifiers_says_so() -> void:
@@ -62,11 +62,11 @@ func test_progress_and_boss_follow_the_run() -> void:
 	assert_eq(bar.value, bar.max_value, "the bar is full at the boss")
 
 
-func test_bag_text_counts_what_was_collected() -> void:
+func test_bag_list_shows_what_was_collected() -> void:
 	assert_true(_s.fractures.open(FractureUtil.card(_s, 1)).ok)
 	_s.fractures.run().bag.add_stack(&"test_log", 4)  # stands in for the loot of a kill (the engine fills it in play)
 	_panel.redraw(_s)
-	assert_eq(_label("BagText").text, "1 tipo di oggetto")
+	assert_eq((_panel.find_child("BagList", true, false) as Control).get_child_count(), 1)
 	_s.fractures.run().bag.add_stack(&"test_twig", 1)
 	_panel.redraw(_s)
-	assert_eq(_label("BagText").text, "2 tipi di oggetti")
+	assert_eq((_panel.find_child("BagList", true, false) as Control).get_child_count(), 2)

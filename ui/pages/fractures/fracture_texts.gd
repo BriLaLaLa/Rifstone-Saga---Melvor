@@ -153,3 +153,10 @@ const RISK_TOTAL_TEXT: String = "Rischio %s / %s"
 static func risk_total_text(card: MapCard, data: GameData) -> String:
 	return RISK_TOTAL_TEXT % [NumberFormat.format_number(snappedf(MapCardRoller.total_risk_points(card.mods, data), 0.1)),
 			NumberFormat.format_number(snappedf(MapCardRoller.risk_cap(card.grade, data), 0.1))]
+
+const BAG_RULE_TEXT: String = "Si ritira alla vittoria sul boss. Se muori o abbandoni, la borsa è persa."
+const BAG_SHOW_TEXT: String = "dettagli"
+const BAG_HIDE_TEXT: String = "chiudi"
+const BAG_NO_DETAIL_TEXT: String = "Nessun affisso."
+const COMBAT_BAG_TEXT: String = "Borsa della Frattura: %s"
+const COMBAT_BAG_TOOLTIP: String = "Si ritira alla vittoria sul boss, si perde se muori o abbandoni."
