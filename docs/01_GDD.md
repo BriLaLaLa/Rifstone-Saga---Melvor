@@ -1131,3 +1131,7 @@ Vendi subito per Posta, UI). Salvataggio alla **versione 11** (migrazione v10 �
 ## 40. Abilità e tratti v2 (M28)
 In file separato: [`01_GDD_M28.md`](01_GDD_M28.md) (V35-V36). Estende §20: condizioni (Sanguinamento, Fiacchezza, Breccia, Sbilanciamento, Riparo), 19 abilità (tipo `ward` e parametri
 nuovi dei colpi), 31 tratti (12 tipi di effetto nuovi), slot invariati. Salvataggio **v11** con aggiunte additive (§40.8). Domande Q171-Q182 in `OPEN_QUESTIONS.md`.
+
+## 41. Tutorial obbligatorio e incarichi «Primi passi» (M30)
+In file separato: [`01_GDD_M30.md`](01_GDD_M30.md) (V39). Estende §1.1 (stato iniziale) e §14 (Suggerimenti): tutorial guidato di 21 passi alla prima partita (non saltabile, riprende dal passo), pagine
+chiuse finché non scoperte, 20 incarichi «Primi passi» per sistema con ricompense piccole per Posta. Salvataggio **v12** (migrazione v11 → v12: gli slot esistenti hanno il tutorial completato). Domande Q186-Q192 in `OPEN_QUESTIONS.md`.

@@ -948,3 +948,6 @@ In file separato: [`04_DATA_SCHEMA_M27.md`](04_DATA_SCHEMA_M27.md): `currency`, 
 
 ## 33. Abilità e tratti v2 (M28; V35-V36, `01_GDD_M28.md` §40, `02_FORMULAS_M28.md` F-185…F-194)
 In file separato: [`04_DATA_SCHEMA_M28.md`](04_DATA_SCHEMA_M28.md): `combat.conditions`, applicazione di una condizione, parametri nuovi delle abilità e tipo `ward`, tipi di effetto dei tratti di F-192, contenuto di `rift_blade.json`.
+
+## 34. Tutorial e incarichi «Primi passi» (M30; V39, `01_GDD_M30.md` §41)
+In file separato: [`04_DATA_SCHEMA_M30.md`](04_DATA_SCHEMA_M30.md): `data/tutorial/steps.json` e `starter_quests.json`, grammatica delle condizioni (`ack`, `event`, `metric`), id dei bersagli della UI, kind di Posta `tutorial_gift` e `starter_reward`, controlli del validatore.

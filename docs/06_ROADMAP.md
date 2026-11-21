@@ -346,11 +346,23 @@ Ordine: 02 refactor → 03 motore (da solo) → 04 abilità ∥ 05 tratti → 06
 classico ma in modo diverso; `sim_combat` mostra che nessun tratto né abilità domina e che il migliore equipaggiamento non supera di oltre il 15% quello di M27; un salvataggio di M27 si carica
 identico e 12 ore offline danno lo stesso stato del gioco acceso.
 
-## M29+: Seconda classe, altri dungeon e boss (dopo M28; era M28+)
+## M30: Tutorial obbligatorio e incarichi «Primi passi»
+Progettata da M30-01 (V39, `01_GDD_M30.md` §41, `04_DATA_SCHEMA_M30.md` §34, `05_INTERFACES_M30.md`, task in `07_TASKS_M30.md`, Q186-Q192). Una **partita nuova** parte con un tutorial guidato di
+21 passi non saltabile (si salva e si riprende dal passo): overlay con pannello e cornice sul bersaglio, barra laterale e barra in alto bloccate (salvo il tasto menu), pagine chiuse finché non
+scoperte, passi "visita e leggi" per Villaggio, Bacheca, Casa d'Aste, Fratture e Dungeon (non ancora sbloccati) e un regalo per Posta al passo della Posta. Finito il tutorial, **20 incarichi «Primi
+passi»** (uno o due per sistema, tutti disponibili insieme, ricompense piccole per Posta) spingono a provare ogni sistema; riquadro nella barra laterale e pagina dedicata. Save **v12**
+(`migration_11_to_12`: gli slot esistenti hanno il tutorial completato e i Primi passi attivi). Dati in `data/tutorial/`. Fuori scope: ripetere il tutorial, tutorial per classi future, ritaratura (Q188).
+Ordine: 02 CORE (da solo) → 03 DATA ∥ 04 UI → 05 QA → 06 integrazione.
+**Giocabile**: una partita nuova mostra il benvenuto, guida a equipaggiare, avviare il combattimento, vedere il triangolo, aprire Deposito, Shop e Altare, imparare un mestiere, ritirare la Posta, leggere
+Villaggio, Bacheca, Casa d'Aste, Fratture, Dungeon e Guida; nessun passo è irraggiungibile e un salvataggio a metà riprende dal passo; uno slot di M29 si carica senza tutorial e con i Primi passi;
+la barra laterale mostra il riquadro, la pagina «Primi passi» raggruppa i 20 incarichi, riscuotere consegna un messaggio in Posta; 12 ore offline danno lo stesso stato del gioco acceso.
+
+## M31+: Seconda classe, altri dungeon e boss (dopo M30; era M29+)
 Seconda classe con le sue armi (es. arco o bastone, con i suoi progetti e componenti del Falegname), supporti delle abilità, altri dungeon (solo dati: il sistema di M22 è generico), livelli di difficoltà dei dungeon, altri boss, elementi e resistenze;
 pozioni (Q112), attrezzo dell'Erboristeria (Q111), colori e mercante dell'Incisore (Q148).
 
 ## Percorso critico e parallelismo
+- M30: M30-01 → M30-02 → (M30-03 ∥ M30-04) → M30-05 → M30-06. 02 posa tutto il contratto (dati, sessione, save v12, segnali, Posta, hint, `TestFactory`) con dati segnaposto e va da solo; 03 (`data/tutorial/**`, `tests/data/**`) e 04 (`ui/**`, `tests/ui/**`) hanno file disgiunti.
 - M28: M28-01 → M28-02 → M28-03 → (M28-04 ∥ M28-05) → M28-06 → (M28-07 ∥ M28-08) → [M28-09] → M28-10. 02 e 03 toccano il motore (`combat_fight.gd` a 397 righe) e vanno da soli; 03 posa tutti i
   punti di chiamata con default neutri, così abilità (04) e tratti (05) hanno file disgiunti; poi UI (07) e QA (08) sono disgiunti. L'utente corregge l'elenco di §40.6-§40.7 prima di 03.
 - M27: M27-01 → M27-02 → M27-03 → (M27-04 ∥ M27-05) → (M27-06 ∥ M27-07) → (M27-08 ∥ M27-09) → M27-10. M27-02 e M27-03 cambiano l'unità del denaro ovunque e vanno da soli (03 parte dal branch di 02; suite completa dopo 03); poi le coppie hanno file disgiunti (UI/core della Posta, core della Casa d'Aste/UI della Posta, UI della Casa d'Aste/QA).
