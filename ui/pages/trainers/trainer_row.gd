@@ -98,6 +98,8 @@ func refresh(session: GameSession) -> void:
 	var hint: StringName = &""
 	if not learned:
 		_status.text = TrainersTexts.NOT_LEARNED_TEXT
+		if disciplines.is_free_slot(id):
+			_status.text += "  (%s)" % TrainersTexts.FREE_SLOT_TEXT
 		var first: TrainerGradeDef = data.trainer_grade(1)
 		_level.text = TrainersTexts.LEVEL_UNLEARNED_TEXT % NumberFormat.format_int(first.cap if first != null else 0)
 		var gold: int = disciplines.next_grade_cost(id)
@@ -108,6 +110,8 @@ func refresh(session: GameSession) -> void:
 	else:
 		var grade_def: TrainerGradeDef = data.trainer_grade(grade)
 		_status.text = TrainersTexts.GRADE_TEXT % [grade_def.name if grade_def != null else "", NumberFormat.format_int(cap)]
+		if disciplines.is_free_slot(id):
+			_status.text += "  (%s)" % TrainersTexts.FREE_SLOT_TEXT
 		if disciplines.is_extra(id):
 			_status.text += "  (%s)" % TrainersTexts.EXTRA_SLOT_TEXT
 		_level.text = TrainersTexts.LEVEL_TEXT % [NumberFormat.format_int(session.skills.get_level(id)),

@@ -93,8 +93,11 @@ func _refresh() -> void:
 	_gold_label.caption = TrainersTexts.GOLD_CAPTION
 	_gold_label.set_amount(_session.wallet.get_gold(), _session.data.currency())
 	for category: StringName in _titles:
-		var total: int = _session.disciplines.learned(category).size() + _session.disciplines.free_slots(category)
-		_titles[category].text = TrainersTexts.title(category, _session.disciplines.learned(category).size(), total)
+		var used: int = 0
+		for skill_id: StringName in _session.disciplines.learned(category):
+			if not _session.disciplines.is_free_slot(skill_id):
+				used += 1
+		_titles[category].text = TrainersTexts.title(category, used, used + _session.disciplines.free_slots(category))
 	for row: TrainerRow in _rows.values():
 		row.refresh(_session)
 

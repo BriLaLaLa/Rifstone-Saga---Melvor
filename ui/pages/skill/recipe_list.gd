@@ -64,7 +64,16 @@ func setup(data: GameData, skill_id: StringName) -> void:
 		_specials[ProfessionCategories.MERCHANT_PAGE] = merchant
 	for section: Dictionary in ProfessionCategories.sections(skill_id):
 		_add_section(StringName(section["id"]), str(section["label"]))
-	for action: ActionDef in data.actions_for_skill(skill_id):
+	var ordered: Array[ActionDef] = data.actions_for_skill(skill_id)
+	if ProfessionCategories.sections(skill_id).size() == 1:  # one plain list: by level, equal levels keep the data order
+		var indexed: Array[Array] = []
+		for i: int in ordered.size():
+			indexed.append([ordered[i].level, i, ordered[i]])
+		indexed.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0] or (a[0] == b[0] and a[1] < b[1]))
+		ordered.clear()
+		for entry: Array in indexed:
+			ordered.append(entry[2])
+	for action: ActionDef in ordered:
 		if action.id == BlueprintCraft.ACTION:
 			continue
 		var section_id: StringName = ProfessionCategories.section_of(action)
