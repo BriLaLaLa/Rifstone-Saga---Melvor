@@ -33,6 +33,7 @@ const ROUTES: Dictionary[StringName, String] = {
 	&"dungeon": "res://ui/pages/dungeon/dungeon_page.tscn",
 	ROUTE_GUIDE: "res://ui/pages/guide/guide_page.tscn",
 	ROUTE_HELP: "res://ui/pages/guide/guide_page.tscn",
+	&"starter": "res://ui/pages/starter/starter_page.tscn",  # M30-04: Primi passi
 }
 ## Skill categories drawn by the skill page (combat skills belong to the combat page).
 const SKILL_PAGE_CATEGORIES: Array[StringName] = [&"gathering", &"artisan"]
@@ -58,6 +59,10 @@ func show_page(requested_id: StringName) -> void:
 		page_id = &"dungeon"
 	if not has_page(page_id):
 		Log.warn(LOG_CATEGORY, "show_page: page '%s' is not available" % page_id)
+		return
+	# M30-04: while the tutorial is on, only the pages it has reached are open (the others are not an error).
+	if _session.tutorial != null and not _session.tutorial.is_page_open(route_of(page_id)):
+		Log.info(LOG_CATEGORY, "show_page: page '%s' is closed by the tutorial" % page_id)
 		return
 	if _page != null and _page.page_id == page_id:
 		return

@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://ui/screens/main/sidebar.gd" id="1_sidebar"]
+[ext_resource type="Script" path="res://ui/screens/main/starter_widget.gd" id="2_widget"]
 
 [node name="Sidebar" type="PanelContainer"]
 custom_minimum_size = Vector2(260, 0)
@@ -8,24 +9,32 @@ size_flags_vertical = 3
 theme_type_variation = &"HudPanel"
 script = ExtResource("1_sidebar")
 
-[node name="Scroll" type="ScrollContainer" parent="."]
+[node name="Layout" type="VBoxContainer" parent="."]
 layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Scroll" type="ScrollContainer" parent="Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="Entries" type="VBoxContainer" parent="Scroll"]
+[node name="Entries" type="VBoxContainer" parent="Layout/Scroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 2
 
-[node name="SectionTemplate" type="Label" parent="Scroll/Entries"]
+[node name="SectionTemplate" type="Label" parent="Layout/Scroll/Entries"]
+unique_name_in_owner = true
 visible = false
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 theme_type_variation = &"HeaderLabel"
 vertical_alignment = 2
 
-[node name="RowTemplate" type="Button" parent="Scroll/Entries"]
+[node name="RowTemplate" type="Button" parent="Layout/Scroll/Entries"]
+unique_name_in_owner = true
 visible = false
 custom_minimum_size = Vector2(0, 34)
 layout_mode = 2
@@ -36,7 +45,7 @@ toggle_mode = true
 alignment = 0
 clip_text = true
 
-[node name="Side" type="Label" parent="Scroll/Entries/RowTemplate"]
+[node name="Side" type="Label" parent="Layout/Scroll/Entries/RowTemplate"]
 layout_mode = 1
 anchors_preset = 11
 anchor_left = 1.0
@@ -50,3 +59,9 @@ mouse_filter = 2
 theme_type_variation = &"MutedLabel"
 horizontal_alignment = 2
 vertical_alignment = 1
+
+[node name="StarterWidget" type="PanelContainer" parent="Layout"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+script = ExtResource("2_widget")
