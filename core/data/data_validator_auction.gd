@@ -55,11 +55,15 @@ static func build(items: Array, actions: Array, tier_levels: Array, strict: bool
 					continue
 				errors.append("item '%s' (%s) is not produced by any action: classify it in the data, not in the generator" % [id, item["category"]])
 				continue
-			var tier: int = tiers.find(int(producer_level[id]))
+			# The highest tier at or below the production level (the meat recipes sit between two tiers, M32-03).
+			var tier: int = -1
+			for k: int in tiers.size():
+				if tiers[k] <= int(producer_level[id]):
+					tier = k
 			if tier >= 0:
 				buy_level = tier + 1
 			elif strict:
-				errors.append("item '%s' is produced at level %s, not one of village.woodwright_levels" % [id, producer_level[id]])
+				errors.append("item '%s' is produced at level %s, below the first of village.woodwright_levels" % [id, producer_level[id]])
 				continue
 		entries.append({"item": id, "buy_level": buy_level})
 	return {"entries": entries, "errors": errors}

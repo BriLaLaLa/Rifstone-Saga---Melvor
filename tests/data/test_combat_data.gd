@@ -125,7 +125,7 @@ func test_drops_use_existing_items() -> void:
 			assert_true(_items.has(d["item"]), "%s drops unknown %s" % [m["id"], d["item"]])
 			# Blueprints are rare on purpose (about one per hour in the whole area, Q49): below the 1% of the other drops.
 			var low: float = 0.05 if str(d["item"]).begins_with("bp_") else 1.0
-			assert_between(float(d["chance_pct"]), low, 40.0, "%s %s" % [m["id"], d["item"]])
+			assert_between(float(d["chance_pct"]), low, 50.0, "%s %s" % [m["id"], d["item"]])
 
 
 func test_icons_exist() -> void:

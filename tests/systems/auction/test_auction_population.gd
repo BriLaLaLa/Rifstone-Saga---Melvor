@@ -234,7 +234,7 @@ func test_buying_and_selling_back_always_loses_gold() -> void:
 	for def: AuctionItemDef in _data.auction_items():
 		if def.buy_level >= 1:
 			buyable.append(def)
-	assert_eq(buyable.size(), 48)
+	assert_eq(buyable.size(), 58)
 	for def: AuctionItemDef in buyable:
 		var value: int = _data.item(def.item).value
 		for i: int in 1000:

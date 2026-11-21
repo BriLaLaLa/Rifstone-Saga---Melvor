@@ -47,15 +47,15 @@ func _mentions(errors: PackedStringArray, text: String) -> bool:
 func test_the_real_data_is_valid_and_has_the_list() -> void:
 	assert_eq(_errors(func(_raw: Dictionary) -> void: pass), PackedStringArray())
 	var data: GameData = TestFactory.real_data()
-	assert_eq(data.auction_items().size(), 110)
+	assert_eq(data.auction_items().size(), 130)
 	var buyable: int = 0
 	var per_step: Dictionary = {}
 	for def: AuctionItemDef in data.auction_items():
 		if def.buy_level > 0:
 			buyable += 1
 			per_step[def.buy_level] = int(per_step.get(def.buy_level, 0)) + 1
-	assert_eq(buyable, 48)
-	assert_eq(per_step, {1: 6, 2: 6, 3: 6, 4: 6, 5: 6, 6: 6, 7: 6, 8: 6})
+	assert_eq(buyable, 58)
+	assert_eq(per_step, {1: 7, 2: 7, 3: 7, 4: 8, 5: 7, 6: 8, 7: 7, 8: 7})
 	assert_eq(data.auction_items()[0].item, &"redbirch_log", "materials first")
 	assert_eq(data.auction_item(&"riftite_plate").buy_level, 8)
 	assert_null(data.auction_item(&"test_unknown"))
@@ -76,7 +76,7 @@ func test_the_generator_tool_delegates_to_the_rule() -> void:
 	var gen: GDScript = load("res://tools/gen_auction.gd") as GDScript
 	var from_tool: Array = gen.call("entries", _all("res://data/items", "items"), _all("res://data/actions", "actions"),
 			TestFactory.real_data().balance_value("village.woodwright_levels")) as Array
-	assert_eq(from_tool.size(), 110)
+	assert_eq(from_tool.size(), 130)
 
 
 func test_generation_rule_on_a_small_table() -> void:
@@ -97,7 +97,7 @@ func test_generation_rule_on_a_small_table() -> void:
 			"by category, sort_order, id; value 0 and equipment left out")
 	var unproduced: Dictionary = DataValidatorAuction.build(items, [], [1, 10, 20])
 	assert_eq((unproduced["errors"] as PackedStringArray).size(), 2, "a component and a food nobody produces")
-	var off_tier: Dictionary = DataValidatorAuction.build(items, [{"id": "forge", "level": 2, "outputs": [{"item": "plate", "qty": 1}]}], [1, 10, 20])
+	var off_tier: Dictionary = DataValidatorAuction.build(items, [{"id": "forge", "level": 0, "outputs": [{"item": "plate", "qty": 1}]}], [1, 10, 20])
 	assert_true(_mentions(off_tier["errors"] as PackedStringArray, "woodwright_levels"))
 	var lenient: Dictionary = DataValidatorAuction.build(items, [], [1, 10, 20], false)
 	assert_eq(lenient["errors"], PackedStringArray())

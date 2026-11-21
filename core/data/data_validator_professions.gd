@@ -59,7 +59,7 @@ static func validate(v: DataValidatorRules, raw: Dictionary, strict: bool) -> vo
 		_real_data(v, actions, vendors)
 
 
-# The reagent items an action uses: never an output; an input only of a `discover` action of its own skill.
+# The reagent items an action uses: never an output; an input only of a `discover` action or of a cooking action (food output, M32-03) of its own skill.
 static func _reagent_use(v: DataValidatorRules, a: Dictionary, skill: StringName) -> void:
 	v.at_entry("action", 0, a)
 	for entry: Variant in (a.get("outputs", []) as Array if a.get("outputs") is Array else []):
@@ -69,7 +69,7 @@ static func _reagent_use(v: DataValidatorRules, a: Dictionary, skill: StringName
 		if not entry is Dictionary or not _is_reagent(v, (entry as Dictionary).get("item")):
 			continue
 		var item_id: String = (entry as Dictionary)["item"] as String
-		if not (a.get("discover") is bool and a["discover"]):
+		if not ((a.get("discover") is bool and a["discover"]) or _makes_food(v, a)):
 			v.fail("reagent '%s' is an input of an action without 'discover: true'" % item_id)
 		elif reagent_skill(item_id) != skill:
 			v.fail("reagent '%s' is an input of an action of another skill" % item_id)
@@ -81,6 +81,16 @@ static func reagent_skill(item_id: String) -> StringName:
 	if not item_id.begins_with(REAGENT_PREFIX) or cut <= REAGENT_PREFIX.length() or not item_id.substr(cut + 1).is_valid_int():
 		return &""
 	return StringName(item_id.substr(REAGENT_PREFIX.length(), cut - REAGENT_PREFIX.length()))
+
+
+# True when an output of the action is a food (the meat recipes of the Cuoco are always known, M32-03).
+static func _makes_food(v: DataValidatorRules, a: Dictionary) -> bool:
+	for entry: Variant in (a.get("outputs", []) as Array if a.get("outputs") is Array else []):
+		if entry is Dictionary and (entry as Dictionary).get("item") is String \
+				and v.items.has(StringName((entry as Dictionary)["item"] as String)) \
+				and v.items[StringName((entry as Dictionary)["item"] as String)].get("category") == "food":
+			return true
+	return false
 
 
 static func _is_reagent(v: DataValidatorRules, item_id: Variant) -> bool:
