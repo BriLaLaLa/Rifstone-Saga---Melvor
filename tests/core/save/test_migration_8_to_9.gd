@@ -100,7 +100,7 @@ func _session_v8(learned: Array[StringName], level: int) -> Dictionary:
 
 
 func test_two_productions_and_the_engraver_extra_in_the_game() -> void:
-	var saved: Dictionary = _session_v8([&"forging", &"hearthcraft"], 30)
+	var saved: Dictionary = _session_v8([&"forging", &"woodwright"], 30)
 	var xp: int = int(((saved["modules"] as Dictionary)["skills"] as Dictionary)[E]["xp"])
 	var s: GameSession = _load(saved)
 	assert_true(s.disciplines.is_learned(E))
@@ -109,7 +109,7 @@ func test_two_productions_and_the_engraver_extra_in_the_game() -> void:
 	assert_eq(s.skills.get_xp(&"riftbinding"), xp, "no xp lost")
 	assert_eq(s.wallet.get_gold(), int(((saved["modules"] as Dictionary)["wallet"] as Dictionary)["copper"]), "no gold taken")
 	assert_eq(s.disciplines.free_slots(&"artisan"), 0)
-	assert_eq(s.disciplines.can_learn(&"woodwright").reason, Reasons.DISCIPLINE_SLOTS_FULL)
+	assert_true(s.disciplines.can_learn(&"hearthcraft").ok, "the Cook is free")
 	s.wallet.add_gold(10000000)
 	assert_true(s.disciplines.unlearn(&"forging").ok)
 	assert_false(s.disciplines.is_extra(E), "back within the limit: the extra slot goes away")
@@ -126,7 +126,7 @@ func test_one_production_the_engraver_takes_a_normal_slot() -> void:
 
 
 func test_unlearning_the_extra_engraver_removes_the_slot() -> void:
-	var s: GameSession = _load(_session_v8([&"forging", &"hearthcraft"], 30))
+	var s: GameSession = _load(_session_v8([&"forging", &"woodwright"], 30))
 	s.wallet.add_gold(10000000)
 	assert_true(s.disciplines.unlearn(E).ok)
 	assert_false(s.disciplines.is_extra(E))
@@ -135,7 +135,7 @@ func test_unlearning_the_extra_engraver_removes_the_slot() -> void:
 
 
 func test_save_load_save_is_identical() -> void:
-	var s: GameSession = _load(_session_v8([&"forging", &"hearthcraft"], 50))
+	var s: GameSession = _load(_session_v8([&"forging", &"woodwright"], 50))
 	var first: Dictionary = s.to_save(0)
 	var other: GameSession = autofree(TestFactory.session_no_kit(4, TestFactory.real_data()))
 	assert_true(other.from_save(JSON.parse_string(JSON.stringify(first)) as Dictionary).ok)
