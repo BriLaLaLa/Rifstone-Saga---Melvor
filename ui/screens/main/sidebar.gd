@@ -14,6 +14,8 @@ signal page_requested(page_id: StringName)
 
 const LOG_CATEGORY: String = "ui"
 const COMING_SOON_TEXT: String = "In arrivo"
+## Meta of a row: its tutorial target id `nav.<route>` (docs/04_DATA_SCHEMA_M30.md §34.4), found through `nav_row`.
+const NAV_META: StringName = &"nav_id"
 const LEVEL_TEXT: String = "Liv. %s"
 ## Game sections, in order: page id, group title, text, UI icon (UiStyle.icon, one distinct icon per row). The learned
 ## disciplines (Raccolta, Produzione) are inserted before the entries of the group `TAIL_GROUP` (the Guida, no title).
@@ -52,14 +54,17 @@ var _dots: Dictionary[StringName, ActiveDot] = {}
 var _available: Dictionary[StringName, bool] = {}
 
 @onready var _entries: VBoxContainer = %Entries
-@onready var _row_template: Button = $Scroll/Entries/RowTemplate
-@onready var _section_template: Label = $Scroll/Entries/SectionTemplate
+@onready var _scroll: ScrollContainer = %Scroll
+@onready var _starter_widget: StarterWidget = %StarterWidget
+@onready var _row_template: Button = %RowTemplate
+@onready var _section_template: Label = %SectionTemplate
 
 
 func _ready() -> void:
 	custom_minimum_size.x = UiStyle.SIDEBAR_WIDTH
 	_row_template.visible = false
 	_section_template.visible = false
+	_starter_widget.open_requested.connect(_on_row_pressed.bind(&"starter"))
 
 
 ## Builds the rows for `session`; `is_available` is `(page_id: StringName) -> bool`.
@@ -71,6 +76,9 @@ func bind(session: GameSession, is_available: Callable) -> void:
 	_session.events.level_up.connect(_on_events_level_up)
 	_session.events.discipline_changed.connect(_on_events_discipline_changed)
 	_session.events.mail_changed.connect(_on_mail_changed)
+	_session.events.tutorial_step_changed.connect(_on_tutorial_changed)  # M30-04: pages open as the tutorial goes
+	_session.events.tutorial_completed.connect(_on_tutorial_changed)
+	_starter_widget.bind(_session)
 	for sig: Signal in _work_signals(_session.events):
 		sig.connect(_on_work_changed)
 	_refresh_dots()
@@ -125,6 +133,10 @@ func unbind() -> void:
 			_session.events.discipline_changed.disconnect(_on_events_discipline_changed)
 		if _session.events.mail_changed.is_connected(_on_mail_changed):
 			_session.events.mail_changed.disconnect(_on_mail_changed)
+		for sig: Signal in [_session.events.tutorial_step_changed, _session.events.tutorial_completed]:
+			if sig.is_connected(_on_tutorial_changed):
+				sig.disconnect(_on_tutorial_changed)
+		_starter_widget.unbind()
 		if _session.events.level_up.is_connected(_on_events_level_up):
 			_session.events.level_up.disconnect(_on_events_level_up)
 		for sig: Signal in _work_signals(_session.events):
@@ -170,13 +182,18 @@ func _add_row(page_id: StringName, text: String, icon: Texture2D, available: boo
 	row.text = text
 	row.icon = icon
 	row.button_group = _group
-	row.disabled = not available
+	var open: bool = _is_open(page_id)
+	row.disabled = not available or not open
 	row.visible = true
+	row.set_meta(NAV_META, "nav.%s" % PageHost.route_of(page_id))
 	_available[page_id] = available
 	row.pressed.connect(_on_row_pressed.bind(page_id))
 	if not available:
 		(row.get_node("Side") as Label).text = COMING_SOON_TEXT
 		row.tooltip_text = COMING_SOON_TEXT
+	elif not open:  # M30-04: a page of the tutorial not reached yet
+		row.tooltip_text = TutorialTexts.CLOSED_PAGE_HINT
+		row.modulate = UiStyle.TUTORIAL_CLOSED_MODULATE
 	_entries.add_child(row)
 	var dot := ActiveDot.new()
 	row.add_child(dot)
@@ -232,11 +249,12 @@ func _refresh_lock() -> void:
 	if row == null:
 		return
 	var locked: bool = _dungeon_on()
-	row.disabled = locked or not _available.get(&"combat", false)
+	var open: bool = _is_open(&"combat")
+	row.disabled = locked or not open or not _available.get(&"combat", false)
 	if locked:
 		row.tooltip_text = DungeonTexts.COMBAT_LOCKED_TEXT
 	elif _available.get(&"combat", false):
-		row.tooltip_text = ""
+		row.tooltip_text = "" if open else TutorialTexts.CLOSED_PAGE_HINT
 
 
 ## Lights the dot of the combat and of the discipline at the head of the production queue (and of the one whose node is
@@ -283,6 +301,33 @@ func _refresh_mail() -> void:
 		return
 	var unread: int = _session.mail.unread()
 	(row.get_node("Side") as Label).text = NumberFormat.format_int(unread) if unread > 0 else ""
+
+
+## True if the tutorial leaves the page of `page_id` open (always, once it is completed).
+func _is_open(page_id: StringName) -> bool:
+	return _session == null or _session.tutorial == null or _session.tutorial.is_page_open(PageHost.route_of(page_id))
+
+
+## The row of the page `route` (for `skill`: the first learned discipline), the control the tutorial lights; null if none.
+func nav_row(route: StringName) -> Button:
+	for id: StringName in _rows:
+		if id == route or (route == PageHost.ROUTE_SKILL and PageHost.route_of(id) == route):
+			return _rows[id]
+	return null
+
+
+## Scrolls the list so that the row of `route` is on screen.
+func reveal(route: StringName) -> void:
+	var row: Button = nav_row(route)
+	if row != null:
+		_scroll.ensure_control_visible.call_deferred(row)
+
+
+func _on_tutorial_changed(_a: Variant = null, _b: Variant = null, _c: Variant = null) -> void:
+	_build_rows()
+	_refresh_dots()
+	_refresh_lock()
+	_starter_widget.refresh()
 
 
 func _on_row_pressed(page_id: StringName) -> void:

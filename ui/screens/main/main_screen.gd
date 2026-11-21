@@ -16,6 +16,7 @@ extends Control
 
 const LOG_CATEGORY: String = "ui"
 const FALLBACK_PAGE := &"bank"
+const TUTORIAL_SCENE: String = "res://ui/screens/tutorial/tutorial_overlay.tscn"
 
 ## Session to show; null = `Game.session`.
 var session: GameSession = null
@@ -25,6 +26,7 @@ var menu_action: Callable = Callable()
 var _session: GameSession = null
 var _toasts: ToastManager = null
 var _hint_card: HintCard = null
+var _tutorial_overlay: TutorialOverlay = null
 var _settings: SettingsPanel = null
 
 @onready var _background: ColorRect = %Background
@@ -66,8 +68,13 @@ func _bind(target: GameSession) -> void:
 	_hint_card = HintCard.new()
 	_hint_card.name = "HintCard"
 	add_child(_hint_card)
+	_hint_card.is_blocked = _hints_blocked  # M30-04: no hint card while the tutorial is on
+	_session.events.tutorial_completed.connect(_hint_card.refresh)
 	_hint_card.bind(_session)
 	_page_host.show_page(_first_page())
+	if _page_host.current_page_id() == &"" and _page_host.has_page(_session.tutorial.required_route()):  # the first page is closed by the tutorial
+		_page_host.show_page(_session.tutorial.required_route())
+	_add_tutorial_overlay()
 	# Production only (no injected session): the summary of the time away, once.
 	if session == null and Game.last_offline_summary != null:
 		var summary_view: OfflineSummaryView = OfflineSummaryView.open(self, Game.last_offline_summary, _session.data)
@@ -81,7 +88,15 @@ func _unbind() -> void:
 		return
 	if is_instance_valid(_session) and _session.events.session_ended.is_connected(_on_events_session_ended):
 		_session.events.session_ended.disconnect(_on_events_session_ended)
+	if _tutorial_overlay != null and is_instance_valid(_tutorial_overlay):
+		_tutorial_overlay.unbind()
+		if _tutorial_overlay.get_parent() == self:
+			remove_child(_tutorial_overlay)
+		_tutorial_overlay.queue_free()
+	_tutorial_overlay = null
 	if _hint_card != null:
+		if is_instance_valid(_session) and _session.events.tutorial_completed.is_connected(_hint_card.refresh):
+			_session.events.tutorial_completed.disconnect(_hint_card.refresh)
 		_hint_card.unbind()
 		remove_child(_hint_card)
 		_hint_card.queue_free()
@@ -128,6 +143,23 @@ func _on_sidebar_page_requested(page_id: StringName) -> void:
 
 func _on_page_host_page_changed(page_id: StringName) -> void:
 	_sidebar.set_current(page_id)
+	if _session != null and _session.tutorial != null:
+		_session.tutorial.notify_page_opened(page_id)  # M30-04: the tutorial only learns which page is shown
+
+
+## The tutorial overlay, above the hint card, while the tutorial is active (it frees itself when it ends).
+func _add_tutorial_overlay() -> void:
+	if _session.tutorial == null or not _session.tutorial.is_active():
+		return
+	_tutorial_overlay = (load(TUTORIAL_SCENE) as PackedScene).instantiate() as TutorialOverlay
+	_tutorial_overlay.name = "TutorialOverlay"
+	add_child(_tutorial_overlay)
+	_tutorial_overlay.bind(_session, _page_host, _sidebar, _top_bar)
+
+
+## The hint card waits while the game is offline or the tutorial is on.
+func _hints_blocked() -> bool:
+	return Game.state == Game.STATE_OFFLINE or (_session != null and _session.tutorial != null and _session.tutorial.is_active())
 
 
 func _on_events_session_ended(_slot: int) -> void:

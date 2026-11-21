@@ -345,3 +345,28 @@ const LOCKED_CELL_ICON_SIDE: int = 40
 const LOCKED_ICON_SHADE := Color(0.0, 0.0, 0.0, 0.55)
 const LOCKED_CELL_BORDER_WIDTH: int = 1
 const LOCKED_CELL_RADIUS: float = 4.0
+
+
+# --- Tutorial overlay and starter quests (M30-04, docs/05_INTERFACES_M30.md §7.ab) ---
+const TUTORIAL_PANEL_WIDTH: float = 440.0
+const TUTORIAL_PANEL_MAX_HEIGHT: float = 240.0
+const TUTORIAL_PANEL_MARGIN: float = 16.0
+const TUTORIAL_PANEL_SEPARATION: int = 8
+const TUTORIAL_FRAME_WIDTH: int = 3
+const TUTORIAL_FRAME_PADDING: float = 4.0
+const TUTORIAL_FRAME_COLOR := Color("f1d27a")
+const TUTORIAL_FRAME_RADIUS: int = 6
+const TUTORIAL_PAGE_AREA_RATIO: float = 0.9
+const TUTORIAL_PULSE_SEC: float = 1.2
+const TUTORIAL_NAV_PULSE_ALPHA: float = 0.55
+const STARTER_WIDGET_MARGIN: int = 8
+const STARTER_WIDGET_SEPARATION: int = 4
+const STARTER_WIDGET_BAR_HEIGHT: float = 10.0
+const STARTER_DOT_SIDE: float = 10.0
+const STARTER_MARGIN: int = 16
+const STARTER_SECTION_SEPARATION: int = 10
+const STARTER_ROW_SEPARATION: int = 6
+const STARTER_BAR_WIDTH: float = 200.0
+const STARTER_DONE_MODULATE := Color(1, 1, 1, 0.55)
+const TUTORIAL_CLOSED_MODULATE := Color(1, 1, 1, 0.6)
+const TUTORIAL_PANEL_TEXT_INSET: float = 48.0
