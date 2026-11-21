@@ -1,6 +1,6 @@
 extends GutTest
 ## M30-05: the whole tutorial on a real session (real data, a new game with the tutorial active, no helper that learns or equips):
-## for each of the 21 steps the player's action is done on the model, the step ends and the next one begins; at the end
+## for each of the 22 steps the player's action is done on the model, the step ends and the next one begins; at the end
 ## `tutorial_completed` and the starter quests are active (docs/01_GDD_M30.md §41.4, docs/05_INTERFACES_M30.md §5.41).
 
 const AREA: StringName = &"redrock_plains"
@@ -54,10 +54,10 @@ func _act(s: GameSession, id: StringName) -> void:
 			assert_true(s.equipment.equip(uid).ok)
 		&"combat_start":
 			assert_true(s.combat.start(AREA).ok)
-		&"combat_kills":
+		&"combat_kills", &"combat_eat":
 			var step_index: int = s.tutorial.step_index()
 			var ticks: int = _advance_until(s, func() -> bool: return s.tutorial.step_index() != step_index)
-			assert_lt(ticks, MAX_TICKS, "three kills happen")
+			assert_lt(ticks, MAX_TICKS, "the step ends by itself (three kills, the meal)")
 		&"trainers":
 			assert_true(s.disciplines.learn(&"forestry").ok)
 		&"nodes":
@@ -81,7 +81,7 @@ func test_new_game_starts_the_tutorial_with_nothing_learned() -> void:
 	var s: GameSession = autofree(new_game_session())
 	assert_true(s.tutorial.is_active())
 	assert_eq(s.tutorial.step_index(), 0)
-	assert_eq(s.tutorial.step_count(), 21)
+	assert_eq(s.tutorial.step_count(), 22)
 	assert_true(s.disciplines.learned(&"gathering").is_empty(), "no discipline at the start (step 11 is reachable)")
 	assert_false(s.tutorial.starter.is_enabled(), "the starter quests wait for the end")
 
