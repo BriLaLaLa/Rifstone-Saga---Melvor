@@ -5,6 +5,8 @@ extends CombatFight
 
 const SAVE_KEY: StringName = &"combat"
 
+var _frozen: bool = false  # M31: set by the tutorial, derived from its step, never saved
+
 
 ## unknown_id, requirement_not_met (character level), fracture_active, dungeon_active. Stops the main-lane action. The area already
 ## fought: no change.
@@ -258,10 +260,38 @@ func get_state() -> Dictionary:
 			"dungeon": _dg.view(_state) if _dg.active() else {}})
 
 
+## M31 (docs/M31_RITOCCHI_TUTORIAL.md §3.1), only `TutorialSystem`: while frozen `advance` consumes nothing and rolls nothing. Not saved.
+func set_frozen(frozen: bool) -> void:
+	_frozen = frozen
+
+
+func is_frozen() -> bool:
+	return _frozen
+
+
+## M31 (§4), only `TutorialSystem`: the next journey is a node of the first learned discipline of the area. Not saved.
+func set_force_node(on: bool) -> void:
+	_cy.force_node = on
+
+
+func is_force_node() -> bool:
+	return _cy.force_node
+
+
+## M31 (§3.1), only `TutorialSystem`: hp = min(hp, ceil(max_hp x pct / 100)), never under 1. Nothing while idle, in a Fracture or a dungeon.
+func wound_to_pct(pct: int) -> void:
+	if _state == STATE_IDLE or _frac.active() or _dg.active():
+		return
+	var limit: int = maxi(1, (player_stats().max_hp * pct + 99) / 100)
+	_set_hp(mini(_player_hp, limit))
+
+
 ## Jumps to the next timer that expires, resolves that instant (F-76), repeats; the rest stays in the timers.
 func advance(delta_ms: int) -> void:
+	if _frozen:  # M31: the instant of the meal was the last one (the time of the block is lost, play time goes on)
+		return
 	var remaining: int = delta_ms
-	while _state != STATE_IDLE and remaining >= 0:
+	while _state != STATE_IDLE and remaining >= 0 and not _frozen:
 		var next: int = _next_timer()
 		if next > remaining:
 			_consume(remaining)
@@ -277,6 +307,8 @@ func advance(delta_ms: int) -> void:
 
 
 func new_game() -> void:
+	_frozen = false
+	_cy.force_node = false
 	_apply(CombatSave.read({}, _session.data))
 	_stop_log = []
 	_stats = [null, null]

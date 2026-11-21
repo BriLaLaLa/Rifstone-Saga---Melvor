@@ -10,6 +10,7 @@ var next: Dictionary = {}  # {"kind", "skill"} while travelling
 var node: NodeWork = null
 var worked: int = 0
 var skipped: int = 0
+var force_node: bool = false  # M31 (docs/M31_RITOCCHI_TUTORIAL.md §4): set by the tutorial, never saved
 
 var _session: GameSession
 
@@ -23,7 +24,7 @@ func begin_travel(area_id: StringName, forced_fight: bool) -> void:
 	travel_total_ms = int(_session.data.balance_value("encounters.travel_ms"))
 	travel_ms = travel_total_ms
 	node = null
-	next = EncounterCycle.next_kind(_session, area_id, forced_fight)
+	next = EncounterCycle.next_kind(_session, area_id, forced_fight, force_node)
 
 
 ## Journey and node gone (the counters stay).

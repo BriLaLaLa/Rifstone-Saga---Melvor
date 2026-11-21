@@ -107,5 +107,5 @@ func test_weak_gear_sword_shield() -> void:
 
 
 func test_weak_gear_dual() -> void:
-	assert_eq(_run(&"whisper_wood", &"dual", -4, 3, 30),
+	assert_eq(_run(&"whisper_wood", &"dual", -4, 3, 20),  # M31: kit 30 + 20 = the 50 food of the numbers
 			{"deaths": 180, "events": 16145, "food": 50, "hash": 9021191194629548746, "kills": 353, "rng": 1132470544})

@@ -2,10 +2,10 @@
   "pages": [
     {"id": "guide_tutorial", "section": "first_steps", "title": "Tutorial e Primi passi", "order": 2, "help_for": ["starter"],
      "blocks": [
-       {"type": "text", "text": "Una nuova partita comincia con un breve tutorial: un passo alla volta ti mostra le pagine del gioco e ti chiede di provare i comandi principali. Si completa con il pulsante Avanti o facendo ciò che il passo descrive. Se un passo si blocca, dopo un po' compare Continua comunque."},
+       {"type": "text", "text": "Una nuova partita comincia con un breve tutorial: un passo alla volta ti mostra le pagine del gioco e ti chiede di provare i comandi principali. Si completa con Avanti o facendo ciò che il passo descrive; quando mangi per la prima volta il combattimento resta in pausa finché premi Ok. Se un passo si blocca, dopo un po' compare Continua comunque."},
        {"type": "text", "text": "Puoi uscire dal menu quando vuoi: al ritorno riparti dal passo in cui eri. Finché il tutorial è in corso alcune pagine restano chiuse e i Suggerimenti non compaiono."},
        {"type": "heading", "text": "Gli incarichi Primi passi"},
-       {"type": "text", "text": "A tutorial finito trovi nella barra laterale gli incarichi Primi passi: sono raggruppati per sistema e si possono fare in qualsiasi ordine. Ognuno chiede di provare qualcosa di nuovo e premia con monete, oggetti o esperienza. Il premio non arriva da solo: premi Riscuoti e ritiralo dalla {link:page:guide_mail|Posta}."},
+       {"type": "text", "text": "A tutorial finito trovi nella barra laterale gli incarichi Primi passi: sono raggruppati per sistema e si possono fare in qualsiasi ordine. Ognuno chiede di provare qualcosa di nuovo e premia con monete, oggetti o esperienza. Premi Riscuoti e ritira il premio dalla {link:page:guide_mail|Posta}. Con tutti gli incarichi riscossi arriva anche un bonus finale, un oggetto da collezione con cibo ed esperienza."},
        {"type": "links", "targets": ["page:guide_first_steps", "page:guide_mail", "page:guide_bank_shop"]}
      ]}
   ]

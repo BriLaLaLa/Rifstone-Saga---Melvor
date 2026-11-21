@@ -12,6 +12,7 @@ var _events: GameEvents
 var _tutorial_ref: WeakRef  # weak: the tutorial owns this object, a strong link would be a cycle that outlives the session
 var _active: bool = false
 var _claimed: Dictionary[StringName, bool] = {}
+var _final_claimed: bool = false  # M31: the final bonus (saved as `final_claimed`)
 var _counts: Dictionary[StringName, int] = {}  # counted events, by quest
 var _notified: Dictionary[StringName, bool] = {}  # starter_quest_completed already given (volatile)
 var _connected: Dictionary[StringName, bool] = {}  # signals listened to
@@ -121,6 +122,59 @@ func claim(quest_id: StringName) -> CommandResult:
 	return CommandResult.success()
 
 
+## M31 (docs/M31_RITOCCHI_TUTORIAL.md §5): the final bonus of the data (`final_reward` of starter_quests.json).
+func final_reward() -> StarterFinalDef:
+	return _data.starter_final()
+
+
+## Active, every quest claimed, the bonus not claimed yet.
+func is_final_available() -> bool:
+	return _active and claimed_count() == total() and not _final_claimed
+
+
+func is_final_claimed() -> bool:
+	return _final_claimed
+
+
+## Every quest claimed and the bonus too: the box of the UI goes away here.
+func all_done() -> bool:
+	return claimed_count() == total() and _final_claimed
+
+
+## In order: tutorial_inactive, already_claimed, quest_incomplete (not every quest claimed), mailbox_full (when a message must be posted).
+func can_claim_final() -> CommandResult:
+	if not _active:
+		return CommandResult.fail(Reasons.TUTORIAL_INACTIVE)
+	if _final_claimed:
+		return CommandResult.fail(Reasons.ALREADY_CLAIMED)
+	if claimed_count() != total():
+		return CommandResult.fail(Reasons.QUEST_INCOMPLETE)
+	var def: StarterFinalDef = final_reward()
+	if (def.reward_money > 0 or not def.reward_items.is_empty()) and _session.mail.is_full():
+		return CommandResult.fail(Reasons.MAILBOX_FULL)
+	return CommandResult.success()
+
+
+## can_claim_final, then the character xp, one `starter_reward` Mail message (money OR items), `final_claimed`, `starter_quests_changed`.
+func claim_final() -> CommandResult:
+	var can: CommandResult = can_claim_final()
+	if not can.ok:
+		return can
+	var def: StarterFinalDef = final_reward()
+	if def.reward_character_xp > 0:
+		_session.character.add_xp(def.reward_character_xp)
+	if def.reward_money > 0:
+		_session.mail.post(&"starter_reward", {"money": def.reward_money})
+	elif not def.reward_items.is_empty():
+		var rows: Array[Dictionary] = []
+		for q: ItemQty in def.reward_items:
+			rows.append({"item": q.item_id, "qty": q.qty})
+		_session.mail.post(&"starter_reward", {"items": rows})
+	_final_claimed = true
+	_events.starter_quests_changed.emit()
+	return CommandResult.success()
+
+
 ## Rereads the `page_visited` measures (the UI notifies a page through TutorialSystem; no EventBus signal exists for it).
 func on_page_visited() -> void:
 	_check_metrics(&"")
@@ -138,7 +192,7 @@ func to_save() -> Dictionary:
 			claimed.append(String(def.id))
 		elif def.goal.type == TutorialCondition.TYPE_EVENT and _counts.get(def.id, 0) > 0:
 			counts[String(def.id)] = _counts[def.id]
-	return {"claimed": claimed, "progress": counts}
+	return {"claimed": claimed, "progress": counts, "final_claimed": _final_claimed}
 
 
 ## Tolerant (Log.warn): bad lists are cleaned, unknown ids, non-event quests, non-integers and claimed quests are dropped, values are capped to `count`.
@@ -159,6 +213,11 @@ func from_save(d: Dictionary) -> void:
 			_read_count(StringName(str(key)), (counts as Dictionary)[key])
 	else:
 		Log.warn(LOG_CATEGORY, "starter 'progress' is not an object: no progress")
+	if d.has("final_claimed"):
+		if d["final_claimed"] is bool:
+			_final_claimed = d["final_claimed"] as bool
+		else:
+			Log.warn(LOG_CATEGORY, "starter 'final_claimed' is not a boolean: not claimed")
 	if (_tutorial_ref.get_ref() as TutorialSystem).is_completed():
 		activate(true)
 
@@ -180,6 +239,7 @@ func _reset() -> void:
 	_connected.clear()
 	_active = false
 	_claimed.clear()
+	_final_claimed = false
 	_counts.clear()
 	_notified.clear()
 

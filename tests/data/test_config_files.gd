@@ -16,7 +16,7 @@ const EXPECTED_BALANCE: Dictionary = {
 	"player_name.max_length": 24.0,
 	"start.gold": 5000.0,
 	"start.items.0.item": "seared_brookfin",
-	"start.items.0.qty": 20.0,
+	"start.items.0.qty": 30.0,
 	"start.armory.0.base": "emberbronze_sword",
 	"start.armory.0.equip": "weapon",
 	"start.armory.1.base": "emberbronze_greatsword",

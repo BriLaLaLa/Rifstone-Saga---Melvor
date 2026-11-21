@@ -10,5 +10,7 @@
     {"id": "eat_once", "group": "combat", "name": "A meal", "description": "Eat once.",
      "goal": {"type": "event", "signal": "food_eaten"},
      "reward": {"items": [{"item": "test_ration", "qty": 4}]}}
-  ]
+  ],
+  "final_reward": {"id": "pioneer", "name": "Pioniere", "description": "Fine dei Primi passi.",
+                   "reward": {"items": [{"item": "test_ration", "qty": 3}], "character_xp": 30}}
 }

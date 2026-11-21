@@ -60,4 +60,4 @@ func test_weak_gear_sword_shield() -> void:
 
 func test_weak_gear_dual() -> void:
 	_check(&"whisper_wood", &"dual", -4, 3,
-			{"deaths": 180, "events": 16145, "food": 50, "hash": 9021191194629548746, "kills": 353, "rng": 1132470544}, 30)
+			{"deaths": 180, "events": 16145, "food": 50, "hash": 9021191194629548746, "kills": 353, "rng": 1132470544}, 20)  # M31: the start kit gives 30 rations instead of 20: 20 + 30 = the 50 pieces of food of the expected numbers

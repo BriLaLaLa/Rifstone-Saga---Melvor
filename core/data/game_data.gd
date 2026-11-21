@@ -242,6 +242,7 @@ func tutorial_always_open() -> Array[StringName]: return _tutorial.always_open.d
 func starter_groups() -> Array[Dictionary]: return _tutorial.groups.duplicate(true)
 func starter_quests() -> Array[StarterQuestDef]: return _tutorial.quests.duplicate()
 func starter_quest(quest_id: StringName) -> StarterQuestDef: return _tutorial.quests_by_id.get(quest_id) as StarterQuestDef
+func starter_final() -> StarterFinalDef: return _tutorial.final_reward  # M31 (docs/M31_RITOCCHI_TUTORIAL.md §5)
 
 ## M22 (docs/04_DATA_SCHEMA.md §27): a dungeon by id (null and an error if unknown); all of them, by `order`; the dungeon a
 ## ticket item opens (null, without error, for any other item).

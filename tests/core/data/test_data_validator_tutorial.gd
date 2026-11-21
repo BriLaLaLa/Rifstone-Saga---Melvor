@@ -207,3 +207,109 @@ func test_page_visited_needs_a_route() -> void:
 	var raw: Dictionary = _raw()
 	_quest(raw, 0)["goal"] = {"type": "metric", "metric": "page_visited", "gte": 1}
 	_expect(raw, "needs `arg`")
+
+
+# --- M31 (docs/M31_RITOCCHI_TUTORIAL.md §2.1, §2.3) ---
+
+func _event_step(raw: Dictionary, signal_name: String, count: int = 0, index: int = 1) -> Dictionary:
+	var step: Dictionary = _step(raw, index)
+	var cond: Dictionary = {"type": "event", "signal": signal_name}
+	if count > 0:
+		cond["count"] = count
+	step["done_when"] = cond
+	return step
+
+
+func test_valid_new_fields_pass() -> void:
+	var raw: Dictionary = _raw()
+	var step: Dictionary = _event_step(raw, "monster_killed", 3)
+	step["progress_text"] = "Nemici: %d su %d"
+	_step(raw, 0)["ack_text"] = "Ok"
+	_step(raw, 0)["freeze_combat"] = true
+	_event_step(raw, "food_eaten", 0, 2)["wound_hp_pct"] = 30
+	var errors: PackedStringArray = []
+	DataValidator.validate(raw, errors)
+	assert_eq(errors, PackedStringArray())
+
+
+func test_progress_text_needs_two_placeholders() -> void:
+	var raw: Dictionary = _raw()
+	_event_step(raw, "monster_killed", 3)["progress_text"] = "Nemici: %d"
+	_expect(raw, "exactly two")
+	raw = _raw()
+	_event_step(raw, "monster_killed", 3)["progress_text"] = "Nemici: %d su %d su %d"
+	_expect(raw, "exactly two")
+
+
+func test_progress_text_needs_a_counted_event_and_a_length() -> void:
+	var raw: Dictionary = _raw()
+	_step(raw, 0)["progress_text"] = "Passi %d su %d"
+	_expect(raw, "count")
+	raw = _raw()
+	_event_step(raw, "monster_killed", 3)["progress_text"] = "Nemici sconfitti finora in questo scontro: %d su %d"
+	_expect(raw, "1..40")
+
+
+func test_ack_text_needs_ack_and_a_length() -> void:
+	var raw: Dictionary = _raw()
+	_event_step(raw, "monster_killed", 3)["ack_text"] = "Ok"
+	_expect(raw, "'ack_text' needs")
+	raw = _raw()
+	_step(raw, 0)["ack_text"] = "Va bene, ho capito"
+	_expect(raw, "1..12")
+	raw = _raw()
+	_step(raw, 0)["ack_text"] = ""
+	_expect(raw, "1..12")
+
+
+func test_freeze_combat_needs_ack() -> void:
+	var raw: Dictionary = _raw()
+	_event_step(raw, "monster_killed", 3)["freeze_combat"] = true
+	_expect(raw, "'freeze_combat' needs")
+
+
+func test_force_node_needs_a_node_started_event() -> void:
+	var raw: Dictionary = _raw()
+	_event_step(raw, "monster_killed", 3)["force_node"] = true
+	_expect(raw, "'force_node' needs")
+
+
+func test_wound_hp_pct_range_and_food_eaten() -> void:
+	var raw: Dictionary = _raw()
+	_event_step(raw, "food_eaten")["wound_hp_pct"] = 0
+	_expect(raw, "wound_hp_pct")
+	raw = _raw()
+	_event_step(raw, "food_eaten")["wound_hp_pct"] = 100
+	_expect(raw, "wound_hp_pct")
+	raw = _raw()
+	_event_step(raw, "monster_killed", 3)["wound_hp_pct"] = 30
+	_expect(raw, "'wound_hp_pct' needs")
+
+
+func test_final_reward_is_mandatory() -> void:
+	var raw: Dictionary = _raw()
+	_quests(raw).erase("final_reward")
+	_expect(raw, "'final_reward' is mandatory")
+
+
+func test_final_reward_rules() -> void:
+	var raw: Dictionary = _raw()
+	((_quests(raw)["final_reward"] as Dictionary)["reward"] as Dictionary)["money"] = 100
+	_expect(raw, "cannot be together")
+	raw = _raw()
+	var forbidden: String = ""
+	for item: ItemDef in TestFactory.fixture_data().items():
+		if item.category == &"equipment" or item.category == &"tool":
+			forbidden = String(item.id)
+			break
+	(_quests(raw)["final_reward"] as Dictionary)["reward"] = {"items": [{"item": forbidden, "qty": 1}]}
+	_expect(raw, "forbidden category")
+	raw = _raw()
+	(_quests(raw)["final_reward"] as Dictionary)["reward"] = {"character_xp": 5000}
+	_expect(raw, "character_xp")
+	raw = _raw()
+	(_quests(raw)["final_reward"] as Dictionary)["name"] = ""
+	_expect(raw, "'name'")
+	raw = _raw()
+	(_quests(raw)["final_reward"] as Dictionary)["bonus"] = 1
+	_expect(raw, "unknown field")
