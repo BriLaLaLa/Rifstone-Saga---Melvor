@@ -1,6 +1,6 @@
 extends GutTest
 ## The Primi passi box of the sidebar (M30-04): hidden while the tutorial is on, shown when it ends, a click opens the
-## `starter` page (real click), the gold dot follows what can be claimed, hidden at the last quest. No exact texts.
+## `starter` page (real click), the gold dot follows what can be claimed, hidden once the final bonus is claimed. No exact texts.
 
 const SCENE: PackedScene = preload("res://ui/screens/main/main_screen.tscn")
 
@@ -65,11 +65,11 @@ func test_click_opens_the_page_and_the_dot_follows_the_claimable_quests() -> voi
 	assert_eq((_screen.find_child("PageHost", true, false) as PageHost).current_page_id(), &"starter")
 
 
-func test_hidden_when_every_quest_is_claimed() -> void:
+func test_hidden_when_every_quest_and_the_final_bonus_are_claimed() -> void:
 	await _open(false)
 	var ids: Array = []
 	for def: StarterQuestDef in _s.tutorial.starter.quests():
 		ids.append(String(def.id))
-	_s.tutorial.starter.from_save({"claimed": ids, "progress": {}})
+	_s.tutorial.starter.from_save({"claimed": ids, "progress": {}, "final_claimed": true})
 	_s.events.starter_quests_changed.emit()
 	assert_false(_widget().visible)

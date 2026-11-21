@@ -8,7 +8,6 @@ signal claim_requested(quest_id: StringName)
 const SEPARATION: int = 6
 const FILLED_SEPARATION: int = 16
 const REWARD_SEPARATION: int = 8
-const ICON_SIDE: int = 24
 
 var quest_id: StringName = &""
 var _name_label: Label
@@ -91,28 +90,7 @@ func _draw_reward(def: StarterQuestDef, data: GameData) -> void:
 	if _reward_key == String(def.id):
 		return
 	_reward_key = String(def.id)
-	for child: Node in _reward_box.get_children():
-		_reward_box.remove_child(child)
-		child.queue_free()
-	_label(_reward_box, "RewardTitle", StarterTexts.REWARD_TEXT, &"MutedLabel")
-	if def.reward_money > 0:
-		var money := MoneyLabel.new()
-		_reward_box.add_child(money)
-		money.set_amount(def.reward_money, data.currency())
-	for entry: ItemQty in def.reward_items:
-		if not data.has_item(entry.item_id):
-			continue
-		var item: ItemDef = data.item(entry.item_id)
-		var icon := TextureRect.new()
-		icon.texture = ItemSlotView.icon_of(item.icon)
-		icon.custom_minimum_size = Vector2(ICON_SIDE, ICON_SIDE)
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		_reward_box.add_child(icon)
-		_label(_reward_box, "Item_%s" % entry.item_id, StarterTexts.REWARD_ITEM_TEXT % [item.name, NumberFormat.format_int(entry.qty)], &"")
-	if def.reward_character_xp > 0:
-		var xp: Label = _label(_reward_box, "XpLabel", StarterTexts.REWARD_XP_TEXT % NumberFormat.format_int(def.reward_character_xp), &"")
-		xp.add_theme_color_override("font_color", UiStyle.GOLD_LIGHT)
+	StarterRewardView.draw(_reward_box, def.reward_money, def.reward_items, def.reward_character_xp, data)
 
 
 func _label(parent: Node, node_name: String, text: String, variation: StringName) -> Label:

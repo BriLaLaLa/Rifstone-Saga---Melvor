@@ -10,6 +10,7 @@ const ROW_SCRIPT: GDScript = preload("res://ui/pages/starter/starter_row.gd")
 
 var _session: GameSession = null
 var _rows: Array[StarterRow] = []
+var _final: FinalRow = null
 var _signals: Array[Signal] = []
 
 @onready var _margin: MarginContainer = %Margin
@@ -63,6 +64,7 @@ func _build() -> void:
 		_groups.remove_child(child)
 		child.queue_free()
 	_rows.clear()
+	_final = null
 	var quests: Array[StarterQuestDef] = _session.tutorial.starter.quests()
 	for group: Dictionary in _session.data.starter_groups():
 		var box := VBoxContainer.new()
@@ -82,6 +84,9 @@ func _build() -> void:
 			row.setup(def)
 			row.claim_requested.connect(_on_claim_requested)
 			_rows.append(row)
+	_final = FinalRow.new()
+	_groups.add_child(_final)
+	_final.claim_requested.connect(_on_final_requested)
 
 
 func _redraw() -> void:
@@ -91,6 +96,8 @@ func _redraw() -> void:
 	_count_label.text = StarterTexts.COUNT_TEXT % [starter.claimed_count(), starter.total()]
 	for row: StarterRow in _rows:
 		row.refresh(starter, _session.data)
+	if _final != null:
+		_final.refresh(starter, _session.data)
 
 
 func _on_claim_requested(quest_id: StringName) -> void:
@@ -102,4 +109,12 @@ func _on_claim_requested(quest_id: StringName) -> void:
 
 
 func _on_changed(_a: Variant = null, _b: Variant = null, _c: Variant = null, _d: Variant = null) -> void:
+	_redraw()
+
+
+func _on_final_requested() -> void:
+	var result: CommandResult = _session.tutorial.starter.claim_final()
+	_message_label.visible = true
+	_message_label.text = StarterTexts.FINAL_CLAIMED_NOTICE if result.ok else StarterTexts.refused(result.reason)
+	_message_label.add_theme_color_override("font_color", UiStyle.GOOD if result.ok else UiStyle.BAD)
 	_redraw()

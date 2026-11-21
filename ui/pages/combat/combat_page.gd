@@ -185,8 +185,9 @@ func _process(_delta: float) -> void:
 		_travel.refresh(state)
 		_node_card.refresh(state, _session.data)
 		_zone.visible = not (_travel.visible or _node_card.visible)  # the map or the node replace the enemies
-		if CombatFracture.is_in(state):  # the ability timer and the shield move between events
-			_state_label.text = CombatFracture.state_text(state["fracture"], _state_base, _session.data)
+		var shown: String = CombatFracture.state_text(state["fracture"], _state_base, _session.data) \
+				if CombatFracture.is_in(state) else _state_base  # the ability timer and the shield move between events
+		_state_label.text = CombatTexts.paused(shown, _session.combat.is_frozen())
 		_redraw_yield()
 		if _feed.flush():  # compact view: the lines added up per type
 			_refresh_log()
