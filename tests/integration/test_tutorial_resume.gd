@@ -53,7 +53,7 @@ func _act(s: GameSession, id: StringName) -> void:
 					assert_true(s.equipment.equip(inst.uid).ok)
 		&"combat_start":
 			assert_true(s.combat.start(AREA).ok)
-		&"combat_kills", &"nodes":
+		&"combat_kills", &"combat_eat", &"nodes":
 			_advance_until(s, func() -> bool: return s.tutorial.step_index() != index)
 		&"trainers":
 			assert_true(s.disciplines.learn(&"forestry").ok)

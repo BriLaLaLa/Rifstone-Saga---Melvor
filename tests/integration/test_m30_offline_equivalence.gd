@@ -17,8 +17,8 @@ const SEED: int = 3040
 var _kills_at_completion: Array[int] = []
 
 
-## A new game brought to the step "nodes" with the player's own commands, the fight running, a level 40 character with its gear (no test modifier: those are not in the slot file and a reload would lose them).
-func _prepared() -> GameSession:
+## A new game brought to `stop_at` ("combat_eat" = step 7, "nodes" = step 14) with the player's own commands, the fight running, a level 40 character with its gear (no test modifier: those are not in the slot file and a reload would lose them).
+func _prepared(stop_at: StringName = &"nodes") -> GameSession:
 	var s: GameSession = autofree(Play.new_game_session(SEED))
 	for step_id: StringName in [&"welcome", &"character"]:
 		assert_eq(s.tutorial.current_step().id, step_id)
@@ -27,16 +27,16 @@ func _prepared() -> GameSession:
 		if inst.base_id == &"emberbronze_greatsword":
 			assert_true(s.equipment.equip(inst.uid).ok)
 	assert_true(s.combat.start(AREA).ok)
-	var guard: int = 0
-	while s.tutorial.current_step().id != &"combat_triangle" and guard < 20000:
-		s.advance(TICK_MS)
-		guard += 1
-	for step_id: StringName in [&"combat_triangle", &"combat_food", &"bank", &"shop", &"rift"]:
-		assert_eq(s.tutorial.current_step().id, step_id)
-		assert_true(s.tutorial.acknowledge().ok)
-	assert_true(s.disciplines.learn(&"forestry").ok)
-	assert_true(s.tutorial.acknowledge().ok)  # the "skill" step
-	assert_eq(s.tutorial.current_step().id, &"nodes")
+	_advance_to(s, &"combat_triangle")
+	assert_true(s.tutorial.acknowledge().ok)
+	if stop_at != &"combat_eat":
+		_advance_to(s, &"combat_food")  # the wound, the meal, then the combat is frozen
+		for step_id: StringName in [&"combat_food", &"bank", &"shop", &"rift"]:
+			assert_eq(s.tutorial.current_step().id, step_id)
+			assert_true(s.tutorial.acknowledge().ok)
+		assert_true(s.disciplines.learn(&"forestry").ok)
+		assert_true(s.tutorial.acknowledge().ok)  # the "skill" step
+	assert_eq(s.tutorial.current_step().id, stop_at)
 	var grade: int = Sim.auto_grade(s.data, 40)  # real gear of the level (persisted), never a test modifier
 	TestFactory.set_character_level(s, 40)
 	Sim._equip_set(s, grade, &"sword_shield")
@@ -45,6 +45,14 @@ func _prepared() -> GameSession:
 	s.equipment.set_food(food)
 	_attach(s)
 	return s
+
+
+func _advance_to(s: GameSession, step_id: StringName) -> void:
+	var guard: int = 0
+	while s.tutorial.current_step().id != step_id and guard < 20000:
+		s.advance(TICK_MS)
+		guard += 1
+	assert_eq(s.tutorial.current_step().id, step_id, "the step comes by itself")
 
 
 func _kills(s: GameSession) -> int:
@@ -60,7 +68,9 @@ func _attach(s: GameSession) -> void:
 		var def: TutorialStepDef = s.tutorial.current_step()
 		if def == null:
 			return
-		if step_id == &"mail":
+		if step_id == &"trainers":
+			s.disciplines.learn(&"forestry")
+		elif step_id == &"mail":
 			for message: Dictionary in s.mail.messages():
 				s.mail.collect(int(message["id"]))
 		elif s.tutorial.can_acknowledge():
@@ -95,8 +105,16 @@ func _assert_same(a: GameSession, b: GameSession, what: String) -> void:
 	assert_eq(right["rng"], left["rng"], "%s: the rng" % what)
 
 
-func test_twelve_hours_in_one_block_in_ticks_and_in_blocks_with_a_reload_give_the_same_tutorial_and_quests() -> void:
-	var one: GameSession = _prepared()
+func test_twelve_hours_at_step_14_give_the_same_tutorial_and_quests() -> void:
+	await _equivalence(&"nodes")
+
+
+func test_twelve_hours_at_step_7_give_the_same_tutorial_and_quests() -> void:
+	await _equivalence(&"combat_eat")
+
+
+func _equivalence(stop_at: StringName) -> void:
+	var one: GameSession = _prepared(stop_at)
 	var one_kills_at: Array[int] = []
 	_kills_at_completion.clear()
 	one.advance(TWELVE_H)
@@ -107,14 +125,14 @@ func test_twelve_hours_in_one_block_in_ticks_and_in_blocks_with_a_reload_give_th
 	assert_gt(one.tutorial.starter.claimable().size(), 0, "the quests of the combat are done in the same block")
 
 	_kills_at_completion.clear()
-	var ticks: GameSession = _prepared()
+	var ticks: GameSession = _prepared(stop_at)
 	_kills_at_completion.clear()
 	for _i: int in TWELVE_H / TICK_MS:
 		ticks.advance(TICK_MS)
 	assert_eq(_kills_at_completion, one_kills_at, "ticks: tutorial_completed at the same kill")
 	_assert_same(one, ticks, "block vs ticks")
 
-	var blocks: GameSession = _prepared()
+	var blocks: GameSession = _prepared(stop_at)
 	_kills_at_completion.clear()
 	for i: int in TWELVE_H / BLOCK_MS:
 		blocks.advance(BLOCK_MS)
@@ -140,3 +158,43 @@ func test_a_step_entered_inside_a_block_keeps_a_valid_valve_clock() -> void:
 	assert_between(int(saved["since_ms"]), 0, s.play_time_ms, "since_ms is a clock the session has already lived")
 	assert_true(s.tutorial.can_acknowledge())
 	assert_false(s.tutorial.can_skip_step(), "an Avanti step never shows the valve")
+
+
+## M31: at step 8 (frozen combat, nobody pressing Ok) 12 h in one block, in 100 ms ticks and in 60 s blocks change nothing but the clock:
+## the same file, the same rng, no tutorial step, no kill, no tiro.
+func test_twelve_hours_on_the_frozen_step_change_nothing_but_the_clock() -> void:
+	var one: GameSession = _frozen()
+	var before: Dictionary = _state(one)
+	var rng_before: Variant = one.rng.to_save()
+	var clock: int = one.play_time_ms
+	one.advance(TWELVE_H)
+	assert_true(one.combat.is_frozen())
+	assert_eq(one.tutorial.current_step().id, &"combat_food")
+	assert_eq(one.rng.to_save(), rng_before, "a frozen engine rolls nothing")
+	assert_eq(one.play_time_ms - clock, TWELVE_H, "the play time goes on")
+	assert_eq((_state(one)["modules"] as Dictionary)["combat"], (before["modules"] as Dictionary)["combat"])
+	var ticks: GameSession = _frozen()
+	for _i: int in TWELVE_H / TICK_MS:
+		ticks.advance(TICK_MS)
+	var blocks: GameSession = _frozen()
+	for i: int in TWELVE_H / BLOCK_MS:
+		blocks.advance(BLOCK_MS)
+		if i == 360:
+			blocks = _reload(blocks)
+	_assert_same(one, ticks, "frozen: block vs ticks")
+	_assert_same(one, blocks, "frozen: block vs 60 s blocks with a reload")
+
+
+## A new game at step 8 with the combat running and the meal eaten, nobody to press Ok (no scripted player).
+func _frozen() -> GameSession:
+	var s: GameSession = autofree(Play.new_game_session(SEED + 2))
+	s.tutorial.acknowledge()
+	s.tutorial.acknowledge()
+	for inst: ItemInstance in s.armory.instances():
+		if inst.base_id == &"emberbronze_greatsword":
+			s.equipment.equip(inst.uid)
+	s.combat.start(AREA)
+	_advance_to(s, &"combat_triangle")
+	s.tutorial.acknowledge()
+	_advance_to(s, &"combat_food")
+	return s
