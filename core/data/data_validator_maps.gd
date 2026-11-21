@@ -15,13 +15,16 @@ const MOD_FIELDS: PackedStringArray = ["id", "name", "description", "min_grade",
 const EFFECT_FIELDS: PackedStringArray = ["type", "min", "max"]
 ## F-111: the closed lists of types. Stat-based rewards need their stat in stats.json.
 const RISK_TYPES: PackedStringArray = ["monster_hp_pct", "monster_damage_pct", "monster_speed_pct",
-	"monster_defence_pct", "pack_bonus", "food_heal_pct", "pulse"]
+	"monster_defence_pct", "pack_bonus", "food_heal_pct", "pulse",
+	"player_damage_pct", "player_accuracy_pct", "player_speed_pct"]
 const REWARD_TYPES: PackedStringArray = ["loot_qty_pct", "item_rarity_pct", "xp_pct", "gold_drop_pct", "blueprint_pct",
 	"dust_pct", "card_chance_pct"]
 const REWARD_STATS: Dictionary[String, String] = {"item_rarity_pct": "item_rarity_pct", "xp_pct": "skill_xp_pct",
 	"gold_drop_pct": "gold_drop_pct"}
 const FOOD_HEAL_MAX_PCT: float = 100.0
 const SPEED_MAX_PCT: float = 90.0
+const PLAYER_RISK_MAX_PCT: float = 80.0  # M29-01: below the -90 limit of power_pct / accuracy_pct, with room for other sources
+const PLAYER_RISK_TYPES: PackedStringArray = ["player_damage_pct", "player_accuracy_pct", "player_speed_pct"]
 const BOSS_FIELDS: PackedStringArray = ["id", "name", "description", "icon", "hp", "xp", "style", "attack_interval_ms",
 	"attack_level", "power_level", "defence_level", "accuracy_bonus", "power_bonus", "evasion_bonus", "damage_reduction",
 	"gold", "rift_shard_chance", "drops", "sprite", "loot_tables", "grade", "ability", "rewards"]
@@ -120,6 +123,8 @@ static func _effect(v: DataValidatorRules, mod: Dictionary, key: String, types: 
 		v.fail("field '%s.max': food_heal_pct must be <= %d" % [key, int(FOOD_HEAL_MAX_PCT)])
 	elif type == "monster_speed_pct" and top > SPEED_MAX_PCT:
 		v.fail("field '%s.max': monster_speed_pct must be <= %d" % [key, int(SPEED_MAX_PCT)])
+	elif PLAYER_RISK_TYPES.has(type) and top > PLAYER_RISK_MAX_PCT:
+		v.fail("field '%s.max': %s must be <= %d" % [key, type, int(PLAYER_RISK_MAX_PCT)])
 
 
 # --- bosses.json ------------------------------------------------------------------------------------------------

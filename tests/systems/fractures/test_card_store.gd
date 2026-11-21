@@ -65,7 +65,7 @@ func test_create_rolls_a_card_of_the_grade() -> void:
 	var card: MapCard = _session.cards.get_card(uid)
 	assert_eq(card.grade, 6)
 	assert_eq(card.base_id, &"fracture_card_6")
-	assert_between(card.mods.size(), 3, 4)
+	assert_between(card.mods.size(), 1, 6)
 	assert_eq(_session.cards.create(0, &"common"), 0, "no base for the grade")
 	assert_eq(_session.cards.create(11, &"common"), 0)
 

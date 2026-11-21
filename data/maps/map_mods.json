@@ -204,6 +204,108 @@
         "min": 60,
         "max": 120
       }
+    },
+    {
+      "id": "numbing",
+      "name": "Torpore",
+      "description": "Le tue armi diventano più lente; la Polvere abbonda.",
+      "min_grade": 1,
+      "weight": 8,
+      "risk": {
+        "type": "player_speed_pct",
+        "min": 10,
+        "max": 30
+      },
+      "reward": {
+        "type": "dust_pct",
+        "min": 15,
+        "max": 45
+      }
+    },
+    {
+      "id": "weary",
+      "name": "Stanchezza",
+      "description": "I tuoi colpi sono più deboli; le monete cadono più numerose.",
+      "min_grade": 1,
+      "weight": 8,
+      "risk": {
+        "type": "player_damage_pct",
+        "min": 10,
+        "max": 30
+      },
+      "reward": {
+        "type": "gold_drop_pct",
+        "min": 15,
+        "max": 45
+      }
+    },
+    {
+      "id": "blinded",
+      "name": "Nebbia accecante",
+      "description": "La mira ne risente; i pezzi caduti sono migliori.",
+      "min_grade": 1,
+      "weight": 8,
+      "risk": {
+        "type": "player_accuracy_pct",
+        "min": 10,
+        "max": 40
+      },
+      "reward": {
+        "type": "item_rarity_pct",
+        "min": 8,
+        "max": 30
+      }
+    },
+    {
+      "id": "sluggish",
+      "name": "Letargia del Rift",
+      "description": "Ogni tuo attacco costa molto più tempo; l'esperienza è ricca.",
+      "min_grade": 4,
+      "weight": 6,
+      "risk": {
+        "type": "player_speed_pct",
+        "min": 25,
+        "max": 60
+      },
+      "reward": {
+        "type": "xp_pct",
+        "min": 20,
+        "max": 40
+      }
+    },
+    {
+      "id": "crippled",
+      "name": "Lame spuntate",
+      "description": "Il tuo danno crolla; i progetti sono più frequenti.",
+      "min_grade": 5,
+      "weight": 6,
+      "risk": {
+        "type": "player_damage_pct",
+        "min": 30,
+        "max": 60
+      },
+      "reward": {
+        "type": "blueprint_pct",
+        "min": 50,
+        "max": 100
+      }
+    },
+    {
+      "id": "bewildered",
+      "name": "Sguardo smarrito",
+      "description": "Quasi non vedi i bersagli; il bottino è più abbondante.",
+      "min_grade": 6,
+      "weight": 6,
+      "risk": {
+        "type": "player_accuracy_pct",
+        "min": 30,
+        "max": 70
+      },
+      "reward": {
+        "type": "loot_qty_pct",
+        "min": 12,
+        "max": 30
+      }
     }
   ]
 }

@@ -319,8 +319,8 @@
   "fracture": {
     "groups": 16, "intensity_steps": 10, "pulse_ms": 4000,
     "risk_cap": {"base": 40, "per_grade": 10},
-    "risk_unit": {"pack_bonus": 20, "pulse": 5},
-    "mod_count": {"common": [0, 0], "magic": [1, 2], "rare": [3, 4]},
+    "risk_unit": {"pack_bonus": 20, "pulse": 5, "player_damage_pct": 0.5, "player_accuracy_pct": 0.5, "player_speed_pct": 0.5},
+    "mod_count": {"common": [0, 0], "magic": [1, 2], "rare": [3, 6]},
     "card_rarity": {"magic_pct": 25, "rare_pct": 6},
     "card_drop": {"monster_pct": 0.5, "boss_pct": 70, "monster_delta": [70, 27, 3], "boss_delta": [20, 70, 10]},
     "salvage": {"dust_per_grade": 5, "rarity_mult": {"common": 1, "magic": 1.5, "rare": 2}},

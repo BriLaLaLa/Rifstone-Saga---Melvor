@@ -129,7 +129,7 @@ func use_currency(uid: int, currency_id: StringName) -> CommandResult:
 			card.rarity = &"rare"
 			card.mods = MapCardRoller.extend_mods(card, &"rare", _data, _rng)
 		CurrencyUse.REROLL:
-			card.mods = MapCardRoller.extend_mods(_without_mods(card), card.rarity, _data, _rng)
+			card.mods = MapCardRoller.reroll_mods(card, _data, _rng)
 	_events.card_changed.emit(uid, CHANGE_UPDATED)
 	return CommandResult.success()
 
@@ -215,10 +215,3 @@ func _load_entry(entry: Variant) -> void:
 func _clear() -> void:
 	_items.clear()
 	_next_uid = 1
-
-
-# A copy of `card` with no modifiers (the input of a reroll).
-static func _without_mods(card: MapCard) -> MapCard:
-	var copy: MapCard = card.duplicate_card()
-	copy.mods.clear()
-	return copy

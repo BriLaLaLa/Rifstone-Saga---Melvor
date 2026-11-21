@@ -6,7 +6,7 @@ extends RefCounted
 const KEYS: PackedStringArray = ["fracture.groups", "fracture.intensity_steps", "fracture.pulse_ms",
 	"fracture.mod_count", "fracture.card_rarity", "fracture.card_drop", "fracture.salvage", "fracture.grades"]
 const RARITIES: PackedStringArray = ["common", "magic", "rare"]
-const MOD_COUNT_MAX: int = 4
+const MOD_COUNT_MAX: int = 6
 const GRADE_COUNT: int = 10
 const GRADE_FIELDS: PackedStringArray = ["areas", "level_bonus", "hp_mult", "damage_mult", "reward_mult", "piece_grade",
 	"recommended_level"]

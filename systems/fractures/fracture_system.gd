@@ -108,6 +108,9 @@ func rebuild_modifiers() -> void:
 	for stat: StringName in [FractureScaler.REWARD_RARITY, FractureScaler.REWARD_GOLD]:
 		mods.append(Modifier.make(stat, effect_total(stat)))
 	mods.append(Modifier.make(&"skill_xp_pct", effect_total(FractureScaler.REWARD_XP), Modifier.SCOPE_GLOBAL))
+	for risk: StringName in FractureScaler.PLAYER_RISK_STATS:  # M29-01: risks on the player
+		var spec: Array = FractureScaler.PLAYER_RISK_STATS[risk]
+		mods.append(Modifier.make(spec[0] as StringName, float(spec[1]) * effect_total(risk)))
 	_source = StringName(SOURCE_PREFIX + str(_run.card.uid))
 	_session.modifiers.set_source(_source, mods)
 

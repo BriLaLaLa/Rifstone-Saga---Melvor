@@ -448,11 +448,11 @@ la Bank le rifiuta (`not_stackable`) e non entrano in `start.items` né negli `d
 | `id`, `name`, `description` | String | `id` unico, regex comune |
 | `min_grade` | int | 1..10 |
 | `weight` | int | ≥ 1 |
-| `risk.type` | String | uno dei tipi di rischio di F-111 (`monster_hp_pct`, `monster_damage_pct`, `monster_speed_pct`, `monster_defence_pct`, `pack_bonus`, `food_heal_pct`, `pulse`) |
+| `risk.type` | String | uno dei tipi di rischio di F-111 (`monster_hp_pct`, `monster_damage_pct`, `monster_speed_pct`, `monster_defence_pct`, `pack_bonus`, `food_heal_pct`, `pulse`, e dal M29-01 `player_damage_pct`, `player_accuracy_pct`, `player_speed_pct`) |
 | `reward.type` | String | uno dei tipi di premio di F-111 (`loot_qty_pct`, `item_rarity_pct`, `xp_pct`, `gold_drop_pct`, `blueprint_pct`, `dust_pct`, `card_chance_pct`) |
-| `risk.min`, `risk.max`, `reward.min`, `reward.max` | number | `0 < min ≤ max`; `pack_bonus` interi con `max` ≤ `combat.max_pack_size − 1`; `food_heal_pct` ≤ 100; `monster_speed_pct` ≤ 90 |
+| `risk.min`, `risk.max`, `reward.min`, `reward.max` | number | `0 < min ≤ max`; `pack_bonus` interi con `max` ≤ `combat.max_pack_size − 1`; `food_heal_pct` ≤ 100; `monster_speed_pct` ≤ 90; i tre rischi sul giocatore (M29-01) ≤ 80 |
 
-Regole del validatore: file **obbligatorio**; almeno **12** modificatori (Q65); per ogni grado 1..10 ci sono almeno **4** modificatori con `min_grade ≤ grado` e tipi di rischio **distinti** (una Carta rara deve poterne avere 4). Il campo `reward.type` che applica
+Regole del validatore: file **obbligatorio**; almeno **12** modificatori (Q65); per ogni grado 1..10 ci sono almeno **4** modificatori con `min_grade ≤ grado` e tipi di rischio **distinti** (minimo del validatore, invariato; i dati veri ne hanno ≥ 7 per grado, verificato da `tests/systems/fractures/test_card_mod_count.gd`, perché la rara arriva a 6 modificatori, M29-01). Il campo `reward.type` che applica
 una stat (`item_rarity_pct`, `xp_pct` → `skill_xp_pct`, `gold_drop_pct`) richiede che la stat esista in `stats.json`. Classe: `MapModDef` (`id`, `name`, `description`, `min_grade`, `weight`, `risk: MapEffectDef`, `reward: MapEffectDef`;
 `MapEffectDef`: `type`, `min`, `max`). `GameData.map_mods()`, `map_mod(id)`.
 
@@ -482,14 +482,14 @@ Classi: `BossDef` (stessi campi di `MonsterDef` più `grade`, `ability: BossAbil
 ### 11.4 `balance.json` `fracture`
 ```json
 "fracture": {"groups": 16, "intensity_steps": 10, "pulse_ms": 4000,
-  "mod_count": {"common": [0, 0], "magic": [1, 2], "rare": [3, 4]},
+  "mod_count": {"common": [0, 0], "magic": [1, 2], "rare": [3, 6]},
   "card_rarity": {"magic_pct": 25, "rare_pct": 6},
   "card_drop": {"monster_pct": 0.5, "boss_pct": 70, "monster_delta": [70, 27, 3], "boss_delta": [20, 70, 10]},
   "salvage": {"dust_per_grade": 5, "rarity_mult": {"common": 1, "magic": 1.5, "rare": 2}},
   "grades": [{"areas": ["cracked_mines"], "level_bonus": 0, "hp_mult": 1.0, "damage_mult": 1.0, "reward_mult": 1.0, "piece_grade": 5, "recommended_level": 45}]}
 ```
 `grades` ha **10** voci (grado = posizione + 1); `areas` almeno 1 id di area esistente; `level_bonus` ≥ 0; `hp_mult`, `damage_mult`, `reward_mult` ≥ 1,0 e non decrescenti rispetto al grado precedente nella stessa area; `piece_grade` 1..8 non
-decrescente; `recommended_level` 1..99 non decrescente. `groups` ≥ 1; `intensity_steps` ≥ 1; `pulse_ms` ≥ `combat.min_attack_interval_ms`; `mod_count` ha `common`, `magic`, `rare` con `[a, b]` e `0 ≤ a ≤ b ≤ 4` (comune `[0, 0]`);
+decrescente; `recommended_level` 1..99 non decrescente. `groups` ≥ 1; `intensity_steps` ≥ 1; `pulse_ms` ≥ `combat.min_attack_interval_ms`; `mod_count` ha `common`, `magic`, `rare` con `[a, b]` e `0 ≤ a ≤ b ≤ 6` (comune `[0, 0]`, M29-01);
 `card_rarity` percentuali 0..100 con somma ≤ 100; `card_drop`: `monster_pct`, `boss_pct` 0..100, `*_delta` 3 pesi interi ≥ 0 con somma ≥ 1; `salvage.dust_per_grade` ≥ 1, `rarity_mult` ≥ 1 per ogni rarità.
 Le chiavi `fractures.*` (`interval_min_ms`, `interval_max_ms`, `duration_ms`) sono **tolte**. Valori di partenza e tabella dei gradi: `02_FORMULAS.md` F-110, §9.
 `loot_tables.json` (§8b) ammette anche voci con `item` di categoria `map` (`qty` [1, 1]); il motore le manda al `CardStore`, non alla borsa del bottino.
@@ -717,7 +717,7 @@ una sola `blueprint` per base; solo basi `masterwork`. I progetti per `blueprint
 
 **Maestria (§4, §6, §7)**: `mastery_bonuses` delle skill di artigianato sono **tolti** (sostituiti dall'unica regola `mastery.step`, F-122); il validatore li rifiuta per ogni skill. I traguardi 25/50/99 (`milestones`) restano.
 
-**Carte (§11)**: il validatore verifica che per ogni grado 1..10 esista almeno un modificatore di rischio con punti ≤ `cap(grado)` (F-123); `fracture.risk_unit` ha chiavi solo tra i tipi di rischio di F-111.
+**Carte (§11)**: il validatore verifica che per ogni grado 1..10 esista almeno un modificatore di rischio con punti ≤ `cap(grado)` (F-123); `fracture.risk_unit` ha chiavi solo tra i tipi di rischio di F-111 (10 dal M29-01).
 
 **Guida (§19)**: nessuna pagina di oggetto cambia nei file `data/guide/*.json`; la Guida filtra per `discoveries` (F-124). Nuove pagine a mano: `guide_equipment` (armi, armature, Armatura/Barriera), `guide_masterwork_legendary` (Capolavori e leggendari: cosa sono, non da dove vengono), `guide_discovery` (come funzionano le scoperte), `guide_mastery_step` (bonus ogni 10 livelli); testi con segnaposto `{balance:...}`.
 

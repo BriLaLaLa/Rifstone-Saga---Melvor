@@ -1,8 +1,8 @@
 class_name MapCardRoller
 extends RefCounted
 ## Rolls of a Fracture Card (docs/02_FORMULAS.md F-109). Pure logic, no state. Order of draws on `rng`: rarity (one
-## randf, `roll_rarity`), the number of modifiers (always one `randi_range`), then for each modifier the choice
-## (`pick_weighted`) and the intensity step (`randi_range`). F-123: the total risk points of a Card stay within `risk_cap`
+## randf, `roll_rarity`), the number of modifiers (one `randi_range`; none for `reroll_mods`, which keeps the number of
+## the Card), then for each modifier the choice (`pick_weighted`) and the intensity step (`randi_range`). F-123: the total risk points of a Card stay within `risk_cap`
 ## (the step is reduced; a candidate that does not fit at step 0 is dropped and the choice is repeated).
 
 const LOG_CATEGORY: String = "cards"
@@ -51,25 +51,96 @@ static func extend_mods(card: MapCard, rarity: StringName, data: GameData, rng: 
 		result.append(MapModRoll.make(roll.mod_id, roll.step))
 	var range_raw: Array = data.balance_value("fracture.mod_count.%s" % rarity) as Array
 	var target: int = rng.randi_range(int(range_raw[0]), int(range_raw[1]))
+	return _fill(result, target, card.grade, data, rng)
+
+
+## M29-01, `reroll` Crystal: brand-new modifiers for `card` (the old ones are replaced, never dropped): the number is the
+## one the Card has now (`card.mods.size()`), no draw for it. Same constraints as `extend_mods` (F-109 candidates, one
+## risk type per Card, F-123 cap): only when no candidate fits any more the number can drop. Draws on `rng`: per modifier
+## the choice and the step. The card is not changed.
+static func reroll_mods(card: MapCard, data: GameData, rng: RngService) -> Array[MapModRoll]:
+	var result: Array[MapModRoll] = []
+	return _fill(result, card.mods.size(), card.grade, data, rng)
+
+
+# Appends modifiers to `result` until it has `target` (or no candidate is left): choice, then step, for each. F-123 with a
+# reserve (M29-01): the step of a modifier leaves room for the cheapest step-0 modifiers (one per other risk type) that the
+# remaining ones still need, so a high `target` is not lost to the first modifiers taking the whole cap. When nothing fits
+# with the reserve, the wanted number drops by one and the discarded candidates are tried again; no extra draws.
+static func _fill(result: Array[MapModRoll], target: int, grade: int, data: GameData, rng: RngService) -> Array[MapModRoll]:
 	var steps: int = int(data.balance_value("fracture.intensity_steps"))
-	var cap: float = risk_cap(card.grade, data)
-	var discarded: Dictionary[StringName, bool] = {}  # F-123: candidates that do not fit even at step 0
-	while result.size() < target:
-		var candidates: Array[MapModDef] = _candidates(result, card.grade, data)
+	var cap: float = risk_cap(grade, data)
+	var want: int = target
+	_make_room(result, want, grade, cap, data)
+	var discarded: Dictionary[StringName, bool] = {}  # F-123: candidates that do not fit (with the reserve) even at step 0
+	while result.size() < want:
+		var candidates: Array[MapModDef] = _candidates(result, grade, data)
 		for id: StringName in discarded:
 			candidates = candidates.filter(func(def: MapModDef) -> bool: return def.id != id)
 		if candidates.is_empty():
+			if want - result.size() > 1 and not discarded.is_empty():
+				want -= 1
+				discarded.clear()
+				continue
 			break
 		var weights: Array[int] = []
 		for def: MapModDef in candidates:
 			weights.append(def.weight)
 		var picked: MapModDef = candidates[rng.pick_weighted(weights)]
-		var step: int = fitting_step(picked, rng.randi_range(0, steps), cap - total_risk_points(result, data), data)
+		var room: float = cap - total_risk_points(result, data) - _reserve(candidates, picked, want - result.size() - 1, data)
+		var step: int = fitting_step(picked, rng.randi_range(0, steps), room, data)
 		if step < 0:
 			discarded[picked.id] = true
 			continue
 		result.append(MapModRoll.make(picked.id, step))
 	return result
+
+
+# M29-01 (`to_rare`): the modifiers already on the Card are kept, but when they leave no room for the cheapest ones the Card
+# still needs, the steps of the dearest are lowered one at a time (never below 0, never removed; no draws).
+static func _make_room(result: Array[MapModRoll], want: int, grade: int, cap: float, data: GameData) -> void:
+	if result.is_empty() or result.size() >= want:
+		return
+	var candidates: Array[MapModDef] = _candidates(result, grade, data)
+	var floor_points: float = 0.0  # the Card with every step at 0
+	for roll: MapModRoll in result:
+		floor_points += risk_points(data.map_mod(roll.mod_id), 0, data)
+	var more: int = want - result.size()
+	while more > 0 and floor_points + _reserve(candidates, null, more, data) > cap + EPSILON:
+		more -= 1  # what the cap can never hold is not made room for
+	var needed: float = _reserve(candidates, null, more, data)
+	while total_risk_points(result, data) + needed > cap + EPSILON:
+		var dearest: MapModRoll = null
+		var most: float = -1.0
+		for roll: MapModRoll in result:
+			var points: float = risk_points(data.map_mod(roll.mod_id), roll.step, data)
+			if roll.step > 0 and points > most:
+				dearest = roll
+				most = points
+		if dearest == null:
+			return
+		dearest.step -= 1
+
+
+# M29-01: the points to keep free for `remaining` more modifiers: the cheapest step-0 candidates, one per risk type other than
+# the type of `picked` (none when null) (fewer if there are not enough types).
+static func _reserve(candidates: Array[MapModDef], picked: MapModDef, remaining: int, data: GameData) -> float:
+	if remaining <= 0:
+		return 0.0
+	var cheapest: Dictionary[StringName, float] = {}
+	for def: MapModDef in candidates:
+		if picked != null and def.risk.type == picked.risk.type:
+			continue
+		var points: float = risk_points(def, 0, data)
+		if not cheapest.has(def.risk.type) or points < cheapest[def.risk.type]:
+			cheapest[def.risk.type] = points
+	var costs: Array[float] = []
+	costs.assign(cheapest.values())
+	costs.sort()
+	var sum: float = 0.0
+	for i: int in mini(remaining, costs.size()):
+		sum += costs[i]
+	return sum
 
 
 ## F-123: risk points of a modifier at `step`: `risk_value x fracture.risk_unit[risk type]` (unit 1 by default).

@@ -50,7 +50,7 @@ func test_to_rare_keeps_the_old_modifiers_without_duplicates() -> void:
 		assert_true(session.cards.use_currency(uid, TO_RARE).ok)
 		var card: MapCard = session.cards.get_card(uid)
 		assert_eq(card.rarity, &"rare")
-		assert_between(card.mods.size(), maxi(before.size(), 1), 4)  # F-123 may stop earlier
+		assert_between(card.mods.size(), maxi(before.size(), 1), 6)  # F-123 may stop earlier
 		var after: Array[StringName] = _ids(card)
 		for i: int in before.size():
 			assert_eq(after[i], before[i], "old modifiers kept, in place")
@@ -58,17 +58,20 @@ func test_to_rare_keeps_the_old_modifiers_without_duplicates() -> void:
 			assert_eq(after.count(id), 1, "no duplicate")
 
 
-func test_reroll_redraws_all_modifiers_with_the_same_rarity() -> void:
+func test_reroll_redraws_all_modifiers_with_the_same_rarity_and_number() -> void:
 	var uid: int = _add(8, &"rare")
+	var rare_count: int = _session.cards.get_card(uid).mods.size()
 	TestFactory.give(_session, REROLL, 1)
 	assert_true(_session.cards.use_currency(uid, REROLL).ok)
 	var card: MapCard = _session.cards.get_card(uid)
 	assert_eq(card.rarity, &"rare")
-	assert_between(card.mods.size(), 3, 4)
+	assert_eq(card.mods.size(), rare_count, "M29-01: the number of modifiers is kept")
 	var magic: int = _add(8, &"magic")
+	var magic_count: int = _session.cards.get_card(magic).mods.size()
 	TestFactory.give(_session, REROLL, 1)
 	assert_true(_session.cards.use_currency(magic, REROLL).ok)
 	assert_eq(_session.cards.get_card(magic).rarity, &"magic")
+	assert_eq(_session.cards.get_card(magic).mods.size(), magic_count)
 
 
 func test_refusals_in_order() -> void:

@@ -1,6 +1,6 @@
 extends GutTest
 ## The real Cards and map modifiers (M13-04; docs/04_DATA_SCHEMA.md §11.1-§11.2, 02_FORMULAS.md F-109, F-111, docs/NOMI.md
-## section Fratture): ten Cards with the names of NOMI.md, the twelve modifiers of F-111, four distinct risk types at
+## section Fratture): ten Cards with the names of NOMI.md, the eighteen modifiers of F-111 and M29-01, four distinct risk types at
 ## every grade, no name from other games.
 
 const CARD_NAMES: Array[String] = ["Carta della Radura", "Carta del Sentiero", "Carta della Palude", "Carta della Cripta",
@@ -20,6 +20,13 @@ const MODS: Dictionary = {
 	&"spectral": ["Lame spettrali", 5, 6, &"monster_damage_pct", 40, 90, &"item_rarity_pct", 30, 70],
 	&"frenzy": ["Frenesia del Rift", 6, 6, &"monster_speed_pct", 30, 60, &"loot_qty_pct", 15, 35],
 	&"abyssal": ["Tempesta dell'Abisso", 8, 6, &"pulse", 4, 8, &"blueprint_pct", 60, 120],
+	# M29-01: the risks on the player
+	&"numbing": ["Torpore", 1, 8, &"player_speed_pct", 10, 30, &"dust_pct", 15, 45],
+	&"weary": ["Stanchezza", 1, 8, &"player_damage_pct", 10, 30, &"gold_drop_pct", 15, 45],
+	&"blinded": ["Nebbia accecante", 1, 8, &"player_accuracy_pct", 10, 40, &"item_rarity_pct", 8, 30],
+	&"sluggish": ["Letargia del Rift", 4, 6, &"player_speed_pct", 25, 60, &"xp_pct", 20, 40],
+	&"crippled": ["Lame spuntate", 5, 6, &"player_damage_pct", 30, 60, &"blueprint_pct", 50, 100],
+	&"bewildered": ["Sguardo smarrito", 6, 6, &"player_accuracy_pct", 30, 70, &"loot_qty_pct", 12, 30],
 }
 const FORBIDDEN: PackedStringArray = ["Melvor", "Metin", "Path of Exile"]
 
@@ -45,7 +52,7 @@ func test_ten_cards_with_the_names_of_nomi() -> void:
 		assert_ne(base.description.strip_edges(), "")
 
 
-func test_twelve_modifiers_with_the_values_of_f111() -> void:
+func test_eighteen_modifiers_with_the_values_of_f111() -> void:
 	assert_eq(_data.map_mods().size(), MODS.size())
 	for id: StringName in MODS:
 		var m: MapModDef = _data.map_mod(id)

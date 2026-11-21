@@ -1030,15 +1030,18 @@ Esempio (`fracture.groups` = 3 nelle fixture): gruppo 1, `BETWEEN`, gruppo 2, `B
 
 ### F-109 Carta: rarità e modificatori
 - **Rarità** (Carte da drop e da Frattura): un solo `randf`; `p_magic = fracture.card_rarity.magic_pct × k`, `p_rare = fracture.card_rarity.rare_pct × k`, `k = 1 + T(item_rarity_pct)/100` (stesso tiro di F-84/F-91: rara se `r < p_rare`,
-  magica se `r < p_rare + p_magic`, altrimenti comune). Esempio: +50% → 37,5 e 9. Il numero di modificatori è `randi_range(a, b)` con `fracture.mod_count[rarità]` (comune [0,0], magica [1,2], rara [3,4]).
+  magica se `r < p_rare + p_magic`, altrimenti comune). Esempio: +50% → 37,5 e 9. Il numero di modificatori è `randi_range(a, b)` con `fracture.mod_count[rarità]` (comune [0,0], magica [1,2], rara [3,6], M29-01).
 - **Scelta**: per ogni modificatore, in ordine: candidati = voci di `data/maps/map_mods.json` con `min_grade ≤ grado`, `id` non già sulla Carta e `risk.type` non già sulla Carta; `pick_weighted(weight)`; poi l'**intensità**
-  `step = randi_range(0, fracture.intensity_steps)` (10). Senza candidati si smette. Ordine dei tiri su `rng`: rarità, numero, poi per ogni modificatore scelta e `step`.
+  `step = randi_range(0, fracture.intensity_steps)` (10). Senza candidati si smette. Ordine dei tiri su `rng`: rarità, numero, poi per ogni modificatore scelta e `step` (con il tetto di F-123 un candidato scartato consuma comunque scelta e `step`).
 - **Tetto ai rischi** (M14): vedi F-123 (i punti di rischio non superano `fracture.risk_cap`).
 - **Valore**: `value(x) = x.min + round((x.max − x.min) × step / fracture.intensity_steps)` per il rischio e per il premio **con lo stesso `step`** (più rischio, più premio). Il salvataggio tiene solo `{mod, step}`: i valori si ricalcolano dai dati.
-- **Cristalli** (`CardStore.use_currency`): `to_magic` (comune → magica: aggiunge modificatori fino al numero tirato per la magica), `to_rare` (magica → rara: tiene i vecchi e ne aggiunge fino al numero tirato per la rara, senza duplicati),
-  `reroll` (magica o rara: ritira tutti i modificatori, stessa rarità, stessa regola). Rarità non adatta → `requirement_not_met`.
+- **Cristalli** (`CardStore.use_currency`): `to_magic` (comune → magica: aggiunge modificatori fino al numero tirato per la magica), `to_rare` (magica → rara: tiene i vecchi e ne aggiunge fino al numero tirato per la rara, senza duplicati; M29-01: se i vecchi non lasciano nel tetto di F-123 lo spazio per i nuovi, l'`step` dei più cari scende di 1 alla volta, mai sotto 0 e senza toglierne, senza tiri),
+  `reroll` (magica o rara, M29-01: **sostituisce** i modificatori, non spariscono: il numero resta quello attuale della Carta, `card.mods.size()`, **senza** tirare il numero né la rarità; stessa rarità; ogni modificatore con scelta e `step` come sopra, stessi vincoli:
+  candidati, tipo di rischio unico, tetto F-123). Ordine dei tiri su `rng` per il mutamento: per ogni modificatore scelta e `step`, nient'altro (`MapCardRoller.reroll_mods`). Il numero può scendere **solo** se non restano candidati che ci stanno nel tetto (caso limite, vedi F-123).
+  Rarità non adatta → `requirement_not_met`.
 - Esempio di valore: "Mostri robusti" (`risk` `monster_hp_pct` 20-60, `reward` `loot_qty_pct` 5-15), `step` 5 → +40% PV e +10% quantità; `step` 0 → +20% / +5%; `step` 10 → +60% / +15%. Carta di grado 1 magica: candidati solo con `min_grade` 1;
-  rara di grado 5: fino a 4 modificatori di tipi di rischio diversi. Test: `tests/systems/fractures/test_map_card_roller.gd`.
+  rara di grado 5: fino a 6 modificatori di tipi di rischio diversi (M29-01: magica 1-2, rara 3-6). Esempio (M29-01): una rara di grado 4 con numero tirato 6 ha 6 modificatori di 6 tipi di rischio diversi; un `reroll` su una Carta con 5 modificatori ne rifà 5 (nuovi, stessa rarità).
+  Effetto sul bottino: la rara ha in media 4,5 modificatori invece di 3,5, quindi più premi sommati, ma i rischi sono limitati dal tetto di F-123 (nessuna ritaratura dei premi). Test: `tests/systems/fractures/test_map_card_roller.gd`, `test_card_mod_count.gd`, `test_card_currency.gd`.
 
 ### F-110 Scala dei gradi
 Per il grado `g` (1-10) la riga `fracture.grades[g]`:
@@ -1078,6 +1081,9 @@ tipo sulla stessa Carta si sommano (i rischi sono unici per Carta, F-109).
 | `pack_bonus` | rischio | `+v` mostri in ogni gruppo (non nel boss), ripetendo in ordine i mostri del gruppo, fino a `combat.max_pack_size` |
 | `food_heal_pct` | rischio | la cura del cibo (F-29) × `(1 − v/100)`, `floor`, minimo 0 |
 | `pulse` | rischio | ogni `fracture.pulse_ms` (4000), durante un incontro, danno `max(1, floor(PV massimi del giocatore × v/100))` senza tiro di colpo, ridotto da F-25 (relazione neutra), parabile (F-75), come l'impulso dei Monoliti (F-87) |
+| `player_damage_pct` | rischio | (M29-01) stat `power_pct` `−v` sul giocatore (F-22, sorgente `fracture:<uid>`): il danno massimo, e con lui il minimo, scende |
+| `player_accuracy_pct` | rischio | (M29-01) stat `accuracy_pct` `−v` (F-20) |
+| `player_speed_pct` | rischio | (M29-01) stat `attack_interval_pct` `+v` (F-26): l'intervallo d'attacco del giocatore si allunga (minimo `combat.min_attack_interval_ms` invariato) |
 | `loot_qty_pct` | premio | quantità dei drop di oggetti dei mostri (`drops` e tabelle; non pezzi né Carte) × `(1 + v/100)`, `round`, minimo la quantità tirata |
 | `item_rarity_pct` | premio | stat `item_rarity_pct` `+v` (F-84, F-109) |
 | `xp_pct` | premio | stat `skill_xp_pct` `+v`, scope `global` (XP del personaggio, F-71) |
@@ -1086,7 +1092,7 @@ tipo sulla stessa Carta si sommano (i rischi sono unici per Carta, F-109).
 | `dust_pct` | premio | quantità di Polvere del Rift (`rift_dust`) dei drop × `(1 + v/100)`, `round` |
 | `card_chance_pct` | premio | probabilità di Carta (F-113) × `(1 + v/100)` |
 
-Tabella iniziale (12 modificatori, Q65; nomi in `NOMI.md`):
+Tabella iniziale (12 modificatori, Q65; nomi in `NOMI.md`) più i 6 di M29-01 in fondo (rischi sul giocatore). I tipi di rischio sono ora **10**: servono almeno 6 tipi diversi per grado per la rara a 6 modificatori; i nuovi hanno unità di rischio 0,5 (F-123):
 
 | id | Nome | `min_grade` | `weight` | Rischio (min-max) | Premio (min-max) |
 |---|---|---|---|---|---|
@@ -1102,9 +1108,16 @@ Tabella iniziale (12 modificatori, Q65; nomi in `NOMI.md`):
 | `spectral` | Lame spettrali | 5 | 6 | `monster_damage_pct` 40-90 | `item_rarity_pct` 30-70 |
 | `frenzy` | Frenesia del Rift | 6 | 6 | `monster_speed_pct` 30-60 | `loot_qty_pct` 15-35 |
 | `abyssal` | Tempesta dell'Abisso | 8 | 6 | `pulse` 4-8 | `blueprint_pct` 60-120 |
+| `numbing` | Torpore | 1 | 8 | `player_speed_pct` 10-30 | `dust_pct` 15-45 |
+| `weary` | Stanchezza | 1 | 8 | `player_damage_pct` 10-30 | `gold_drop_pct` 15-45 |
+| `blinded` | Nebbia accecante | 1 | 8 | `player_accuracy_pct` 10-40 | `item_rarity_pct` 8-30 |
+| `sluggish` | Letargia del Rift | 4 | 6 | `player_speed_pct` 25-60 | `xp_pct` 20-40 |
+| `crippled` | Lame spuntate | 5 | 6 | `player_damage_pct` 30-60 | `blueprint_pct` 50-100 |
+| `bewildered` | Sguardo smarrito | 6 | 6 | `player_accuracy_pct` 30-70 | `loot_qty_pct` 12-30 |
 
 Esempi: Mostri robusti +40 su un mostro da 320 PV al grado 3 → 416 × 1,40 = 582 (`round`); Assalto +20 su 2800 ms senza altri bonus → F-26 con pct −20 → 2240 ms; Impulsi 4 con 500 PV massimi → 20 di danno ogni 4 s prima di F-25;
-Fame +40 con un cibo da 100 → 60. Test: `tests/systems/fractures/test_fracture_effects.gd`.
+Fame +40 con un cibo da 100 → 60; Stanchezza `step` 10 → `power_pct` −30 (danno massimo del giocatore ridotto); Torpore `step` 10 → intervallo × 1,30 con F-26; Nebbia accecante `step` 5 → `accuracy_pct` −25 (valore 10 + round(30 × 5/10)), 12,5 punti di rischio (unità 0,5).
+Test: `tests/systems/fractures/test_fracture_effects.gd`, `test_card_mod_count.gd` (nuovi tipi). Il validatore limita i tre nuovi a `max` ≤ 80 (le stat vanno a −90 al minimo).
 
 ### F-112 Abilità del boss
 Un'abilità per boss (`data/maps/bosses.json`), dal momento in cui parte l'incontro del boss. Il timer dell'abilità parte da `every_ms`, si risolve **dopo** l'attacco base del boss nello stesso istante (F-76) e si ripete finché il boss è vivo.
@@ -1140,12 +1153,14 @@ Esempio: borsa con 40 tipi di oggetto e la Bank con 25 caselle libere → 25 con
 
 ### F-123 Tetto ai rischi della Carta (M14, Q72)
 Una Carta rara di grado basso con 3-4 rischi pesanti era punitiva. I rischi hanno un **tetto**: `cap(g) = fracture.risk_cap.base + fracture.risk_cap.per_grade × (g − 1)` (40 + 10 per grado: grado 1 → 40, grado 5 → 80, grado 10 → 130). I **punti di rischio** di un modificatore sono
-`risk_value × fracture.risk_unit[tipo di rischio]` (default 1; `pack_bonus` 20, `pulse` 5), con `risk_value` di F-109. La somma dei punti di tutti i modificatori della Carta è ≤ `cap(g)`.
-Regola nella scelta (F-109, nessun tiro in più su `rng`): dopo la scelta di un candidato e il tiro dello `step`, se la somma supererebbe il tetto lo `step` si **riduce** al massimo che ci sta (`step_max`); se anche `step` 0 non ci sta il candidato è scartato dai candidati e la scelta si
+`risk_value × fracture.risk_unit[tipo di rischio]` (default 1; `pack_bonus` 20, `pulse` 5, e dei tre rischi sul giocatore di M29-01 0,5 ciascuno), con `risk_value` di F-109. La somma dei punti di tutti i modificatori della Carta è ≤ `cap(g)`.
+**Riserva (M29-01)**: per non perdere il numero tirato (rara fino a 6), il `step` di un modificatore lascia nel tetto lo spazio per i modificatori che mancano: la riserva è la somma dei punti a `step` 0 dei più economici tra i candidati rimasti, **uno per tipo di rischio** (escluso quello del candidato scelto), tanti quanti ne mancano al numero voluto (meno se i tipi non bastano). Se nessun candidato ci sta con la riserva, il numero voluto scende di 1 e gli scartati sono riprovati. Nessun tiro in più.
+Regola nella scelta (F-109, nessun tiro in più su `rng`), con lo spazio ridotto dalla riserva: dopo la scelta di un candidato e il tiro dello `step`, se la somma supererebbe il tetto lo `step` si **riduce** al massimo che ci sta (`step_max`); se anche `step` 0 non ci sta il candidato è scartato dai candidati e la scelta si
 ripete (senza nuovi tiri se non quelli di scelta e `step`); senza candidati si smette. Il premio segue lo `step` ridotto. Vale anche per i Cristalli (`to_rare`, `reroll`).
 Esempi (grado 1, tetto 40): "Brutalità" (`monster_damage_pct` 15-45, unità 1) con `step` 10 → 45 > 40, ridotto a `step` 8 → 15 + round(30 × 8/10) = **39** punti; resta 1: nessun altro modificatore ci sta (il minimo è 10), la Carta rara ha un solo modificatore.
 "Mostri robusti" (20-60) `step` 1 → 24; restano 16, "Assalto" (10-35) a `step` 2 → 10 + round(25 × 0,2) = 15 (totale 39). "Orde" (`pack_bonus` 1-2, unità 20) al grado 2 (tetto 50): `pack_bonus` 2 → 40 punti. "Impulsi" (`pulse` 2-5, unità 5) a `step` 10 → 25 punti.
-Test: `tests/systems/fractures/test_map_card_roller.gd::test_risk_cap`; i dati veri: `tests/data/test_map_data_validation.gd` (almeno un candidato di rischio ≤ 40 per il grado 1, in modo che la scelta non si blocchi).
+**Dove il tetto taglia (M29-01, misurato con 600 semi per grado)**: grado 1 (tetto 40, solo 7 tipi di rischio; i 6 più economici costano 60 a `step` 0, i 5 costano 40): la rara è al massimo di **5** modificatori (con `step` 0 ovunque; ~24% delle rare tirano 6 e ne hanno 5); gradi 2-10: la rara raggiunge sempre il numero tirato (grado 2, tetto 50, con 6 modificatori solo con `step` bassi). La magica (1-2) non è mai tagliata dal numero. `to_rare` da una magica con modificatori costosi può restare sotto il numero tirato (esempio grado 4: Velati 20 + Digiuno 50 = 70 = tetto, nessun altro ci sta).
+Test: `tests/systems/fractures/test_map_card_roller.gd::test_risk_cap`, `test_card_mod_count.gd`; i dati veri: `tests/data/test_map_data_validation.gd` (almeno un candidato di rischio ≤ 40 per il grado 1, in modo che la scelta non si blocchi).
 
 ### F-51 Penalità della corsia secondaria — **ELIMINATA in M12** (corsie parallele sostituite dagli aiutanti, F-101)
 
@@ -1493,7 +1508,7 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | `sockets.{by_rarity, bonus_at_upgrade}` (M8; M14: + masterwork, legendary) | `{"common":0,"magic":1,"rare":2,"masterwork":2,"legendary":2}`, 7 | F-89 |
 | `rift.sockets` (già presente, usata in M8) | `[{"level":1},{"level":20},{"level":40},{"level":60},{"level":80}]` | 11 |
 | `offline.{cap_ms, min_ms, chunk_ms}` | 43200000, 60000, 60000 | F-40, F-41 |
-| `fracture.{groups, intensity_steps, pulse_ms, mod_count, card_rarity, card_drop, salvage, grades}` (M13, R-04; sostituisce `fractures.*`) | 16, 10, 4000, `{"common":[0,0],"magic":[1,2],"rare":[3,4]}`, `{"magic_pct":25,"rare_pct":6}`, `{"monster_pct":0.5,"boss_pct":70,"monster_delta":[70,27,3],"boss_delta":[20,70,10]}`, `{"dust_per_grade":5,"rarity_mult":{"common":1,"magic":1.5,"rare":2}}`, tabella F-110 (10 righe) | F-50, F-109…F-116 |
+| `fracture.{groups, intensity_steps, pulse_ms, mod_count, card_rarity, card_drop, salvage, grades}` (M13, R-04; sostituisce `fractures.*`) | 16, 10, 4000, `{"common":[0,0],"magic":[1,2],"rare":[3,6]}` (M29-01), `{"magic_pct":25,"rare_pct":6}`, `{"monster_pct":0.5,"boss_pct":70,"monster_delta":[70,27,3],"boss_delta":[20,70,10]}`, `{"dust_per_grade":5,"rarity_mult":{"common":1,"magic":1.5,"rare":2}}`, tabella F-110 (10 righe) | F-50, F-109…F-116 |
 | `combat.armor.{k, level_offset, cap_pct, materials}` (M14, Y2, Q67, Q74) | 6, 10, 75, `{"plate":{"armor":1.0,"barrier":0,"evasion":0.2},"leather":{"armor":0.6,"barrier":0.4,"evasion":1.0},"cloth":{"armor":0.3,"barrier":1.0,"evasion":0.4}}` | F-117, F-118 |
 | `equipment.{grade_levels, grade_material, slot_weights, set_budget}` (M14, Q66) | 15 livelli (1…90), mappa pezzo → materiale (1,1,2,2,3,3,4,4,5,5,6,6,7,7,8), pesi degli slot (corpo 0,30, gambe 0,20, elmo 0,15, scudo 0,15, mani 0,10, piedi 0,10), `{"armor":[4,8],"evasion":[2,1.5]}` (base, per livello) | F-118 |
 | `rarity.masterwork.{base_mult, affix_count}` (M14, Y4) | 1.25, `[1, 2]` | F-119, F-91 |
@@ -1501,7 +1516,7 @@ Ogni slot ha almeno 4 affissi ammessi (un raro ne chiede fino a 4). Controllo: s
 | `blueprint.{cost_mult, extra_rare}` (M14, Q68) | 3, 2 componenti rari diversi | F-90, F-119 |
 | `loot.equipment.{chance_pct, level_ahead, level_window, kind_weights}`, `loot.blueprint.chance_pct` (M14, Y6, Q69) | 4.0 (M17-03b, Q85; era 2.9), 5, 15, 1 per ciascuno dei 10 tipi di pezzo; 0.5 (era 0.4) | F-121 |
 | `mastery.step.{every_levels, gathering, crafting}` (M14, Y8, Q70) | 10, `[{"stat":"skill_interval_pct","value":-2},{"stat":"double_item_chance","value":1}]`, `[{"stat":"preservation_chance","value":2},{"stat":"skill_interval_pct","value":-2}]` | F-122 |
-| `fracture.{risk_cap, risk_unit}` (M14, Q72) | `{"base":40,"per_grade":10}`, `{"pack_bonus":20,"pulse":5}` | F-123 |
+| `fracture.{risk_cap, risk_unit}` (M14, Q72) | `{"base":40,"per_grade":10}`, `{"pack_bonus":20,"pulse":5,"player_damage_pct":0.5,"player_accuracy_pct":0.5,"player_speed_pct":0.5}` (M29-01) | F-123 |
 | `metin.{hp_base, hp_per_level, pulse_damage, wave_size, wave_thresholds, rarity_bonus_pct, guaranteed_pieces}` (M15, Z3-Z4) | 200, 0,25, 1, 7, `[75, 50, 25]`, 100, 1 | F-125…F-127 (Q78) |
 | `village.{max_level, woodwright_levels, gold_base, gold_growth, qty.{wood,plate,food}.{base,per_level}}` (M19, V7) | 8, `[1,10,20,30,45,60,75,90]`, 300, 1,4, `{20,20}` `{4,4}` `{10,6}` | F-131 (obbligatorie; i pesi per edificio stanno in `data/village/buildings.json`; validato da `DataValidatorVillage`, escluso da `test_config_files`) |
 | `quest.{tier_levels, tier_window, recent_memory, gold_by_tier, xp_unit_by_tier, kill_food_qty, types.{kill,gather,craft}.{base, per_tier, gold_mult, xp_cycles, mult}}` (M20, V7) | `[1,10,20,30,45,60,75,90]`, 3, 6, `[80,250,340,380,600,800,950,1030]`, `[10,18,28,40,58,80,108,145]`, 20, vedi F-134 | F-134, F-135 (obbligatorie, validate: `tier_levels` e le due tabelle di 8 voci, strettamente crescenti `tier_levels`) |

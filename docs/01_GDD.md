@@ -546,14 +546,14 @@ Frattura ogni 2-4 ore è eliminata: niente `fractures.interval_*`, `duration_ms`
 ### 17.1 La Carta
 - Oggetto di categoria `map` (`04_DATA_SCHEMA.md` §11), **un'istanza** come i pezzi (`uid`, grado, rarità, modificatori), custodita dal `CardStore` (`05_INTERFACES.md` §5.23). Una casella del Deposito ciascuna (occupante `cards`, F-100); non è
   impilabile né vendibile. Non si può avere una Carta nella Bank.
-- **Grado 1-10.** **Rarità** come i pezzi: comune (0 modificatori), magica (1-2), rara (3-4) (F-109).
+- **Grado 1-10.** **Rarità** come i pezzi: comune (0 modificatori), magica (1-2), rara (3-6) (F-109, M29-01).
 - **Fonti**: drop dei mostri delle aree e dei Monoliti (gradi bassi, dalle tabelle di drop, F-32; il grado dipende dall'area), **Fratture** (stesso grado o +1, raramente +2; il boss con alta probabilità, F-113). Le Carte di grado più alto cadono
   soprattutto dalle Fratture (X2). Una Carta caduta con il Deposito pieno si perde (`card_rejected`, notifica, riepilogo offline), come un pezzo che non entra.
 - **Modificatori** (`data/maps/map_mods.json`): ognuno ha un **rischio** (cambia i mostri o il giocatore dentro la Frattura) e un **premio** (aumenta il bottino), con la stessa intensità (F-109). I tipi di rischio e di premio sono un elenco chiuso del motore
   (F-111), non stat nuove. Le stat esistenti si applicano al giocatore con sorgente `fracture:<uid>` solo mentre la Frattura è in corso. Esempi di partenza: Mostri robusti (+PV; più quantità), Assalto (mostri più rapidi; più rarità), Fame (il cibo cura
-  meno; più progetti), Orde (gruppi più numerosi; più XP), Impulsi (danno periodico come i Monoliti; più Polvere del Rift). I modificatori più forti hanno `min_grade` alto.
+  meno; più progetti), Orde (gruppi più numerosi; più XP), Impulsi (danno periodico come i Monoliti; più Polvere del Rift). I modificatori più forti hanno `min_grade` alto. Dal M29-01 ci sono anche rischi **sul giocatore** (danno, precisione e velocità d'attacco ridotti: Stanchezza, Nebbia accecante, Torpore, ...), così una Carta rara trova abbastanza tipi di rischio diversi per arrivare a 6 modificatori.
 - **Tetto ai rischi (M14, Q72, F-123)**: la somma dei punti di rischio dei modificatori non supera 40 al grado 1, più 10 per grado; se un modificatore sforerebbe, la sua intensità si riduce (e il premio con lei). Una Carta rara di grado basso non è più punitiva.
-- I **Cristalli** funzionano anche sulle Carte (stessi tre effetti dei pezzi, §26): risveglio (comune → magica), ascesa (magica → rara), mutamento (rifà i modificatori). Lo **smantellamento** di una Carta dà Polvere del Rift (F-114).
+- I **Cristalli** funzionano anche sulle Carte (stessi tre effetti dei pezzi, §26): risveglio (comune → magica), ascesa (magica → rara), mutamento (rifà i modificatori: li **sostituisce** con altri dello stesso numero, non spariscono; M29-01, solo se non ci stanno altri candidati nel tetto il numero può scendere). Lo **smantellamento** di una Carta dà Polvere del Rift (F-114).
   Una Carta si **blocca** (non si smantella per errore) come un pezzo.
 
 ### 17.2 La Frattura
@@ -729,7 +729,7 @@ Dal M15 il Monolito è un incontro "a ondate" (idea ispirata alle pietre di Meti
 
 Castoni sui pezzi (F-89, da rarità e raffinazione); pietre incastonabili (categoria `stone`, con modificatori; famiglie di forza, di precisione, di agilità, di tempra; gradi Scheggia → Pietra →
 Pietra perfetta) che **cadono dai mostri e dai Monoliti** e si migliorano con Fondere dell'Incisore (F-105); tre valute (categoria `currency`), che **cadono dai mostri** o si ottengono
-con Cristallizzare (F-104): Cristallo del risveglio (comune → magico), Cristallo dell'ascesa (magico → raro, aggiunge affissi fino al numero del raro), Cristallo del mutamento (ritira gli affissi, stessa rarità, F-85 di nuovo). Una pietra tolta da un castone si
+con Cristallizzare (F-104): Cristallo del risveglio (comune → magico), Cristallo dell'ascesa (magico → raro, aggiunge affissi fino al numero del raro), Cristallo del mutamento (ritira gli affissi, stessa rarità, F-85 di nuovo; sulle Carte della Frattura sostituisce i modificatori senza cambiarne il numero, F-109). Una pietra tolta da un castone si
 distrugge (come le rune, Q8).
 
 ## 27. Guida in gioco (M11)

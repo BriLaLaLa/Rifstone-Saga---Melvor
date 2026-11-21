@@ -10,6 +10,17 @@ const RISK_DEFENCE: StringName = &"monster_defence_pct"
 const RISK_PACK: StringName = &"pack_bonus"
 const RISK_FOOD: StringName = &"food_heal_pct"
 const RISK_PULSE: StringName = &"pulse"
+## M29-01: risks on the player, applied as stat modifiers of the source `fracture:<uid>` (`FractureSystem.rebuild_modifiers`):
+## type -> [stat, sign]: `player_damage_pct` = `power_pct` -v, `player_accuracy_pct` = `accuracy_pct` -v,
+## `player_speed_pct` = `attack_interval_pct` +v (a longer interval).
+const RISK_PLAYER_DAMAGE: StringName = &"player_damage_pct"
+const RISK_PLAYER_ACCURACY: StringName = &"player_accuracy_pct"
+const RISK_PLAYER_SPEED: StringName = &"player_speed_pct"
+const PLAYER_RISK_STATS: Dictionary[StringName, Array] = {
+	&"player_damage_pct": [&"power_pct", -1.0],
+	&"player_accuracy_pct": [&"accuracy_pct", -1.0],
+	&"player_speed_pct": [&"attack_interval_pct", 1.0],
+}
 const REWARD_QTY: StringName = &"loot_qty_pct"
 const REWARD_RARITY: StringName = &"item_rarity_pct"
 const REWARD_XP: StringName = &"xp_pct"

@@ -40,7 +40,7 @@ func test_fixtures_are_valid() -> void:
 func test_real_data_has_the_full_map_content() -> void:
 	var data: GameData = TestFactory.real_data()
 	assert_true(data.is_valid())
-	assert_eq(data.map_mods().size(), 12)  # M13-04 filled the files: empty lists are no longer allowed
+	assert_eq(data.map_mods().size(), 18)  # M13-04 filled the files; M29-01 added six
 
 
 func test_game_data_accessors() -> void:
@@ -152,6 +152,20 @@ func test_type_limits() -> void:
 	_expect(raw2, "pack_bonus must be an integer")
 
 
+func test_player_risk_types_are_known_and_limited() -> void:  # M29-01
+	var ok: Dictionary = V.fixture_raw()
+	for i: int in 3:
+		var kinds: Array = ["player_damage_pct", "player_accuracy_pct", "player_speed_pct"]
+		(_mods(ok)[i] as Dictionary)["risk"] = {"type": kinds[i], "min": 10, "max": 80}
+	assert_eq(V.validate(ok).size(), 0, "the three new risks are accepted up to 80")
+	var raw: Dictionary = V.fixture_raw()
+	(_mods(raw)[0] as Dictionary)["risk"] = {"type": "player_damage_pct", "min": 10, "max": 85}
+	_expect(raw, "player_damage_pct must be <= 80")
+	var rare_ok: Dictionary = V.fixture_raw()
+	_fracture(rare_ok)["mod_count"]["rare"] = [3, 6]
+	assert_eq(V.validate(rare_ok).size(), 0, "rare up to 6")
+
+
 func test_modifier_fields() -> void:
 	var raw: Dictionary = V.fixture_raw()
 	(_mods(raw)[0] as Dictionary)["min_grade"] = 0
@@ -249,7 +263,7 @@ func test_fracture_scalar_and_table_rules() -> void:
 	_fracture(raw)["intensity_steps"] = 0
 	_fracture(raw)["pulse_ms"] = 10
 	_fracture(raw)["mod_count"]["common"] = [0, 1]
-	_fracture(raw)["mod_count"]["rare"] = [3, 5]
+	_fracture(raw)["mod_count"]["rare"] = [3, 7]  # above 6 (M29-01)
 	_fracture(raw)["card_rarity"] = {"magic_pct": 70, "rare_pct": 40}
 	_fracture(raw)["card_drop"]["monster_delta"] = [0, 0, 0]
 	_fracture(raw)["card_drop"]["boss_pct"] = 101

@@ -11,6 +11,9 @@ const LABELS: Dictionary[StringName, String] = {
 	&"pack_bonus": "Mostri in più in ogni gruppo",
 	&"food_heal_pct": "Cura del cibo",
 	&"pulse": "Impulso periodico sui tuoi PV massimi",
+	&"player_damage_pct": "Il tuo danno",
+	&"player_accuracy_pct": "La tua precisione",
+	&"player_speed_pct": "Intervallo dei tuoi attacchi",
 	&"loot_qty_pct": "Quantità del bottino",
 	&"item_rarity_pct": "Rarità dei pezzi",
 	&"xp_pct": "XP del personaggio",
@@ -20,7 +23,7 @@ const LABELS: Dictionary[StringName, String] = {
 	&"card_chance_pct": "Carte della Frattura",
 }
 ## Types whose value is a decrease ("Cura del cibo -40%") and types whose value is not a percentage.
-const DECREASES: Array[StringName] = [&"food_heal_pct"]
+const DECREASES: Array[StringName] = [&"food_heal_pct", &"player_damage_pct", &"player_accuracy_pct"]
 const PLAIN_NUMBERS: Array[StringName] = [&"pack_bonus"]
 
 const ABILITY_NAMES: Dictionary[StringName, String] = {
