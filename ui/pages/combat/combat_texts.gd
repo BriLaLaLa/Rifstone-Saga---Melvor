@@ -19,6 +19,7 @@ const STATE_TEXTS: Dictionary[StringName, String] = {
 	STATE_NODE: "Al nodo",
 }
 const STATE_TEXT_DEFAULT: String = "In attesa"
+const PAUSED_TEXT: String = "In pausa. %s"
 const NO_AREA_TEXT: String = "Scegli un'area per combattere."
 const STOP_TEXT: String = "Ferma"
 const EAT_TEXT: String = "Mangia"
@@ -123,6 +124,11 @@ const LOG_EAT_TEXT: String = "Mangi %s (+%s PV)."
 
 
 ## Interval in milliseconds as seconds with one decimal and a comma ("2,0").
+## The header state, with the pause of the tutorial in front when the engine is frozen.
+static func paused(state_text: String, frozen: bool) -> String:
+	return PAUSED_TEXT % state_text if frozen else state_text
+
+
 static func seconds_text(ms: int) -> String:
 	return String.num(ms / 1000.0, 1).replace(".", ",")
 

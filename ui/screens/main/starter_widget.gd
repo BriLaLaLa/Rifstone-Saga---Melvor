@@ -2,7 +2,7 @@ class_name StarterWidget
 extends PanelContainer
 ## Box «Primi passi» at the bottom of the sidebar, outside the scrolling list (docs/01_GDD_M30.md §41.8): the next starter
 ## quest, "claimed/total", a bar and a gold dot when something can be claimed. A click on it asks for the `starter` page
-## (`open_requested`). Hidden while the tutorial is active and when every quest is claimed. It reads everything from
+## (`open_requested`). Hidden while the tutorial is active and once the final bonus is claimed (at 20/20 it stays). It reads everything from
 ## `session.tutorial.starter` and keeps only references to its own nodes.
 
 signal open_requested
@@ -12,6 +12,7 @@ var _name_label: Label
 var _count_label: Label
 var _bar: ProgressBar
 var _dot: Panel
+var _tween: Tween = null
 
 
 func _init() -> void:
@@ -60,6 +61,7 @@ func bind(session: GameSession) -> void:
 	unbind()
 	_session = session
 	_session.events.starter_quests_changed.connect(refresh)
+	_session.events.starter_quest_completed.connect(_on_quest_completed)
 	_session.events.tutorial_completed.connect(refresh)
 	refresh()
 
@@ -68,9 +70,12 @@ func unbind() -> void:
 	if _session != null and is_instance_valid(_session):
 		if _session.events.starter_quests_changed.is_connected(refresh):
 			_session.events.starter_quests_changed.disconnect(refresh)
+		if _session.events.starter_quest_completed.is_connected(_on_quest_completed):
+			_session.events.starter_quest_completed.disconnect(_on_quest_completed)
 		if _session.events.tutorial_completed.is_connected(refresh):
 			_session.events.tutorial_completed.disconnect(refresh)
 	_session = null
+	_set_pulse(false)
 
 
 func _exit_tree() -> void:
@@ -84,14 +89,34 @@ func refresh() -> void:
 		return
 	var starter: StarterQuests = _session.tutorial.starter
 	var next: StarterQuestDef = starter.next_open()
-	visible = starter.is_enabled() and next != null
+	visible = starter.is_enabled() and not starter.all_done()  # at 20/20 the box stays until the final bonus is claimed
 	if not visible:
+		_set_pulse(false)
 		return
 	_count_label.text = StarterTexts.COUNT_TEXT % [starter.claimed_count(), starter.total()]
-	_name_label.text = next.name
+	_name_label.text = next.name if next != null else starter.final_reward().name
 	_bar.max_value = maxi(starter.total(), 1)
 	_bar.value = starter.claimed_count()
-	_dot.visible = not starter.claimable().is_empty()
+	_dot.visible = not starter.claimable().is_empty() or starter.is_final_available()
+	_set_pulse(_dot.visible)
+
+
+func _on_quest_completed(_quest_id: StringName) -> void:
+	refresh()
+
+
+## The dot pulses while it is lit (same rhythm as the active dot of the sidebar); presentation only.
+func _set_pulse(on: bool) -> void:
+	if _tween != null and _tween.is_valid():
+		if on:
+			return
+		_tween.kill()
+	_tween = null
+	_dot.modulate.a = 1.0
+	if on and _dot.is_inside_tree():
+		_tween = _dot.create_tween().set_loops()
+		_tween.tween_property(_dot, "modulate:a", UiStyle.STARTER_DOT_PULSE_MIN_ALPHA, UiStyle.STARTER_DOT_PULSE_SEC)
+		_tween.tween_property(_dot, "modulate:a", 1.0, UiStyle.STARTER_DOT_PULSE_SEC)
 
 
 func _on_gui_input(event: InputEvent) -> void:

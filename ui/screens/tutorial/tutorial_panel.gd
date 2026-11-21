@@ -46,16 +46,18 @@ func _init() -> void:
 	_next.theme_type_variation = &"AccentButton"
 
 
-## The card of a step: `progress` is shown only when `target_count` > 1.
+## The card of a step: `progress` is shown only when `target_count` > 1, with `progress_text` ("%d ... %d", from the data) when
+## given; `ack_text` is the label of the confirm button ("" = the default).
 func show_step(title: String, text: String, index: int, total: int, progress: int, target_count: int,
-		can_next: bool, can_skip: bool) -> void:
+		can_next: bool, can_skip: bool, progress_text: String = "", ack_text: String = "") -> void:
 	_go_to.visible = false
 	_step_box.visible = true
 	_title.text = title
 	_body.text = text
 	_step.text = TutorialTexts.STEP_TEXT % [index + 1, total]
 	_progress.visible = target_count > 1
-	_progress.text = TutorialTexts.PROGRESS_TEXT % [progress, target_count]
+	_progress.text = (progress_text if not progress_text.is_empty() else TutorialTexts.PROGRESS_TEXT) % [progress, target_count]
+	_next.text = ack_text if not ack_text.is_empty() else TutorialTexts.NEXT_TEXT
 	_next.visible = can_next
 	_skip.visible = can_skip
 	_reason.visible = false

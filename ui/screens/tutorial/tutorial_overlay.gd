@@ -100,7 +100,8 @@ func refresh() -> void:
 	else:
 		_nav_route = &""
 		_card.show_step(step.title, step.text, tutorial.step_index(), tutorial.step_count(), tutorial.step_progress(),
-				tutorial.step_target_count(), tutorial.can_acknowledge(), tutorial.can_skip_step())
+				tutorial.step_target_count(), tutorial.can_acknowledge(), tutorial.can_skip_step(),
+				tutorial.step_progress_text(), tutorial.ack_text())
 	_layout_key = []
 	_layout()
 

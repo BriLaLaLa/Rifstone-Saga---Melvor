@@ -20,6 +20,9 @@ const REFUSED_TEXTS: Dictionary[StringName, String] = {
 	Reasons.QUEST_INCOMPLETE: "Incarico non ancora completato.",
 	Reasons.MAILBOX_FULL: "Posta piena: ritira dei messaggi e riprova.",
 }
+const FINAL_TITLE_TEXT: String = "Ricompensa finale"
+const FINAL_LOCKED_TEXT: String = "Riscuoti tutti i Primi passi"
+const FINAL_CLAIMED_NOTICE: String = "Bonus finale inviato alla Posta: ritiralo da lì."
 const REFUSED_DEFAULT: String = "Operazione non riuscita."
 
 

@@ -22,6 +22,10 @@ func _ready() -> void:
 
 
 func _run() -> void:
+	if args_mode() == "m31":
+		await _run_m31()
+		get_tree().quit(0)
+		return
 	if args_mode() == "real":
 		await _run_real()
 		get_tree().quit(0)
@@ -158,3 +162,62 @@ func _run_real() -> void:
 	screen2.free()
 	done.free()
 	print_rich("real shots in ", ProjectSettings.globalize_path(_out))
+
+
+# --- M31-03: the touch-ups. Third argument "m31": s05 (kills n of 3), s07 (the wound), s08 (pause, Ok, frame), widget_dot (box with
+# the lit dot), starter_final (the final bonus available). Real data, a real new game, the combat really advanced.
+const M31_PAGES: Array = ["character", "equipment", "combat"]
+
+
+func _run_m31() -> void:
+	await _m31_step(&"s05", "combat_kills", 1)
+	await _m31_step(&"s07", "combat_eat", 0)
+	await _m31_step(&"s08", "combat_food", 0)
+	var lit: GameSession = _m31_done_session()
+	TestFactory.set_character_level(lit, 3)
+	var screen: MainScreen = await _open(lit)
+	await _frames(8)
+	_save(&"widget_dot")
+	screen.free()
+	lit.free()
+	var final: GameSession = _m31_done_session()
+	var ids: Array = []
+	for def: StarterQuestDef in final.tutorial.starter.quests():
+		ids.append(String(def.id))
+	final.tutorial.starter.from_save({"claimed": ids, "progress": {}, "final_claimed": false})
+	var screen2: MainScreen = await _open(final)
+	(screen2.find_child("PageHost", true, false) as PageHost).show_page(&"starter")
+	await _frames(8)
+	var scroll: ScrollContainer = screen2.find_child("Page", true, false).find_child("Scroll", true, false) as ScrollContainer
+	scroll.ensure_control_visible(screen2.find_child("FinalRow", true, false) as Control)
+	await _frames(4)
+	_save(&"starter_final")
+	screen2.free()
+	final.free()
+	print_rich("m31 shots in ", ProjectSettings.globalize_path(_out))
+
+
+func _m31_done_session() -> GameSession:
+	var session: GameSession = _real_session()
+	session.tutorial.from_save({"completed": true, "step": "", "visited": []})
+	session.hints.from_save({"seen": ["first_level_ten", "first_shard", "first_defeat"]})
+	return session
+
+
+## The tutorial at `step_id`, the fight started and advanced until `kills` kills (a few ticks for the others).
+func _m31_step(shot: StringName, step_id: String, kills: int) -> void:
+	var session: GameSession = _real_session()
+	session.tutorial.from_save({"completed": false, "step": step_id, "visited": M31_PAGES, "since_ms": 0})
+	session.combat.start(&"redrock_plains")
+	var ticks: int = 0
+	while ticks < 4000 and (session.tutorial.step_progress() < kills if kills > 0 else ticks < 60):
+		session.advance(100)
+		ticks += 1
+	var screen: MainScreen = await _open(session)
+	(screen.find_child("PageHost", true, false) as PageHost).show_page(&"combat")
+	await _frames(8)
+	print_rich("M31 %s step=%s progress=%d frozen=%s" % [shot, session.tutorial.current_step().id, session.tutorial.step_progress(), session.combat.is_frozen()])
+	_save(shot)
+	screen.free()
+	session.free()
+	await _frames(2)
