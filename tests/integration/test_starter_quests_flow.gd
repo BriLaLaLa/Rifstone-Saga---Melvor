@@ -252,7 +252,4 @@ func test_claiming_a_notice_board_quest_tells_the_starter_module() -> void:
 	_changed = 0
 	assert_true(_s.quests.claim(0).ok)
 	assert_true(_s.tutorial.starter.is_complete(&"noticeboard_claim"), "read live, the measure is true")
-	if _announced.is_empty() and _changed == 0:
-		pending("BUG-M30-05-1: no starter_quest_completed / starter_quests_changed after a Notice Board claim")
-		return
 	assert_true(_announced.has(&"noticeboard_claim"))

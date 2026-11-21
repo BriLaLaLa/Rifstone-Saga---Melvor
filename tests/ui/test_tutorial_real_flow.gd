@@ -167,5 +167,4 @@ func test_money_only_messages_of_the_tutorial_compose_without_errors() -> void:
 	var errors: Array = get_errors()
 	for error: Variant in errors:
 		error.handled = true
-	if not errors.is_empty():
-		pending("BUG-M30-05-2: %d errors 'unknown item' composing money-only Mail messages" % errors.size())
+	assert_true(errors.is_empty(), "no errors composing money-only messages")
