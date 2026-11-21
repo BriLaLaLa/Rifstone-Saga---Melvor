@@ -135,7 +135,7 @@ func _run_real() -> void:
 			(screen.find_child("PageHost", true, false) as PageHost).show_page(_route_of(step))
 		await _frames(8)
 		var found: Control = TutorialTargets.resolve(step.target, screen)
-		print("TARGET %d %s %s %s" % [i + 1, step.id, step.target if step.target != "" else "-", "OK" if found != null else ("MISS" if step.target != "" else "none")])
+		print_rich("TARGET %d %s %s %s" % [i + 1, step.id, step.target if step.target != "" else "-", "OK" if found != null else ("MISS" if step.target != "" else "none")])
 		if SHOT_STEPS.has(i + 1):
 			_save(StringName("step%02d" % (i + 1)))
 		screen.free()
@@ -154,7 +154,7 @@ func _run_real() -> void:
 	await _frames(8)
 	_save(&"chain_starter")
 	var groups: int = screen2.find_children("*", "", true, false).filter(func(n: Node) -> bool: return String(n.name).begins_with("Group_")).size()
-	print("STARTER groups-named-nodes ", groups, " claimed ", done.tutorial.starter.claimed_count(), " of ", done.tutorial.starter.total())
+	print_rich("STARTER groups-named-nodes ", groups, " claimed ", done.tutorial.starter.claimed_count(), " of ", done.tutorial.starter.total())
 	screen2.free()
 	done.free()
 	print_rich("real shots in ", ProjectSettings.globalize_path(_out))
