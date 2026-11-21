@@ -77,7 +77,7 @@ func test_two_and_two_disciplines_are_learned_from_the_trainers_and_the_third_is
 	assert_eq(s.disciplines.learned(&"artisan").size(), 2)
 	assert_eq(s.disciplines.free_slots(&"gathering"), 0)
 	assert_eq(s.disciplines.learn(QUARRYING).reason, Reasons.DISCIPLINE_SLOTS_FULL)
-	assert_eq(s.disciplines.learn(WOODWRIGHT).reason, Reasons.DISCIPLINE_SLOTS_FULL)
+	assert_eq(s.disciplines.free_slots(&"artisan"), 1, "M32: the Cucina does not take an artisan slot, so one is still free")
 	assert_eq(s.disciplines.learn(FORESTRY).reason, Reasons.ALREADY_LEARNED)
 	assert_eq(s.disciplines.grade(FORESTRY), 1)
 	assert_eq(s.disciplines.grade(QUARRYING), 0)
