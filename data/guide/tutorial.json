@@ -1,6 +1,6 @@
 {
   "pages": [
-    {"id": "guide_tutorial", "section": "first_steps", "title": "Tutorial e Primi passi", "order": 2,
+    {"id": "guide_tutorial", "section": "first_steps", "title": "Tutorial e Primi passi", "order": 2, "help_for": ["starter"],
      "blocks": [
        {"type": "text", "text": "Una nuova partita comincia con un breve tutorial: un passo alla volta ti mostra le pagine del gioco e ti chiede di provare i comandi principali. Si completa con il pulsante Avanti o facendo ciò che il passo descrive. Se un passo si blocca, dopo un po' compare Continua comunque."},
        {"type": "text", "text": "Puoi uscire dal menu quando vuoi: al ritorno riparti dal passo in cui eri. Finché il tutorial è in corso alcune pagine restano chiuse e i Suggerimenti non compaiono."},
