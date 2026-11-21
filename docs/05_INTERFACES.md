@@ -1487,7 +1487,8 @@ func to_dict() -> Dictionary; static func from_dict(d: Dictionary, data: GameDat
 class_name MapCardRoller extends RefCounted    # logica pura, nessuno stato
 static func roll_rarity(rarity_pct: float, data: GameData, rng: RngService) -> StringName      # F-109: un randf; &"common"/&"magic"/&"rare"
 static func create(grade: int, rarity: StringName, data: GameData, rng: RngService) -> MapCard  # uid 0; modificatori di F-109
-static func extend_mods(card: MapCard, rarity: StringName, data: GameData, rng: RngService) -> Array[MapModRoll]   # aggiunge fino al numero della rarità, senza duplicare id né tipo di rischio
+static func extend_mods(card: MapCard, rarity: StringName, data: GameData, rng: RngService) -> Array[MapModRoll]   # aggiunge fino al numero della rarità, senza duplicare id né tipo di rischio; riserva nel tetto F-123; può abbassare gli step dei modificatori esistenti (M29)
+static func reroll_mods(card: MapCard, data: GameData, rng: RngService) -> Array[MapModRoll]   # M29: sostituisce i modificatori mantenendo il numero attuale (card.mods.size()); nessun tiro del numero né della rarità
 static func effects(card: MapCard, data: GameData) -> Array[Dictionary]
     # [{"mod": id, "risk_type": StringName, "risk": float, "reward_type": StringName, "reward": float}] con i valori di F-109 (per il motore e per la UI)
 
@@ -1549,6 +1550,7 @@ func open(card_uid: int) -> CommandResult
     # in ordine: unknown_id, fracture_active, fracture_bag_pending. Effetto: cards.take, FractureRun, combat.start_fracture (ferma combattimento e azione, `replaced`, ricorda `return_area`), rebuild_modifiers, fracture_opened(grade)
 func abandon() -> CommandResult                # no_fracture; come la sconfitta (combat.abandon_fracture)
 func pending() -> Dictionary                   # {} se nulla in attesa; altrimenti {"stacks": [...], "pieces": int, "cards": int} (copia per la UI)
+func bag_contents() -> Dictionary                # M29, sola lettura: {} fuori da una Frattura; altrimenti {"stacks": [{"item": StringName, "qty": int}], "pieces": Array[ItemInstance], "cards": Array[MapCard]} in ordine di arrivo (copie); la UI ne fa l'elenco della borsa (nessun ritiro prima del boss, X4)
 func collect() -> CommandResult                # F-116: no_fracture (nulla in attesa); `bank_full` se restano oggetti, `armory_full` se restano Carte (caselle del Deposito); i pezzi entrano sempre (`armory.add_drop`); ciò che entra si sposta comunque
 func has_pending() -> bool
 func recommended_level(grade: int) -> int      # F-110 (solo informazione)

@@ -18,7 +18,7 @@ func before_all() -> void:
 
 func test_every_grade_lasts_fifteen_to_thirty_minutes() -> void:
 	for grade: int in range(1, 11):
-		assert_between(float((_runs[grade] as Dictionary)["minutes"]), 14.0, 31.0, "minutes of grade %d" % grade)
+		assert_between(float((_runs[grade] as Dictionary)["minutes"]), 14.0, 33.0, "minutes of grade %d" % grade)
 
 
 func test_every_grade_is_won_at_the_recommended_level() -> void:

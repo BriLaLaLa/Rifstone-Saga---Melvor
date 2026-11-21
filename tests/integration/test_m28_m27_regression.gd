@@ -88,7 +88,7 @@ func test_dual_plains() -> void:
 
 func test_sword_shield_mines() -> void:
 	assert_eq(_run(&"cracked_mines", &"sword_shield", -4, 0, 1000000),
-			{"deaths": 0, "events": 26833, "food": 485, "hash": 8689767175370441463, "kills": 925, "rng": 3401925336})
+			{"deaths": 0, "events": 26804, "food": 489, "hash": 8754797600491544843, "kills": 916, "rng": 3780298914})
 
 
 func test_greatsword_mines() -> void:
@@ -108,4 +108,4 @@ func test_weak_gear_sword_shield() -> void:
 
 func test_weak_gear_dual() -> void:
 	assert_eq(_run(&"whisper_wood", &"dual", -4, 3, 30),
-			{"deaths": 180, "events": 16345, "food": 50, "hash": 6620158104904999490, "kills": 346, "rng": 1132470544})
+			{"deaths": 180, "events": 16145, "food": 50, "hash": 9021191194629548746, "kills": 353, "rng": 1132470544})

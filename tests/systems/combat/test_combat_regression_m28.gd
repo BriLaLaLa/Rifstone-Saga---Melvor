@@ -3,6 +3,7 @@ extends GutTest
 ## engine gives the same events, hp and random generator state as before the conditions were wired in. The numbers were recorded
 ## from `main` (1568b0e) before the engine was touched: 2 h of fight, fixed seed, three assemblies, a quiet case in each of two areas
 ## and two cases with weak gear and little food (deaths, the loot bag lost).
+## M29-01: three cases re-recorded (cracked_mines sword_shield/greatsword, whisper_wood dual): the Cards that drop now roll their modifiers with the new pool and the 3-6 range, which changes the draws on the shared generator.
 ## M28-06: the four cases that reach level 30 (mines, weak gear sword_shield) were re-recorded: the new traits and abilities, appended
 ## after the old ones, fill the slots that stayed empty (verified: with the M27 rift_blade.json the old numbers come back).
 
@@ -39,12 +40,12 @@ func test_dual_plains() -> void:
 
 func test_sword_shield_mines() -> void:
 	_check(&"cracked_mines", &"sword_shield", -4, 0,
-			{"deaths": 0, "events": 26509, "food": 401, "hash": 8907143056429198199, "kills": 925, "rng": 3401925336})
+			{"deaths": 0, "events": 26508, "food": 408, "hash": 2354609088677015702, "kills": 916, "rng": 3780298914})
 
 
 func test_greatsword_mines() -> void:
 	_check(&"cracked_mines", &"greatsword", -4, 0,
-			{"deaths": 0, "events": 28920, "food": 589, "hash": 9202982194096669069, "kills": 1250, "rng": 1993799300})
+			{"deaths": 0, "events": 27623, "food": 559, "hash": 1238918352750515579, "kills": 1253, "rng": 4279758690})
 
 
 func test_dual_mines() -> void:
@@ -59,4 +60,4 @@ func test_weak_gear_sword_shield() -> void:
 
 func test_weak_gear_dual() -> void:
 	_check(&"whisper_wood", &"dual", -4, 3,
-			{"deaths": 180, "events": 16345, "food": 50, "hash": 6620158104904999490, "kills": 346, "rng": 1132470544}, 30)
+			{"deaths": 180, "events": 16145, "food": 50, "hash": 9021191194629548746, "kills": 353, "rng": 1132470544}, 30)

@@ -224,7 +224,7 @@ Criteri: il nome dice dove si va (Carta) o cosa cambia (modificatore); **classic
 | 10 | Carta dell'Origine |
 
 **Modificatori** (`data/maps/map_mods.json`; rischio / premio in `02_FORMULAS.md` F-111): Mostri robusti (`sturdy`), Assalto (`assault`), Fame (`famine`), Brutalità (`brutal`), Orde (`hordes`), Impulsi (`pulses`), Velati (`shrouded`), Digiuno (`fasting`),
-Titani del Rift (`titans`), Lame spettrali (`spectral`), Frenesia del Rift (`frenzy`), Tempesta dell'Abisso (`abyssal`). Gli ultimi quattro (gradi alti) sono i più esotici.
+Titani del Rift (`titans`), Lame spettrali (`spectral`), Frenesia del Rift (`frenzy`), Tempesta dell'Abisso (`abyssal`). Gli ultimi quattro (gradi alti) sono i più esotici. M29: rischi sul giocatore Torpore (`numbing`), Stanchezza (`weary`), Nebbia accecante (`blinded`), Letargia del Rift (`sluggish`), Lame spuntate (`crippled`), Sguardo smarrito (`bewildered`).
 
 **Boss** (`boss_grade_<grado>`, uno per grado; abilità tra parentesi, F-112):
 
