@@ -114,4 +114,4 @@ Il **primo import di una checkout nuova può andare in crash sui font** (segfaul
 l'import è innocuo.
 
 ## Stato
-Ultima milestone: m31-done (ritocchi al tutorial: pasto con pausa, nodo forzato, bonus finale; m30-done (Tutorial obbligatorio e incarichi Primi passi, save v12); m29-done = Fratture con modificatori e borsa visibile; m28-done = Abilità e tratti v2). Storia e dettagli in docs/STATUS.md
+Ultima milestone: m32-done (cibo dalla carne e Cucina sempre apprendibile; m31-done: ritocchi al tutorial: pasto con pausa, nodo forzato, bonus finale; m30-done (Tutorial obbligatorio e incarichi Primi passi, save v12); m29-done = Fratture con modificatori e borsa visibile; m28-done = Abilità e tratti v2). Storia e dettagli in docs/STATUS.md
