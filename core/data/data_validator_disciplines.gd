@@ -9,7 +9,7 @@ extends RefCounted
 const STRICT_REAL_DATA: bool = true
 const DISCIPLINE_CATEGORIES: PackedStringArray = ["gathering", "artisan"]
 const GRADE_FIELDS: PackedStringArray = ["id", "name", "cap", "character_level"]
-const TRAINER_FIELDS: PackedStringArray = ["skill", "name", "title", "description", "fed_by", "vendor"]
+const TRAINER_FIELDS: PackedStringArray = ["skill", "name", "title", "description", "fed_by", "vendor", "free_slot"]
 const NODE_AREA_FIELDS: PackedStringArray = ["area", "max_level", "nodes"]
 const NODE_FIELDS: PackedStringArray = ["skill", "weight", "difficulty", "min_level"]
 const NODE_WEIGHT_TOTAL: int = 100  # the weights of an area sum to 100 (strict data)
@@ -194,6 +194,8 @@ static func _trainers_file(v: DataValidatorRules, content: Dictionary, strict: b
 				v.fail("field '%s' must not be empty" % key)
 		if t.has("fed_by"):
 			_fed_by(v, t, id)
+		if t.has("free_slot"):
+			v.flag(t, "free_slot")
 		DataValidatorProfessions.trainer(v, t, id, vendors)
 	if strict:
 		v.at_file("section 'disciplines'")

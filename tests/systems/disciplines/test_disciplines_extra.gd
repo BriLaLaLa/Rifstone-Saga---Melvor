@@ -29,7 +29,7 @@ func test_two_of_four_productions_the_engraver_counts() -> void:
 	assert_true(_d.learn(E).ok)
 	assert_eq(_d.free_slots(&"artisan"), 0)
 	assert_eq(_d.learn(&"woodwright").reason, Reasons.DISCIPLINE_SLOTS_FULL)
-	assert_eq(_d.learn(&"hearthcraft").reason, Reasons.DISCIPLINE_SLOTS_FULL)
+	assert_true(_d.can_learn(&"hearthcraft").ok, "the Cook does not need a slot")
 
 
 func test_without_the_engraver_its_actions_are_not_queued() -> void:
@@ -54,7 +54,7 @@ func test_unlearn_clears_the_xp() -> void:
 
 func _with_extra() -> void:
 	TestFactory.learn_discipline(_s, &"forging", 2)
-	TestFactory.learn_discipline(_s, &"hearthcraft", 2)
+	TestFactory.learn_discipline(_s, &"woodwright", 2)
 	TestFactory.learn_discipline(_s, E, 2)
 	_d.from_save(_d.to_save().merged({"extra": ["riftbinding"]}, true))
 
@@ -70,7 +70,8 @@ func test_the_extra_slot_is_read_and_written() -> void:
 func test_free_slots_is_never_negative() -> void:
 	_with_extra()
 	assert_eq(_d.free_slots(&"artisan"), 0)
-	assert_eq(_d.learn(&"woodwright").reason, Reasons.DISCIPLINE_SLOTS_FULL)
+	assert_true(_d.learn(&"hearthcraft").ok)
+	assert_eq(_d.free_slots(&"artisan"), 0)
 
 
 func test_unlearning_a_normal_production_ends_the_extra_slot() -> void:
@@ -104,9 +105,9 @@ func test_a_bad_extra_is_tolerated() -> void:
 
 
 func test_a_third_production_beyond_the_extra_is_dropped() -> void:
-	_d.from_save({"learned": {"forging": 1, "hearthcraft": 1, "woodwright": 1, "riftbinding": 1}, "recipes": [], "extra": ["riftbinding"]})
-	assert_eq(_d.learned(&"artisan"), [&"forging", &"hearthcraft", &"woodwright"] as Array[StringName], "max + the extra, the first by order")
-	assert_eq(_d.to_save()["extra"], [], "the extra one was dropped, no extra slot is left")
+	_d.from_save({"learned": {"forging": 1, "hearthcraft": 1, "woodwright": 1, "riftbinding": 1}, "recipes": [], "extra": []})
+	assert_eq(_d.learned(&"artisan"), [&"forging", &"hearthcraft", &"woodwright"] as Array[StringName], "max, the first by order; the Cook is free")
+	assert_eq(_d.to_save()["extra"], [], "no extra slot")
 
 
 func test_new_game_has_no_extra() -> void:

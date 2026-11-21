@@ -34,6 +34,8 @@ Skill nuova (M24-05): `{"id": "herbalism", "name": "Erborista", "category": "gat
 | `grades[].name` | String | nome visibile del grado (originale) |
 | `trainers` | array | una voce per disciplina, `skill` unica e con `discipline: true`; `name`, `title`, `description` stringhe non vuote (testi originali, M24-05) |
 | `trainers[].fed_by` | array di id | facoltativo; solo per discipline `artisan`; ogni id è una disciplina `gathering`; solo presentazione (pagina dei Maestri, §35.8) |
+| `trainers[].free_slot` | bool | facoltativo (M32); solo per discipline; se `true` la disciplina si può sempre imparare e non conta negli slot della sua categoria (`Disciplines.free_slots`, `can_learn`); oggi solo `hearthcraft` |
+
 Con `STRICT_REAL_DATA = true`: ogni disciplina ha il suo Maestro. Classi: `TrainerGradeDef` (`id`, `name`, `cap`, `character_level`), `TrainerDef`
 (`skill`, `name`, `title`, `description`, `fed_by: Array[StringName]`).
 

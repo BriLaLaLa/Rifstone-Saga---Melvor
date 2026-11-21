@@ -68,7 +68,22 @@ func learned(category: StringName) -> Array[StringName]:
 
 ## Never negative, also with an extra slot.
 func free_slots(category: StringName) -> int:
-	return maxi(0, int(_data.balance_value(MAX_PER_CATEGORY_KEY)) - learned(category).size())
+	return maxi(0, int(_data.balance_value(MAX_PER_CATEGORY_KEY)) - _counted(category))
+
+
+## True for a discipline whose Trainer has `free_slot` (M32): always learnable, it does not count in its category's slots.
+func is_free_slot(skill_id: StringName) -> bool:
+	var trainer: TrainerDef = _data.trainer(skill_id)
+	return trainer != null and trainer.free_slot
+
+
+# The learned disciplines of the category that occupy a slot.
+func _counted(category: StringName) -> int:
+	var n: int = 0
+	for skill_id: StringName in learned(category):
+		if not is_free_slot(skill_id):
+			n += 1
+	return n
 
 
 ## True when the learned discipline occupies an extra slot (M25-11).
@@ -126,7 +141,7 @@ func can_learn(skill_id: StringName) -> CommandResult:
 		return check
 	if _grades.has(skill_id):
 		return CommandResult.fail(Reasons.ALREADY_LEARNED)
-	if free_slots(category_of(skill_id)) <= 0:
+	if not is_free_slot(skill_id) and free_slots(category_of(skill_id)) <= 0:
 		return CommandResult.fail(Reasons.DISCIPLINE_SLOTS_FULL)
 	return _check_grade_costs(1)
 
@@ -287,7 +302,7 @@ func _load_learned(raw: Variant, raw_extra: Variant) -> void:
 		for other: StringName in wanted:
 			if category_of(other) == category_of(skill_id):
 				allowed += 1
-		if learned(category_of(skill_id)).size() >= allowed:
+		if not is_free_slot(skill_id) and _counted(category_of(skill_id)) >= allowed:
 			Log.warn(LOG_CATEGORY, "too many '%s' disciplines in save: '%s' dropped" % [category_of(skill_id), skill_id])
 			continue
 		_grades[skill_id] = read[skill_id]
@@ -295,7 +310,7 @@ func _load_learned(raw: Variant, raw_extra: Variant) -> void:
 		if _grades.has(skill_id):
 			_extra.append(skill_id)
 	for category: StringName in [&"gathering", &"artisan"]:
-		if learned(category).size() <= max_per:
+		if _counted(category) <= max_per:
 			_clear_extra_of(category)
 
 
@@ -307,7 +322,7 @@ func _read_extra(raw: Variant, read: Dictionary[StringName, int]) -> Array[Strin
 		return result
 	for entry: Variant in raw as Array:
 		var skill_id := StringName(str(entry))
-		if is_discipline(skill_id) and read.has(skill_id):
+		if is_discipline(skill_id) and read.has(skill_id) and not is_free_slot(skill_id):
 			if not result.has(skill_id):
 				result.append(skill_id)
 		else:
@@ -325,7 +340,7 @@ func _clear_extra_of(category: StringName) -> void:
 func _release_extra(skill_id: StringName) -> void:
 	_extra.erase(skill_id)
 	var category: StringName = category_of(skill_id)
-	if learned(category).size() <= int(_data.balance_value(MAX_PER_CATEGORY_KEY)):
+	if _counted(category) <= int(_data.balance_value(MAX_PER_CATEGORY_KEY)):
 		_clear_extra_of(category)
 
 
