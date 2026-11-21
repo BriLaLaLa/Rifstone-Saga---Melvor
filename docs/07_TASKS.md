@@ -2131,3 +2131,5 @@ I task M27-01…M27-10 (Casa d'Aste v2: inserzioni simulate, Posta, monete) sono
 I task M28-01…M28-10 (Abilità e tratti v2: condizioni, 19 abilità, 31 tratti) sono in **`07_TASKS_M28.md`**.
 
 I task M30-01…M30-06 (Tutorial obbligatorio e incarichi «Primi passi») sono in **`07_TASKS_M30.md`**.
+
+I task M31-01…M31-04 (ritocchi al tutorial: pausa del pasto, cibo, nodo forzato, bonus finale, pallino) sono in **`07_TASKS_M31.md`** (contratto: `M31_RITOCCHI_TUTORIAL.md`).

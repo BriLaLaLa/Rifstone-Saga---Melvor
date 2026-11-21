@@ -122,3 +122,6 @@ Oltre ai vincoli di §34.1-§34.5:
 - `data/hints/hints.json`: **invariato** (l'hint `first_action` resta, inerte: `HintsSystem` non fa scattare nulla finché il tutorial è attivo e `session_started_new` non si ripete, Q190).
 - `data/guide/tutorial.json` (M30-03): pagina `guide_tutorial`, sezione `first_steps`, titolo «Tutorial e Primi passi», ≤ 160 parole (`test_guide_texts`); `DataValidatorGuide` invariato salvo l'eventuale
   registrazione della pagina. Il testo non cita numeri che stanno nei dati senza il segnaposto `{balance:…}`.
+
+## 34.8 Estensioni di M31 (V40)
+Cinque campi facoltativi nei passi (`progress_text`, `ack_text`, `freeze_combat`, `force_node`, `wound_hp_pct`) e la chiave obbligatoria `final_reward` di `starter_quests.json`: definizione e vincoli in `M31_RITOCCHI_TUTORIAL.md` §2 (estendono §34.1 e §34.3). I passi diventano 22.

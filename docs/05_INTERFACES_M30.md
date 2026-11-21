@@ -176,3 +176,6 @@ class_name StarterTexts extends RefCounted             # testi italiani; la rico
 `TestFactory.session(...)` e `session_no_kit(...)` **completano il tutorial** dopo `new_game()` (`session.tutorial.from_save({"completed": true, "step": "", "visited": []})`): tutti i test esistenti di
 pagine, hint e flussi restano com'erano (nessun overlay, nessuna pagina chiusa, i Suggerimenti scattano). Parametro nuovo `with_tutorial: bool = false` (ultimo, anche in `session_no_kit`): `true` lascia il tutorial attivo al passo 1.
 I fixture dei dati (`tests/fixtures/data/` e `m10/`) hanno `tutorial/steps.json` e `tutorial/starter_quests.json` minimi (§34.6).
+
+## 9. Estensioni di M31 (V40)
+API nuove (`CombatEngine.set_frozen/is_frozen/set_force_node/is_force_node/wound_to_pct`, `TutorialSystem.step_progress_text/ack_text/is_combat_frozen`, `StarterQuests.final_reward/is_final_available/is_final_claimed/can_claim_final/claim_final/all_done`), save additivo `tutorial.starter.final_claimed` (resta **v12**) e UI (pallino, «In pausa», riga del bonus): `M31_RITOCCHI_TUTORIAL.md` §3, §5, §6. Nessun segnale e nessun motivo nuovo.

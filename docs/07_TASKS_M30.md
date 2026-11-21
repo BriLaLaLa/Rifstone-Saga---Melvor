@@ -113,3 +113,5 @@ o il numero di segnali, si aggiorna con il valore nuovo documentato qui); (i) ne
 - **Eventi** (medio): collegamento generico per nome di segnale con argomenti variabili: il test di `tutorial_conditions` copre ogni segnale usato dai dati e il validatore rifiuta nomi di argomenti inesistenti.
 - **Offline** (basso): nessun `advance`; i listener degli incarichi sono pochi e le misure si rileggono solo finché serve (§5.42).
 - **Parallelismo 03 ∥ 04** (basso): file disgiunti (`data/**`, `tests/data/**` contro `ui/**`, `tests/ui/**`, `tools/shot_tutorial.gd`); l'unico punto di contatto sono i **id dei bersagli** di §34.4 e i passi segnaposto, fissati qui.
+
+**M31 (V40)**: ritocchi al tutorial, task in `07_TASKS_M31.md`; il numero dei passi diventa 22 (`M31_RITOCCHI_TUTORIAL.md` §2.2).

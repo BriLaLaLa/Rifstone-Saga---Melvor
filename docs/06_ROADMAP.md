@@ -357,7 +357,10 @@ Ordine: 02 CORE (da solo) → 03 DATA ∥ 04 UI → 05 QA → 06 integrazione.
 Villaggio, Bacheca, Casa d'Aste, Fratture, Dungeon e Guida; nessun passo è irraggiungibile e un salvataggio a metà riprende dal passo; uno slot di M29 si carica senza tutorial e con i Primi passi;
 la barra laterale mostra il riquadro, la pagina «Primi passi» raggruppa i 20 incarichi, riscuotere consegna un messaggio in Posta; 12 ore offline danno lo stesso stato del gioco acceso.
 
-## M31+: Seconda classe, altri dungeon e boss (dopo M30; era M29+)
+## M31: Ritocchi al tutorial e ai «Primi passi» (V40)
+Piccola milestone: pasto con pausa del combattimento, cibo iniziale e nodo forzato, bonus finale dei 20 incarichi, pallino di notifica. Design in `M31_RITOCCHI_TUTORIAL.md`, task in `07_TASKS_M31.md`, Q193-Q198. «Giocabile»: il tutorial fa mangiare il personaggio con il tempo fermo e un nodo lavorato; i 20 incarichi riscossi danno il bonus; il pallino si accende da solo.
+
+## M32+: Seconda classe, altri dungeon e boss (dopo M31; era M31+)
 Seconda classe con le sue armi (es. arco o bastone, con i suoi progetti e componenti del Falegname), supporti delle abilità, altri dungeon (solo dati: il sistema di M22 è generico), livelli di difficoltà dei dungeon, altri boss, elementi e resistenze;
 pozioni (Q112), attrezzo dell'Erboristeria (Q111), colori e mercante dell'Incisore (Q148).
 
