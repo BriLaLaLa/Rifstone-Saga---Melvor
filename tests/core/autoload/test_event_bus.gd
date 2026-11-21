@@ -106,6 +106,11 @@ const EXPECTED: Dictionary = {
 	"auction_bought": [["item_id", SN, ""], ["qty", I, ""], ["gold", I, ""]],
 	"auction_updated": [["blocks", I, ""]],
 	"mail_changed": [["unread", I, ""], ["total", I, ""]],
+	"tutorial_step_changed": [["step_id", SN, ""], ["index", I, ""], ["total", I, ""]],
+	"tutorial_progress": [["step_id", SN, ""], ["progress", I, ""], ["target", I, ""]],
+	"tutorial_completed": [],
+	"starter_quest_completed": [["quest_id", SN, ""]],
+	"starter_quests_changed": [],
 	"auction_listings_changed": [],
 }
 

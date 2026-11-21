@@ -2,7 +2,7 @@ class_name DataValidatorMail
 extends RefCounted
 ## Mail rules of DataValidator (internal, M27-05; docs/04_DATA_SCHEMA_M27.md §32.5): `mail` of balance.json and data/mail/templates.json.
 
-const KINDS: PackedStringArray = ["auction_sold", "auction_sale", "auction_expired", "auction_cancelled"]
+const KINDS: PackedStringArray = ["auction_sold", "auction_sale", "auction_expired", "auction_cancelled", "tutorial_gift", "starter_reward"]  # M30-02 (§34.5)
 const PLACEHOLDERS: PackedStringArray = ["item", "qty", "price", "money"]
 const SUBJECT_MAX: int = 60
 const BODY_MAX: int = 240

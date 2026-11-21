@@ -99,6 +99,13 @@ signal notification_requested(text: String, kind: StringName)
 # Hints (M9)
 signal hint_triggered(hint_id: StringName)
 
+# Tutorial and starter quests (M30-02, docs/05_INTERFACES_M30.md §3g)
+signal tutorial_step_changed(step_id: StringName, index: int, total: int)  # enters a step; never in new_game/from_save
+signal tutorial_progress(step_id: StringName, progress: int, target: int)  # event steps with count > 1
+signal tutorial_completed()
+signal starter_quest_completed(quest_id: StringName)  # once per session and quest; never at load
+signal starter_quests_changed()  # activation, claim, progress of a counted event
+
 # Fractures as maps and Cards (M13, docs/05_INTERFACES.md §3, §5.23)
 signal fracture_opened(grade: int)  # the Card is consumed and the Fracture starts
 signal fracture_group_cleared(index: int, total: int)

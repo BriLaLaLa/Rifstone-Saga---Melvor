@@ -2,5 +2,7 @@
   {"kind": "auction_sold", "sender": "Test", "subject": "Sold {item}", "body": "{qty} x {item} at {price}: {money}."},
   {"kind": "auction_sale", "sender": "Test", "subject": "Sale {item}", "body": "{qty} x {item}: {money}."},
   {"kind": "auction_expired", "sender": "Test", "subject": "Expired {item}", "body": "{qty} x {item} back."},
-  {"kind": "auction_cancelled", "sender": "Test", "subject": "Cancelled {item}", "body": "{qty} x {item} back."}
+  {"kind": "auction_cancelled", "sender": "Test", "subject": "Cancelled {item}", "body": "{qty} x {item} back."},
+  {"kind": "tutorial_gift", "sender": "Test", "subject": "Gift", "body": "A small gift."},
+  {"kind": "starter_reward", "sender": "Test", "subject": "Reward", "body": "A reward."}
 ]}

@@ -10,12 +10,13 @@ extends RefCounted
 const SAVE_KEY: StringName = &"mail"
 const LOG_CATEGORY: String = "mail"
 const CAPACITY_KEY: String = "mail.capacity"
-const KINDS: Array[StringName] = [&"auction_sold", &"auction_sale", &"auction_expired", &"auction_cancelled"]
+const KINDS: Array[StringName] = [&"auction_sold", &"auction_sale", &"auction_expired", &"auction_cancelled", &"tutorial_gift", &"starter_reward"]  # M30-02: the last two never merge
 
 var _session: GameSession
 var _events: GameEvents
 var _next_id: int = 1
 var _messages: Array[Dictionary] = []  # id ascending
+var _collected: int = 0  # messages collected in the whole game (M30-02), saved as `collected`
 
 
 func _init(session: GameSession) -> void:
@@ -52,6 +53,11 @@ func unread() -> int:
 
 func capacity() -> int:
 	return int(_session.data.balance_value(CAPACITY_KEY))
+
+
+## M30-02: how many messages the player has collected (`collect`, `collect_all`) in the whole game.
+func collected_total() -> int:
+	return _collected
 
 
 func is_full() -> bool:
@@ -138,6 +144,7 @@ func collect_all() -> int:
 func new_game() -> void:
 	_messages.clear()
 	_next_id = 1
+	_collected = 0
 
 
 func to_save() -> Dictionary:
@@ -149,7 +156,7 @@ func to_save() -> Dictionary:
 		for entry: Dictionary in (saved["items"] as Array[Dictionary]):
 			entry["item"] = String(entry["item"])
 		list.append(saved)
-	return {"next_id": _next_id, "messages": list}
+	return {"next_id": _next_id, "messages": list, "collected": _collected}
 
 
 ## Tolerant (docs/05_INTERFACES_M27.md §5.40): a bad message is dropped with a warning, `next_id` is at least the highest id + 1.
@@ -167,6 +174,9 @@ func from_save(d: Dictionary) -> void:
 		_messages.append(m)
 	_messages.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return int(a["id"]) < int(b["id"]))
 	_next_id = maxi(maxi(_whole(d.get("next_id"), 1), 1), max_id + 1)
+	_collected = maxi(_whole(d.get("collected", 0), 0), 0)
+	if d.has("collected") and _whole(d["collected"], -1) < 0:
+		Log.warn(LOG_CATEGORY, "'collected' is not a whole number >= 0: 0")
 
 
 # The index of the message that `post` should grow, -1 for a new one (F-183 "Consegna").
@@ -195,6 +205,7 @@ func _collect(message_id: int) -> CommandResult:
 	if int(m["money"]) > 0:
 		_session.wallet.add_gold(int(m["money"]))
 	_messages.remove_at(index)
+	_collected += 1
 	return CommandResult.success()
 
 

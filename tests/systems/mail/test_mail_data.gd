@@ -56,7 +56,10 @@ func test_unknown_kind_is_an_error() -> void:
 
 func test_a_kind_without_models_is_an_error() -> void:
 	var raw: Dictionary = _raw()
-	_templates(raw).pop_back()
+	var list: Array = _templates(raw)
+	for i: int in range(list.size() - 1, -1, -1):
+		if (list[i] as Dictionary)["kind"] == "auction_cancelled":
+			list.remove_at(i)
 	_expect(raw, ["templates.json", "no template of kind 'auction_cancelled'"])
 
 
@@ -97,3 +100,10 @@ func test_capacity_zero_or_missing_is_an_error() -> void:
 	raw = _raw()
 	load(V).file_of(raw, "balance", BALANCE).erase("mail")
 	_expect(raw, [BALANCE, "missing key 'mail'"])
+
+
+func test_the_tutorial_kinds_are_accepted_and_have_models() -> void:
+	assert_true(DataValidatorMail.KINDS.has("tutorial_gift") and DataValidatorMail.KINDS.has("starter_reward"))
+	assert_true(MailBox.KINDS.has(&"tutorial_gift") and MailBox.KINDS.has(&"starter_reward"))
+	for kind: StringName in [&"tutorial_gift", &"starter_reward"]:
+		assert_gte(TestFactory.fixture_data().mail_templates(kind).size(), 1, String(kind))

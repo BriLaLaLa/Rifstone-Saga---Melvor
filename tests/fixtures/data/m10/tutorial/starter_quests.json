@@ -1,0 +1,14 @@
+{
+  "groups": [{"id": "character", "title": "Character"}, {"id": "combat", "title": "Combat"}],
+  "quests": [
+    {"id": "reach_level_2", "group": "character", "name": "Level two", "description": "Reach character level 2.",
+     "goal": {"type": "metric", "metric": "character_level", "gte": 2},
+     "reward": {"money": 1500, "character_xp": 10}},
+    {"id": "kill_two", "group": "combat", "name": "Two kills", "description": "Defeat two enemies.",
+     "goal": {"type": "event", "signal": "monster_killed", "count": 2},
+     "reward": {"money": 700}},
+    {"id": "eat_once", "group": "combat", "name": "A meal", "description": "Eat once.",
+     "goal": {"type": "event", "signal": "food_eaten"},
+     "reward": {"items": [{"item": "test_ration", "qty": 4}]}}
+  ]
+}

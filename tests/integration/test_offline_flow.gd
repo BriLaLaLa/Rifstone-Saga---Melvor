@@ -38,6 +38,7 @@ func after_each() -> void:
 # New game in SLOT, `prepare` sets the scene, the session is saved and closed, the clock moves `away_ms` forward.
 func _leave(prepare: Callable, away_ms: int) -> void:
 	assert_true(_game.new_game(SLOT, "Tester").ok)
+	_game.session.tutorial.from_save({"completed": true, "step": "", "visited": []})  # M30-02: a real new game starts the tutorial, which holds the hints back
 	prepare.call(_game.session)
 	_game.end_session(true)
 	GameClock.time_source = func() -> int: return NOW_MS + away_ms

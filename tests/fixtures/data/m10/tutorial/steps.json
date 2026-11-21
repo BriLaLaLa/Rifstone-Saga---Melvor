@@ -1,0 +1,15 @@
+{
+  "stuck_ms": 10000,
+  "always_open": ["guide", "help"],
+  "steps": [
+    {"id": "intro", "page": "", "target": "", "title": "Intro", "text": "First step: press next.",
+     "done_when": {"type": "ack"}},
+    {"id": "kills", "page": "combat", "target": "combat.enemy_zone", "title": "Kills", "text": "Defeat three enemies.",
+     "done_when": {"type": "event", "signal": "monster_killed", "args": {"monster_id": ["test_monster_a", "test_monster_b"]}, "count": 3}},
+    {"id": "mail", "page": "mail", "target": "mail.list", "title": "Mail", "text": "Collect the gift.",
+     "on_enter": {"mail": {"kind": "tutorial_gift", "money": 3000}},
+     "done_when": [{"type": "metric", "metric": "mail_collected", "gte": 1}]},
+    {"id": "outro", "page": "", "target": "", "title": "Outro", "text": "The end.",
+     "done_when": {"type": "ack"}}
+  ]
+}

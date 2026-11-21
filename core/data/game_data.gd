@@ -22,6 +22,7 @@ const CONTENT_FILES: Dictionary[String, String] = {
 	"quests": "quests/quests.json",  # M20: mandatory (may be empty)
 	"auction": AuctionIndex.FILE, "auction_population": AuctionIndex.POPULATION_FILE, "mail": MailIndex.FILE,  # M23, M26-08, M27-05: mandatory
 	"disciplines": DisciplineIndex.TRAINERS_FILE,  # M24: mandatory (the grades; the Trainers may be empty)
+	"tutorial_steps": TutorialIndex.STEPS_FILE, "tutorial_quests": TutorialIndex.QUESTS_FILE,  # M30: mandatory
 }
 const CONTENT_DIRS: Dictionary[String, String] = {"items": "items", "actions": "actions", "mastery": "mastery", "classes": "classes"}
 
@@ -64,6 +65,7 @@ var _auction: AuctionIndex = AuctionIndex.new()  # M23
 var _currency: CurrencyParams = null  # M27
 var _conditions: ConditionParams = null  # M28-03
 var _mail: MailIndex = MailIndex.new()  # M27-05
+var _tutorial: TutorialIndex = TutorialIndex.new()  # M30-02
 var _dungeons: DungeonIndex = DungeonIndex.new()  # M22
 var _blueprint_list: Array[ItemDef] = []
 var _blueprint_by_base: Dictionary[StringName, ItemDef] = {}
@@ -113,9 +115,7 @@ func character_xp_table() -> XpTable: return _character_table
 func character_class(id: StringName) -> ClassDef: return _find(_classes, id, "class") as ClassDef
 ## Every class, by `order`.
 func classes() -> Array[ClassDef]: return _class_list.duplicate()
-
 func affix(id: StringName) -> AffixDef: return _find(_affixes, id, "affix") as AffixDef
-
 ## The affixes that can roll on an equipment slot (`head`, `weapon`, `tool_forestry`…), in file order.
 func affixes_for_slot(slot: StringName) -> Array[AffixDef]:
 	var result: Array[AffixDef] = []
@@ -123,37 +123,26 @@ func affixes_for_slot(slot: StringName) -> Array[AffixDef]:
 		if def.slots.has(slot):
 			result.append(def)
 	return result
-
 func item(id: StringName) -> ItemDef: return _find(_items, id, "item") as ItemDef
-
 func has_item(id: StringName) -> bool: return _items.has(id)
-
 ## Every item, in load order (files in alphabetical order, then file order).
 func items() -> Array[ItemDef]: return _item_list.duplicate()
-
 ## Every blueprint item (M10), by grade then `sort_order`.
 func blueprints() -> Array[ItemDef]: return _blueprint_list.duplicate()
-
 ## The blueprint of an equipment base (one per base). Null, without error, when there is none (rings, amulets, tools).
 func blueprint_for_base(base_id: StringName) -> ItemDef: return _blueprint_by_base.get(base_id) as ItemDef
-
 ## M14: every legendary base (`equip.legendary`), in the order of the data.
 func legendaries() -> Array[ItemDef]: return LegendaryIndex.all(_item_list)
-
 ## M14: the legendaries whose source is the boss or the Monolith `source_id` (`source_type` &"boss" / &"monolith").
 func legendaries_from(source_type: StringName, source_id: StringName) -> Array[ItemDef]:
 	return LegendaryIndex.from_source(_item_list, source_type, source_id)
-
 ## M14 (F-121): a base the drop pool can give: equipment that is neither a Masterwork nor a legendary.
 func is_equipment_pool_base(base_id: StringName) -> bool:
 	var equip: EquipInfo = _items[base_id].equip if _items.has(base_id) and _items[base_id].category == &"equipment" else null
 	return equip != null and not equip.masterwork and equip.legendary == null
-
 ## The unique tool of a `tool_*` slot (M10); null and an error when the slot has none.
 func unique_tool(slot: StringName) -> ItemDef: return _find(_unique_tools, slot, "unique tool slot") as ItemDef
-
 func skill(id: StringName) -> SkillDef: return _find(_skills, id, "skill") as SkillDef
-
 ## Every skill, by `order`.
 func skills() -> Array[SkillDef]: return _skill_list.duplicate()
 
@@ -245,6 +234,14 @@ func currency() -> CurrencyParams: return _currency
 func conditions() -> ConditionParams: return _conditions  # M28-03 (§33.1): `combat.conditions` of balance.json
 ## M27-05 (§32.5): the Mail text models of a kind in file order; [] if none.
 func mail_templates(kind: StringName) -> Array[MailTemplateDef]: return _mail.of_kind(kind)
+## M30-02 (docs/04_DATA_SCHEMA_M30.md §34): the tutorial steps and the starter quests (file order); one by id (null, without error, if absent).
+func tutorial_steps() -> Array[TutorialStepDef]: return _tutorial.steps.duplicate()
+func tutorial_step(step_id: StringName) -> TutorialStepDef: return _tutorial.steps_by_id.get(step_id) as TutorialStepDef
+func tutorial_stuck_ms() -> int: return _tutorial.stuck_ms
+func tutorial_always_open() -> Array[StringName]: return _tutorial.always_open.duplicate()
+func starter_groups() -> Array[Dictionary]: return _tutorial.groups.duplicate(true)
+func starter_quests() -> Array[StarterQuestDef]: return _tutorial.quests.duplicate()
+func starter_quest(quest_id: StringName) -> StarterQuestDef: return _tutorial.quests_by_id.get(quest_id) as StarterQuestDef
 
 ## M22 (docs/04_DATA_SCHEMA.md §27): a dungeon by id (null and an error if unknown); all of them, by `order`; the dungeon a
 ## ticket item opens (null, without error, for any other item).
@@ -348,6 +345,7 @@ func _build(raw: Dictionary) -> void:
 	_village.build(raw["village"] as Dictionary, errors)
 	_auction.build(_balance, raw["auction"] as Dictionary, raw["auction_population"] as Dictionary, errors)
 	_mail.build(raw["mail"] as Dictionary, errors)
+	_tutorial.build(raw["tutorial_steps"] as Dictionary, raw["tutorial_quests"] as Dictionary, errors)
 	_currency = CurrencyParams.from_dict(_balance["currency"] as Dictionary)
 	_conditions = ConditionParams.from_dict((_balance["combat"] as Dictionary)["conditions"] as Dictionary)
 	if _currency == null or _conditions == null:
@@ -389,6 +387,7 @@ func _clear() -> void:
 	_currency = null
 	_conditions = null
 	_mail.clear()
+	_tutorial.clear()
 	_dungeons.clear()
 	for list: Array in [_item_list, _skill_list, _action_list, _node_list, _area_list, _shop_list, _class_list,
 			_affix_list, _hint_list, _blueprint_list, _quest_list]:

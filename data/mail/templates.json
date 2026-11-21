@@ -4,5 +4,7 @@
   {"kind": "auction_sale", "sender": "Banco dei Mercanti", "subject": "Venduto subito: {item}", "body": "Il banco ha preso al volo {qty} x {item}. Il compenso, {money}, è nella busta."},
   {"kind": "auction_sale", "sender": "Banco dei Mercanti", "subject": "Scambio rapido: {item}", "body": "Hai ceduto {qty} x {item} senza aspettare. Ecco {money}, ben contati."},
   {"kind": "auction_expired", "sender": "Casa d'Aste", "subject": "Nessuno ha preso {item}", "body": "L'inserzione è scaduta senza acquirenti: {qty} x {item} tornano da te. Magari con un prezzo più gentile."},
-  {"kind": "auction_cancelled", "sender": "Casa d'Aste", "subject": "Inserzione ritirata: {item}", "body": "Hai tolto l'inserzione come richiesto. {qty} x {item} ti aspettano nella busta."}
+  {"kind": "auction_cancelled", "sender": "Casa d'Aste", "subject": "Inserzione ritirata: {item}", "body": "Hai tolto l'inserzione come richiesto. {qty} x {item} ti aspettano nella busta."},
+  {"kind": "tutorial_gift", "sender": "Il Villaggio", "subject": "Un benvenuto per te", "body": "Benvenuto, Lama del Rift. Nella busta c'è un piccolo aiuto per cominciare: ritiralo quando vuoi."},
+  {"kind": "starter_reward", "sender": "Il Villaggio", "subject": "Un premio per i tuoi primi passi", "body": "Hai fatto un altro passo: guarda l'allegato. Il Villaggio non dimentica chi si dà da fare."}
 ]}
