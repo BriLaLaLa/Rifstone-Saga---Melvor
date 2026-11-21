@@ -90,6 +90,8 @@ func from_save(d: Dictionary) -> void:
 
 # Marks as seen and emits every unseen hint of the trigger, in file order.
 func _fire(trigger: StringName) -> void:
+	if _session.tutorial != null and _session.tutorial.is_active():  # M30-02: no hint during the tutorial (not even marked seen)
+		return
 	for def: HintDef in _data.hints():
 		if def.trigger == trigger and not _seen.has(def.id):
 			_seen[def.id] = true

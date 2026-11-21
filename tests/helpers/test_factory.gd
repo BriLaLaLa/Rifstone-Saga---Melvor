@@ -34,14 +34,17 @@ static func real_data() -> GameData:
 ## M10: a new game gives the starting kit (food, pieces, unique tools, Field Rations I). On the legacy fixtures the kit is
 ## emptied after new_game (see `clear_kit`) so that older tests see an empty game; `keep_kit` = true leaves it (the
 ## kit tests); a session on other data (the M10 fixtures, the real data) always keeps it.
+## M30-02: the tutorial is completed after new_game (no overlay, no closed page); `with_tutorial` = true leaves it active at step 1.
 ## Legacy fixture data = the content of res://tests/fixtures/data, also when loaded with a modified copy of the config.
-static func session(seed_value: int = 1234, data: GameData = null, keep_kit: bool = false) -> GameSession:
+static func session(seed_value: int = 1234, data: GameData = null, keep_kit: bool = false, with_tutorial: bool = false) -> GameSession:
 	var game_data: GameData = data if data != null else fixture_data()
 	var events: GameEvents = GameEvents.new()
 	var result: GameSession = GameSession.new(game_data, events, seed_value)
 	# Child of the session, so freeing the session frees its events too.
 	result.add_child(events)
 	result.new_game()
+	if not with_tutorial:  # M30-02 (§8b): the tutorial is completed unless the test is about it
+		result.tutorial.from_save({"completed": true, "step": "", "visited": []})
 	learn_all(result)
 	if is_legacy_fixture(game_data) and not keep_kit:
 		clear_kit(result)
@@ -50,8 +53,8 @@ static func session(seed_value: int = 1234, data: GameData = null, keep_kit: boo
 
 ## Like `session`, but always without the starting kit (also on the real data): for flow tests that predate the kit and
 ## do not test it. The kit itself is covered by test_starting_kit.gd and test_m10_flow.gd.
-static func session_no_kit(seed_value: int = 1234, data: GameData = null) -> GameSession:
-	var result: GameSession = session(seed_value, data, true)
+static func session_no_kit(seed_value: int = 1234, data: GameData = null, with_tutorial: bool = false) -> GameSession:
+	var result: GameSession = session(seed_value, data, true, with_tutorial)
 	clear_kit(result)
 	return result
 

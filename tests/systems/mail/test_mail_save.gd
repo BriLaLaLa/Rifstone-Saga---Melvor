@@ -99,3 +99,30 @@ func test_offline_summary_counts_the_new_unread_messages() -> void:
 	_session.mail.collect_all()
 	var after_collect: OfflineSummary = OfflineSummary.from_snapshots(before, SessionSnapshot.take(_session), 1000, false, [] as Array[StringName])
 	assert_eq(after_collect.mail_new, 0, "never negative")
+
+
+func test_collected_total_counts_the_collected_messages_and_is_saved() -> void:
+	assert_eq(_session.mail.collected_total(), 0)
+	var a: int = _session.mail.post(&"tutorial_gift", {"money": 100})
+	var b: int = _session.mail.post(&"starter_reward", {"money": 50})
+	_session.mail.post(&"starter_reward", {"money": 50})
+	assert_true(_session.mail.collect(a).ok)
+	assert_eq(_session.mail.collected_total(), 1)
+	_session.mail.collect_all()
+	assert_eq(_session.mail.collected_total(), 3)
+	assert_eq(b, 2, "the tutorial kinds never merge")
+	var saved: Dictionary = _session.mail.to_save()
+	assert_eq(saved["collected"], 3)
+	var other: GameSession = autofree(TestFactory.session())
+	other.mail.from_save(JSON.parse_string(JSON.stringify(saved)) as Dictionary)
+	assert_eq(other.mail.collected_total(), 3)
+	other.mail.new_game()
+	assert_eq(other.mail.collected_total(), 0)
+
+
+func test_a_bad_collected_value_is_zero() -> void:
+	for bad: Variant in ["x", -4, 2.5]:
+		_session.mail.from_save({"messages": [], "collected": bad})
+		assert_eq(_session.mail.collected_total(), 0)
+	_session.mail.from_save({"messages": []})
+	assert_eq(_session.mail.collected_total(), 0)

@@ -7,7 +7,6 @@ extends RefCounted
 ## compares with (`skill` of actions and mastery files, `category` of items, `id` of classes). Every problem is
 ## appended to `errors` as `<file>: <kind> '<id>': <message>`, never pushed to the debugger. Toolkit, mastery:
 ## DataValidatorRules; items, actions, shop: DataValidatorItems; areas, monsters, classes, affixes: DataValidatorClasses; abilities: DataValidatorAbilities.
-
 ## Every key of 02_FORMULAS.md §9 of the MVP, as dotted paths. Values that are objects in the table are listed
 ## by their fields; arrays are leaves. M7 adds `fractures.*`, M8 `parallel.*`.
 const REQUIRED_BALANCE_KEYS: PackedStringArray = [
@@ -67,7 +66,7 @@ const DEPOSIT_BAG_SLOTS_MAX: int = 12  # format limit of deposit.bag_slots (docs
 const START_ITEM_FORBIDDEN_CATEGORIES: PackedStringArray = ["equipment", "tool", "map"]  # they live in the Armory only
 ## Sections made of one file (the others are folders, possibly empty).
 const SINGLE_FILE_SECTIONS: PackedStringArray = ["balance", "stats", "skills", "areas", "monsters", "shop", "affixes",
-	"rift_stones", "hints", "loot_tables", "map_mods", "bosses", "village", "quests", "auction", "auction_population", "mail", "disciplines"]
+	"rift_stones", "hints", "loot_tables", "map_mods", "bosses", "village", "quests", "auction", "auction_population", "mail", "disciplines", "tutorial_steps", "tutorial_quests"]
 const SKILL_CATEGORIES: PackedStringArray = ["gathering", "artisan"]
 const STAT_FIELDS: PackedStringArray = ["id", "name", "format", "min", "max", "description", "formula", "test"]
 const STAT_FORMULA_PATTERN: String = "^(F-[0-9]{2,3}|[0-9]+(\\.[0-9]+)*)$"
@@ -123,6 +122,7 @@ static func validate(raw: Dictionary, errors: PackedStringArray) -> void:
 	DataValidatorQuests.validate(v, _files(raw, "quests"), _files(raw, "balance"), _files(raw, "items"), _files(raw, "actions"))
 	DataValidatorAuction.validate(v, raw)
 	DataValidatorMail.validate(v, raw)
+	DataValidatorTutorial.validate(v, raw)  # M30-02
 	DataValidatorDisciplines.validate(v, raw, DataValidatorDisciplines.STRICT_REAL_DATA and DataValidatorDisciplines.is_real_data(raw))
 	errors.append_array(v.errors)
 

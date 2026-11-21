@@ -1,0 +1,19 @@
+{
+  "_doc": "SEGNAPOSTO di M30-02 (4 passi): M30-03 lo sostituisce con i 21 passi di docs/01_GDD_M30.md §41.4. Schema: docs/04_DATA_SCHEMA_M30.md §34.1.",
+  "stuck_ms": 180000,
+  "always_open": ["guide", "help"],
+  "steps": [
+    {"id": "welcome", "page": "", "target": "", "title": "Benvenuto, Lama del Rift",
+     "text": "Questo breve tutorial ti mostra i luoghi e i comandi del gioco, un passo alla volta. Non si può saltare, ma puoi uscire dal menu in alto quando vuoi: al ritorno riparti da qui.",
+     "done_when": {"type": "ack"}},
+    {"id": "character", "page": "character", "target": "page.character", "title": "Il tuo personaggio",
+     "text": "Qui vedi livello, statistiche, tratti e abilità. Il livello sale combattendo; a certi livelli si aprono nuovi slot per tratti e abilità, che cambiano il tuo modo di combattere.",
+     "done_when": {"type": "ack"}},
+    {"id": "combat_start", "page": "combat", "target": "combat.map_button", "title": "Il primo combattimento",
+     "text": "Apri la Mappa e scegli un'area: le Pianure di Roccarossa vanno bene per iniziare. Gli scontri proseguono da soli, anche a gioco chiuso.",
+     "done_when": {"type": "event", "signal": "combat_started"}},
+    {"id": "finish", "page": "", "target": "", "title": "Tutorial completato",
+     "text": "Ora tocca a te. Nella barra a sinistra trovi gli incarichi «Primi passi»: ti guidano a provare ogni sistema e danno piccole ricompense, anche per Posta. Buona fortuna.",
+     "done_when": {"type": "ack"}}
+  ]
+}

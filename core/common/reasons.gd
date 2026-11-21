@@ -85,3 +85,7 @@ const TOO_HARD := &"too_hard"  # M25: the level of the discipline is below the `
 const MAILBOX_FULL := &"mailbox_full"  # M27-05: the Mail has no room for a new message (commands that create mail)
 const INVALID_PRICE := &"invalid_price"  # M27-06: the price of a listing is below 1 or above the maximum
 const LISTINGS_FULL := &"listings_full"  # M27-06: the player has the maximum of active listings
+const TUTORIAL_INACTIVE := &"tutorial_inactive"  # M30-02: the tutorial is completed (acknowledge, skip_step, starter claim)
+const WRONG_STEP := &"wrong_step"  # M30-02: the current step has no `ack` condition
+const NOT_STUCK := &"not_stuck"  # M30-02: skip_step before `stuck_ms` of game time
+const ALREADY_CLAIMED := &"already_claimed"  # M30-02: the starter quest reward was claimed

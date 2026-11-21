@@ -169,3 +169,16 @@ func test_pending_is_volatile() -> void:
 	_hints.from_save(_hints.to_save())
 	assert_eq(_hints.pending(), [] as Array[StringName])
 	assert_true(_hints.is_seen(&"test_first_action"))
+
+
+func test_no_hint_fires_nor_is_marked_seen_while_the_tutorial_is_active() -> void:
+	var s: GameSession = autofree(TestFactory.session(1234, null, false, true))
+	assert_true(s.tutorial.is_active())
+	watch_signals(s.events)
+	s.events.player_died.emit()
+	assert_signal_not_emitted(s.events, "hint_triggered")
+	assert_eq(s.hints.to_save()["seen"], [])
+	assert_eq(s.hints.pending().size(), 0)
+	s.tutorial.from_save({"completed": true, "step": "", "visited": []})
+	s.events.player_died.emit()
+	assert_signal_emitted(s.events, "hint_triggered")

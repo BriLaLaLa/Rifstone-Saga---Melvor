@@ -1,0 +1,12 @@
+{
+  "_doc": "SEGNAPOSTO di M30-02 (2 incarichi): M30-03 lo sostituisce con i 20 incarichi di docs/01_GDD_M30.md §41.7. Schema: docs/04_DATA_SCHEMA_M30.md §34.3.",
+  "groups": [{"id": "character", "title": "Personaggio"}, {"id": "combat", "title": "Combattimento"}],
+  "quests": [
+    {"id": "level_3", "group": "character", "name": "Primi livelli", "description": "Raggiungi il livello 3 del personaggio combattendo.",
+     "goal": {"type": "metric", "metric": "character_level", "gte": 3},
+     "reward": {"money": 1500}},
+    {"id": "eat_once", "group": "combat", "name": "Un pasto sul campo", "description": "Fai mangiare al personaggio un cibo durante un combattimento.",
+     "goal": {"type": "event", "signal": "food_eaten"},
+     "reward": {"items": [{"item": "seared_brookfin", "qty": 10}], "character_xp": 20}}
+  ]
+}
