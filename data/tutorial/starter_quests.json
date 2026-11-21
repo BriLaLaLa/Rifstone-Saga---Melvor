@@ -46,5 +46,7 @@
      "goal": {"type": "metric", "metric": "mail_collected", "gte": 2}, "reward": {"money": 500}},
     {"id": "visit_guide", "group": "guide", "name": "Uno sguardo alla Guida", "description": "Apri la Guida.",
      "goal": {"type": "metric", "metric": "page_visited", "arg": "guide", "gte": 1}, "reward": {"money": 300}}
-  ]
+  ],
+  "final_reward": {"id": "pioneer", "name": "Il Pioniere del Rift", "description": "Hai completato tutti i Primi passi: il Villaggio ti dà il suo stemma.",
+                   "reward": {"items": [{"item": "pioneer_emblem", "qty": 1}, {"item": "seared_brookfin", "qty": 30}], "character_xp": 300}}
 }

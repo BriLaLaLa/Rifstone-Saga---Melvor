@@ -22,6 +22,7 @@ var _since_ms: int = 0
 var _visited: Array[StringName] = []
 var _current_page: StringName = &""
 var _listening: Array[StringName] = []
+var _wound_listening: bool = false  # M31: waiting for the first encounter to wound the character (volatile)
 var _arg_names: Dictionary[StringName, PackedStringArray] = {}
 
 
@@ -67,6 +68,24 @@ func step_target_count() -> int:
 			if c.type == TutorialCondition.TYPE_EVENT:
 				return c.count
 	return 1
+
+
+## M31: the counter label of the current step ("" if absent or the tutorial is completed); the UI fills the two `%d`.
+func step_progress_text() -> String:
+	var step: TutorialStepDef = current_step()
+	return "" if step == null else step.progress_text
+
+
+## M31: the label of the confirm button of the current step ("" = the default of the UI).
+func ack_text() -> String:
+	var step: TutorialStepDef = current_step()
+	return "" if step == null else step.ack_text
+
+
+## M31: active and the current step freezes the combat (the engine is frozen: `session.combat.is_frozen()`).
+func is_combat_frozen() -> bool:
+	var step: TutorialStepDef = current_step()
+	return step != null and step.freeze_combat
 
 
 func current_page() -> StringName:
@@ -179,6 +198,7 @@ func from_save(d: Dictionary) -> void:
 		_index = step_count()
 		_progress = 0
 		_since_ms = 0
+		_release_combat()
 	else:
 		_begin_step(_index, false)
 		_progress = clampi(_whole(d.get("progress"), 0), 0, step_target_count())
@@ -203,9 +223,45 @@ func _begin_step(index: int, gift: bool) -> void:
 		elif c.type == TutorialCondition.TYPE_METRIC:
 			for signal_name: StringName in (TutorialMetrics.METRICS.get(c.metric, []) as Array):
 				_listen(signal_name)
+	_apply_combat_effects(step)
 	if gift:
 		_deliver_gift(step)
 
+
+
+# M31 (docs/M31_RITOCCHI_TUTORIAL.md §3.2): what the step does to the combat. Derived from the step on every entry and on every load.
+func _apply_combat_effects(step: TutorialStepDef) -> void:
+	var combat: CombatEngine = _session.combat
+	combat.set_frozen(step.freeze_combat)
+	combat.set_force_node(step.force_node)
+	if step.wound_hp_pct <= 0:
+		return
+	if combat.is_active():
+		combat.wound_to_pct(step.wound_hp_pct)
+	else:
+		_wound_listening = true
+		_events.encounter_started.connect(_on_encounter_started)
+
+
+# The first encounter while the step is current: the character is wounded, once.
+func _on_encounter_started(_monster_ids: Array[StringName]) -> void:
+	_drop_wound_listener()
+	var step: TutorialStepDef = current_step()
+	if step != null and step.wound_hp_pct > 0:
+		_session.combat.wound_to_pct(step.wound_hp_pct)
+
+
+func _drop_wound_listener() -> void:
+	if _wound_listening:
+		_wound_listening = false
+		if _events.encounter_started.is_connected(_on_encounter_started):
+			_events.encounter_started.disconnect(_on_encounter_started)
+
+
+# The tutorial is over: nothing stays frozen or forced.
+func _release_combat() -> void:
+	_session.combat.set_frozen(false)
+	_session.combat.set_force_node(false)
 
 
 func _deliver_gift(step: TutorialStepDef) -> void:
@@ -225,6 +281,7 @@ func _finish_step() -> void:
 		_completed = true
 		_index = step_count()
 		_progress = 0
+		_release_combat()
 		_events.tutorial_completed.emit()
 		starter.activate(false)
 		return
@@ -273,6 +330,7 @@ func _listen(signal_name: StringName) -> void:
 
 
 func _stop_listening() -> void:
+	_drop_wound_listener()
 	for signal_name: StringName in _listening:
 		var callable: Callable = Callable(self, &"_on_signal").bind(signal_name)
 		if Signal(_events, signal_name).is_connected(callable):

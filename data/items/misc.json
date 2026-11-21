@@ -6,6 +6,9 @@
      "description": "Una scheggia caduta dai Monoliti del Rift, ancora calda al tatto."},
     {"id": "dungeon_ticket_monkey_den", "name": "Biglietto del Covo delle Scimmie", "category": "misc",
      "icon": "res://assets/icons/items/dungeon_ticket_monkey_den.svg", "value": 1000, "sort_order": 20, "dungeon": "monkey_den",
-     "description": "Un pezzo di corteccia inciso e annodato: chi lo porta può entrare una volta nel Covo delle Scimmie."}
+     "description": "Un pezzo di corteccia inciso e annodato: chi lo porta può entrare una volta nel Covo delle Scimmie."},
+    {"id": "pioneer_emblem", "name": "Stemma del Pioniere", "category": "misc",
+     "icon": "res://assets/icons/items/pioneer_emblem.svg", "value": 5000, "sort_order": 30,
+     "description": "Uno stemma di bronzo battuto, dato a chi ha percorso tutti i primi passi del Villaggio."}
   ]
 }

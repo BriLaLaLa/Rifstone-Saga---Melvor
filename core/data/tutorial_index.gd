@@ -12,6 +12,7 @@ var steps_by_id: Dictionary[StringName, TutorialStepDef] = {}
 var groups: Array[Dictionary] = []
 var quests: Array[StarterQuestDef] = []
 var quests_by_id: Dictionary[StringName, StarterQuestDef] = {}
+var final_reward: StarterFinalDef = null  # M31
 
 
 ## `raw_steps` / `raw_quests` are `{path: top-level object}` of the single files; what cannot be built goes to `errors`.
@@ -30,6 +31,10 @@ func build(raw_steps: Dictionary, raw_quests: Dictionary, errors: PackedStringAr
 			steps_by_id[def.id] = def
 	for path: String in raw_quests:
 		var file: Dictionary = raw_quests[path] as Dictionary
+		if file.get("final_reward") is Dictionary:
+			final_reward = StarterFinalDef.from_dict(file["final_reward"] as Dictionary)
+			if final_reward == null:
+				errors.append("%s: final_reward: cannot be built (see the log)" % path)
 		for g: Dictionary in DataBuildUtil.list(file, "groups"):
 			groups.append({"id": StringName(str(g["id"])), "title": str(g["title"])})
 		for d: Dictionary in DataBuildUtil.list(file, "quests"):
@@ -49,3 +54,4 @@ func clear() -> void:
 	groups.clear()
 	quests.clear()
 	quests_by_id.clear()
+	final_reward = null

@@ -10,14 +10,20 @@ const INTERVAL_STAT: StringName = &"skill_interval_pct"
 
 ## F-153: the kind of the next encounter of an area, decided now. `forced_fight` (a Rift Stone or a miniboss waits): `fight` with
 ## no roll. An area without nodes: `fight` with no roll. Else the roll `node_chance_pct`, then the discipline by weight (file order).
+## M31: `force_node` (tutorial, no `forced_fight`): a node of the first discipline of the area, in file order, that is learned and
+## not too hard, with no roll; none: the normal rule.
 ## Returns {"kind": `fight`|`node`, "skill": the discipline or `&""`}.
-static func next_kind(session: GameSession, area_id: StringName, forced_fight: bool) -> Dictionary:
+static func next_kind(session: GameSession, area_id: StringName, forced_fight: bool, force_node: bool = false) -> Dictionary:
 	var fight: Dictionary = {"kind": FIGHT, "skill": &""}
 	if forced_fight:
 		return fight
 	var nodes: AreaNodesDef = session.data.area_nodes(area_id)
 	if nodes == null or nodes.entries.is_empty():
 		return fight
+	if force_node:  # M31 (§4): no roll at all; no discipline that can be worked here: the normal rule
+		var forced: StringName = _forced_skill(session, nodes)
+		if forced != &"":
+			return {"kind": NODE, "skill": forced}
 	if not session.rng.roll_pct(float(session.data.balance_value("encounters.node_chance_pct"))):
 		return fight
 	var weights: Array[int] = []
@@ -136,3 +142,11 @@ static func expected(p: Dictionary) -> Dictionary:
 			units_per_hour[skill] = nodes * float(p["node_units"]) * units_mult * float(yields.get(skill, 100)) / 100.0
 	return {"cycle_ms": cycle, "per_hour": per_hour, "fights_per_hour": (1.0 - q) * per_hour,
 		"nodes_per_hour": nodes_per_hour, "units_per_hour": units_per_hour}
+
+
+# M31: the first entry of the area (file order) whose discipline is learned and whose `min_level` is reached; `&""` if none.
+static func _forced_skill(session: GameSession, nodes: AreaNodesDef) -> StringName:
+	for entry: NodeEntryDef in nodes.entries:
+		if session.disciplines.is_learned(entry.skill) and maxi(1, session.skills.get_level(entry.skill)) >= nodes.min_level_of(entry.skill):
+			return entry.skill
+	return &""

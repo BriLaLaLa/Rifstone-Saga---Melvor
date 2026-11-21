@@ -65,7 +65,7 @@ func test_a_completed_tutorial_saves_the_short_form() -> void:
 	assert_eq(saved["progress"], 0)
 	assert_eq(saved["since_ms"], 0)
 	assert_eq(saved["visited"], ["guide"])
-	assert_eq(saved["starter"], {"claimed": [], "progress": {}})
+	assert_eq(saved["starter"], {"claimed": [], "progress": {}, "final_claimed": false})
 
 
 func test_a_completed_save_activates_the_starter_quests() -> void:
@@ -114,4 +114,4 @@ func test_starter_tolerance() -> void:
 	assert_eq(saved["claimed"], ["kill_two"])
 	assert_eq(saved["progress"], {"eat_once": 1}, "values capped to count; non-event, claimed, unknown or non-integer progress dropped")
 	s.tutorial.from_save({"completed": true, "starter": {"claimed": "x", "progress": []}})
-	assert_eq(s.tutorial.to_save()["starter"], {"claimed": [], "progress": {}})
+	assert_eq(s.tutorial.to_save()["starter"], {"claimed": [], "progress": {}, "final_claimed": false})

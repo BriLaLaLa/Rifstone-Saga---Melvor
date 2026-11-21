@@ -89,7 +89,7 @@ func test_real_item_rarity_stat_points_to_f84() -> void:
 
 
 func test_real_start_kit_keys() -> void:
-	assert_eq(_real.balance_value("start.items"), [{"item": "seared_brookfin", "qty": 20.0}])
+	assert_eq(_real.balance_value("start.items"), [{"item": "seared_brookfin", "qty": 30.0}])
 	assert_eq(_real.balance_value("start.food"), "seared_brookfin")
 	assert_eq(_real.balance_value("start.purchases"), {"auto_eat_1": 1.0})
 	var armory: Array = _real.balance_value("start.armory") as Array

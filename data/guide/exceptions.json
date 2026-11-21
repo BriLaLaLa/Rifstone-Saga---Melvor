@@ -1,7 +1,8 @@
 {
-  "_doc": "Eccezioni dichiarate della Guida (M11, M12, M13): oggetti senza fonte o senza uso che l'indice non vede. Le fonti da tabelle di drop e sottoprodotti, gli usi delle borse e fonte e uso delle Carte (M13-05) sono nell'indice. M14: i pezzi, i progetti e i leggendari hanno la fonte nell'indice (pool F-121 e fonti F-120), nessuna eccezione di fonte.",
-  "no_source": [],
+  "_doc": "Eccezioni dichiarate della Guida (M11, M12, M13, M31: lo Stemma del Pioniere è un premio senza fonte né uso): oggetti senza fonte o senza uso che l'indice non vede. Le fonti da tabelle di drop e sottoprodotti, gli usi delle borse e fonte e uso delle Carte (M13-05) sono nell'indice. M14: i pezzi, i progetti e i leggendari hanno la fonte nell'indice (pool F-121 e fonti F-120), nessuna eccezione di fonte.",
+  "no_source": ["pioneer_emblem"],
   "no_use": [
+    "pioneer_emblem",
     "redrock_flint", "whisper_resin", "mine_dust", "threshold_ash",
     "pine_cone", "oak_acorn", "elm_samara", "yew_berry", "ebony_knot", "ember_coal", "rift_bark", "iron_slag",
     "dark_iron_clod", "black_iron_graphite", "silver_flake", "obsidian_geode", "astrite_glow", "riftite_vein",

@@ -1,10 +1,10 @@
 extends GutTest
-## Real tutorial data (M30-03; docs/01_GDD_M30.md §41.4, §41.7, docs/04_DATA_SCHEMA_M30.md §34): 21 steps, 20 starter quests, mail
+## Real tutorial data (M30-03; docs/01_GDD_M30.md §41.4, §41.7, docs/04_DATA_SCHEMA_M30.md §34): 22 steps, 20 starter quests, mail
 ## templates, the Guide page, and the reachability of every non-ack step (§34.6).
 
 const REAL_ROOT: String = "res://data"
 const CONFIG_ROOT: String = "res://data/config"
-const STEP_IDS: Array[String] = ["welcome", "character", "equipment", "combat_start", "combat_kills", "combat_triangle", "combat_food", "bank",
+const STEP_IDS: Array[String] = ["welcome", "character", "equipment", "combat_start", "combat_kills", "combat_triangle", "combat_eat", "combat_food", "bank",
 	"shop", "rift", "trainers", "skill", "nodes", "village", "noticeboard", "auction", "mail", "fractures", "dungeon", "guide", "finish"]
 const QUEST_IDS: Array[String] = ["first_trait", "level_3", "level_10", "kills_25", "beat_arcane", "eat_once", "sell_first", "first_infusion",
 	"learn_gathering", "learn_artisan", "first_craft", "mastery_node", "first_building", "noticeboard_claim", "auction_buy", "first_card",
@@ -29,9 +29,9 @@ func test_real_data_loads_without_errors() -> void:
 	assert_eq(_data.errors.size(), 0, "no load errors: %s" % str(_data.errors))
 
 
-func test_21_steps_in_order_with_text_limits() -> void:
+func test_22_steps_in_order_with_text_limits() -> void:
 	var steps: Array[TutorialStepDef] = _data.tutorial_steps()
-	assert_eq(steps.size(), 21)
+	assert_eq(steps.size(), 22)
 	for i: int in steps.size():
 		assert_eq(str(steps[i].id), STEP_IDS[i], "step %d" % i)
 		assert_between(steps[i].title.length(), 1, 40, "title of %s" % steps[i].id)
@@ -168,3 +168,24 @@ func test_no_melvor_names_in_texts() -> void:
 	for text: String in texts:
 		for word: String in MELVOR_WORDS:
 			assert_false(text.to_lower().contains(word), "'%s' in '%s'" % [word, text])
+
+
+func test_m31_step_fields_and_final_reward() -> void:
+	assert_eq(_step("combat_kills").progress_text, "Nemici sconfitti: %d su %d")
+	assert_eq(_step("combat_eat").wound_hp_pct, 30)
+	assert_false(_step("combat_eat").freeze_combat)
+	assert_true(_step("combat_food").freeze_combat)
+	assert_eq(_step("combat_food").ack_text, "Ok")
+	assert_true(_step("nodes").force_node)
+	assert_false(_step("combat_kills").freeze_combat)
+	var final: StarterFinalDef = _data.starter_final()
+	assert_not_null(final)
+	assert_eq(final.reward_character_xp, 300)
+	assert_eq(final.reward_money, 0)
+	assert_eq(final.reward_items.size(), 2)
+	assert_eq(final.reward_items[0].item_id, &"pioneer_emblem")
+	assert_eq(final.reward_items[1].qty, 30)
+	assert_eq(_data.item(&"pioneer_emblem").value, 5000)
+	assert_between(final.name.length(), 1, 40)
+	assert_between(final.description.length(), 1, 140)
+	assert_eq(int((_data.balance_value("start.items") as Array)[0]["qty"]), 30)

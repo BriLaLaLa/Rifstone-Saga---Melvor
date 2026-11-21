@@ -13,7 +13,8 @@ const DENIED_SIGNALS: PackedStringArray = ["combat_hit", "monster_hp_changed", "
 	"save_failed", "notification_requested", "session_started", "session_ended", "hint_triggered"]
 const DENIED_PREFIXES: PackedStringArray = ["tutorial_", "starter_"]
 const FORBIDDEN_REWARD_CATEGORIES: PackedStringArray = ["equipment", "weapon", "armor", "offhand", "tool", "bag", "map"]
-const STEP_FIELDS: PackedStringArray = ["id", "page", "target", "title", "text", "done_when", "on_enter"]
+const STEP_FIELDS: PackedStringArray = ["id", "page", "target", "title", "text", "done_when", "on_enter", "progress_text", "ack_text", "freeze_combat",
+	"force_node", "wound_hp_pct"]
 const QUEST_FIELDS: PackedStringArray = ["id", "group", "name", "description", "goal", "reward"]
 const EVENT_FIELDS: PackedStringArray = ["type", "signal", "args", "count"]
 const METRIC_FIELDS: PackedStringArray = ["type", "metric", "arg", "gte"]
@@ -23,6 +24,8 @@ const TEXT_MAX: int = 280
 const GROUP_TITLE_MAX: int = 30
 const QUEST_NAME_MAX: int = 40
 const QUEST_DESCRIPTION_MAX: int = 140
+const PROGRESS_TEXT_MAX: int = 40
+const ACK_TEXT_MAX: int = 12
 const XP_MAX: int = 1000
 const MAIL_KIND: String = "tutorial_gift"
 const CATEGORY_ARGS: PackedStringArray = ["gathering", "artisan"]
@@ -62,6 +65,7 @@ static func _validate_steps(v: DataValidatorRules, file: Dictionary, path: Strin
 		if e.get("text") is String and ((e["text"] as String).contains("{") or (e["text"] as String).contains("}")):
 			v.fail("field 'text' must not contain braces")
 		var conditions: Array = _conditions(v, e.get("done_when"), "done_when", true, packs, buildings)
+		_step_extras(v, e, conditions)
 		gift_seen = _on_enter(v, e) or gift_seen
 		last_ack = false
 		for c: Variant in conditions:
@@ -225,7 +229,7 @@ static func _metric(v: DataValidatorRules, c: Dictionary, at: String, buildings:
 
 static func _validate_quests(v: DataValidatorRules, file: Dictionary, path: String, packs: Dictionary[String, bool],
 		buildings: Dictionary[String, bool]) -> void:
-	v.keys(file, ["groups", "quests"])
+	v.keys(file, ["groups", "quests", "final_reward"])
 	var groups: Dictionary[StringName, bool] = {}
 	var used: Dictionary[String, bool] = {}
 	var group_list: Array[Dictionary] = v.object_list(file, "groups", "", 1)
@@ -243,6 +247,8 @@ static func _validate_quests(v: DataValidatorRules, file: Dictionary, path: Stri
 		_length(v, e, "description", QUEST_DESCRIPTION_MAX)
 		_conditions(v, [e.get("goal")], "goal", false, packs, buildings)
 		_reward(v, e)
+	v.at_file(path)
+	_final_reward(v, file)
 	v.at_file(path)
 	for group: StringName in groups:
 		if not used.has(String(group)):
@@ -288,3 +294,45 @@ static func _ids(files: Dictionary, key: String) -> Dictionary[String, bool]:
 			if e is Dictionary:
 				result[str((e as Dictionary).get("id"))] = true
 	return result
+
+
+# M31 (docs/M31_RITOCCHI_TUTORIAL.md §2.1): the five optional fields of a step, each tied to the kind of condition it needs.
+static func _step_extras(v: DataValidatorRules, e: Dictionary, conditions: Array) -> void:
+	var has_ack: bool = false
+	var counted: bool = false
+	var events: Array[String] = []
+	for c: Variant in conditions:
+		var cond: Dictionary = c as Dictionary
+		has_ack = has_ack or str(cond.get("type")) == "ack"
+		if str(cond.get("type")) == "event":
+			events.append(str(cond.get("signal")))
+			counted = counted or (DataValidatorRules.is_int(cond.get("count")) and int(cond["count"]) > 1)
+	if e.has("progress_text") and v.text(e, "progress_text"):
+		_length(v, e, "progress_text", PROGRESS_TEXT_MAX)
+		if (e["progress_text"] as String).count("%d") != 2:
+			v.fail("field 'progress_text' must contain exactly two `%d`")
+		if not counted:
+			v.fail("field 'progress_text' needs an `event` condition with `count` > 1")
+	if e.has("ack_text") and v.text(e, "ack_text"):
+		_length(v, e, "ack_text", ACK_TEXT_MAX)
+		if not has_ack:
+			v.fail("field 'ack_text' needs an `ack` condition")
+	if e.has("freeze_combat") and v.flag(e, "freeze_combat") and e["freeze_combat"] == true and not has_ack:
+		v.fail("field 'freeze_combat' needs an `ack` condition")
+	if e.has("force_node") and v.flag(e, "force_node") and e["force_node"] == true and not events.has("node_started"):
+		v.fail("field 'force_node' needs a `node_started` event condition")
+	if e.has("wound_hp_pct") and v.integer(e, "wound_hp_pct", 1, 99) and not events.has("food_eaten"):
+		v.fail("field 'wound_hp_pct' needs a `food_eaten` event condition")
+
+
+# M31 (§2.3): `final_reward` is mandatory (no fallback); its reward follows the rules of the quests.
+static func _final_reward(v: DataValidatorRules, file: Dictionary) -> void:
+	if not file.has("final_reward"):
+		v.fail("field 'final_reward' is mandatory")
+		return
+	var e: Dictionary = v.object(file, "final_reward")
+	v.at_entry("final_reward", 0, e)
+	v.keys(e, ["id", "name", "description", "reward"], "final_reward")
+	_length(v, e, "name", QUEST_NAME_MAX)
+	_length(v, e, "description", QUEST_DESCRIPTION_MAX)
+	_reward(v, e)

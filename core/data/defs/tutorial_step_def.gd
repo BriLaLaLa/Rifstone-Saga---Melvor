@@ -12,6 +12,11 @@ var text: String = ""
 var done_when: Array[TutorialCondition] = []
 var gift_money: int = 0
 var gift_items: Array[ItemQty] = []
+var progress_text: String = ""  # M31 (docs/M31_RITOCCHI_TUTORIAL.md §2.1): the counter label with two `%d`
+var ack_text: String = ""  # M31: the label of the confirm button ("" = the UI default)
+var freeze_combat: bool = false  # M31: the combat is frozen while the step is current (`ack` steps only)
+var force_node: bool = false  # M31: the first journey after the entry is a node (§4)
+var wound_hp_pct: int = 0  # M31: the hp of the character go to this percent (0 = absent)
 
 
 static func from_dict(d: Dictionary) -> TutorialStepDef:
@@ -24,6 +29,11 @@ static func from_dict(d: Dictionary) -> TutorialStepDef:
 	def.title = r.text("title")
 	def.text = r.text("text")
 	def.done_when = conditions(r, d.get("done_when"))
+	def.progress_text = r.text("progress_text") if r.has("progress_text") else ""
+	def.ack_text = r.text("ack_text") if r.has("ack_text") else ""
+	def.freeze_combat = r.flag("freeze_combat") if r.has("freeze_combat") else false
+	def.force_node = r.flag("force_node") if r.has("force_node") else false
+	def.wound_hp_pct = r.integer("wound_hp_pct") if r.has("wound_hp_pct") else 0
 	if r.has("on_enter") and r.is_dict("on_enter"):
 		var mail: Variant = r.dict("on_enter").get("mail")
 		if mail is Dictionary:
