@@ -43,7 +43,9 @@ static func item_name(item_id: StringName, data: GameData) -> String:
 
 static func _fill(text: String, message: Dictionary, data: GameData) -> String:
 	var currency: CurrencyParams = data.currency()
-	return text.replace("{item}", item_name(message["item"] as StringName, data)) \
+	var item_id: StringName = message["item"] as StringName
+	var filled: String = text if item_id == &"" else text.replace("{item}", item_name(item_id, data))
+	return filled \
 			.replace("{qty}", NumberFormat.format_int(int(message["qty"]))) \
 			.replace("{price}", Money.text(int(message["price"]), currency)) \
 			.replace("{money}", Money.text(int(message["money"]), currency))

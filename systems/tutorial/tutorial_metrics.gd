@@ -5,7 +5,7 @@ extends RefCounted
 
 const METRICS: Dictionary[StringName, Array] = {
 	&"character_level": [&"character_level_up"], &"kills_total": [&"monster_killed"], &"disciplines_learned": [&"discipline_changed"],
-	&"page_visited": [], &"mail_collected": [&"mail_changed"], &"village_levels": [&"village_upgraded"], &"quests_completed": [&"quest_completed"]}
+	&"page_visited": [], &"mail_collected": [&"mail_changed"], &"village_levels": [&"village_upgraded"], &"quests_completed": [&"quest_completed", &"quests_changed"]}
 
 
 static func value(session: GameSession, metric: StringName, arg: StringName = &"") -> int:
