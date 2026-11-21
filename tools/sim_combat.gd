@@ -278,7 +278,7 @@ static func measure(data: Object, area: Object, scope: String, opts: Dictionary)
 		"pieces": int(pieces["common"]) + int(pieces["magic"]) + int(pieces["rare"]), "magic": pieces["magic"], "legendary": pieces["legendary"],
 		"rare": pieces["rare"], "stones": tally["stones"], "stone_kills": tally["stone_kills"],
 		"stone_deaths": tally["stone_deaths"], "bps": bps, "bp_lost": tally["bp_lost"],
-		"stone_ttk": stone_fight[0], "stone_loss": stone_fight[1], "dust": dust,
+		"stone_ttk": stone_fight[0], "stone_loss": stone_fight[1], "dust": dust, "counts": counts.duplicate(),
 	}
 	session.free()  # the session is a Node outside any tree: free it, no orphans
 	return row

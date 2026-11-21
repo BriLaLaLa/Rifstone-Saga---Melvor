@@ -186,7 +186,7 @@ func _quests_part_one(s: GameSession) -> void:
 	_advance_until(s, func() -> bool: return s.character.get_level() >= 3, 500, 400000)
 	_claim(s, &"level_3")
 	_advance_until(s, func() -> bool:
-		return int(s.combat.total_kills().get(&"ember_rat", 0)) >= 5 and s.combat.total_kills().values().reduce(func(a: int, b: int) -> int: return a + b, 0) >= 25)
+		return s.tutorial.starter.is_complete(&"beat_arcane") and s.tutorial.starter.is_complete(&"kills_25"))  # M32-05: the quest counts the kills after the tutorial, not the total (the new drops moved the RNG)
 	_claim(s, &"kills_25")
 	_claim(s, &"beat_arcane")
 	if not s.tutorial.starter.is_complete(&"eat_once"):

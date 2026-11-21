@@ -3,6 +3,7 @@ extends GutTest
 ## to stay empty with the new contents, so the golden numbers of test_combat_regression_m28.gd were re-recorded; here the loadout is
 ## EXPLICIT and made of the M27 contents only (the first 12 traits and 6 abilities of rift_blade.json, `traits=` / `abilities=` of
 ## tools/sim_combat.gd) and the events, hp and random generator state are the ones recorded on `main` before M28-06 (791cdd3).
+## M32-05: the new meat drops (35% x 1-2 beasts, 50% x 2-4 animal minibosses) roll on the shared RNG: all eight numbers were re-recorded (the combat rules did not change).
 ## The same 2 h cases of the regression test; the four that reach level 30 (cracked_mines, weak gear) carry the OLD numbers.
 
 const Sim := preload("res://tools/sim_combat.gd")
@@ -73,39 +74,39 @@ func test_the_explicit_m27_loadout_reaches_the_slots() -> void:
 
 func test_sword_shield_plains() -> void:
 	assert_eq(_run(&"redrock_plains", &"sword_shield", -3, 0, 1000000),
-			{"deaths": 0, "events": 12768, "food": 387, "hash": 2038849273073428160, "kills": 529, "rng": 1163697843})
+			{"deaths": 0, "events": 14681, "food": 525, "hash": 5422507137686393826, "kills": 482, "rng": 1524697678})
 
 
 func test_greatsword_plains() -> void:
 	assert_eq(_run(&"redrock_plains", &"greatsword", -3, 0, 1000000),
-			{"deaths": 0, "events": 10485, "food": 375, "hash": 8313901566582730724, "kills": 385, "rng": 1217041523})
+			{"deaths": 0, "events": 9355, "food": 294, "hash": 5245565990442101452, "kills": 338, "rng": 2150712148})
 
 
 func test_dual_plains() -> void:
 	assert_eq(_run(&"redrock_plains", &"dual", -3, 0, 1000000),
-			{"deaths": 0, "events": 12894, "food": 381, "hash": 9215568773177735570, "kills": 487, "rng": 763040687})
+			{"deaths": 0, "events": 13019, "food": 373, "hash": 466955768779039067, "kills": 483, "rng": 567842782})
 
 
 func test_sword_shield_mines() -> void:
 	assert_eq(_run(&"cracked_mines", &"sword_shield", -4, 0, 1000000),
-			{"deaths": 0, "events": 26804, "food": 489, "hash": 8754797600491544843, "kills": 916, "rng": 3780298914})
+			{"deaths": 0, "events": 25413, "food": 443, "hash": 5487090780571123075, "kills": 945, "rng": 2127339254})
 
 
 func test_greatsword_mines() -> void:
 	assert_eq(_run(&"cracked_mines", &"greatsword", -4, 0, 1000000),
-			{"deaths": 0, "events": 30662, "food": 778, "hash": 8884716108105007507, "kills": 1044, "rng": 2482867834})
+			{"deaths": 0, "events": 25370, "food": 572, "hash": 6902809759426140795, "kills": 1120, "rng": 4072295080})
 
 
 func test_dual_mines() -> void:
 	assert_eq(_run(&"cracked_mines", &"dual", -4, 0, 1000000),
-			{"deaths": 0, "events": 32778, "food": 748, "hash": 5486399411839162937, "kills": 838, "rng": 2361128376})
+			{"deaths": 0, "events": 36159, "food": 846, "hash": 1715603050268261380, "kills": 782, "rng": 2523803973})
 
 
 func test_weak_gear_sword_shield() -> void:
 	assert_eq(_run(&"cracked_mines", &"sword_shield", -4, 4, 30),
-			{"deaths": 186, "events": 14642, "food": 30, "hash": 7207199079807063643, "kills": 302, "rng": 691805859})
+			{"deaths": 170, "events": 14534, "food": 30, "hash": 6307478345969069233, "kills": 340, "rng": 3065765254})
 
 
 func test_weak_gear_dual() -> void:
 	assert_eq(_run(&"whisper_wood", &"dual", -4, 3, 20),  # M31: kit 30 + 20 = the 50 food of the numbers
-			{"deaths": 180, "events": 16145, "food": 50, "hash": 9021191194629548746, "kills": 353, "rng": 1132470544})
+			{"deaths": 188, "events": 16495, "food": 50, "hash": 8800156141418015176, "kills": 335, "rng": 467379930})
