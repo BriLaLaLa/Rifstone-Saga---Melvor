@@ -7,7 +7,7 @@ const CONFIG_ROOT: String = "res://data/config"
 const STEP_IDS: Array[String] = ["welcome", "character", "equipment", "combat_start", "combat_kills", "combat_triangle", "combat_eat", "combat_food", "bank",
 	"shop", "rift", "trainers", "skill", "nodes", "village", "noticeboard", "auction", "mail", "fractures", "dungeon", "guide", "finish"]
 const QUEST_IDS: Array[String] = ["first_trait", "level_3", "level_10", "kills_25", "beat_arcane", "eat_once", "sell_first", "first_infusion",
-	"learn_gathering", "learn_artisan", "first_craft", "mastery_node", "first_building", "noticeboard_claim", "auction_buy", "first_card",
+	"learn_gathering", "learn_artisan", "campfire_meal", "first_craft", "mastery_node", "first_building", "noticeboard_claim", "auction_buy", "first_card",
 	"fracture_won", "dungeon_won", "mail_two", "visit_guide"]
 const GATHERING: Array[StringName] = [&"forestry", &"quarrying", &"angling", &"herbalism"]
 const FORBIDDEN_CATEGORIES: Array[StringName] = [&"equipment", &"weapon", &"armor", &"offhand", &"tool", &"bag", &"map"]
@@ -39,9 +39,9 @@ func test_22_steps_in_order_with_text_limits() -> void:
 	assert_eq(steps[steps.size() - 1].done_when[0].type, &"ack", "the last step is Avanti")
 
 
-func test_20_quests_in_order_with_limits_and_money_total() -> void:
+func test_21_quests_in_order_with_limits_and_money_total() -> void:
 	var quests: Array[StarterQuestDef] = _data.starter_quests()
-	assert_eq(quests.size(), 20)
+	assert_eq(quests.size(), 21)
 	var money: int = 0
 	var items: Dictionary = {}
 	for i: int in quests.size():
@@ -53,7 +53,7 @@ func test_20_quests_in_order_with_limits_and_money_total() -> void:
 		for iq: ItemQty in q.reward_items:
 			items[iq.item_id] = int(items.get(iq.item_id, 0)) + iq.qty
 	assert_eq(money, QUEST_MONEY_TOTAL, "starter quests pay 40800 copper in total (Q188, 01_GDD_M30.md §41.6): a change is a rebalance")
-	assert_eq(items, {&"seared_brookfin": 10, &"rift_dust": 10})
+	assert_eq(items, {&"seared_brookfin": 10, &"rift_dust": 10, &"cooked_plains_haunch": 10})
 
 
 func test_quest_rewards_are_sellable_and_not_gear() -> void:

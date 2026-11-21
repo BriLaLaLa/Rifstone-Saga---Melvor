@@ -64,6 +64,16 @@
     {"id": "tonic_8", "name": "Tonico del Rift", "category": "food",
      "icon": "res://assets/icons/items/tonic_8.png", "value": 34000, "sort_order": 180,
      "description": "Cura 390 punti vita.",
-     "food": {"heal": 390}}
+     "food": {"heal": 390}},
+    {"id":"cooked_plains_haunch","name":"Cosciotto arrostito","category":"food","icon":"res://assets/icons/items/cooked_plains_haunch.svg","value":200,"sort_order":210,"description":"Cura 20 punti vita.","food":{"heal":20}},
+    {"id":"cooked_wood_venison","name":"Spiedo di selvaggina","category":"food","icon":"res://assets/icons/items/cooked_wood_venison.svg","value":600,"sort_order":220,"description":"Cura 35 punti vita.","food":{"heal":35}},
+    {"id":"cooked_upland_game","name":"Spezzatino d'altopiano","category":"food","icon":"res://assets/icons/items/cooked_upland_game.svg","value":1200,"sort_order":230,"description":"Cura 55 punti vita.","food":{"heal":55}},
+    {"id":"cooked_gallery_game","name":"Brasato di galleria","category":"food","icon":"res://assets/icons/items/cooked_gallery_game.svg","value":2000,"sort_order":240,"description":"Cura 80 punti vita.","food":{"heal":80}},
+    {"id":"cooked_marsh_fowl","name":"Volatile di palude arrosto","category":"food","icon":"res://assets/icons/items/cooked_marsh_fowl.svg","value":3000,"sort_order":250,"description":"Cura 95 punti vita.","food":{"heal":95}},
+    {"id":"cooked_scorpion_pulp","name":"Scorpione croccante","category":"food","icon":"res://assets/icons/items/cooked_scorpion_pulp.svg","value":4600,"sort_order":260,"description":"Cura 123 punti vita.","food":{"heal":123}},
+    {"id":"cooked_hound_cut","name":"Bistecca del varco","category":"food","icon":"res://assets/icons/items/cooked_hound_cut.svg","value":6000,"sort_order":270,"description":"Cura 150 punti vita.","food":{"heal":150}},
+    {"id":"cooked_serpent_fillet","name":"Filetto di serpe glassato","category":"food","icon":"res://assets/icons/items/cooked_serpent_fillet.svg","value":8200,"sort_order":280,"description":"Cura 183 punti vita.","food":{"heal":183}},
+    {"id":"cooked_coral_tentacle","name":"Tentacolo grigliato","category":"food","icon":"res://assets/icons/items/cooked_coral_tentacle.svg","value":12000,"sort_order":290,"description":"Cura 220 punti vita.","food":{"heal":220}},
+    {"id":"cooked_leech_pulp","name":"Stufato del battito","category":"food","icon":"res://assets/icons/items/cooked_leech_pulp.svg","value":17000,"sort_order":300,"description":"Cura 260 punti vita.","food":{"heal":260}}
   ]
 }
