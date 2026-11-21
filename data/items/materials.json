@@ -92,6 +92,16 @@
     {"id":"fern_spore","name":"Spora","category":"material","icon":"res://assets/icons/items/fern_spore.svg","value":0,"sort_order":1036,"description":"Una spora della felce del velo, leggera quanto la nebbia."},
     {"id":"thistle_burr","name":"Riccio","category":"material","icon":"res://assets/icons/items/thistle_burr.svg","value":0,"sort_order":1037,"description":"Il frutto spinoso del cardo: dentro cova ancora un po' di brace."},
     {"id":"orchid_nectar","name":"Nettare","category":"material","icon":"res://assets/icons/items/orchid_nectar.svg","value":0,"sort_order":1038,"description":"Una goccia viola e densa, dolce e vagamente luminosa."},
-    {"id":"minor_slab","name":"Lastra minore","category":"material","icon":"res://assets/icons/items/rune_slab.svg","value":0,"sort_order":971,"description":"Una lastretta grezza: basta per incidere una runa minore."}
+    {"id":"minor_slab","name":"Lastra minore","category":"material","icon":"res://assets/icons/items/rune_slab.svg","value":0,"sort_order":971,"description":"Una lastretta grezza: basta per incidere una runa minore."},
+    {"id":"plains_haunch","name":"Cosciotto di pianura","category":"material","icon":"res://assets/icons/items/plains_haunch.svg","value":100,"sort_order":1101,"description":"Carne cruda e scura di bestia delle Pianure, ancora da cuocere."},
+    {"id":"wood_venison","name":"Selvaggina del bosco","category":"material","icon":"res://assets/icons/items/wood_venison.svg","value":300,"sort_order":1102,"description":"Carne cruda di lupo, ragno o cervo del Bosco dei Sussurri."},
+    {"id":"upland_game","name":"Carne d'altopiano","category":"material","icon":"res://assets/icons/items/upland_game.svg","value":600,"sort_order":1103,"description":"Carne cruda e magra, secca come il vento degli Altipiani."},
+    {"id":"gallery_game","name":"Carne di galleria","category":"material","icon":"res://assets/icons/items/gallery_game.svg","value":1000,"sort_order":1104,"description":"Carne cruda di creatura delle miniere, dura e salata."},
+    {"id":"marsh_fowl","name":"Volatile di palude","category":"material","icon":"res://assets/icons/items/marsh_fowl.svg","value":1500,"sort_order":1105,"description":"Carne cruda e grassa di uccello e bestia delle Paludi di Cenere."},
+    {"id":"scorpion_pulp","name":"Polpa di scorpione","category":"material","icon":"res://assets/icons/items/scorpion_pulp.svg","value":2300,"sort_order":1106,"description":"Polpa cruda e chiara, estratta da sotto il guscio di vetro."},
+    {"id":"hound_cut","name":"Taglio del varco","category":"material","icon":"res://assets/icons/items/hound_cut.svg","value":3000,"sort_order":1107,"description":"Carne cruda e scura di bestia uscita dalla Soglia del Rift."},
+    {"id":"serpent_fillet","name":"Filetto di serpe","category":"material","icon":"res://assets/icons/items/serpent_fillet.svg","value":4100,"sort_order":1108,"description":"Filetto crudo e lucido di serpe del Deserto di Vetro Nero."},
+    {"id":"coral_tentacle","name":"Tentacolo di corallo","category":"material","icon":"res://assets/icons/items/coral_tentacle.svg","value":6000,"sort_order":1109,"description":"Tentacolo crudo e gommoso, ancora pieno d'acqua salmastra."},
+    {"id":"leech_pulp","name":"Polpa del battito","category":"material","icon":"res://assets/icons/items/leech_pulp.svg","value":8500,"sort_order":1110,"description":"Polpa cruda che pulsa piano, come se avesse ancora un cuore."}
   ]
 }

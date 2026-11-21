@@ -54,6 +54,18 @@ const RECIPE_LATER_FACTOR: float = 3.0
 ## areas from level TICKET_MIN_LEVEL (areas 4-10) from the miniboss and from the Monoliti (percentages of F-139).
 const MINIBOSS_COMMON_PCT: int = 40
 const MINIBOSS_COMMON_QTY: Array = [2, 4]
+## Meat of the Cucina (M32-03, docs/M32_CIBO.md Q200): the raw meat of each area (index = area) drops from the animal monsters only
+## (beasts, raptors, reptiles, giant insects: not constructs, wraiths, humans or trolls), with this chance and quantity; the miniboss
+## uses the miniboss values when it is an animal. tools/gen_cooking.gd creates the items.
+const MEAT_ITEMS: Array[String] = ["plains_haunch", "wood_venison", "upland_game", "gallery_game", "marsh_fowl", "scorpion_pulp",
+	"hound_cut", "serpent_fillet", "coral_tentacle", "leech_pulp"]
+const ANIMAL_MONSTERS: Array[String] = ["plains_boar", "ember_rat", "dust_jackal", "rock_ram", "whisper_wolf", "bark_spider", "elder_stag",
+	"wind_hawk", "canyon_lynx", "dune_wyrm", "tunnel_bat", "deep_crawler", "marsh_leech", "bog_hound", "ash_heron", "glass_scorpion",
+	"gate_hound", "glass_serpent", "dune_leviathan", "coral_juggernaut", "heart_leech"]
+const MEAT_PCT: int = 35
+const MEAT_QTY: Array = [1, 2]
+const MEAT_MINIBOSS_PCT: int = 50
+const MEAT_MINIBOSS_QTY: Array = [2, 4]
 const TICKET_ITEM: String = "dungeon_ticket_monkey_den"
 const TICKET_MIN_LEVEL: int = 31
 const TICKET_MINIBOSS_PCT: float = 12.0
@@ -85,9 +97,15 @@ func _init() -> void:
 		var area_json: Dictionary = _area(area, i, ids)
 		var drops: Dictionary = _area_drops(area, i, area_json["packs"] as Array)
 		for m: Array in area["monsters"]:
+			if ANIMAL_MONSTERS.has(m[0]):
+				(drops[m[0]] as Array).append({"item": MEAT_ITEMS[i], "chance_pct": MEAT_PCT, "qty": MEAT_QTY})
+		for m: Array in area["monsters"]:
 			monster_lines.append("    " + JSON.stringify(_monster(m, i, drops), "", false))
 		var boss: Array = miniboss_row(i)
-		var boss_monster: Dictionary = _monster(boss, i, {boss[0]: _miniboss_drops(area, i)})
+		var boss_drops: Array = _miniboss_drops(area, i)
+		if ANIMAL_MONSTERS.has(((area["monsters"] as Array)[-1] as Array)[0]):  # the miniboss is the strongest monster
+			boss_drops.append({"item": MEAT_ITEMS[i], "chance_pct": MEAT_MINIBOSS_PCT, "qty": MEAT_MINIBOSS_QTY})
+		var boss_monster: Dictionary = _monster(boss, i, {boss[0]: boss_drops})
 		boss_monster["miniboss"] = true
 		monster_lines.append("    " + JSON.stringify(boss_monster, "", false))
 		area_lines.append("    " + JSON.stringify(area_json, "", false))
@@ -180,7 +198,7 @@ func _monster(m: Array, index: int, drops: Dictionary) -> Dictionary:
 	var xp_spec: Dictionary = (_balance["combat"] as Dictionary)["monster_xp"] as Dictionary
 	var cps: int = int((_balance["currency"] as Dictionary)["copper_per_silver"])
 	return {
-		"id": m[0], "name": m[1], "icon": ICON_DIR + (m[5] as String) + ".svg", "description": m[6], "hp": hp,
+		"id": m[0], "name": m[1], "icon": ICON_DIR + (m[0] as String) + ".png", "description": m[6], "hp": hp,
 		"style": m[4] if m[4] != "" else role[0], "attack_interval_ms": roundi(float(role[1]) * INTERVAL_SCALE[index] / 100.0) * 100,
 		"attack_level": level, "power_level": maxi(1, roundi(level * scale)), "defence_level": level,
 		"accuracy_bonus": roundi(up * 1.15 * float(role[3])), "power_bonus": roundi(up * 0.9 * float(role[4]) * scale),
