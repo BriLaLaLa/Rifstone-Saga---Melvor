@@ -123,7 +123,7 @@ func _with_weights(weights: Array) -> Dictionary:
 	var raw: Dictionary = _real_raw()
 	var balance_weights: Array = (raw["balance"][raw["balance"].keys()[0]]["combat"] as Dictionary)["pack_size_weights"] as Array
 	var area: Dictionary = _area(raw, 0)
-	var monster: String = ((area["packs"] as Array)[0]["monsters"] as Array)[0]
+	var monster: String = "ember_rat"  # M30-03: the tutorial data needs it in a pack of an area
 	var packs: Array = []
 	for size: int in range(1, 9):
 		balance_weights[size - 1] = weights[size - 1]
