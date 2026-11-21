@@ -22,6 +22,10 @@ func _ready() -> void:
 
 
 func _run() -> void:
+	if args_mode() == "real":
+		await _run_real()
+		get_tree().quit(0)
+		return
 	await _shot(&"welcome", {})
 	await _shot(&"go_to", {}, &"", false, true)
 	await _shot(&"step_page", {"completed": false, "step": "character", "visited": [], "since_ms": 0}, &"character")
@@ -32,6 +36,11 @@ func _run() -> void:
 	await _shot_done(&"sidebar_widget", false)
 	print_rich("shots in ", ProjectSettings.globalize_path(_out))
 	get_tree().quit(0)
+
+
+func args_mode() -> String:
+	var args: PackedStringArray = OS.get_cmdline_user_args()
+	return args[2] if args.size() > 2 else ""
 
 
 ## A main screen on a new tutorial game loaded at `step` (a tutorial save); `page` is shown first, `stuck` skips the valve time.
@@ -83,3 +92,69 @@ func _frames(count: int) -> void:
 func _save(shot: StringName) -> void:
 	var image: Image = get_tree().root.get_texture().get_image()
 	image.save_png("%s/%s.png" % [ProjectSettings.globalize_path(_out), String(shot)])
+
+
+# --- M30-05: the real new game (nothing learned, the Armory kit) at every step; the targets of §34.4 resolved on the real pages ---
+# Third argument "real": prints `TARGET <n> <id> <target> OK|MISS` for the 21 steps and saves step01, step03, step04, step11, step17,
+# chain_widget and chain_starter. A real new game, as the title screen makes it (no `learn_all`).
+
+const SHOT_STEPS: Array[int] = [1, 3, 4, 11, 17]
+
+
+func _real_session() -> GameSession:
+	var events: GameEvents = GameEvents.new()
+	var session: GameSession = GameSession.new(TestFactory.real_data(), events, 3060)
+	session.add_child(events)
+	session.new_game()
+	return session
+
+
+## The route to show for a step ("skill" needs a discipline: the first one learned).
+func _route_of(step: TutorialStepDef) -> StringName:
+	return &"skill:forestry" if step.page == &"skill" else step.page
+
+
+func _run_real() -> void:
+	var steps: Array[TutorialStepDef] = TestFactory.real_data().tutorial_steps()
+	for i: int in steps.size():
+		var step: TutorialStepDef = steps[i]
+		var session: GameSession = _real_session()
+		var visited: Array = []
+		for j: int in i + 1:
+			if steps[j].page != &"":
+				visited.append(String(steps[j].page))
+		session.tutorial.from_save({"completed": false, "step": String(step.id), "visited": visited, "since_ms": 0})
+		if i > 10:  # after the Trainers step the player has learned the Woodcutter
+			session.disciplines.learn(&"forestry")
+		if step.id == &"mail":
+			session.mail.post(&"tutorial_gift", {"money": 3000})
+		var screen: MainScreen = await _open(session)
+		if step.page == &"combat" and step.id != &"combat_start":
+			session.combat.start(&"redrock_plains")
+		if step.page != &"":
+			(screen.find_child("PageHost", true, false) as PageHost).show_page(_route_of(step))
+		await _frames(8)
+		var found: Control = TutorialTargets.resolve(step.target, screen)
+		print("TARGET %d %s %s %s" % [i + 1, step.id, step.target if step.target != "" else "-", "OK" if found != null else ("MISS" if step.target != "" else "none")])
+		if SHOT_STEPS.has(i + 1):
+			_save(StringName("step%02d" % (i + 1)))
+		screen.free()
+		session.free()
+		await _frames(2)
+	# the widget in the middle of the chain: tutorial done, level 10, one claimed and one still to claim (the dot)
+	var done: GameSession = _real_session()
+	done.tutorial.from_save({"completed": true, "step": "", "visited": []})
+	done.hints.from_save({"seen": ["first_level_ten", "first_shard", "first_defeat"]})  # no modal card over the shot
+	TestFactory.set_character_level(done, 10)
+	done.tutorial.starter.claim(&"level_3")
+	var screen2: MainScreen = await _open(done)
+	await _frames(6)
+	_save(&"chain_widget")
+	(screen2.find_child("PageHost", true, false) as PageHost).show_page(&"starter")
+	await _frames(8)
+	_save(&"chain_starter")
+	var groups: int = screen2.find_children("*", "", true, false).filter(func(n: Node) -> bool: return String(n.name).begins_with("Group_")).size()
+	print("STARTER groups-named-nodes ", groups, " claimed ", done.tutorial.starter.claimed_count(), " of ", done.tutorial.starter.total())
+	screen2.free()
+	done.free()
+	print_rich("real shots in ", ProjectSettings.globalize_path(_out))
