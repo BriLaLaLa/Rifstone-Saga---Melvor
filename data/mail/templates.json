@@ -6,5 +6,9 @@
   {"kind": "auction_expired", "sender": "Casa d'Aste", "subject": "Nessuno ha preso {item}", "body": "L'inserzione è scaduta senza acquirenti: {qty} x {item} tornano da te. Magari con un prezzo più gentile."},
   {"kind": "auction_cancelled", "sender": "Casa d'Aste", "subject": "Inserzione ritirata: {item}", "body": "Hai tolto l'inserzione come richiesto. {qty} x {item} ti aspettano nella busta."},
   {"kind": "tutorial_gift", "sender": "Il Villaggio", "subject": "Un benvenuto per te", "body": "Benvenuto, Lama del Rift. Nella busta c'è un piccolo aiuto per cominciare: ritiralo quando vuoi."},
-  {"kind": "starter_reward", "sender": "Il Villaggio", "subject": "Un premio per i tuoi primi passi", "body": "Hai fatto un altro passo: guarda l'allegato. Il Villaggio non dimentica chi si dà da fare."}
+  {"kind": "tutorial_gift", "sender": "La Locanda del Villaggio", "subject": "Qualche moneta per partire", "body": "Il Villaggio dà una mano a chi arriva dal Rift. Dentro la busta c'è un piccolo regalo: ritiralo e usalo bene."},
+  {"kind": "tutorial_gift", "sender": "Il Villaggio", "subject": "Benvenuto a Roccarossa", "body": "Ti aspettavamo, Lama del Rift. Questa busta è il nostro saluto: prendi l'allegato, la strada è lunga."},
+  {"kind": "starter_reward", "sender": "Il Villaggio", "subject": "Un premio per i tuoi primi passi", "body": "Hai fatto un altro passo: guarda l'allegato. Il Villaggio non dimentica chi si dà da fare."},
+  {"kind": "starter_reward", "sender": "La Locanda del Villaggio", "subject": "Ben fatto, Lama del Rift", "body": "Qualcuno ha notato quello che hai combinato. Nella busta trovi il compenso: ritiralo quando ti fa comodo."},
+  {"kind": "starter_reward", "sender": "Il Villaggio", "subject": "Un'altra tappa superata", "body": "Un passo dopo l'altro il Rift si fa meno strano. Il Villaggio ti manda questo allegato, con i suoi complimenti."}
 ]}
