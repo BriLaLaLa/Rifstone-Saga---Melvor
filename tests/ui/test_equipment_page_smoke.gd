@@ -47,7 +47,7 @@ func test_the_doll_has_the_12_slots_all_empty_at_start() -> void:
 	assert_string_contains(_label("%SetupLabel").text, "Mani nude")
 	assert_eq(_label("%EmptyLabel").text, "L'Armeria è vuota: forgia o compra dei pezzi.")
 	assert_eq(_label("%CapacityLabel").text, "Deposito: 0 / %s" % NumberFormat.format_int(_session.deposit.capacity()))
-	assert_false(_panel().visible)
+	assert_eq(_panel().uid(), 0)
 
 
 func test_slot_labels_come_from_the_slot_texts() -> void:
@@ -306,7 +306,7 @@ func test_lock_and_sell_through_the_panel() -> void:
 	assert_false(_button("SellButton").disabled)
 	_button("SellButton").pressed.emit()
 	assert_false(_session.armory.has(helm))
-	assert_false(_panel().visible, "the sold piece closes the panel")
+	assert_eq(_panel().uid(), 0, "the sold piece empties the panel")
 
 
 # --- Refused commands --------------------------------------------------------------------------------------------

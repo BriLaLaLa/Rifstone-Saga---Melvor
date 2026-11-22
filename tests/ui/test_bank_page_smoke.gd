@@ -184,7 +184,8 @@ func test_click_opens_the_item_panel() -> void:
 	TestFactory.give(_session, TWIG, 3)
 	TestFactory.give(_session, LOG, 1250)
 	_open()
-	assert_false(_panel().visible, "closed until a cell is clicked")
+	assert_true(_panel().visible, "always present")
+	assert_eq(_panel().item_id(), &"")
 	_click(_cells()[1])
 	assert_true(_panel().visible)
 	assert_eq(_panel().item_id(), LOG)
@@ -193,10 +194,10 @@ func test_click_opens_the_item_panel() -> void:
 	TestFactory.give(_session, LOG, 5)
 	assert_eq(_panel_label("%CountLabel").text, "Quantità: 1.255", "the panel rereads the bank")
 	assert_true(_session.bank.remove(LOG, 1255).ok)
-	assert_false(_panel().visible, "stack gone: panel closed")
+	assert_eq(_panel().item_id(), &"", "stack gone: panel empty")
 	_click(_cells()[0])
 	_panel().close_requested.emit()
-	assert_false(_panel().visible)
+	assert_true(_panel().visible)
 	assert_eq(_panel().item_id(), &"")
 
 

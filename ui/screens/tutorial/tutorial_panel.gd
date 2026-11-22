@@ -6,6 +6,8 @@ extends PanelContainer
 
 signal next_pressed
 signal skip_pressed
+## The player confirmed "Salta tutorial" (the overlay sends the command).
+signal skip_tutorial_confirmed
 
 var _title: Label
 var _body: Label
@@ -16,6 +18,10 @@ var _reason: Label
 var _next: Button
 var _skip: Button
 var _step_box: VBoxContainer
+var _skip_tutorial: Button
+var _confirm_box: VBoxContainer
+## Presentation only: the confirmation question is on screen.
+var _confirming: bool = false
 
 
 func _init() -> void:
@@ -44,12 +50,29 @@ func _init() -> void:
 	_next = _button(row, "NextButton", TutorialTexts.NEXT_TEXT, next_pressed)
 	_skip = _button(row, "SkipButton", TutorialTexts.SKIP_TEXT, skip_pressed)
 	_next.theme_type_variation = &"AccentButton"
+	_skip_tutorial = _action(box, "SkipTutorialButton", TutorialTexts.SKIP_TUTORIAL_TEXT, _ask_skip_tutorial)
+	_skip_tutorial.size_flags_horizontal = Control.SIZE_SHRINK_END
+	_confirm_box = VBoxContainer.new()
+	_confirm_box.name = "ConfirmBox"
+	_confirm_box.visible = false
+	_confirm_box.add_theme_constant_override("separation", UiStyle.TUTORIAL_PANEL_SEPARATION)
+	box.add_child(_confirm_box)
+	var question: Label = _label(_confirm_box, "ConfirmLabel", &"")
+	question.text = TutorialTexts.SKIP_CONFIRM_TEXT
+	question.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	question.custom_minimum_size.x = UiStyle.TUTORIAL_PANEL_WIDTH - UiStyle.TUTORIAL_PANEL_TEXT_INSET
+	var answers := HBoxContainer.new()
+	answers.alignment = BoxContainer.ALIGNMENT_END
+	_confirm_box.add_child(answers)
+	_action(answers, "ConfirmNoButton", TutorialTexts.NO_TEXT, _decline_skip_tutorial)
+	_action(answers, "ConfirmYesButton", TutorialTexts.YES_TEXT, skip_tutorial_confirmed.emit).theme_type_variation = &"AccentButton"
 
 
 ## The card of a step: `progress` is shown only when `target_count` > 1, with `progress_text` ("%d ... %d", from the data) when
 ## given; `ack_text` is the label of the confirm button ("" = the default).
 func show_step(title: String, text: String, index: int, total: int, progress: int, target_count: int,
 		can_next: bool, can_skip: bool, progress_text: String = "", ack_text: String = "") -> void:
+	_showing_navigation = false
 	_go_to.visible = false
 	_step_box.visible = true
 	_title.text = title
@@ -61,14 +84,21 @@ func show_step(title: String, text: String, index: int, total: int, progress: in
 	_next.visible = can_next
 	_skip.visible = can_skip
 	_reason.visible = false
+	if _confirming:
+		_apply_confirm()
+		return
 	reset_size()
 
 
 ## The card of the navigation state: only "Vai a <pagina>".
 func show_navigation(page_name: String) -> void:
+	_showing_navigation = true
 	_go_to.text = TutorialTexts.GO_TO_TEXT % page_name
 	_go_to.visible = true
 	_step_box.visible = false
+	if _confirming:
+		_apply_confirm()
+		return
 	reset_size()
 
 
@@ -93,5 +123,46 @@ func _button(parent: Node, node_name: String, text: String, request: Signal) -> 
 	button.text = text
 	button.focus_mode = Control.FOCUS_NONE
 	button.pressed.connect(func() -> void: request.emit())
+	parent.add_child(button)
+	return button
+
+
+## Opens the confirmation in place of the card; "No" or a redraw of another step does not change it until answered.
+func _ask_skip_tutorial() -> void:
+	_confirming = true
+	_apply_confirm()
+
+
+func _decline_skip_tutorial() -> void:
+	_confirming = false
+	_apply_confirm()
+	_restore_content.call_deferred()
+
+
+## Content shown by the last `show_step` / `show_navigation`, re-applied when the question is closed.
+var _showing_navigation: bool = false
+
+
+func _restore_content() -> void:
+	_go_to.visible = _showing_navigation
+	_step_box.visible = not _showing_navigation
+	reset_size()
+
+
+func _apply_confirm() -> void:
+	_confirm_box.visible = _confirming
+	_skip_tutorial.visible = not _confirming
+	if _confirming:
+		_go_to.visible = false
+		_step_box.visible = false
+	reset_size()
+
+
+func _action(parent: Node, node_name: String, text: String, on_pressed: Callable) -> Button:
+	var button := Button.new()
+	button.name = node_name
+	button.text = text
+	button.focus_mode = Control.FOCUS_NONE
+	button.pressed.connect(on_pressed)
 	parent.add_child(button)
 	return button

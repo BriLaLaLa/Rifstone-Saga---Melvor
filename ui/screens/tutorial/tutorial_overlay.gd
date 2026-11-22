@@ -45,6 +45,7 @@ func _ready() -> void:
 	_frame.add_theme_stylebox_override("panel", style)
 	_card.next_pressed.connect(_on_next_pressed)
 	_card.skip_pressed.connect(_on_skip_pressed)
+	_card.skip_tutorial_confirmed.connect(_on_skip_tutorial_confirmed)
 	_card.resized.connect(_layout)
 
 
@@ -218,3 +219,10 @@ func _on_next_pressed() -> void:
 func _on_skip_pressed() -> void:
 	if _session != null and not _session.tutorial.skip_step().ok:
 		_card.show_refused(TutorialTexts.REFUSED_TEXT)
+
+
+## "Sì" of the confirmation: the command answers; on `ok` the `tutorial_completed` signal frees the overlay, a refusal
+## (already completed, a double click) is ignored.
+func _on_skip_tutorial_confirmed() -> void:
+	if _session != null:
+		_session.tutorial.skip_tutorial()

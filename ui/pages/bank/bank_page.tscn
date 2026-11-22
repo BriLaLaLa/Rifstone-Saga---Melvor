@@ -113,5 +113,4 @@ theme_type_variation = &"MutedLabel"
 
 [node name="ItemPanel" parent="Margin/Content/DepositTabs/Main" instance=ExtResource("2_panel")]
 unique_name_in_owner = true
-visible = false
 layout_mode = 2
