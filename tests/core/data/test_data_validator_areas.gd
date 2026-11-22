@@ -130,6 +130,9 @@ func _with_weights(weights: Array) -> Dictionary:
 		var ids: Array = []
 		ids.resize(size)
 		ids.fill(monster)
+		ids[0] = "plains_boar"  # M33-02: the forced packs of the tutorial use these three monsters
+		if size > 1:
+			ids[1] = "dust_jackal"
 		packs.append({"weight": weights[size - 1], "monsters": ids})
 	area["packs"] = packs
 	return raw

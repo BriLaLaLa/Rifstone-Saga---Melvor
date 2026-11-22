@@ -272,10 +272,22 @@ func is_frozen() -> bool:
 ## M31 (§4), only `TutorialSystem`: the next journey is a node of the first learned discipline of the area. Not saved.
 func set_force_node(on: bool) -> void:
 	_cy.force_node = on
+	_cy.tut.retarget_node(_area_id, _state == STATE_TRAVEL)  # M33
 
 
 func is_force_node() -> bool:
 	return _cy.force_node
+
+
+## M33 (docs/M33_TUTORIAL_FORZATO.md §3.2), only `TutorialSystem`: the forced pack (empty = off), the guard. Not saved.
+func set_force_pack(area_id: StringName, monster_ids: Array[StringName]) -> void:
+	_cy.tut.set_pack(area_id, monster_ids, _state == STATE_TRAVEL, _area_id)
+
+
+func force_pack() -> Array[StringName]: return _cy.tut.pack()
+
+
+func is_guarded() -> bool: return _cy.tut.guarded(_area_id)
 
 
 ## M31 (§3.1), only `TutorialSystem`: hp = min(hp, ceil(max_hp x pct / 100)), never under 1. Nothing while idle, in a Fracture or a dungeon.
@@ -309,6 +321,7 @@ func advance(delta_ms: int) -> void:
 func new_game() -> void:
 	_frozen = false
 	_cy.force_node = false
+	_cy.tut.reset()
 	_apply(CombatSave.read({}, _session.data))
 	_stop_log = []
 	_stats = [null, null]

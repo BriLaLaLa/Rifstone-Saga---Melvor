@@ -11,12 +11,14 @@ var node: NodeWork = null
 var worked: int = 0
 var skipped: int = 0
 var force_node: bool = false  # M31 (docs/M31_RITOCCHI_TUTORIAL.md §4): set by the tutorial, never saved
+var tut: CombatTutorial  # M33: the forced pack and the guard of the tutorial, never saved
 
 var _session: GameSession
 
 
 func _init(session: GameSession) -> void:
 	_session = session
+	tut = CombatTutorial.new(session, self)
 
 
 ## A new journey: F-153 decides the next encounter now (rolls on `session.rng`), the timer is `encounters.travel_ms`.

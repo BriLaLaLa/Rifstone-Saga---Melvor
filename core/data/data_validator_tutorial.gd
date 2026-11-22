@@ -14,7 +14,7 @@ const DENIED_SIGNALS: PackedStringArray = ["combat_hit", "monster_hp_changed", "
 const DENIED_PREFIXES: PackedStringArray = ["tutorial_", "starter_"]
 const FORBIDDEN_REWARD_CATEGORIES: PackedStringArray = ["equipment", "weapon", "armor", "offhand", "tool", "bag", "map"]
 const STEP_FIELDS: PackedStringArray = ["id", "page", "target", "title", "text", "done_when", "on_enter", "progress_text", "ack_text", "freeze_combat",
-	"force_node", "wound_hp_pct"]
+	"force_node", "wound_hp_pct", "force_pack"]
 const QUEST_FIELDS: PackedStringArray = ["id", "group", "name", "description", "goal", "reward"]
 const EVENT_FIELDS: PackedStringArray = ["type", "signal", "args", "count"]
 const METRIC_FIELDS: PackedStringArray = ["type", "metric", "arg", "gte"]
@@ -34,10 +34,11 @@ const CATEGORY_ARGS: PackedStringArray = ["gathering", "artisan"]
 static func validate(v: DataValidatorRules, raw: Dictionary) -> void:
 	var packs: Dictionary[String, bool] = _pack_monsters(raw.get("areas", {}) as Dictionary)
 	var buildings: Dictionary[String, bool] = _ids(raw.get("village", {}) as Dictionary, "buildings")
+	var ctx: Dictionary = DataValidatorTutorialCombat.context(raw)  # M33
 	var files: Dictionary = raw.get("tutorial_steps", {}) as Dictionary
 	for path: Variant in files:
 		v.at_file(str(path))
-		_validate_steps(v, files[path] as Dictionary, str(path), packs, buildings)
+		_validate_steps(v, files[path] as Dictionary, str(path), packs, buildings, ctx)
 	files = raw.get("tutorial_quests", {}) as Dictionary
 	for path: Variant in files:
 		v.at_file(str(path))
@@ -45,8 +46,8 @@ static func validate(v: DataValidatorRules, raw: Dictionary) -> void:
 
 
 static func _validate_steps(v: DataValidatorRules, file: Dictionary, path: String, packs: Dictionary[String, bool],
-		buildings: Dictionary[String, bool]) -> void:
-	v.keys(file, ["stuck_ms", "always_open", "steps"])
+		buildings: Dictionary[String, bool], ctx: Dictionary) -> void:
+	v.keys(file, ["stuck_ms", "always_open", "steps", "force_pack_max_attack_level"])
 	v.integer(file, "stuck_ms", STUCK_MS_MIN)
 	for route: Variant in v.id_list(file, "always_open", null, "route", 0):
 		if not ROUTES.has(str(route)):
@@ -54,6 +55,7 @@ static func _validate_steps(v: DataValidatorRules, file: Dictionary, path: Strin
 	var seen: Dictionary[StringName, bool] = {}
 	var list: Array[Dictionary] = v.object_list(file, "steps", "", 1)
 	var gift_seen: bool = false
+	DataValidatorTutorialCombat.validate_file(v, file, list)
 	var last_ack: bool = false
 	for i: int in list.size():
 		var e: Dictionary = list[i]
@@ -66,6 +68,9 @@ static func _validate_steps(v: DataValidatorRules, file: Dictionary, path: Strin
 			v.fail("field 'text' must not contain braces")
 		var conditions: Array = _conditions(v, e.get("done_when"), "done_when", true, packs, buildings)
 		_step_extras(v, e, conditions)
+		DataValidatorTutorialCombat.validate_step(v, e, conditions, file, ctx)
+		if i == list.size() - 1 and e.get("freeze_combat") == true:
+			v.fail("the last step cannot freeze the combat")
 		gift_seen = _on_enter(v, e) or gift_seen
 		last_ack = false
 		for c: Variant in conditions:
@@ -317,8 +322,8 @@ static func _step_extras(v: DataValidatorRules, e: Dictionary, conditions: Array
 		_length(v, e, "ack_text", ACK_TEXT_MAX)
 		if not has_ack:
 			v.fail("field 'ack_text' needs an `ack` condition")
-	if e.has("freeze_combat") and v.flag(e, "freeze_combat") and e["freeze_combat"] == true and not has_ack:
-		v.fail("field 'freeze_combat' needs an `ack` condition")
+	if e.has("freeze_combat"):
+		v.flag(e, "freeze_combat")
 	if e.has("force_node") and v.flag(e, "force_node") and e["force_node"] == true and not events.has("node_started"):
 		v.fail("field 'force_node' needs a `node_started` event condition")
 	if e.has("wound_hp_pct") and v.integer(e, "wound_hp_pct", 1, 99) and not events.has("food_eaten"):

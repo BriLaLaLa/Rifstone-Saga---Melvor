@@ -262,10 +262,10 @@ func test_ack_text_needs_ack_and_a_length() -> void:
 	_expect(raw, "1..12")
 
 
-func test_freeze_combat_needs_ack() -> void:
+func test_freeze_combat_is_refused_with_a_combat_event() -> void:
 	var raw: Dictionary = _raw()
 	_event_step(raw, "monster_killed", 3)["freeze_combat"] = true
-	_expect(raw, "'freeze_combat' needs")
+	_expect(raw, "could never end")
 
 
 func test_force_node_needs_a_node_started_event() -> void:
@@ -313,3 +313,91 @@ func test_final_reward_rules() -> void:
 	raw = _raw()
 	(_quests(raw)["final_reward"] as Dictionary)["bonus"] = 1
 	_expect(raw, "unknown field")
+
+
+# --- M33-02 (docs/M33_TUTORIAL_FORZATO.md §3.1, §5.2): force_pack, force_node, freeze_combat ---
+
+func _packed(monsters: Array, kills: int = 3) -> Dictionary:
+	var raw: Dictionary = _raw()
+	_steps(raw)["force_pack_max_attack_level"] = 5
+	_event_step(raw, "monster_killed", kills)["force_pack"] = {"area": "test_area", "monsters": monsters}
+	return raw
+
+
+func _errors(raw: Dictionary) -> PackedStringArray:
+	var errors: PackedStringArray = []
+	DataValidator.validate(raw, errors)
+	return errors
+
+
+func test_a_valid_force_pack_passes() -> void:
+	assert_eq(_errors(_packed(["test_monster_a", "test_monster_a", "test_monster_a"])), PackedStringArray())
+
+
+func test_force_pack_unknown_area() -> void:
+	var raw: Dictionary = _packed(["test_monster_a", "test_monster_a", "test_monster_a"])
+	_step(raw, 1)["force_pack"]["area"] = "nowhere"
+	_expect(raw, "unknown area 'nowhere'")
+
+
+func test_force_pack_unknown_monster_or_outside_the_area() -> void:
+	_expect(_packed(["ghost", "test_monster_a", "test_monster_a"]), "'ghost' is not in the packs")
+	_expect(_packed(["test_loot_monster", "test_monster_a", "test_monster_a"]), "'test_loot_monster' is not in the packs")
+
+
+func test_force_pack_miniboss_is_refused() -> void:
+	var raw: Dictionary = _packed(["test_monster_a", "test_monster_a", "test_monster_a"])
+	for path: Variant in raw["monsters"]:
+		for entry: Variant in (raw["monsters"][path] as Dictionary)["monsters"] as Array:
+			if (entry as Dictionary)["id"] == "test_monster_a":
+				(entry as Dictionary)["miniboss"] = true
+	_expect(raw, "a miniboss or a Rift Stone")
+
+
+func test_force_pack_monster_above_the_attack_level_threshold() -> void:
+	_expect(_packed(["test_monster_a", "test_monster_b", "test_monster_a"]), "above force_pack_max_attack_level 5")
+
+
+func test_force_pack_smaller_than_the_kills_and_larger_than_the_pack_limit() -> void:
+	_expect(_packed(["test_monster_a", "test_monster_a"]), "fewer than the 3 kills")
+	var nine: Array = []
+	nine.resize(9)
+	nine.fill("test_monster_a")
+	_expect(_packed(nine), "at most 8 monsters")
+
+
+func test_force_pack_needs_the_threshold_in_range() -> void:
+	var raw: Dictionary = _packed(["test_monster_a", "test_monster_a", "test_monster_a"])
+	_steps(raw).erase("force_pack_max_attack_level")
+	_expect(raw, "'force_pack_max_attack_level' is mandatory")
+	raw = _packed(["test_monster_a", "test_monster_a", "test_monster_a"])
+	_steps(raw)["force_pack_max_attack_level"] = 21
+	_expect(raw, "force_pack_max_attack_level")
+	_steps(raw)["force_pack_max_attack_level"] = 0
+	_expect(raw, "force_pack_max_attack_level")
+
+
+func test_force_node_needs_a_force_pack_in_the_same_step() -> void:
+	var raw: Dictionary = _raw()
+	_event_step(raw, "node_started")["force_node"] = true
+	_expect(raw, "needs a `force_pack`")
+
+
+func test_force_pack_skill_id_outside_the_nodes_of_the_area() -> void:
+	var raw: Dictionary = _packed(["test_monster_a"], 1)
+	var nodes_path: String = "res://tests/fixtures/data/encounters/nodes.json"
+	raw["encounters"] = {nodes_path: JSON.parse_string(FileAccess.get_file_as_string(nodes_path))}
+	var step: Dictionary = _step(raw, 1)
+	step["done_when"] = {"type": "event", "signal": "node_started", "args": {"skill_id": ["test_gather_b"]}}
+	step["force_node"] = true
+	_expect(raw, "not a node discipline of area 'test_area'")
+	step["done_when"]["args"]["skill_id"] = ["test_gather"]
+	assert_eq(_errors(raw), PackedStringArray())
+
+
+func test_freeze_combat_without_ack_passes_but_not_on_the_last_step() -> void:
+	var raw: Dictionary = _raw()
+	_step(raw, 2)["freeze_combat"] = true
+	assert_eq(_errors(raw), PackedStringArray(), "a metric step can freeze the combat")
+	_step(raw, 3)["freeze_combat"] = true
+	_expect(raw, "the last step cannot freeze")

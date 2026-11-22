@@ -17,6 +17,8 @@ var ack_text: String = ""  # M31: the label of the confirm button ("" = the UI d
 var freeze_combat: bool = false  # M31: the combat is frozen while the step is current (`ack` steps only)
 var force_node: bool = false  # M31: the first journey after the entry is a node (§4)
 var wound_hp_pct: int = 0  # M31: the hp of the character go to this percent (0 = absent)
+var force_pack_area: StringName = &""  # M33 (docs/M33_TUTORIAL_FORZATO.md §3.1): the forced pack of the step (`&""` = none)
+var force_pack: Array[StringName] = []
 
 
 static func from_dict(d: Dictionary) -> TutorialStepDef:
@@ -34,6 +36,11 @@ static func from_dict(d: Dictionary) -> TutorialStepDef:
 	def.freeze_combat = r.flag("freeze_combat") if r.has("freeze_combat") else false
 	def.force_node = r.flag("force_node") if r.has("force_node") else false
 	def.wound_hp_pct = r.integer("wound_hp_pct") if r.has("wound_hp_pct") else 0
+	if r.has("force_pack") and r.is_dict("force_pack"):
+		var p := DefReader.new(r.dict("force_pack"), r.context() + " force_pack")
+		def.force_pack_area = p.id("area")
+		def.force_pack = p.id_list("monsters")
+		r.absorb(p.ok)
 	if r.has("on_enter") and r.is_dict("on_enter"):
 		var mail: Variant = r.dict("on_enter").get("mail")
 		if mail is Dictionary:

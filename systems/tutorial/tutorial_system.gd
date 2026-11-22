@@ -233,19 +233,19 @@ func _begin_step(index: int, gift: bool) -> void:
 func _apply_combat_effects(step: TutorialStepDef) -> void:
 	var combat: CombatEngine = _session.combat
 	combat.set_frozen(step.freeze_combat)
-	combat.set_force_node(step.force_node)
+	combat.set_force_node(step.force_node)  # M33: the node first, then the pack (the node wins over "node -> fight")
+	combat.set_force_pack(step.force_pack_area, step.force_pack)
 	if step.wound_hp_pct <= 0:
 		return
 	if combat.is_active():
 		combat.wound_to_pct(step.wound_hp_pct)
-	else:
+	if not _wound_listening:  # M33: at every encounter while the step is current, not once
 		_wound_listening = true
 		_events.encounter_started.connect(_on_encounter_started)
 
 
-# The first encounter while the step is current: the character is wounded, once.
+# Every encounter while the step is current: the character is wounded again (M33; `wound_to_pct` never heals).
 func _on_encounter_started(_monster_ids: Array[StringName]) -> void:
-	_drop_wound_listener()
 	var step: TutorialStepDef = current_step()
 	if step != null and step.wound_hp_pct > 0:
 		_session.combat.wound_to_pct(step.wound_hp_pct)
@@ -262,6 +262,7 @@ func _drop_wound_listener() -> void:
 func _release_combat() -> void:
 	_session.combat.set_frozen(false)
 	_session.combat.set_force_node(false)
+	_session.combat.set_force_pack(&"", [] as Array[StringName])
 
 
 func _deliver_gift(step: TutorialStepDef) -> void:
