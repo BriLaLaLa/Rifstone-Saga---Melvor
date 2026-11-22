@@ -2133,3 +2133,5 @@ I task M28-01…M28-10 (Abilità e tratti v2: condizioni, 19 abilità, 31 tratti
 I task M30-01…M30-06 (Tutorial obbligatorio e incarichi «Primi passi») sono in **`07_TASKS_M30.md`**.
 
 I task M31-01…M31-04 (ritocchi al tutorial: pausa del pasto, cibo, nodo forzato, bonus finale, pallino) sono in **`07_TASKS_M31.md`** (contratto: `M31_RITOCCHI_TUTORIAL.md`).
+
+I task M33-01…M33-04 (tutorial forzato: gruppo e nodo fissati dai dati, stop automatico dopo il primo combattimento) sono in **`07_TASKS_M33.md`** (contratto: `M33_TUTORIAL_FORZATO.md`).

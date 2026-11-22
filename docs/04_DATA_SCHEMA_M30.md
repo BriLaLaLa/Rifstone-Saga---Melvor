@@ -125,3 +125,7 @@ Oltre ai vincoli di §34.1-§34.5:
 
 ## 34.8 Estensioni di M31 (V40)
 Cinque campi facoltativi nei passi (`progress_text`, `ack_text`, `freeze_combat`, `force_node`, `wound_hp_pct`) e la chiave obbligatoria `final_reward` di `starter_quests.json`: definizione e vincoli in `M31_RITOCCHI_TUTORIAL.md` §2 (estendono §34.1 e §34.3). I passi diventano 22.
+
+## 34.9 Estensioni di M33 (V42)
+Campo facoltativo `force_pack` nei passi (`{"area", "monsters"}`), chiave di primo livello `force_pack_max_attack_level` di `steps.json`, `freeze_combat` ammesso su ogni passo senza eventi di combattimento e `skill_id` negli `args` del
+passo `nodes`: definizione e vincoli in `M33_TUTORIAL_FORZATO.md` §3.1, §4, §5.2 (estendono §34.1 e `M31_RITOCCHI_TUTORIAL.md` §2.1). I passi restano 22 con gli stessi id.

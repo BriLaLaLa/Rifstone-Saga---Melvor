@@ -360,6 +360,9 @@ la barra laterale mostra il riquadro, la pagina «Primi passi» raggruppa i 20 i
 ## M31: Ritocchi al tutorial e ai «Primi passi» (V40)
 Piccola milestone: pasto con pausa del combattimento, cibo iniziale e nodo forzato, bonus finale dei 20 incarichi, pallino di notifica. Design in `M31_RITOCCHI_TUTORIAL.md`, task in `07_TASKS_M31.md`, Q193-Q198. «Giocabile»: il tutorial fa mangiare il personaggio con il tempo fermo e un nodo lavorato; i 20 incarichi riscossi danno il bonus; il pallino si accende da solo.
 
+## M33: Tutorial forzato (V42)
+Piccola milestone: gruppo di nemici e nodo del tutorial fissati dai dati (mai l'ariete di roccia), stop automatico dopo il primo combattimento (congelamento di M31 ai passi 6 e 8-13), nodo forzato anche con il viaggio già in corso. Design in `M33_TUTORIAL_FORZATO.md`, task in `07_TASKS_M33.md`, Q204-Q209. «Giocabile»: da una partita nuova il primo scontro è sempre lo stesso, vincibile, e dopo le tre uccisioni il combattimento aspetta il tutorial.
+
 ## M32+: Seconda classe, altri dungeon e boss (dopo M31; era M31+)
 Seconda classe con le sue armi (es. arco o bastone, con i suoi progetti e componenti del Falegname), supporti delle abilità, altri dungeon (solo dati: il sistema di M22 è generico), livelli di difficoltà dei dungeon, altri boss, elementi e resistenze;
 pozioni (Q112), attrezzo dell'Erboristeria (Q111), colori e mercante dell'Incisore (Q148).

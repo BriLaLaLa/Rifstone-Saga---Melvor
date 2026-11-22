@@ -179,3 +179,7 @@ I fixture dei dati (`tests/fixtures/data/` e `m10/`) hanno `tutorial/steps.json`
 
 ## 9. Estensioni di M31 (V40)
 API nuove (`CombatEngine.set_frozen/is_frozen/set_force_node/is_force_node/wound_to_pct`, `TutorialSystem.step_progress_text/ack_text/is_combat_frozen`, `StarterQuests.final_reward/is_final_available/is_final_claimed/can_claim_final/claim_final/all_done`), save additivo `tutorial.starter.final_claimed` (resta **v12**) e UI (pallino, «In pausa», riga del bonus): `M31_RITOCCHI_TUTORIAL.md` §3, §5, §6. Nessun segnale e nessun motivo nuovo.
+
+## 10. Estensioni di M33 (V42)
+API nuove (`CombatEngine.set_force_pack/force_pack/is_guarded`, `EncounterCycle.forced_node`; il motore sostituisce un viaggio già in corso al passo con `force_node`/`force_pack`): `M33_TUTORIAL_FORZATO.md` §3.2, §4. Nessuna firma nuova di `TutorialSystem`,
+nessun segnale, nessun motivo, **nessuna chiave di save** (resta v12: tutto è derivato dal passo corrente).
