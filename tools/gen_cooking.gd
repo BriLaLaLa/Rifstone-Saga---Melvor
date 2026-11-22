@@ -56,7 +56,7 @@ func _init() -> void:
 		for l: String in act_lines:
 			block += "    " + l + ",\n"
 		_write("res://data/actions/hearthcraft.json", acts.substr(0, at) + block + acts.substr(at))
-	print("gen_cooking: done")
+	print_rich("gen_cooking: done")
 	quit(0)
 
 
