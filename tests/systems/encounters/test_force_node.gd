@@ -44,7 +44,7 @@ func test_without_the_flag_the_rule_is_unchanged() -> void:
 
 
 func test_the_nodes_step_gets_a_worked_node_then_switches_off() -> void:
-	for seed_value: int in [3, 4, 5, 6, 7]:
+	for seed_value: int in [3, 4, 6, 7, 8]:  # M32: seed 5 meets a Rift Stone (a fight that waits wins over the forced node) after the new meat rolls
 		var s: GameSession = _session(seed_value, false)
 		TestFactory.learn_discipline(s, &"forestry")
 		assert_true(s.combat.start(AREA).ok)

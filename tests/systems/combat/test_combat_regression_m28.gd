@@ -1,5 +1,6 @@
 extends GutTest
 ## M28-03 non-regression (docs/02_FORMULAS_M28.md, docs/05_INTERFACES_M28.md §5.10b): with the content of M27 (`loadout=auto`) the
+## M32-05: the new meat drops roll on the shared RNG: the eight numbers were re-recorded (the combat rules did not change).
 ## engine gives the same events, hp and random generator state as before the conditions were wired in. The numbers were recorded
 ## from `main` (1568b0e) before the engine was touched: 2 h of fight, fixed seed, three assemblies, a quiet case in each of two areas
 ## and two cases with weak gear and little food (deaths, the loot bag lost).
@@ -25,39 +26,39 @@ func _check(area: StringName, setup: StringName, offset: int, grade_minus: int, 
 
 func test_sword_shield_plains() -> void:
 	_check(&"redrock_plains", &"sword_shield", -3, 0,
-			{"deaths": 0, "events": 12768, "food": 387, "hash": 2038849273073428160, "kills": 529, "rng": 1163697843})
+			{"deaths": 0, "events": 14681, "food": 525, "hash": 5422507137686393826, "kills": 482, "rng": 1524697678})
 
 
 func test_greatsword_plains() -> void:
 	_check(&"redrock_plains", &"greatsword", -3, 0,
-			{"deaths": 0, "events": 10485, "food": 375, "hash": 8313901566582730724, "kills": 385, "rng": 1217041523})
+			{"deaths": 0, "events": 9355, "food": 294, "hash": 5245565990442101452, "kills": 338, "rng": 2150712148})
 
 
 func test_dual_plains() -> void:
 	_check(&"redrock_plains", &"dual", -3, 0,
-			{"deaths": 0, "events": 12894, "food": 381, "hash": 9215568773177735570, "kills": 487, "rng": 763040687})
+			{"deaths": 0, "events": 13019, "food": 373, "hash": 466955768779039067, "kills": 483, "rng": 567842782})
 
 
 func test_sword_shield_mines() -> void:
 	_check(&"cracked_mines", &"sword_shield", -4, 0,
-			{"deaths": 0, "events": 26508, "food": 408, "hash": 2354609088677015702, "kills": 916, "rng": 3780298914})
+			{"deaths": 0, "events": 25126, "food": 354, "hash": 5138722031695424454, "kills": 945, "rng": 2127339254})
 
 
 func test_greatsword_mines() -> void:
 	_check(&"cracked_mines", &"greatsword", -4, 0,
-			{"deaths": 0, "events": 27623, "food": 559, "hash": 1238918352750515579, "kills": 1253, "rng": 4279758690})
+			{"deaths": 0, "events": 27966, "food": 559, "hash": 2838294413621131168, "kills": 1248, "rng": 4057641873})
 
 
 func test_dual_mines() -> void:
 	_check(&"cracked_mines", &"dual", -4, 0,
-			{"deaths": 0, "events": 34965, "food": 705, "hash": 5534287392357155274, "kills": 895, "rng": 1087087418})
+			{"deaths": 0, "events": 36290, "food": 742, "hash": 5971097916550848884, "kills": 881, "rng": 3156943746})
 
 
 func test_weak_gear_sword_shield() -> void:
 	_check(&"cracked_mines", &"sword_shield", -4, 4,
-			{"deaths": 160, "events": 14961, "food": 30, "hash": 3882544513423752090, "kills": 337, "rng": 659808001}, 30)
+			{"deaths": 157, "events": 15377, "food": 30, "hash": 6185219295258474572, "kills": 387, "rng": 3191412544}, 30)
 
 
 func test_weak_gear_dual() -> void:
 	_check(&"whisper_wood", &"dual", -4, 3,
-			{"deaths": 180, "events": 16145, "food": 50, "hash": 9021191194629548746, "kills": 353, "rng": 1132470544}, 20)  # M31: the start kit gives 30 rations instead of 20: 20 + 30 = the 50 pieces of food of the expected numbers
+			{"deaths": 188, "events": 16495, "food": 50, "hash": 8800156141418015176, "kills": 335, "rng": 467379930}, 20)  # M31: the start kit gives 30 rations instead of 20: 20 + 30 = the 50 pieces of food of the expected numbers

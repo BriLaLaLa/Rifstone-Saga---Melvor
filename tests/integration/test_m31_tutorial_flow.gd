@@ -231,6 +231,16 @@ func _quests_part_two(s: GameSession) -> void:
 		s.advance(500)
 		ticks += 1
 	_claim(s, &"first_craft")
+	# M32: the Cucina (free place) and a meat recipe
+	if not s.disciplines.is_learned(&"hearthcraft"):
+		assert_true(s.disciplines.learn(&"hearthcraft").ok)
+	TestFactory.give(s, &"plains_haunch", 5)
+	assert_true(s.actions.enqueue(&"hearthcraft", &"cook_plains_haunch", 1, false).ok)
+	ticks = 0
+	while s.actions.is_running() and ticks < 2000:
+		s.advance(500)
+		ticks += 1
+	_claim(s, &"campfire_meal")
 	var node: MasteryNodeDef = s.data.mastery_nodes(&"forestry")[0]
 	s.mastery.from_save({"forestry": {"pool": 1_000_000, "actions": {}}})
 	assert_true(s.mastery.buy_node(node.id).ok)
@@ -272,7 +282,7 @@ func test_the_whole_path_22_steps_20_quests_and_the_final_bonus_by_mail() -> voi
 	assert_eq(st.can_claim_final().reason, Reasons.QUEST_INCOMPLETE)
 	_quests_part_one(s)
 	_quests_part_two(s)
-	assert_eq(st.claimed_count(), 20)
+	assert_eq(st.claimed_count(), 21)
 	assert_true(st.is_final_available())
 	assert_true(st.can_claim_final().ok)
 	var final: StarterFinalDef = st.final_reward()
@@ -366,7 +376,7 @@ func test_a_pre_m31_slot_at_20_of_20_shows_the_final_bonus_as_available() -> voi
 	s.add_child(events)
 	assert_true(s.from_save(d).ok)
 	var st: StarterQuests = s.tutorial.starter
-	assert_eq(st.claimed_count(), 20)
+	assert_eq(st.claimed_count(), 21)
 	assert_true(st.is_final_available(), "the bonus is available")
 	assert_false(st.is_final_claimed())
 	assert_false(st.all_done())

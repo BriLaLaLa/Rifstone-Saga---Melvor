@@ -168,6 +168,13 @@ func _part_with_helpers() -> void:
 	assert_true(_s.actions.enqueue(&"forging", &"smelt_emberbronze", 1, false).ok)
 	_fight_until_actions()
 	_claim(&"first_craft")
+	# M32: the Cucina (free place) and a meat recipe
+	if not _s.disciplines.is_learned(&"hearthcraft"):
+		assert_true(_s.disciplines.learn(&"hearthcraft").ok)
+	TestFactory.give(_s, &"plains_haunch", 5)
+	assert_true(_s.actions.enqueue(&"hearthcraft", &"cook_plains_haunch", 1, false).ok)
+	_fight_until_actions()
+	_claim(&"campfire_meal")
 	# 12: a mastery node
 	var node: MasteryNodeDef = _s.data.mastery_nodes(&"forestry")[0]
 	var pools: Dictionary = {"forestry": {"pool": 1_000_000, "actions": {}}}
@@ -223,7 +230,7 @@ func test_every_starter_quest_is_reached_with_real_events_and_paid_by_mail() -> 
 	_part_without_helpers()
 	_part_with_helpers()
 	var st: StarterQuests = _s.tutorial.starter
-	assert_eq(st.claimed_count(), 20, "all twenty are claimed")
+	assert_eq(st.claimed_count(), 21, "all twenty-one are claimed")
 	assert_null(st.next_open())
 	assert_eq(_money, TOTAL_MONEY, "40.800 copper in total")
 	assert_eq(_items.get(&"seared_brookfin", 0), 10)

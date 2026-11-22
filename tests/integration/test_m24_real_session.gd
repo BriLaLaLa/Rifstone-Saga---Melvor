@@ -193,7 +193,7 @@ func test_unlearning_resets_the_discipline_drops_its_jobs_and_frees_the_place() 
 	assert_eq(s.disciplines.grade(FORGING), 0)
 	assert_eq(s.actions.jobs().size(), 0, "the jobs of the discipline leave the queue")
 	assert_false(s.actions.is_running())
-	assert_eq(s.disciplines.free_slots(&"artisan"), 1)
+	assert_eq(s.disciplines.free_slots(&"artisan"), 2, "M32: the Cucina learned by the factory takes no place")
 	assert_true(s.disciplines.learn(WOODWRIGHT).ok, "the place is free for another discipline")
 
 

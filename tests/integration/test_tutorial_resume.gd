@@ -81,7 +81,7 @@ func test_save_and_reload_at_every_step_keeps_the_step_and_goes_on_to_the_end() 
 	assert_true(s.tutorial.starter.is_enabled())
 	s = _reload(s)
 	assert_true(s.tutorial.is_completed(), "and stays completed after a reload")
-	assert_eq(s.tutorial.starter.total(), 20)
+	assert_eq(s.tutorial.starter.total(), 21)
 	s.free()
 
 
@@ -132,7 +132,7 @@ func test_a_real_v11_slot_migrates_to_a_completed_tutorial_with_the_starter_ques
 	assert_false(s.tutorial.is_active())
 	assert_null(s.tutorial.current_step())
 	assert_true(s.tutorial.starter.is_enabled(), "the starter quests are on")
-	assert_eq(s.tutorial.starter.total(), 20)
+	assert_eq(s.tutorial.starter.total(), 21)
 	assert_true(s.tutorial.is_page_open(&"fractures"), "every page is open")
 	assert_false(s.tutorial.has_visited(&"guide"), "the visits start empty in a migrated slot")
 
