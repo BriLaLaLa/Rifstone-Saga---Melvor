@@ -158,6 +158,23 @@ func skip_step() -> CommandResult:
 	return CommandResult.success()
 
 
+## M34: completes from any step with the same end as the last step; the gifts of the steps after the current one are mailed once.
+func skip_tutorial() -> CommandResult:
+	if _completed:
+		return CommandResult.fail(Reasons.TUTORIAL_INACTIVE)
+	_stop_listening()
+	_drop_wound_listener()
+	for i: int in range(_index + 1, step_count()):
+		_deliver_gift(_data.tutorial_steps()[i])
+	_completed = true
+	_index = step_count()
+	_progress = 0
+	_release_combat()
+	_events.tutorial_completed.emit()
+	starter.activate(false)
+	return CommandResult.success()
+
+
 ## Active from step 0 (its gift is delivered), nothing visited, the starter quests reset. No tutorial signal.
 func new_game() -> void:
 	_stop_listening()
