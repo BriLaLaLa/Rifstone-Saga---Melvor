@@ -189,3 +189,21 @@ func test_m31_step_fields_and_final_reward() -> void:
 	assert_between(final.name.length(), 1, 40)
 	assert_between(final.description.length(), 1, 140)
 	assert_eq(int((_data.balance_value("start.items") as Array)[0]["qty"]), 30)
+
+
+# M33-02 (docs/M33_TUTORIAL_FORZATO.md §3.1, §5.2): the forced packs and the pause of the real steps.
+func test_m33_forced_packs_and_the_pause() -> void:
+	var forced: Dictionary = {&"combat_kills": 3, &"combat_eat": 0, &"nodes": 0}
+	for step: TutorialStepDef in _data.tutorial_steps():
+		assert_eq(not step.force_pack.is_empty(), forced.has(step.id), String(step.id))
+		if not step.force_pack.is_empty():
+			assert_eq(step.force_pack_area, &"redrock_plains")
+			assert_false(step.force_pack.has(&"rock_ram"), "%s: never the ram" % step.id)
+			for monster_id: StringName in step.force_pack:
+				assert_lte(_data.monster(monster_id).attack_level, 5, "%s: weak for level 1" % step.id)
+			assert_gte(step.force_pack.size(), int(forced[step.id]))
+	var frozen: Array[StringName] = [&"combat_triangle", &"combat_food", &"bank", &"shop", &"rift", &"trainers", &"skill"]
+	for step: TutorialStepDef in _data.tutorial_steps():
+		assert_eq(step.freeze_combat, frozen.has(step.id), String(step.id))
+	assert_true(_data.tutorial_step(&"nodes").force_node)
+	assert_eq(_data.tutorial_steps().size(), 22)

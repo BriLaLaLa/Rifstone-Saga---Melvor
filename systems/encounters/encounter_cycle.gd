@@ -144,9 +144,25 @@ static func expected(p: Dictionary) -> Dictionary:
 		"nodes_per_hour": nodes_per_hour, "units_per_hour": units_per_hour}
 
 
+## M33 (docs/M33_TUTORIAL_FORZATO.md §4): the forced node of the area, no roll: `{"kind": NODE, "skill": ...}`, or `{}` if no discipline can be worked.
+static func forced_node(session: GameSession, area_id: StringName) -> Dictionary:
+	var nodes: AreaNodesDef = session.data.area_nodes(area_id)
+	if nodes == null:
+		return {}
+	var skill: StringName = _forced_skill(session, nodes)
+	return {} if skill == &"" else {"kind": NODE, "skill": skill}
+
+
+## M33: the node of `skill_id` in the area would be worked (the discipline is learned and its `min_level` reached), not skipped.
+static func is_workable(session: GameSession, area_id: StringName, skill_id: StringName) -> bool:
+	var nodes: AreaNodesDef = session.data.area_nodes(area_id)
+	return nodes != null and nodes.min_level_of(skill_id) > 0 and session.disciplines.is_learned(skill_id) \
+			and maxi(1, session.skills.get_level(skill_id)) >= nodes.min_level_of(skill_id)
+
+
 # M31: the first entry of the area (file order) whose discipline is learned and whose `min_level` is reached; `&""` if none.
 static func _forced_skill(session: GameSession, nodes: AreaNodesDef) -> StringName:
 	for entry: NodeEntryDef in nodes.entries:
-		if session.disciplines.is_learned(entry.skill) and maxi(1, session.skills.get_level(entry.skill)) >= nodes.min_level_of(entry.skill):
+		if is_workable(session, nodes.area, entry.skill):
 			return entry.skill
 	return &""

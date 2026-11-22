@@ -26,6 +26,9 @@ func _open_encounter() -> void:
 
 # F-139: the miniboss of the area if one waits (a pending Rift Stone goes first), else a pack or the stone (F-77, F-87).
 func _area_encounter() -> Encounter:
+	var forced: Encounter = _cy.tut.encounter(_area_id)  # M33: the forced pack of the tutorial wins over everything, no roll
+	if forced != null:
+		return forced
 	if _miniboss_pending and not _stone.pending:
 		_miniboss_pending = false
 		var pack: Array[MonsterDef] = Miniboss.pack(_session.data.area(_area_id), _session.rng, _session.data)
@@ -58,7 +61,7 @@ func _cleared() -> void:
 # F-153: the journey to the next encounter of the area; the kind is decided now (a Rift Stone or a miniboss that waits: a fight).
 func _start_travel() -> void:
 	_state = STATE_TRAVEL
-	_cy.begin_travel(_area_id, _stone.pending or _miniboss_pending)
+	_cy.begin_travel(_area_id, (_stone.pending or _miniboss_pending) and not _cy.tut.guarded(_area_id))  # M33: the guard
 
 
 func _announce_travel() -> void:

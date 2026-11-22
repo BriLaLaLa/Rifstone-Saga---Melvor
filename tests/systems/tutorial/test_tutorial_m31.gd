@@ -50,7 +50,7 @@ func test_counter_goes_up_at_every_kill() -> void:
 	assert_eq(s.tutorial.current_step().id, &"combat_triangle")
 
 
-func test_the_meal_step_freezes_the_combat_and_ok_resumes() -> void:
+func test_the_meal_step_freezes_the_combat_and_ok_keeps_the_pause() -> void:
 	var s: GameSession = _session(11, "combat_eat")
 	assert_false(s.combat.is_frozen())
 	var spent: int = _run_until_left(s, &"combat_eat", 600_000)
@@ -65,10 +65,8 @@ func test_the_meal_step_freezes_the_combat_and_ok_resumes() -> void:
 	assert_eq(JSON.stringify(s.rng.to_save()), rng_before)
 	assert_eq(s.play_time_ms, time_before + 60000)
 	assert_true(s.tutorial.acknowledge().ok)
-	assert_false(s.combat.is_frozen())
+	assert_true(s.combat.is_frozen(), "M33: Ok does not restart the combat, the pause goes on to step 14")
 	assert_ne(s.tutorial.current_step().id, &"combat_food")
-	s.advance(60000)
-	assert_ne(JSON.stringify(s.combat.to_save()), combat_before, "the fight goes on")
 
 
 func test_equivalence_of_the_blocks_at_the_pause() -> void:
@@ -96,7 +94,7 @@ func test_save_and_load_in_the_middle_of_the_pause() -> void:
 	assert_eq(twin.tutorial.current_step().id, &"combat_food")
 	assert_true(twin.combat.is_frozen(), "still frozen after the load")
 	assert_true(twin.tutorial.acknowledge().ok)
-	assert_false(twin.combat.is_frozen())
+	assert_true(twin.combat.is_frozen(), "M33: Ok keeps the pause")
 
 
 func test_the_meal_is_guaranteed_on_many_seeds() -> void:
