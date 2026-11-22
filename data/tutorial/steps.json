@@ -4,7 +4,7 @@
   "always_open": ["guide", "help"],
   "steps": [
     {"id": "welcome", "page": "", "target": "", "title": "Benvenuto, Lama del Rift",
-     "text": "Questo breve tutorial ti mostra i luoghi e i comandi del gioco, un passo alla volta. Non si può saltare, ma puoi uscire dal menu in alto quando vuoi: al ritorno riparti da qui.",
+     "text": "Questo breve tutorial ti mostra i luoghi e i comandi del gioco, un passo alla volta. Se preferisci puoi saltarlo con il pulsante «Salta tutorial», oppure uscire dal menu in alto: al ritorno riparti da qui.",
      "done_when": {"type": "ack"}},
     {"id": "character", "page": "character", "target": "page.character", "title": "Il tuo personaggio",
      "text": "Qui vedi livello, statistiche, tratti e abilità. Il livello sale combattendo; a certi livelli si aprono nuovi slot per tratti e abilità, che cambiano il tuo modo di combattere.",
