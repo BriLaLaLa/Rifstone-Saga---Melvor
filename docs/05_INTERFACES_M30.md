@@ -67,6 +67,8 @@ func can_skip_step() -> bool                                  # attivo, nessuna 
 func notify_page_opened(page_id: StringName) -> void          # la UI dice la pagina mostrata ("skill:forestry" -> route `skill`); registra la visita, poi ricontrolla metriche
 func acknowledge() -> CommandResult                           # tutorial_inactive (completato), wrong_step (il passo non ha `ack`); non controlla la pagina: lo fa la UI
 func skip_step() -> CommandResult                             # tutorial_inactive, not_stuck (can_skip_step falso); passa al passo dopo (stessi segnali di una fine normale)
+func skip_tutorial() -> CommandResult                         # M34-01: tutorial_inactive (completato); altrimenti completa da qualunque passo: stessa fine dell'ultimo passo (`completed`, `_release_combat()`, `tutorial_completed`, `starter.activate(false)`)
+                                                              # + consegna in Posta gli `on_enter` dei passi SUCCESSIVI al corrente (una sola volta). Nessun campo di save (v12 invariato), nessun segnale e nessun reason nuovo
 func new_game() -> void                                       # attivo dal passo 0, nulla visitato, incarichi azzerati (starter.new_game)
 func to_save() -> Dictionary; func from_save(d: Dictionary) -> void
 ```
@@ -168,6 +170,8 @@ class_name StarterTexts extends RefCounted             # testi italiani; la rico
   (2) blocca barra laterale e barra in alto **salvo** il tasto menu; l'area della pagina resta usabile; (3) cornice sul bersaglio (`TutorialTargets.resolve`), area della pagina se manca; (4) il pannello non copre il
   bersaglio (angolo opposto) e rispetta 1280×720 e 1600×900 (larghezza massima 440 px, altezza 240 px); (5) Avanti solo se `can_acknowledge()`, «Continua comunque» solo se `can_skip_step()`;
   (6) niente tempo reale nella logica: il pannello si ridisegna sui segnali `tutorial_*` e `PageHost.page_changed`, la cornice ogni frame; (7) con `tutorial.is_completed()` il nodo si libera.
+- **Salta tutorial** (M34-02): il `TutorialPanel` ha un pulsante «Salta tutorial» visibile in ogni passo (anche nello stato «Vai a <pagina>»), sempre nei limiti 440x240; premuto apre una conferma («Vuoi saltare il tutorial? Potrai rivedere la Guida in ogni momento»);
+  «Sì» chiama `session.tutorial.skip_tutorial()`, «No» annulla; la card si libera su `tutorial_completed` (regola 7). Nessuno stato nella UI. Vedi `M34_DEPOSITO_E_SALTA.md`.
 - **Esc e menu**: invariati (`MainScreen._unhandled_key_input`, `SettingsPanel`), aperti **sopra** l'overlay; «Salva ed esci» funziona in ogni passo.
 - **File**: ogni script e scena ≤ 400 righe (`main_screen.gd` ha ~168, `sidebar.gd` ~294, `page_host.gd` ~139: le aggiunte stanno in file nuovi).
 - **Guida**: `help:` non cambia; `guide` e `help` sono in `always_open`.

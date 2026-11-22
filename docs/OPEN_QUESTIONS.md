@@ -291,6 +291,10 @@ I documenti sono già scritti con questi default. I numeri non presenti nella fo
 | Q207 | Un miniboss o un Monolito in attesa durante i passi forzati? | **Default**: restano in attesa (guardia) e arrivano subito dopo il passo 14: circa il 5% delle partite incontra un pericolo a livello basso. Alternativa: cancellare il flag in guardia (tocca F-139/F-87). |
 | Q208 | Composizione dei gruppi del tutorial e soglia dei «deboli» | **Default**: A = Cinghiale, Ratto rosso, Cinghiale; B = Cinghiale, Ratto rosso; C = Cinghiale; soglia `attack_level` ≤ 5 (lo Sciacallo di polvere è il limite). XP e bottino dei tre nemici fissi (poca carne e niente zanna dell'ariete per il giocatore del tutorial). |
 | Q209 | Il passo 14 scongela all'ingresso o quando si apre la pagina Combattimento? | **Default**: all'ingresso (nessuno stato in più); il nodo dura `encounters.node_ms`, il giocatore ha il tempo di tornare alla pagina. Alternativa: scongelare a `notify_page_opened`. |
+| Q210 | Esiste già un modo di saltare il tutorial senza conferma? | **Default**: no (solo `skip_step` a valvola, per passo). Il nuovo salto chiede sempre conferma; da verificare sul codice in M34-01/02. |
+| Q211 | Regali di chi salta | **Default**: riceve in Posta gli `on_enter` dei passi successivi al corrente (una volta), così non mancano soldi e cibo iniziali. Alternativa: nessun regalo. |
+| Q212 | Bonus finale e «Primi passi» per chi salta | **Default**: come per chi completa (incarichi attivi, bonus riscuotibile). Alternativa: bonus finale solo a chi completa. |
+| Q213 | Stato vuoto del pannello del Deposito | **Default**: testo «Seleziona un oggetto», stessa larghezza del pannello aperto, nessuna icona. Alternativa: mostrare i totali del Deposito. |
 
 **Revisione di Q105-Q121 (M24-08, sul codice)**: **confermate e applicate** (nessuna decisione in sospeso): Q105, Q106, Q107, Q108 (migrazione v7 → v8), Q113,
 Q114 (`village.woodwright_levels` invariata), Q115 (`xp_capped`), Q116 (`unlearn` toglie solo XP, maestria, grado e lavori in coda), Q118, Q121. **Applicate,
