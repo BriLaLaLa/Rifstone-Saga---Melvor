@@ -26,6 +26,10 @@ func _run() -> void:
 		await _run_m31()
 		get_tree().quit(0)
 		return
+	if args_mode() == "m33":
+		await _run_m33()
+		get_tree().quit(0)
+		return
 	if args_mode() == "real":
 		await _run_real()
 		get_tree().quit(0)
@@ -221,3 +225,57 @@ func _m31_step(shot: StringName, step_id: String, kills: int) -> void:
 	screen.free()
 	session.free()
 	await _frames(2)
+
+
+# --- M33-03: the forced tutorial. Third argument "m33": m33_s05 (forced pack, kills so far), m33_s06 (pause, empty zone, Avanti),
+# m33_s07 (the wound), m33_s08 (pause after the meal), m33_s14 (the forced node step). Real data, a real new game, the combat really advanced.
+
+
+## Advances the session by 100 ms ticks while `keep_going` holds (cap 6000), then lets the screen redraw.
+func _m33_advance(session: GameSession, keep_going: Callable) -> void:
+	var ticks: int = 0
+	while ticks < 6000 and keep_going.call():
+		session.advance(100)
+		ticks += 1
+	await _frames(8)
+
+
+func _m33_log(shot: StringName, session: GameSession) -> void:
+	print_rich("M33 %s step=%s progress=%d frozen=%s enemies=%d" % [shot, session.tutorial.current_step().id, session.tutorial.step_progress(),
+			session.combat.is_frozen(), (session.combat.get_state()["enemies"] as Array).size()])
+	_save(shot)
+
+
+func _run_m33() -> void:
+	var session: GameSession = _real_session()
+	session.tutorial.from_save({"completed": false, "step": "combat_kills", "visited": M31_PAGES, "since_ms": 0})
+	session.combat.start(&"redrock_plains")
+	var screen: MainScreen = await _open(session)
+	(screen.find_child("PageHost", true, false) as PageHost).show_page(&"combat")
+	await _m33_advance(session, func() -> bool: return session.tutorial.step_progress() < 1)
+	_m33_log(&"m33_s05", session)
+	await _m33_advance(session, func() -> bool: return session.tutorial.current_step().id == &"combat_kills")
+	_m33_log(&"m33_s06", session)
+	session.tutorial.acknowledge()
+	var ticks: Array[int] = [0]
+	await _m33_advance(session, func() -> bool: return (session.combat.get_state()["enemies"] as Array).is_empty())
+	await _m33_advance(session, func() -> bool:
+		ticks[0] += 1
+		return ticks[0] < 12)
+	_m33_log(&"m33_s07", session)
+	await _m33_advance(session, func() -> bool: return session.tutorial.current_step().id == &"combat_eat")
+	_m33_log(&"m33_s08", session)
+	screen.free()
+	session.free()
+	await _frames(2)
+	var node_session: GameSession = _real_session()
+	node_session.disciplines.learn(&"forestry")
+	node_session.tutorial.from_save({"completed": false, "step": "nodes", "visited": ["character", "equipment", "combat", "bank", "shop", "rift", "trainers", "skill"], "since_ms": 0})
+	node_session.combat.start(&"redrock_plains")
+	var screen2: MainScreen = await _open(node_session)
+	(screen2.find_child("PageHost", true, false) as PageHost).show_page(&"combat")
+	await _frames(8)
+	_m33_log(&"m33_s14", node_session)
+	print_rich("m33 shots in ", ProjectSettings.globalize_path(_out))
+	screen2.free()
+	node_session.free()
