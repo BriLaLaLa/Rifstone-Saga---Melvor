@@ -1,6 +1,6 @@
 extends GutTest
 ## M31-03: the touch-ups of the tutorial UI on the real main screen (real data, 1280x720) with real mouse clicks: Ok on the paused
-## step unfreezes the engine and moves the step on; the combat page says "In pausa" only while frozen; Riscuoti on a quest and on
+## step moves the step on and (M33) keeps the pause; the combat page says "In pausa" only while frozen; Riscuoti on a quest and on
 ## the final bonus sends the Mail message and puts the dot out; the dot of the Primi passi box lights when a measure becomes true
 ## (a character level, no other event) and the box stays at 20/20 until the bonus is claimed. No exact texts.
 
@@ -48,7 +48,7 @@ func _dot() -> Control:
 	return _screen.find_child("StarterWidget", true, false).find_child("Dot", true, false) as Control
 
 
-func test_ok_on_the_paused_step_unfreezes_the_engine_and_advances_the_step() -> void:
+func test_ok_on_the_paused_step_moves_on_and_the_engine_stays_frozen() -> void:
 	await _open(true, {"completed": false, "step": "combat_food", "visited": VISITED, "since_ms": 0})
 	assert_eq(_s.tutorial.current_step().id, &"combat_food")
 	assert_true(_s.combat.is_frozen(), "the step pauses the combat")
@@ -58,10 +58,10 @@ func test_ok_on_the_paused_step_unfreezes_the_engine_and_advances_the_step() -> 
 	var state: Label = _screen.find_child("StateLabel", true, false) as Label
 	assert_true(state.text.begins_with("In pausa"), "the combat page says it is paused")
 	await _click(next)
-	assert_false(_s.combat.is_frozen(), "Ok unfreezes the engine")
+	assert_true(_s.combat.is_frozen(), "M33: Ok does not unfreeze, the pause lasts until the nodes step")
 	assert_ne(_s.tutorial.current_step().id, &"combat_food", "the step moved on")
 	await wait_process_frames(2)
-	assert_false(state.text.begins_with("In pausa"), "no pause label once unfrozen")
+	assert_true(state.text.begins_with("In pausa"), "the combat page keeps saying it is paused")
 
 
 func test_the_kills_step_shows_the_progress_from_the_data() -> void:
