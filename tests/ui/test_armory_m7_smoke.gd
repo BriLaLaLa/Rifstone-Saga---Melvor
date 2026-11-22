@@ -136,7 +136,7 @@ func test_salvage_asks_for_confirmation_and_pays_the_yield() -> void:
 	box.confirm_button().pressed.emit()
 	assert_false(_session.armory.has(uid))
 	assert_gt(_session.bank.get_count(SHARD), 0)
-	assert_false(_panel().visible)
+	assert_eq(_panel().uid(), 0)
 	assert_string_contains((_page.get_node("%MessageLabel") as Label).text, "Smantellato")
 
 

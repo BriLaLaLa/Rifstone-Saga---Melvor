@@ -39,6 +39,7 @@ const RECIPE_REFUSED_TEXTS: Dictionary[StringName, String] = {
 const RECIPE_REFUSED_DEFAULT: String = "Non puoi imparare questa ricetta."
 const CLOSE_ICON: String = "x"
 const CLOSE_TOOLTIP: String = "Chiudi"
+const EMPTY_TEXT: String = "Seleziona un oggetto"
 
 var _item_id: StringName = &""
 ## Session of the last `show_item` (read at every use, never a copy of its state).
@@ -52,6 +53,8 @@ var _session: GameSession = null
 @onready var _description_label: Label = %DescriptionLabel
 @onready var _lines_label: RichTextLabel = %LinesLabel
 @onready var _lock_button: Button = %LockButton
+var _empty_label: Label = null
+@onready var _scroll: ScrollContainer = $Scroll
 @onready var _close_box: HBoxContainer = %CloseBox
 @onready var _food_button: Button = %FoodButton
 var _bag_button: Button = null
@@ -76,6 +79,14 @@ func _ready() -> void:
 	close.flat = true
 	close.pressed.connect(_on_close_pressed)
 	_close_box.add_child(close)
+	_empty_label = Label.new()
+	_empty_label.name = "EmptyLabel"
+	_empty_label.text = EMPTY_TEXT
+	_empty_label.theme_type_variation = &"MutedLabel"
+	_empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_empty_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_empty_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	add_child(_empty_label)
 	_lock_button.pressed.connect(_on_lock_button_pressed)
 	_food_button.text = FOOD_TEXT
 	_food_button.pressed.connect(_on_food_button_pressed)
@@ -126,11 +137,12 @@ func show_item(session: GameSession, item_id: StringName) -> bool:
 	_refresh_actions(item)
 	_socket_box.show_for(session, item_id)
 	_refresh_sell(item, count, locked, same_item)
-	visible = true
+	_scroll.visible = true
+	_empty_label.visible = false
 	return true
 
 
-## Hides the panel and forgets the item.
+## Forgets the item and shows the empty state (the panel stays, with its fixed width).
 func clear() -> void:
 	_item_id = &""
 	_session = null
@@ -148,10 +160,11 @@ func clear() -> void:
 	_recipe_button.visible = false
 	_recipe_note.visible = false
 	_socket_box.visible = false
-	visible = false
+	_scroll.visible = false
+	_empty_label.visible = true
 
 
-## Id of the item shown now; `&""` if the panel is closed.
+## Id of the item shown now; `&""` if the panel is empty.
 func item_id() -> StringName:
 	return _item_id
 

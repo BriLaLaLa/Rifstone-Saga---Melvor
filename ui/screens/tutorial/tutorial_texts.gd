@@ -21,3 +21,7 @@ const PAGE_NAMES: Dictionary[StringName, String] = {
 
 static func page_name(route: StringName) -> String:
 	return PAGE_NAMES.get(route, String(route))
+const SKIP_TUTORIAL_TEXT: String = "Salta tutorial"
+const SKIP_CONFIRM_TEXT: String = "Vuoi saltare il tutorial? Potrai rivedere la Guida in ogni momento"
+const YES_TEXT: String = "Sì"
+const NO_TEXT: String = "No"

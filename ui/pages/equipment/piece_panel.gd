@@ -17,6 +17,7 @@ signal sell_requested(uid: int)
 signal salvage_requested(uid: int)
 signal close_requested
 
+const EMPTY_TEXT: String = "Seleziona un pezzo"
 const EQUIP_TEXT: String = "Equipaggia"
 const MAIN_HAND_TEXT: String = "In mano"
 const OFFHAND_TEXT: String = "Seconda mano"
@@ -61,9 +62,17 @@ var _salvage_open: bool = false
 @onready var _salvage_box: SalvageBox = %SalvageBox
 @onready var _sell_note: Label = %SellNote
 @onready var _sell_button: Button = %SellButton
+@onready var _content: Control = $Content
+var _empty_label: Label = null
 
 
 func _ready() -> void:
+	_empty_label = Label.new()
+	_empty_label.name = "EmptyLabel"
+	_empty_label.text = EMPTY_TEXT
+	_empty_label.theme_type_variation = &"MutedLabel"
+	_empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	add_child(_empty_label)
 	_icon.custom_minimum_size = ICON_SIZE
 	_name_label.theme_type_variation = &"HeaderLabel"
 	var close: Button = UiStyle.icon_button(CLOSE_ICON, CLOSE_TOOLTIP, UiStyle.WINDOW_CLOSE_BUTTON_SIDE)
@@ -113,11 +122,12 @@ func show_piece(session: GameSession, uid: int) -> bool:
 	_socket_icons.show_for(session, uid)
 	_refresh_actions(inst, base, worn_slot)
 	_apply_salvage()
-	visible = true
+	_content.visible = true
+	_empty_label.visible = false
 	return true
 
 
-## Hides the panel and forgets the piece.
+## Forgets the piece and shows the empty state (the panel stays in place).
 func clear() -> void:
 	_uid = 0
 	_salvage_open = false
@@ -131,10 +141,11 @@ func clear() -> void:
 	_affix_label.text = ""
 	for button: Button in [_equip_button, _offhand_button, _unequip_button]:
 		button.visible = false
-	visible = false
+	_content.visible = false
+	_empty_label.visible = true
 
 
-## Uid of the piece shown now; 0 if the panel is closed.
+## Uid of the piece shown now; 0 if the panel is empty.
 func uid() -> int:
 	return _uid
 
