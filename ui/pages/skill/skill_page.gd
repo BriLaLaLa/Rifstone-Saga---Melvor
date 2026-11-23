@@ -83,7 +83,8 @@ func bind(session: GameSession) -> void:
 	if _view != null or _blueprints != null or _tool_panel != null:
 		events.bank_changed.connect(_on_events_bank_changed)
 		events.armory_changed.connect(_on_events_extras_changed)
-		events.gather_focus_changed.connect(_on_events_extras_changed)
+		events.combat_started.connect(_on_events_combat_started)
+		events.combat_stopped.connect(_on_events_combat_started)
 		events.blueprint_crafted.connect(_on_events_extras_changed)
 		events.gold_changed.connect(_on_events_extras_changed)
 	_redraw()
@@ -104,7 +105,8 @@ func unbind() -> void:
 			[events.modifiers_changed, _redraw],
 			[events.bank_changed, _on_events_bank_changed],
 			[events.armory_changed, _on_events_extras_changed],
-			[events.gather_focus_changed, _on_events_extras_changed],
+			[events.combat_started, _on_events_combat_started],
+			[events.combat_stopped, _on_events_combat_started],
 			[events.blueprint_crafted, _on_events_extras_changed],
 			[events.gold_changed, _on_events_extras_changed],
 			[events.production_queue_changed, _on_events_queue_changed],
@@ -154,7 +156,6 @@ func _build_cards() -> void:
 	_table = ResourceTable.new()  # M35: the resources of a gathering discipline are a table (the cards are gone)
 	_card_list.get_parent().add_child(_table)
 	_table.setup(_session.data, _skill.id)
-	_table.focus_requested.connect(_on_focus_requested)
 
 
 func _is_gathering() -> bool:
@@ -228,6 +229,11 @@ func _on_events_mastery_xp_gained(skill_id: StringName, _action_id: StringName, 
 		_redraw_pool_bar()
 		if _table != null:
 			_table.redraw(_session)
+
+
+## The player entered or left a zone: the highlighted zone of "Si trova in" changes.
+func _on_events_combat_started(_area_or_reason: StringName) -> void:
+	_redraw_extras.call_deferred()  # the engine is still idle while the signal fires
 
 
 func _on_events_bank_changed(_item_id: StringName, _new_count: int, _delta: int) -> void:
@@ -377,13 +383,6 @@ func _build_pool_bar() -> void:
 func _redraw_pool_bar() -> void:
 	if _pool_bar != null:
 		SkillHeader.redraw_pool_bar(_pool_bar, _session, _skill.id)
-
-
-## "Raccogli questa" / "Automatico" of the resource table: the command answers, a refusal shows its reason.
-func _on_focus_requested(skill_id: StringName, action_id: StringName) -> void:
-	if _session == null:
-		return
-	_report(_session.disciplines.set_focus(skill_id, action_id))
 
 
 func _on_tool_head_chosen(uid: int, step: int, head_id: StringName) -> void:

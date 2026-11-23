@@ -1,6 +1,6 @@
 extends GutTest
 ## Smoke test of the ResourceTable of a gathering page (M35-D3, docs/05_INTERFACES_M35.md §7.ac) on the main screen with a real session:
-## columns, one row per action, a REAL click on "Raccogli questa" calls `set_focus`, "Automatico" clears it, the filter hides rows.
+## columns, one row per action, rows without buttons, "Si trova in" with the percentages of the model, the filter hides rows.
 ## No exact texts.
 
 const SCENE: PackedScene = preload("res://ui/screens/main/main_screen.tscn")
@@ -38,21 +38,27 @@ func test_table_has_the_columns_and_one_row_per_action() -> void:
 	assert_eq(table.row_ids().size(), _s.data.actions_for_skill(SKILL).size())
 	for column: int in ResourceTexts.COLUMNS.size():
 		assert_not_null(table.find_child("Column%d" % column, true, false))
-	for node_name: String in ["AutoButton", "FilterEdit", "StockOnly"]:
+	for node_name: String in ["FilterEdit", "StockOnly"]:
 		assert_not_null(table.find_child(node_name, true, false), node_name)
+	for node_name: String in ["AutoButton", "FocusHint"]:
+		assert_null(table.find_child(node_name, true, false), node_name)
 
 
-func test_click_on_focus_button_sets_the_focus_and_auto_clears_it() -> void:
+func test_rows_have_no_button_and_where_shows_the_percentages_of_the_model() -> void:
 	var page: Node = await _open()
 	var table: ResourceTable = page.find_child("ResourceTable", true, false) as ResourceTable
-	var action_id: StringName = table.row_ids()[0]
-	var button: Button = table.find_child("FocusButton_%s" % action_id, true, false) as Button
-	assert_false(button.disabled)
-	await _click(button, page)
-	assert_eq(_s.disciplines.focus_of(SKILL), action_id)
-	assert_true(table.find_child("ResourceRow_%s" % action_id, true, false).find_child("FocusBadge", true, false).visible)
-	await _click(table.find_child("AutoButton", true, false) as Button, page)
-	assert_eq(_s.disciplines.focus_of(SKILL), &"")
+	for action_id: StringName in table.row_ids():
+		assert_null(table.find_child("FocusButton_%s" % action_id, true, false), "no focus button")
+	var checked: int = 0
+	for action_id: StringName in table.row_ids():
+		var zones: Array[Dictionary] = _s.data.zones_of_action(action_id)
+		var where: Control = table.find_child("WhereLabel_%s" % action_id, true, false) as Control
+		assert_not_null(where)
+		for zone: Dictionary in zones:
+			assert_true(_texts_of(where).contains(ResourceTexts.WHERE_LINE_TEXT % [_s.data.area(StringName(zone["area"])).name, int(zone["pct"])]),
+					"%s: %s" % [action_id, zone])
+			checked += 1
+	assert_gt(checked, 0, "at least one resource has a zone")
 
 
 func test_filter_hides_rows_without_stock() -> void:
@@ -96,3 +102,11 @@ func _click(control: Control, page: Node) -> void:
 		get_viewport().push_input(event, true)
 		await wait_process_frames(1)
 	await wait_process_frames(3)
+
+
+func _texts_of(where: Control) -> String:
+	var texts: PackedStringArray = PackedStringArray()
+	for child: Node in where.get_children():
+		if not child.is_queued_for_deletion():
+			texts.append((child as Label).text)
+	return "\n".join(texts)

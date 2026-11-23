@@ -1,16 +1,11 @@
 class_name ResourceTable
 extends VBoxContainer
-## Table of the resources of a gathering discipline (docs/01_GDD_M35.md §42.4, docs/05_INTERFACES_M35.md §7.ac), in place of the cards:
-## one ResourceRow per action, the "Automatico" button, a text filter and "Solo con scorta". A press on "Raccogli questa" or "Automatico"
-## emits `focus_requested`; the page sends `disciplines.set_focus` and shows the refusal. Keeps no game state: the skill id, the rows and
+## Table of the resources of a gathering discipline (docs/01_GDD_M35B.md §43.3, docs/05_INTERFACES_M35B.md §7.ad), informative only:
+## one ResourceRow per action, a text filter and "Solo con scorta". Keeps no game state: the skill id, the rows and
 ## the filter widgets (the filter is a view setting, not saved).
-
-signal focus_requested(skill_id: StringName, action_id: StringName)
 
 var _skill_id: StringName = &""
 var _rows: Dictionary[StringName, ResourceRow] = {}
-var _auto: Button = null
-var _hint: Label = null
 var _filter: LineEdit = null
 var _stock_only: CheckBox = null
 var _empty: Label = null
@@ -23,13 +18,6 @@ func setup(data: GameData, skill_id: StringName) -> void:
 	add_theme_constant_override("separation", 6)
 	var bar: HBoxContainer = HBoxContainer.new()
 	bar.add_theme_constant_override("separation", 8)
-	_auto = Button.new()
-	_auto.name = "AutoButton"
-	_auto.toggle_mode = true
-	_auto.focus_mode = Control.FOCUS_NONE
-	_auto.text = ResourceTexts.AUTO_BUTTON_TEXT
-	_auto.pressed.connect(func() -> void: focus_requested.emit(_skill_id, &""))
-	bar.add_child(_auto)
 	_filter = LineEdit.new()
 	_filter.name = "FilterEdit"
 	_filter.placeholder_text = ResourceTexts.FILTER_PLACEHOLDER
@@ -44,18 +32,12 @@ func setup(data: GameData, skill_id: StringName) -> void:
 	_stock_only.toggled.connect(func(_on: bool) -> void: _apply_filter())
 	bar.add_child(_stock_only)
 	add_child(bar)
-	_hint = Label.new()
-	_hint.name = "FocusHint"
-	_hint.theme_type_variation = &"MutedLabel"
-	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	add_child(_hint)
 	add_child(_header())
 	var index: GuideIndex = GuideIndex.new(data)
 	for action: ActionDef in data.actions_for_skill(skill_id):
 		var row: ResourceRow = ResourceRow.new()
 		add_child(row)
 		row.setup(action, data, index)
-		row.focus_requested.connect(func(action_id: StringName) -> void: focus_requested.emit(_skill_id, action_id))
 		_rows[action.id] = row
 	_empty = Label.new()
 	_empty.name = "NoRows"
@@ -64,11 +46,8 @@ func setup(data: GameData, skill_id: StringName) -> void:
 	add_child(_empty)
 
 
-## Rereads every row, the focus state and applies the filter.
+## Rereads every row and applies the filter.
 func redraw(session: GameSession) -> void:
-	var focus: StringName = session.disciplines.focus_of(_skill_id)
-	_auto.set_pressed_no_signal(focus == &"")
-	_hint.text = ResourceTexts.AUTO_HINT_TEXT if focus == &"" else ResourceTexts.FOCUS_HINT_TEXT
 	for row: ResourceRow in _rows.values():
 		row.redraw(session)
 	_apply_filter()

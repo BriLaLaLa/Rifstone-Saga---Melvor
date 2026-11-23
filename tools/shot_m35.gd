@@ -1,5 +1,5 @@
 extends Node
-## Dev tool (M35-D3): PNGs of the Quarrying page (resource table, "Teste" section) and of the node card "Mirata", on a TestFactory
+## Dev tool (M35-D3, M35B-3): PNGs of the Quarrying page (resource table in a low and in a high zone, "Teste" section) and of the node card, on a TestFactory
 ## session (never a real slot). Needs a window (NOT --headless); always run it under a timeout:
 ##   timeout 120 Godot --path . --resolution 1280x720 res://tools/shot_m35.tscn -- <out_dir>
 
@@ -28,14 +28,28 @@ func _run() -> void:
 	var uid: int = session.armory.tool_uid(&"tool_quarrying")
 	(session.armory._items[uid] as ItemInstance).upgrade = 4
 	session.armory.choose_tool_head(uid, 3, &"pick_vein")
-	var first: ActionDef = session.data.actions_for_skill(SKILL)[0]
-	session.disciplines.set_focus(SKILL, first.id)
 	var screen: MainScreen = await _open(session)
 	var hint: Control = screen.find_child("HintCard", true, false) as Control
 	hint.visible = false
 	(screen.find_child("PageHost", true, false) as PageHost).show_page(StringName("skill:%s" % SKILL))
 	await _frames(8)
 	_save(&"skill_table")
+	TestFactory.set_character_level(session, 60)
+	var areas: Array[AreaDef] = session.data.areas()
+	var scroll_table: ScrollContainer = _find_page(screen).get_node("%Scroll") as ScrollContainer
+	var high: StringName = areas[0].id
+	for i: int in range(areas.size() - 1, -1, -1):  # the highest zone the test character may enter
+		if session.combat.start(areas[i].id).ok:
+			high = areas[i].id
+			break
+	for pair: Array in [[&"skill_table_low", areas[0].id], [&"skill_table_high", high]]:
+		session.combat.stop()
+		print("start ", pair[1], ": ", session.combat.start(StringName(pair[1])).ok)
+		await _frames(6)
+		scroll_table.scroll_vertical = 100000
+		await _frames(4)
+		_save(StringName(pair[0]))
+	session.combat.stop()
 	var page: SkillPage = _find_page(screen)
 	var scroll: ScrollContainer = page.get_node("%Scroll") as ScrollContainer
 	scroll.scroll_vertical = 100000

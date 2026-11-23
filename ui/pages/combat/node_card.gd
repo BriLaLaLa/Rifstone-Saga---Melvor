@@ -25,7 +25,6 @@ var _box: VBoxContainer = null
 var _art: NodeArt = null
 var _title: Label = null
 var _rich: Label = null
-var _focus: Label = null
 var _locked_icon: TextureRect = null
 var _pips: HBoxContainer = null
 var _bar: ProgressBar = null
@@ -60,8 +59,6 @@ func _ready() -> void:
 	_rich = _add_label(_box, "RichBadge", &"", RICH_SIZE)
 	_rich.text = NodeCardTexts.RICH_TEXT
 	_rich.add_theme_color_override("font_color", UiStyle.GOLD_LIGHT)
-	_focus = _add_label(_box, "FocusLabel", &"MutedLabel", 0)
-	_focus.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_art = NodeArt.new()
 	_art.name = "NodeArt"
 	_art.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -112,7 +109,6 @@ func refresh(state: Dictionary, data: GameData) -> void:
 	for control: Control in [_art, _pips, _loot_title, _loot, _xp]:
 		control.visible = not skipped
 	_rich.visible = not skipped and bool(node.get("rich", false))
-	_focus.visible = false
 	_locked.visible = skipped
 	_locked_icon.visible = skipped
 	var duration: int = int(node.get("duration_ms", 0))
@@ -133,7 +129,6 @@ func refresh(state: Dictionary, data: GameData) -> void:
 	_backdrop.set_tint(tint)
 	_refresh_pips(int(node.get("attempts", 0)), int(node.get("attempt", 0)))
 	_refresh_loot(action_name, int(node.get("units", 0)))
-	_refresh_focus(node, action_name)
 	var last: Dictionary = node.get("last_attempt", {}) as Dictionary
 	if last.is_empty():
 		_xp.text = NodeCardTexts.XP_NONE_TEXT
@@ -222,14 +217,3 @@ func _add_label(parent: Node, node_name: String, variation: StringName, font_siz
 		label.add_theme_font_size_override("font_size", font_size)
 	parent.add_child(label)
 	return label
-
-
-## M35: "Mirata" when the node works the resource the player chose; the "fino a" line when the choice is too high for this node.
-func _refresh_focus(node: Dictionary, action_name: String) -> void:
-	_focus.visible = bool(node.get("focused", false)) or bool(node.get("focus_blocked", false))
-	if bool(node.get("focused", false)):
-		_focus.text = NodeCardTexts.FOCUSED_TEXT
-		_focus.add_theme_color_override("font_color", UiStyle.GOLD)
-	else:
-		_focus.text = NodeCardTexts.FOCUS_BLOCKED_TEXT % action_name
-		_focus.remove_theme_color_override("font_color")

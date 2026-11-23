@@ -1,13 +1,11 @@
 class_name ResourceRow
 extends PanelContainer
-## One row of the ResourceTable (docs/01_GDD_M35.md §42.4, docs/05_INTERFACES_M35.md §7.ac): icon and name with the "Mirata" badge, level,
-## stock in the Deposit, "Serve a" (Guide index), sell price, mastery with the next bonus, colour of the node now and "Raccogli questa".
+## One row of the ResourceTable (docs/01_GDD_M35B.md §43.3, docs/05_INTERFACES_M35B.md §7.ad): icon and name, level, stock in the Deposit,
+## "Serve a" (Guide index), sell price, mastery with the next bonus, colour of the node now and "Si trova in" (the zones with their percentages).
 ## `setup` draws what comes from the data; `redraw` reads everything else from the session (nothing is computed here: the colour comes
-## from `NodeColorPreview`, the focus from `disciplines.focus_of`, the next bonus from `mastery.step_info`). Keeps its action and nodes.
+## from `NodeColorPreview`, the zones from `GameData.zones_of_action`, the chances from `EncounterCycle.resource_odds`). No signals.
 
-signal focus_requested(action_id: StringName)
-
-const WIDTHS: Array[int] = [200, 48, 64, 0, 86, 150, 140, 124]  # 0 = expands; the header of the table uses the same widths
+const WIDTHS: Array[int] = [200, 48, 64, 0, 86, 150, 140, 170]  # 0 = expands; the header of the table uses the same widths
 const ICON_SIZE: Vector2 = Vector2(32, 32)
 
 var _action: ActionDef = null
@@ -15,7 +13,6 @@ var _item: ItemDef = null
 var _index: GuideIndex = null
 var _stock: int = 0
 var _bonus_tag: MasteryBonusTag = null
-var _badge: Label = null
 var _level: Label = null
 var _stock_label: Label = null
 var _uses: Label = null
@@ -23,7 +20,7 @@ var _price: Label = null
 var _mastery: Label = null
 var _next: Label = null
 var _color: Label = null
-var _button: Button = null
+var _where: VBoxContainer = null
 
 
 ## Builds the cells for `action`; `index` is the shared Guide index of the data.
@@ -50,11 +47,6 @@ func setup(action: ActionDef, data: GameData, index: GuideIndex) -> void:
 	name_label.text = action.name
 	name_label.clip_text = true
 	names.add_child(name_label)
-	_badge = Label.new()
-	_badge.name = "FocusBadge"
-	_badge.text = ResourceTexts.BADGE_TEXT
-	_badge.add_theme_color_override("font_color", UiStyle.GOLD)
-	names.add_child(_badge)
 	title.add_child(names)
 	_cell(row, title, 0)
 	_level = _label_cell(row, 1)
@@ -77,12 +69,9 @@ func setup(action: ActionDef, data: GameData, index: GuideIndex) -> void:
 	mastery_box.add_child(_next)
 	_cell(row, mastery_box, 5)
 	_color = _label_cell(row, 6)
-	_button = Button.new()
-	_button.name = "FocusButton_%s" % action.id
-	_button.focus_mode = Control.FOCUS_NONE
-	_button.text = ResourceTexts.FOCUS_BUTTON_TEXT
-	_button.pressed.connect(func() -> void: focus_requested.emit(_action.id))
-	_cell(row, _button, 7)
+	_where = VBoxContainer.new()
+	_where.name = "WhereLabel_%s" % action.id
+	_cell(row, _where, 7)
 	if _item != null:
 		_price.text = Money.text(_item.value, data.currency())
 
@@ -90,17 +79,14 @@ func setup(action: ActionDef, data: GameData, index: GuideIndex) -> void:
 ## Rereads level, stock, mastery, colour and the focus from `session`.
 func redraw(session: GameSession) -> void:
 	var unlocked: bool = session.skills.meets_requirements({_action.skill_id: _action.level})
-	var focused: bool = session.disciplines.focus_of(_action.skill_id) == _action.id
-	_badge.visible = focused
 	_level.text = ResourceTexts.LEVEL_TEXT % NumberFormat.format_int(_action.level)
 	_level.add_theme_color_override("font_color", UiStyle.TEXT if unlocked else UiStyle.BAD)
 	_stock = session.bank.get_count(_item.id) if _item != null else 0
 	_stock_label.text = NumberFormat.format_int(_stock)
 	_uses.text = _uses_text()
-	_button.disabled = not unlocked or focused
-	_button.text = ResourceTexts.FOCUS_BUTTON_TEXT if unlocked else ResourceTexts.FOCUS_BUTTON_LOCKED_TEXT
 	modulate = Color.WHITE if unlocked else UiStyle.TEXT_DISABLED
 	_redraw_mastery(session)
+	_redraw_where(session)
 	var preview: Dictionary = NodeColorPreview.of(session, _action)
 	_color.visible = not preview.is_empty()
 	if not preview.is_empty():
@@ -130,6 +116,41 @@ func _redraw_mastery(session: GameSession) -> void:
 	var next: Dictionary = info.get("next", {}) as Dictionary
 	_next.text = ResourceTexts.NEXT_BONUS_TEXT % str(next.get("text", "")) if not next.is_empty() else ""
 	_bonus_tag.show_info(info, level)
+
+
+## "Si trova in": one line per zone of `GameData.zones_of_action` (order and percentages from the model), the current zone marked and in gold;
+## each line's tooltip adds the effective chance at the current level (`EncounterCycle.resource_odds`).
+func _redraw_where(session: GameSession) -> void:
+	for child: Node in _where.get_children():
+		_where.remove_child(child)
+		child.queue_free()
+	var here: StringName = session.combat.area_id() if session.combat.is_active() else &""
+	var level: int = session.skills.get_level(_action.skill_id)
+	for zone: Dictionary in session.data.zones_of_action(_action.id):
+		var area_id: StringName = StringName(zone["area"])
+		var area_name: String = session.data.area(area_id).name
+		var line: Label = Label.new()
+		line.mouse_filter = Control.MOUSE_FILTER_STOP
+		line.tooltip_text = _where_tip(session, area_id, area_name, level)
+		if area_id == here:
+			line.text = ResourceTexts.WHERE_HERE_TEXT % [area_name, int(zone["pct"])]
+			line.add_theme_color_override("font_color", UiStyle.GOLD_LIGHT)
+		else:
+			line.text = ResourceTexts.WHERE_LINE_TEXT % [area_name, int(zone["pct"])]
+		_where.add_child(line)
+	if _where.get_child_count() == 0:
+		var none: Label = Label.new()
+		none.text = ResourceTexts.WHERE_NONE_TEXT
+		_where.add_child(none)
+
+
+func _where_tip(session: GameSession, area_id: StringName, area_name: String, level: int) -> String:
+	for odds: Dictionary in EncounterCycle.resource_odds(session.data, area_id, _action.skill_id, level):
+		if (odds["action"] as ActionDef).id == _action.id:
+			if not bool(odds["workable"]):
+				return ResourceTexts.WHERE_TIP_LOCKED_TEXT % area_name
+			return ResourceTexts.WHERE_TIP_TEXT % [area_name, NumberFormat.format_number(float(odds["pct_effective"]))]
+	return area_name
 
 
 func _uses_text() -> String:
