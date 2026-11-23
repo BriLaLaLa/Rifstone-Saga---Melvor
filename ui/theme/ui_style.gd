@@ -38,7 +38,10 @@ const TOOLTIP_LAYER: int = 100
 const TOOLTIP_MOUSE_OFFSET := Vector2(15, -10)
 ## Minimum distance of the tooltip from the viewport edges.
 const TOOLTIP_SCREEN_MARGIN: int = 10
-const TOOLTIP_MIN_WIDTH: int = 280
+const TOOLTIP_MIN_WIDTH: int = 340
+## Divider line of the piece tooltip and the dark badge behind the item level (readable on any cell background).
+const TOOLTIP_DIVIDER := Color("5e5238")
+const ITEM_LEVEL_BADGE_BG := Color(0.04, 0.03, 0.05, 0.88)
 const TOOLTIP_TITLE_FONT_SIZE: int = 18
 const TOOLTIP_SUBTITLE_FONT_SIZE: int = 13
 const TOOLTIP_BODY_FONT_SIZE: int = 15
@@ -95,7 +98,7 @@ const ARMORY_CELL_FONT_SIZE: int = 13
 ## Width of the "Bonus" summary popup of an action card (M16-05).
 const MASTERY_BONUS_POPUP_WIDTH: float = 340.0
 ## Item level badge at the bottom right of item and piece cells (M16-04).
-const ITEM_LEVEL_FONT_SIZE: int = 10
+const ITEM_LEVEL_FONT_SIZE: int = 13
 ## Mastery panel: node card size and spacing in the tree (pos = [col, row]), width of the prerequisite links, action
 ## icon side, opacity of a node card whose prerequisites are missing.
 const MASTERY_NODE_SIZE := Vector2(240, 156)

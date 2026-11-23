@@ -111,19 +111,9 @@ static func affix_lines(inst: ItemInstance, data: GameData) -> PackedStringArray
 	return lines
 
 
-## BBCode body of the tooltip of the piece `uid`: title in the rarity color, subtitle, then `detail_lines`.
-## Empty if the piece is not in the armory.
+## BBCode body of the tooltip of the piece `uid` (`PieceTooltip`). Empty if the piece is not in the armory.
 static func tooltip_text(session: GameSession, uid: int) -> String:
-	var inst: ItemInstance = session.armory.get_instance(uid)
-	var base: ItemDef = session.data.item(inst.base_id) if inst != null else null
-	if base == null or base.equip == null:
-		return ""
-	var lines: PackedStringArray = PackedStringArray([
-		ItemTooltipLines.colored_title(piece_name(inst, base), UiStyle.rarity_color(inst.rarity)),
-		COLOR_TAG % [UiStyle.TEXT_2.to_html(false), subtitle(inst, base, session.data)],
-	])
-	lines.append_array(detail_lines(session, uid))
-	return "\n".join(lines)
+	return PieceTooltip.build(session, uid)
 
 
 ## Requirements (red if unmet), weapon, affixes, modifiers, and the comparison with the piece worn in the same slot.
@@ -145,7 +135,7 @@ static func detail_lines(session: GameSession, uid: int, with_affixes: bool = tr
 	_append_section(lines, ARMOR_TITLE, armor_lines(session, mods))
 	_append_section(lines, LEGENDARY_TITLE, legendary_lines(session, base))
 	if with_comparison:
-		_append_comparison(lines, session, uid, base, mods)
+		append_comparison(lines, session, uid, base, mods)
 	return lines
 
 
@@ -208,6 +198,11 @@ static func _accumulate(into: Dictionary[String, Modifier], mods: Array[Modifier
 
 
 static func _append_requirements(lines: PackedStringArray, equip: EquipInfo, session: GameSession) -> void:
+	_append_section(lines, REQUIREMENTS_TITLE, requirement_lines(session, equip))
+
+
+## One line per requirement, red when the character does not meet it.
+static func requirement_lines(session: GameSession, equip: EquipInfo) -> PackedStringArray:
 	var keys: Array[StringName] = []
 	for key: StringName in equip.requirements:
 		keys.append(key)
@@ -218,7 +213,7 @@ static func _append_requirements(lines: PackedStringArray, equip: EquipInfo, ses
 		var text: String = ItemTooltipLines.requirement_text(key, needed, session.data)
 		var met: bool = session.character.meets_requirements({key: needed})
 		req_lines.append(text if met else COLOR_TAG % [UiStyle.BAD.to_html(false), text])
-	_append_section(lines, REQUIREMENTS_TITLE, req_lines)
+	return req_lines
 
 
 static func _append_section(lines: PackedStringArray, title: String, body: PackedStringArray) -> void:
@@ -230,7 +225,7 @@ static func _append_section(lines: PackedStringArray, title: String, body: Packe
 
 ## Difference with the piece worn in the same slot (nothing if this one is worn or the slot is empty), green for
 ## what improves and red for what worsens, then the weapon setup that would result.
-static func _append_comparison(lines: PackedStringArray, session: GameSession, uid: int, base: ItemDef,
+static func append_comparison(lines: PackedStringArray, session: GameSession, uid: int, base: ItemDef,
 		mods: Array[Modifier]) -> void:
 	if session.equipment.slot_of(uid) != &"":
 		return
