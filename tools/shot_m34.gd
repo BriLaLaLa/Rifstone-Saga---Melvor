@@ -21,6 +21,10 @@ func _ready() -> void:
 func _run() -> void:
 	var session: GameSession = TestFactory.session(1234, TestFactory.real_data(), false, false)
 	TestFactory.give(session, ITEM, 4)
+	TestFactory.give(session, &"redrock_clover", 7)
+	TestFactory.give(session, &"stone_ember_chip", 2)
+	for rarity: StringName in [&"magic", &"rare", &"legendary"]:
+		TestFactory.give_piece(session, &"head_cloth_1", rarity, 30)
 	var screen: MainScreen = await _open(session)
 	(screen.find_child("PageHost", true, false) as PageHost).show_page(&"bank")
 	await _frames(8)
@@ -31,6 +35,12 @@ func _run() -> void:
 			(child as ItemSlotView).pressed.emit(ITEM)
 	await _frames(8)
 	_save(&"bank_selected")
+	for id: StringName in [&"redrock_clover", &"stone_ember_chip"]:
+		for child: Node in grid.get_children():
+			if child is ItemSlotView and (child as ItemSlotView).item_id() == id:
+				(child as ItemSlotView).pressed.emit(id)
+		await _frames(8)
+		_save(StringName("bank_" + String(id)))
 	screen.free()
 	session.free()
 	await _frames(2)

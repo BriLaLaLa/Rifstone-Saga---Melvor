@@ -72,7 +72,7 @@ var _recipe_note: Label = null
 
 
 func _ready() -> void:
-	custom_minimum_size.x = UiStyle.BANK_PANEL_WIDTH
+
 	_icon.custom_minimum_size = UiStyle.BANK_PANEL_ICON_SIZE
 	var close: Button = UiStyle.icon_button(CLOSE_ICON, CLOSE_TOOLTIP, UiStyle.WINDOW_CLOSE_BUTTON_SIDE)
 	close.name = "CloseButton"

@@ -40,6 +40,8 @@ func show_for(session: GameSession, item_id: StringName) -> void:
 	var option := OptionButton.new()
 	option.name = "PieceOption"
 	option.focus_mode = Control.FOCUS_NONE
+	option.clip_text = true  # a long piece name must not widen the fixed column of the Deposit panel
+	option.fit_to_longest_item = false
 	var select: int = 0
 	for inst: ItemInstance in session.armory.instances():
 		var free: int = session.armory.socket_count(inst.uid) - inst.sockets.size()
