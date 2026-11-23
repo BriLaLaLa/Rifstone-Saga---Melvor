@@ -19,6 +19,7 @@ static func show_on(cell: Control, level: int, left: bool = false) -> void:
 	label.visible = level > 0
 	label.text = LEVEL_TEXT % level if level > 0 else ""
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT if left else HORIZONTAL_ALIGNMENT_RIGHT
+	label.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN if left else Control.SIZE_SHRINK_END
 
 
 ## Text shown now on `cell` ("" if none), for tests.
@@ -31,10 +32,17 @@ static func _make() -> Label:
 	var label := Label.new()
 	label.name = NODE_NAME
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	label.size_flags_horizontal = Control.SIZE_FILL
 	label.size_flags_vertical = Control.SIZE_SHRINK_END
 	label.add_theme_font_size_override("font_size", UiStyle.ITEM_LEVEL_FONT_SIZE)
-	label.add_theme_color_override("font_color", UiStyle.TEXT)
-	label.add_theme_color_override("font_outline_color", UiStyle.BG_FIELD)
-	label.add_theme_constant_override("outline_size", 3)
+	label.add_theme_color_override("font_color", UiStyle.GOLD_LIGHT)
+	label.add_theme_color_override("font_outline_color", Color.BLACK)
+	label.add_theme_constant_override("outline_size", 2)
+	var badge := StyleBoxFlat.new()  # dark pill: the level reads on any cell, rarity border or icon
+	badge.bg_color = UiStyle.ITEM_LEVEL_BADGE_BG
+	badge.set_corner_radius_all(3)
+	badge.content_margin_left = 4.0
+	badge.content_margin_right = 4.0
+	badge.content_margin_top = 0.0
+	badge.content_margin_bottom = 0.0
+	label.add_theme_stylebox_override("normal", badge)
 	return label
