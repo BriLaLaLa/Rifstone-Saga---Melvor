@@ -1,5 +1,7 @@
 # 02. Formule, §5l: Incontri e Mestieri (F-153…F-160; M24, V16-V24)
 
+> **Modificato da V45 (M35B)**: la parte «risorsa» di F-154 è sostituita da F-200 (`02_FORMULAS_M35B.md`, tiro con i pesi della zona); restano il colore e, come fallback, la regola «livello più alto ≤ livello» senza tetto.
+
 Estensione di `02_FORMULAS.md` (che supera le 400 righe): vale come la sua sezione **§5l**, con le tabelle §8.10-§8.11 e le chiavi §9b.
 Convenzioni di `02_FORMULAS.md` (`floor`, `round` a metà verso l'alto, `T(stat, ctx)` = F-05). Gli esempi sono **casi di test**. Valori di
 partenza fissati da M24-01, chiavi in `balance.json` (§9b) e in `data/disciplines/trainers.json` (`04_DATA_SCHEMA_M24.md` §29); la verifica di

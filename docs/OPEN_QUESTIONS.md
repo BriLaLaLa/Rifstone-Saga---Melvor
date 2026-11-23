@@ -323,6 +323,14 @@ rivederli con l'oro/h), Q110, Q111, Q112, Q120 (M25+).
 | Q214 | Chi ha già un attrezzo a +N ha perso gli `upgrade_extras` (doppio +2/+3, Frammenti +10/+15) | **Default**: sì, le teste li sostituiscono con valori pari o più alti; prima scelta gratuita per ogni passo ≤ N; nessun rimborso. |
 | Q215 | Attrezzo leggendario nello slot: le teste dell'unico contano? | **Default**: no finché il leggendario è indossato (nessun bonus del unico); restano salvate e tornano al rimontaggio. |
 | Q216 | Valori delle teste (5 unità per passo, ricchezza 6 punti + doppio 2…) da ritarare con `sim_encounters` | **Default**: valori di F-197; limiti di test: Piccone +9 ≤ +30% unità/ora, teste entro 10%. |
-| Q217 | Raccolta mirata: scegliere una risorsa bassa nel Villaggio/area con `max_level` più alto della scelta | **Default**: vale (la scelta è sempre ≤ `limit`); l'XP è grigia, prodotto e maestria pieni. |
+| Q217 | [OBSOLETA da V45] Raccolta mirata: scegliere una risorsa bassa nel Villaggio/area con `max_level` più alto della scelta | **Default**: vale (la scelta è sempre ≤ `limit`); l'XP è grigia, prodotto e maestria pieni. |
 | Q218 | Vista «Risorse» nel Deposito (Altro)? | **Default**: no, il Deposito ha già le schede per tipo; solo la pagina della disciplina. |
-| Q219 | M3 «Ciò che serve» (focus derivato dalla coda) | **Default**: fuori da M35, task separato con una nuova V; il valore di `focus` ammetterà `need`. |
+| Q219 | [OBSOLETA da V45: M3 abrogato] M3 «Ciò che serve» (focus derivato dalla coda) | **Default**: fuori da M35, task separato con una nuova V; il valore di `focus` ammetterà `need`. |
+| Q220 | (V45) Il tetto `max_level` della zona non limita più la risorsa: ok? | **Default**: sì, lo sostituisce la tabella; `max_level` resta per difficoltà e livello minimo. Alternativa: tenere anche il tetto (più rigido, quasi mai utile). |
+| Q221 | (V45) Nessuna risorsa della zona è ancora lavorabile (livello molto basso in zona alta) | **Default**: fallback = la migliore ≤ livello della disciplina (come F-154 senza tetto), nessun tiro. Alternativa: nodo saltato `too_hard`. |
+| Q222 | (V45) Profilo dei pesi (5/25/55/15, gradino di casa = livello mediano, stesso per le quattro discipline) | **Default**: questi valori (F-201); il Rame è dominante solo in zona 1 (79%) e la zona 10 ha 65% di Riftite. L'utente può dare altre percentuali per zona (la tabella si riscrive nel generatore). |
+| Q223 | (V45) `disciplines.focus` in un salvataggio M35 | **Default**: ignorato, non riscritto; v12, nessuna migrazione. |
+| Q224 | (V45) «Si trova in»: percentuale nominale della zona o effettiva al livello? | **Default**: nominale in riga, effettiva al livello nel tooltip. |
+| Q225 | (V45) Teste degli attrezzi che spostano le percentuali verso le risorse alte | **Default**: no (fuori scope), possibile task futuro con nuova V. |
+| Q226 | (V45) Soglie (2) e (3) di F-156 con la risorsa attesa (XP e unità/h per zona) | **Default**: `sim_encounters` le misura e le riporta senza far fallire la build; nessuna ritaratura (Q122); se escono da banda decide il Reviewer con l'utente. |
+| Q227 | (V45) Tutorial e nodi forzati con la risorsa tirata | **Default**: a livello basso la zona 1 ha una sola idonea (Rame): nessun tiro, tutorial invariato (M31-M33). Test dedicato. |

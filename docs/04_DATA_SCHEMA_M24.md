@@ -1,5 +1,7 @@
 # 04. Schema dei dati, §29: Incontri e Mestieri (M24; V16-V24, `01_GDD_M24.md` §35, `02_FORMULAS_M24.md` F-153…F-160)
 
+> **Aggiornato da V45 (M35B)**: `nodes.json` guadagna `resources` per voce (`04_DATA_SCHEMA_M35B.md` §36.1); `max_level` non limita più la risorsa.
+
 Estensione di `04_DATA_SCHEMA.md` (che supera le 400 righe): vale come la sua sezione **§29**. Regole generali di §0-§1 invariate (id `snake_case`,
 nessun campo sconosciuto, nessun fallback silenzioso). Il validatore nuovo è `core/data/data_validator_disciplines.gd` (M24-02) con
 `STRICT_REAL_DATA = true` da M24-05. **Ramo strict (M24-08, codice vero)**: le regole "dei dati veri" (segnate qui sotto "Con

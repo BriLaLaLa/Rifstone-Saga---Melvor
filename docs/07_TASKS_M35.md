@@ -1,5 +1,7 @@
 # 07. Task, M35-D: Attrezzi con teste e raccolta mirata
 
+> **Aggiornato da V45 (M35B)**: i punti su raccolta mirata (F-195, `set_focus`, badge «Mirata», «Raccogli questa») di D1/D3 sono abrogati; vedi `07_TASKS_M35B.md`.
+
 Estensione di `07_TASKS.md`. Fonte: V44, `M35_ATTREZZI_MINERALI.md`, `01_GDD_M35.md` §42, `02_FORMULAS_M35.md`, `04_DATA_SCHEMA_M35.md`, `05_INTERFACES_M35.md`, Q214-Q219. Il design non si
 riscrive nei brief. `sonnet`; save v12 (nessuna migrazione di versione). Lezioni valide (come `07_TASKS_M34.md`): `git checkout -B task/<ID> main`; mai `-gtest=`; test mirati con il filtro
 di `CLAUDE.md`; screenshot 1280x720 e 1600x900 in cartelle separate guardati con Read; togliere i `*.uid` non tracciati prima del merge; nessun processo Godot in background;

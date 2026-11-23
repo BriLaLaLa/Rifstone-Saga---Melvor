@@ -1,5 +1,7 @@
 # 05. Interfacce, M35-D: Attrezzi con teste e raccolta mirata (§3h, §4g, §5.44-§5.46, §6h, §7.ac)
 
+> **Superato da V45 (M35B)**: §3h (segnale `gather_focus_changed`), §5.46, la chiave `focus` di §6h e la parte focus di §7.ac sono abrogati; vale `05_INTERFACES_M35B.md`.
+
 Estensione di `05_INTERFACES.md` (che supera le 400 righe): **è contratto** con le stesse regole (lo modifica solo il Reviewer; un task che ha bisogno di una firma nuova si
 ferma e la chiede). Dove contraddice `05_INTERFACES.md` (§5.8 Equipment, §5.9 Armory, §6 save, §7 ToolUpgradePanel/ActionCard) o `_M24`…`_M30` vale questo file. Design
 `01_GDD_M35.md` (§42), formule `02_FORMULAS_M35.md` (F-195…F-199), dati `04_DATA_SCHEMA_M35.md` (§35). Task: M35-D1 CORE, M35-D2 DATA, M35-D3 UI (`07_TASKS_M35.md`).

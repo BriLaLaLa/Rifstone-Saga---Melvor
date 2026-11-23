@@ -1,5 +1,7 @@
 # 02. Formule, §5n: Raccolta mirata e attrezzi con teste (F-195…F-199; M35-D, V44)
 
+> **Abrogato da V45 (M35B)**: F-195 (raccolta mirata) non esiste più; la risorsa è F-200 in `02_FORMULAS_M35B.md`. Le altre formule di questo file valgono.
+
 Estensione di `02_FORMULAS.md`: **modifica** F-154 (risorsa), F-94 (effetto; i costi restano), F-155/F-162 (unità), F-164 (nodo ricco), F-103 (sottoprodotto), F-165
 (forma chiusa). Convenzioni: `floor`, `round` a metà verso l'alto, `T(stat, ctx)` = F-05. Gli esempi sono **casi di test**. Regole in `01_GDD_M35.md` (§42), dati in
 `04_DATA_SCHEMA_M35.md` (§35). Gradini del Minatore (livello): Rame 1, Ferro 10, Ferro scuro 20, Ferro nero 30, Argento runico 45, Ossidiana 60, Astrite 75, Riftite 90.
