@@ -15,12 +15,12 @@ func _session(seed_value: int = SEED) -> GameSession:
 	s.disciplines.new_game()
 	TestFactory.set_character_level(s, 55)
 	TestFactory.make_roomy(s)
-	_boost(s)
 	s.wallet.add_gold(10_000_000)
 	for id: StringName in [&"forestry", &"quarrying"]:  # two gathering disciplines at most
 		TestFactory.learn_discipline(s, id)
 	TestFactory.set_level(s, &"quarrying", 30)
 	_tools(s)
+	_boost(s)  # after _tools: rebuild_modifiers drops the test source
 	assert_true(s.disciplines.set_focus(&"quarrying", &"quarry_emberbronze").ok)
 	assert_true(s.combat.start(AREA).ok)
 	return s
