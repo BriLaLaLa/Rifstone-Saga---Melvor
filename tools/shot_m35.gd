@@ -44,7 +44,7 @@ func _run() -> void:
 			break
 	for pair: Array in [[&"skill_table_low", areas[0].id], [&"skill_table_high", high]]:
 		session.combat.stop()
-		print("start ", pair[1], ": ", session.combat.start(StringName(pair[1])).ok)
+		print_rich(str("start ", pair[1], ": ", session.combat.start(StringName(pair[1])).ok))
 		await _frames(6)
 		scroll_table.scroll_vertical = 100000
 		await _frames(4)

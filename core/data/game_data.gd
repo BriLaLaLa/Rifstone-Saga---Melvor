@@ -28,7 +28,6 @@ const CONTENT_DIRS: Dictionary[String, String] = {"items": "items", "actions": "
 
 var errors: PackedStringArray = []
 var stats: StatRegistry = StatRegistry.new()
-
 var _balance: Dictionary = {}
 var _xp_table: XpTable = null
 var _mastery_table: XpTable = null

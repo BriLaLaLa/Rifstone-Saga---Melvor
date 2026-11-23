@@ -71,7 +71,12 @@ func test_every_area_has_the_four_nodes_summing_to_100() -> void:
 func test_gen_nodes_is_reproducible() -> void:
 	var generator: GDScript = load("res://tools/gen_nodes.gd") as GDScript
 	var areas: Array = (JSON.parse_string(FileAccess.get_file_as_string("res://data/combat/areas.json")) as Dictionary)["areas"] as Array
-	var result: Dictionary = generator.call("generate", areas) as Dictionary
+	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/config/balance.json")) as Dictionary
+	var profile: Array = (balance["encounters"] as Dictionary)["resource_profile"] as Array
+	var actions: Dictionary = {}
+	for skill: String in ["forestry", "quarrying", "angling", "herbalism"]:
+		actions[skill] = (JSON.parse_string(FileAccess.get_file_as_string("res://data/actions/%s.json" % skill)) as Dictionary)["actions"] as Array
+	var result: Dictionary = generator.call("generate", areas, actions, profile) as Dictionary
 	assert_eq(result["errors"], PackedStringArray())
 	assert_eq(result["text"], FileAccess.get_file_as_string("res://data/encounters/nodes.json"))
 
