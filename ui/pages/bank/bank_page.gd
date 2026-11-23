@@ -62,6 +62,7 @@ func _ready() -> void:
 		_margin.add_theme_constant_override(side, UiStyle.BANK_MARGIN)
 	_content.add_theme_constant_override("separation", UiStyle.BANK_SECTION_SEPARATION)
 	_main.add_theme_constant_override("separation", UiStyle.BANK_SECTION_SEPARATION)
+	(%ItemPanelHolder as Control).custom_minimum_size.x = UiStyle.BANK_PANEL_WIDTH  # fixed column: the panel inside never changes it
 	_grid.add_theme_constant_override("h_separation", UiStyle.BANK_GRID_SEPARATION)
 	_grid.add_theme_constant_override("v_separation", UiStyle.BANK_GRID_SEPARATION)
 	_title_label.text = TITLE_TEXT
