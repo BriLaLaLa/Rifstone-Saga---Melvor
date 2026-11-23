@@ -48,7 +48,7 @@ func test_card_shows_the_next_bonus_from_step_info() -> void:
 	var action: ActionDef = _first_mastery_action()
 	_open(&"forestry")
 	var info: Dictionary = _session.mastery.step_info(&"forestry", action.id)
-	var row: MasteryStepRow = _page.find_child(String(action.id).to_pascal_case(), true, false).find_child(
+	var row: MasteryStepRow = _page.find_child("ResourceRow_%s" % action.id, true, false).find_child(
 			"MasteryStepRow", true, false) as MasteryStepRow
 	assert_not_null(row)
 	assert_true(row.visible)
@@ -63,7 +63,7 @@ func test_card_follows_the_mastery_level() -> void:
 	_open(&"forestry")
 	var info: Dictionary = _session.mastery.step_info(&"forestry", action.id)
 	assert_eq(info["n"], 4)
-	var row: MasteryStepRow = _page.find_child(String(action.id).to_pascal_case(), true, false).find_child(
+	var row: MasteryStepRow = _page.find_child("ResourceRow_%s" % action.id, true, false).find_child(
 			"MasteryStepRow", true, false) as MasteryStepRow
 	var current: Array[Modifier] = []
 	current.assign(info["current"])
@@ -75,7 +75,7 @@ func test_max_level_says_everything_is_reached() -> void:
 	var action: ActionDef = _first_mastery_action()
 	_raise_mastery(action.id, 99)
 	_open(&"forestry")
-	var row: MasteryStepRow = _page.find_child(String(action.id).to_pascal_case(), true, false).find_child(
+	var row: MasteryStepRow = _page.find_child("ResourceRow_%s" % action.id, true, false).find_child(
 			"MasteryStepRow", true, false) as MasteryStepRow
 	assert_string_contains(row.shown_text(), MasteryStepRow.MAX_TEXT)
 

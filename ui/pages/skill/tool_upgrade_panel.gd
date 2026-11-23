@@ -11,6 +11,7 @@ extends PanelContainer
 ## `armory.upgrade_tool` and shows the refusal.
 
 signal upgrade_requested(uid: int)
+signal head_chosen(uid: int, step: int, head_id: StringName)
 
 const SOURCE_PREFIX: String = "equipment:"
 const LABEL_NAME_FMT: String = "Line_%d"
@@ -18,6 +19,7 @@ const LABEL_NAME_FMT: String = "Line_%d"
 var _skill_id: StringName = &""
 ## Uid of the tool drawn by the last redraw (0 if none): what the button sends.
 var _uid: int = 0
+var _heads: HeadSection = null
 
 @onready var _title: Label = %PanelTitle
 @onready var _name_label: Label = %ToolName
@@ -32,9 +34,12 @@ func _ready() -> void:
 	_title.text = ToolUpgradeTexts.TITLE
 	_upgrade_button.text = ToolUpgradeTexts.UPGRADE_TEXT
 	_upgrade_button.pressed.connect(_on_upgrade_pressed)
+	_heads = HeadSection.new()
+	$Box.add_child(_heads)
+	_heads.head_chosen.connect(head_chosen.emit)
 
 
-## The skill whose tool this panel follows (`forestry`, `quarrying`, `angling`).
+## The skill whose tool this panel follows (`forestry`, `quarrying`, `angling`, `herbalism`).
 func setup(skill_id: StringName) -> void:
 	_skill_id = skill_id
 
@@ -43,6 +48,7 @@ func setup(skill_id: StringName) -> void:
 func redraw(session: GameSession) -> void:
 	_uid = session.armory.tool_uid(StringName("%s%s" % [ToolUpgrade.SLOT_PREFIX, _skill_id]))
 	var inst: ItemInstance = session.armory.get_instance(_uid) if _uid != 0 else null
+	_heads.redraw(session, _uid)
 	_clear(_cost)
 	_clear(_effects)
 	if inst == null:

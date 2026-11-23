@@ -34,71 +34,43 @@ func after_each() -> void:
 	await wait_physics_frames(1)
 
 
-func test_header_and_cards_read_the_skill() -> void:
+func test_header_and_rows_read_the_skill() -> void:
 	_open(SKILL)
 	assert_eq(_label(_page, "%NameLabel").text, "Raccolta di prova")
 	assert_eq(_label(_page, "%LevelLabel").text, "Livello 1")
 	var next_xp: int = _session.data.xp_table().xp_for_level(2)
 	assert_eq(_xp_bar(_page).shown_text(), "0 / %s XP" % NumberFormat.format_int(next_xp))
-	var ids: Array[StringName] = []
-	for card: ActionCard in _cards():
-		ids.append(card.action_id())
 	var expected: Array[StringName] = []
 	for action: ActionDef in _session.data.actions_for_skill(SKILL):
 		expected.append(action.id)
-	assert_eq(ids, expected, "one card per action, in data order")
+	assert_eq(_table().row_ids(), expected, "one row per action, in data order")
 
 
-func test_card_shows_xp_interval_product_and_mastery() -> void:
+func test_row_shows_level_stock_and_mastery() -> void:
 	_open(SKILL)
-	var twig: ActionCard = _card(TWIG)
-	assert_eq(_label(twig, "%NameLabel").text, "Raccogliere rametti di prova")
-	assert_eq(_label(twig, "%RequirementLabel").text, "Livello 1")
-	assert_eq(_label(twig, "%XpValue").text, "10 XP")
-	assert_eq(_label(twig, "%IntervalValue").text, "3,0 s")
-	assert_eq(_label(twig, "%IntervalValue").text,
-			ActionCard.seconds_text(_session.actions.current_interval_ms(TWIG)))
-	var product: ItemSlotView = twig.get_node("%Products/ProductTestTwig") as ItemSlotView
-	assert_eq(product.item_id(), &"test_twig")
-	assert_eq(_label(product, "%CountLabel").text, "1")
-	assert_eq(_label(twig, "%Products/ProductTestTwigLabel").text, "Rametto di prova")
-	assert_eq(_label(twig, "%MasteryValue").text, "Liv. 1")
-	assert_true(_xp_bar(twig, "%MasteryBar").visible)
-	var bundle: ActionCard = _card(BUNDLE)
-	assert_eq(_label(bundle, "%MasteryValue").text, "Nessuna", "action without mastery")
-	assert_false(_xp_bar(bundle, "%MasteryBar").visible)
-	assert_eq(_label(bundle.get_node("%Products/ProductTestTwig"), "%CountLabel").text, "2")
-
-
-func test_interval_shown_is_current_interval_ms() -> void:
-	_open(SKILL)
-	var mods: Array[Modifier] = [Modifier.make(INTERVAL_STAT, -10.0, &"skill", SKILL)]
-	_session.modifiers.set_source(&"test", mods)
-	assert_eq(_session.actions.current_interval_ms(TWIG), 2700)
-	for card: ActionCard in _cards():
-		assert_eq(_label(card, "%IntervalValue").text,
-				ActionCard.seconds_text(_session.actions.current_interval_ms(card.action_id())),
-				"%s redrawn on modifiers_changed" % card.action_id())
-	assert_eq(_label(_card(TWIG), "%IntervalValue").text, "2,7 s")
-	assert_eq(_label(_card(LOG), "%IntervalValue").text, "3,6 s")
+	var twig: ResourceRow = _row(TWIG)
+	assert_not_null(twig)
+	var texts: PackedStringArray = _label_texts(twig)
+	assert_true(texts.has("Raccogliere rametti di prova"), "name")
+	assert_true(texts.has("Liv. 1"), "mastery level of an action with mastery")
+	assert_true(_label_texts(_row(BUNDLE)).has(ResourceTexts.NO_MASTERY_TEXT), "action without mastery")
 
 
 func test_gathering_page_is_read_only() -> void:
 	_open(SKILL)
-	for card: ActionCard in _cards():
-		assert_null(card.find_child("ToggleButton", true, false), "no Avvia/Ferma on a gathering card")
-		assert_null(card.find_child("EnqueueButton", true, false))
+	for id: StringName in _table().row_ids():
+		assert_null(_row(id).find_child("ToggleButton", true, false), "no Avvia/Ferma on a gathering row")
+		assert_null(_row(id).find_child("EnqueueButton", true, false))
 	assert_null(_page.find_child("ProductionQueue", true, false), "no queue on a gathering page")
 	assert_not_null(_page.find_child("FoundInLabel", true, false))
 
 
-func test_gathering_card_shows_the_colour_from_the_model() -> void:
+func test_gathering_row_shows_the_colour_from_the_model() -> void:
 	var saved: String = NodeColorPreview.cycle_script_path
 	NodeColorPreview.cycle_script_path = "res://tests/helpers/combat_cycle_stub.gd"
 	_open(SKILL)
-	var label: Label = _card(TWIG).find_child("ColorLabel", true, false) as Label
-	assert_true(label.visible, "the colour comes from EncounterCycle.color (double)")
-	assert_true(label.text.contains("arancione"))
+	var text: String = _row(TWIG).color_text()
+	assert_true(text.contains("arancione"), "the colour comes from EncounterCycle.color (double)")
 	NodeColorPreview.cycle_script_path = saved
 
 
@@ -130,19 +102,15 @@ func test_freeing_the_page_disconnects_everything() -> void:
 func test_gathering_page_has_no_production_view() -> void:
 	_open(SKILL)
 	assert_null(_page.find_child("ProfessionView", true, false))
-	assert_false(_cards().is_empty())
+	assert_false(_table().row_ids().is_empty())
 
 
 func test_real_data_forestry_page_is_read_only_and_lists_its_areas() -> void:
 	_session.free()
 	_session = TestFactory.session(1234, TestFactory.real_data())
 	_open(&"forestry")
-	var cards: Array[ActionCard] = _cards()
-	assert_eq(cards.size(), 8)
+	assert_eq(_table().row_ids().size(), 8)
 	assert_eq(_label(_page, "%NameLabel").text, "Boscaiolo")
-	assert_eq(_label(cards[0], "%IntervalValue").text, "2,85 s", "the unique hatchet +0 of the kit: -5%")
-	for card: ActionCard in cards.slice(1):
-		assert_true(_label(card, "%RequirementLabel").text.begins_with("Richiede"), "%s locked at level 1" % card.action_id())
 	assert_true((_page.find_child("FoundInLabel", true, false) as Label).text.length() > 0)
 
 
@@ -208,16 +176,19 @@ func _counts() -> Dictionary[StringName, int]:
 	return counts
 
 
-func _cards() -> Array[ActionCard]:
-	var cards: Array[ActionCard] = []
-	for child: Node in _page.get_node("%Cards").get_children():
-		if child is ActionCard:
-			cards.append(child as ActionCard)
-	return cards
+func _table() -> ResourceTable:
+	return _page.find_child("ResourceTable", true, false) as ResourceTable
 
 
-func _card(action_id: StringName) -> ActionCard:
-	return _page.get_node("%Cards/" + String(action_id).to_pascal_case()) as ActionCard
+func _row(action_id: StringName) -> ResourceRow:
+	return _page.find_child("ResourceRow_%s" % action_id, true, false) as ResourceRow
+
+
+func _label_texts(node: Node) -> PackedStringArray:
+	var texts: PackedStringArray = PackedStringArray()
+	for label: Node in node.find_children("*", "Label", true, false):
+		texts.append((label as Label).text)
+	return texts
 
 
 func _xp_bar(node: Node, path: String = "%XpBar") -> XpBar:

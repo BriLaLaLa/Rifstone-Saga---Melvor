@@ -127,7 +127,7 @@ func test_craft_card_shows_owned_products_and_bonus_tag_holds_the_mastery_lines(
 	assert_true(step_row.get_parent().get_parent() is PopupPanel, "the lines moved into the summary popup")
 
 
-func test_gathering_card_summary_lists_the_resource_milestones() -> void:
+func test_gathering_row_summary_lists_the_resource_milestones() -> void:
 	_real()
 	var action: ActionDef = null
 	for candidate: ActionDef in _session.data.actions_for_skill(&"forestry"):
@@ -138,7 +138,7 @@ func test_gathering_card_summary_lists_the_resource_milestones() -> void:
 	if action == null:
 		return
 	var page: SkillPage = _open_skill(&"forestry")
-	var tag: MasteryBonusTag = page.find_child(String(action.id).to_pascal_case(), true, false) \
+	var tag: MasteryBonusTag = page.find_child("ResourceRow_%s" % action.id, true, false) \
 			.find_child("BonusTag", true, false) as MasteryBonusTag
 	assert_string_contains(tag.summary_text(), MasteryBonusTag.MILESTONES_TITLE)
 

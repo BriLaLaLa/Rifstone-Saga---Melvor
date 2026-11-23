@@ -5,6 +5,8 @@ extends RefCounted
 const TITLE_TEXT: String = "Nodo: %s"
 const RESOURCE_TEXT: String = "Risorsa: %s"
 const RICH_TEXT: String = "Ricco"
+const FOCUSED_TEXT: String = "Mirata"
+const FOCUS_BLOCKED_TEXT: String = "Qui lavori solo fino a %s"
 const LOOT_TITLE_TEXT: String = "Bottino del nodo"
 const XP_TEXT: String = "Ultimo tentativo: +%s XP"
 const XP_NONE_TEXT: String = "Nessun tentativo ancora"

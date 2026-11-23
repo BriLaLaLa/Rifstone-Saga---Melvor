@@ -1,25 +1,17 @@
 class_name SkillPage
 extends Page
 ## Page of a learned discipline or of the Engraver (docs/01_GDD_M24.md §35.7 and §35.11, docs/03_ARCHITECTURE.md §11),
-## route `skill:<skill_id>`: header with icon, name, level and XP bar; one card per action of the data.
-##
-## A gathering discipline is read only (resources, level, the colour at the current level, mastery, the areas where it is
-## found, the tool panel): the player gathers at the nodes of the combat cycle. An artisan page and the Engraver put the
-## recipes in the production queue (`actions.enqueue`, `enqueue_blueprint`) and show the queue (ProductionQueuePanel).
-## Every redraw reads the session; a refused command shows its reason under the header. Stop reasons of the runner
-## become toasts (ToastManager), not here. It keeps no game state: the session reference and its nodes.
-## The cards of recipes are redrawn on `bank_changed` (owned ingredients). The card list scrolls (88 recipes in Forgiatura).
-## Skills with mastery have a "Maestria" button in the header that opens the MasteryPanel (M2-03), a child window of the
-## page (created on the first press, freed with the page): bound to the session only while open.
-## When its own discipline is unlearned the page asks for the Trainers page (`page_requested`).
+## route `skill:<skill_id>`: header with icon, name, level and XP bar. A gathering discipline is read only (ResourceTable of its
+## resources, the areas where it is found, the tool panel with the heads; the player gathers at the nodes of the combat cycle); an artisan
+## page and the Engraver put recipes in the production queue. Every redraw reads the session; a refused command shows its reason under
+## the header (stop reasons become toasts). No game state. An unlearned discipline asks for the Trainers page (`page_requested`).
 
 signal page_requested(page_id: StringName)
 
-const CARD_SCENE: PackedScene = preload("res://ui/pages/skill/action_card.tscn")
 const MASTERY_PANEL_SCENE: PackedScene = preload("res://ui/pages/mastery/mastery_panel.tscn")
 const BLUEPRINT_SECTION_SCENE: PackedScene = preload("res://ui/pages/skill/blueprint_section.tscn")
 const TOOL_PANEL_SCENE: PackedScene = preload("res://ui/pages/skill/tool_upgrade_panel.tscn")
-const TOOL_SKILLS: Array[StringName] = [&"forestry", &"quarrying", &"angling"]
+const TOOL_SKILLS: Array[StringName] = [&"forestry", &"quarrying", &"angling", &"herbalism"]
 const LOG_CATEGORY: String = "ui"
 const LEVEL_TEXT: String = "Livello %s"
 ## Italian text of each refusal of `actions.enqueue`; other reasons use REFUSED_TEXT_DEFAULT.
@@ -28,7 +20,7 @@ const REFUSED_TEXT_DEFAULT: String = SkillHeader.REFUSED_TEXT_DEFAULT
 
 var _session: GameSession = null
 var _skill: SkillDef = null
-var _cards: Dictionary[StringName, ActionCard] = {}
+var _table: ResourceTable = null
 var _mastery_panel: MasteryPanel = null
 ## Thin bar under the XP bar: the skill's mastery pool against its cap (skills with mastery only).
 var _pool_bar: ProgressBar = null
@@ -81,16 +73,17 @@ func bind(session: GameSession) -> void:
 	var events: GameEvents = _session.events
 	events.xp_gained.connect(_on_events_xp_gained)
 	events.level_up.connect(_on_events_level_up)
-	events.action_started.connect(_on_events_action_started)
-	events.action_stopped.connect(_on_events_action_stopped)
+	events.action_started.connect(_redraw.unbind(3))
+	events.action_stopped.connect(_redraw.unbind(3))
 	events.mastery_xp_gained.connect(_on_events_mastery_xp_gained)
-	events.modifiers_changed.connect(_on_events_modifiers_changed)
+	events.modifiers_changed.connect(_redraw)
 	events.production_queue_changed.connect(_on_events_queue_changed)
 	events.discipline_changed.connect(_on_events_discipline_changed)
-	events.recipe_learned.connect(_on_events_recipe_learned)
+	events.recipe_learned.connect(_redraw.unbind(1))
 	if _view != null or _blueprints != null or _tool_panel != null:
 		events.bank_changed.connect(_on_events_bank_changed)
 		events.armory_changed.connect(_on_events_extras_changed)
+		events.gather_focus_changed.connect(_on_events_extras_changed)
 		events.blueprint_crafted.connect(_on_events_extras_changed)
 		events.gold_changed.connect(_on_events_extras_changed)
 	_redraw()
@@ -105,17 +98,18 @@ func unbind() -> void:
 		for connection: Array in [
 			[events.xp_gained, _on_events_xp_gained],
 			[events.level_up, _on_events_level_up],
-			[events.action_started, _on_events_action_started],
-			[events.action_stopped, _on_events_action_stopped],
+			[events.action_started, _redraw.unbind(3)],
+			[events.action_stopped, _redraw.unbind(3)],
 			[events.mastery_xp_gained, _on_events_mastery_xp_gained],
-			[events.modifiers_changed, _on_events_modifiers_changed],
+			[events.modifiers_changed, _redraw],
 			[events.bank_changed, _on_events_bank_changed],
 			[events.armory_changed, _on_events_extras_changed],
+			[events.gather_focus_changed, _on_events_extras_changed],
 			[events.blueprint_crafted, _on_events_extras_changed],
 			[events.gold_changed, _on_events_extras_changed],
 			[events.production_queue_changed, _on_events_queue_changed],
 			[events.discipline_changed, _on_events_discipline_changed],
-			[events.recipe_learned, _on_events_recipe_learned],
+			[events.recipe_learned, _redraw.unbind(1)],
 		]:
 			var event: Signal = connection[0]
 			var handler: Callable = connection[1]
@@ -133,6 +127,7 @@ func unbind() -> void:
 	_skill = null
 	_blueprints = null
 	_tool_panel = null
+	_table = null
 	if _view != null and is_instance_valid(_view):
 		_view.forget_session()
 	_bench = null
@@ -149,17 +144,17 @@ func _exit_tree() -> void:
 
 
 func _build_cards() -> void:
-	for child: Node in _card_list.get_children():
-		_card_list.remove_child(child)
-		child.queue_free()
-	_cards.clear()
+	if _table != null and is_instance_valid(_table):
+		_table.get_parent().remove_child(_table)
+		_table.queue_free()
+	_table = null
+	_card_list.visible = false
 	if not _is_gathering():
 		return  # the recipes of a production page are the rows of the ProfessionView
-	for action: ActionDef in _session.data.actions_for_skill(_skill.id):
-		var action_card: ActionCard = CARD_SCENE.instantiate() as ActionCard
-		_card_list.add_child(action_card)
-		action_card.setup(action, _session.data)
-		_cards[action.id] = action_card
+	_table = ResourceTable.new()  # M35: the resources of a gathering discipline are a table (the cards are gone)
+	_card_list.get_parent().add_child(_table)
+	_table.setup(_session.data, _skill.id)
+	_table.focus_requested.connect(_on_focus_requested)
 
 
 func _is_gathering() -> bool:
@@ -168,8 +163,6 @@ func _is_gathering() -> bool:
 
 func _redraw() -> void:
 	_redraw_header()
-	for action_id: StringName in _cards:
-		_cards[action_id].redraw(_session)
 	_redraw_extras()
 
 
@@ -219,22 +212,9 @@ func _on_events_level_up(skill_id: StringName, _new_level: int) -> void:
 		_redraw()
 
 
-func _on_events_action_started(_lane: StringName, _skill_id: StringName, _action_id: StringName) -> void:
-	_redraw()
-
-
-func _on_events_action_stopped(_lane: StringName, _skill_id: StringName, _reason: StringName) -> void:
-	_redraw()
-
-
 func _on_events_queue_changed() -> void:
 	_redraw_status()
 	_redraw_extras()
-
-
-## A recipe was discovered: the lock of its card goes away.
-func _on_events_recipe_learned(_action_id: StringName) -> void:
-	_redraw()
 
 
 ## The discipline of this page was unlearned: the page has nothing to show, the Trainers page is requested.
@@ -243,15 +223,11 @@ func _on_events_discipline_changed(skill_id: StringName, grade: int) -> void:
 		page_requested.emit(&"trainers")
 
 
-func _on_events_mastery_xp_gained(skill_id: StringName, action_id: StringName, _amount: int) -> void:
+func _on_events_mastery_xp_gained(skill_id: StringName, _action_id: StringName, _amount: int) -> void:
 	if skill_id == _skill.id:
 		_redraw_pool_bar()
-	if skill_id == _skill.id and _cards.has(action_id):
-		_cards[action_id].redraw(_session)
-
-
-func _on_events_modifiers_changed() -> void:
-	_redraw()
+		if _table != null:
+			_table.redraw(_session)
 
 
 func _on_events_bank_changed(_item_id: StringName, _new_count: int, _delta: int) -> void:
@@ -290,6 +266,7 @@ func _build_extras() -> void:
 			_extras.add_child(_tool_panel)
 			_tool_panel.setup(_skill.id)
 			_tool_panel.upgrade_requested.connect(_on_tool_upgrade_requested)
+			_tool_panel.head_chosen.connect(_on_tool_head_chosen)
 		return
 	_build_production()
 
@@ -350,6 +327,8 @@ func _redraw_extras() -> void:
 		_view.redraw(_session)
 	if _blueprints != null:
 		_blueprints.redraw(_session)
+	if _table != null:
+		_table.redraw(_session)
 	if _tool_panel != null:
 		_tool_panel.redraw(_session)
 
@@ -398,3 +377,24 @@ func _build_pool_bar() -> void:
 func _redraw_pool_bar() -> void:
 	if _pool_bar != null:
 		SkillHeader.redraw_pool_bar(_pool_bar, _session, _skill.id)
+
+
+## "Raccogli questa" / "Automatico" of the resource table: the command answers, a refusal shows its reason.
+func _on_focus_requested(skill_id: StringName, action_id: StringName) -> void:
+	if _session == null:
+		return
+	_report(_session.disciplines.set_focus(skill_id, action_id))
+
+
+func _on_tool_head_chosen(uid: int, step: int, head_id: StringName) -> void:
+	if _session == null:
+		return
+	_report(_session.armory.choose_tool_head(uid, step, head_id))
+	_redraw_extras()
+
+
+func _report(result: CommandResult) -> void:
+	if result.ok:
+		_hide_refusal()
+	else:
+		_show_refusal_text(ToolUpgradeTexts.refused(result.reason))

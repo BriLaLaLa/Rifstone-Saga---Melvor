@@ -19,8 +19,14 @@ const REFUSED_TEXTS: Dictionary[StringName, String] = {
 	Reasons.LEVEL_TOO_LOW: "Livello del mestiere troppo basso per questa raffinazione.",
 	Reasons.NOT_ENOUGH_GOLD: "Non hai abbastanza monete.",
 	Reasons.NOT_ENOUGH_ITEMS: "Mancano piastre o manici per la raffinazione.",
+	Reasons.HEAD_LOCKED: "Questo passo non è ancora raggiunto.",
+	Reasons.UNKNOWN_HEAD: "Testa sconosciuta.",
+	Reasons.INVALID_STEP: "Passo non valido.",
+	Reasons.HEAD_UNCHANGED: "Questa testa è già montata.",
+	Reasons.NOT_EQUIPPABLE: "Un attrezzo leggendario non ha teste.",
+	Reasons.NOT_LEARNED: "Non hai ancora imparato questa disciplina.",
 }
-const REFUSED_TEXT_DEFAULT: String = "Raffinazione non riuscita."
+const REFUSED_TEXT_DEFAULT: String = "Operazione non riuscita."
 
 
 static func refused(reason: StringName) -> String:

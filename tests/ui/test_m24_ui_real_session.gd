@@ -36,19 +36,15 @@ func test_the_colour_preview_loads_the_real_cycle() -> void:
 	assert_true(preview.has("xp_pct"))
 
 
-func test_the_real_gathering_card_shows_the_colour_line() -> void:
+func test_the_real_gathering_row_shows_the_colour() -> void:
 	_page = SKILL_SCENE.instantiate() as SkillPage
 	_page.page_id = StringName(PageHost.ROUTE_SKILL + PageHost.ROUTE_SEPARATOR + FORESTRY)
 	add_child(_page)
 	_page.bind(_session)
 	var first: ActionDef = _session.data.actions_for_skill(FORESTRY)[0]
-	var card: ActionCard = _page.find_child(String(first.id).to_pascal_case(), true, false) as ActionCard
-	assert_not_null(card)
-	var shown: int = 0
-	for label: Node in card.find_children("*", "Label", true, false):
-		if (label as Label).visible and (label as Label).text.begins_with("Colore ora"):
-			shown += 1
-	assert_eq(shown, 1, "the card of a gathering resource has its colour line")
+	var row: ResourceRow = _page.find_child("ResourceRow_%s" % first.id, true, false) as ResourceRow
+	assert_not_null(row)
+	assert_true(row.color_text().is_empty() == false, "the row of a gathering resource has its colour")
 
 
 func test_the_real_node_state_is_read_by_the_texts_and_the_panel() -> void:
