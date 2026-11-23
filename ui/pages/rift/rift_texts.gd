@@ -4,21 +4,30 @@ extends RefCounted
 ## No state: everything is read from the session.
 
 const TITLE_TEXT: String = "Altare del Rift"
-const INTRO_TEXT: String = "Le rune negli incavi restano attive. Toglierne una la distrugge."
+const INTRO_TEXT: String = "Incastona le rune negli incavi: restano attive finché non le togli, e toglierle le distrugge."
 const NOT_LEARNED_TEXT: String = "Le rune si incidono con l'Incisore: imparalo dai Maestri del Villaggio."
 const OFF_TEXT: String = "Runa spenta: l'incavo è bloccato, si riaccende quando si sblocca."
 const SOCKET_TITLE_TEXT: String = "Incavo %d"
-const LOCKED_TEXT: String = "Si sblocca con %s al livello %d."
-const EMPTY_TEXT: String = "Libero — scegli una runa"
 const SOCKET_BUTTON_TEXT: String = "Incastona"
+const STEP1_TITLE_TEXT: String = "Incavo"
+const STEP1_HINT_TEXT: String = "Scegli dove agire. Gli incavi si sbloccano salendo di livello come Incisore."
+const STEP2_TITLE_TEXT: String = "Runa"
+const STEP2_HINT_TEXT: String = "Le rune che hai nel Deposito. Una runa incastonata si consuma."
+const STEP3_TITLE_TEXT: String = "Conferma"
+const STEP3_HINT_TEXT: String = "Cosa succede e cosa costa."
+const PICK_SOCKET_TEXT: String = "Scegli un incavo nella colonna a sinistra."
+const PICK_RUNE_TEXT: String = "L'incavo è libero: scegli una runa nella colonna centrale."
+const FREE_TEXT: String = "Libero"
+const LOCKED_SHORT_TEXT: String = "Bloccato · Incisore liv. %d"
+const OFF_SHORT_TEXT: String = "spenta"
+const LOCKED_LONG_TEXT: String = "Incavo bloccato: si sblocca con %s al livello %d (ora sei al livello %d)."
+const COST_TEXT: String = "Costo: 1 × %s dal Deposito (ne hai %s, ne resteranno %s)."
+const SUMMARY_AFTER_TEXT: String = "Dopo l'incastonatura"
 const REMOVE_BUTTON_TEXT: String = "Togli"
 const CONFIRM_REMOVE_TEXT: String = "Distruggi"
 const CANCEL_TEXT: String = "Annulla"
 const REMOVE_WARNING_TEXT: String = "Togliere la runa la distrugge."
-const PICK_TITLE_TEXT: String = "Scegli una runa dal deposito per l'incavo %d"
 const NO_INFUSIONS_TEXT: String = "Non possiedi rune: si incidono con l'Incisore, che si impara dai Maestri."
-const RUNES_TITLE_TEXT: String = "Rune nel deposito"
-const RUNE_LINE_TEXT: String = "%s  x%s"
 const CRAFT_RUNES_TEXT: String = "Incidi con l'Incisore"
 const LEARN_ENGRAVER_TEXT: String = "Impara l'Incisore dai Maestri"
 const SUMMARY_TITLE_TEXT: String = "Bonus attivi"
@@ -78,10 +87,23 @@ static func modifiers_inline(mods: Array[Modifier], data: GameData) -> String:
 
 
 ## Modifiers of all the infusions socketed now, as BBCode lines (summed per stat); empty if none.
-static func summary_lines(session: GameSession) -> PackedStringArray:
-	var mods: Array[Modifier] = []
+static func summary_lines(session: GameSession, extra: Array[Modifier] = []) -> PackedStringArray:
+	var mods: Array[Modifier] = extra.duplicate()
 	for i: int in session.rift.socket_total():
 		var item_id: StringName = session.rift.get_socket(i)
 		if session.rift.is_active(i):
 			mods.append_array(session.data.item(item_id).infusion_modifiers)
 	return ItemTooltipLines.modifier_lines(mods, session.data)
+
+
+## Why `item_id` cannot be socketed now, in Italian; "" if it can. Read-only mirror of the checks of `RiftAltar.socket`
+## (the command stays the authority and refuses with the same reasons).
+static func rune_block_reason(session: GameSession, item_id: StringName) -> String:
+	var def: ItemDef = session.data.item(item_id)
+	if def == null or def.category != &"infusion":
+		return refused(Reasons.NOT_EQUIPPABLE)
+	if def.infusion_unique:
+		for i: int in session.rift.socket_total():
+			if session.rift.get_socket(i) == item_id:
+				return refused(Reasons.REQUIREMENT_NOT_MET)
+	return ""
