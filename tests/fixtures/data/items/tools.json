@@ -65,6 +65,28 @@
           }
         ]
       }
+    },
+    {
+      "id": "unique_sickle",
+      "name": "Attrezzo di prova sickle",
+      "category": "tool",
+      "icon": "res://assets/icons/items/unique_sickle.svg",
+      "value": 0,
+      "sort_order": 40,
+      "description": "Attrezzo unico per i test.",
+      "equip": {
+        "slot": "tool_herbalism",
+        "grade": 1,
+        "unique": true,
+        "requirements": {},
+        "modifiers": [
+          {
+            "stat": "mastery_xp_pct",
+            "value": 0.01,
+            "scope": "skill:riftbinding"
+          }
+        ]
+      }
     }
   ]
 }

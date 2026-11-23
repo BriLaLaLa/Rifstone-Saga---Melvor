@@ -31,6 +31,36 @@
       "test": "tests/systems/mastery/test_mastery_math.gd::test_mastery_xp_pct"
     },
     {
+      "id": "node_units_pct",
+      "name": "Resa dei nodi",
+      "format": "pct",
+      "min": 0,
+      "max": 200,
+      "description": "Aumenta le unità raccolte in ogni nodo.",
+      "formula": "F-198",
+      "test": "tests/systems/encounters/test_attempts.gd::test_node_units_pct"
+    },
+    {
+      "id": "node_rich_pct",
+      "name": "Nodi ricchi",
+      "format": "pct",
+      "min": 0,
+      "max": 100,
+      "description": "Aumenta la probabilità che un nodo sia ricco.",
+      "formula": "F-199",
+      "test": "tests/systems/encounters/test_node_work.gd::test_node_rich_pct"
+    },
+    {
+      "id": "byproduct_chance_pct",
+      "name": "Sottoprodotti",
+      "format": "pct",
+      "min": 0,
+      "max": 100,
+      "description": "Aumenta la probabilità del sottoprodotto di una risorsa.",
+      "formula": "F-199",
+      "test": "tests/systems/actions/test_gathering_resolver.gd::test_byproduct_chance_pct"
+    },
+    {
       "id": "double_item_chance",
       "name": "Probabilità di raccolto doppio",
       "format": "pct",

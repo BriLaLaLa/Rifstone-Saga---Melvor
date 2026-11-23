@@ -7,7 +7,6 @@ extends GutTest
 const FIXTURE_ROOT: String = "res://tests/fixtures/data"
 const CONFIG_ROOT: String = "res://data/config"
 const PreRun := preload("res://tests/helpers/gut_pre_run.gd")
-const M35Data := preload("res://tests/systems/armory/m35_data.gd")
 const SKILL: StringName = &"test_gather"
 const TWIG: StringName = &"gather_twig"
 const BUNDLE: StringName = &"gather_bundle"
@@ -211,7 +210,6 @@ func test_byproduct_chance_pct() -> void:
 	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_ROOT.path_join("balance.json")))
 	((balance["mastery"] as Dictionary)["milestones"] as Dictionary)["byproduct_chance_pct"] = 0.0
 	var stats: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_ROOT.path_join("stats.json")))
-	M35Data.add_stats(stats)
 	_write(dir.path_join("balance.json"), JSON.stringify(balance))
 	_write(dir.path_join("stats.json"), JSON.stringify(stats))
 	var data: GameData = GameData.load_from_dirs(FIXTURE_ROOT, dir)

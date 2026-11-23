@@ -98,7 +98,7 @@ func test_real_start_kit_keys() -> void:
 	assert_eq(armory[1], {"base": "emberbronze_greatsword", "equip": ""})
 	assert_eq(armory[2], {"base": "emberbronze_shield", "equip": "offhand"})
 	assert_eq(_real.balance_value("start.tools"),
-			[{"base": "unique_hatchet"}, {"base": "unique_pick"}, {"base": "unique_rod"}])
+			[{"base": "unique_hatchet"}, {"base": "unique_pick"}, {"base": "unique_rod"}, {"base": "unique_sickle"}])
 	assert_eq((_real.balance_value("tool_upgrade.plate_items") as Array).size(), 8)
 	assert_eq((_real.balance_value("tool_upgrade.handle_items") as Array).size(), 8)
 	assert_eq((_real.balance_value("tool_upgrade.plate_items") as Array)[7], "riftite_plate")

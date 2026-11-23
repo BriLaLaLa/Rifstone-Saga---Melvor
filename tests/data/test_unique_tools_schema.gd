@@ -166,7 +166,7 @@ func test_content_fixtures_with_the_real_config_follow_the_reform() -> void:
 	var legacy: GameData = GameData.load_from_dirs("res://tests/fixtures/data", "res://data/config")
 	assert_eq(legacy.errors, PackedStringArray())
 	assert_true(legacy.item(&"unique_hatchet").equip.unique)
-	assert_eq(_tools(legacy).size(), 3)
+	assert_eq(_tools(legacy).size(), 4)
 
 
 # --- level_modifiers -------------------------------------------------------------------------------------------------
@@ -310,18 +310,19 @@ func test_real_data_has_no_serial_recipes_and_no_shop_tools() -> void:
 		assert_ne(entry.category, &"tools", entry.id)
 
 
-func test_real_data_has_three_unique_tools() -> void:
+func test_real_data_has_four_unique_tools_with_heads() -> void:
 	var data: GameData = GameData.load_from_dirs()
 	var tools: Array[ItemDef] = []
 	for tool_item: ItemDef in _tools(data):
 		if tool_item.equip.legendary == null:  # M14: the 9 legendary tools are not unique tools (tests/data/test_legendaries.gd)
 			tools.append(tool_item)
-	assert_eq(tools.size(), 3)
+	assert_eq(tools.size(), 4)
 	for tool_item: ItemDef in tools:
 		assert_true(tool_item.equip.unique, tool_item.id)
 		assert_eq(tool_item.value, 0)
 		assert_eq(tool_item.equip.grade, 1)
 		assert_true(tool_item.equip.requirements.is_empty())
-		assert_eq(tool_item.equip.upgrade_extras.size(), 2)
-	for slot: StringName in [&"tool_forestry", &"tool_quarrying", &"tool_angling"]:
+		assert_eq(tool_item.equip.upgrade_extras.size(), 0, "M35: heads replace the extras")
+		assert_eq(tool_item.equip.heads.size(), 2, tool_item.id)
+	for slot: StringName in [&"tool_forestry", &"tool_quarrying", &"tool_angling", &"tool_herbalism"]:
 		assert_not_null(data.unique_tool(slot), slot)

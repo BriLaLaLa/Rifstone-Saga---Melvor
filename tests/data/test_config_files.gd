@@ -26,6 +26,7 @@ const EXPECTED_BALANCE: Dictionary = {
 	"start.tools.0.base": "unique_hatchet",
 	"start.tools.1.base": "unique_pick",
 	"start.tools.2.base": "unique_rod",
+	"start.tools.3.base": "unique_sickle",
 	"start.purchases.auto_eat_1": 1.0,
 	"start.food": "seared_brookfin",
 	"xp_curve.base": 70.0,
@@ -180,6 +181,9 @@ const EXPECTED_STATS: Dictionary = {
 	"double_item_chance": [0.0, 100.0, "F-06"],
 	"preservation_chance": [0.0, 80.0, "F-08"],
 	"rift_shard_chance": [0.0, 100.0, "F-07"],
+	"node_units_pct": [0.0, 200.0, "F-198"],
+	"node_rich_pct": [0.0, 100.0, "F-199"],
+	"byproduct_chance_pct": [0.0, 100.0, "F-199"],
 	"accuracy_bonus": [-1000.0, 100000.0, "F-20"],
 	"accuracy_pct": [-90.0, 1000.0, "F-20"],
 	"power_bonus": [-1000.0, 100000.0, "F-22"],
@@ -303,7 +307,7 @@ func test_balance_has_no_later_milestone_sections() -> void:
 
 func test_stats_has_exactly_25_stats() -> void:
 	var stats: Array = _stats()
-	assert_eq(stats.size(), 26, "stats.json lists the 25 stats of M1-M7 minus bank_slots and armory_slots (M12), plus barrier (M14), plus deposit_slots (M19), plus quest_slots (M20)")
+	assert_eq(stats.size(), 29, "stats.json lists the 25 stats of M1-M7 minus bank_slots and armory_slots (M12), plus barrier (M14), plus deposit_slots (M19), plus quest_slots (M20), plus node_units_pct, node_rich_pct, byproduct_chance_pct (M35)")
 	var ids: Array[String] = []
 	for entry: Variant in stats:
 		if entry is Dictionary:

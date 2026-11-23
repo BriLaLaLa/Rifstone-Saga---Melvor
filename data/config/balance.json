@@ -14,7 +14,7 @@
     "items": [{"item": "seared_brookfin", "qty": 30}],
     "armory": [{"base": "emberbronze_sword", "equip": "weapon"}, {"base": "emberbronze_greatsword", "equip": ""},
                {"base": "emberbronze_shield", "equip": "offhand"}],
-    "tools": [{"base": "unique_hatchet"}, {"base": "unique_pick"}, {"base": "unique_rod"}],
+    "tools": [{"base": "unique_hatchet"}, {"base": "unique_pick"}, {"base": "unique_rod"}, {"base": "unique_sickle"}],
     "purchases": {"auto_eat_1": 1},
     "food": "seared_brookfin"
   },
@@ -265,6 +265,9 @@
   "tool_upgrade": {
     "interval_base_pct": 5,
     "interval_per_level_pct": 2,
+    "units_per_level_pct": 1,
+    "head_steps": [3, 6, 9],
+    "respec_pct": 25,
     "levels": [
       {"min_level": 1, "grade": 1, "plates": 2, "handles": 1, "gold": 10000},
       {"min_level": 10, "grade": 2, "plates": 2, "handles": 1, "gold": 25000},

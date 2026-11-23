@@ -3,7 +3,7 @@
     {"id": "guide_first_steps", "section": "first_steps", "title": "Primi passi", "order": 1,
      "help_for": ["combat"],
      "blocks": [
-       {"type": "text", "text": "Sei uno Spadaccino delle {link:area:redrock_plains|Pianure di Roccarossa}. Hai già un equipaggiamento di base, un po' di cibo e tre attrezzi: tutto pronto per la prima ora."},
+       {"type": "text", "text": "Sei uno Spadaccino delle {link:area:redrock_plains|Pianure di Roccarossa}. Hai già un equipaggiamento di base, un po' di cibo e quattro attrezzi: tutto pronto per la prima ora."},
        {"type": "heading", "text": "La prima ora"},
        {"type": "text", "text": "Apri Combattimento, scegli un'area e avvia: gli incontri si susseguono da soli. Scegli il cibo da mangiare: con le Razioni da campo si mangia in automatico. Raccogli il bottino dalla borsa e portalo nel Deposito. Dall'Armeria equipaggia i pezzi migliori che trovi. Per raccogliere e produrre impara una disciplina dai Maestri del Villaggio: i nodi che incontri tra uno scontro e l'altro e la coda dei lavori faranno il resto."},
        {"type": "text", "text": "Il gioco prosegue anche a gioco chiuso, fino a {balance:offline.cap_ms|ore} ore."},

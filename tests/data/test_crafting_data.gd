@@ -28,7 +28,7 @@ const GRADE_LEVELS: Array[int] = [1, 5, 10, 15, 20, 25, 30, 35]
 ## Tools: [suffix, skill, slot].
 const TOOL_PIECES: Array[Array] = [
 	["hatchet", "forestry", "tool_forestry"], ["pick", "quarrying", "tool_quarrying"],
-	["rod", "angling", "tool_angling"],
+	["rod", "angling", "tool_angling"], ["sickle", "herbalism", "tool_herbalism"],
 ]
 ## Weapons: [suffix, kind, interval, two handed, accuracy per grade, power per grade, ingots,
 ## recipe interval, value per ore value].
@@ -268,8 +268,6 @@ func test_full_t8_set_with_shield_follows_the_8_4_example() -> void:
 
 func test_unique_tools_follow_8_4_and_f94() -> void:
 	var items: Dictionary = _by_id("items", "items")
-	var extras: Dictionary = {"forestry": ["double_item_chance", 2.0, 3.0], "quarrying": ["double_item_chance", 2.0, 3.0],
-		"angling": ["rift_shard_chance", 10.0, 15.0]}
 	for t: Array in TOOL_PIECES:
 		var id: String = "unique_" + (t[0] as String)
 		var equip: Dictionary = items[id]["equip"]
@@ -280,11 +278,8 @@ func test_unique_tools_follow_8_4_and_f94() -> void:
 		assert_eq(equip["unique"], true, id)
 		assert_eq(equip["requirements"], {}, id)
 		assert_eq(equip["modifiers"], [{"stat": "skill_interval_pct", "value": -5.0, "scope": "skill:" + t[1]}], id)
-		var extra: Array = extras[t[1]]
-		assert_eq(equip["upgrade_extras"], [
-			{"at": 5.0, "modifiers": [{"stat": extra[0], "value": extra[1], "scope": "skill:" + t[1]}]},
-			{"at": 9.0, "modifiers": [{"stat": extra[0], "value": extra[2], "scope": "skill:" + t[1]}]},
-		], id)
+		assert_false(equip.has("upgrade_extras"), id)
+		assert_eq((equip["heads"] as Array).size(), 2, id)
 
 
 func test_shop_follows_8_6() -> void:
