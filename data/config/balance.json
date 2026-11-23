@@ -99,6 +99,12 @@
     "rich_extra_attempts": 2,
     "rich_units_pct": 150,
     "rich_ms_pct": 150,
+    "resource_profile": [
+      {"offset": -2, "weight": 5},
+      {"offset": -1, "weight": 25},
+      {"offset": 0, "weight": 55},
+      {"offset": 1, "weight": 15}
+    ],
     "colors": [
       {"id": "orange", "below": 10, "xp_pct": 100},
       {"id": "yellow", "below": 20, "xp_pct": 50},
