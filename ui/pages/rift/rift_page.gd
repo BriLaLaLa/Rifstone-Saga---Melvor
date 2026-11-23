@@ -1,28 +1,26 @@
 class_name RiftPage
 extends Page
-## Altar of the Rift page (docs/01_GDD.md §11, route `rift`): the sockets with their state (locked with the Riftbinding
-## level that unlocks them, free, occupied by an infusion), "Incastona" (choice among the infusions of the bank), "Togli"
-## with a confirmation (the infusion is destroyed) and the summary of the active bonuses.
+## Altar of the Rift page (docs/01_GDD.md §11, route `rift`), three columns in the order of the work: 1 pick a socket,
+## 2 pick a rune of the Deposit, 3 see cost and result and confirm (or remove the rune, which destroys it, after a confirmation).
 ##
-## Every redraw reads the session (`rift`, `bank`, `skills`, `data`); the page keeps the session reference, its nodes and
-## two presentation indices (which socket is choosing an infusion / asking the removal confirmation). Player actions
-## are the commands `rift.socket` / `rift.clear_socket`; a refusal shows its reason in Italian and changes nothing.
+## Every redraw reads the session (`rift`, `bank`, `skills`, `data`). The page keeps the session reference, its nodes and
+## three presentation choices (socket, rune, removal waiting for confirmation). Player actions are the commands
+## `rift.socket` / `rift.clear_socket`; a refusal shows its reason in Italian and changes nothing.
 
 var _session: GameSession = null
-## Presentation state: the socket that is choosing an infusion and the one waiting for the removal confirmation (-1 = none).
-var _picking: int = -1
-var _removing: int = -1
+## Presentation state: the picked socket (-1 = none), the picked rune and the removal waiting for confirmation.
+var _socket: int = -1
+var _rune: StringName = &""
+var _removing: bool = false
 
 @onready var _margin: MarginContainer = %Margin
 @onready var _title_label: Label = %TitleLabel
 @onready var _intro_label: Label = %IntroLabel
 @onready var _message_label: Label = %MessageLabel
-@onready var _sockets: VBoxContainer = %Sockets
-@onready var _picker: PanelContainer = %Picker
-@onready var _picker_box: VBoxContainer = %PickerBox
-@onready var _runes_box: VBoxContainer = %RunesBox
-@onready var _summary_title: Label = %SummaryTitle
-@onready var _summary_text: RichTextLabel = %SummaryText
+@onready var _columns: HBoxContainer = %Columns
+var _sockets_column: AltarSocketColumn = null
+var _runes_column: AltarRuneColumn = null
+var _confirm_column: AltarConfirmColumn = null
 
 
 func _ready() -> void:
@@ -30,15 +28,29 @@ func _ready() -> void:
 		_margin.add_theme_constant_override(side, UiStyle.ARMORY_MARGIN)
 	_title_label.text = RiftTexts.TITLE_TEXT
 	_intro_label.text = RiftTexts.INTRO_TEXT
-	_summary_title.text = RiftTexts.SUMMARY_TITLE_TEXT
+	_sockets_column = AltarSocketColumn.new()
+	_runes_column = AltarRuneColumn.new()
+	_confirm_column = AltarConfirmColumn.new()
+	for column: AltarColumn in [_sockets_column, _runes_column, _confirm_column]:
+		_columns.add_child(column)
+	_sockets_column.socket_selected.connect(_on_socket_selected)
+	_runes_column.rune_selected.connect(_on_rune_selected)
+	_runes_column.craft_pressed.connect(_on_craft_runes_pressed)
+	_confirm_column.socket_pressed.connect(_on_socket_confirmed)
+	_confirm_column.remove_pressed.connect(_on_remove_pressed)
+	_confirm_column.remove_confirmed.connect(_on_remove_confirmed)
+	_confirm_column.remove_cancelled.connect(_on_remove_cancelled)
 
 
 func bind(session: GameSession) -> void:
 	unbind()
 	_session = session
 	HelpButton.attach(_title_label.get_parent(), session.data, &"rift", _title_label)
-	_picking = -1
-	_removing = -1
+	_removing = false
+	_rune = &""
+	_socket = _next_free_socket()
+	if _socket < 0 and session.rift.socket_total() > 0:
+		_socket = 0
 	_message_label.visible = false
 	for sig: Signal in _signals(session.events):
 		sig.connect(_redraw_from_event)
@@ -69,167 +81,46 @@ func _redraw_from_event(_a: Variant = null, _b: Variant = null, _c: Variant = nu
 func _redraw() -> void:
 	if _session == null:
 		return
-	for child: Node in _sockets.get_children():
-		_sockets.remove_child(child)
-		child.queue_free()
-	for i: int in _session.rift.socket_total():
-		_sockets.add_child(_build_row(i))
 	_intro_label.text = RiftTexts.INTRO_TEXT if _session.disciplines.is_learned(RiftAltar.SKILL) \
 			else "%s\n%s" % [RiftTexts.INTRO_TEXT, RiftTexts.NOT_LEARNED_TEXT]
-	_redraw_picker()
-	_redraw_runes()
-	var lines: PackedStringArray = RiftTexts.summary_lines(_session)
-	_summary_text.text = "\n".join(lines) if not lines.is_empty() else RiftTexts.SUMMARY_NONE_TEXT
+	_normalize()
+	_sockets_column.refresh(_session, _socket)
+	_runes_column.refresh(_session, _rune if _socket_is_free() else &"")
+	_confirm_column.refresh(_session, _socket, _rune, _removing)
 
 
-func _build_row(index: int) -> PanelContainer:
-	var rift: RiftAltar = _session.rift
-	var panel := PanelContainer.new()
-	panel.name = "Socket%d" % index
-	panel.theme_type_variation = &"HudPanel"
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 12)
-	panel.add_child(row)
-	var title := Label.new()
-	title.theme_type_variation = &"HeaderLabel"
-	title.text = RiftTexts.SOCKET_TITLE_TEXT % (index + 1)
-	title.custom_minimum_size.x = UiStyle.BANK_PANEL_WIDTH * 0.5
-	row.add_child(title)
-	var state := RichTextLabel.new()
-	state.name = "StateText"
-	state.bbcode_enabled = true
-	state.fit_content = true
-	state.scroll_active = false
-	state.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(state)
-	var item_id: StringName = rift.get_socket(index)
-	if not rift.is_unlocked(index):
-		var locked: String = RiftTexts.LOCKED_TEXT % [RiftTexts.skill_name(_session), RiftTexts.unlock_level(_session, index)]
-		if item_id == &"":
-			state.text = "[color=#%s]%s[/color]" % [UiStyle.TEXT_DISABLED.to_html(false), locked]
-		else:  # the rune stays in a locked socket, switched off (GDD M25 §37.1); it can still be removed
-			state.text = "[color=#%s]%s\n%s\n%s[/color]" % [UiStyle.TEXT_DISABLED.to_html(false),
-					ItemTooltipLines.escape(_session.data.item(item_id).name), RiftTexts.OFF_TEXT, locked]
-			_add_remove_controls(row, index)
-	elif item_id == &"":
-		state.text = "[color=#%s]%s[/color]" % [UiStyle.TEXT_2.to_html(false), RiftTexts.EMPTY_TEXT]
-		_add_button(row, "SocketButton", RiftTexts.SOCKET_BUTTON_TEXT, _on_socket_pressed.bind(index))
-	else:
-		state.text = _infusion_text(item_id)
-		_add_remove_controls(row, index)
-	return panel
+## Keeps the choices valid after the model changed: a rune no longer owned or no longer usable is dropped, and for a free
+## socket the first usable rune is picked so the result is already on screen.
+func _normalize() -> void:
+	if _socket >= _session.rift.socket_total():
+		_socket = -1
+	if _removing and _session.rift.get_socket(_socket) == &"":
+		_removing = false
+	var usable: StringName = &""
+	var keep: bool = false
+	for entry: Dictionary in RiftTexts.owned(_session, &"infusion"):
+		var id: StringName = (entry["item"] as ItemDef).id
+		if RiftTexts.rune_block_reason(_session, id) != "":
+			continue
+		if usable == &"":
+			usable = id
+		if id == _rune:
+			keep = true
+	_rune = _rune if keep else usable
 
 
-func _add_remove_controls(row: HBoxContainer, index: int) -> void:
-	if _removing == index:
-		var warn := Label.new()
-		warn.text = RiftTexts.REMOVE_WARNING_TEXT
-		warn.theme_type_variation = &"MutedLabel"
-		row.add_child(warn)
-		_add_button(row, "ConfirmRemoveButton", RiftTexts.CONFIRM_REMOVE_TEXT, _on_remove_confirmed.bind(index))
-		_add_button(row, "CancelRemoveButton", RiftTexts.CANCEL_TEXT, _on_remove_cancelled)
-	else:
-		_add_button(row, "RemoveButton", RiftTexts.REMOVE_BUTTON_TEXT, _on_remove_pressed.bind(index))
+func _socket_is_free() -> bool:
+	return _socket >= 0 and _session.rift.is_unlocked(_socket) and _session.rift.get_socket(_socket) == &""
 
 
-## Name of the infusion in its color plus the modifiers (stat registry labels).
-func _infusion_text(item_id: StringName) -> String:
-	var def: ItemDef = _session.data.item(item_id)
-	var mods: String = RiftTexts.modifiers_inline(def.infusion_modifiers, _session.data)
-	return "[b]%s[/b]\n[color=#%s]%s[/color]" % [ItemTooltipLines.escape(def.name), UiStyle.GOLD_LIGHT.to_html(false),
-			ItemTooltipLines.escape(mods)]
+func _next_free_socket() -> int:
+	for i: int in _session.rift.socket_total():
+		if _session.rift.is_unlocked(i) and _session.rift.get_socket(i) == &"":
+			return i
+	return -1
 
 
-func _add_button(row: HBoxContainer, node_name: String, text: String, callback: Callable) -> Button:
-	var button := Button.new()
-	button.name = node_name
-	button.text = text
-	button.focus_mode = Control.FOCUS_NONE
-	button.custom_minimum_size = Vector2(UiStyle.BANK_PANEL_WIDTH * 0.5, UiStyle.MENU_BUTTON_HEIGHT)
-	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	button.pressed.connect(callback)
-	row.add_child(button)
-	return button
-
-
-## The list of infusions the player owns, for the socket that is choosing.
-func _redraw_picker() -> void:
-	for child: Node in _picker_box.get_children():
-		_picker_box.remove_child(child)
-		child.queue_free()
-	var open: bool = _picking >= 0 and _session.rift.is_unlocked(_picking) and _session.rift.get_socket(_picking) == &""
-	if not open:
-		_picking = -1
-	_picker.visible = open
-	if not open:
-		return
-	var title := Label.new()
-	title.theme_type_variation = &"HeaderLabel"
-	title.text = RiftTexts.PICK_TITLE_TEXT % (_picking + 1)
-	_picker_box.add_child(title)
-	var owned: Array[Dictionary] = RiftTexts.owned(_session, &"infusion")
-	if owned.is_empty():
-		var none := Label.new()
-		none.name = "NoInfusions"
-		none.text = RiftTexts.NO_INFUSIONS_TEXT
-		none.theme_type_variation = &"MutedLabel"
-		_picker_box.add_child(none)
-	for entry: Dictionary in owned:
-		var def: ItemDef = entry["item"] as ItemDef
-		var text: String = "%s  x%s  -  %s" % [def.name, NumberFormat.format_int(int(entry["count"])),
-				RiftTexts.modifiers_inline(def.infusion_modifiers, _session.data)]
-		if def.infusion_unique:
-			text += " (%s)" % RiftTexts.UNIQUE_TEXT
-		var button := Button.new()
-		button.name = "Pick_%s" % def.id
-		button.text = text
-		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		button.focus_mode = Control.FOCUS_NONE
-		button.custom_minimum_size.y = UiStyle.MENU_BUTTON_HEIGHT
-		button.pressed.connect(_on_pick_pressed.bind(def.id))
-		_picker_box.add_child(button)
-	var cancel := Button.new()
-	cancel.name = "CancelPickButton"
-	cancel.text = RiftTexts.CANCEL_TEXT
-	cancel.focus_mode = Control.FOCUS_NONE
-	cancel.pressed.connect(_on_pick_cancelled)
-	_picker_box.add_child(cancel)
-
-
-## The runes of the bank with their effect (item description) and the link to the Riftbinding page that crafts them.
-func _redraw_runes() -> void:
-	for child: Node in _runes_box.get_children():
-		_runes_box.remove_child(child)
-		child.queue_free()
-	var title := Label.new()
-	title.theme_type_variation = &"HeaderLabel"
-	title.text = RiftTexts.RUNES_TITLE_TEXT
-	_runes_box.add_child(title)
-	var owned: Array[Dictionary] = RiftTexts.owned(_session, &"infusion")
-	if owned.is_empty():
-		var none := Label.new()
-		none.name = "NoRunes"
-		none.text = RiftTexts.NO_INFUSIONS_TEXT
-		none.theme_type_variation = &"MutedLabel"
-		_runes_box.add_child(none)
-	for entry: Dictionary in owned:
-		var def: ItemDef = entry["item"] as ItemDef
-		var line := Label.new()
-		line.name = "Rune_%s" % def.id
-		line.text = "%s\n%s" % [RiftTexts.RUNE_LINE_TEXT % [def.name, NumberFormat.format_int(int(entry["count"]))],
-				RiftTexts.modifiers_inline(def.infusion_modifiers, _session.data)]
-		line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		_runes_box.add_child(line)
-	var craft := Button.new()
-	craft.name = "CraftRunesButton"
-	craft.text = RiftTexts.CRAFT_RUNES_TEXT if _session.disciplines.is_learned(RiftAltar.SKILL) else RiftTexts.LEARN_ENGRAVER_TEXT
-	craft.focus_mode = Control.FOCUS_NONE
-	craft.custom_minimum_size.y = UiStyle.MENU_BUTTON_HEIGHT
-	craft.pressed.connect(_on_craft_runes_pressed)
-	_runes_box.add_child(craft)
-
-
-## Opens the Riftbinding skill page through the host (route `skill:riftbinding`).
+## Opens the Riftbinding skill page through the host (route `skill:riftbinding`), or the Trainers if it is not learned.
 func _on_craft_runes_pressed() -> void:
 	var node: Node = get_parent()
 	while node != null and not node is PageHost:
@@ -237,7 +128,7 @@ func _on_craft_runes_pressed() -> void:
 	if node == null:
 		return
 	if _session != null and not _session.disciplines.is_learned(RiftAltar.SKILL):
-		(node as PageHost).show_page(&"trainers")  # not learned: the page of the Trainers
+		(node as PageHost).show_page(&"trainers")
 		return
 	(node as PageHost).show_page(StringName("%s%s%s" % [PageHost.ROUTE_SKILL, PageHost.ROUTE_SEPARATOR,
 			RiftAltar.SKILL]))
@@ -245,48 +136,49 @@ func _on_craft_runes_pressed() -> void:
 
 # --- Commands ---------------------------------------------------------------------------------------------------
 
-func _on_socket_pressed(index: int) -> void:
-	_picking = index
-	_removing = -1
+func _on_socket_selected(index: int) -> void:
+	_socket = index
+	_removing = false
 	_message_label.visible = false
 	_redraw()
 
 
-func _on_pick_cancelled() -> void:
-	_picking = -1
+func _on_rune_selected(item_id: StringName) -> void:
+	_rune = item_id
 	_redraw()
 
 
-func _on_pick_pressed(item_id: StringName) -> void:
-	if _session == null or _picking < 0:
+func _on_socket_confirmed() -> void:
+	if _session == null or _socket < 0 or _rune == &"":
 		return
-	var result: CommandResult = _session.rift.socket(_picking, item_id)
+	var result: CommandResult = _session.rift.socket(_socket, _rune)
 	if result.ok:
-		_notify(RiftTexts.SOCKETED_TEXT % _session.data.item(item_id).name, true)
-		_picking = -1
+		_notify(RiftTexts.SOCKETED_TEXT % _session.data.item(_rune).name, true)
+		var next: int = _next_free_socket()
+		if next >= 0:
+			_socket = next
 	else:
 		_notify(RiftTexts.refused(result.reason), false)
 	_redraw()
 
 
-func _on_remove_pressed(index: int) -> void:
-	_removing = index
-	_picking = -1
+func _on_remove_pressed() -> void:
+	_removing = true
 	_message_label.visible = false
 	_redraw()
 
 
 func _on_remove_cancelled() -> void:
-	_removing = -1
+	_removing = false
 	_redraw()
 
 
-func _on_remove_confirmed(index: int) -> void:
-	if _session == null:
+func _on_remove_confirmed() -> void:
+	if _session == null or _socket < 0:
 		return
-	var item_id: StringName = _session.rift.get_socket(index)
-	_removing = -1
-	var result: CommandResult = _session.rift.clear_socket(index)
+	var item_id: StringName = _session.rift.get_socket(_socket)
+	_removing = false
+	var result: CommandResult = _session.rift.clear_socket(_socket)
 	if result.ok:
 		_notify(RiftTexts.REMOVED_TEXT % _session.data.item(item_id).name, true)
 	else:
