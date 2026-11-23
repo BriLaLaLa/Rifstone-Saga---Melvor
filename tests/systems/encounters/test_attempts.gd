@@ -2,6 +2,7 @@ extends GutTest
 ## F-161 (difficulty, attempts, instants) and F-162 (yield and units of an attempt) with the numbers of docs/02_FORMULAS_M25.md.
 ## Real data (the numbers of §9c are in `balance.json`; a test that needs other numbers changes them on its own copy).
 
+const RES: Dictionary = {"action": "cut_redbirch", "weight": 100}
 const M35Data := preload("res://tests/systems/armory/m35_data.gd")
 const AREA: StringName = &"redrock_plains"
 const FORESTRY: StringName = &"forestry"
@@ -57,9 +58,9 @@ func test_the_difficulty_is_the_cap_of_the_area_unless_the_data_says_otherwise()
 	assert_eq(EncounterCycle.difficulty(s, AREA, FORESTRY), nodes.max_level)
 	assert_eq(nodes.min_level_of(FORESTRY), 1)
 	assert_eq(EncounterCycle.difficulty(s, &"no_such_area", FORESTRY), 0)
-	var entry: NodeEntryDef = NodeEntryDef.from_dict({"skill": "forestry", "weight": 10, "difficulty": 30, "min_level": 12})
+	var entry: NodeEntryDef = NodeEntryDef.from_dict({"skill": "forestry", "weight": 10, "difficulty": 30, "min_level": 12, "resources": [RES]})
 	assert_eq([entry.difficulty, entry.min_level], [30, 12])
-	var area: AreaNodesDef = AreaNodesDef.from_dict({"area": "x", "max_level": 40, "nodes": [{"skill": "forestry", "weight": 10, "min_level": 5}]})
+	var area: AreaNodesDef = AreaNodesDef.from_dict({"area": "x", "max_level": 40, "nodes": [{"skill": "forestry", "weight": 10, "min_level": 5, "resources": [RES]}]})
 	assert_eq([area.difficulty_of(FORESTRY), area.min_level_of(FORESTRY), area.difficulty_of(&"angling")], [40, 5, 0])
 
 

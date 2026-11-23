@@ -34,19 +34,65 @@ static func next_kind(session: GameSession, area_id: StringName, forced_fight: b
 	return {"kind": NODE, "skill": nodes.entries[session.rng.pick_weighted(weights)].skill}
 
 
-## F-154 / F-195: the resource of a node. `focus` (the chosen resource, `&""` = Automatico) if it is of `skill_id` and its `level` is <= min(`skill_level`,
-## `max_level`); else the action of `skill_id` with the highest such `level` (the first in the file on a tie). Never skips the node. Null only if
-## the skill has no such action (data error: the first step has level 1).
-static func worked_action(data: GameData, skill_id: StringName, skill_level: int, max_level: int, focus: StringName = &""
-) -> ActionDef:
-	var limit: int = mini(skill_level, max_level)
-	if focus != &"" and data.has_action(focus) and data.action(focus).skill_id == skill_id and data.action(focus).level <= limit:
-		return data.action(focus)
+## F-200 step 1: the entries of the resource table of `skill_id` in the area whose action has `level <= skill_level`, in the order of the table.
+static func eligible_resources(data: GameData, area_id: StringName, skill_id: StringName, skill_level: int) -> Array[NodeResourceDef]:
+	var result: Array[NodeResourceDef] = []
+	var nodes: AreaNodesDef = data.area_nodes(area_id)
+	if nodes == null:
+		return result
+	for resource: NodeResourceDef in nodes.resources_of(skill_id):
+		if data.action(resource.action).level <= skill_level:
+			result.append(resource)
+	return result
+
+
+## F-200 step 4 (the old F-154 without the cap): the action of `skill_id` with the highest `level <= skill_level` (the first in the file on a
+## tie). Null only if the skill has no such action (data error: the first step has level 1).
+static func fallback_action(data: GameData, skill_id: StringName, skill_level: int) -> ActionDef:
 	var best: ActionDef = null
 	for action: ActionDef in data.actions_for_skill(skill_id):
-		if action.level <= limit and (best == null or action.level > best.level):
+		if action.level <= skill_level and (best == null or action.level > best.level):
 			best = action
 	return best
+
+
+## F-200: the resource of a node. One `pick_weighted` on the weights of the eligible entries only when there are two or more and the node
+## is worked (`skipped` false); one eligible entry: it, no roll; none: the fallback, no roll; a skipped node: the heaviest eligible entry
+## (the first on a tie) or the fallback, no roll. Null only for a data error (no action of level 1).
+static func pick_resource(session: GameSession, area_id: StringName, skill_id: StringName, skill_level: int, skipped: bool) -> ActionDef:
+	var eligible: Array[NodeResourceDef] = eligible_resources(session.data, area_id, skill_id, skill_level)
+	if eligible.is_empty():
+		return fallback_action(session.data, skill_id, skill_level)
+	var index: int = 0
+	if skipped:
+		for i: int in eligible.size():
+			if eligible[i].weight > eligible[index].weight:
+				index = i
+	elif eligible.size() >= 2:
+		var weights: Array[int] = []
+		for resource: NodeResourceDef in eligible:
+			weights.append(resource.weight)
+		index = session.rng.pick_weighted(weights)
+	return session.data.action(eligible[index].action)
+
+
+## F-202: for each entry of the table of `skill_id` in the area, in table order: `{"action": ActionDef, "weight": int, "pct_nominal": int,
+## "pct_effective": float, "workable": bool}`; `pct_effective` = `weight x 100 / sum of the eligible weights` for a workable entry, else 0
+## (0 for all when no entry is eligible: the fallback has 100%). [] if the area has no such node.
+static func resource_odds(data: GameData, area_id: StringName, skill_id: StringName, skill_level: int) -> Array[Dictionary]:
+	var rows: Array[Dictionary] = []
+	var nodes: AreaNodesDef = data.area_nodes(area_id)
+	if nodes == null:
+		return rows
+	var total: int = 0
+	for resource: NodeResourceDef in eligible_resources(data, area_id, skill_id, skill_level):
+		total += resource.weight
+	for resource: NodeResourceDef in nodes.resources_of(skill_id):
+		var action: ActionDef = data.action(resource.action)
+		var workable: bool = action.level <= skill_level
+		rows.append({"action": action, "weight": resource.weight, "pct_nominal": resource.weight,
+				"pct_effective": float(resource.weight) * 100.0 / float(total) if workable and total > 0 else 0.0, "workable": workable})
+	return rows
 
 
 ## F-154: the color of a node worked at the end, from d = `skill_level` - `action_level` (>= 0): the first entry of

@@ -2,7 +2,7 @@ class_name Disciplines
 extends RefCounted
 ## Disciplines and their Trainers (docs/01_GDD_M24.md §35.3, §35.5; F-158..F-160; docs/05_INTERFACES_M24.md §5.31): which skills with `discipline`
 ## are learned (at most `disciplines.max_per_category` per category), at which grade, and which Recipes were discovered.
-## State: skill id -> grade (1..n), the discovered recipe action ids and (M35) the resource chosen per gathering discipline. The grade fixes the
+## State: skill id -> grade (1..n), the discovered recipe action ids. The grade fixes the
 ## level cap (F-160, enforced by SkillsSystem through `xp_max`). Commands are atomic: a refusal changes nothing and emits nothing. Signals
 ## go to the EventBus after the change; `new_game`/`from_save` emit nothing.
 ## No modifier sources. Uses: data, events, wallet, bank, skills, character, mastery, actions (`drop_jobs_of`), combat (`node_skill`).
@@ -27,8 +27,6 @@ var _grades: Dictionary[StringName, int] = {}
 var _recipes: Array[StringName] = []
 # Learned disciplines that occupy an extra slot (only a v8 -> v9 save creates one, docs/01_GDD_M25.md §37.2).
 var _extra: Array[StringName] = []
-# M35 (F-195): skill id -> action id of the chosen resource; only learned gathering disciplines (absent = Automatico).
-var _focus: Dictionary[StringName, StringName] = {}
 
 
 func _init(session: GameSession) -> void:
@@ -43,14 +41,6 @@ func _init(session: GameSession) -> void:
 func is_discipline(skill_id: StringName) -> bool:
 	return _data.disciplines().has(skill_id)
 
-
-## M35: the resource chosen for the nodes of `skill_id` (`&""` = Automatico).
-func focus_of(skill_id: StringName) -> StringName: return _focus.get(skill_id, &"")
-
-
-## M35 (F-195): choose the resource (`&""` = Automatico). unknown_id, not_learned, level_too_low; `gather_focus_changed`.
-func set_focus(skill_id: StringName, action_id: StringName) -> CommandResult:
-	return GatherFocus.set_choice(_focus, _session, skill_id, action_id)
 
 
 ## &"gathering" or &"artisan" for a discipline, &"" otherwise.
@@ -212,7 +202,6 @@ func unlearn(skill_id: StringName) -> CommandResult:
 	_session.mastery.reset_skill(skill_id)
 	_grades.erase(skill_id)
 	_release_extra(skill_id)
-	GatherFocus.clear(_focus, _session, skill_id)
 	_events.discipline_changed.emit(skill_id, 0)
 	return CommandResult.success()
 
@@ -253,7 +242,6 @@ func learn_recipe(item_id: StringName) -> CommandResult:
 ## Nothing learned, no recipe.
 func new_game() -> void:
 	_grades.clear()
-	_focus.clear()
 	_recipes.clear()
 	_extra.clear()
 
@@ -271,7 +259,7 @@ func to_save() -> Dictionary:
 	for skill_id: StringName in _data.disciplines():
 		if _extra.has(skill_id):
 			extra.append(String(skill_id))
-	return {SAVE_LEARNED_KEY: learned_grades, SAVE_RECIPES_KEY: recipes, SAVE_EXTRA_KEY: extra, GatherFocus.SAVE_KEY: GatherFocus.to_save(_focus)}
+	return {SAVE_LEARNED_KEY: learned_grades, SAVE_RECIPES_KEY: recipes, SAVE_EXTRA_KEY: extra}
 
 
 ## Tolerant: skills that are unknown or not disciplines, and grades outside 1..n, are reported and dropped; more than the
@@ -281,7 +269,6 @@ func from_save(d: Dictionary) -> void:
 	new_game()
 	_load_learned(d.get(SAVE_LEARNED_KEY, {}), d.get(SAVE_EXTRA_KEY, []))
 	_load_recipes(d.get(SAVE_RECIPES_KEY, []))
-	_focus = GatherFocus.from_save(d.get(GatherFocus.SAVE_KEY), _session)
 	for skill_id: StringName in _data.disciplines():
 		if not _grades.has(skill_id) and _session.skills.get_xp(skill_id) > 0:
 			Log.warn(LOG_CATEGORY, "discipline '%s' has xp but is not learned: reset" % skill_id)

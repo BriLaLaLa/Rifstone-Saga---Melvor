@@ -19,11 +19,9 @@ var difficulty: int = 0  # F-161, not saved: the data gives it again
 var closed: bool = false  # a unit found no room (`bank_full`): no more attempts
 var last_attempt: Dictionary = {}  # {} or {"units": int, "color": StringName, "xp": int}, not saved
 var ne: int = 0  # M35 (F-198): the units planned (`Ne`), fixed at the start of the node; 0 for a skipped node
-var focused: bool = false  # M35 (F-195): the resource is the one chosen by the player; not saved (a loaded node shows false)
-var focus_blocked: bool = false  # M35: a choice exists but the node does not allow it (Automatico); not saved
 
 
-## The node of `skill_id` in the area: resource of F-154 (for a skipped node, the one that would have been worked), duration of F-155
+## The node of `skill_id` in the area: resource of F-200 (for a skipped node, the one that would have been worked), duration of F-155
 ## (or `skip_ms`), attempts and richness (F-161, F-164: one `roll_pct` for a worked node). Null if the area has no nodes or the
 ## skill has no resource (data error, logged).
 static func begin(session: GameSession, area_id: StringName, skill_id: StringName) -> NodeWork:
@@ -31,22 +29,21 @@ static func begin(session: GameSession, area_id: StringName, skill_id: StringNam
 	if nodes == null:
 		return null
 	var level: int = maxi(1, session.skills.get_level(skill_id))
-	var focus: StringName = session.disciplines.focus_of(skill_id)
-	var action: ActionDef = EncounterCycle.worked_action(session.data, skill_id, level, nodes.max_level, focus)
+	var skip_reason: StringName = &""
+	if not session.disciplines.is_learned(skill_id):
+		skip_reason = Reasons.NOT_LEARNED
+	elif level < nodes.min_level_of(skill_id):
+		skip_reason = Reasons.TOO_HARD
+	var action: ActionDef = EncounterCycle.pick_resource(session, area_id, skill_id, level, skip_reason != &"")  # F-200: before the rich roll
 	if action == null:
 		Log.warn("encounters", "no resource for the node of '%s' in area '%s'" % [skill_id, area_id])
 		return null
 	var work := NodeWork.new()
 	work.skill_id = skill_id
 	work.action_id = action.id
-	work.focused = focus != &"" and action.id == focus
-	work.focus_blocked = focus != &"" and action.id != focus
 	work.difficulty = nodes.difficulty_of(skill_id)
-	if not session.disciplines.is_learned(skill_id):
-		work.skip_reason = Reasons.NOT_LEARNED
-	elif level < nodes.min_level_of(skill_id):
-		work.skip_reason = Reasons.TOO_HARD
-	work.skipped = work.skip_reason != &""
+	work.skip_reason = skip_reason
+	work.skipped = skip_reason != &""
 	if work.skipped:
 		work.duration_ms = int(session.data.balance_value("encounters.skip_ms"))
 		return work

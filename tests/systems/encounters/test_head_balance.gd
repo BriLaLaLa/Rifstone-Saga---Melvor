@@ -33,7 +33,7 @@ func _units_per_hour() -> float:
 	var weights: Dictionary = {}
 	for entry: NodeEntryDef in nodes.entries:
 		weights[entry.skill] = entry.weight
-	var action: ActionDef = EncounterCycle.worked_action(_s.data, QUARRYING, 30, nodes.max_level)
+	var action: ActionDef = _s.data.action(&"quarry_ashlead")  # the resource of the area at L 30 before M35B (cap 10)
 	var enc: Callable = func(key: String) -> int: return int(_s.data.balance_value("encounters." + key))
 	var p: Dictionary = {"travel_ms": enc.call("travel_ms"), "node_chance_pct": enc.call("node_chance_pct"), "fight_ms": 30000,
 		"skip_ms": enc.call("skip_ms"), "node_units": enc.call("node_units"), "weights": weights, "learned": [QUARRYING],
@@ -47,7 +47,7 @@ func _units_per_hour() -> float:
 
 func test_the_per_node_examples() -> void:
 	_pick(9, &"pick_vein")
-	var action: ActionDef = EncounterCycle.worked_action(_s.data, QUARRYING, 30, 99)
+	var action: ActionDef = _s.data.action(&"quarry_duskcobalt")  # the step of level 30
 	assert_eq(EncounterCycle.units_bonus_pct(_s, QUARRYING, action), 24)
 	assert_eq(EncounterCycle.rich_chance(_s, QUARRYING, action), 10.0)
 	assert_almost_eq(80.0 * 1.24 * (1.0 + 0.10 * 0.5), 104.16, 0.001, "F-199: 104,16 units per node against 84")

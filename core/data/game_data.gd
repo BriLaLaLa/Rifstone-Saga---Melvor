@@ -257,6 +257,7 @@ func trainer_grades() -> Array[TrainerGradeDef]: return _disciplines.grades.dupl
 func trainer_grade(grade: int) -> TrainerGradeDef: return _disciplines.grades[grade - 1] if grade >= 1 and grade <= _disciplines.grades.size() else null
 func trainer(skill_id: StringName) -> TrainerDef: return _disciplines.trainers.get(skill_id) as TrainerDef
 func area_nodes(area_id: StringName) -> AreaNodesDef: return _disciplines.nodes.get(area_id) as AreaNodesDef
+func zones_of_action(action_id: StringName) -> Array[Dictionary]: return _disciplines.zones_of_action(action_id, _area_list)  # M35B (F-202)
 func recipe_item_for(action_id: StringName) -> ItemDef:
 	for def: ItemDef in _item_list:
 		if def.is_recipe() and def.recipe_action == action_id:

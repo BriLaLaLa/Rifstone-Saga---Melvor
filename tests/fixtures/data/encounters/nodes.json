@@ -1,8 +1,8 @@
 {
-  "_doc": "Test fixture (04_DATA_SCHEMA_M24.md §29.9): nodes of the fixture areas, only of test_gather (test_gather_b has no actions, so it has no node).",
+  "_doc": "Test fixture (04_DATA_SCHEMA_M24.md §29.9, M35B §36.1): nodes of the fixture areas, only of test_gather (test_gather_b has no actions, so it has no node). One resource with weight 100 (no roll).",
   "areas": [
-    {"area": "test_area", "max_level": 10, "nodes": [{"skill": "test_gather", "weight": 100}]},
-    {"area": "test_stone_area", "max_level": 10, "nodes": [{"skill": "test_gather", "weight": 100}]},
-    {"area": "test_loot_area", "max_level": 20, "nodes": [{"skill": "test_gather", "weight": 100}]}
+    {"area": "test_area", "max_level": 10, "nodes": [{"skill": "test_gather", "weight": 100, "resources": [{"action": "gather_log", "weight": 100}]}]},
+    {"area": "test_stone_area", "max_level": 10, "nodes": [{"skill": "test_gather", "weight": 100, "resources": [{"action": "gather_log", "weight": 100}]}]},
+    {"area": "test_loot_area", "max_level": 20, "nodes": [{"skill": "test_gather", "weight": 100, "resources": [{"action": "gather_log", "weight": 100}]}]}
   ]
 }

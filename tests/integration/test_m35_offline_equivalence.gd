@@ -1,7 +1,7 @@
 extends GutTest
-## M35-D (docs/01_GDD_M35.md §42.6): the same seconds give the same state in one block, in ticks of 100 ms and in blocks of 60 s, with a
-## focused resource, the heads of the tools (`node_units_pct`, `node_rich_pct`, `byproduct_chance_pct`) and rich nodes: the node roll stays one.
-## M35-D2 content (`m35_data.gd`): Piccone +9 with the heads of Ricchezza, Accetta +9 with Scure fine, Falcetto +4, the Minatore aimed at Rame.
+## M35-D (docs/01_GDD_M35.md §42.6): the same seconds give the same state in one block, in ticks of 100 ms and in blocks of 60 s, with the
+## resource rolled per zone (M35B: F-200), the heads of the tools (`node_units_pct`, `node_rich_pct`, `byproduct_chance_pct`) and rich nodes: the node roll stays one.
+## M35-D2 content (`m35_data.gd`): Piccone +9 with the heads of Ricchezza, Accetta +9 with Scure fine, Falcetto +4.
 
 const M35 := preload("res://tests/systems/armory/m35_data.gd")
 const AREA: StringName = &"redrock_plains"
@@ -21,7 +21,6 @@ func _session(seed_value: int = SEED) -> GameSession:
 	TestFactory.set_level(s, &"quarrying", 30)
 	_tools(s)
 	_boost(s)  # after _tools: rebuild_modifiers drops the test source
-	assert_true(s.disciplines.set_focus(&"quarrying", &"quarry_emberbronze").ok)
 	assert_true(s.combat.start(AREA).ok)
 	return s
 
@@ -100,7 +99,6 @@ func test_save_and_reload_in_the_middle_continues_the_same_evolution() -> void:
 	assert_true(loaded.from_save(saved).ok)
 	_boost(loaded)
 	loaded.combat.from_save(saved["modules"]["combat"])
-	assert_eq(loaded.disciplines.focus_of(&"quarrying"), &"quarry_emberbronze", "the choice survives the save")
 	assert_eq(loaded.armory.tool_heads(loaded.armory.tool_uid(&"tool_quarrying")), [&"pick_quarry", &"pick_quarry", &"pick_quarry"] as Array[StringName])
 	_assert_same(half, loaded, "right after the load")
 	loaded.advance(HOUR_MS / 2)

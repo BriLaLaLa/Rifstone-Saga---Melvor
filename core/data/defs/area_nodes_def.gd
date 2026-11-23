@@ -38,6 +38,15 @@ func min_level_of(skill_id: StringName) -> int:
 	return entry.min_level if entry != null else 0
 
 
+## M35B: the resource table of `skill_id` in this area, in order of increasing level; [] if the area has no such node.
+func resources_of(skill_id: StringName) -> Array[NodeResourceDef]:
+	var entry: NodeEntryDef = _entry(skill_id)
+	var result: Array[NodeResourceDef] = []
+	if entry != null:
+		result.append_array(entry.resources)
+	return result
+
+
 func _entry(skill_id: StringName) -> NodeEntryDef:
 	for entry: NodeEntryDef in entries:
 		if entry.skill == skill_id:

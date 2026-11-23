@@ -22,7 +22,6 @@ signal level_up(skill_id: StringName, new_level: int)
 signal skill_reset(skill_id: StringName)  # M24: a discipline was unlearned, xp back to 0
 signal xp_capped(skill_id: StringName, lost: int)  # M24: xp lost at the grade limit (F-160)
 signal discipline_changed(skill_id: StringName, grade: int)  # M24: learn (1), train (new grade), unlearn (0)
-signal gather_focus_changed(skill_id: StringName, action_id: StringName)  # M35-D: set_focus or removal (action_id = &""); never in new_game/from_save
 signal recipe_learned(action_id: StringName)  # M24
 signal mastery_xp_gained(skill_id: StringName, action_id: StringName, amount: int)
 signal mastery_level_up(skill_id: StringName, action_id: StringName, new_level: int)

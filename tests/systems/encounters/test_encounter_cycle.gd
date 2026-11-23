@@ -83,15 +83,19 @@ func test_the_roll_comes_first_then_the_pick_on_the_session_generator() -> void:
 
 # --- F-154 ---------------------------------------------------------------------------------------------------------
 
-func test_resource_and_color_of_the_examples() -> void:
+func test_color_of_the_examples_with_the_resource_given() -> void:
 	var s: GameSession = _session()
-	# [skill level L, node cap M, resource level, color]
-	var cases: Array = [[27, 30, 20, &"orange"], [45, 30, 30, &"yellow"], [90, 10, 10, &"grey"], [74, 80, 60, &"yellow"],
-		[75, 80, 75, &"orange"], [52, 50, 45, &"orange"], [1, 99, 1, &"orange"], [1, 10, 1, &"orange"]]
+	# [skill level L, resource level, color]: F-154 color examples of docs/02_FORMULAS_M24.md (the resource comes from F-200 now)
+	var cases: Array = [[27, 20, &"orange"], [45, 30, &"yellow"], [90, 10, &"grey"], [74, 60, &"yellow"],
+		[75, 75, &"orange"], [52, 45, &"orange"], [1, 1, &"orange"]]
 	for c: Array in cases:
-		var action: ActionDef = EncounterCycle.worked_action(s.data, FORESTRY, c[0], c[1])
-		assert_eq(action.level, c[2], "L %d M %d" % [c[0], c[1]])
-		assert_eq(EncounterCycle.color(s.data, c[0], action.level)["id"], c[3], "L %d M %d" % [c[0], c[1]])
+		assert_eq(EncounterCycle.color(s.data, c[0], c[1])["id"], c[2], "L %d resource %d" % [c[0], c[1]])
+
+
+func test_fallback_action_is_the_highest_level_not_above_the_skill_level() -> void:
+	var s: GameSession = _session()
+	for c: Array in [[1, 1], [9, 1], [27, 20], [45, 45], [74, 60], [99, 90]]:  # [L, level of the fallback] (forestry steps 1..90)
+		assert_eq(EncounterCycle.fallback_action(s.data, FORESTRY, c[0]).level, c[1], "L %d" % c[0])
 
 
 func test_the_color_percentages_and_the_edges() -> void:

@@ -12,7 +12,7 @@ extends SceneTree
 ##   slice=<s>          seconds between pins of the levels (default 30)
 ##   tool=1|0           0 = clear the sources of skill_interval_pct (tools, mastery nodes) before the run (diagnosis Q123)
 ##   root=<res path>    content root (default res://data)
-## The discipline levels are pinned at the step of the area's resource (F-154), the level of the character as in sim_combat.
+## The discipline levels are pinned at the cap of the area (M35B: L = max_level, the resource is the expected one of F-203); the level of the character as in sim_combat.
 ## Exit 0 if every threshold passes, 1 otherwise. Nothing is written. GameData and the sessions use the Log autoload, which does not
 ## exist while this `-s` script is compiled: they are reached through paths and dynamic calls. Output: print_rich/printerr.
 
@@ -90,9 +90,9 @@ static func report(opts: Dictionary, lines: PackedStringArray) -> PackedStringAr
 		lines.append("| %s | %d | %.2f | %s | %s | %.1f | %.0f | %.0f | %.2f | %.2f |" % [skill, s["weight"], s["worked_per_hour"], s["action"],
 			s["color"], s["units_per_hour"], s["xp_per_hour"], s["dedicated_xp"], ratio, s["mean_ms"] / 1000.0])
 		if s["units_per_hour"] < UNITS_MIN or s["units_per_hour"] > UNITS_MAX:
-			failures.append("(2) %s units/h %.1f outside %d..%d" % [skill, s["units_per_hour"], UNITS_MIN, UNITS_MAX])
+			lines.append("  measure (2): %s units/h %.1f outside %d..%d" % [skill, s["units_per_hour"], UNITS_MIN, UNITS_MAX])
 		if ratio < XP_RATIO_MIN:
-			failures.append("(3) %s xp/h is %.0f%% of the dedicated work (min %d%%)" % [skill, ratio * 100.0, XP_RATIO_MIN * 100.0])
+			lines.append("  measure (3): %s xp/h is %.0f%% of the dedicated work (min %d%%)" % [skill, ratio * 100.0, XP_RATIO_MIN * 100.0])
 	var ref_opts: Dictionary = opts.duplicate()
 	ref_opts["nodes"] = "0"
 	var ref: Dictionary = measure(_load_data(opts), ref_opts, false)
@@ -124,6 +124,7 @@ static func report(opts: Dictionary, lines: PackedStringArray) -> PackedStringAr
 		lines.append("  %s: measured %.2f, expected %.2f, gap %+.1f%% (tolerance %.1f%%)" % [check[0], check[1], check[2], gap * 100.0, tolerance * 100.0])
 		if absf(gap) > tolerance:
 			failures.append("closed form: %s gap %+.1f%% over %.1f%%" % [check[0], gap * 100.0, tolerance * 100.0])
+	expected_lines(_load_data(opts), lines)
 	return failures
 
 
@@ -155,8 +156,7 @@ static func measure(data: Object, opts: Dictionary, with_expected: bool) -> Dict
 	var pinned: Dictionary = {}
 	for skill: StringName in learned:
 		session.disciplines._grades[skill] = (data.call("trainer_grades") as Array).size()
-		var step: Object = cycle.call("worked_action", data, skill, int(nodes_def.max_level), int(nodes_def.max_level))
-		var missing: int = int(data.call("xp_table").xp_for_level(step.level)) - int(session.skills.get_xp(skill))
+		var missing: int = int(data.call("xp_table").xp_for_level(int(nodes_def.max_level))) - int(session.skills.get_xp(skill))
 		session.skills.add_xp(skill, missing)
 		pinned[skill] = int(session.skills.get_xp(skill))
 	if str(opts["tool"]) == "0":
@@ -197,7 +197,7 @@ static func measure(data: Object, opts: Dictionary, with_expected: bool) -> Dict
 	for skill: StringName in learned:
 		var worked: int = int((tally["skill_worked"] as Dictionary).get(skill, 0))
 		var mean_ms: float = float((tally["skill_ms"] as Dictionary).get(skill, 0)) / maxf(1.0, float(worked))
-		var step_def: Object = cycle.call("worked_action", data, skill, int(nodes_def.max_level), int(nodes_def.max_level))
+		var step_def: Object = _step(cycle, data, area.id, skill, int(nodes_def.max_level))
 		var f155_ms: int = int(cycle.call("node_duration_ms", session, skill, step_def))
 		(params["node_ms"] as Dictionary)[skill] = f155_ms
 		var diff: int = int(cycle.call("difficulty", session, area.id, skill))
@@ -223,10 +223,51 @@ static func measure(data: Object, opts: Dictionary, with_expected: bool) -> Dict
 	return row
 
 
+## M35B (F-203): the representative resource of the skill at level `level` in the area: the eligible entry with the highest effective chance
+## (the first on a tie), else the fallback. The tally of the run still counts the resources that really came up.
+static func _step(cycle: GDScript, data: Object, area_id: StringName, skill: StringName, level: int) -> Object:
+	var best: Object = null
+	var best_pct: float = 0.0
+	for row: Dictionary in cycle.call("resource_odds", data, area_id, skill, level):
+		if bool(row["workable"]) and (best == null or float(row["pct_effective"]) > best_pct):
+			best = row["action"]
+			best_pct = float(row["pct_effective"])
+	return best if best != null else cycle.call("fallback_action", data, skill, level)
+
+
+## M35B (F-203): `E[xp_pct]` of the node of `skill` in the area at level `level`, `sum(P_eff/100 x xp_pct(color(level - level(e))))`; 100% of the
+## fallback when no entry is eligible. Pure measure, no failure (Q226).
+static func expected_xp_pct(cycle: GDScript, data: Object, area_id: StringName, skill: StringName, level: int) -> float:
+	var total: float = 0.0
+	var rows: Array = cycle.call("resource_odds", data, area_id, skill, level)
+	for row: Dictionary in rows:
+		if bool(row["workable"]):
+			total += float(row["pct_effective"]) / 100.0 * float(cycle.call("color", data, level, int(row["action"].level))["xp_pct"])
+	if total == 0.0:
+		var fallback: Object = cycle.call("fallback_action", data, skill, level)
+		return float(cycle.call("color", data, level, int(fallback.level))["xp_pct"]) if fallback != null else 0.0
+	return total
+
+
+## M35B (F-203, Q226): the expected `xp_pct` per area and gathering discipline at `L` = the cap of the zone, a measure to report (no threshold).
+static func expected_lines(data: Object, lines: PackedStringArray) -> void:
+	var cycle: GDScript = load(CYCLE_PATH) as GDScript
+	lines.append("")
+	lines.append("F-203 expected xp_pct of a node at L = max_level of the zone (measure, thresholds (2) and (3) of F-156 are reported, not enforced):")
+	for area: Object in data.call("areas"):
+		var nodes_def: Object = data.call("area_nodes", area.id)
+		if nodes_def == null:
+			continue
+		var cells: PackedStringArray = PackedStringArray()
+		for entry: Object in nodes_def.entries:
+			cells.append("%s %.1f%%" % [entry.skill, expected_xp_pct(cycle, data, area.id, entry.skill, int(nodes_def.max_level))])
+		lines.append("  %s (L %d): %s" % [area.id, int(nodes_def.max_level), ", ".join(cells)])
+
+
 ## Q123 diagnosis: clears every source that contributes to `skill_interval_pct` for the worked step of a learned discipline.
 static func _clear_interval_sources(session: Object, learned: Array[StringName], cycle: GDScript, nodes_def: Object, data: Object) -> void:
 	for skill: StringName in learned:
-		var step: Object = cycle.call("worked_action", data, skill, int(nodes_def.max_level), int(nodes_def.max_level))
+		var step: Object = _step(cycle, data, nodes_def.area, skill, int(nodes_def.max_level))
 		var ctx: ModifierContext = ModifierContext.for_action(skill, step.id)
 		for entry: Dictionary in session.modifiers.breakdown(&"skill_interval_pct", ctx):
 			session.modifiers.clear_source(entry["source"])

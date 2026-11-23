@@ -11,12 +11,12 @@ const DISCIPLINE_CATEGORIES: PackedStringArray = ["gathering", "artisan"]
 const GRADE_FIELDS: PackedStringArray = ["id", "name", "cap", "character_level"]
 const TRAINER_FIELDS: PackedStringArray = ["skill", "name", "title", "description", "fed_by", "vendor", "free_slot"]
 const NODE_AREA_FIELDS: PackedStringArray = ["area", "max_level", "nodes"]
-const NODE_FIELDS: PackedStringArray = ["skill", "weight", "difficulty", "min_level"]
+const NODE_FIELDS: PackedStringArray = ["skill", "weight", "difficulty", "min_level", "resources"]
 const NODE_WEIGHT_TOTAL: int = 100  # the weights of an area sum to 100 (strict data)
 const NODE_WEIGHT_MIN: int = 10  # and none is below 10 (strict data)
 const SECTIONS: PackedStringArray = ["encounters", "disciplines", "trainer", "production"]
 const ENCOUNTER_KEYS: PackedStringArray = ["travel_ms", "node_chance_pct", "node_min_ms", "node_ms", "skip_ms", "node_units", "colors",
-		"attempts", "yield_free_levels", "yield_loss_pct", "yield_min_pct", "rich_chance_pct", "rich_extra_attempts", "rich_units_pct", "rich_ms_pct"]
+		"attempts", "yield_free_levels", "yield_loss_pct", "yield_min_pct", "rich_chance_pct", "rich_extra_attempts", "rich_units_pct", "rich_ms_pct", "resource_profile"]
 const COLOR_KEYS: PackedStringArray = ["id", "below", "xp_pct"]
 const TRAINER_KEYS: PackedStringArray = ["learn_gold", "gold_base", "gold_growth", "skill_margin", "unlearn_pct", "unlearn_min_gold"]
 
@@ -100,12 +100,15 @@ static func validate(v: DataValidatorRules, raw: Dictionary, strict: bool = STRI
 		v.at_file(str(path))
 		_trainers_file(v, trainer_files[path] as Dictionary, strict)
 	var node_files: Dictionary = raw.get("encounters", {}) as Dictionary
+	var actions: Dictionary[StringName, Dictionary] = DataValidatorNodeResources.action_index(raw)
 	if node_files.is_empty() and strict:
 		v.at_file("section 'encounters'")
 		v.fail("data/encounters/nodes.json is missing")
 	for path: Variant in node_files:
 		v.at_file(str(path))
-		_nodes_file(v, node_files[path] as Dictionary, _ids(raw, "areas", "areas"), _first_resources(raw), strict)
+		_nodes_file(v, node_files[path] as Dictionary, _ids(raw, "areas", "areas"), _first_resources(raw), strict, actions)
+	if strict and not node_files.is_empty():
+		DataValidatorNodeResources.reachability(v, raw, actions)
 	_recipes(v, raw, strict)
 	DataValidatorProfessions.validate(v, raw, strict)
 
@@ -148,6 +151,7 @@ static func _encounters(v: DataValidatorRules, section: Variant) -> void:
 	v.integer(e, "skip_ms", 0, DataValidatorRules.NO_LIMIT, "encounters")
 	v.integer(e, "node_units", 1, DataValidatorRules.NO_LIMIT, "encounters")
 	_attempt_keys(v, e)
+	DataValidatorNodeResources.profile(v, e)
 	var seen: Dictionary[StringName, bool] = {}
 	var previous_below: float = 0.0
 	var previous_pct: float = 100.0
@@ -239,7 +243,7 @@ static func _fed_by(v: DataValidatorRules, t: Dictionary, owner: StringName) -> 
 # --- nodes.json -------------------------------------------------------------------------------------------------
 
 static func _nodes_file(v: DataValidatorRules, content: Dictionary, areas: Dictionary[StringName, bool],
-		first: Dictionary[StringName, bool], strict: bool) -> void:
+		first: Dictionary[StringName, bool], strict: bool, actions: Dictionary[StringName, Dictionary]) -> void:
 	v.keys(content, ["areas"])
 	var seen: Dictionary[StringName, bool] = {}
 	var list: Array[Dictionary] = v.object_list(content, "areas")
@@ -253,7 +257,7 @@ static func _nodes_file(v: DataValidatorRules, content: Dictionary, areas: Dicti
 		if v.text(a, "area") and not areas.has(id):
 			v.fail("field 'area': unknown area '%s'" % id)
 		v.integer(a, "max_level", 1, v.max_skill_level)
-		_node_rows(v, a, first, strict, int(a["max_level"]) if DataValidatorRules.is_int(a.get("max_level")) else 0)
+		_node_rows(v, a, first, strict, int(a["max_level"]) if DataValidatorRules.is_int(a.get("max_level")) else 0, actions)
 	if strict:
 		for area_id: StringName in areas:
 			if not seen.has(area_id):
@@ -282,7 +286,8 @@ static func _attempt_keys(v: DataValidatorRules, e: Dictionary) -> void:
 	v.integer(e, "rich_ms_pct", 100, DataValidatorRules.NO_LIMIT, "encounters")
 
 
-static func _node_rows(v: DataValidatorRules, a: Dictionary, first: Dictionary[StringName, bool], strict: bool, area_cap: int) -> void:
+static func _node_rows(v: DataValidatorRules, a: Dictionary, first: Dictionary[StringName, bool], strict: bool, area_cap: int,
+		actions: Dictionary[StringName, Dictionary]) -> void:
 	var seen: Dictionary[StringName, bool] = {}
 	var total: int = 0
 	var smallest: int = 1 << 30
@@ -298,6 +303,7 @@ static func _node_rows(v: DataValidatorRules, a: Dictionary, first: Dictionary[S
 				v.fail("duplicate node skill '%s' in the area" % skill_id)
 			seen[skill_id] = true
 		_node_levels(v, node, area_cap)
+		DataValidatorNodeResources.node(v, node, actions)
 		if v.integer(node, "weight", 1, DataValidatorRules.NO_LIMIT, "nodes"):
 			total += int(node["weight"])
 			smallest = mini(smallest, int(node["weight"]))

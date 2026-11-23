@@ -55,3 +55,21 @@ func clear() -> void:
 	grades.clear()
 	trainers.clear()
 	nodes.clear()
+
+
+## M35B (F-202): the zones where `action_id` appears in a resource table: `[{"area": StringName, "pct": int}]`, by `pct` descending, a tie by `order` of the area.
+func zones_of_action(action_id: StringName, areas: Array[AreaDef]) -> Array[Dictionary]:
+	var rows: Array[Dictionary] = []
+	for area: AreaDef in areas:
+		var area_nodes: AreaNodesDef = nodes.get(area.id) as AreaNodesDef
+		if area_nodes == null:
+			continue
+		for entry: NodeEntryDef in area_nodes.entries:
+			for resource: NodeResourceDef in entry.resources:
+				if resource.action == action_id:
+					rows.append({"area": area.id, "pct": resource.weight, "order": area.order})
+	rows.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return int(a["pct"]) > int(b["pct"]) or (int(a["pct"]) == int(b["pct"]) and int(a["order"]) < int(b["order"])))
+	for row: Dictionary in rows:
+		row.erase("order")
+	return rows
