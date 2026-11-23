@@ -31,9 +31,46 @@ static func pieces(data: GameData) -> Array[ItemInstance]:
 		inst.base_id = entry["base"]
 		inst.rarity = &"common"
 		inst.ilvl = 1
+		if data.item(inst.base_id).equip.unique:
+			inst.heads = ToolUpgrade.blank_heads(data)
 		result.append(inst)
 	return result
 
+
+
+## M35 (docs/05_INTERFACES_M35.md §5.45): every unique tool of `start.tools` that the player does not have (worn or in the Armory) is created at +0 and
+## worn. Called after the Armory and Equipment are loaded, so an old save gets the Sickle. True if it created one; a full Deposit leaves it
+## for the next load (`armory_rejected`). A save that has no unique tool at all (never a real game; only tests that strip the kit) is left as it is.
+static func ensure_tools(session: GameSession) -> bool:
+	var created: bool = false
+	var owns_any: bool = false
+	for inst: ItemInstance in session.armory.instances():
+		owns_any = owns_any or session.data.item(inst.base_id).equip.unique
+	if not owns_any:
+		return false
+	for entry: Dictionary in entries(session.data):
+		if not session.data.item(entry["base"]).equip.unique or _owns(session, entry["base"]):
+			continue
+		var inst := ItemInstance.new()
+		inst.base_id = entry["base"]
+		inst.rarity = &"common"
+		inst.ilvl = 1
+		inst.heads = ToolUpgrade.blank_heads(session.data)
+		var uid: int = session.armory.add(inst)
+		if uid == 0:
+			Log.warn("armory", "starting tool '%s' not given: the Armory is full" % inst.base_id)
+		elif session.equipment.get_uid(entry["slot"]) == 0:
+			created = session.equipment.equip(uid).ok or created
+		else:
+			created = true
+	return created
+
+
+static func _owns(session: GameSession, base_id: StringName) -> bool:
+	for inst: ItemInstance in session.armory.instances():
+		if inst.base_id == base_id:
+			return true
+	return false
 
 ## `start.food`: the item id of the food chosen at the start, &"" when absent.
 static func food(data: GameData) -> StringName:

@@ -14,6 +14,7 @@ var affixes: Array[AffixRoll] = []
 var upgrade: int = 0
 var sockets: Array[StringName] = []
 var locked: bool = false
+var heads: Array[StringName] = []  # M35 (F-197): unique tools only, one head id (or &"") per `tool_upgrade.head_steps`
 
 
 func duplicate_instance() -> ItemInstance:
@@ -27,6 +28,7 @@ func duplicate_instance() -> ItemInstance:
 	copy.upgrade = upgrade
 	copy.sockets = sockets.duplicate()
 	copy.locked = locked
+	copy.heads = heads.duplicate()
 	return copy
 
 
@@ -37,10 +39,13 @@ func to_dict() -> Dictionary:
 	var socket_ids: Array = []
 	for s: StringName in sockets:
 		socket_ids.append(String(s))
-	return {
+	var d: Dictionary = {
 		"uid": uid, "base": String(base_id), "rarity": String(rarity), "ilvl": ilvl, "affixes": rolls,
 		"upgrade": upgrade, "sockets": socket_ids, "locked": locked,
 	}
+	if not heads.is_empty():
+		d["heads"] = heads.map(func(h: StringName) -> String: return String(h))
+	return d
 
 
 ## Null (after a warning) when the dictionary is not a valid instance: unknown or non-equippable base, bad rarity,
@@ -85,7 +90,19 @@ static func from_dict(d: Dictionary, data: GameData) -> ItemInstance:
 	if not locked_raw is bool:
 		return _reject("invalid locked")
 	inst.locked = locked_raw
+	if base.equip.unique:
+		inst.heads = _read_heads(d.get("heads"), base, data)
 	return inst
+
+
+## M35: one slot per `tool_upgrade.head_steps`; a wrong length is padded or cut and an id that is not a head of the tool is &"" (never an error).
+static func _read_heads(raw: Variant, base: ItemDef, data: GameData) -> Array[StringName]:
+	var result: Array[StringName] = ToolUpgrade.blank_heads(data)
+	if raw is Array:
+		for i: int in mini(result.size(), (raw as Array).size()):
+			var id := StringName(str((raw as Array)[i]))
+			result[i] = id if ToolUpgrade.head_def(base, id) != null else &""
+	return result
 
 
 static func _parse_affix(entry: Variant, slot: StringName, inst: ItemInstance, data: GameData) -> AffixRoll:

@@ -92,6 +92,7 @@ static func _blueprint_keys(v: DataValidatorRules, blueprint: Dictionary) -> voi
 
 
 static func _tool_upgrade(v: DataValidatorRules, tool_upgrade: Dictionary) -> void:
+	DataValidatorToolHeads.balance(v, tool_upgrade)  # M35
 	for key: String in ["interval_base_pct", "interval_per_level_pct"]:
 		if DataValidatorRules.is_number(tool_upgrade.get(key)):
 			v.number(tool_upgrade, key, 0.0, DataValidatorRules.NO_LIMIT, "tool_upgrade", true)

@@ -2,10 +2,8 @@ class_name Armory
 extends RefCounted
 ## The Armory (docs/01_GDD.md §21): the only container of unique pieces (equipment and tools), as ItemInstance.
 ##
-## The capacity is the Deposit's (F-100), shared with the Bank; only the pieces that are not worn count (`used`).
-## `uid` values start from 1, grow and are never reused (`next_uid` is saved). Getters return copies. Signals go to the
-## session EventBus after the state changed (`deposit_changed` through `Deposit.notify_changed`). `new_game` and
-## `from_save` set the state without signals.
+## Capacity = the Deposit (F-100), shared with the Bank; only pieces not worn count (`used`). `uid` starts from 1 and is never reused (`next_uid` is
+## saved). Getters return copies. Signals go to the EventBus after the change; `new_game` and `from_save` emit none.
 
 const SAVE_KEY: StringName = &"armory"
 const OCCUPANT_ID: StringName = &"armory"
@@ -51,8 +49,7 @@ func used() -> int:
 func can_add(count: int = 1) -> bool: return count >= 0 and _deposit.has_room(count)
 
 
-## Takes a copy of `inst`, assigns the next uid and returns it. 0 (and armory_rejected) when the Armory is full,
-## 0 when the base is not equipment or tool.
+## Takes a copy of `inst`, assigns the next uid, returns it. 0 (and armory_rejected) when full; 0 when the base is not equipment or tool.
 func add(inst: ItemInstance) -> int:
 	if inst == null or not _is_piece_base(inst.base_id):
 		return 0
@@ -191,10 +188,8 @@ func use_currency(uid: int, currency_id: StringName) -> CommandResult:
 	return result
 
 
-## F-86: one refinement attempt of `uid`. Fails without any change: unknown_id, not_equippable (a unique tool: use
-## `upgrade_tool`), then Upgrade.check (upgrade_max, not_enough_gold, not_enough_items). Success: +1.
-## Failure: the materials are lost and, from `upgrade.downgrade_from`, the piece drops one level, unless `use_seal`
-## (the Seal is then consumed; it is neither required nor consumed below that level). Never destroys the piece.
+## F-86: one refinement attempt. unknown_id, not_equippable (a unique tool: `upgrade_tool`), then Upgrade.check. Success: +1. Failure: materials lost
+## and, from `upgrade.downgrade_from`, -1 unless `use_seal` (consumed). Never destroys the piece.
 func upgrade(uid: int, use_seal: bool = false) -> CommandResult:
 	if not _items.has(uid):
 		return CommandResult.fail(Reasons.UNKNOWN_ID)
@@ -230,6 +225,30 @@ func upgrade_tool(uid: int) -> CommandResult:
 		_events.armory_changed.emit(uid, CHANGE_UPDATED)
 		_events.item_upgraded.emit(uid, true, _items[uid].upgrade)
 	return checked
+
+## M35 (F-197): the chosen head of each head step (&"" = none); empty if `uid` is not a unique tool.
+func tool_heads(uid: int) -> Array[StringName]:
+	var result: Array[StringName] = []
+	if _items.has(uid) and _is_unique(uid):
+		result.assign(_items[uid].heads)
+	return result
+
+
+## M35 (F-198): unknown_id, not_equippable (a legendary), then ToolUpgrade.choose_head. Only a change of a head pays. Atomic.
+func choose_tool_head(uid: int, step: int, head_id: StringName) -> CommandResult:
+	if not _items.has(uid):
+		return CommandResult.fail(Reasons.UNKNOWN_ID)
+	if _is_legendary_tool(uid):
+		return CommandResult.fail(Reasons.NOT_EQUIPPABLE)
+	var result: CommandResult = ToolUpgrade.choose_head(_items[uid], step, head_id, _wallet, _data)
+	if result.ok:
+		_events.armory_changed.emit(uid, CHANGE_UPDATED)
+	return result
+
+
+## M35: the gold of changing the head of `step` now (0 while it has no choice yet).
+func tool_head_cost(uid: int, step: int) -> int: return ToolUpgrade.head_cost(_items[uid], step, _data) if _items.has(uid) else 0
+
 
 ## The row of the next step of a unique tool for the UI (ToolUpgrade.step); empty if not a unique tool or at the maximum.
 func tool_next_step(uid: int) -> Dictionary:
@@ -289,29 +308,22 @@ func add_drop(inst: ItemInstance) -> int:
 
 
 ## The rule of the automatic filter for an equipment slot: {"min_rarity": StringName, "min_grade": int}.
-func filter_rule(slot: StringName) -> Dictionary:
-	return _filter.rule(slot)
+func filter_rule(slot: StringName) -> Dictionary: return _filter.rule(slot)
 
 
 ## The rules other than "keep everything": slot -> {"min_rarity", "min_grade"}.
-func filter_rules() -> Dictionary:
-	return _filter.rules()
+func filter_rules() -> Dictionary: return _filter.rules()
 
 
 ## unknown_id (not an equipment slot or unknown rarity), invalid_amount (grade outside 1..8). "common" and 1 keep all.
-func set_filter(slot: StringName, min_rarity: StringName, min_grade: int) -> CommandResult:
-	return _filter.set_rule(slot, min_rarity, min_grade)
+func set_filter(slot: StringName, min_rarity: StringName, min_grade: int) -> CommandResult: return _filter.set_rule(slot, min_rarity, min_grade)
 
 
 ## True when `inst` would be salvaged by the filter (the full Armory is not considered).
 func is_filtered(inst: ItemInstance) -> bool:
-	if inst == null or not _is_piece_base(inst.base_id):
-		return false
-	var equip: EquipInfo = _data.item(inst.base_id).equip
-	return _filter.rejects(equip.slot, inst.rarity, equip.grade)
+	return inst != null and _is_piece_base(inst.base_id) and _filter.rejects(_data.item(inst.base_id).equip.slot, inst.rarity, _data.item(inst.base_id).equip.grade)
 
 
-## M14 "Riordina" (`ArmorySort`): signals `armory_changed` only for the pieces that moved.
 func sort() -> void:
 	var before: Array = _items.keys()
 	var sorted: Dictionary[int, ItemInstance] = {}
@@ -371,21 +383,9 @@ func from_save(d: Dictionary) -> void:
 
 
 func _load_entry(entry: Variant) -> void:
-	if not entry is Dictionary:
-		Log.warn(LOG_CATEGORY, "piece dropped (not an object): %s" % str(entry))
-		return
-	var inst: ItemInstance = ItemInstance.from_dict(entry, _data)
-	if inst == null or inst.uid <= 0 or _items.has(inst.uid) or not _is_piece_base(inst.base_id):
-		Log.warn(LOG_CATEGORY, "piece dropped (invalid, bad uid or duplicate): %s" % str(entry))
-		return
-	var stones: Array[StringName] = []
-	for stone_id: StringName in inst.sockets:
-		if Sockets.is_stone(stone_id, _data):
-			stones.append(stone_id)
-		else:
-			Log.warn(LOG_CATEGORY, "piece %d: '%s' is not a stone, dropped from its sockets" % [inst.uid, stone_id])
-	inst.sockets = stones
-	_items[inst.uid] = inst
+	var inst: ItemInstance = ArmorySave.read_entry(entry, _data, _items)
+	if inst != null:
+		_items[inst.uid] = inst
 
 
 func _clear() -> void:

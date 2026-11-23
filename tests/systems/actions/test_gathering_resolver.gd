@@ -7,6 +7,7 @@ extends GutTest
 const FIXTURE_ROOT: String = "res://tests/fixtures/data"
 const CONFIG_ROOT: String = "res://data/config"
 const PreRun := preload("res://tests/helpers/gut_pre_run.gd")
+const M35Data := preload("res://tests/systems/armory/m35_data.gd")
 const SKILL: StringName = &"test_gather"
 const TWIG: StringName = &"gather_twig"
 const BUNDLE: StringName = &"gather_bundle"
@@ -196,3 +197,33 @@ func _write(path: String, text: String) -> void:
 ## One unit at the full xp percentage = one gathering cycle (F-155 with `units` 1).
 func _one(s: GameSession, action: ActionDef) -> ActionOutcome:
 	return GatheringResolver.resolve_units(s, action, 1, 100.0)
+
+
+## M35 (F-199): the byproduct chance is `mastery.milestones.byproduct_chance_pct` + `T(byproduct_chance_pct)`, at most 100.
+## The formula (static), then the real roll on the fixture content with the base chance 0 and the stat registered (config copy under user://).
+func test_byproduct_chance_pct() -> void:
+	assert_eq(GatheringResolver.byproduct_chance(_session.data), 2.0)
+	assert_eq(GatheringResolver.byproduct_chance(_session.data, 1.0, 3.0), 5.0, "2,0 + 3")
+	assert_eq(GatheringResolver.byproduct_chance(_session.data, 2.0, 3.0), 10.0, "(2 + 3) x the multiplier of F-120")
+	assert_eq(GatheringResolver.byproduct_chance(_session.data, 1.0, 200.0), 100.0, "at most 100")
+	var dir: String = PreRun.test_dir("test_byproduct_stat")
+	DirAccess.make_dir_recursive_absolute(dir)
+	var balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_ROOT.path_join("balance.json")))
+	((balance["mastery"] as Dictionary)["milestones"] as Dictionary)["byproduct_chance_pct"] = 0.0
+	var stats: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CONFIG_ROOT.path_join("stats.json")))
+	M35Data.add_stats(stats)
+	_write(dir.path_join("balance.json"), JSON.stringify(balance))
+	_write(dir.path_join("stats.json"), JSON.stringify(stats))
+	var data: GameData = GameData.load_from_dirs(FIXTURE_ROOT, dir)
+	DirAccess.remove_absolute(dir.path_join("balance.json"))
+	DirAccess.remove_absolute(dir.path_join("stats.json"))
+	DirAccess.remove_absolute(dir)
+	var session: GameSession = autofree(TestFactory.session(1234, data))
+	var table: XpTable = session.data.mastery_table()
+	session.mastery.from_save({String(SKILL): {"actions": {TWIG: table.xp_for_level(25)}}})
+	session.rebuild_modifiers()
+	for i: int in 5:
+		assert_false(_one(session, session.data.action(TWIG)).outputs.has(&"test_resin"), "base 0, no stat: never")
+	session.modifiers.set_source(&"test:byproduct", [Modifier.make(&"byproduct_chance_pct", 100.0)] as Array[Modifier])
+	for i: int in 5:
+		assert_true(_one(session, session.data.action(TWIG)).outputs.has(&"test_resin"), "0 + 100: always")

@@ -14,7 +14,7 @@ extends RefCounted
 const SAVE_KEY: StringName = &"equipment"
 const LOG_CATEGORY: String = "equipment"
 const SLOTS: Array[StringName] = [&"head", &"body", &"legs", &"feet", &"hands", &"neck", &"ring",
-	&"weapon", &"offhand", &"tool_forestry", &"tool_quarrying", &"tool_angling"]
+	&"weapon", &"offhand", &"tool_forestry", &"tool_quarrying", &"tool_angling", &"tool_herbalism"]
 const WEAPON: StringName = &"weapon"
 const OFFHAND: StringName = &"offhand"
 const UNARMED: StringName = &"unarmed"

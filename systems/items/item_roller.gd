@@ -158,7 +158,7 @@ static func instance_modifiers(inst: ItemInstance, data: GameData) -> Array[Modi
 	if base.equip == null:
 		return result
 	if base.equip.unique:
-		return ToolUpgrade.modifiers(base, inst.upgrade, data)  # F-94 instead of F-86; no affixes, no sockets
+		return ToolUpgrade.modifiers(base, inst.upgrade, inst.heads, data)  # F-94 instead of F-86; no affixes, no sockets
 	if base.equip.is_legendary_tool():  # F-120: fixed modifiers, no multiplier, no refinement
 		return _tool_modifiers(base, inst, data)
 	var factor: float = Rarities.base_mult(inst.rarity, data)  # F-119/F-120, before the refinement (F-86)

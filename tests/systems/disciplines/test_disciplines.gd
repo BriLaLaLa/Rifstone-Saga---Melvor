@@ -27,7 +27,7 @@ func test_new_game_has_nothing_learned() -> void:
 	assert_eq(_d.grade(FORESTRY), 0)
 	assert_eq(_d.category_of(FORESTRY), &"gathering")
 	assert_eq(_d.category_of(RIFTBINDING), &"artisan")
-	assert_eq(_d.to_save(), {"learned": {}, "recipes": [], "extra": []})
+	assert_eq(_d.to_save(), {"learned": {}, "recipes": [], "extra": [], "focus": {}})
 
 
 ## F-158: gold 0, 250, 1.250, 6.250, 31.250 (spent in total 39.000 up to grade 5).
@@ -187,7 +187,7 @@ func test_save_round_trip() -> void:
 	_d.learn(FORGING)
 	TestFactory.learn_discipline(_s, FORGING, 3)
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(_d.to_save()))
-	assert_eq(_d.to_save(), {"learned": {"forestry": 1, "forging": 3}, "recipes": [], "extra": []})
+	assert_eq(_d.to_save(), {"learned": {"forestry": 1, "forging": 3}, "recipes": [], "extra": [], "focus": {}})
 	var other: GameSession = autofree(TestFactory.session_no_kit(2, TestFactory.real_data()))
 	other.disciplines.from_save(saved)
 	assert_eq(other.disciplines.to_save(), _d.to_save())
@@ -204,7 +204,7 @@ func test_from_save_is_tolerant() -> void:
 	_d.from_save({"learned": {"forestry": 1, "quarrying": 1, "angling": 1}})
 	assert_eq(_d.learned(&"gathering"), [FORESTRY, QUARRYING] as Array[StringName], "the first by order stay")
 	_d.from_save({"learned": "oops", "recipes": 5})
-	assert_eq(_d.to_save(), {"learned": {}, "recipes": [], "extra": []})
+	assert_eq(_d.to_save(), {"learned": {}, "recipes": [], "extra": [], "focus": {}})
 
 
 func test_from_save_resets_a_discipline_with_xp_that_is_not_learned() -> void:

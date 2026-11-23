@@ -19,7 +19,7 @@ const CURRENCY_EFFECTS: PackedStringArray = ["to_magic", "to_rare", "reroll"]
 const EQUIP_CATEGORIES: PackedStringArray = ["equipment", "tool"]
 const EQUIP_SLOTS: PackedStringArray = [
 	"head", "body", "legs", "feet", "hands", "neck", "ring", "weapon", "offhand", "tool_forestry", "tool_quarrying",
-	"tool_angling",
+	"tool_angling", "tool_herbalism",
 ]
 const TOOL_SLOT_PREFIX: String = "tool_"
 const WEAPON_SLOT: String = "weapon"
@@ -113,7 +113,7 @@ static func _sub_object(v: DataValidatorRules, e: Dictionary, key: String, wante
 
 
 static func _equip(v: DataValidatorRules, equip: Dictionary, category: String) -> void:
-	v.keys(equip, ["slot", "requirements", "modifiers", "grade", "kind", "weapon", "unique", "upgrade_extras", "material", "masterwork", "legendary"], "equip")
+	v.keys(equip, ["slot", "requirements", "modifiers", "grade", "kind", "weapon", "unique", "upgrade_extras", "heads", "material", "masterwork", "legendary"], "equip")
 	DataValidatorM10.tool_fields(v, equip, category)
 	var slot: String = ""
 	if v.one_of(equip, "slot", EQUIP_SLOTS, "equip"):

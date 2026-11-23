@@ -1,6 +1,6 @@
 extends GutTest
 ## F-94 refinement of the unique tools: the table of the nine steps, the refusals in order, the effect (interval and
-## extras), atomicity and signals. Content: the M10 fixtures (test_hatchet = forestry tool with extras at +5 and +9;
+## extras), atomicity and signals. Content: the M10 fixtures (test_hatchet = forestry tool with legacy extras at +5 and +9, now ignored;
 ## plates test_plate_1..8, handles test_handle_1..8; the table of tool_upgrade is the one of F-94).
 
 const BlueprintData := preload("res://tests/systems/actions/blueprint_data.gd")
@@ -95,8 +95,8 @@ func test_effect_follows_the_steps() -> void:
 	assert_eq(_session.armory.get_instance(_uid).upgrade, 9)
 
 
-## Axe +4: -13; +9: -23 and double_item_chance +5 (extras at +5 and +9: +2 and +3).
-func test_extras_arrive_at_their_step() -> void:
+## M35 (F-196): the `upgrade_extras` of the old data (here the fixture still has them at +5 and +9) no longer give anything.
+func test_upgrade_extras_are_ignored() -> void:
 	var ctx: ModifierContext = ModifierContext.for_skill(FORESTRY)
 	for target: int in range(1, 10):
 		_prepare(target)
@@ -105,11 +105,9 @@ func test_extras_arrive_at_their_step() -> void:
 			assert_eq(_interval(), -13.0)
 			assert_eq(_session.modifiers.total(&"double_item_chance", ctx), 0.0)
 		if target == 5:
-			assert_eq(_session.modifiers.total(&"double_item_chance", ctx), 2.0)
+			assert_eq(_session.modifiers.total(&"double_item_chance", ctx), 0.0)
 	assert_eq(_interval(), -23.0)
-	assert_eq(_session.modifiers.total(&"double_item_chance", ctx), 5.0)
-	var other: ModifierContext = ModifierContext.for_skill(&"quarrying")
-	assert_eq(_session.modifiers.total(&"double_item_chance", other), 0.0, "the scope is the skill of the tool")
+	assert_eq(_session.modifiers.total(&"double_item_chance", ctx), 0.0)
 
 
 ## F-94: the +4 step needs the craft at level 25; with 24 the answer is level_too_low and nothing changes.

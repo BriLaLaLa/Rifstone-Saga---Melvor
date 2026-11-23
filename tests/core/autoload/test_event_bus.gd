@@ -19,6 +19,7 @@ const EXPECTED: Dictionary = {
 	"skill_reset": [["skill_id", SN, ""]],
 	"xp_capped": [["skill_id", SN, ""], ["lost", I, ""]],
 	"discipline_changed": [["skill_id", SN, ""], ["grade", I, ""]],
+	"gather_focus_changed": [["skill_id", SN, ""], ["action_id", SN, ""]],
 	"recipe_learned": [["action_id", SN, ""]],
 	"production_queue_changed": [],
 	"level_up": [["skill_id", SN, ""], ["new_level", I, ""]],

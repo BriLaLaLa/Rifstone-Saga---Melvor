@@ -89,3 +89,7 @@ const TUTORIAL_INACTIVE := &"tutorial_inactive"  # M30-02: the tutorial is compl
 const WRONG_STEP := &"wrong_step"  # M30-02: the current step has no `ack` condition
 const NOT_STUCK := &"not_stuck"  # M30-02: skip_step before `stuck_ms` of game time
 const ALREADY_CLAIMED := &"already_claimed"  # M30-02: the starter quest reward was claimed
+const HEAD_LOCKED := &"head_locked"  # M35-D: the refinement of the tool has not reached the step of the head (F-198)
+const UNKNOWN_HEAD := &"unknown_head"  # M35-D: the head id is not one of the two of the tool
+const INVALID_STEP := &"invalid_step"  # M35-D: the step is not one of `tool_upgrade.head_steps`
+const HEAD_UNCHANGED := &"head_unchanged"  # M35-D: the head is already the chosen one at that step

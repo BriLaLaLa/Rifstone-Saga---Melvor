@@ -191,7 +191,7 @@ static func measure(data: Object, opts: Dictionary, with_expected: bool) -> Dict
 	var params: Dictionary = {"travel_ms": int(data.call("balance_value", "encounters.travel_ms")),
 		"node_chance_pct": float(data.call("balance_value", "encounters.node_chance_pct")), "fight_ms": fight_ms,
 		"skip_ms": int(data.call("balance_value", "encounters.skip_ms")), "node_units": int(data.call("balance_value", "encounters.node_units")),
-		"weights": weights, "learned": learned, "node_ms": {}, "yield": {},
+		"weights": weights, "learned": learned, "node_ms": {}, "yield": {}, "unit_bonus_pct": {}, "rich_by_skill": {},
 		"rich_chance_pct": int(data.call("balance_value", "encounters.rich_chance_pct")),
 		"rich_ms_pct": int(data.call("balance_value", "encounters.rich_ms_pct")), "rich_units_pct": int(data.call("balance_value", "encounters.rich_units_pct"))}
 	for skill: StringName in learned:
@@ -206,6 +206,9 @@ static func measure(data: Object, opts: Dictionary, with_expected: bool) -> Dict
 			parts.append("%s %+.1f" % [entry["source"], entry["value"]])
 		row["interval_sources_%s" % skill] = ", ".join(parts)
 		(params["yield"] as Dictionary)[skill] =int(cycle.call("yield_pct", session, int(session.skills.get_level(skill)), diff))
+		# M35 (F-198, F-199): the heads of the tools change `u` and `p` of the skill; the closed form reads them from the modifiers
+		(params["unit_bonus_pct"] as Dictionary)[skill] = int(cycle.call("units_bonus_pct", session, skill, step_def))
+		(params["rich_by_skill"] as Dictionary)[skill] = float(cycle.call("rich_chance", session, skill, step_def))
 		var action: String = _top_key(tally["skill_actions"].get(skill, {}))
 		var def: Object = data.call("action", StringName(action)) if action != "" else null
 		var dedicated: float = float(HOUR_MS) / float(def.interval_ms) * float(def.xp) if def != null else 0.0

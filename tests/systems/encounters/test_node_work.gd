@@ -15,11 +15,13 @@ const UNITS: int = 80
 class ScriptedRng extends RngService:
 	var calls: int = 0
 	var true_calls: Array[int] = []
+	var last_chance: float = -1.0
 
 	func _init() -> void:
 		super(1)
 
-	func roll_pct(_chance_pct: float) -> bool:
+	func roll_pct(chance_pct: float) -> bool:
+		last_chance = chance_pct
 		calls += 1
 		return true_calls.has(calls - 1)
 
@@ -129,3 +131,28 @@ func test_no_room_at_all_changes_nothing() -> void:
 	assert_eq(s.bank.get_count(LOG_ITEM), 0)
 
 
+
+
+## M35-D F-199: `p = min(100, encounters.rich_chance_pct + T(node_rich_pct))`, one `roll_pct(p)` per node. M35-D2 content (`m35_data.gd`).
+func test_node_rich_pct() -> void:
+	var s: GameSession = autofree(TestFactory.session_no_kit(77, preload("res://tests/systems/armory/m35_data.gd").fresh()))
+	s.disciplines.new_game()
+	TestFactory.learn_discipline(s, QUARRYING)
+	TestFactory.set_level(s, QUARRYING, 45)
+	var rng := ScriptedRng.new()
+	s.rng = rng
+	assert_eq(NodeWork.begin(s, AREA, QUARRYING).rich, false)
+	assert_eq(rng.last_chance, 10.0, "no head: the 10 of encounters.rich_chance_pct")
+	s.modifiers.set_source(&"test:rich", [Modifier.make(&"node_rich_pct", 18.0)] as Array[Modifier])
+	rng.calls = 0
+	NodeWork.begin(s, AREA, QUARRYING)
+	assert_eq(rng.last_chance, 28.0, "10 + 18 (Martello da cava complete)")
+	assert_eq(rng.calls, 1, "one roll, the sequence of the generator does not change")
+	s.modifiers.set_source(&"test:rich", [Modifier.make(&"node_rich_pct", 100.0)] as Array[Modifier])
+	NodeWork.begin(s, AREA, QUARRYING)
+	assert_eq(rng.last_chance, 100.0, "at most 100")
+	rng.true_calls = [rng.calls]  # the next roll is true: a rich node of 5 attempts, 150% of the units
+	var rich: NodeWork = NodeWork.begin(s, AREA, QUARRYING)
+	assert_true(rich.rich)
+	assert_eq(rich.attempts, 5)
+	assert_eq(rich.ne, 120)

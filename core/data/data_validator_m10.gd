@@ -12,6 +12,7 @@ const BLUEPRINT_FIELDS: PackedStringArray = ["base", "grade", "inputs", "rare_co
 const BLUEPRINT_INPUT_CATEGORIES: PackedStringArray = ["component", "material"]
 const NO_BLUEPRINT_SLOTS: PackedStringArray = ["ring", "neck"]
 const TOOL_SLOTS: PackedStringArray = ["tool_forestry", "tool_quarrying", "tool_angling"]
+const OPTIONAL_TOOL_SLOTS: PackedStringArray = ["tool_herbalism"]  # M35: the Sickle; required once M35-D2 has put it in the data
 const GRADE_COUNT: int = 8
 const SINGLE_SKILL: String = "forging"
 const NO_RECIPE_CATEGORIES: PackedStringArray = ["equipment", "tool"]
@@ -105,13 +106,14 @@ static func _is_armour(equip: Dictionary) -> bool:
 
 ## `unique` and `upgrade_extras` of an `equip` object (§5, M10); both belong to tools only.
 static func tool_fields(v: DataValidatorRules, equip: Dictionary, category: String) -> void:
-	for key: String in ["unique", "upgrade_extras"]:
+	for key: String in ["unique", "upgrade_extras", "heads"]:
 		if equip.has(key) and category != "tool":
 			v.fail("field 'equip.%s' is allowed only for category 'tool'" % key)
 	if category != "tool":
 		return
 	if equip.has("unique"):
 		v.flag(equip, "unique", "equip")
+	DataValidatorToolHeads.heads(v, equip)  # M35
 	if not equip.has("upgrade_extras"):
 		return
 	var seen: Dictionary[int, bool] = {}
@@ -153,8 +155,9 @@ static func validate_items(v: DataValidatorRules, files: Dictionary[String, Dict
 				tools += 1
 				_unique_tool(v, e as Dictionary, tool_slots)
 	v.at_file("section 'items'" if files.is_empty() else (files.keys()[0] as String).get_base_dir())
-	if tools != TOOL_SLOTS.size():
-		v.fail("expected exactly %d tools (one unique tool per tool slot), got %d" % [TOOL_SLOTS.size(), tools])
+	var expected: int = TOOL_SLOTS.size() + (1 if tool_slots.has(OPTIONAL_TOOL_SLOTS[0]) else 0)  # M35: the Sickle is optional until M35-D2
+	if tools != expected:
+		v.fail("expected exactly %d tools (one unique tool per tool slot), got %d" % [expected, tools])
 
 
 # A tool is unique, free (value 0), of grade 1 and has no requirements.

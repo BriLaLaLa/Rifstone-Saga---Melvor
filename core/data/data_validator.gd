@@ -261,7 +261,7 @@ static func _unknown_balance_keys(v: DataValidatorRules, node: Dictionary, prefi
 		if str(key) == DataValidatorRules.DOC_KEY or path in REQUIRED_BALANCE_KEYS \
 				or path in DataValidatorM10Balance.M10_REQUIRED_KEYS or path in DataValidatorM10Balance.LEGACY_KEYS \
 				or DataValidatorFracture.is_known_key(path) or DataValidatorM14.is_known_key(path) \
-				or DataValidatorMetin.is_known_key(path) or DataValidatorVillage.is_known_key(path) or DataValidatorQuests.is_known_key(path) or DataValidatorDungeon.is_known_key(path) or DataValidatorAuction.is_known_key(path) or DataValidatorDisciplines.is_known_key(path) or DataValidatorCurrency.is_known_key(path) or DataValidatorMail.is_known_key(path):
+				or DataValidatorMetin.is_known_key(path) or DataValidatorVillage.is_known_key(path) or DataValidatorQuests.is_known_key(path) or DataValidatorDungeon.is_known_key(path) or DataValidatorAuction.is_known_key(path) or DataValidatorDisciplines.is_known_key(path) or DataValidatorCurrency.is_known_key(path) or DataValidatorMail.is_known_key(path) or DataValidatorToolHeads.is_known_key(path):
 			continue
 		var is_prefix: bool = false
 		for required: String in REQUIRED_BALANCE_KEYS:

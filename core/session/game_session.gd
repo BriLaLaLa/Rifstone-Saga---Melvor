@@ -141,6 +141,7 @@ func from_save(d: Dictionary) -> CommandResult:
 	player_name = d["player_name"]
 	rng.from_save(d[RNG_KEY])
 	_participants.from_save(modules)
+	ArmoryKit.ensure_tools(self)  # M35: an old save gets the tools it lacks (the Sickle)
 	rebuild_modifiers()
 	return CommandResult.success()
 

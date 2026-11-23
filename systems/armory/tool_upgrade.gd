@@ -4,11 +4,12 @@ extends RefCounted
 ## `tool_upgrade` of balance.json and the `equip` of the tool. No state: `Armory.upgrade_tool` spends the materials.
 ## The step towards `+T` (T 1..max_level) needs the craft level `min_level`, `plates` plates and `handles` handles of the
 ## grade, and gold; it always succeeds. The effect of a tool at `+N` is `skill_interval_pct` -(base + per_level x N)
-## plus the `upgrade_extras` with `at <= N`.
+## plus (M35, F-196) `node_units_pct` and the active heads of F-197 (`heads[i]` at `head_steps[i] <= N`).
 
 const SECTION_KEY: String = "tool_upgrade"
 const SLOT_PREFIX: String = "tool_"
 const INTERVAL_STAT: StringName = &"skill_interval_pct"
+const UNITS_STAT: StringName = &"node_units_pct"
 
 
 static func _section(data: GameData) -> Dictionary:
@@ -32,7 +33,7 @@ static func interval_pct(level: int, data: GameData) -> float:
 
 
 ## Row of the step towards `+target` (1..max_level) as the UI reads it: {target, min_level, grade, plates: ItemQty,
-## handles: ItemQty, gold, interval_pct}. Empty for a target out of range or a section without component lists.
+## handles: ItemQty, gold, interval_pct, head_step}. Empty for a target out of range or a section without component lists.
 static func step(target: int, data: GameData) -> Dictionary:
 	var section: Dictionary = _section(data)
 	var levels: Array = section["levels"] as Array
@@ -53,21 +54,77 @@ static func step(target: int, data: GameData) -> Dictionary:
 		"handles": _qty(StringName(str(handle_items[grade - 1])), int(row["handles"])),
 		"gold": int(row["gold"]),
 		"interval_pct": interval_pct(target, data),
+		"head_step": target if head_steps(data).has(target) else 0,  # M35: a head is chosen at this step («Scegli una testa»)
 	}
 
 
-## Modifiers of the unique tool `def` at `+level`: the interval of F-94 (scope of its skill), the other base modifiers
-## unchanged, and every extra with `at <= level`. No F-86 scaling, no affixes, no sockets.
-static func modifiers(def: ItemDef, level: int, data: GameData) -> Array[Modifier]:
+## M35 (F-196): `tool_upgrade.units_per_level_pct`, 0 while the key is absent (real data before M35-D2).
+static func units_per_level(data: GameData) -> float:
+	return float(_section(data).get("units_per_level_pct", 0))
+
+
+## M35 (F-197): the refinement levels (3, 6, 9) at which a head is chosen; empty while the key is absent (real data before M35-D2).
+static func head_steps(data: GameData) -> Array[int]:
+	var result: Array[int] = []
+	for step: Variant in _section(data).get("head_steps", []) as Array:
+		result.append(int(step))
+	return result
+
+
+## F-198: the gold of changing the head of step `step` (3, 6 or 9); 0 for a step that is not a head step.
+static func respec_gold(step: int, data: GameData) -> int:
+	var levels: Array = _section(data)["levels"] as Array
+	if not head_steps(data).has(step) or step < 1 or step > levels.size():
+		return 0
+	return floori(int((levels[step - 1] as Dictionary)["gold"]) * int(_section(data).get("respec_pct", 0)) / 100.0)
+
+
+## Modifiers of the unique tool `def` at `+level` with the chosen `heads`: the interval of F-94 and `node_units_pct` of F-196 (scope
+## of its skill), the other base modifiers unchanged, and the modifiers of every head chosen whose step is reached (F-197).
+## No F-86 scaling, no affixes, no sockets.
+static func modifiers(def: ItemDef, level: int, heads: Array[StringName], data: GameData) -> Array[Modifier]:
 	var skill: StringName = skill_of_slot(def.equip.slot)
 	var result: Array[Modifier] = [Modifier.make(INTERVAL_STAT, interval_pct(level, data), Modifier.SCOPE_SKILL, skill)]
+	if units_per_level(data) > 0.0 and level > 0:
+		result.append(Modifier.make(UNITS_STAT, units_per_level(data) * level, Modifier.SCOPE_SKILL, skill))
 	for m: Modifier in def.equip.modifiers:
 		if m.stat != INTERVAL_STAT:
 			result.append(m)
-	for extra: ToolExtra in def.equip.upgrade_extras:
-		if extra.at <= level:
-			result.append_array(extra.modifiers)
+	var steps: Array[int] = head_steps(data)
+	for i: int in mini(heads.size(), steps.size()):
+		var head: ToolHead = head_def(def, heads[i])
+		if head != null and steps[i] <= level and i < head.steps.size():
+			result.append_array(head.steps[i] as Array[Modifier])
 	return result
+
+
+## The head `head_id` of the unique tool `def`; null if it has no such head.
+static func head_def(def: ItemDef, head_id: StringName) -> ToolHead:
+	for head: ToolHead in def.equip.heads:
+		if head.id == head_id:
+			return head
+	return null
+
+
+## F-198 refusals in order after `unknown_id` and `not_equippable` (the Armory): not_a_tool is checked first here, then invalid_step,
+## head_locked, unknown_head, head_unchanged, not_enough_gold (only a change of a head already chosen costs).
+static func check_head(inst: ItemInstance, step: int, head_id: StringName, wallet: Wallet, data: GameData) -> CommandResult:
+	var def: ItemDef = data.item(inst.base_id) if data.has_item(inst.base_id) else null
+	if def == null or def.equip == null or not def.equip.unique:
+		return CommandResult.fail(Reasons.NOT_A_TOOL)
+	var index: int = head_steps(data).find(step)
+	if index < 0:
+		return CommandResult.fail(Reasons.INVALID_STEP)
+	if inst.upgrade < step:
+		return CommandResult.fail(Reasons.HEAD_LOCKED)
+	if head_def(def, head_id) == null:
+		return CommandResult.fail(Reasons.UNKNOWN_HEAD)
+	var current: StringName = inst.heads[index] if index < inst.heads.size() else &""
+	if current == head_id:
+		return CommandResult.fail(Reasons.HEAD_UNCHANGED)
+	if current != &"" and wallet.get_gold() < respec_gold(step, data):
+		return CommandResult.fail(Reasons.NOT_ENOUGH_GOLD)
+	return CommandResult.success()
 
 
 static func _qty(item_id: StringName, qty: int) -> ItemQty:
@@ -108,3 +165,33 @@ static func apply(inst: ItemInstance, wallet: Wallet, bank: Bank, data: GameData
 		var qty: ItemQty = next[key]
 		Upgrade.spend(bank, qty.item_id, qty.qty)
 	inst.upgrade += 1
+
+
+## A fresh `heads` list: one empty choice per head step.
+static func blank_heads(data: GameData) -> Array[StringName]:
+	var result: Array[StringName] = []
+	result.resize(head_steps(data).size())
+	result.fill(&"")
+	return result
+
+
+## F-198: validates (`check_head`) and then sets `heads` of `inst` at `step`; a change of a head already chosen spends `respec_gold`.
+static func choose_head(inst: ItemInstance, step: int, head_id: StringName, wallet: Wallet, data: GameData) -> CommandResult:
+	var checked: CommandResult = check_head(inst, step, head_id, wallet, data)
+	if not checked.ok:
+		return checked
+	var index: int = head_steps(data).find(step)
+	if inst.heads.size() <= index:
+		inst.heads.resize(index + 1)
+	if inst.heads[index] != &"":
+		wallet.spend(respec_gold(step, data))
+	inst.heads[index] = head_id
+	return checked
+
+
+## F-198: the gold of changing the head of `step` of `inst`: 0 for a step with no choice yet or that is not a head step.
+static func head_cost(inst: ItemInstance, step: int, data: GameData) -> int:
+	var index: int = head_steps(data).find(step)
+	if index < 0 or index >= inst.heads.size() or inst.heads[index] == &"":
+		return 0
+	return respec_gold(step, data)

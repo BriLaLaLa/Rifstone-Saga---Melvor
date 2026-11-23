@@ -13,6 +13,7 @@ var grade: int = 0
 var material: StringName = &""  # M14: &"plate" / &"leather" / &"cloth" for armour and shields, &"" otherwise
 var weapon: WeaponInfo = null
 var unique: bool = false  # M10: unique tool (04 §5); false when absent
+var heads: Array[ToolHead] = []  # M35: the two heads of a unique tool (F-197); empty when absent
 var upgrade_extras: Array[ToolExtra] = []  # M10: empty when absent
 var masterwork: bool = false  # M14: a base of Masterwork (F-119), false when absent
 var legendary: LegendaryInfo = null  # M14: null unless a legendary (F-120)
@@ -41,6 +42,12 @@ static func from_dict(d: Dictionary) -> EquipInfo:
 			r.absorb(extra != null)
 			if extra != null:
 				def.upgrade_extras.append(extra)
+	if r.has("heads"):
+		for entry: Dictionary in r.dict_list("heads"):
+			var head: ToolHead = ToolHead.from_dict(entry, "skill:" + String(def.slot).trim_prefix("tool_"))
+			r.absorb(head != null)
+			if head != null:
+				def.heads.append(head)
 	if r.has("masterwork"):
 		def.masterwork = r.flag("masterwork")
 	if r.has("legendary") and r.is_dict("legendary"):

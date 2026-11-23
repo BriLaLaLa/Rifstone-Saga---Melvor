@@ -121,7 +121,8 @@ func view(state: StringName) -> Dictionary:
 			"elapsed_ms": node.elapsed_ms, "skipped": node.skipped, "skip_reason": node.skip_reason,
 			"color": node.color(_session)["id"], "attempts": node.attempts, "attempt": node.attempt, "rich": node.rich,
 			"difficulty": node.difficulty, "level": _session.skills.get_level(node.skill_id), "yield_pct": node.yield_pct(_session),
-			"units": node.units, "units_planned": node.units_planned(_session), "last_attempt": node.last_attempt.duplicate()}
+			"units": node.units, "units_planned": node.units_planned(_session), "last_attempt": node.last_attempt.duplicate(),
+			"ne": node.ne, "focused": node.focused, "focus_blocked": node.focus_blocked}
 	return result
 
 

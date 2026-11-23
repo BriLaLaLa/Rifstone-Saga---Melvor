@@ -13,6 +13,7 @@ extends RefCounted
 
 const DOUBLE_STAT: StringName = &"double_item_chance"
 const SHARD_STAT: StringName = &"rift_shard_chance"
+const BYPRODUCT_STAT: StringName = &"byproduct_chance_pct"  # M35 (F-199)
 const SHARD_BASE_KEY: String = "gathering.rift_shard_base_chance_pct"
 const SHARD_ITEM: StringName = &"rift_shard"
 const SHARD_QTY: int = 1
@@ -66,7 +67,7 @@ static func _roll_unit(session: GameSession, action: ActionDef, ctx: ModifierCon
 		produced[output.item_id] = produced.get(output.item_id, 0) + output.qty * factor
 	if session.rng.roll_pct(_shard_chance(session, ctx)):
 		produced[SHARD_ITEM] = produced.get(SHARD_ITEM, 0) + SHARD_QTY
-	var byproduct: StringName = _byproduct(session, action, gather.byproduct_mult if gather != null else 1.0)
+	var byproduct: StringName = _byproduct(session, action, gather.byproduct_mult if gather != null else 1.0, ctx)
 	if byproduct != &"":
 		produced[byproduct] = produced.get(byproduct, 0) + BYPRODUCT_QTY
 	if gather != null:
@@ -77,18 +78,24 @@ static func _roll_unit(session: GameSession, action: ActionDef, ctx: ModifierCon
 
 # F-103: the byproduct of the 25 milestone (third roll, after double and shard) when the action reached it; else "".
 # The roll happens only if the milestone is active, with `mastery.milestones.byproduct_chance_pct`.
-static func _byproduct(session: GameSession, action: ActionDef, chance_mult: float = 1.0) -> StringName:
+static func _byproduct(session: GameSession, action: ActionDef, chance_mult: float = 1.0, ctx: ModifierContext = null) -> StringName:
 	var milestone: MilestoneDef = action.milestone_of(MilestoneDef.TYPE_BYPRODUCT)
 	var at: int = int(session.data.balance_value(MasteryMilestones.BYPRODUCT_AT_KEY))
 	if milestone == null or not session.mastery.milestone_active(action.id, at):
 		return &""
-	var chance: float = byproduct_chance(session.data, chance_mult)
+	var chance: float = byproduct_chance(session.data, chance_mult, optional_total(session, BYPRODUCT_STAT, ctx))
 	return milestone.item if session.rng.roll_pct(chance) else &""
 
 
-## F-103 chance in percent of the byproduct of the milestone 25 x `chance_mult` (F-120 `byproduct_mult`), at most 100.
-static func byproduct_chance(data: GameData, chance_mult: float = 1.0) -> float:
-	return minf(100.0, float(data.balance_value(MasteryMilestones.BYPRODUCT_CHANCE_KEY)) * chance_mult)
+## F-103 chance in percent of the byproduct of the milestone 25: `(base + bonus_pct)` (F-199, `T(byproduct_chance_pct)`) x `chance_mult` (F-120
+## `byproduct_mult`), at most 100.
+static func byproduct_chance(data: GameData, chance_mult: float = 1.0, bonus_pct: float = 0.0) -> float:
+	return minf(100.0, (float(data.balance_value(MasteryMilestones.BYPRODUCT_CHANCE_KEY)) + bonus_pct) * chance_mult)
+
+
+## The total of a stat of the M35 gathering stats, 0 while the stat is not registered (real data before M35-D2 registers it).
+static func optional_total(session: GameSession, stat: StringName, ctx: ModifierContext) -> float:
+	return session.modifiers.total(stat, ctx) if session.data.stats.has(stat) else 0.0
 
 
 # F-07 for gathering: base chance from balance.json plus the stat total, limited to 0..100 percent.
