@@ -320,3 +320,9 @@ rivederli con l'oro/h), Q110, Q111, Q112, Q120 (M25+).
 | Q201 | Slot di produzione di uno slot v12 con Cucina già appresa? | **Default**: si liberano, nessuna migrazione. |
 | Q202 | Tonici senza Pesca? | **Default**: no, `brew_tonic_*` chiedono ancora un pesce. |
 | Q203 | Prezzi e Casa d'Aste della carne? | **Default**: materiale normale; cibi ai livelli tra due tacche del Falegname prendono la tacca inferiore (validatore dell'asta rilassato). |
+| Q214 | Chi ha già un attrezzo a +N ha perso gli `upgrade_extras` (doppio +2/+3, Frammenti +10/+15) | **Default**: sì, le teste li sostituiscono con valori pari o più alti; prima scelta gratuita per ogni passo ≤ N; nessun rimborso. |
+| Q215 | Attrezzo leggendario nello slot: le teste dell'unico contano? | **Default**: no finché il leggendario è indossato (nessun bonus del unico); restano salvate e tornano al rimontaggio. |
+| Q216 | Valori delle teste (5 unità per passo, ricchezza 6 punti + doppio 2…) da ritarare con `sim_encounters` | **Default**: valori di F-197; limiti di test: Piccone +9 ≤ +30% unità/ora, teste entro 10%. |
+| Q217 | Raccolta mirata: scegliere una risorsa bassa nel Villaggio/area con `max_level` più alto della scelta | **Default**: vale (la scelta è sempre ≤ `limit`); l'XP è grigia, prodotto e maestria pieni. |
+| Q218 | Vista «Risorse» nel Deposito (Altro)? | **Default**: no, il Deposito ha già le schede per tipo; solo la pagina della disciplina. |
+| Q219 | M3 «Ciò che serve» (focus derivato dalla coda) | **Default**: fuori da M35, task separato con una nuova V; il valore di `focus` ammetterà `need`. |

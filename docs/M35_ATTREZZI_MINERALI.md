@@ -1,6 +1,6 @@
 # M35-D: attrezzi di raccolta e tab delle risorse (proposta, da scegliere)
 
-Stato: **PROPOSTA**, nessun codice. Autore: Reviewer (sessione D). Dopo la scelta dell'utente: V in `DECISIONS_LOG.md`, Q in `OPEN_QUESTIONS.md`,
+Stato: **SCELTA FATTA (V44)**: A2 + Falcetto + M1/M2 (M3 dopo), Automatico come fallback, oro di `balance.json`. Design in `01_GDD_M35.md` §42; questo file resta come analisi. Autore: Reviewer (sessione D). Dopo la scelta dell'utente: V in `DECISIONS_LOG.md`, Q in `OPEN_QUESTIONS.md`,
 GDD/formule/schema/interfacce e `07_TASKS_M35.md`.
 
 Richieste dell'utente: (1) gli attrezzi sono diventati inutili o quasi, ripensarli e ripensare l'upgrade; (2) la tab dei minerali del Minatore è solo

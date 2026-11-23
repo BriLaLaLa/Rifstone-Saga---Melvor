@@ -2702,3 +2702,5 @@ class_name MasteryStepRow extends HBoxContainer  # ui/pages/mastery/mastery_step
 - **Toast**: `item_discovered` → "Nuovo: <oggetto>" (raggruppati come gli altri toast, solo una riga per scoperta; non per il kit iniziale).
 - **Maestria**: ogni carta dell'azione mostra `MasteryStepRow`; il pannello della maestria resta com'è.
 - **Colori** dei pezzi con `RarityColors` ovunque appaia un pezzo (inventario, scheda, tooltip, Armeria, toast).
+
+**M35 (attrezzi con teste e raccolta mirata, V44)**: stat `node_units_pct`/`node_rich_pct`/`byproduct_chance_pct`, `Armory.choose_tool_head`, quarto slot `tool_herbalism` e `ArmoryKit.ensure_tools`, `Disciplines.set_focus`, `EncounterCycle.worked_action(…, focus)`, save v12 additivo (`focus`, `heads`, `ne`), UI `ResourceTable` e sezione Teste in [`05_INTERFACES_M35.md`](05_INTERFACES_M35.md) (segnale §3h, motivi §4g, §5.44-§5.46, §6h, §7.ac).

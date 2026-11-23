@@ -469,6 +469,7 @@ di `data/skills/skills.json`, `04_DATA_SCHEMA.md` §4). Poi F-86 come sempre. Es
 `tests/systems/armory/test_upgrade.gd::test_forging_level_bonus`.
 
 ### F-94 Raffinazione degli attrezzi (+0…+9, sempre riuscita)
+> **M35 (V44)**: l'**oro** qui sotto è **corretto** ai valori veri di `balance.json` (la vecchia tabella era 100 volte più bassa); l'**effetto** (`upgrade_extras`) è **sostituito** da F-196/F-197 (`02_FORMULAS_M35.md`: `node_units_pct` e teste ai passi +3/+6/+9). Costi, livelli e rifiuti invariati.
 Passo verso `+T` (T 1..9) sull'attrezzo unico della skill `s`. Condizioni: mestiere `s` al livello `min_level(T)`;
 costo `plates(T)` piastre del grado `grade(T)` (item `tool_upgrade.plate_items[grado − 1]`), `handles(T)` manici dello
 stesso grado (`handle_items`) e `gold(T)` oro. **Riesce sempre**: nessun tiro, nessuna discesa, nessun Sigillo.
@@ -478,15 +479,15 @@ stesso grado (`handle_items`) e `gold(T)` oro. **Riesce sempre**: nessun tiro, n
 | `grade` dei componenti | 1 | 2 | 3 | 3 | 4 | 5 | 6 | 7 | 8 |
 | `plates` | 2 | 2 | 3 | 3 | 4 | 4 | 5 | 5 | 6 |
 | `handles` | 1 | 1 | 1 | 1 | 2 | 2 | 2 | 2 | 3 |
-| `gold` | 100 | 250 | 600 | 1.200 | 2.500 | 5.000 | 10.000 | 20.000 | 40.000 |
+| `gold` | 10.000 | 25.000 | 60.000 | 120.000 | 250.000 | 500.000 | 1.000.000 | 2.000.000 | 4.000.000 |
 Effetto: `skill_interval_pct = −(tool_upgrade.interval_base_pct + tool_upgrade.interval_per_level_pct × N)` con 5 e 2
 (+0 → −5; +9 → −23), scope `skill:<s>`; più `upgrade_extras` dell'attrezzo (`data/items/tools.json`): a +5
 `double_item_chance` +2 (Boscaiolo, Minatore) o `rift_shard_chance` +10 (Pescatore); a +9 altri +3 / +15. La tabella sta
 in `balance.json` (`tool_upgrade.levels`); l'effetto in `balance.json` e nei dati dell'attrezzo.
 Rifiuti, in ordine: `unknown_id`, `not_a_tool` (non è un attrezzo unico), `upgrade_max`, `level_too_low` (mestiere),
 `not_enough_gold`, `not_enough_items`; atomico. Esempi: Accetta +3 → +4: Boscaiolo al livello 25, 3 piastre di acciaio,
-1 manico di quercia, 1.200 oro; Accetta +4 → `skill_interval_pct` −13, +9 → −23 più `double_item_chance` +5; Piccone +0 → +1
-con il Minatore al livello 1: 2 piastre di rame, 1 manico di betulla, 100 oro. Test:
+1 manico di quercia, 120.000 oro; Accetta +4 → `skill_interval_pct` −13, +9 → −23 più `double_item_chance` +5; Piccone +0 → +1
+con il Minatore al livello 1: 2 piastre di rame, 1 manico di betulla, 10.000 oro. Test:
 `tests/systems/armory/test_upgrade_tool.gd`.
 
 ### F-95 Smantellamento a componenti
