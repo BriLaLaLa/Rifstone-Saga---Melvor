@@ -45,28 +45,31 @@ func test_one_card_per_entry_of_the_class() -> void:
 	assert_eq(_panel.card_count(LoadoutPanel.KIND_ABILITY), class_def.abilities.size())
 
 
-func test_card_shows_name_description_and_unlock_level() -> void:
+func test_card_shows_one_line_effect_and_the_detail_for_the_tooltip() -> void:
 	var def: AbilityDef = _session.character.class_def().abilities[0]
 	var card: LoadoutCard = _panel.card(LoadoutPanel.KIND_ABILITY, def.id)
 	assert_eq(card.title_text(), def.name)
-	assert_eq(card.description_text(), LoadoutDescribe.ability_text(def, _session.data, _session.character.class_def()))
-	assert_string_contains(card.unlock_text(), str(def.unlock_level))
+	var full: String = LoadoutDescribe.ability_text(def, _session.data, _session.character.class_def())
+	assert_eq(card.effect_text(), full.get_slice("\n", 0))
+	assert_false(card.effect_text().contains("\n"), "one line")
+	assert_string_contains(card.detail_text(), full)
 
 
-func test_summary_names_next_slot_level() -> void:
-	var total: int = (_session.data.balance_value(Loadout.TRAIT_LEVELS_KEY) as Array).size()
-	var next_level: int = int((_session.data.balance_value(Loadout.TRAIT_LEVELS_KEY) as Array)[_session.loadout.trait_slots()])
-	assert_eq(_panel.summary_text(LoadoutPanel.KIND_TRAIT),
-			LoadoutTexts.SLOTS_NEXT_TEXT % [_session.loadout.trait_slots(), total, next_level])
+func test_header_shows_occupied_and_open_slots() -> void:
+	var section: LoadoutSection = _panel.section(LoadoutPanel.KIND_TRAIT)
+	assert_eq(section.points_text(), "0 / %d" % _session.loadout.trait_slots())
+	_click(LoadoutPanel.KIND_TRAIT, &"test_cleave")
+	assert_eq(section.points_text(), "1 / %d" % _session.loadout.trait_slots())
+	assert_gt(section.group_count(), 0)
 
 
 func test_click_is_a_command_and_redraws() -> void:
 	_click(LoadoutPanel.KIND_TRAIT, &"test_cleave")
 	assert_eq(_session.loadout.get_trait(0), &"test_cleave")
-	assert_eq(_panel.card(LoadoutPanel.KIND_TRAIT, &"test_cleave").state_text(), LoadoutTexts.SLOT_CHOSEN_TEXT % 1)
+	assert_eq(_panel.card(LoadoutPanel.KIND_TRAIT, &"test_cleave").state(), LoadoutCard.STATE_ACTIVE)
 	_click(LoadoutPanel.KIND_TRAIT, &"test_cleave")
 	assert_eq(_session.loadout.get_trait(0), &"", "clicking a chosen card empties its slot")
-	assert_eq(_panel.card(LoadoutPanel.KIND_TRAIT, &"test_cleave").state_text(), "")
+	assert_eq(_panel.card(LoadoutPanel.KIND_TRAIT, &"test_cleave").state(), LoadoutCard.STATE_AVAILABLE)
 
 
 func test_second_choice_takes_the_next_open_slot() -> void:
@@ -85,7 +88,7 @@ func test_no_free_slot_gives_a_message_and_no_command() -> void:
 
 func test_entry_above_level_is_dimmed_and_refused_with_its_reason() -> void:
 	var card: LoadoutCard = _panel.card(LoadoutPanel.KIND_ABILITY, &"test_mend")
-	assert_lt(card.modulate.a, 1.0, "level 30 needed")
+	assert_eq(card.state(), LoadoutCard.STATE_LOCKED, "level 30 needed")
 	_click(LoadoutPanel.KIND_ABILITY, &"test_mend")
 	assert_eq(_panel.message_text(), LoadoutTexts.REASON_TEXTS[Reasons.LEVEL_TOO_LOW])
 	assert_eq(_session.loadout.get_ability(0), &"")
@@ -94,14 +97,14 @@ func test_entry_above_level_is_dimmed_and_refused_with_its_reason() -> void:
 
 
 func test_level_up_updates_the_summary() -> void:
-	var before: String = _panel.summary_text(LoadoutPanel.KIND_TRAIT)
+	var before: String = _panel.section(LoadoutPanel.KIND_TRAIT).points_text()
 	_level_to(10)
-	assert_ne(_panel.summary_text(LoadoutPanel.KIND_TRAIT), before)
+	assert_ne(_panel.section(LoadoutPanel.KIND_TRAIT).points_text(), before)
 
 
 func test_setup_note_for_entry_not_active() -> void:
 	_click(LoadoutPanel.KIND_ABILITY, &"test_whirl")
-	assert_string_contains(_panel.card(LoadoutPanel.KIND_ABILITY, &"test_whirl").state_text(), LoadoutTexts.NOT_FOR_SETUP_TEXT)
+	assert_eq(_panel.card(LoadoutPanel.KIND_ABILITY, &"test_whirl").state(), LoadoutCard.STATE_INACTIVE)
 
 
 func test_encounter_shows_one_warning_per_section_and_blocks_clicks() -> void:
@@ -199,11 +202,11 @@ func test_real_clicks_on_the_toggle_and_on_a_card() -> void:
 	await _real_click(toggle)
 	assert_eq(_visible_cards(panel, LoadoutPanel.KIND_TRAIT, class_def), shown)
 	# the cards are ordered by unlock level
-	var grid: Node = panel.card(LoadoutPanel.KIND_TRAIT, class_def.traits[0].id).get_parent()
+	var cards: Array[LoadoutCard] = panel.section(LoadoutPanel.KIND_TRAIT).cards
 	var levels: Array[int] = []
-	for child: Node in grid.get_children():
+	for card: LoadoutCard in cards:
 		for def: TraitDef in class_def.traits:
-			if "Card_%s" % def.id == child.name:
+			if def.id == card.entry_id():
 				levels.append(def.unlock_level)
 	assert_eq(levels.size(), total)
 	var sorted: Array[int] = levels.duplicate()
@@ -211,13 +214,13 @@ func test_real_clicks_on_the_toggle_and_on_a_card() -> void:
 	assert_eq(levels, sorted, "ordered by unlock level")
 	# a click on a visible card chooses it (the command of Loadout), a second one empties the slot
 	var first: LoadoutCard = null
-	for child: Node in grid.get_children():
-		if first == null and (child as Control).visible and (child as LoadoutCard).is_clickable():
-			first = child as LoadoutCard
+	for card: LoadoutCard in cards:
+		if first == null and card.is_visible_in_tree() and card.is_clickable():
+			first = card
 	assert_not_null(first)
 	await _real_click(first)
 	assert_eq(String(real.loadout.get_trait(0)), String(first.entry_id()))
-	assert_ne(first.state_text(), "")
+	assert_eq(first.state(), LoadoutCard.STATE_ACTIVE)
 	await _real_click(first)
 	assert_eq(String(real.loadout.get_trait(0)), "")
 	screen.free()
