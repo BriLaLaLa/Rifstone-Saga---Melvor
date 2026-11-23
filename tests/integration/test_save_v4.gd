@@ -15,8 +15,8 @@ const SWORD: StringName = &"emberbronze_sword"
 const SHIELD: StringName = &"emberbronze_shield"
 const GREATSWORD: StringName = &"emberbronze_greatsword"
 const CHARACTER_XP: int = 5000
-# Starting kit (balance start.armory 3 pieces + start.tools 3 tools): worn, uids 1..6 in a new game.
-const KIT: int = 6
+# Starting kit (balance start.armory 3 pieces + start.tools 4 tools): worn, uids 1..7 in a new game.
+const KIT: int = 7
 
 var _test_dir: String = PreRun.save_dir()
 var _game: GameScript

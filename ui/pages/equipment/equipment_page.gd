@@ -1,7 +1,7 @@
 class_name EquipmentPage
 extends Page
 ## Equipment page (docs/UI_GDR.md §3, route `equipment`), the Armory and the equipment in one place: the inventory
-## (pieces of `armory.instances()` not worn, filters by slot and rarity, capacity), the paper doll with the 12 slots
+## (pieces of `armory.instances()` not worn, filters by slot and rarity, capacity), the paper doll with the 13 slots
 ## and the stats with the selected piece on the right.
 ##
 ## Every redraw reads the session: pieces and capacity from the armory, the worn uids from `equipment`, the final

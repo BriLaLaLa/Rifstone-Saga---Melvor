@@ -36,9 +36,9 @@ func after_each() -> void:
 
 # --- Layout ------------------------------------------------------------------------------------------------------
 
-func test_the_doll_has_the_12_slots_all_empty_at_start() -> void:
+func test_the_doll_has_the_13_slots_all_empty_at_start() -> void:
 	_open()
-	assert_eq(_doll().slot_views().size(), 12)
+	assert_eq(_doll().slot_views().size(), 13)
 	for slot: StringName in Equipment.SLOTS:
 		assert_not_null(_view(slot), "slot %s" % slot)
 		assert_eq(_view(slot).uid(), 0)

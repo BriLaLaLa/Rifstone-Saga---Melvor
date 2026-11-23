@@ -7,7 +7,7 @@ const LEVEL_TEXT: String = "Livello %s  ·  Assetto: %s"
 const UNARMED_TEXT: String = "Mani nude"
 
 
-## Class and setup labels and the 12 slots of `doll`.
+## Class and setup labels and the 13 slots of `doll`.
 static func redraw_doll(session: GameSession, doll: EquipmentDoll, class_label: Label, setup_label: Label) -> void:
 	var class_def: ClassDef = session.character.class_def()
 	class_label.text = class_def.name if class_def != null else ""

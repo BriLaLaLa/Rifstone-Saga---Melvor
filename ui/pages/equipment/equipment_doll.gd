@@ -1,8 +1,8 @@
 class_name EquipmentDoll
 extends Control
-## The paper doll of the Equipment page (docs/mockups/equipment.dc.html): an original silhouette with the 12 slots
+## The paper doll of the Equipment page (docs/mockups/equipment.dc.html): an original silhouette with the 13 slots
 ## of `Equipment.SLOTS` around it (head on top, neck and ring on the right, hands on the left, body / legs / feet in
-## the middle, the weapon and the second hand tall on the two sides, the three tools in a row below).
+## the middle, the weapon and the second hand tall on the two sides, the four tools in a row below).
 ##
 ## Pure layout: the slot rectangles are expressed in a design space (`DESIGN_SIZE`, x relative to the centre) and
 ## scaled to fit the available area, so the doll works at 1600x900 and at 1280x720. It builds one
@@ -21,9 +21,10 @@ const SLOT_RECTS: Dictionary[StringName, Rect2] = {
 	&"offhand": Rect2(88, 200, 92, 170),
 	&"legs": Rect2(-45, 250, 90, 110),
 	&"feet": Rect2(-40, 380, 80, 72),
-	&"tool_forestry": Rect2(-150, 480, 72, 72),
-	&"tool_quarrying": Rect2(-36, 480, 72, 72),
-	&"tool_angling": Rect2(78, 480, 72, 72),
+	&"tool_forestry": Rect2(-150, 480, 66, 72),
+	&"tool_quarrying": Rect2(-72, 480, 66, 72),
+	&"tool_angling": Rect2(6, 480, 66, 72),
+	&"tool_herbalism": Rect2(84, 480, 66, 72),
 }
 ## The "Cibo" slot (not an `Equipment.SLOTS` entry): below the second hand, above the tool row.
 const FOOD_RECT := Rect2(96, 384, 84, 92)
@@ -52,7 +53,7 @@ func _init() -> void:
 	resized.connect(_layout)
 
 
-## Creates the 12 slot views; `label_of` is `(slot: StringName) -> String`.
+## Creates the 13 slot views; `label_of` is `(slot: StringName) -> String`.
 func build(label_of: Callable) -> void:
 	for view: EquipmentSlotView in _views.values():
 		remove_child(view)

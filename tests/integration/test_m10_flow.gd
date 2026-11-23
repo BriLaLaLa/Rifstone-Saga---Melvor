@@ -44,7 +44,7 @@ func after_each() -> void:
 
 func test_a_new_game_has_the_kit_the_field_rations_and_the_combat_hint() -> void:
 	var s: GameSession = _session
-	assert_eq(s.armory.instances().size(), 6, "three pieces and the three unique tools")
+	assert_eq(s.armory.instances().size(), 7, "three pieces and the four unique tools")
 	assert_eq(s.equipment.setup(), &"sword_shield", "the kit sword and shield are worn")
 	assert_eq(s.armory.used(), 1, "only the spare greatsword takes a place")
 	for slot: StringName in TOOLS:
@@ -70,7 +70,7 @@ func test_unique_tools_cannot_be_sold_dismantled_locked_or_taken_off() -> void:
 		assert_eq(_session.armory.salvage(uid).reason, Reasons.ITEM_UNIQUE)
 		assert_eq(_session.armory.get_instance(uid).base_id, StringName("unique_" + String(TOOLS[slot][0]).replace("forestry", "hatchet").replace("quarrying", "pick").replace("angling", "rod")))
 	assert_eq(_session.wallet.get_gold(), gold)
-	assert_eq(_session.armory.instances().size(), 6)
+	assert_eq(_session.armory.instances().size(), 7)
 
 
 # --- unique tools +0..+9 ----------------------------------------------------------------------------------------
@@ -83,7 +83,6 @@ func test_each_unique_tool_refines_from_zero_to_nine_always_succeeding() -> void
 
 func _refine_to_nine(slot: StringName) -> void:
 	var skill: StringName = TOOLS[slot][0]
-	var extra_stat: StringName = TOOLS[slot][1]
 	var uid: int = _session.armory.tool_uid(slot)
 	var plate_items: Array = _session.data.balance_value("tool_upgrade.plate_items") as Array
 	var handle_items: Array = _session.data.balance_value("tool_upgrade.handle_items") as Array
@@ -120,10 +119,7 @@ func _refine_to_nine(slot: StringName) -> void:
 		assert_eq(_session.bank.get_count(plates.item_id), 0, "the plates were spent")
 		assert_eq(_session.bank.get_count(handles.item_id), 0, "the handles were spent")
 		assert_eq(_session.modifiers.total(&"skill_interval_pct", ctx), -float(5 + 2 * target), "%s +%d" % [slot, target])
-		if target == 5:
-			assert_eq(_session.modifiers.total(extra_stat, ctx), float(TOOLS[slot][2]), "%s extra at +5" % slot)
-		if target == 9:
-			assert_eq(_session.modifiers.total(extra_stat, ctx), float(TOOLS[slot][3]), "%s extra at +9" % slot)
+		# the old upgrade_extras at +5 / +9 are replaced by the tool heads (M35, Q214): see test_tool_heads
 	assert_eq(_session.armory.upgrade_tool(uid).reason, Reasons.UPGRADE_MAX)
 	assert_true(_session.armory.tool_next_step(uid).is_empty(), "no step after +9")
 	assert_eq(_session.armory.get_instance(uid).upgrade, 9, "never lowered")

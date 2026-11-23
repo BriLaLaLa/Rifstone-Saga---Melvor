@@ -30,9 +30,9 @@ func after_each() -> void:
 	await wait_physics_frames(1)
 
 
-func test_the_12_slots_exist_and_neck_and_ring_never_light_up() -> void:
+func test_the_13_slots_exist_and_neck_and_ring_never_light_up() -> void:
 	_open()
-	assert_eq(_doll().slot_views().size(), 12)
+	assert_eq(_doll().slot_views().size(), 13)
 	for base_id: StringName in PIECE_OF_SLOT.values():
 		_page.show_drag_targets(PieceDrag.payload(TestFactory.give_piece(_session, base_id), &""))
 		assert_false(_view(&"neck").is_glowing())
