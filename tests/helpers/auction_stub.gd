@@ -95,3 +95,9 @@ func buy(item_id: StringName, qty: int) -> CommandResult:
 	buy_calls += 1
 	last_qty = qty
 	return can_buy(item_id, qty)
+
+
+# M37 additions (docs/05_INTERFACES_M37.md §5.49): gap against the average, most buyable, base value.
+func price_gap(_item_id: StringName, _mode: StringName) -> int: return 12
+func max_buyable(_item_id: StringName) -> int: return 4
+func value_of(_item_id: StringName) -> int: return 10
