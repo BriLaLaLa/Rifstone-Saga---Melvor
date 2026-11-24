@@ -42,7 +42,7 @@ static func run(data: GameData, opts: Dictionary) -> Array:
 	var a: Dictionary = check_asks(data, int(opts["book_states"]), seed_value)
 	failures.append_array(a["failures"] as Array)
 	if not bool(a["static_ok"]):
-		failures.append("(6) (MIN + SPREAD) * PPM > MAX * (PPM + HI) does not hold")
+		failures.append("(6) F-217 EQMIN * (PPM + MK) > MAX * (PPM + HI) * (PPM - CUT) does not hold")
 	print_rich("asks %d, max ask/ceiling %.4f, max ask/unit %.4f, non-arbitrage constraint holds: %s" % [
 		a["asks"], a["max_over_ceiling"], a["max_over_unit"], a["static_ok"]])
 	print_rich("== (7) %d random strategies per buyable item over 48 h (counter, listings, Mail, Deposit)" % opts["book_strategies"])
@@ -83,7 +83,7 @@ static func check_asks(data: GameData, states: int, seed_value: int) -> Dictiona
 			var pricing: AuctionPricing = new_pricing(data, rng.randi_range(1, 2147483646))
 			pricing.advance(rng.randi_range(0, 2000) * p.block_ms)
 			pricing.record_sale(def.item, rng.randi_range(0, p.cap_ppm / p.step_ppm + 5))
-			var unit: int = pricing.buy_quote(def.item, 1) if def.buy_level >= 1 else 0
+			var unit: int = pricing.buy_unit(def.item) if def.buy_level >= 1 else 0
 			for ask: Vector2i in pricing.npc_asks(def.item):
 				count += 1
 				worst_over_ceiling = maxf(worst_over_ceiling, float(ask.x) / ceiling)
@@ -93,7 +93,7 @@ static func check_asks(data: GameData, states: int, seed_value: int) -> Dictiona
 					if failures.size() < 6:
 						failures.append("(6) %s: ask %d, ceiling %.1f, unit %d" % [def.item, ask.x, ceiling, unit])
 	return {"failures": failures, "asks": count, "max_over_ceiling": worst_over_ceiling, "max_over_unit": worst_over_unit,
-			"static_ok": (p.min_ppm + p.spread_ppm) * ONE > p.max_ppm * (ONE + p.book_hi_ppm)}
+			"static_ok": AuctionMath.eq_min(p, p.bands) * (ONE + p.markup_ppm) > p.max_ppm * (ONE + p.book_hi_ppm) * (ONE - p.listing_cut_ppm) / ONE}
 
 
 ## (7) Random strategies over 48 h: buy at the counter, list at random prices, cancel, sell at once, wait, use the Deposit.
@@ -140,8 +140,8 @@ static func _one_strategy(data: GameData, p: AuctionParams, id: StringName, v: i
 	while left_ms > 0 and steps < 40:
 		steps += 1
 		var action: int = rng.randi_range(0, 7)
-		if action == 0 and pricing.stock(id) > 0:
-			var q: int = 1 + int(pow(rng.randf(), 3.0) * float(pricing.stock(id) - 1))
+		if action == 0 and pricing.available(id) > 0:
+			var q: int = 1 + int(pow(rng.randf(), 3.0) * float(pricing.available(id) - 1))
 			money -= pricing.buy_quote(id, q)
 			held += q
 			pricing.record_purchase(id, q)

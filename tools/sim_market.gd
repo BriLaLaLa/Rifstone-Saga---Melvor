@@ -24,7 +24,7 @@ func _initialize() -> void:
 
 static func parse_args(args: PackedStringArray) -> Dictionary:
 	var opts: Dictionary = {"states": 1000, "strategies": 10000, "seed": 2305,
-			"book_strategies": 2000, "book_states": 1000, "prod_states": 12}
+			"book_strategies": 2000, "book_states": 1000, "prod_states": 12, "buyall_states": 6}
 	for arg: String in args:
 		var key: String = arg.get_slice("=", 0)
 		if not opts.has(key) or not arg.get_slice("=", 1).is_valid_int():
@@ -57,6 +57,7 @@ func run(args: PackedStringArray) -> int:
 	print_rich("== (5b) the history stays within history_max")
 	print_rich(check_history(data, int(opts["seed"])))
 	_fails.append_array((load("res://tools/sim_market_book.gd") as GDScript).call("run", data, opts) as Array)
+	_fails.append_array((load("res://tools/sim_market_buy.gd") as GDScript).call("run", data, opts) as Array)
 	print_rich("elapsed %.1f s" % (float(Time.get_ticks_msec() - started) / 1000.0))
 	if _fails.is_empty():
 		print_rich("sim_market: all thresholds respected")
@@ -70,8 +71,8 @@ func run(args: PackedStringArray) -> int:
 func check_unit_prices(data: GameData, states: int, seed_value: int) -> String:
 	var r: Dictionary = unit_prices(data, states, seed_value)
 	_fails.append_array(r["failures"] as Array)
-	return "items %d, states %d, min unit/(v*MAX) = %.4f, min unit/v = %.4f, min unit/sale-of-one = %.4f" % [
-		r["items"], r["states"], r["min_over_max"], r["min_over_value"], r["min_over_sale"]]
+	return "items %d, states %d, min unit/(v*MAX) = %.4f, min unit/v = %.4f, min unit/sale-of-one = %.4f, min unit/max-revenue = %.4f" % [
+		r["items"], r["states"], r["min_over_max"], r["min_over_value"], r["min_over_sale"], r["min_over_revenue"]]
 
 
 func check_strategies(data: GameData, n: int, seed_value: int) -> String:
@@ -91,8 +92,12 @@ func check_transformations(data: GameData) -> String:
 
 func check_clock(data: GameData, seed_value: int) -> String:
 	var r: Dictionary = clock(data, seed_value)
+	var short: Dictionary = clock(data, seed_value, 2 * HOUR_MS)  # F-216: `taken` is still not 0 after 2 h, so the equivalence is not trivial
 	_fails.append_array(r["failures"] as Array)
-	return "blocks after 12 h %d, in one step / 100 ms ticks / 60 s blocks identical: %s" % [r["blocks"], r["same"]]
+	_fails.append_array(short["failures"] as Array)
+	if int(short["taken_left"]) == 0:
+		_fails.append("(4) after 2 h no `taken` is left: the check proves nothing")
+	return "blocks after 12 h %d, in one step / 100 ms ticks / 60 s blocks identical: %s; after 2 h (taken left on %d items): %s" % [r["blocks"], r["same"], short["taken_left"], short["same"]]
 
 
 func check_history(data: GameData, seed_value: int) -> String:
@@ -132,6 +137,7 @@ static func unit_prices(data: GameData, states: int, seed_value: int) -> Diction
 	var min_max: float = INF
 	var min_value: float = INF
 	var min_sale: float = INF
+	var min_revenue: float = INF
 	var items: Array[StringName] = buyable(data)
 	for id: StringName in items:
 		var v: int = data.item(id).value
@@ -139,19 +145,23 @@ static func unit_prices(data: GameData, states: int, seed_value: int) -> Diction
 			var pricing: AuctionPricing = new_pricing(data, rng.randi_range(1, 2147483646))
 			pricing.advance(rng.randi_range(0, 2000) * p.block_ms)
 			pricing.record_sale(id, rng.randi_range(0, p.cap_ppm / p.step_ppm + 5))
-			var unit: int = pricing.buy_quote(id, 1)
+			pricing.record_purchase(id, rng.randi_range(0, maxi(0, pricing.volume(id) - 1)))  # F-216: some pieces already taken (at least one is left)
+			var unit: int = pricing.buy_unit(id)
 			var sale: int = pricing.sell_quote(id, 1)
 			min_max = minf(min_max, float(unit) * ONE / float(v * p.max_ppm))
 			min_value = minf(min_value, float(unit) / float(v))
 			if sale > 0:
 				min_sale = minf(min_sale, float(unit) / float(sale))
-			if unit * ONE <= v * p.max_ppm or unit <= v or unit <= sale:
-				failures.append("(1) %s: unit %d, v %d, sale of one %d" % [id, unit, v, sale])
+			# F-217: the most a piece can earn on the other side = v*MAX*(1+HI)*(1-CUT) (a listing of the player at the top ask, after the cut)
+			var best_revenue: float = float(v) * p.max_ppm / ONE * (ONE + p.book_hi_ppm) / ONE * (ONE - p.listing_cut_ppm) / ONE
+			min_revenue = minf(min_revenue, float(unit) / best_revenue)
+			if unit <= 0 or unit * ONE <= v * p.max_ppm or unit <= v or unit <= sale or float(unit) <= best_revenue:
+				failures.append("(1) %s: unit %d, v %d, sale of one %d, best revenue of a piece %.1f" % [id, unit, v, sale, best_revenue])
 				if failures.size() > 5:
 					return {"failures": failures, "items": items.size(), "states": states, "min_over_max": min_max,
-							"min_over_value": min_value, "min_over_sale": min_sale}
+							"min_over_value": min_value, "min_over_sale": min_sale, "min_over_revenue": min_revenue}
 	return {"failures": failures, "items": items.size(), "states": states, "min_over_max": min_max,
-			"min_over_value": min_value, "min_over_sale": min_sale}
+			"min_over_value": min_value, "min_over_sale": min_sale, "min_over_revenue": min_revenue}
 
 
 ## (2) Random walks over 12 h starting without the item (every second strategy starts with a pile of it, which is valued at
@@ -181,8 +191,8 @@ static func strategies(data: GameData, runs: int, seed_value: int) -> Dictionary
 				steps += 1
 				ops += 1
 				var action: int = rng.randi_range(0, 4)
-				if action == 0 and pricing.stock(id) > 0:
-					var q: int = 1 + int(pow(rng.randf(), 3.0) * float(pricing.stock(id) - 1))
+				if action == 0 and pricing.available(id) > 0:
+					var q: int = 1 + int(pow(rng.randf(), 3.0) * float(pricing.available(id) - 1))
 					gold -= pricing.buy_quote(id, q)
 					held += q
 					pricing.record_purchase(id, q)
@@ -218,7 +228,7 @@ static func round_trip_loss(data: GameData, id: StringName, seed_value: int) -> 
 
 
 ## Starts with 2000 pieces: sells them all into the saturation, waits for the full recovery (110 blocks), buys back as many as the
-## stock allows. Returns the net gold, counting the pieces at v*MAX (negative = a loss).
+## book allows (F-216: `available`). Returns the net gold, counting the pieces at v*MAX (negative = a loss).
 static func saturate_and_rebuy(data: GameData, id: StringName, seed_value: int) -> float:
 	var p: AuctionParams = data.auction_params()
 	var pricing: AuctionPricing = new_pricing(data, seed_value)
@@ -227,7 +237,7 @@ static func saturate_and_rebuy(data: GameData, id: StringName, seed_value: int) 
 	pricing.record_sale(id, pile)
 	var rec: int = int(AuctionMath.liquidity(data.item(id).value, AuctionMath.band_of(data.item(id).value, p), p)["rec"])
 	pricing.advance(AuctionMath.ceil_div(p.cap_ppm, rec) * p.block_ms)
-	var q: int = pricing.stock(id)
+	var q: int = pricing.available(id)
 	gold -= pricing.buy_quote(id, q)
 	var v: int = data.item(id).value
 	return float(gold) + float((q - pile) * v) * float(p.max_ppm) / ONE
@@ -255,6 +265,7 @@ static func transformations(data: GameData) -> Dictionary:
 				gifts += 1
 				failures.append("(3) shop entry %s gives %s at %d gold, sellable above that" % [entry.id, entry.effect_item.item_id, entry.cost_gold])
 	var margin: int = int(data.balance_value("auction.buy.blueprint_margin_pct"))
+	var eq_min: int = AuctionMath.eq_min(p, p.bands)
 	var worst: float = INF
 	var worst_id: String = ""
 	var checked: int = 0
@@ -265,7 +276,7 @@ static func transformations(data: GameData) -> Dictionary:
 		for row: ItemQty in bp.blueprint.inputs + bp.blueprint.rare_components:
 			var unit: int = data.item(row.item_id).value
 			if buy.has(row.item_id):
-				unit = AuctionMath.ceil_div(unit * (p.min_ppm + p.spread_ppm), ONE)
+				unit = AuctionMath.piece_price(unit * eq_min / ONE, p.markup_ppm)  # F-217 `c(x)`
 				uses_buyable = true
 			cost += row.qty * unit
 		var piece: int = data.item(bp.blueprint.base_id).value
@@ -284,32 +295,35 @@ static func transformations(data: GameData) -> Dictionary:
 
 
 ## (4) The same 12 h in one step, in 100 ms ticks and in 60 s blocks give the same saved state.
-static func clock(data: GameData, seed_value: int) -> Dictionary:
+static func clock(data: GameData, seed_value: int, horizon_ms: int = HORIZON_MS) -> Dictionary:
 	var failures: Array = []
 	var states: Array[Dictionary] = []
 	var blocks: int = 0
-	for step_ms: int in [HORIZON_MS, 60_000, 100]:
+	var taken_left: int = 0
+	for step_ms: int in [horizon_ms, 60_000, 100]:
 		var pricing: AuctionPricing = new_pricing(data, seed_value)
 		var ids: Array[StringName] = buyable(data)
 		for k: int in ids.size():
 			pricing.record_sale(ids[k], 100 + k * 40)
-			pricing.record_purchase(ids[k], 1 + k * 3)
+			pricing.record_purchase(ids[k], 1 + k * 3 + 400 * (k % 3))  # F-216: `taken` still above 0 after a short horizon
 		pricing.advance(123_456)  # a clock not at a block boundary
 		var done: int = 0
 		var total: int = 0
-		while done < HORIZON_MS:
-			var step: int = mini(step_ms, HORIZON_MS - done)
+		while done < horizon_ms:
+			var step: int = mini(step_ms, horizon_ms - done)
 			total += pricing.advance(step)
 			done += step
-		if step_ms == HORIZON_MS:
+		if step_ms == horizon_ms:
 			blocks = total
 		states.append(pricing.to_save())
+		taken_left = (pricing.to_save()["taken"] as Dictionary).size()
 	var same: bool = states[0] == states[1] and states[1] == states[2]
 	if not same:
-		failures.append("(4) the state after 12 h depends on the step size")
-	if blocks != 144 and blocks != 145:
-		failures.append("(4) 12 h made %d blocks, expected 144 (145 with the 123 s already pending)" % blocks)
-	return {"failures": failures, "blocks": blocks, "same": same}
+		failures.append("(4) the state after %d ms depends on the step size" % horizon_ms)
+	var want: int = horizon_ms / 300_000
+	if blocks != want and blocks != want + 1:
+		failures.append("(4) %d ms made %d blocks, expected %d (+1 with the 123 s already pending)" % [horizon_ms, blocks, want])
+	return {"failures": failures, "blocks": blocks, "same": same, "taken_left": taken_left}
 
 
 ## (5b) M37 F-209: any number of writes leaves at most `history_max` entries (the history is a plain list: money goes through the Mail).
@@ -357,9 +371,8 @@ static func production(data: GameData) -> Dictionary:
 		var liq: Dictionary = AuctionMath.liquidity(v, band, p)
 		if def.buy_level >= 1:
 			var k: int = p.bands.find(band)
-			var cap: int = AuctionMath.stock_max(v, p)
 			rec_blocks[k] = AuctionMath.ceil_div(p.cap_ppm, int(liq["rec"]))
-			fill_blocks[k] = maxi(int(fill_blocks.get(k, 0)), AuctionMath.ceil_div(cap, int(liq["refill"])))
+			fill_blocks[k] = maxi(int(fill_blocks.get(k, 0)), AuctionMath.ceil_div(p.book_max_listings * band.stack, int(liq["refill"])))
 		if not made.has(def.item):
 			continue
 		var q: int = int((made[def.item] as Dictionary)["per_hour"])
@@ -379,7 +392,7 @@ static func production(data: GameData) -> Dictionary:
 	text += "\nraw materials: ratio %.3f - %.3f (threshold %.2f - %.2f); min-max spread %.3f; %d components/food (no threshold):\n%s" % [
 		worst_low, worst_high, RATIO_MIN, RATIO_MAX, worst_high - worst_low, extra.size(), ", ".join(extra)]
 	for k: int in rec_blocks:
-		text += "\nband %d: recovery from the cap %d blocks (%.2f h), slowest stock refill from empty %d blocks (%.2f h)" % [
+		text += "\nband %d: recovery from the cap %d blocks (%.2f h), slowest refill of a whole book %d blocks (%.2f h)" % [
 			k + 1, rec_blocks[k], float(int(rec_blocks[k]) * p.block_ms) / HOUR_MS, fill_blocks[k], float(int(fill_blocks[k]) * p.block_ms) / HOUR_MS]
 	return {"failures": failures, "text": text}
 

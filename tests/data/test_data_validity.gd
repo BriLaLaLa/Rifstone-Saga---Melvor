@@ -382,7 +382,8 @@ func test_money_examples_of_f177() -> void:
 	assert_eq(prices, [200, 700, 2100, 6000] as Array[int])
 	assert_eq(values, [0, 100, 500, 1500] as Array[int])
 	assert_eq(int(data.balance_value("start.gold")), 5000)
-	assert_eq(int(data.balance_value("auction.stock.gold")), 600000)
+	assert_eq(int(data.balance_value("auction.buy.markup_pct")), 45, "F-215: the mark-up of the book (the old stock cap is gone)")
+	assert_eq(float(data.balance_value("auction.supply.refill_pct_per_block")), 1.5, "F-216: the refill rate of the book")
 	assert_eq(int((data.balance_value("quest.gold_by_tier") as Array)[0]), 8000)
 	var maxima: Array[int] = []
 	for band: AuctionPopulationBand in data.auction_params().bands:
@@ -393,14 +394,15 @@ func test_money_examples_of_f177() -> void:
 	assert_eq(data.currency().copper_per_silver, 100)
 
 
-## F-177: the stock cap S(v) (F-150) and the population band (F-172) do not change with the unit: numerator and denominator scale together.
+## F-177, F-216: the restock rate r_i (it replaces the stock cap S(v)) and the population band (F-172) do not change with the unit.
 func test_money_invariants_of_f177() -> void:
 	var data: GameData = TestFactory.real_data()
 	var params: AuctionParams = data.auction_params()
-	var want: Array = [[&"redbirch_grip", 500, 0], [&"riftite_plate", 10, 3], [&"shardcedar_grip", 166, 1], [&"seared_riftmaw", 35, 2]]
+	var want: Array = [[&"redbirch_grip", 17, 0], [&"riftite_plate", 1, 3], [&"shardcedar_grip", 5, 1], [&"seared_riftmaw", 2, 2]]
 	for row: Array in want:
 		var value: int = data.item(row[0]).value
-		assert_eq(AuctionMath.stock_max(value, params), row[1], "S of %s" % row[0])
-		assert_eq(params.bands.find(AuctionMath.band_of(value, params)), row[2], "band of %s" % row[0])
+		var band: AuctionPopulationBand = AuctionMath.band_of(value, params)
+		assert_eq(AuctionMath.restock_rate(band, params), row[1], "r_i of %s" % row[0])
+		assert_eq(params.bands.find(band), row[2], "band of %s" % row[0])
 	assert_eq(data.item(&"shardcedar_grip").value, 3600)
 	assert_eq(data.item(&"seared_riftmaw").value, 17000)
