@@ -334,3 +334,12 @@ rivederli con l'oro/h), Q110, Q111, Q112, Q120 (M25+).
 | Q225 | (V45) Teste degli attrezzi che spostano le percentuali verso le risorse alte | **Default**: no (fuori scope), possibile task futuro con nuova V. |
 | Q226 | (V45) Soglie (2) e (3) di F-156 con la risorsa attesa (XP e unità/h per zona) | **Default**: `sim_encounters` le misura e le riporta senza far fallire la build; nessuna ritaratura (Q122); se escono da banda decide il Reviewer con l'utente. |
 | Q227 | (V45) Tutorial e nodi forzati con la risorsa tirata | **Default**: a livello basso la zona 1 ha una sola idonea (Rame): nessun tiro, tutorial invariato (M31-M33). Test dedicato. |
+| Q228 | (V46) Soglia di campione per le «/h» delle statistiche (F-204) | **Default**: 120000 ms (2 min) in `balance.json`; sotto, «…». |
+| Q229 | (V46) Tempo di riferimento delle «/h»: tutta la sessione di gioco o dal primo nodo della disciplina? | **Default**: tutta la sessione online (`play_time_ms − start_ms`); chi impara la disciplina a metà vede un ritmo più basso. |
+| Q230 | (V46) XP contati dalle statistiche (F-204) | **Default**: solo gli `xp_gained` con un nodo della disciplina in corso (esclude ricompense di incarichi incassate fuori nodo). |
+| Q231 | (V46) «Cosa ti serve»: lavori di coda che ripetono | **Default**: si mostra cosa manca per **un ciclo in più** (`cycles_possible + 1`); i lavori di progetto sono esclusi (F-206). |
+| Q232 | (V46) «Migliore zona»: criterio | **Default**: massima probabilità effettiva tra le zone lavorabili e accessibili (livello del personaggio); non considera la pericolosità dei mostri (F-207). |
+| Q233 | (V46) «Vai» in una zona mentre si combatte o c'è una Frattura/Dungeon | **Default**: come la mappa: interrompe il combattimento senza conferma; con Frattura o Dungeon il comando rifiuta e la UI mostra il motivo. |
+| Q234 | (V46) «Cosa si sblocca» (F-208): solo risorse o anche teste dell'attrezzo e maestria | **Default**: solo risorse (con le zone dove compaiono); teste e maestria restano nelle loro sezioni. |
+| Q235 | (V46) Scheda scelta e riga aperta nelle Risorse | **Default**: stato di vista per sessione di gioco, non salvato; si apre su Panoramica. |
+| Q236 | (V46) Filtro testo e «Solo con scorta» tolti | **Default**: tolti; si reintroducono solo se una disciplina supera ~12 risorse (oggi 8). |

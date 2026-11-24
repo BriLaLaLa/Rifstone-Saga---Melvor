@@ -1,5 +1,8 @@
 # M36: Pagina di raccolta, proposta (DESIGN, in attesa delle scelte dell'utente)
 
+> **Esito (2026-11-24)**: l'utente ha scelto: 3 schede (Panoramica, Risorse, Attrezzo) con Progressione e «Cosa ti serve» nella Panoramica; statistiche da quando apri il gioco; «Cosa ti serve» = coda + Bacheca, solo la disciplina (+ contatore altre); M36 = «must» (UI), M36B = «should» (CORE + UI). Il design definitivo è in `01_GDD_M36.md`, `02_FORMULAS_M36.md`, `05_INTERFACES_M36.md`, `07_TASKS_M36.md`, `07_TASKS_M36B.md` (V46). Questo file resta come analisi.
+
+
 Richiesta dell'utente: «dobbiamo ripensare il senso delle tab della raccolta, adesso ci sono tantissime scritte che non servono a nulla… cosa ci potremmo mettere lì? di solito negli
 altri giochi cosa ci mettono?». Documento di proposta: nessuna regola è ancora in GDD/formule. Dopo le scelte: V in `DECISIONS_LOG.md`, Q in `OPEN_QUESTIONS.md`, GDD §44,
 F-204…, schema, `05_INTERFACES_M36.md`, `07_TASKS_M36.md`.
