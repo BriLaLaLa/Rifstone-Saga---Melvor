@@ -54,7 +54,7 @@ func run(args: PackedStringArray) -> int:
 	print_rich(check_clock(data, int(opts["seed"])))
 	print_rich("== (5) 1 h of production sold at once against F-18")
 	print_rich(check_production(data))
-	print_rich("== (6) the history stays within history_max")
+	print_rich("== (5b) the history stays within history_max")
 	print_rich(check_history(data, int(opts["seed"])))
 	_fails.append_array((load("res://tools/sim_market_book.gd") as GDScript).call("run", data, opts) as Array)
 	print_rich("elapsed %.1f s" % (float(Time.get_ticks_msec() - started) / 1000.0))
@@ -312,7 +312,7 @@ static func clock(data: GameData, seed_value: int) -> Dictionary:
 	return {"failures": failures, "blocks": blocks, "same": same}
 
 
-## (6) M37 F-209: any number of writes leaves at most `history_max` entries (the history is a plain list: money goes through the Mail).
+## (5b) M37 F-209: any number of writes leaves at most `history_max` entries (the history is a plain list: money goes through the Mail).
 static func history(data: GameData, seed_value: int) -> Dictionary:
 	var p: AuctionParams = data.auction_params()
 	var h := AuctionHistory.new(p, data)
@@ -329,7 +329,7 @@ static func history(data: GameData, seed_value: int) -> Dictionary:
 			2: h.record_closed(&"expired", item, rng.randi_range(1, 9), 100, i, i + 1000)
 			_: h.record_closed(&"cancelled", item, rng.randi_range(1, 9), 100, i, i + 2000)
 		if h.count() > p.history_max:
-			failures.append("(6) history has %d entries after write %d, max %d" % [h.count(), i, p.history_max])
+			failures.append("(5b) history has %d entries after write %d, max %d" % [h.count(), i, p.history_max])
 			break
 	return {"failures": failures, "max": p.history_max, "writes": writes, "size": h.count()}
 
