@@ -103,7 +103,7 @@ La «% sulla media» ora confronta con la mediana delle ultime 12 h (F-214): 0 %
 - I compratori PNG restano **impliciti** nel libro; 	aken non cambia la domanda delle inserzioni del giocatore (nessun flipping).
 - Limite per clic: nessun tetto, **conferma** se si prende ≥ 50 % dei disponibili o il prezzo medio supera il migliore del 25 % (F-218; Q247).
 **Rischio noto**: il costo minimo d'acquisto scende a ×0,69 (da 2,20 a 1,5225 × ): i **progetti** (F-151) vanno ricontrollati; si correggono nei dati (M38-2, Q251). Il ritmo delle fasce 2-3 cresce (Q252).
-## 9. Q251 rivista: i progetti sotto il margine (Reviewer)
+## 9. Q251 rivista: i progetti sotto il margine (Reviewer) — **decisa dall'utente: alternativa E (Capolavori a 1,4×)**
 **Verificato sui dati veri** (`data/items/blueprints.json`, valori da `data/items/*.json`, acquistabili da `data/auction/auction_items.json`): i **120** progetti usano tutti componenti acquistabili (piastre, impugnature, anime, manici). Con il costo minimo nuovo
 `c(x) = ⌈v × 1,05 × 1,45⌉` (F-217) il rapporto «costo dei componenti / valore del pezzo» (check di F-151, margine 3 %) scende da **min 1,051** (M23) a **min 0,735** (`bp_mw_shield_14`: costo 1.512.612 contro un pezzo da 2.057.200). Falliscono **39** progetti
 (livelli 8 ×6, 10 ×8, 12 ×8, 13 ×1, 14 ×8, 15 ×8); 33 sono addirittura sotto 1,00. La regola di Q251 («togliere un componente dagli acquistabili») **peggiora**: un non acquistabile costa `v` (non 1,52 × `v`) ed esce dal controllo.

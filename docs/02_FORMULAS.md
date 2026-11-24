@@ -613,6 +613,8 @@ Budget dei set e valori dei modelli: §8.4 (F-118). Test: `tests/systems/combat/
 - **Affissi**: `rarity.masterwork.affix_count` = [1, 2] (invece di magico 1-2 / raro 3-4): vedi F-91 (rivista). **Castoni**: `sockets.by_rarity.masterwork` = 2 (F-89).
 - **Costo** (Q68): `inputs` del progetto = quantità di §8.2 × `blueprint.cost_mult` (3), più **due componenti rari diversi** (`rare_components`, i due che cadono nell'area del grado; quantità come l'attuale `rare_component`). Durata, livello del Fabbro e XP: F-90 col grado del materiale `m(g)`, invariati.
 - Fonte dei progetti: pool dei mostri (F-121, `loot.blueprint`) e Monoliti come oggi.
+- **Valore di vendita (M38, V48, Q251)**: `value` del Capolavoro = `⌊1,4 × value del modello⌋` (era `2 ×`; costante `MASTERWORK_VALUE_PCT` 140 di `tools/gen_equipment.gd`); il progetto vale il 5 % del valore del pezzo (min 100) e segue. Serve al non-arbitraggio di F-151/F-217
+  con il nuovo prezzo d'acquisto della Casa d'Aste (rapporto componenti/pezzo minimo 1,05). Esempio: `mw_shield_14` 2.057.200 → 1.440.040.
 Esempio: se §8.2 chiede 4 piastre per il corpo del materiale 6, il progetto del corpo Piastre grado 11 (materiale 6) ne chiede 12 più 2 componenti rari diversi; smantellare (F-95) un Capolavoro restituisce `floor(12 × 0,4) = 4` piastre. Test: `tests/systems/items/test_masterwork.gd`, `tests/systems/actions/test_blueprint_craft.gd`.
 
 ### F-120 Leggendari
