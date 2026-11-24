@@ -1,5 +1,6 @@
 # M37: Casa d'Aste più bella e comoda, proposta (DESIGN, in attesa delle scelte dell'utente)
 
+> **Esito (2026-11-24)**: l'utente ha scelto: ambito must + should (A, C, idea 4, 5a, storico; 3a/3b, 6, B, D, E, F, G); sottogruppi dei materiali in M38; avvisi dopo; ordini fuori; storico 50 voci con scadute e annullate; nessuna conferma d'acquisto; niente filtro rarità. Design in `01_GDD_M37.md` §45, V47, Q237-Q245, `07_TASKS_M37.md`.
 Richiesta dell'utente: «secondo te, come potremmo migliorare la casa d'aste per renderla più bella da usare?». Documento di proposta: nessuna regola è ancora in
 GDD/formule. Dopo le scelte: V in `DECISIONS_LOG.md`, Q in `OPEN_QUESTIONS.md`, GDD, F-xx con esempi (= test), schema, `05_INTERFACES_M37.md`, `07_TASKS_M37.md`.
 

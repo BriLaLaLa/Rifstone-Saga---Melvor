@@ -343,3 +343,12 @@ rivederli con l'oro/h), Q110, Q111, Q112, Q120 (M25+).
 | Q234 | (V46) «Cosa si sblocca» (F-208): solo risorse o anche teste dell'attrezzo e maestria | **Default**: solo risorse (con le zone dove compaiono); teste e maestria restano nelle loro sezioni. |
 | Q235 | (V46) Scheda scelta e riga aperta nelle Risorse | **Default**: stato di vista per sessione di gioco, non salvato; si apre su Panoramica. |
 | Q236 | (V46) Filtro testo e «Solo con scorta» tolti | **Default**: tolti; si reintroducono solo se una disciplina supera ~12 risorse (oggi 8). |
+| Q237 | (V47) Quante voci tiene lo storico delle vendite e cosa registra | **Default**: ultime **50** (`auction.history_max`, 1..200), tipi Venduta (fusa per inserzione), Venduta subito, Scaduta, Annullata (F-209). |
+| Q238 | (V47) Conferma d'acquisto | **Default**: nessuna (l'acquisto è un clic, il totale è già visibile). Rivedere se l'utente compra per sbaglio grosse quantità: soglia «oltre il 50 % dell'oro» in `balance.json`. |
+| Q239 | (V47) Filtri della lista | **Default**: solo «Posseduti» e «Comprabili ora» (+ categoria e ricerca). Nessun filtro rarità (l'oggetto non ha rarità) né livello; i gruppi di materiali in M38. |
+| Q240 | (V47) «Media» del confronto percentuale | **Default**: il `value` base dell'oggetto (F-210), non una media mobile dei prezzi: è stabile e già nel modello. Una vera media storica solo se arriva il grafico dei prezzi. |
+| Q241 | (V47) Anche gli **acquisti** nello storico? | **Default**: no (la richiesta è «le mie vendite»). Aggiungibile con un tipo `bought` senza altra migrazione. |
+| Q242 | (V47) Precisione del tempo nelle voci dello storico | **Default**: blocco di mercato più il tempo trascorso nel blocco (F-212); «adesso / N min / N h / N g». Non si salva l'ora reale. |
+| Q243 | (V47) Ordini di acquisto automatici | **Default**: fuori (oro bloccato, acquisto offline: nuovo percorso economico da simulare). Gli avvisi di prezzo (senza acquisto) restano «dopo M37». |
+| Q244 | (V47) Il badge Posta dalla Casa d'Aste | **Default**: mostra i messaggi non letti (`mail.unread()`), clic → pagina Posta; con la Posta piena l'avviso resta finché si libera spazio (`mail.is_full()`). |
+| Q245 | (V47) «Vendi alla Casa d'Aste» dal Deposito per oggetti bloccati o non trattati | **Default**: pulsante assente se l'oggetto non è trattato; disabilitato con il motivo se l'edificio non c'è o l'oggetto è bloccato. |
