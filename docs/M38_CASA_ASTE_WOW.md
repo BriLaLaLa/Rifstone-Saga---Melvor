@@ -1,7 +1,8 @@
 # M38: Casa d'Aste come quella di World of Warcraft (proposta)
 
-> **Stato**: proposta del Reviewer, in attesa delle scelte dell'utente. Nessun codice toccato. Dopo la scelta: V in `DECISIONS_LOG.md`, Q in `OPEN_QUESTIONS.md`, GDD/formule/schema/interfacce
-> `_M38`, `07_TASKS_M38.md`. (WoW solo come idea di meccanica e di UI; clean room invariata.)
+> **Esito (2026-11-24)**: l'utente ha scelto l'**opzione 2** (libro unico), media = ultime 12 h, tenere «Vendi subito» e «Metti in vendita», grafico dei prezzi dopo; sul prezzo ha chiesto di gestire il «compra tutto».
+> **Attenzione**: la parte «prezzo» di questa proposta (§4, opzione 2: `LO` ≈ 20 %, `HI` ≈ 60 %) è **corretta in §8**. Design in `01_GDD_M38.md` §46, `02_FORMULAS_M38.md` F-214…F-218, V48, Q246-Q253, `07_TASKS_M38.md`.
+> (WoW solo come idea di meccanica e di UI; clean room invariata.)
 
 ## 1. Richiesta dell'utente
 «Come mai la %media è sempre +160 o più? Inoltre perché c'è disponibili 500/500? C'è un tetto massimo? Non ha senso. Questa asta deve simulare una casa aste reale tipo quella di World of Warcraft.»
@@ -86,3 +87,19 @@ Come l'opzione 2, ma le inserzioni PNG sono **oggetti con stato**: ogni oggetto 
 
 ## 7. Task previsti dopo la scelta (opzione 2; file disgiunti)
 CORE `systems/auction/` (acquisto sul libro, `taken`, riferimento, save v14, migrazione) · DATA (`balance.json`, `auction_items.json` invariato, `population.json` invariato) · UI dettaglio (`auction_page` di Compra: riga «Disponibili», prezzo, «% sulla media») · UI lista · QA (`sim_market` (10), equivalenza offline, v13→v14) · REV (docs, interfacce).
+
+## 8. Correzione della proposta e «compra tutto» (Reviewer, dopo la scelta)
+**Errore della §4 (opzione 2).** Portare LO/HI a ≈ 20/60 % e togliere lo spread sembrava dare un prezzo d'acquisto più basso e coerente. Verificato sui dati: le inserzioni PNG sono anche il **livello a cui il giocatore vende** (F-179, F-180:
+la sua inserzione sta nella stessa coda). Alzare le inserzioni a 1,2-1,6 × l'indice alzerebbe di circa il **30 %** ciò che incassa con «Metti in vendita» (suggerito 360 invece di 240 per edbirch_grip): una fonte di oro nuova che fa saltare la
+simulazione (8) di F-182 (ricavo 0,85-1,40 × F-18). E senza margine fra acquisto e vendita, comprare dal libro e rimettere in vendita rende (flipping) sulla deriva dell'indice (1,05-1,254).
+**Soluzione adottata (V48).** Il lato vendita **resta com'è** (LO 0, HI 25 %). Il prezzo d'acquisto è il prezzo dell'inserzione **+ margine della Casa del 45 %** (uy.markup_pct; il vincolo F-217 impone ≥ 43 %), calcolato su un indice con pavimento
+EQMIN (1,05) così che una saturazione provocata dal giocatore non renda conveniente comprare. Esempio edbirch_grip (blocco 0): libro 241…297 (invariato), prezzo d'acquisto **350…431** (prima 541: **−35 %**); iftite_plate 105.328 (prima 160.402).
+La «% sulla media» ora confronta con la mediana delle ultime 12 h (F-214): 0 % nello stato di riposo, +41 % dopo aver comprato 1.000 pezzi.
+**Se l'utente vuole il prezzo unico stile WoW** (nessun margine): serve ribilanciare tutta l'economia di vendita (Q246).
+
+**Il «compra tutto»** (richiesta dell'utente, risposta delegata). Non c'è un tetto: la quantità è la somma delle inserzioni (V) meno quanto già preso (	aken).
+- Comprare tutto il libro di edbirch_grip (1.193 pezzi) costa **460.691** r (+10 % sul prezzo migliore) e lascia «Esaurito, torna tra ~5 min»; per chi compra dopo, 	aken alza i prezzi (dopo 1.000 pezzi il primo costa 493 invece di 350).
+- I venditori PNG rifanno le inserzioni: 	aken rientra di 17, 5, 2, 1 pezzi a blocco per fascia (svuotamento completo del libro più grande in 142, 144, 120, 60 blocchi ≤ 12 h; F-216); a ogni epoca (30 min) il libro si rigenera da solo (F-178).
+- I compratori PNG restano **impliciti** nel libro; 	aken non cambia la domanda delle inserzioni del giocatore (nessun flipping).
+- Limite per clic: nessun tetto, **conferma** se si prende ≥ 50 % dei disponibili o il prezzo medio supera il migliore del 25 % (F-218; Q247).
+**Rischio noto**: il costo minimo d'acquisto scende a ×0,69 (da 2,20 a 1,5225 × ): i **progetti** (F-151) vanno ricontrollati; si correggono nei dati (M38-2, Q251). Il ritmo delle fasce 2-3 cresce (Q252).
