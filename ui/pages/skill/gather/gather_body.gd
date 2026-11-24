@@ -48,8 +48,7 @@ func setup(session: GameSession, skill_id: StringName) -> void:
 	_table = ResourceTable.new()
 	add_child(_table)
 	_table.setup(session.data, skill_id)
-	if _table.has_signal("zone_requested"):  # introduced by M36-2
-		_table.connect("zone_requested", go_to_area_requested.emit)
+	_table.zone_requested.connect(go_to_area_requested.emit)
 	_pages[TAB_RESOURCES] = _table
 	_tool_panel = TOOL_PANEL_SCENE.instantiate() as ToolUpgradePanel
 	_tool_panel.name = "TabTool"

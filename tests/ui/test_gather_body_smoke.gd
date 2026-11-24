@@ -1,8 +1,8 @@
 extends GutTest
 ## Smoke test of the GatherBody of a gathering page (M36-1, docs/05_INTERFACES_M36.md §7.ae) on a SkillPage with a real-data session:
 ## three tabs opening on the Overview, heads folded at the start, the hidden containers of M36B, the tool button that opens its tab,
-## "Vai" (go_to_area_requested) sent to `combat.start` with the refusal worded. No exact texts. The test of the link with the
-## ResourceTable's `zone_requested` is written after the merge of M36-2.
+## "Vai" (go_to_area_requested) sent to `combat.start` with the refusal worded. No exact texts. The last test follows the whole
+## chain: a real "Vai" button of the ResourceTable -> GatherBody -> `combat.start`.
 
 const SCENE: PackedScene = preload("res://ui/pages/skill/skill_page.tscn")
 const SKILL: StringName = &"quarrying"
@@ -75,4 +75,35 @@ func test_go_to_area_starts_the_combat_or_words_the_refusal() -> void:
 	_body.go_to_area_requested.emit(first.id)
 	assert_true(_s.combat.is_active())
 	assert_eq(_s.combat.area_id(), first.id)
+	assert_false(message.visible)
+
+
+## The whole chain of "Vai": button of an open row -> `ResourceTable.zone_requested` -> `GatherBody.go_to_area_requested` -> the page.
+func test_vai_button_of_a_row_reaches_combat_start() -> void:
+	var message: Label = _page.get_node("%MessageLabel") as Label
+	var table: ResourceTable = _body.find_child("ResourceTable", true, false) as ResourceTable
+	_body.show_tab(GatherBody.TAB_RESOURCES)
+	var id: StringName = table.row_ids()[0]
+	var row: ResourceRow = null
+	for node: Node in table.find_children("*", "ResourceRow", true, false):
+		if (node as ResourceRow).action_id() == id:
+			row = node as ResourceRow
+	assert_not_null(row)
+	row.set_open(true)
+	var area: StringName = StringName(_s.data.zones_of_action(id)[0]["area"])
+	var go: Button = table.find_child("GoButton_%s_%s" % [id, area], true, false) as Button
+	assert_not_null(go)
+	assert_false(go.disabled)
+	go.pressed.emit()
+	if _s.combat.is_active():
+		assert_eq(_s.combat.area_id(), area)
+		_s.combat.stop()
+	else:
+		assert_true(message.visible, "locked area: the refusal is shown")
+	TestFactory.set_character_level(_s, 99)
+	row.set_open(true)
+	go = table.find_child("GoButton_%s_%s" % [id, area], true, false) as Button
+	go.pressed.emit()
+	assert_true(_s.combat.is_active())
+	assert_eq(_s.combat.area_id(), area)
 	assert_false(message.visible)
