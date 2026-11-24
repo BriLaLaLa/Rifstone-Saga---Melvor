@@ -67,6 +67,8 @@ const RARE_PAIRS: Array = [
 	["wraith_veil", "knight_plate"],
 ]
 const RARE_QTY: int = 3
+## Sale value of a Masterwork as a percentage of its plate model (F-119; M38 Q251: 140, was 200 = `2 *`).
+const MASTERWORK_VALUE_PCT: int = 140
 ## §8.2: plates and handles per base [plates, handle kind ("" / "grip" / "shieldcore"), handles].
 const RECIPES: Dictionary = {"sword": [6, "grip", 2], "greatsword": [10, "grip", 2], "shield": [8, "shieldcore", 2],
 	"body": [10, "", 0], "legs": [8, "", 0], "head": [6, "", 0], "feet": [4, "", 0], "hands": [4, "", 0]}
@@ -313,7 +315,7 @@ func _masterwork(slot: String, g: int) -> Dictionary:
 			ordered[key] = equip[key]
 	var order: int = 1200 + MASTER_SLOTS.find(slot) * 20 + g
 	return _item(id, "%s %s" % [MASTER_TYPES[slot], MARKS[g - 1]], _icon_for(slot, "plate", "masterwork", id),
-			2 * int(base["value"]), order, "Un pezzo forgiato con cura, migliore di ogni altro del suo grado.", ordered)
+			int(base["value"]) * MASTERWORK_VALUE_PCT / 100, order, "Un pezzo forgiato con cura, migliore di ogni altro del suo grado.", ordered)
 
 
 func _blueprint(slot: String, g: int, masterwork: Dictionary) -> Dictionary:

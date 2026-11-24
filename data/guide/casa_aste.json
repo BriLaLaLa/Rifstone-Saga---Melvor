@@ -3,15 +3,13 @@
     {"id": "guide_auction", "section": "first_steps", "title": "Casa d'Aste", "order": 6,
      "help_for": ["auction"],
      "blocks": [
-       {"type": "text", "text": "Scegli una categoria, poi un oggetto. In alto vedi il prezzo unitario e la «% sulla media»: verde conviene, rosso no. Il libro è nella sezione Mercato. Puoi filtrare per Posseduti e Comprabili ora."},
-       {"type": "heading", "text": "Vendi"},
-       {"type": "text", "text": "Vendi subito vende al prezzo di mercato, che scende a ogni pezzo. Metti in vendita: scegli quantità, prezzo e durata; il deposito non torna. Se un prezzo più basso ti supera, la tua inserzione non vende."},
+       {"type": "text", "text": "Il libro è unico: per ogni oggetto, tutte le inserzioni in fila dalla più economica. «Disponibili» è la somma di quelle inserzioni. In alto vedi il prezzo e la «% sulla media» delle ultime dodici ore: verde conviene, rosso no."},
        {"type": "heading", "text": "Comprare"},
-       {"type": "text", "text": "Solo componenti e cibo, secondo il livello dell'edificio. Compra max prende quanti pezzi puoi pagare e portare."},
+       {"type": "text", "text": "Solo componenti e cibo, secondo il livello dell'edificio. Ogni pezzo costa quanto l'inserzione che lo vende, più un margine. Se i pezzi finiscono compare «Esaurito» e dopo un po' torna la scorta. Per acquisti molto grossi chiede conferma."},
+       {"type": "heading", "text": "Vendere"},
+       {"type": "text", "text": "Vendi subito vende al prezzo di mercato, che scende a ogni pezzo. Metti in vendita: scegli quantità, prezzo e durata; il deposito non torna. Se un prezzo più basso ti supera, la tua inserzione non vende."},
        {"type": "heading", "text": "Le mie vendite"},
-       {"type": "text", "text": "Attive: le inserzioni, con l'incasso atteso; annullale da qui. Storico: le vendite chiuse e le inserzioni annullate o scadute. Gli acquisti non si registrano."},
-       {"type": "heading", "text": "Dal Deposito"},
-       {"type": "text", "text": "«Vendi alla Casa d'Aste» apre la pagina con l'oggetto già scelto. Il ricavo arriva in Posta: se è piena, non puoi vendere."},
+       {"type": "text", "text": "Attive: le inserzioni, annullabili da qui. Storico: vendite chiuse, annullate o scadute. «Vendi alla Casa d'Aste» dal Deposito apre l'oggetto già scelto; il ricavo arriva in Posta."},
        {"type": "links", "targets": ["page:guide_mail", "page:guide_village"]}
      ]}
   ]
