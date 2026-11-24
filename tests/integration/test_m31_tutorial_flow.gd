@@ -371,7 +371,7 @@ func test_a_reload_while_the_character_is_hurt_wounds_once_and_the_meal_comes() 
 func test_a_pre_m31_slot_at_20_of_20_shows_the_final_bonus_as_available() -> void:
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(SLOT_V11))
 	var d: Dictionary = SaveMigrator.migrate(parsed as Dictionary)
-	assert_eq(int(d["format_version"]), 13)
+	assert_eq(int(d["format_version"]), 14)
 	var ids: Array = []
 	for def: StarterQuestDef in TestFactory.real_data().starter_quests():
 		ids.append(String(def.id))

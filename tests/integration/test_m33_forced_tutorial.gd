@@ -236,7 +236,7 @@ func test_an_old_v12_slot_with_the_combat_on_at_step_9_resumes_paused_and_comple
 	var s: GameSession = Play.new_game_session(5500)
 	_play_to(s, &"bank")
 	var d: Dictionary = JSON.parse_string(JSON.stringify(s.to_save(1_700_000_000_000)))
-	assert_eq(int(d["format_version"]), 13, "no new save key: still v13")
+	assert_eq(int(d["format_version"]), 14, "still the version of the game")
 	assert_true(((d["modules"] as Dictionary)["combat"] as Dictionary).size() > 0)
 	s.free()
 	var events: GameEvents = GameEvents.new()

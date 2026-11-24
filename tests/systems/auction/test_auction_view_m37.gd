@@ -36,11 +36,11 @@ func test_gap_examples() -> void:
 	assert_eq(AuctionView.gap_pct(0, 1000), NO_GAP)
 
 
-func test_gap_of_the_house_follows_the_quote_and_the_base_value() -> void:
-	var value: int = _house.value_of(PLATE)
-	assert_gt(value, 0)
-	assert_eq(_house.price_gap(PLATE, &"buy"), AuctionView.gap_pct(_house.buy_quote(PLATE, 1), value))
-	assert_eq(_house.price_gap(PLATE, &"sell"), AuctionView.gap_pct(_house.sell_quote(PLATE, 1), value))
+func test_gap_of_the_house_follows_the_unit_and_the_reference() -> void:
+	var ref_buy: int = _house.reference_price(PLATE, &"buy")
+	assert_gt(ref_buy, 0)
+	assert_eq(_house.price_gap(PLATE, &"buy"), AuctionView.gap_pct(_house.buy_unit(PLATE), ref_buy))
+	assert_eq(_house.price_gap(PLATE, &"sell"), AuctionView.gap_pct(_house.sell_quote(PLATE, 1), _house.reference_price(PLATE, &"sell")))
 
 
 func test_gap_not_available_for_an_untraded_item_or_one_that_cannot_be_bought() -> void:
@@ -53,17 +53,18 @@ func test_gap_not_available_for_an_untraded_item_or_one_that_cannot_be_bought() 
 # --- F-211 -----------------------------------------------------------------------------------------------------
 
 func test_max_buy_examples() -> void:
-	assert_eq(AuctionView.max_buy(250, 40, 5000), 20)
-	assert_eq(AuctionView.max_buy(250, 12, 5000), 12)
-	assert_eq(AuctionView.max_buy(250, 40, 249), 0)
-	assert_eq(AuctionView.max_buy(250, 0, 5000), 0)
-	assert_eq(AuctionView.max_buy(0, 40, 5000), 0)
+	var book: Array[Vector2i] = [Vector2i(250, 40)]
+	assert_eq(AuctionView.max_buy(book, 0, 5000), 20)
+	assert_eq(AuctionView.max_buy([Vector2i(250, 12)] as Array[Vector2i], 0, 5000), 12)
+	assert_eq(AuctionView.max_buy(book, 0, 249), 0)
+	assert_eq(AuctionView.max_buy(book, 40, 5000), 0, "everything taken")
+	assert_eq(AuctionView.max_buy([] as Array[Vector2i], 0, 5000), 0)
 
 
 func test_max_buyable_of_the_house() -> void:
 	_set_gold(1000000000)
-	var unit: int = _house.buy_quote(PLATE, 1)
-	assert_eq(_house.max_buyable(PLATE), _house.stock(PLATE), "plenty of gold: the stock")
+	var unit: int = _house.buy_unit(PLATE)
+	assert_eq(_house.max_buyable(PLATE), _house.available(PLATE), "plenty of gold: all the pieces")
 	_set_gold(unit * 3 - 1)
 	assert_eq(_house.max_buyable(PLATE), 2, "gold for two and a bit")
 	_set_gold(unit - 1)

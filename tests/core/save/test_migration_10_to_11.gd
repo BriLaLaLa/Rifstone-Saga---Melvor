@@ -53,7 +53,7 @@ func test_the_chain_from_v9_reaches_v11_with_the_wallet_in_copper() -> void:
 	var v9: Dictionary = {"format_version": 9, "player_name": "x", "modules": {"wallet": {"gold": 40},
 			"skills": {"forging": {"xp": 0}}, "actions": {"lanes": {}}}}
 	var out: Dictionary = SaveMigrator.migrate(v9)
-	assert_eq(out["format_version"], 13)
+	assert_eq(out["format_version"], 14)
 	assert_eq(_copper(out), 4000)
 	assert_true((out["modules"] as Dictionary).has("disciplines"), "the v9 -> v10 step ran")
 
@@ -70,7 +70,7 @@ func test_the_real_v10_slot_migrates_without_losses() -> void:
 	var gold: int = int((v10["modules"] as Dictionary)["wallet"]["gold"])
 	assert_gt(gold, 0)
 	var out: Dictionary = SaveMigrator.migrate(v10)
-	assert_eq(out["format_version"], 13)
+	assert_eq(out["format_version"], 14)
 	assert_eq(_copper(out), gold * 100)
 	var rest: Dictionary = out.duplicate(true)
 	var before: Dictionary = v10.duplicate(true)
@@ -78,6 +78,7 @@ func test_the_real_v10_slot_migrates_without_losses() -> void:
 		d.erase("format_version")
 		(d["modules"] as Dictionary).erase("tutorial")  # added by the v11 -> v12 step (M30-02)
 		((d["modules"] as Dictionary)["auction"] as Dictionary).erase("history")  # added by the v12 -> v13 step (M37-1)
+		((d["modules"] as Dictionary)["auction"] as Dictionary).erase("taken")  # added by the v13 -> v14 step (M38-1)
 		(d["modules"] as Dictionary).erase("wallet")
 	assert_eq(JSON.stringify(rest, "", true), JSON.stringify(before, "", true), "everything but the wallet is identical")
 

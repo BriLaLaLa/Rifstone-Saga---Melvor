@@ -39,8 +39,8 @@ func test_listing_and_levels() -> void:
 func test_quotes_at_rest() -> void:
 	var value: int = _data.item(PLATE).value
 	assert_eq(_p.sell_quote(PLATE, 1), 71151)
-	assert_eq(_p.buy_quote(PLATE, 1), 160402)
-	assert_eq(_p.buy_quote(PLATE, 3), 3 * 160402)
+	assert_eq(_p.buy_quote(PLATE, 1), 105328)
+	assert_eq(_p.buy_quote(PLATE, 3), 3 * 105328)
 	assert_eq(_p.sell_quote(PLATE, 0), 0)
 	assert_eq(_p.sell_quote(&"test_unknown", 5), 0)
 	assert_eq(_p.buy_quote(LOG, 5), 0, "not for sale")
@@ -54,7 +54,7 @@ func test_selling_lowers_the_price_of_that_item_only() -> void:
 	_p.record_sale(PLATE, 400)
 	assert_lt(_p.sell_quote(PLATE, 1), before)
 	assert_eq(_p.sell_quote(GRIP, 1), other_before)
-	assert_eq(_p.buy_quote(PLATE, 1), AuctionMath.buy_unit(_data.item(PLATE).value, 1195823 - 400 * 277, _data.auction_params()), "the buy price follows the index")
+	assert_lt(_p.buy_quote(PLATE, 1), 105328, "the buy price follows the index down to the floor EQMIN")
 
 
 func test_saturation_has_a_ceiling_and_the_price_a_floor() -> void:
@@ -66,26 +66,26 @@ func test_saturation_has_a_ceiling_and_the_price_a_floor() -> void:
 	assert_eq(((save["items"] as Dictionary)["redbirch_log"] as Dictionary)["sat"], _data.auction_params().cap_ppm)
 
 
-func test_purchases_lower_the_stock_to_zero() -> void:
-	assert_eq(_p.stock(PLATE), 10)
-	assert_eq(_p.stock_max(PLATE), 10)
+func test_purchases_raise_taken_up_to_the_book() -> void:
+	assert_eq(_p.volume(PLATE), 27)
+	assert_eq(_p.available(PLATE), 27)
+	assert_eq(_p.taken(PLATE), 0)
 	_p.record_purchase(PLATE, 3)
-	assert_eq(_p.stock(PLATE), 7)
-	_p.record_purchase(PLATE, 100)
-	assert_eq(_p.stock(PLATE), 0)
-	assert_eq(_p.stock(LOG), 0, "a sell-only item has no stock")
-	assert_eq(_p.stock_max(LOG), 0)
+	assert_eq([_p.taken(PLATE), _p.available(PLATE)], [3, 24])
+	assert_eq(_p.available(LOG), 0, "a sell-only item has nothing to buy")
+	assert_eq(_p.taken(LOG), 0)
+	assert_eq(_p.volume(&"test_unknown"), 0)
 
 
-func test_stock_refill_examples() -> void:
-	_p.record_purchase(PLATE, 7)  # 3 left
+func test_taken_restocks_by_r_i_per_block() -> void:
+	_p.record_purchase(PLATE, 7)
 	_p.advance(4 * 300000)
-	assert_eq(_p.stock(PLATE), 7, "r = 1 per block")
+	assert_eq(_p.taken(PLATE), 3, "r_i = 1 per block")
 	_p.advance(16 * 300000)
-	assert_eq(_p.stock(PLATE), 10, "full again")
-	_p.record_purchase(GRIP, 500)
-	_p.advance(72 * 300000)
-	assert_eq(_p.stock(GRIP), 500, "7 per block: full in 72 blocks (6 h)")
+	assert_eq(_p.taken(PLATE), 0)
+	_p.record_purchase(GRIP, 1000)
+	_p.advance(59 * 300000)
+	assert_eq(_p.taken(GRIP), 0, "17 per block: 59 blocks")
 
 
 func test_saturation_recovery_examples() -> void:

@@ -77,13 +77,13 @@ func test_a_real_v12_slot_loads_and_saves_as_v13_with_nothing_else_changed() -> 
 	s.advance(3 * HOUR_MS)
 	assert_gt(s.auction.history().size(), 0)
 	var d13: Dictionary = s.to_save(NOW_MS)
-	assert_eq(int(d13["format_version"]), 13)
+	assert_eq(int(d13["format_version"]), 14)
 	# build the v12 file of the same game: no history, format 12
 	var d12: Dictionary = SaveCodec.decode(SaveCodec.encode(d13))
 	d12["format_version"] = 12
 	(d12["modules"]["auction"] as Dictionary).erase("history")
 	var migrated: Dictionary = SaveMigrator.migrate(d12)
-	assert_eq(int(migrated["format_version"]), 13)
+	assert_eq(int(migrated["format_version"]), 14)
 	var loaded: GameSession = _open_session(1)
 	assert_true(loaded.from_save(migrated).ok)
 	assert_eq(loaded.auction.history(), [], "a v12 slot starts with an empty history")
@@ -96,7 +96,7 @@ func test_a_real_v12_slot_loads_and_saves_as_v13_with_nothing_else_changed() -> 
 func test_the_v11_fixture_chains_to_v13_and_saves_again_unchanged() -> void:
 	var raw: Variant = JSON.parse_string(FileAccess.get_file_as_string(SLOT_V11))
 	var out: Dictionary = SaveMigrator.migrate(raw as Dictionary)
-	assert_eq(int(out["format_version"]), 13)
+	assert_eq(int(out["format_version"]), 14)
 	var s: GameSession = autofree(TestFactory.session_no_kit(5, TestFactory.real_data()))
 	assert_true(s.from_save(out).ok)
 	var again: Dictionary = s.to_save(0)

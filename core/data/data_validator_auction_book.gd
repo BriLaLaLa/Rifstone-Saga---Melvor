@@ -52,9 +52,6 @@ static func relations(v: DataValidatorRules, p: AuctionParams) -> void:
 		v.fail("key 'auction.book.min_listings' must be at most 'max_listings'")
 	if p.listing_cut_ppm >= AuctionMath.PPM:
 		v.fail("key 'auction.listing.cut_pct' must be below 100")
-	# F-182: a piece bought from the counter costs more than any sale can give (no gain without risk).
-	if (p.min_ppm + p.spread_ppm) * AuctionMath.PPM <= p.max_ppm * (AuctionMath.PPM + p.book_hi_ppm):
-		v.fail("key 'auction.book.ask_max_pct' is too high: (min_pct + spread_pct) must stay above max_pct * (1 + ask_max_pct) (F-182)")
 	for duration: AuctionDuration in p.durations:
 		if (duration.hours * HOUR_MS) % maxi(1, p.block_ms) != 0:
 			v.fail("duration '%s': %d hours is not a whole number of market blocks" % [duration.id, duration.hours])

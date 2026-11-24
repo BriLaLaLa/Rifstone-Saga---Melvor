@@ -200,3 +200,49 @@ func test_the_real_v10_slot_migrated_runs_the_auction_end_to_end() -> void:
 	assert_eq(pieces, logs, "no piece appears out of nothing or in two places")
 	s.mail.collect_all()
 	assert_eq(s.wallet.get_gold(), start - deposit + waiting)
+
+
+## M38-1 (F-216, F-184 extended): `taken` is part of the compared state; pieces bought at the start are restocked the same way in a
+## block, ticks of 100 ms and blocks of 60 s, with the listings of the player active, and they are all back after 12 h.
+func _with_listings_and_purchases() -> GameSession:
+	var s: GameSession = _with_listings()
+	_ok(s.auction.buy(&"redbirch_grip", 1000))
+	var more: int = 0
+	for id: StringName in s.auction.buyable_items():
+		if more < 3 and id != &"redbirch_grip" and s.auction.buy_level(id) <= s.auction.level():
+			_ok(s.auction.buy(id, mini(20, s.auction.available(id))))
+			more += 1
+	assert_eq(more, 3)
+	return s
+
+
+func test_taken_is_the_same_in_a_block_ticks_and_blocks() -> void:
+	var one: GameSession = _with_listings_and_purchases()
+	var ticks: GameSession = _with_listings_and_purchases()
+	var blocks: GameSession = _with_listings_and_purchases()
+	var three: int = 3 * HOUR_MS
+	one.advance(three)
+	for _i: int in three / TICK_MS:
+		ticks.advance(TICK_MS)
+	for _i: int in three / 60_000:
+		blocks.advance(60_000)
+	var taken: Dictionary = one.auction.to_save()["taken"] as Dictionary
+	assert_gt(int(taken.get("redbirch_grip", 0)), 0, "3 h later the grip is not back yet: 1.000 - 36 * 17")
+	assert_eq(taken["redbirch_grip"], 1000 - 36 * 17)
+	_assert_same(one, ticks, "3 h block vs ticks, with taken")
+	_assert_same(one, blocks, "3 h block vs blocks, with taken")
+	one.advance(9 * HOUR_MS)
+	ticks.advance(9 * HOUR_MS)
+	assert_eq(one.auction.to_save()["taken"], {}, "12 h: everything is back")
+	_assert_same(one, ticks, "12 h with taken")
+
+
+func test_taken_survives_a_save_in_the_middle() -> void:
+	var straight: GameSession = _with_listings_and_purchases()
+	var half: GameSession = _with_listings_and_purchases()
+	straight.advance(5 * HOUR_MS)
+	half.advance(2 * HOUR_MS)
+	var loaded: GameSession = _reload(half, SEED + 5)
+	assert_eq(loaded.auction.to_save()["taken"], half.auction.to_save()["taken"])
+	loaded.advance(3 * HOUR_MS)
+	_assert_same(straight, loaded, "straight vs save-reload with taken")

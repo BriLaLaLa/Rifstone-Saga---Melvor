@@ -2,7 +2,7 @@ class_name AuctionHouse
 extends RefCounted
 ## The Auction House (docs/01_GDD.md §34, docs/05_INTERFACES.md §5.30): selling and buying materials, components and food at
 ## prices that move. Commands, reasons, signals, save and the link with the Wallet, the Bank (Deposit) and the Village live here;
-## every price, stock and trend comes from AuctionPricing (no formula in this class).
+## every price, quantity available and trend comes from AuctionPricing (no formula in this class).
 ##
 ## `auction_sold`, `auction_bought` and `auction_updated` are emitted after the state changed; `item_sold` is not (it is the fixed
 ## price sale of the Shop, F-18). `new_game` and `from_save` set the state without signals.
@@ -68,8 +68,10 @@ func buyable_items() -> Array[StringName]:
 func buy_level(item_id: StringName) -> int: return _pricing.buy_level(item_id)
 func sell_quote(item_id: StringName, qty: int) -> int: return _pricing.sell_quote(item_id, qty)
 func buy_quote(item_id: StringName, qty: int) -> int: return _pricing.buy_quote(item_id, qty)
-func stock(item_id: StringName) -> int: return _pricing.stock(item_id)
-func stock_max(item_id: StringName) -> int: return _pricing.stock_max(item_id)
+func available(item_id: StringName) -> int: return _pricing.available(item_id)  # F-215: V - taken, no maximum
+func buy_unit(item_id: StringName) -> int: return _pricing.buy_unit(item_id)  # F-215: the cheapest available piece
+func buy_book(item_id: StringName) -> Array[Dictionary]: return _pricing.buy_book(item_id)
+func reference_price(item_id: StringName, mode: StringName) -> int: return _pricing.reference_price(item_id, mode)  # F-214
 func trend(item_id: StringName) -> StringName: return _pricing.trend(item_id)
 func durations() -> Array[AuctionDuration]: return _data.auction_params().durations.duplicate()
 func max_price(item_id: StringName) -> int: return _pricing.max_price(item_id)
@@ -89,18 +91,32 @@ func history_age_ms(entry: Dictionary) -> int:
 	return AuctionHistory.age_ms(int(entry.get("block", 0)), _pricing.block(), _pricing.pending_ms(), _data.auction_params().block_ms)
 
 
-## F-210: the gap in % of the unit price you see (`&"buy"` or `&"sell"`) against the base value; `NO_GAP` if not available.
+## F-210: the gap in % of the unit price you see (`&"buy"` or `&"sell"`) against the reference of F-214; `NO_GAP` if not available.
 func price_gap(item_id: StringName, mode: StringName) -> int:
-	var unit: int = _pricing.buy_quote(item_id, 1) if mode == &"buy" else _pricing.sell_quote(item_id, 1)
-	return AuctionView.gap_pct(unit, _pricing.value_of(item_id))
+	var unit: int = _pricing.buy_unit(item_id) if mode == &"buy" else _pricing.sell_quote(item_id, 1)
+	return AuctionView.gap_pct(unit, _pricing.reference_price(item_id, mode))
 
 
-## F-211: the most pieces `buy` accepts now (level, stock, gold, room in the Deposit); 0 if none.
+## F-211: the most pieces `buy` accepts now (level, pieces available, gold, room in the Deposit); 0 if none.
 func max_buyable(item_id: StringName) -> int:
 	if not _pricing.is_buyable(item_id) or level() < _pricing.buy_level(item_id):
 		return 0
-	var most: int = AuctionView.max_buy(_pricing.buy_quote(item_id, 1), _pricing.stock(item_id), _wallet.get_gold())
+	var most: int = AuctionView.max_buy(_pricing.buy_pieces(item_id), _pricing.taken(item_id), _wallet.get_gold())
 	return most if most > 0 and can_buy(item_id, most).ok else 0
+
+
+## F-216: milliseconds until a piece is available again (`restock_blocks` blocks, the first one at the next market block); 0 if one is.
+func restock_ms(item_id: StringName) -> int:
+	var blocks: int = _pricing.restock_blocks(item_id)
+	return maxi(0, blocks * _data.auction_params().block_ms - _pricing.pending_ms()) if blocks > 0 else 0
+
+
+## F-218: `{"total", "avg", "best", "share_ppm", "premium_ppm", "large"}` of buying `qty` pieces now; `{}` if `qty <= 0`, nothing is available
+## or `qty` is more than what is. The command `buy` has no confirmation and no cap.
+func buy_preview(item_id: StringName, qty: int) -> Dictionary:
+	var p: AuctionParams = _data.auction_params()
+	return AuctionBuy.preview(_pricing.buy_quote(item_id, qty), qty, _pricing.available(item_id), _pricing.buy_unit(item_id),
+			p.confirm_share_ppm, p.confirm_premium_ppm)
 
 
 ## F-213: `{"count", "units", "expected_net"}` of the active listings.
@@ -247,7 +263,7 @@ func sell(item_id: StringName, qty: int) -> CommandResult:
 
 
 ## Checks in order: invalid_amount, unknown_id, not_tradable (cannot be bought), requirement_not_met (level below the step),
-## out_of_stock, not_enough_gold, bank_full.
+## out_of_stock (nothing left or `qty` above what is available), not_enough_gold, bank_full.
 func can_buy(item_id: StringName, qty: int) -> CommandResult:
 	if qty <= 0:
 		return CommandResult.fail(Reasons.INVALID_AMOUNT)
@@ -257,7 +273,7 @@ func can_buy(item_id: StringName, qty: int) -> CommandResult:
 		return CommandResult.fail(Reasons.NOT_TRADABLE)
 	if level() < _pricing.buy_level(item_id):
 		return CommandResult.fail(Reasons.REQUIREMENT_NOT_MET)
-	if _pricing.stock(item_id) < qty:
+	if _pricing.available(item_id) < qty:
 		return CommandResult.fail(Reasons.OUT_OF_STOCK)
 	if _wallet.get_gold() < _pricing.buy_quote(item_id, qty):
 		return CommandResult.fail(Reasons.NOT_ENOUGH_GOLD)

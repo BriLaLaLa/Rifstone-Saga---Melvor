@@ -123,7 +123,7 @@ func test_a_real_v11_slot_migrates_to_a_completed_tutorial_with_the_starter_ques
 	assert_true(parsed is Dictionary)
 	assert_eq(int((parsed as Dictionary)["format_version"]), 11)
 	var d: Dictionary = SaveMigrator.migrate(parsed as Dictionary)
-	assert_eq(int(d["format_version"]), 13)
+	assert_eq(int(d["format_version"]), 14)
 	var events: GameEvents = GameEvents.new()
 	var s: GameSession = autofree(GameSession.new(TestFactory.real_data(), events, 1))
 	s.add_child(events)

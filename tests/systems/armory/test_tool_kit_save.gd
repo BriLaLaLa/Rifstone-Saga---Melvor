@@ -54,7 +54,7 @@ func test_an_old_save_gets_a_sickle_at_plus_zero() -> void:
 	assert_eq(loaded.equipment.get_uid(&"tool_herbalism"), uid, "worn")
 	assert_eq(loaded.armory.get_instance(uid).upgrade, 0)
 	assert_eq(loaded.modifiers.total(&"skill_interval_pct", ModifierContext.for_skill(&"herbalism")), -5.0)
-	assert_eq(loaded.to_save(0)["format_version"], 13, "no migration of version")
+	assert_eq(loaded.to_save(0)["format_version"], 14, "no migration of version")
 
 
 func test_an_existing_sickle_is_not_duplicated() -> void:
@@ -94,7 +94,7 @@ func test_invalid_heads_are_ignored() -> void:
 	assert_true(loaded.from_save(d).ok)
 	assert_eq(loaded.armory.tool_heads(loaded.armory.tool_uid(&"tool_quarrying")), [&"pick_vein", &"", &""] as Array[StringName])
 	assert_eq(loaded.armory.tool_heads(loaded.armory.tool_uid(&"tool_forestry")), [&"", &"", &""] as Array[StringName])
-	assert_eq(loaded.to_save(0)["format_version"], 13)
+	assert_eq(loaded.to_save(0)["format_version"], 14)
 
 
 func test_a_save_without_the_new_fields_loads() -> void:

@@ -122,10 +122,6 @@ func test_a_building_with_unlocks_auction_is_accepted() -> void:
 	assert_eq((data.village_building(&"auction_house").levels[0] as Dictionary)["effect_value"], 0.0)
 
 
-func test_rejects_a_spread_that_does_not_beat_the_range() -> void:
-	var errors: PackedStringArray = _errors(func(raw: Dictionary) -> void: ((_balance(raw))["buy"] as Dictionary)["spread_pct"] = 55)
-	assert_true(_mentions(errors, "spread_pct"), str(errors))
-
 
 func test_rejects_a_ceiling_below_the_equilibrium() -> void:
 	var errors: PackedStringArray = _errors(func(raw: Dictionary) -> void: ((_balance(raw))["index"] as Dictionary)["max_pct"] = 120)
@@ -211,18 +207,16 @@ func test_rejects_a_blueprint_below_the_margin() -> void:
 
 
 func test_the_real_blueprints_cost_more_than_their_piece_with_the_cheapest_parts() -> void:
-	# The margin rule of F-151 on the real data (the worst case is bp_mw_shield_14, 1,051 against 1,03).
+	# The margin rule of F-151 with the purchase cost of F-217, on the real data.
 	assert_eq(_errors(func(raw: Dictionary) -> void: _with_building(raw)), PackedStringArray())
-	var data: GameData = TestFactory.real_data()
-	var p: AuctionParams = data.auction_params()
-	var cost: int = 0
-	var blueprint: ItemDef = data.item(&"bp_mw_shield_14")
-	for row: ItemQty in blueprint.blueprint.inputs + blueprint.blueprint.rare_components:
-		var value: int = data.item(row.item_id).value
-		var def: AuctionItemDef = data.auction_item(row.item_id)
-		cost += row.qty * (AuctionMath.buy_unit(value, p.min_ppm, p) if def != null and def.buy_level > 0 else value)
-	assert_eq(cost, 2163000)
-	assert_eq(data.item(blueprint.blueprint.base_id).value, 2057200)
+
+
+func test_the_cost_of_a_part_follows_f217() -> void:
+	var p: AuctionParams = TestFactory.real_data().auction_params()
+	var eq_min: int = AuctionMath.eq_min(p, p.bands)
+	assert_eq(DataValidatorAuctionBuy.part_cost(200, true, p, eq_min), 305, "ceil(floor(200 * 1,05) * 1,45)")
+	assert_eq(DataValidatorAuctionBuy.part_cost(59500, true, p, eq_min), 90589)
+	assert_eq(DataValidatorAuctionBuy.part_cost(200, false, p, eq_min), 200, "not buyable: its value")
 
 
 func _generated() -> Array[Dictionary]:
@@ -282,9 +276,52 @@ func test_rejects_bad_book_values() -> void:
 	assert_true(_mentions(errors, "invented"), str(errors))
 
 
-func test_rejects_a_book_that_allows_a_gain_without_risk() -> void:
+func test_rejects_a_markup_that_allows_a_gain_without_risk() -> void:
+	var errors: PackedStringArray = _errors(func(raw: Dictionary) -> void: (_section(raw, "buy"))["markup_pct"] = 40)
+	assert_true(_mentions(errors, "F-217"), str(errors))
+	errors = _errors(func(raw: Dictionary) -> void: (_section(raw, "buy"))["markup_pct"] = 43)
+	assert_false(_mentions(errors, "F-217"), "43 % is the least allowed: " + str(errors))
+	errors = _errors(func(raw: Dictionary) -> void: (_section(raw, "buy"))["markup_pct"] = 1000)
+	assert_true(_mentions(errors, "markup_pct"), str(errors))
+	errors = _errors(func(raw: Dictionary) -> void: (_section(raw, "buy"))["markup_pct"] = -1)
+	assert_true(_mentions(errors, "markup_pct"), str(errors))
+
+
+func test_rejects_a_book_ask_that_breaks_the_constraint() -> void:
 	var errors: PackedStringArray = _errors(func(raw: Dictionary) -> void: (_section(raw, "book"))["ask_max_pct"] = 80)
-	assert_true(_mentions(errors, "F-182"), str(errors))
+	assert_true(_mentions(errors, "F-217"), str(errors))
+
+
+func test_rejects_a_refill_that_does_not_empty_the_book_in_12_hours() -> void:
+	var errors: PackedStringArray = _errors(func(raw: Dictionary) -> void: (_section(raw, "supply"))["refill_pct_per_block"] = 0.1)
+	assert_true(_mentions(errors, "F-216"), str(errors))
+	errors = _errors(func(raw: Dictionary) -> void: (_section(raw, "supply"))["refill_pct_per_block"] = 0)
+	assert_true(_mentions(errors, "refill_pct_per_block"), str(errors))
+	errors = _errors(func(raw: Dictionary) -> void: (_section(raw, "supply"))["refill_pct_per_block"] = 1.4)
+	assert_true(_mentions(errors, "F-216"), "1,4 %: 2.400 pieces at 15 a block need 160 blocks: " + str(errors))
+
+
+func test_rejects_a_bad_reference_window_and_confirmation() -> void:
+	for window: Variant in [0, 201, 2.5]:
+		var errors: PackedStringArray = _errors(func(raw: Dictionary) -> void: (_section(raw, "reference"))["window_epochs"] = window)
+		assert_true(_mentions(errors, "window_epochs"), str(window) + str(errors))
+	var errors2: PackedStringArray = _errors(func(raw: Dictionary) -> void: (_section(raw, "buy"))["confirm_share_pct"] = 0)
+	assert_true(_mentions(errors2, "confirm_share_pct"), str(errors2))
+	errors2 = _errors(func(raw: Dictionary) -> void: (_section(raw, "buy"))["confirm_share_pct"] = 101)
+	assert_true(_mentions(errors2, "confirm_share_pct"), str(errors2))
+	errors2 = _errors(func(raw: Dictionary) -> void: (_section(raw, "buy"))["confirm_premium_pct"] = -1)
+	assert_true(_mentions(errors2, "confirm_premium_pct"), str(errors2))
+
+
+func test_removed_keys_are_errors() -> void:
+	var errors: PackedStringArray = _errors(func(raw: Dictionary) -> void:
+		(raw["balance"]["res://data/config/balance.json"]["auction"] as Dictionary)["stock"] = {"gold": 1, "min": 1, "max": 1, "refill_pct_per_block": 1})
+	assert_true(_mentions(errors, "stock"), str(errors))
+	errors = _errors(func(raw: Dictionary) -> void: (_section(raw, "buy"))["spread_pct"] = 150)
+	assert_true(_mentions(errors, "spread_pct"), str(errors))
+	errors = _errors(func(raw: Dictionary) -> void: (_section(raw, "supply")).erase("refill_pct_per_block"))
+	assert_gt(errors.size(), 0)
+
 
 
 func test_rejects_bad_durations() -> void:

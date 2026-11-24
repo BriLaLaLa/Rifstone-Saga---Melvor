@@ -70,21 +70,36 @@ static func gold_of(value: int, sum_ppm: int) -> int:
 	return (value * sum_ppm) / PPM
 
 
-## F-150: maximum stock `S(v) = clamp(stock.gold / v, stock.min, stock.max)`.
+## F-215: price of a piece, `ceil_div(ask * (PPM + MK), PPM)` (the Auction House mark-up on the listing price).
+static func piece_price(ask: int, markup_ppm: int) -> int:
+	return ceil_div(ask * (PPM + markup_ppm), PPM)
+
+
+## F-214: the median of `values` (any order): the ascending element of index `n / 2` (the upper one for an even `n`); 0 if empty.
 @warning_ignore("integer_division")
-static func stock_max(value: int, p: AuctionParams) -> int:
-	return clampi(p.stock_gold / maxi(1, value), p.stock_min, p.stock_max)
+static func median(values: PackedInt64Array) -> int:
+	if values.is_empty():
+		return 0
+	var sorted: PackedInt64Array = values.duplicate()
+	sorted.sort()
+	return sorted[sorted.size() / 2]
 
 
-## F-150: refill per block `r(S) = max(1, (S * REFILL + 500.000) / 1.000.000)`.
+## F-174, F-215: `EQMIN = BASE - AMP - PB-`, the lowest equilibrium of any band (`bands` is `p.bands`).
+static func eq_min(p: AuctionParams, bands: Array[AuctionPopulationBand]) -> int:
+	var minus: int = 0
+	for band: AuctionPopulationBand in bands:
+		var lo: Vector2i = population(band.buyers, band.sellers, -p.pop_var_ppm, -p.pop_var_ppm)
+		var hi: Vector2i = population(band.buyers, band.sellers, p.pop_var_ppm, p.pop_var_ppm)
+		minus = maxi(minus, -pressure(lo.x, hi.y, p))
+	return p.base_ppm - p.amp_ppm - minus
+
+
+## F-216: pieces the sellers put back per block, `r_i = max(1, (Vn * REFILL + 500.000) / PPM)` with `Vn = (S0 / SPL) * ((stack + 1) / 2)`.
 @warning_ignore("integer_division")
-static func refill_per_block(stock_cap: int, p: AuctionParams) -> int:
-	return maxi(1, (stock_cap * p.refill_ppm + PPM / 2) / PPM)
-
-
-## F-151: price of one piece, `ceil_div(v * (index + SPREAD), 1.000.000)`.
-static func buy_unit(value: int, index: int, p: AuctionParams) -> int:
-	return ceil_div(value * (index + p.spread_ppm), PPM)
+static func restock_rate(band: AuctionPopulationBand, p: AuctionParams) -> int:
+	var nominal: int = (band.sellers / p.book_sellers_per_listing) * ((band.stack + 1) / 2)
+	return maxi(1, (nominal * p.refill_ppm + PPM / 2) / PPM)
 
 
 ## F-152: `&"up"`, `&"down"` or `&"stable"` from the change of the index.
@@ -138,10 +153,9 @@ static func pressure(buyers: int, sellers: int, p: AuctionParams) -> int:
 
 ## F-172: the constants of an item from its band: `{"step", "rec", "refill"}` (ppm per piece, ppm per block, pieces per block).
 @warning_ignore("integer_division")
-static func liquidity(value: int, band: AuctionPopulationBand, p: AuctionParams) -> Dictionary:
-	var cap: int = stock_max(value, p)
+static func liquidity(_value: int, band: AuctionPopulationBand, p: AuctionParams) -> Dictionary:
 	return {
 		"step": maxi(1, p.step_ppm * p.pop_ref / band.buyers),
 		"rec": maxi(1, p.recover_ppm * band.buyers / p.pop_ref),
-		"refill": maxi(1, (cap * p.refill_ppm * band.sellers / p.pop_ref + PPM / 2) / PPM),
+		"refill": restock_rate(band, p),
 	}

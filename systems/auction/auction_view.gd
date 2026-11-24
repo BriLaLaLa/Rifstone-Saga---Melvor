@@ -22,13 +22,19 @@ static func population(pricing: AuctionPricing, listings: AuctionListings, item_
 	return result
 
 
-## `[{"price", "qty", "mine": bool, "listing": int (0 for an NPC)}]` by price; at equal price the NPC rows come first (then `j`, then the id).
+## `[{"price", "qty", "mine": bool, "listing": int (0 for an NPC), "buy_price", "left"}]` by price; at equal price the NPC rows come first
+## (then `j`, then the id). `buy_price`/`left` (F-215): the NPC rows of a buyable item carry the price to buy and the pieces not yet
+## taken; the others 0 and `qty`.
 static func book(pricing: AuctionPricing, listings: AuctionListings, item_id: StringName) -> Array[Dictionary]:
 	var rows: Array[Dictionary] = []
-	for ask: Vector2i in pricing.npc_asks(item_id):
-		rows.append({"price": ask.x, "qty": ask.y, "mine": false, "listing": 0})
+	var asks: Array[Vector2i] = pricing.npc_asks(item_id)
+	var pieces: Array[Vector2i] = pricing.buy_pieces(item_id)
+	var left: PackedInt32Array = AuctionBuy.left_of(pieces, pricing.taken(item_id))
+	for i: int in asks.size():
+		rows.append({"price": asks[i].x, "qty": asks[i].y, "mine": false, "listing": 0,
+				"buy_price": pieces[i].x if not pieces.is_empty() else 0, "left": left[i] if not pieces.is_empty() else asks[i].y})
 	for mine: Dictionary in listings.of_item(item_id):
-		rows.append({"price": mine["price"], "qty": mine["qty"], "mine": true, "listing": mine["id"]})
+		rows.append({"price": mine["price"], "qty": mine["qty"], "mine": true, "listing": mine["id"], "buy_price": 0, "left": mine["qty"]})
 	var result: Array[Dictionary] = []
 	for row: Dictionary in rows:  # stable insertion: both sources are already in order
 		var at: int = result.size()
@@ -52,22 +58,19 @@ static func my_listings(pricing: AuctionPricing, listings: AuctionListings, bloc
 	return result
 
 
-## F-210: `round(100 * (unit - value) / value)` (half away from zero) in integer maths; `AuctionHouse.NO_GAP` if `value` or `unit` is 0 or less.
+## F-210: `round(100 * (unit - ref) / ref)` (half away from zero) in integer maths; `AuctionHouse.NO_GAP` if `ref` or `unit` is 0 or less.
 @warning_ignore("integer_division")
-static func gap_pct(unit: int, value: int) -> int:
-	if value <= 0 or unit <= 0:
+static func gap_pct(unit: int, ref: int) -> int:
+	if ref <= 0 or unit <= 0:
 		return AuctionHouse.NO_GAP
-	var diff: int = 100 * (unit - value)
-	var magnitude: int = (2 * absi(diff) + value) / (2 * value)
+	var diff: int = 100 * (unit - ref)
+	var magnitude: int = (2 * absi(diff) + ref) / (2 * ref)
 	return magnitude if diff >= 0 else -magnitude
 
 
-## F-211 without the Deposit constraint: `min(stock, floor(gold / unit))`, 0 if `unit` is 0 or less.
-@warning_ignore("integer_division")
-static func max_buy(unit: int, stock: int, gold: int) -> int:
-	if unit <= 0:
-		return 0
-	return maxi(0, mini(stock, gold / unit))
+## F-211 without the Deposit constraint: the most of the available pieces of `pieces` (F-215, `taken` already bought) that `gold` buys.
+static func max_buy(pieces: Array[Vector2i], taken: int, gold: int) -> int:
+	return AuctionBuy.max_qty(pieces, taken, gold)
 
 
 ## F-213: `{"count", "units", "expected_net"}`; `quote` is `Callable(qty, price) -> int` (the net of one listing, F-180).

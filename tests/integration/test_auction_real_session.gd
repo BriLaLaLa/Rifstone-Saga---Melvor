@@ -89,29 +89,30 @@ func test_offline_gives_the_same_market_as_playing() -> void:
 	assert_eq(away.auction.sell_quote(LOG, 300), online.auction.sell_quote(LOG, 300))
 
 
-func test_limited_stock_runs_out_and_refills_with_time() -> void:
+func test_limited_book_runs_out_and_restocks_with_time() -> void:
 	var s: GameSession = _open_session()
 	var item: StringName = _level_one_item(s)
 	assert_ne(item, &"")
 	s.wallet.add_gold(100_000_000)
-	var cap: int = s.auction.stock_max(item)
-	assert_eq(s.auction.stock(item), cap, "the stock starts full")
+	var cap: int = s.auction.available(item)
+	assert_gt(cap, 0, "the book has pieces: the sum of the listings, no maximum")
 	assert_eq(s.auction.can_buy(item, cap + 1).reason, Reasons.OUT_OF_STOCK)
 	var price: int = s.auction.buy_quote(item, cap)
 	var gold: int = s.wallet.get_gold()
 	assert_true(s.auction.buy(item, cap).ok)
 	assert_eq(s.wallet.get_gold(), gold - price)
 	assert_eq(s.bank.get_count(item), cap)
-	assert_eq(s.auction.stock(item), 0)
+	assert_eq(s.auction.available(item), 0)
 	assert_eq(s.auction.can_buy(item, 1).reason, Reasons.OUT_OF_STOCK)
 	s.advance(10 * 60 * 1000)
-	var refilled: int = s.auction.stock(item)
+	var refilled: int = s.auction.available(item)
 	assert_gt(refilled, 0, "two blocks gave something back")
 	assert_lt(refilled, cap)
 	assert_true(s.auction.buy(item, refilled).ok)
 	assert_eq(s.bank.get_count(item), cap + refilled, "one stack, nothing created or lost")
 	s.advance(12 * HOUR_MS)
-	assert_eq(s.auction.stock(item), cap, "12 hours refill everything")
+	assert_eq((s.auction.to_save()["taken"] as Dictionary).size(), 0, "12 hours restock everything")
+	assert_gt(s.auction.available(item), 0)
 
 
 func test_nothing_is_gained_buying_and_selling_back_on_a_real_session() -> void:
@@ -119,7 +120,7 @@ func test_nothing_is_gained_buying_and_selling_back_on_a_real_session() -> void:
 	var item: StringName = _level_one_item(s)
 	s.wallet.add_gold(1_000_000)
 	var start: int = s.wallet.get_gold()
-	var qty: int = mini(50, s.auction.stock(item))
+	var qty: int = mini(50, s.auction.available(item))
 	assert_true(s.auction.buy(item, qty).ok)
 	assert_true(s.auction.sell(item, qty).ok)
 	assert_lt(s.wallet.get_gold(), start, "buying and selling back loses gold (F-151)")
@@ -131,7 +132,7 @@ func test_nothing_is_gained_buying_and_selling_back_on_a_real_session() -> void:
 	assert_true(s.shop.sell(item, qty).ok)
 
 
-func test_save_and_load_keep_the_market_stock_and_building() -> void:
+func test_save_and_load_keep_the_market_taken_and_building() -> void:
 	var s: GameSession = _open_session()
 	var item: StringName = _level_one_item(s)
 	TestFactory.give(s, LOG, 800)
@@ -144,7 +145,7 @@ func test_save_and_load_keep_the_market_stock_and_building() -> void:
 	assert_true(loaded.from_save(SaveCodec.decode(blob)).ok)
 	assert_eq(loaded.auction.to_save(), s.auction.to_save())
 	assert_eq(loaded.auction.level(), 1)
-	assert_eq(loaded.auction.stock(item), s.auction.stock(item))
+	assert_eq(loaded.auction.available(item), s.auction.available(item))
 	assert_eq(loaded.auction.sell_quote(LOG, 500), s.auction.sell_quote(LOG, 500))
 	assert_eq(loaded.auction.trend(LOG), s.auction.trend(LOG))
 	s.advance(3 * HOUR_MS)

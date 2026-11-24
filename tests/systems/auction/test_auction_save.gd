@@ -31,6 +31,7 @@ func test_a_new_market_saves_only_the_header() -> void:
 	assert_eq(d["block"], 0)
 	assert_eq(d["pending_ms"], 0)
 	assert_eq(_items(d), {}, "everything at rest: nothing to save")
+	assert_eq(d["taken"], {})
 
 
 func test_only_items_away_from_rest_are_saved_with_the_keys_that_differ() -> void:
@@ -39,16 +40,16 @@ func test_only_items_away_from_rest_are_saved_with_the_keys_that_differ() -> voi
 	_s.wallet.add_gold(10000000)
 	_house.buy(PLATE, 3)
 	_house.buy(GRIP, 1)
-	var items: Dictionary = _items(_house.to_save())
-	assert_eq(items["redbirch_log"], {"sat": 20000})
-	assert_eq(items["riftite_plate"], {"stock": 7})
-	assert_eq(items["redbirch_grip"], {"stock": 499})
-	assert_eq(items.size(), 3)
+	var d: Dictionary = _house.to_save()
+	assert_eq(_items(d), {"redbirch_log": {"sat": 20000}})
+	assert_eq(d["taken"], {"riftite_plate": 3, "redbirch_grip": 1})
 	_house.advance(12 * 3600000)
-	assert_eq(_items(_house.to_save()), {}, "after 12 hours everything is back at rest and leaves the save")
+	d = _house.to_save()
+	assert_eq(_items(d), {}, "after 12 hours everything is back at rest and leaves the save")
+	assert_eq(d["taken"], {})
 
 
-func test_round_trip_through_json_gives_the_same_prices_and_stock() -> void:
+func test_round_trip_through_json_gives_the_same_prices_and_pieces() -> void:
 	TestFactory.give(_s, LOG, 500)
 	TestFactory.give(_s, GRIP, 50)
 	_house.sell(LOG, 500)
@@ -64,7 +65,7 @@ func test_round_trip_through_json_gives_the_same_prices_and_stock() -> void:
 	for id: StringName in _house.listed_items():
 		assert_eq(other.auction.sell_quote(id, 17), _house.sell_quote(id, 17), "%s sell" % id)
 		assert_eq(other.auction.buy_quote(id, 3), _house.buy_quote(id, 3), "%s buy" % id)
-		assert_eq(other.auction.stock(id), _house.stock(id), "%s stock" % id)
+		assert_eq(other.auction.available(id), _house.available(id), "%s available" % id)
 		assert_eq(other.auction.trend(id), _house.trend(id), "%s trend" % id)
 	assert_eq(other.auction.to_save(), _house.to_save())
 	other.advance(300000)
@@ -127,20 +128,49 @@ func test_unknown_or_unlisted_items_are_dropped_and_values_corrected() -> void:
 		"thornalder_log": {"sat": "x"},
 		"riftite_plate": {"stock": 99, "sat": 250.0},
 		"redbirch_grip": {"stock": -2},
-		"ashpine_grip": {"stock": "many"},
 		"emberbronze_plate": "nonsense",
-		"duskelm_grip": {"stock": 4.5},
 	}}
 	var items: Dictionary = _items(_loaded(d).to_save())
 	assert_false(items.has("test_unknown"))
 	assert_false(items.has("coins"))
-	assert_eq(items["redbirch_log"], {"sat": cap}, "above the cap -> the cap; stock on a sell-only item ignored")
+	assert_eq(items["redbirch_log"], {"sat": cap}, "above the cap -> the cap")
 	assert_false(items.has("ashpine_log"), "a negative saturation is 0: at rest")
 	assert_false(items.has("thornalder_log"))
-	assert_eq(items["riftite_plate"], {"sat": 250}, "stock above the maximum -> full: nothing saved")
-	assert_eq(items["redbirch_grip"], {"stock": 0})
-	assert_false(items.has("ashpine_grip"), "a non-integer stock -> full")
+	assert_eq(items["riftite_plate"], {"sat": 250}, "the stock of a v13 file is ignored")
+	assert_false(items.has("redbirch_grip"), "a stock alone leaves the item at rest")
 	assert_false(items.has("emberbronze_plate"))
-	assert_false(items.has("duskelm_grip"))
-	assert_eq(_house.stock(&"riftite_plate"), 10)
-	assert_eq(_house.stock(&"redbirch_grip"), 0)
+	assert_eq(_house.to_save()["taken"], {}, "no taken: a v13 stock does not become taken")
+
+
+func test_taken_is_tolerant() -> void:
+	var d: Dictionary = {"seed": 5, "block": 0, "pending_ms": 0, "items": {}, "taken": {
+		"redbirch_grip": 120.0, "riftite_plate": 3, "redbirch_log": 9, "test_unknown": 4, "ashpine_grip": -1,
+		"duskelm_grip": "many", "shardcedar_grip": 4.5,
+	}}
+	var taken: Dictionary = _loaded(d).to_save()["taken"] as Dictionary
+	assert_eq(taken["redbirch_grip"], 120, "a whole float is accepted")
+	assert_eq(taken["riftite_plate"], 3)
+	assert_false(taken.has("redbirch_log"), "not buyable: dropped")
+	assert_false(taken.has("test_unknown"))
+	assert_false(taken.has("ashpine_grip"), "negative: dropped")
+	assert_false(taken.has("duskelm_grip"), "not a number: dropped")
+	assert_false(taken.has("shardcedar_grip"), "not whole: dropped")
+	_loaded({"seed": 5, "block": 0, "pending_ms": 0, "items": {}, "taken": {"redbirch_grip": 99999, "riftite_plate": 99999}})
+	assert_eq(_house.to_save()["taken"], {"redbirch_grip": 2400, "riftite_plate": 60}, "KMAX * stack: 12 * 200 and 12 * 5")
+
+
+func test_taken_that_is_not_an_object_or_missing_is_empty() -> void:
+	for bad: Variant in [null, [1], "x", 3]:
+		assert_eq(_loaded({"seed": 5, "block": 0, "pending_ms": 0, "items": {}, "taken": bad}).to_save()["taken"], {})
+	assert_eq(_loaded({"seed": 5, "block": 0, "pending_ms": 0, "items": {}}).to_save()["taken"], {})
+
+
+func test_taken_round_trips_and_new_game_clears_it() -> void:
+	_s.wallet.add_gold(10000000)
+	_house.buy(GRIP, 250)
+	assert_eq(_house.to_save()["taken"], {"redbirch_grip": 250})
+	var again: Dictionary = JSON.parse_string(JSON.stringify(_house.to_save())) as Dictionary
+	_house.new_game()
+	assert_eq(_house.to_save()["taken"], {})
+	_house.from_save(again)
+	assert_eq(_house.to_save()["taken"], {"redbirch_grip": 250})

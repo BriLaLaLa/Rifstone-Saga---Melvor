@@ -120,7 +120,7 @@ func test_can_buy_reasons_in_order() -> void:
 	add_child_autofree(low)
 	assert_eq(low.auction.can_buy(PLATE, 1).reason, Reasons.REQUIREMENT_NOT_MET, "step 8 needs level 8")
 	assert_lt(_s.wallet.get_gold(), _house.buy_quote(PLATE, 1))
-	assert_eq(_house.can_buy(PLATE, 11).reason, Reasons.OUT_OF_STOCK, "stock comes before gold")
+	assert_eq(_house.can_buy(PLATE, 28).reason, Reasons.OUT_OF_STOCK, "availability comes before gold")
 	assert_eq(_house.can_buy(PLATE, 1).reason, Reasons.NOT_ENOUGH_GOLD)
 	_s.wallet.add_gold(10000000)
 	assert_true(_house.can_buy(PLATE, 1).ok)
@@ -129,23 +129,27 @@ func test_can_buy_reasons_in_order() -> void:
 func test_buy_spends_then_adds_and_emits_in_order() -> void:
 	_s.wallet.add_gold(1000000)
 	var price: int = _house.buy_quote(GRIP, 20)
+	var before: int = _house.available(GRIP)
 	var gold: int = _s.wallet.get_gold()
 	_seen.clear()
 	assert_true(_house.buy(GRIP, 20).ok)
 	assert_eq(_s.wallet.get_gold(), gold - price)
 	assert_eq(_s.bank.get_count(GRIP), 20)
-	assert_eq(_house.stock(GRIP), _house.stock_max(GRIP) - 20)
+	assert_eq(_house.available(GRIP), before - 20)
 	assert_eq(_seen, [["gold", gold - price, -price], ["bank", GRIP, 20, 20], ["bought", GRIP, 20, price]])
 
 
-func test_buying_does_not_change_the_price_and_selling_does_not_refill_the_stock() -> void:
+func test_buying_raises_the_price_for_the_next_buyer_and_selling_does_not_give_pieces_back() -> void:
 	_s.wallet.add_gold(10000000)
 	var buy_price: int = _house.buy_quote(PLATE, 1)
+	var avail: int = _house.available(PLATE)
+	var cost: int = _house.buy_quote(PLATE, 4)
+	assert_eq(cost, 4 * buy_price, "the pay is the listed price of every piece: the same listing")
 	_house.buy(PLATE, 4)
-	assert_eq(_house.buy_quote(PLATE, 1), buy_price)
-	assert_eq(_house.stock(PLATE), 6)
+	assert_gt(_house.buy_quote(PLATE, 1), buy_price, "scarcity: the next piece is dearer")
+	assert_eq(_house.available(PLATE), avail - 4)
 	_house.sell(PLATE, 4)
-	assert_eq(_house.stock(PLATE), 6, "Q101: selling does not refill")
+	assert_eq(_house.available(PLATE), avail - 4, "selling does not give pieces back")
 
 
 func test_a_rejected_command_changes_nothing() -> void:

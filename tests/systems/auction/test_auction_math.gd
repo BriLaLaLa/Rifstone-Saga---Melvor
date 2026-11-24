@@ -19,8 +19,8 @@ func _value(id: StringName) -> int:
 func test_parameters_in_ppm() -> void:
 	assert_eq(_p.block_ms, 300000)
 	assert_eq([_p.base_ppm, _p.min_ppm, _p.max_ppm, _p.amp_ppm], [1150000, 700000, 1260000, 80000])
-	assert_eq([_p.step_ppm, _p.cap_ppm, _p.recover_ppm, _p.spread_ppm, _p.refill_ppm], [250, 560000, 5000, 1500000, 14000])
-	assert_eq([_p.period_blocks, _p.stock_gold, _p.stock_min, _p.stock_max], [72, 600000, 5, 500])
+	assert_eq([_p.step_ppm, _p.cap_ppm, _p.recover_ppm, _p.markup_ppm, _p.refill_ppm], [250, 560000, 5000, 450000, 15000])
+	assert_eq([_p.period_blocks, _p.confirm_share_ppm, _p.confirm_premium_ppm, _p.reference_epochs], [72, 500000, 250000, 24])
 	assert_eq([_p.trend_blocks, _p.trend_threshold_ppm], [12, 10000])
 
 
@@ -83,41 +83,44 @@ func test_closed_form_equals_the_piece_by_piece_sum() -> void:
 		assert_eq(AuctionMath.sale_sum_ppm(eq, sat, qty, _p), total, "eq %d sat %d qty %d" % [eq, sat, qty])
 
 
-func test_stock_examples() -> void:
-	assert_eq(AuctionMath.stock_max(_value(GRIP), _p), 500)
-	assert_eq(AuctionMath.refill_per_block(500, _p), 7)
-	assert_eq(AuctionMath.stock_max(_value(PLATE), _p), 10)
-	assert_eq(AuctionMath.refill_per_block(10, _p), 1)
-	assert_eq(AuctionMath.stock_max(_value(&"seared_riftmaw"), _p), 35)
-	assert_eq(AuctionMath.refill_per_block(35, _p), 1)
-	assert_eq(AuctionMath.stock_max(_value(&"shardcedar_grip"), _p), 166)
-	assert_eq(AuctionMath.refill_per_block(166, _p), 2)
+func test_restock_rate_examples() -> void:
+	# F-216: Vn 1.100, 300, 100, 24 -> r_i 17, 5, 2, 1
+	var rates: Array = []
+	for band: AuctionPopulationBand in _p.bands:
+		rates.append(AuctionMath.restock_rate(band, _p))
+	assert_eq(rates, [17, 5, 2, 1])
+	for band: AuctionPopulationBand in _p.bands:  # a full book of the band empties within 12 h
+		assert_lte(AuctionMath.ceil_div(_p.book_max_listings * band.stack, AuctionMath.restock_rate(band, _p)), 144)
 
 
-func test_buy_examples() -> void:
-	var plate_value: int = _value(PLATE)
-	assert_eq(AuctionMath.buy_unit(plate_value, 1186080, _p), 159822)
-	assert_eq(AuctionMath.gold_of(plate_value, AuctionMath.sale_sum_ppm(1186080, 0, 1, _p)), 70571)
-	assert_eq(AuctionMath.buy_unit(plate_value, 700000, _p), 130900)
-	assert_gt(AuctionMath.buy_unit(plate_value, 700000, _p), plate_value * _p.max_ppm / 1000000, "above the best possible sale")
-	var grip_unit: int = AuctionMath.buy_unit(_value(GRIP), 1000000, _p)
-	assert_between(grip_unit, 500, 600)
+func test_eq_min_and_piece_price_examples() -> void:
+	assert_eq(AuctionMath.eq_min(_p, _p.bands), 1050000)
+	assert_eq(AuctionMath.piece_price(241, _p.markup_ppm), 350)  # ceil(349,45)
+	assert_eq(AuctionMath.piece_price(72640, _p.markup_ppm), 105328)
+	assert_eq(AuctionMath.piece_price(1, 0), 1)
+
+
+func test_median_examples() -> void:
+	assert_eq(AuctionMath.median(PackedInt64Array([100, 120, 90, 110])), 110, "even n: the upper one")
+	assert_eq(AuctionMath.median(PackedInt64Array([5, 9, 7])), 7)
+	assert_eq(AuctionMath.median(PackedInt64Array([42])), 42)
+	assert_eq(AuctionMath.median(PackedInt64Array()), 0)
 
 
 func test_buying_always_costs_more_than_any_sale_for_every_buyable_item() -> void:
-	var rng := RandomNumberGenerator.new()
-	rng.seed = 11
+	# F-217: the cheapest possible purchase price beats the best possible sale after the commission, for every item.
 	var data: GameData = TestFactory.real_data()
+	var eq_min: int = AuctionMath.eq_min(_p, _p.bands)
 	var checked: int = 0
 	for def: AuctionItemDef in data.auction_items():
 		if def.buy_level < 1:
 			continue
 		var value: int = data.item(def.item).value
-		for i: int in 1000:
-			var index: int = rng.randi_range(_p.min_ppm, _p.max_ppm)
-			var unit: int = AuctionMath.buy_unit(value, index, _p)
-			assert_gt(unit, AuctionMath.gold_of(value, _p.max_ppm), "%s: unit above the sale at the ceiling" % def.item)
-			assert_gt(unit, value, "%s: unit above the fixed price (F-18)" % def.item)
+		var unit: int = AuctionMath.piece_price(AuctionBook.ask_price(value, eq_min, 0), _p.markup_ppm)
+		var best: int = AuctionBook.ask_price(value, _p.max_ppm, _p.book_hi_ppm)
+		assert_gt(unit, best - AuctionBook.cut(best, _p), "%s: unit above the best listing sale" % def.item)
+		assert_gt(unit, AuctionMath.gold_of(value, _p.max_ppm), "%s: unit above the best instant sale" % def.item)
+		assert_gt(unit, value, "%s: unit above the fixed price (F-18)" % def.item)
 		checked += 1
 	assert_eq(checked, 58)
 

@@ -11,7 +11,7 @@ const STRICT_REAL_DATA: bool = true
 const TRADED: PackedStringArray = ["material", "component", "food"]
 const BUYABLE: PackedStringArray = ["component", "food"]
 const PPM: int = 1000000
-const PARAM_KEYS: PackedStringArray = ["block_ms", "history_max", "index", "drift", "saturation", "buy", "stock", "trend", "population", "book", "listing"]
+const PARAM_KEYS: PackedStringArray = ["block_ms", "history_max", "index", "drift", "saturation", "buy", "supply", "reference", "trend", "population", "book", "listing"]
 const ITEM_FIELDS: PackedStringArray = ["item", "buy_level"]
 
 
@@ -115,16 +115,7 @@ static func validate_balance(v: DataValidatorRules, balance: Dictionary) -> void
 		else:
 			ok = false
 	ok = v.number(sat, "max_pct", 0.0, DataValidatorRules.NO_LIMIT, "auction.saturation", true) and ok
-	var buy: Dictionary = v.object(auction, "buy", "auction")
-	v.keys(buy, ["spread_pct", "blueprint_margin_pct"], "auction.buy")
-	ok = v.number(buy, "spread_pct", 0.0, DataValidatorRules.NO_LIMIT, "auction.buy", true) and ok
-	ok = v.number(buy, "blueprint_margin_pct", 0.0, DataValidatorRules.NO_LIMIT, "auction.buy") and ok
-	var stock: Dictionary = v.object(auction, "stock", "auction")
-	v.keys(stock, ["gold", "min", "max", "refill_pct_per_block"], "auction.stock")
-	ok = v.integer(stock, "gold", 1.0, DataValidatorRules.NO_LIMIT, "auction.stock") and ok
-	ok = v.integer(stock, "min", 1.0, DataValidatorRules.NO_LIMIT, "auction.stock") and ok
-	ok = v.integer(stock, "max", 1.0, DataValidatorRules.NO_LIMIT, "auction.stock") and ok
-	ok = v.number(stock, "refill_pct_per_block", 0.0, DataValidatorRules.NO_LIMIT, "auction.stock", true) and ok
+	ok = DataValidatorAuctionBuy.validate_params(v, auction) and ok
 	var trend: Dictionary = v.object(auction, "trend", "auction")
 	v.keys(trend, ["blocks", "threshold_pct"], "auction.trend")
 	ok = v.integer(trend, "blocks", 1.0, DataValidatorRules.NO_LIMIT, "auction.trend") and ok
@@ -166,7 +157,7 @@ static func validate(v: DataValidatorRules, raw: Dictionary) -> void:
 			if (generated["errors"] as PackedStringArray).is_empty() and not _same(list, generated["entries"] as Array):
 				v.fail("the file differs from the regeneration (rerun tools/gen_auction.gd)")
 		_not_an_input(v, list, actions)
-		if params != null and not buildings.is_empty():  # the loose blueprints of the minimal fixtures are not realistic
+		if params != null and not params.bands.is_empty() and not buildings.is_empty():  # the loose blueprints of the minimal fixtures are not realistic
 			_blueprints(v, list, items, params, float(DataValidator.lookup(balance, "auction.buy.blueprint_margin_pct")))
 
 
@@ -182,10 +173,6 @@ static func _relations(v: DataValidatorRules, p: AuctionParams) -> void:
 		v.fail("key 'auction.index.max_pct' must be at least 100 (F-151)")
 	if p.cap_ppm < p.base_ppm + p.amp_ppm - p.min_ppm:
 		v.fail("key 'auction.saturation.max_pct' must be at least base_pct + amplitude_pct - min_pct (F-147)")
-	if p.spread_ppm <= p.max_ppm - p.min_ppm:
-		v.fail("key 'auction.buy.spread_pct' must be above max_pct - min_pct (F-151: buying and selling back must lose gold)")
-	if p.stock_max < p.stock_min:
-		v.fail("key 'auction.stock.max' must be at least 'min'")
 
 
 # M26-08: the population file and, when both it and the parameters are valid, the F-174 bounds (the bands are set on `params`).
@@ -199,7 +186,9 @@ static func _population(v: DataValidatorRules, raw: Dictionary, params: AuctionP
 			params.bands = AuctionPopulationBand.list_from(content)
 			var block_ms: int = maxi(1, int(DataValidator.lookup(balance, "auction.block_ms")))
 			var cap_ms: Variant = DataValidator.lookup(balance, "offline.cap_ms")
-			DataValidatorAuctionPopulation.relations(v, params, int(cap_ms) / block_ms if DataValidatorRules.is_int(cap_ms) else 0)
+			var offline_blocks: int = int(cap_ms) / block_ms if DataValidatorRules.is_int(cap_ms) else 0
+			DataValidatorAuctionPopulation.relations(v, params, offline_blocks)
+			DataValidatorAuctionBuy.relations(v, params, offline_blocks)
 
 
 # `auction` of balance.json as AuctionParams when valid (null otherwise: reported by validate_balance).
@@ -262,8 +251,9 @@ static func _not_an_input(v: DataValidatorRules, list: Array[Dictionary], action
 				v.fail("item '%s' can be bought but is an input of action '%s' (F-151: no buy-craft-sell loop)" % [(input as Dictionary)["item"], (a as Dictionary).get("id")])
 
 
-# Rule 5 (F-151): every blueprint costs, with the buyable parts at their cheapest price, at least its piece plus the margin.
+# Rule 5 (F-151, F-217): every blueprint costs, with the buyable parts at their cheapest purchase price, at least its piece plus the margin.
 static func _blueprints(v: DataValidatorRules, list: Array[Dictionary], items: Array, p: AuctionParams, margin: float) -> void:
+	var eq_min: int = AuctionMath.eq_min(p, p.bands)
 	var value: Dictionary[String, int] = {}
 	var buyable: Dictionary[String, bool] = {}
 	for item: Variant in items:
@@ -279,9 +269,7 @@ static func _blueprints(v: DataValidatorRules, list: Array[Dictionary], items: A
 		for key: String in ["inputs", "rare_components"]:
 			for row: Variant in (blueprint as Dictionary).get(key, []) as Array:
 				var id: String = str((row as Dictionary).get("item"))
-				var unit: int = value.get(id, 0)
-				if buyable.has(id):
-					unit = ceil_div(unit * (p.min_ppm + p.spread_ppm), PPM)
+				var unit: int = DataValidatorAuctionBuy.part_cost(value.get(id, 0), buyable.has(id), p, eq_min)
 				cost += int(float((row as Dictionary).get("qty", 0))) * unit
 		var piece: int = value[str((blueprint as Dictionary)["base"])]
 		if float(cost) < float(piece) * (100.0 + margin) / 100.0:

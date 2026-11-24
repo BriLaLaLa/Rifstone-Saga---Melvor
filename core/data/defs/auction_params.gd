@@ -16,11 +16,11 @@ var period_blocks: int = 0
 var step_ppm: int = 0
 var cap_ppm: int = 0
 var recover_ppm: int = 0
-var spread_ppm: int = 0
-var stock_gold: int = 0
-var stock_min: int = 0
-var stock_max: int = 0
-var refill_ppm: int = 0
+var markup_ppm: int = 0  # M38: the mark-up of the Auction House on a listing price (F-215)
+var confirm_share_ppm: int = 0  # F-218
+var confirm_premium_ppm: int = 0  # F-218
+var reference_epochs: int = 0  # F-214
+var refill_ppm: int = 0  # F-216: `auction.supply.refill_pct_per_block`
 var trend_blocks: int = 0
 var trend_threshold_ppm: int = 0
 # M26-08 population (F-172…F-176): `auction.population` and the bands of data/auction/population.json (set by AuctionIndex).
@@ -62,12 +62,13 @@ static func from_dict(d: Dictionary) -> AuctionParams:
 	p.cap_ppm = ppm(sat.number("max_pct"))
 	p.recover_ppm = ppm(sat.number("recover_pct_per_block"))
 	var buy := DefReader.new(r.dict("buy"), "balance auction.buy")
-	p.spread_ppm = ppm(buy.number("spread_pct"))
-	var stock := DefReader.new(r.dict("stock"), "balance auction.stock")
-	p.stock_gold = stock.integer("gold")
-	p.stock_min = stock.integer("min")
-	p.stock_max = stock.integer("max")
-	p.refill_ppm = ppm(stock.number("refill_pct_per_block"))
+	p.markup_ppm = ppm(buy.number("markup_pct"))
+	p.confirm_share_ppm = ppm(buy.number("confirm_share_pct"))
+	p.confirm_premium_ppm = ppm(buy.number("confirm_premium_pct"))
+	var supply := DefReader.new(r.dict("supply"), "balance auction.supply")
+	p.refill_ppm = ppm(supply.number("refill_pct_per_block"))
+	var reference := DefReader.new(r.dict("reference"), "balance auction.reference")
+	p.reference_epochs = reference.integer("window_epochs")
 	var trend := DefReader.new(r.dict("trend"), "balance auction.trend")
 	p.trend_blocks = trend.integer("blocks")
 	p.trend_threshold_ppm = ppm(trend.number("threshold_pct"))
@@ -96,7 +97,7 @@ static func from_dict(d: Dictionary) -> AuctionParams:
 			listing.fail("a duration cannot be built")
 		else:
 			p.durations.append(duration)
-	for child: DefReader in [index, drift, sat, buy, stock, trend, pop, book, listing]:
+	for child: DefReader in [index, drift, sat, buy, supply, reference, trend, pop, book, listing]:
 		r.absorb(child.ok)
 	return p if r.ok else null
 

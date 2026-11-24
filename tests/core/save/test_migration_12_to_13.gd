@@ -31,12 +31,12 @@ func test_auction_or_modules_missing_or_not_an_object_leaves_the_file_as_it_is()
 	assert_eq(Step.migrate({"format_version": 12, "modules": {"auction": 3}}), {"format_version": 12, "modules": {"auction": 3}})
 
 
-func test_the_chain_reaches_v13_and_a_real_slot_loads_with_an_empty_history() -> void:
+func test_the_chain_reaches_the_current_version_and_a_real_slot_loads_with_an_empty_history() -> void:
 	var raw: Variant = JSON.parse_string(FileAccess.get_file_as_string(SLOT_V11))
 	var out: Dictionary = SaveMigrator.migrate(raw as Dictionary)
-	assert_eq(out["format_version"], 13)
+	assert_eq(out["format_version"], 14)
 	assert_eq((out["modules"]["auction"] as Dictionary)["history"], [])
 	var s: GameSession = autofree(TestFactory.session_no_kit(5, TestFactory.real_data()))
 	assert_true(s.from_save(out).ok)
 	assert_eq(s.auction.history(), [])
-	assert_eq(int(s.to_save(0)["format_version"]), 13)
+	assert_eq(int(s.to_save(0)["format_version"]), 14)

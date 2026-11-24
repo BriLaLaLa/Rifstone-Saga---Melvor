@@ -27,8 +27,8 @@ func _recipes(out: Dictionary) -> Array:
 
 
 func test_the_current_version_is_10() -> void:
-	assert_eq(SaveMigrator.CURRENT_VERSION, 13)
-	assert_eq(SaveMigrator.migrate(_v9(25))["format_version"], 13)
+	assert_eq(SaveMigrator.CURRENT_VERSION, 14)
+	assert_eq(SaveMigrator.migrate(_v9(25))["format_version"], 14)
 
 
 func test_forging_learned_at_level_25_knows_the_schemes_within_reach() -> void:
@@ -69,7 +69,7 @@ func test_the_chain_from_v7_reaches_v11() -> void:
 	var v7: Dictionary = {"format_version": 7, "player_name": "x", "modules": {
 		"skills": {"forging": {"xp": _xp_of(25)}}, "actions": {"lanes": {}}}}
 	var out: Dictionary = SaveMigrator.migrate(v7)
-	assert_eq(out["format_version"], 13)
+	assert_eq(out["format_version"], 14)
 	assert_true(out["modules"].has("disciplines"))
 
 

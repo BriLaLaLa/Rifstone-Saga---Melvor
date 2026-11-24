@@ -72,13 +72,11 @@ func test_liquidity_of_the_bands() -> void:
 
 
 func test_refill_examples() -> void:
-	for row: Array in [[GRIP, 8], [PLATE, 1], [SHARD_GRIP, 2], [MAW, 1]]:
+	for row: Array in [[GRIP, 17], [PLATE, 1], [SHARD_GRIP, 5], [MAW, 2]]:
 		var id: StringName = row[0]
 		var value: int = _data.item(id).value
 		var liq: Dictionary = AuctionMath.liquidity(value, AuctionMath.band_of(value, _params), _params)
 		assert_eq(liq["refill"], row[1], str(id))
-	assert_eq(AuctionMath.stock_max(_data.item(GRIP).value, _params), 500)
-	assert_eq(AuctionMath.stock_max(_data.item(PLATE).value, _params), 10)
 
 
 # --- F-173 -----------------------------------------------------------------------------------------------------------
@@ -166,14 +164,14 @@ func test_recovery_examples() -> void:
 	assert_eq(_sat(pricing, PLATE), 0)
 
 
-func test_refill_example() -> void:
+func test_restock_example() -> void:
 	var pricing: AuctionPricing = _pricing()
-	pricing.record_purchase(GRIP, 500)
-	assert_eq(pricing.stock(GRIP), 0)
-	pricing.advance(62 * BLOCK_MS)
-	assert_eq(pricing.stock(GRIP), 496)
-	pricing.advance(BLOCK_MS)
-	assert_eq(pricing.stock(GRIP), 500)
+	pricing.record_purchase(GRIP, 1000)
+	assert_eq(pricing.taken(GRIP), 1000)
+	pricing.advance(30 * BLOCK_MS)
+	assert_eq(pricing.taken(GRIP), 490, "17 per block")
+	pricing.advance(29 * BLOCK_MS)
+	assert_eq(pricing.taken(GRIP), 0)
 
 
 func test_advance_is_additive_in_every_band() -> void:
@@ -213,9 +211,9 @@ func test_trend_examples() -> void:
 
 func test_quotes_examples() -> void:
 	var pricing: AuctionPricing = _pricing()
-	assert_eq(pricing.buy_quote(PLATE, 1), 160402)
+	assert_eq(pricing.buy_quote(PLATE, 1), 105328)
 	assert_eq(pricing.sell_quote(PLATE, 1), 71151)
-	assert_eq(pricing.buy_quote(PLATE, 3), 3 * 160402)
+	assert_eq(pricing.buy_quote(PLATE, 3), 3 * 105328)
 
 
 func test_population_shown() -> void:
@@ -245,11 +243,11 @@ func test_buying_and_selling_back_always_loses_gold() -> void:
 			assert_gt(unit, value, "%s: buying costs more than the value" % def.item)
 
 
-func test_the_save_has_no_new_fields() -> void:
+func test_the_save_has_only_the_taken_field_more_than_v13() -> void:
 	var pricing: AuctionPricing = _pricing(40)
 	pricing.record_sale(GRIP, 10)
 	var save: Dictionary = pricing.to_save()
-	assert_eq((save as Dictionary).keys(), ["seed", "block", "pending_ms", "items"])
+	assert_eq((save as Dictionary).keys(), ["seed", "block", "pending_ms", "items", "taken"])
 	assert_eq(save["items"], {"redbirch_grip": {"sat": 2000}})
 
 
