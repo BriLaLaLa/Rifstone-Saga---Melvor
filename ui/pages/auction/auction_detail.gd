@@ -34,12 +34,13 @@ var _trend_label: Label = null
 var _gap_label: Label = null
 var _band_label: Label = null
 var _sections: AuctionDetailSections = null
+var _market_box: AuctionMarketBox = null
+var _available_label: Label = null
+var _sold_out_label: Label = null
+var _ref_label: Label = null
+var _confirm: AuctionBuyConfirm = null
+var _pending_qty: int = 0
 var _section_boxes: Dictionary[StringName, Control] = {}
-var _market_box: VBoxContainer = null
-var _buyers_label: Label = null
-var _sellers_label: Label = null
-var _demand_label: Label = null
-var _demand_hint: Label = null
 var _spin: SpinBox = null
 var _max_button: Button = null
 var _avg_label: Label = null
@@ -48,7 +49,6 @@ var _trade_footer: VBoxContainer = null
 var _button: Button = null
 var _reason_label: Label = null
 var _message_label: Label = null
-var _listings_label: Label = null
 var _book: AuctionOffersView = null
 var _sell_note: Label = null
 var _form: AuctionListForm = null
@@ -99,6 +99,9 @@ func _ready() -> void:
 	_section_box(&"list", sections).add_child(_form)
 	_build_market(_section_box(&"market", sections))
 	_build_footer(_box)
+	_confirm = AuctionBuyConfirm.new()
+	_confirm.confirmed.connect(func() -> void: trade_requested.emit(_item_id, _pending_qty))
+	add_child(_confirm)
 	_show_detail(false)
 
 
@@ -124,11 +127,15 @@ func _build_top() -> void:
 	_price_label.add_theme_color_override("font_color", UiStyle.GOLD_LIGHT)
 	_trend_label = _label("TrendLabel", &"", price_row)
 	_gap_label = _label("PriceGapLabel", &"", _box)
+	_ref_label = _label("RefLabel", &"MutedLabel", _box)
 	_band_label = _label("BandLabel", &"MutedLabel", _box)
 
 
 func _build_now(parent: VBoxContainer) -> void:
 	_info_label = _label("InfoLabel", &"MutedLabel", parent)
+	_available_label = _label("AvailableLabel", &"", parent)
+	_sold_out_label = _label("SoldOutLabel", &"", parent)
+	_sold_out_label.add_theme_color_override("font_color", UiStyle.BAD)
 	_label("QuantityCaption", &"HeaderLabel", parent).text = AuctionTexts.QUANTITY_TEXT
 	_spin = SpinBox.new()
 	_spin.name = "QtySpin"
@@ -153,16 +160,8 @@ func _build_market(parent: VBoxContainer) -> void:
 	_book = AuctionOffersView.new()
 	_book.name = "Book"
 	parent.add_child(_book)
-	_market_box = VBoxContainer.new()
-	_market_box.name = "MarketBox"
+	_market_box = AuctionMarketBox.new()
 	parent.add_child(_market_box)
-	_label("MarketCaption", &"HeaderLabel", _market_box).text = AuctionTexts.MARKET_TITLE_TEXT
-	_buyers_label = _label("BuyersLabel", &"", _market_box)
-	_sellers_label = _label("SellersLabel", &"", _market_box)
-	_demand_label = _label("DemandLabel", &"", _market_box)
-	_demand_hint = _label("DemandHint", &"MutedLabel", _market_box)
-	_demand_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_listings_label = _label("ListingsLabel", &"", _market_box)
 
 
 ## Fixed at the bottom, outside the scroll: the total, the action of the section ("Compra" / "Vendi subito" or the form's
@@ -179,7 +178,7 @@ func _build_footer(parent: VBoxContainer) -> void:
 	_button.theme_type_variation = &"AccentButton"
 	_button.custom_minimum_size.y = BUTTON_HEIGHT
 	_button.focus_mode = Control.FOCUS_NONE
-	_button.pressed.connect(func() -> void: trade_requested.emit(_item_id, int(_spin.value)))
+	_button.pressed.connect(_on_trade_pressed)
 	_trade_footer.add_child(_button)
 	_reason_label = _label("ReasonLabel", &"", _trade_footer)
 	_reason_label.add_theme_color_override("font_color", UiStyle.BAD)
@@ -220,9 +219,10 @@ func refresh(auction: Object, session: GameSession, mode: StringName, item_id: S
 	if _gap_label.visible:
 		_gap_label.text = AuctionDetailTexts.gap_text(gap)
 		_gap_label.add_theme_color_override("font_color", AuctionDetailTexts.gap_color(gap, gap_mode))
+	_show_reference(auction, item_id, gap_mode)
 	_band_label.text = AuctionDetailTexts.BASE_VALUE_TEXT % Money.text(int(auction.value_of(item_id)), _currency)
-	_redraw_market(auction.population(item_id))
-	_book.show_book(auction.book(item_id), _currency)
+	_market_box.show_population(auction.population(item_id))
+	_book.show_book(auction.book(item_id), _currency, not selling)
 	_sell_note.visible = selling
 	_max_button.visible = not selling
 	if selling:
@@ -231,12 +231,11 @@ func refresh(auction: Object, session: GameSession, mode: StringName, item_id: S
 				Money.text(session.shop.sell_value(item_id, 1), _currency)
 		_max = maxi(owned, 1)
 	else:
-		if int(auction.level()) >= int(auction.buy_level(item_id)):
-			_info_label.text = AuctionTexts.STOCK_TEXT % [NumberFormat.format_int(int(auction.stock(item_id))),
-					NumberFormat.format_int(int(auction.stock_max(item_id)))]
-		else:
-			_info_label.text = AuctionTexts.REQUIRES_TEXT % int(auction.buy_level(item_id))
-		_max = maxi(int(auction.stock(item_id)), 1)
+		_max = maxi(int(auction.available(item_id)), 1)
+	_info_label.visible = selling or int(auction.level()) < int(auction.buy_level(item_id))
+	if not selling and _info_label.visible:
+		_info_label.text = AuctionTexts.REQUIRES_TEXT % int(auction.buy_level(item_id))
+	_show_availability(auction, item_id, selling)
 	var unit: int = int(auction.sell_quote(item_id, 1) if selling else auction.buy_quote(item_id, 1))
 	_price_label.text = AuctionTexts.UNIT_PRICE_VALUE_TEXT % Money.text(unit, _currency)
 	_button.text = AuctionTexts.SELL_NOW_TEXT if selling else AuctionTexts.TAB_BUY_TEXT
@@ -256,22 +255,6 @@ func show_message(text: String, color: Color) -> void:
 ## Puts the suggested price back in the listing form (after a listing).
 func reset_price() -> void:
 	_form.reset_price()
-
-
-## Buyers, sellers and demand from `AuctionHouse.population` (empty = item outside the list: block hidden).
-func _redraw_market(pop: Dictionary) -> void:
-	_market_box.visible = not pop.is_empty()
-	if pop.is_empty():
-		return
-	var demand: StringName = pop["demand"]
-	_buyers_label.text = AuctionTexts.BUYERS_TEXT % NumberFormat.format_int(int(pop["buyers"]))
-	_sellers_label.text = AuctionTexts.SELLERS_TEXT % NumberFormat.format_int(int(pop["sellers"]))
-	_demand_label.text = AuctionTexts.DEMAND_TEXT % AuctionTexts.demand_text(demand)
-	var color: Color = UiStyle.GOOD if demand == &"high" else (UiStyle.BAD if demand == &"low" else UiStyle.GOLD_LIGHT)
-	_demand_label.add_theme_color_override("font_color", color)
-	_demand_hint.text = AuctionTexts.demand_hint(demand)
-	_listings_label.text = AuctionTexts.LISTINGS_TEXT % [NumberFormat.format_int(int(pop.get("listings", 0))),
-			NumberFormat.format_int(int(pop.get("units", 0)))]
 
 
 ## Shows the chosen section and, in the fixed footer, the button that goes with it ("Inserzione" has its own).
@@ -345,3 +328,36 @@ func _label(node_name: String, variation: StringName, parent: Node) -> Label:
 		label.theme_type_variation = variation
 	parent.add_child(label)
 	return label
+
+
+## "Disponibili: N" (sum of the listings) or "Esaurito, torna tra ~N min"; only in Compra.
+func _show_availability(auction: Object, item_id: StringName, selling: bool) -> void:
+	var listed: bool = not selling and int(auction.level()) >= int(auction.buy_level(item_id))
+	var left: int = int(auction.available(item_id)) if listed else 0
+	_available_label.visible = listed
+	_sold_out_label.visible = listed and left <= 0
+	_available_label.text = AuctionDetailTexts.AVAILABLE_TEXT % NumberFormat.format_int(left)
+	_available_label.tooltip_text = AuctionDetailTexts.AVAILABLE_TOOLTIP_TEXT
+	_available_label.mouse_filter = Control.MOUSE_FILTER_STOP
+	if _sold_out_label.visible:
+		_sold_out_label.text = AuctionDetailTexts.sold_out_text(int(auction.restock_ms(item_id)))
+
+
+## "Media 12 h: <price>" from `reference_price` (0 = not available: hidden).
+func _show_reference(auction: Object, item_id: StringName, mode: StringName) -> void:
+	var ref: int = int(auction.reference_price(item_id, mode))
+	_ref_label.visible = ref > 0
+	if ref > 0:
+		_ref_label.text = AuctionDetailTexts.REF_TEXT % Money.text(ref, _currency)
+
+
+## Sell: the command goes out as it is. Buy: a huge purchase (`buy_preview(...).large`) asks first; the rest never does.
+func _on_trade_pressed() -> void:
+	var qty: int = int(_spin.value)
+	if _mode == &"buy":
+		var preview: Dictionary = _auction.buy_preview(_item_id, qty)
+		if bool(preview.get("large", false)):
+			_pending_qty = qty
+			_confirm.ask(_name_label.text, qty, preview, _currency)
+			return
+	trade_requested.emit(_item_id, qty)

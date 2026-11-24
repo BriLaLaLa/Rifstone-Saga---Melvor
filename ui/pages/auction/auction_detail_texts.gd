@@ -17,6 +17,16 @@ const GAP_ABOVE_TEXT: String = "%s sulla media"
 const GAP_FLAT_TEXT: String = "In media"
 const AVG_PER_PIECE_TEXT: String = "Ricavo medio per pezzo: %s"
 const GAP_NONE_TEXT: String = ""
+const AVAILABLE_TEXT: String = "Disponibili: %s"
+const AVAILABLE_TOOLTIP_TEXT: String = "Somma delle inserzioni dei venditori, meno i pezzi già presi."
+const SOLD_OUT_TEXT: String = "Esaurito, torna tra ~%d min"
+const REF_TEXT: String = "Media 12 h: %s"
+const CONFIRM_TITLE_TEXT: String = "Acquisto enorme"
+const CONFIRM_OK_TEXT: String = "Compra"
+const CONFIRM_CANCEL_TEXT: String = "Annulla"
+const CONFIRM_BODY_TEXT: String = "Stai per comprare %s x %s.\nTotale: %s\nPrezzo medio: %s per pezzo\nQuota del libro: %s %%"
+const PPM: int = 1000000
+const MIN_MS: int = 60000
 ## A gap this close to zero (in %) is neutral, not good or bad (§45.3).
 const FLAT_LIMIT: int = 1
 
@@ -35,3 +45,15 @@ static func gap_color(gap: int, mode: StringName) -> Color:
 		return UiStyle.GOLD
 	var good: bool = gap < 0 if mode == &"buy" else gap > 0
 	return UiStyle.GOOD if good else UiStyle.BAD
+
+
+## «Esaurito, torna tra ~N min»; `restock_ms` from `AuctionHouse.restock_ms` (at least 1 min, rounded up).
+static func sold_out_text(restock_ms: int) -> String:
+	return SOLD_OUT_TEXT % maxi(1, (restock_ms + MIN_MS - 1) / MIN_MS)
+
+
+## Body of the confirmation: every number comes from `buy_preview` (`total`, `avg`, `share_ppm`); only formatted here.
+static func confirm_text(item_name: String, qty: int, preview: Dictionary, currency: CurrencyParams) -> String:
+	var share: int = (int(preview["share_ppm"]) + PPM / 200) / (PPM / 100)
+	return CONFIRM_BODY_TEXT % [NumberFormat.format_int(qty), item_name, Money.text(int(preview["total"]), currency),
+			Money.text(int(preview["avg"]), currency), str(share)]

@@ -113,3 +113,19 @@ func history() -> Array[Dictionary]:
 	return [{"kind": &"listing_sold", "item": _listed[0], "qty": 2, "unit": 6, "net": 11, "block": 1, "listing": 1},
 			{"kind": &"instant_sold", "item": _listed[0], "qty": 1, "unit": 7, "net": 7, "block": 1, "listing": 0},
 			{"kind": &"cancelled", "item": _listed[0], "qty": 3, "unit": 6, "net": 0, "block": 0, "listing": 2}]
+
+
+# M38-3 additions (docs/05_INTERFACES_M38.md §5.50): single book, availability, reference, confirmation preview.
+var available_value: int = 5
+var large_preview: bool = false
+
+
+func available(_item_id: StringName) -> int: return available_value
+func restock_ms(_item_id: StringName) -> int: return 300000 if available_value <= 0 else 0
+func reference_price(_item_id: StringName, _mode: StringName) -> int: return 9
+
+
+func buy_preview(_item_id: StringName, qty: int) -> Dictionary:
+	if qty <= 0 or available_value <= 0:
+		return {}
+	return {"total": 11 * qty, "avg": 11, "best": 11, "share_ppm": 600000, "premium_ppm": 0, "large": large_preview}
