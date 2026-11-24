@@ -179,6 +179,7 @@ func test_real_clicks_list_an_item_then_cancel_the_listing() -> void:
 	assert_not_null(row)
 	await _click(row)
 	assert_true(_page.find_child("ListForm", true, false).visible, "the listing form of the selected item")
+	await _click(_page.find_child("SectionButton_list", true, false) as Control)
 	await _click(_page.find_child("ListButton", true, false) as Control)
 	assert_eq(_session.auction.my_listings().size(), 1, "one click, one listing")
 	assert_eq(_session.bank.get_count(item), 4)

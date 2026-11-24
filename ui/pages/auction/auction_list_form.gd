@@ -19,6 +19,30 @@ var _deposit_label: Label = null
 var _net_label: Label = null
 var _reason_label: Label = null
 var _button: Button = null
+var _footer: VBoxContainer = null
+
+
+func _init() -> void:
+	_footer = VBoxContainer.new()
+	_footer.name = "ListFooter"
+	_button = Button.new()
+	_button.name = "ListButton"
+	_button.theme_type_variation = &"AccentButton"
+	_button.text = AuctionTexts.LIST_BUTTON_TEXT
+	_button.custom_minimum_size.y = 44.0
+	_button.focus_mode = Control.FOCUS_NONE
+	_button.pressed.connect(_on_pressed)
+	_footer.add_child(_button)
+	_reason_label = Label.new()
+	_reason_label.name = "ListReasonLabel"
+	_reason_label.add_theme_color_override("font_color", UiStyle.BAD)
+	_reason_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_footer.add_child(_reason_label)
+
+
+## The button and the reason of `can_list` are not children of the form: the detail panel pins them at its bottom, outside the scroll.
+func footer() -> VBoxContainer:
+	return _footer
 
 
 func _ready() -> void:
@@ -60,19 +84,6 @@ func _ready() -> void:
 	_net_label.add_theme_color_override("font_color", UiStyle.GOLD_LIGHT)
 	_net_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(_net_label)
-	_button = Button.new()
-	_button.name = "ListButton"
-	_button.theme_type_variation = &"AccentButton"
-	_button.text = AuctionTexts.LIST_BUTTON_TEXT
-	_button.custom_minimum_size.y = 44.0
-	_button.focus_mode = Control.FOCUS_NONE
-	_button.pressed.connect(_on_pressed)
-	add_child(_button)
-	_reason_label = Label.new()
-	_reason_label.name = "ListReasonLabel"
-	_reason_label.add_theme_color_override("font_color", UiStyle.BAD)
-	_reason_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	add_child(_reason_label)
 
 
 ## Rereads the form for `item_id` and the quantity `qty`; the price is prefilled with the suggested one when the item changes.
