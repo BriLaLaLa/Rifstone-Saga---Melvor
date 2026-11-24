@@ -9,7 +9,7 @@ togliere i `*.uid` non tracciati prima del merge; nessun processo Godot in backg
 | ID | Titolo | Ruolo | Dim. | Dip. | File disgiunti da |
 |---|---|---|---|---|---|
 | M38-1 | CORE: acquisto sul libro, `taken`, riferimento, vincoli, save v14 | Core | L | design M38 | tutti |
-| M38-2 | DATA: progetti ricontrollati e testo della Guida | Data | S | 1 (validatore dei progetti) | 3, 4, 5 |
+| M38-2 | DATA: valore dei Capolavori 1,4 × (generatore) e testo della Guida | Data | S | 1 (validatore dei progetti) | 3, 4, 5 |
 | M38-3 | UI: dettaglio (Disponibili, Esaurito, riferimento, conferma d'acquisto) | UI | M | 1 | 2, 4, 5 |
 | M38-4 | UI: lista e riga (Disponibili, «% sulla media», ordinamenti), testi | UI | M | 1 | 2, 3, 5 |
 | M38-5 | QA: `sim_market`, equivalenza offline, migrazione, screenshot, controlli | QA | M | 1, 2, 3, 4 | 2 |
@@ -35,12 +35,12 @@ Ordine: **1** → **3 e 4 insieme** (contratto di §7.ag) e **2** (dopo 1) → *
   7. `validate_data` verde su fixture; sui dati veri può restare rosso **solo** per i progetti di M38-2 (elencarli nel report).
 
 ## M38-2: DATA
-- **Leggere**: `02_FORMULAS_M38.md` F-217 (§ «Progetti»); l'elenco dei progetti che il validatore di M38-1 rifiuta (`validate_data.gd` sui dati veri); `data/guide/casa_aste.json` e il test che limita le parole (sotto le 160 per pagina).
-- **Ownership**: `data/guide/casa_aste.json` (solo testo; stesso id di pagina); i file dei progetti e degli oggetti acquistabili in `data/` **solo** per i progetti rifiutati, e `data/auction/auction_items.json` solo per togliere un componente
-  dall'elenco acquistabile (`buy_level` 0), `tools/gen_*.gd` collegati se il file è generato (`--check` verde). **Non toccare**: codice, `balance.json`, altri dati.
-- **Accettazione**: (1) ogni progetto rispetta `Σ qty × c(x) ≥ valore × 1,03` con il nuovo `c(x)`: si preferisce togliere da «acquistabili» il componente più pesante o aggiungere materiali rari **già esistenti** (nessun oggetto nuovo), si elenca cosa è cambiato
-  e di quanto cambia il costo del progetto; (2) un oggetto acquistabile non è ingrediente di un'azione (regola invariata); (3) la pagina «Casa d'Aste» spiega: un solo libro, «Disponibili» = somma delle inserzioni, margine d'acquisto, «Esaurito» e rifornimento,
-  media delle ultime 12 h, conferma per gli acquisti enormi; italiano, ≤ 160 parole, nessun nome copiato; (4) `validate_data` sui dati veri **verde**.
+- **Leggere**: `M38_CASA_ASTE_WOW.md` §9 (Q251 rivista, alternativa E); `02_FORMULAS_M38.md` F-217 («Progetti»); `tools/gen_equipment.gd` (`_masterwork`, `_blueprint`); `data/guide/casa_aste.json` e il test che limita le parole (sotto le 160 per pagina).
+- **Ownership**: `tools/gen_equipment.gd` (costante `MASTERWORK_VALUE_PCT` 140 al posto del `2 *` in `_masterwork`), `data/items/equipment_masterwork.json` e `data/items/blueprints.json` (rigenerati, `--check` verde), `data/guide/casa_aste.json` (solo testo; stesso id di pagina),
+  `tests/data/test_masterwork_data.gd` (caso `value = ⌊1,4 × modello⌋`). **Non toccare**: `balance.json`, `auction_items.json`, rari e quantità dei progetti (restano 3), codice di gioco.
+- **Accettazione**: (1) tutti i 120 progetti rispettano `Σ qty × c(x) ≥ valore × 1,03` con il `c(x)` di F-217 (minimo atteso 1,05; `bp_mw_shield_14` pezzo 1.440.040 contro componenti 1.512.612) e `validate_data` sui dati veri è **verde**; (2) un Capolavoro vale ancora più del modello e il progetto resta
+  il 5 % del valore del pezzo (min 100); (3) la pagina «Casa d'Aste» spiega: un solo libro, «Disponibili» = somma delle inserzioni, margine d'acquisto, «Esaurito» e rifornimento, media delle ultime 12 h, conferma per gli acquisti enormi; italiano, ≤ 160 parole, nessun nome copiato;
+  (4) il report dice di quanto scendono i valori dei Capolavori (−30 %). **Se l'utente sceglie l'alternativa B** (margine −30): questo task cambia solo `balance.json` `auction.buy.blueprint_margin_pct` e la soglia di (3) in `sim_market`, non il generatore.
 
 ## M38-3: UI, dettaglio
 - **Leggere**: `01_GDD_M38.md` §46.2-§46.3; `05_INTERFACES_M38.md` §7.ag; `ui/pages/auction/auction_detail.gd` (347 righe: estrarre prima), `auction_detail_sections.gd`, `auction_detail_texts.gd`, `auction_offers_view.gd`; `tests/ui/test_auction_page_smoke.gd`.
