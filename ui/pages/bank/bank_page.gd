@@ -13,6 +13,8 @@ extends Page
 ## It keeps no game state: only the session reference, its nodes and presentation state (search text, the item of
 ## the panel, the hovered cell whose tooltip is refreshed after a redraw).
 
+signal page_requested(page_id: StringName)
+
 const ITEM_SLOT_SCENE: PackedScene = preload("res://ui/components/item_slot/item_slot.tscn")
 const TITLE_TEXT: String = "Deposito"
 const SLOTS_TEXT: String = "Caselle: %s / %s"
@@ -84,6 +86,7 @@ func _ready() -> void:
 	_item_panel.stone_socket_requested.connect(_on_item_panel_stone_socket_requested)
 	_item_panel.close_requested.connect(_on_item_panel_close_requested)
 	_item_panel.bag_requested.connect(_on_item_panel_bag_requested)
+	_item_panel.auction_requested.connect(_on_item_panel_auction_requested)
 	_bag_bar.equip_requested.connect(_on_bag_equip_requested)
 	_bag_bar.unequip_requested.connect(_on_bag_unequip_requested)
 	_grid.set_drag_forwarding(Callable(), _can_drop_on_grid, _drop_on_grid)
@@ -311,27 +314,40 @@ func _on_item_panel_food_requested(item_id: StringName) -> void:
 		_show_result(_session.equipment.set_food(item_id))
 
 
-## "Incastona" on an infusion: the first free socket of the Altar; the reason of a refusal is shown in Italian.
+## "Vendi alla Casa d'Aste" (M37-5): the main screen shows `auction:<item_id>`.
+func _on_item_panel_auction_requested(item_id: StringName) -> void:
+	page_requested.emit(StringName("auction:%s" % item_id))
+
+
 func _on_item_panel_infusion_socket_requested(item_id: StringName) -> void:
-	if _session == null:
-		return
-	for i: int in _session.rift.socket_total():
-		if _session.rift.is_unlocked(i) and _session.rift.get_socket(i) == &"":
-			_show_text(_session.rift.socket(i, item_id), RiftTexts.refused)
-			return
-	_message_label.text = RiftTexts.NO_FREE_SOCKET_TEXT
-	_message_label.visible = true
+	if _session != null:
+		_show_message(BankPageLinks.socket_infusion(_session, item_id))
 
 
-## "Incastona" on a stone: the piece chosen in the panel.
 func _on_item_panel_stone_socket_requested(item_id: StringName, uid: int) -> void:
 	if _session != null:
-		_show_text(_session.armory.socket_stone(uid, item_id), SocketTexts.refused)
+		_show_message(BankPageLinks.socket_stone(_session, item_id, uid))
 
 
-func _show_text(result: CommandResult, worded: Callable) -> void:
-	_message_label.text = "" if result.ok else worded.call(result.reason) as String
-	_message_label.visible = not result.ok
+func _on_item_panel_bag_requested(item_id: StringName) -> void:
+	if _session != null:
+		_show_message(BankPageLinks.equip_bag_in_free_slot(_session, item_id))
+
+
+func _on_bag_equip_requested(slot_index: int, item_id: StringName) -> void:
+	if _session != null:
+		_show_message(BankPageLinks.equip_bag(_session, slot_index, item_id))
+
+
+func _on_bag_unequip_requested(slot_index: int) -> void:
+	if _session != null:
+		_show_message(BankPageLinks.unequip_bag(_session, slot_index))
+
+
+func _show_message(text: String) -> void:
+	_message_label.text = text
+	_message_label.visible = not text.is_empty()
+
 
 
 func _on_item_panel_close_requested() -> void:
@@ -368,21 +384,3 @@ func _on_events_bags_changed() -> void:
 	_redraw()
 
 
-## "Metti nello slot" on a bag: the first free bag slot.
-func _on_item_panel_bag_requested(item_id: StringName) -> void:
-	if _session != null:
-		var slot: int = _session.deposit.bags().find(&"")
-		if slot >= 0:
-			_on_bag_equip_requested(slot, item_id)
-		else:
-			_show_text(CommandResult.fail(Reasons.BAG_SLOT_OCCUPIED), func(_r: StringName) -> String: return BagTexts.NO_FREE_SLOT_TEXT)
-
-
-func _on_bag_equip_requested(slot_index: int, item_id: StringName) -> void:
-	if _session != null:
-		_show_text(_session.bank.equip_bag(slot_index, item_id), BagTexts.refused)
-
-
-func _on_bag_unequip_requested(slot_index: int) -> void:
-	if _session != null:
-		_show_text(_session.bank.unequip_bag(slot_index), BagTexts.refused)

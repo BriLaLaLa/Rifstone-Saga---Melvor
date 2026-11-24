@@ -15,6 +15,7 @@ signal food_requested(item_id: StringName)
 signal infusion_socket_requested(item_id: StringName)
 signal stone_socket_requested(item_id: StringName, uid: int)
 signal bag_requested(item_id: StringName)
+signal auction_requested(item_id: StringName)
 signal close_requested
 
 const COUNT_TEXT: String = "Quantità: %s"
@@ -31,6 +32,9 @@ const SELL_ALL_TEXT: String = "Tutti"
 const SELL_PREVIEW_TEXT: String = "Vendita di %s: %s"
 const SELL_LOCKED_TEXT: String = "Sblocca l'oggetto per venderlo."
 const SELL_NOT_SELLABLE_TEXT: String = "Questo oggetto non si vende."
+const AUCTION_TEXT: String = "Vendi alla Casa d'Aste"
+const AUCTION_CLOSED_TEXT: String = "Costruisci la Casa d'Aste."
+const AUCTION_LOCKED_TEXT: String = "Sblocca l'oggetto per metterlo in vendita."
 const LEARN_RECIPE_TEXT: String = "Impara"
 const RECIPE_REFUSED_TEXTS: Dictionary[StringName, String] = {
 	Reasons.RECIPE_KNOWN: "Conosci già questa ricetta.",
@@ -58,6 +62,8 @@ var _empty_label: Label = null
 @onready var _close_box: HBoxContainer = %CloseBox
 @onready var _food_button: Button = %FoodButton
 var _bag_button: Button = null
+## M37-5: opens the Auction House on this item; only for items the House trades.
+var _auction_button: Button = null
 ## M24: "Impara" of a Recipe item (`disciplines.learn_recipe`) and the reason of a refusal.
 var _recipe_button: Button = null
 var _recipe_note: Label = null
@@ -92,6 +98,7 @@ func _ready() -> void:
 	_food_button.pressed.connect(_on_food_button_pressed)
 	_bag_button = _new_action_button(BAG_TEXT, "BagButton", func() -> void: bag_requested.emit(_item_id))
 	_recipe_button = _new_action_button(LEARN_RECIPE_TEXT, "RecipeButton", _on_recipe_button_pressed)
+	_auction_button = _new_action_button(AUCTION_TEXT, "SellAtAuctionButton", func() -> void: auction_requested.emit(_item_id))
 	_recipe_note = Label.new()
 	_recipe_note.name = "RecipeNote"
 	_recipe_note.theme_type_variation = &"MutedLabel"
@@ -158,6 +165,7 @@ func clear() -> void:
 	_food_button.visible = false
 	_bag_button.visible = false
 	_recipe_button.visible = false
+	_auction_button.visible = false
 	_recipe_note.visible = false
 	_socket_box.visible = false
 	_scroll.visible = false
@@ -188,6 +196,7 @@ func _refresh_actions(item: ItemDef) -> void:
 	_food_button.disabled = chosen
 	_bag_button.visible = item.is_bag()
 	_recipe_button.visible = item.category == &"recipe"
+	_refresh_auction(item.id, _session.bank.is_locked(item.id))
 
 
 func _on_food_button_pressed() -> void:
@@ -268,3 +277,13 @@ func _on_recipe_button_pressed() -> void:
 	_recipe_note.visible = not result.ok
 	if not result.ok:
 		_recipe_note.text = RECIPE_REFUSED_TEXTS.get(result.reason, RECIPE_REFUSED_DEFAULT)
+
+
+## "Vendi alla Casa d'Aste": visible only if the House trades the item; disabled (with the reason as tooltip) while
+## the House is not built or the item is locked.
+func _refresh_auction(item_id: StringName, locked: bool) -> void:
+	var listed: bool = _session.auction.listed_items().has(item_id)
+	_auction_button.visible = listed
+	var open: bool = _session.auction.is_open()
+	_auction_button.disabled = not open or locked
+	_auction_button.tooltip_text = AUCTION_CLOSED_TEXT if not open else (AUCTION_LOCKED_TEXT if locked else "")
