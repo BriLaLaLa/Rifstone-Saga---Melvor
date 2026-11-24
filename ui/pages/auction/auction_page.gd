@@ -4,7 +4,7 @@ extends Page
 ## house: category tree and name search on the left, sortable item list in the centre, selected item with quantity, total and
 ## Compra / Vendi button on the right, big Compra / Vendi tabs on top. With the building not built only the message
 ## "Costruisci la Casa d'Aste al Villaggio". Selling and buying are the `auction.sell` / `auction.buy` commands (one call per
-## click); a refusal shows its reason in Italian. Prices, stock and trends are read from the module on every redraw
+## click); a refusal shows its reason in Italian. Prices, availability and trends are read from the module on every redraw
 ## (`auction_sold`, `auction_bought`, `auction_updated`, `bank_changed`, `gold_changed`, `village_upgraded`); the page keeps
 ## only presentation choices (tab, category, search, selected item; not saved) and references to its own nodes.
 

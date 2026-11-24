@@ -1,9 +1,9 @@
 class_name AuctionRow
 extends PanelContainer
-## One line of the Auction House list (docs/05_INTERFACES.md §7.p, M37 §45.2): icon and name, owned (sell) or stock (buy), unit
+## One line of the Auction House list (docs/05_INTERFACES.md §7.p, M37 §45.2): icon and name, owned (sell) or available (buy), unit
 ## price, "% sulla media" with its arrow and colour, and when selling the total of the pieces owned and the fixed Deposit price.
 ## Zebra background; the selected row has a fill and a 3 px bar on the left; a click only asks the page to select the item.
-## Every number is read at each `refresh` from the auction module (`sell_quote`, `buy_quote`, `price_gap`, `stock`, `stock_max`,
+## Every number is read at each `refresh` from the auction module (`sell_quote`, `buy_quote`, `price_gap`, `available`,
 ## `buy_level`, `level`) or `Shop.sell_value`; the row keeps no game value.
 
 signal row_clicked(item_id: StringName)
@@ -93,8 +93,7 @@ func refresh(auction: Object, session: GameSession, selected: bool, zebra: bool)
 	else:
 		_set_money(_price_label, int(auction.buy_quote(item_id, 1)), currency)
 		if int(auction.level()) >= int(auction.buy_level(item_id)):
-			_avail_label.text = AuctionTexts.AVAILABLE_TEXT % [NumberFormat.format_int(int(auction.stock(item_id))),
-					NumberFormat.format_int(int(auction.stock_max(item_id)))]
+			_avail_label.text = AuctionTexts.AVAILABLE_TEXT % NumberFormat.format_int(int(auction.available(item_id)))
 			_avail_label.remove_theme_color_override("font_color")
 		else:
 			_avail_label.text = AuctionTexts.REQUIRES_SHORT_TEXT % int(auction.buy_level(item_id))

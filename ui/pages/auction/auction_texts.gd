@@ -14,7 +14,6 @@ const GOLD_CAPTION: String = "Monete:"
 const OWNED_TEXT: String = "Posseduti: %s"
 const PRICE_TEXT: String = "%s a pezzo"
 const DEPOSIT_TEXT: String = "Al Deposito: %s"
-const STOCK_TEXT: String = "Scorta: %s/%s"
 const REQUIRES_TEXT: String = "Richiede Casa d'Aste %s"
 const TOTAL_TEXT: String = "Totale: %s"
 const ALL_TEXT: String = "Tutti"
@@ -30,7 +29,7 @@ const COLUMN_AVAILABLE_TEXT: String = "Disponibili"
 const COLUMN_PRICE_TEXT: String = "Prezzo"
 const COLUMN_TREND_TEXT: String = "Tendenza"
 const COLUMN_DEPOSIT_TEXT: String = "Al Deposito"
-const AVAILABLE_TEXT: String = "%s/%s"
+const AVAILABLE_TEXT: String = "%s"
 const REQUIRES_SHORT_TEXT: String = "Liv. %s"
 const SORT_ASC_TEXT: String = " ▲"
 const SORT_DESC_TEXT: String = " ▼"
@@ -120,7 +119,7 @@ const REFUSED: Dictionary[StringName, String] = {
 	Reasons.ITEM_LOCKED: "Oggetto bloccato nel Deposito.",
 	Reasons.NOT_ENOUGH_ITEMS: "Non ne hai abbastanza.",
 	Reasons.NOT_SELLABLE: "Il totale sarebbe 0 monete.",
-	Reasons.OUT_OF_STOCK: "Scorta esaurita.",
+	Reasons.OUT_OF_STOCK: "Esaurito.",
 	Reasons.NOT_ENOUGH_GOLD: "Monete insufficienti.",
 	Reasons.BANK_FULL: "Il Deposito è pieno.",
 	Reasons.INVALID_PRICE: "Prezzo non valido: zero o oltre il massimo.",

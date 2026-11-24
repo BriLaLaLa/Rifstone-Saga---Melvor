@@ -25,8 +25,6 @@ func buyable_items() -> Array[StringName]: return _buyable.duplicate()
 func buy_level(item_id: StringName) -> int: return 1 + _buyable.find(item_id) if _buyable.has(item_id) else 0
 func sell_quote(_item_id: StringName, qty: int) -> int: return 7 * maxi(qty, 0)
 func buy_quote(_item_id: StringName, qty: int) -> int: return 11 * maxi(qty, 0)
-func stock(_item_id: StringName) -> int: return 5
-func stock_max(_item_id: StringName) -> int: return 9
 func trend(_item_id: StringName) -> StringName: return &"up"
 func population(_item_id: StringName) -> Dictionary:
 	return {"buyers": 12, "sellers": 7, "demand": &"high", "listings": 2, "units": 9}
@@ -101,7 +99,10 @@ func buy(item_id: StringName, qty: int) -> CommandResult:
 var gap_value: int = 12
 
 
-func price_gap(_item_id: StringName, _mode: StringName) -> int: return gap_value
+var gap_by_item: Dictionary = {}  # item id -> gap (percent or `AuctionHouse.NO_GAP`); the rest keep `gap_value`
+
+
+func price_gap(item_id: StringName, _mode: StringName) -> int: return int(gap_by_item.get(item_id, gap_value))
 func listings_summary() -> Dictionary: return {"count": 1, "units": 2, "expected_net": 11}
 func max_buyable(_item_id: StringName) -> int: return 3
 func value_of(_item_id: StringName) -> int: return 8
@@ -120,7 +121,16 @@ var available_value: int = 5
 var large_preview: bool = false
 
 
-func available(_item_id: StringName) -> int: return available_value
+var sold_out: Dictionary = {}  # item id -> true: that item has 0 available (the rest keep `available_value`)
+
+
+var available_by_item: Dictionary = {}  # item id -> available pieces (overrides `available_value`)
+
+
+func available(item_id: StringName) -> int:
+	if sold_out.has(item_id):
+		return 0
+	return int(available_by_item.get(item_id, available_value))
 func restock_ms(_item_id: StringName) -> int: return 300000 if available_value <= 0 else 0
 func reference_price(_item_id: StringName, _mode: StringName) -> int: return 9
 

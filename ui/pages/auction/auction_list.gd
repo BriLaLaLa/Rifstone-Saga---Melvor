@@ -121,7 +121,7 @@ func _before(a: StringName, b: StringName, auction: Object, session: GameSession
 func _value(id: StringName, auction: Object, session: GameSession) -> Variant:
 	match _sort_key:
 		SORT_AVAIL:
-			return session.bank.get_count(id) if _mode == &"sell" else int(auction.stock(id))
+			return session.bank.get_count(id) if _mode == &"sell" else int(auction.available(id))
 		SORT_PRICE:
 			return int(auction.sell_quote(id, 1)) if _mode == &"sell" else int(auction.buy_quote(id, 1))
 		SORT_GAP:
