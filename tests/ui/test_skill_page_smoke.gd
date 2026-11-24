@@ -62,7 +62,8 @@ func test_gathering_page_is_read_only() -> void:
 		assert_null(_row(id).find_child("ToggleButton", true, false), "no Avvia/Ferma on a gathering row")
 		assert_null(_row(id).find_child("EnqueueButton", true, false))
 	assert_null(_page.find_child("ProductionQueue", true, false), "no queue on a gathering page")
-	assert_not_null(_page.find_child("FoundInLabel", true, false))
+	assert_null(_page.find_child("FoundInLabel", true, false), "the Si trova in line is gone")
+	assert_not_null(_page.find_child("GatherBody", true, false))
 
 
 func test_gathering_row_shows_the_colour_from_the_model() -> void:
@@ -83,7 +84,7 @@ func test_unbind_disconnects_everything() -> void:
 		var added: int = bound[signal_name] - baseline[signal_name]
 		assert_true(added == 0 or added == 1, "%s connected at most once" % signal_name)
 		connected += added
-	assert_eq(connected, 9, "xp, level, start, stop, mastery xp, modifiers, queue, discipline, recipe")
+	assert_eq(connected, 10, "xp, level, start, stop, mastery xp, modifiers, queue, discipline, recipe, bank (stock)")
 	assert_true(_page.is_processing())
 	_page.unbind()
 	assert_eq(_counts(), baseline, "back to the baseline")
@@ -111,7 +112,7 @@ func test_real_data_forestry_page_is_read_only_and_lists_its_areas() -> void:
 	_open(&"forestry")
 	assert_eq(_table().row_ids().size(), 8)
 	assert_eq(_label(_page, "%NameLabel").text, "Boscaiolo")
-	assert_true((_page.find_child("FoundInLabel", true, false) as Label).text.length() > 0)
+	assert_not_null(_page.find_child("ZoneNowSection", true, false))
 
 
 func test_seconds_text() -> void:

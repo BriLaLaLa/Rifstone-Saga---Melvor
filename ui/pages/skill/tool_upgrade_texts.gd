@@ -31,3 +31,24 @@ const REFUSED_TEXT_DEFAULT: String = "Operazione non riuscita."
 
 static func refused(reason: StringName) -> String:
 	return REFUSED_TEXTS.get(reason, REFUSED_TEXT_DEFAULT)
+
+
+## The tool of `skill_id` with its "+N" ("" if the discipline has no tool).
+static func tool_name(session: GameSession, skill_id: StringName) -> String:
+	var uid: int = session.armory.tool_uid(StringName("%s%s" % [ToolUpgrade.SLOT_PREFIX, skill_id]))
+	var inst: ItemInstance = session.armory.get_instance(uid) if uid != 0 else null
+	return ArmoryTexts.piece_name(inst, session.data.item(inst.base_id)) if inst != null else ""
+
+
+## The current effects of the tool of `skill_id` ("<stat>: <value>" each, main effect first), read from `modifiers.breakdown`.
+static func effect_texts(session: GameSession, skill_id: StringName) -> PackedStringArray:
+	var out: PackedStringArray = PackedStringArray()
+	var source: StringName = StringName("equipment:%s%s" % [ToolUpgrade.SLOT_PREFIX, skill_id])
+	var ctx: ModifierContext = ModifierContext.for_skill(skill_id)
+	for stat: StringName in session.data.stats.ids():
+		for entry: Dictionary in session.modifiers.breakdown(stat, ctx):
+			if entry["source"] != source:
+				continue
+			var info: Dictionary = session.data.stats.info(stat)
+			out.append("%s: %s" % [info["name"], ItemTooltipLines.format_stat(info["format"] as String, float(entry["value"]))])
+	return out

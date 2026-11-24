@@ -32,7 +32,7 @@ func after_each() -> void:
 
 
 func test_every_tool_skill_has_a_panel_with_three_head_rows() -> void:
-	assert_eq(SkillPage.TOOL_SKILLS.size(), 4)
+	assert_eq(GatherBody.TOOL_SKILLS.size(), 4)
 	var page: Node = await _open(SKILL)
 	for step: int in [3, 6, 9]:
 		assert_not_null(page.find_child("HeadRow_%d" % step, true, false), "row %d" % step)
@@ -72,6 +72,9 @@ func _open(skill_id: StringName) -> Node:
 	await wait_process_frames(4)
 	for node: Node in _screen.find_children("*", "", true, false):
 		if node is SkillPage:
+			(node.find_child("GatherBody", true, false) as GatherBody).show_tab(GatherBody.TAB_TOOL)  # M36: the Attrezzo tab,
+			(node.find_child("HeadsFold", true, false) as FoldableSection).set_collapsed(false)  # with Teste opened
+			await wait_process_frames(2)
 			return node
 	return null
 
