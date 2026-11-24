@@ -52,7 +52,7 @@ func test_row_shows_level_stock_and_mastery() -> void:
 	assert_not_null(twig)
 	var texts: PackedStringArray = _label_texts(twig)
 	assert_true(texts.has("Raccogliere rametti di prova"), "name")
-	assert_true(texts.has("Liv. 1"), "mastery level of an action with mastery")
+	assert_true(texts.has(ResourceTexts.MASTERY_TEXT % "1"), "mastery level of an action with mastery (in the detail)")
 	assert_true(_label_texts(_row(BUNDLE)).has(ResourceTexts.NO_MASTERY_TEXT), "action without mastery")
 
 

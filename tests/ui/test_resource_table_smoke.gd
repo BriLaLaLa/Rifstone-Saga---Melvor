@@ -1,7 +1,7 @@
 extends GutTest
-## Smoke test of the ResourceTable of a gathering page (M35-D3, docs/05_INTERFACES_M35.md §7.ac) on the main screen with a real session:
-## columns, one row per action, rows without buttons, "Si trova in" with the percentages of the model, the filter hides rows.
-## No exact texts.
+## Smoke test of the compact ResourceTable of a gathering page (M36-2, docs/05_INTERFACES_M36.md §7.ae) on the main screen with a real session:
+## columns, one row per action, a REAL click on a row opens/closes its detail (one open at a time), "Vai" emits `zone_requested` with the
+## right area, the removed widgets and texts are gone. No exact texts.
 
 const SCENE: PackedScene = preload("res://ui/screens/main/main_screen.tscn")
 const SKILL: StringName = &"quarrying"
@@ -31,46 +31,53 @@ func after_each() -> void:
 	await wait_physics_frames(1)
 
 
-func test_table_has_the_columns_and_one_row_per_action() -> void:
+func test_table_has_the_columns_one_row_per_action_and_no_removed_widgets() -> void:
 	var page: Node = await _open()
 	var table: ResourceTable = page.find_child("ResourceTable", true, false) as ResourceTable
 	assert_not_null(table)
 	assert_eq(table.row_ids().size(), _s.data.actions_for_skill(SKILL).size())
+	assert_eq(ResourceTexts.COLUMNS.size(), 5)
 	for column: int in ResourceTexts.COLUMNS.size():
 		assert_not_null(table.find_child("Column%d" % column, true, false))
-	for node_name: String in ["FilterEdit", "StockOnly"]:
-		assert_not_null(table.find_child(node_name, true, false), node_name)
-	for node_name: String in ["AutoButton", "FocusHint"]:
+	for node_name: String in ["FilterEdit", "StockOnly", "AutoButton", "FocusHint"]:
 		assert_null(table.find_child(node_name, true, false), node_name)
+	var first: StringName = table.row_ids()[0]
+	assert_false((table.find_child("DetailBox_%s" % first, true, false) as Control).visible, "details start closed")
 
 
-func test_rows_have_no_button_and_where_shows_the_percentages_of_the_model() -> void:
+func test_click_opens_one_detail_at_a_time() -> void:
 	var page: Node = await _open()
 	var table: ResourceTable = page.find_child("ResourceTable", true, false) as ResourceTable
-	for action_id: StringName in table.row_ids():
-		assert_null(table.find_child("FocusButton_%s" % action_id, true, false), "no focus button")
-	var checked: int = 0
-	for action_id: StringName in table.row_ids():
-		var zones: Array[Dictionary] = _s.data.zones_of_action(action_id)
-		var where: Control = table.find_child("WhereLabel_%s" % action_id, true, false) as Control
-		assert_not_null(where)
-		for zone: Dictionary in zones:
-			assert_true(_texts_of(where).contains(ResourceTexts.WHERE_LINE_TEXT % [_s.data.area(StringName(zone["area"])).name, int(zone["pct"])]),
-					"%s: %s" % [action_id, zone])
-			checked += 1
-	assert_gt(checked, 0, "at least one resource has a zone")
+	var a: StringName = table.row_ids()[0]
+	var b: StringName = table.row_ids()[1]
+	await _click(table.find_child("Header_%s" % a, true, false) as Control, page)
+	assert_true((table.find_child("DetailBox_%s" % a, true, false) as Control).visible)
+	await _click(table.find_child("Header_%s" % b, true, false) as Control, page)
+	assert_false((table.find_child("DetailBox_%s" % a, true, false) as Control).visible, "the first one closed")
+	assert_true((table.find_child("DetailBox_%s" % b, true, false) as Control).visible)
+	_s.bank.add(_s.data.actions_for_skill(SKILL)[1].outputs[0].item_id, 3)  # a redraw keeps the row open, no duplicate nodes
+	await wait_process_frames(3)
+	assert_eq(table.open_id(), b)
+	var buttons: int = table.find_children("GoButton_%s_*" % b, "Button", true, false).size()
+	assert_eq(buttons, _s.data.zones_of_action(b).size(), "one Vai per zone")
+	await _click(table.find_child("Header_%s" % b, true, false) as Control, page)
+	assert_eq(table.open_id(), &"")
 
 
-func test_filter_hides_rows_without_stock() -> void:
+func test_go_emits_the_zone_of_the_row() -> void:
 	var page: Node = await _open()
 	var table: ResourceTable = page.find_child("ResourceTable", true, false) as ResourceTable
-	(table.find_child("StockOnly", true, false) as CheckBox).button_pressed = true
-	await wait_process_frames(2)
-	for action_id: StringName in table.row_ids():
-		assert_false((table.find_child("ResourceRow_%s" % action_id, true, false) as Control).visible)
-	(table.find_child("StockOnly", true, false) as CheckBox).button_pressed = false
-	await wait_process_frames(2)
-	assert_true((table.find_child("ResourceRow_%s" % table.row_ids()[0], true, false) as Control).visible)
+	var id: StringName = table.row_ids()[0]
+	var zones: Array[Dictionary] = _s.data.zones_of_action(id)
+	assert_gt(zones.size(), 0)
+	watch_signals(table)
+	await _click(table.find_child("Header_%s" % id, true, false) as Control, page)
+	var area: StringName = StringName(zones[0]["area"])
+	var go: Button = table.find_child("GoButton_%s_%s" % [id, area], true, false) as Button
+	assert_not_null(go)
+	assert_false(go.disabled)
+	go.pressed.emit()
+	assert_signal_emitted_with_parameters(table, "zone_requested", [area])
 
 
 func _open() -> Node:
@@ -85,13 +92,12 @@ func _open() -> Node:
 func _click(control: Control, page: Node) -> void:
 	(page.get_node("%Scroll") as ScrollContainer).ensure_control_visible(control)
 	await wait_process_frames(2)
-	var at: Vector2 = control.get_global_rect().get_center()
+	var at: Vector2 = control.get_global_rect().position + Vector2(20, control.size.y / 2.0)
 	var motion := InputEventMouseMotion.new()
 	motion.position = at
 	motion.global_position = at
 	get_viewport().push_input(motion, true)
 	await wait_process_frames(1)
-	assert_eq(get_viewport().gui_get_hovered_control(), control, "the click lands on the control")
 	for pressed: bool in [true, false]:
 		var event := InputEventMouseButton.new()
 		event.button_index = MOUSE_BUTTON_LEFT
@@ -102,11 +108,3 @@ func _click(control: Control, page: Node) -> void:
 		get_viewport().push_input(event, true)
 		await wait_process_frames(1)
 	await wait_process_frames(3)
-
-
-func _texts_of(where: Control) -> String:
-	var texts: PackedStringArray = PackedStringArray()
-	for child: Node in where.get_children():
-		if not child.is_queued_for_deletion():
-			texts.append((child as Label).text)
-	return "\n".join(texts)
