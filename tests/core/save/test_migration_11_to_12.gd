@@ -35,10 +35,10 @@ func test_modules_missing_or_not_an_object_leaves_the_file_as_it_is() -> void:
 	assert_eq(Step.migrate({"format_version": 11, "modules": 5}), {"format_version": 11, "modules": 5})
 
 
-func test_the_chain_from_v9_reaches_v12_with_the_block() -> void:
+func test_the_chain_from_v9_reaches_current_with_the_block() -> void:
 	var d: Dictionary = {"format_version": 9, "player_name": "x", "modules": {"wallet": {"gold": 10}}}
 	var out: Dictionary = SaveMigrator.migrate(d)
-	assert_eq(out["format_version"], 12)
+	assert_eq(out["format_version"], 13)
 	assert_eq((out["modules"] as Dictionary)["tutorial"], DONE)
 	assert_eq(((out["modules"] as Dictionary)["wallet"] as Dictionary)["copper"], 1000)
 
@@ -56,7 +56,7 @@ func test_the_real_v11_slot_loads_with_the_tutorial_completed_and_the_starter_qu
 	assert_true(s.tutorial.starter.is_enabled())
 	assert_eq(s.bank.get_count(&"redbirch_log"), int(((v11["modules"] as Dictionary)["bank"] as Dictionary)["stacks"][0]["count"]))
 	var saved: Dictionary = s.to_save(0)
-	assert_eq(saved["format_version"], 12)
+	assert_eq(saved["format_version"], 13)
 	assert_eq(((saved["modules"] as Dictionary)["tutorial"] as Dictionary)["completed"], true)
 
 

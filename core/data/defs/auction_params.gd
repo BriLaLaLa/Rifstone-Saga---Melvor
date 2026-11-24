@@ -7,6 +7,7 @@ extends RefCounted
 const PPM_PER_PCT: float = 10000.0
 
 var block_ms: int = 0
+var history_max: int = 0  # M37: the length of the sales history (F-209)
 var base_ppm: int = 0
 var min_ppm: int = 0
 var max_ppm: int = 0
@@ -48,6 +49,7 @@ static func from_dict(d: Dictionary) -> AuctionParams:
 	var r := DefReader.new(d, "balance auction")
 	var p := AuctionParams.new()
 	p.block_ms = r.integer("block_ms")
+	p.history_max = r.integer("history_max")
 	var index := DefReader.new(r.dict("index"), "balance auction.index")
 	p.base_ppm = ppm(index.number("base_pct"))
 	p.min_ppm = ppm(index.number("min_pct"))

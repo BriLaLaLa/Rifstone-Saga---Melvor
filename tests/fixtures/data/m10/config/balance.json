@@ -323,7 +323,7 @@
   "dungeon": {"direction_bands": [-0.55, -0.30, -0.10, 0.10, 0.30, 0.55], "reveal_ms": 3000},
   "miniboss": {"chance_pct": 1.5, "hp_mult": 4.0, "power_mult": 1.5, "xp_mult": 4.0, "gold_mult": 4.0},
   "auction": {
-    "block_ms": 300000,
+    "block_ms": 300000, "history_max": 50,
     "index": {"base_pct": 115, "min_pct": 70, "max_pct": 126},
     "drift": {"amplitude_pct": 8, "period_blocks": 72},
     "saturation": {"per_unit_pct": 0.025, "max_pct": 56, "recover_pct_per_block": 0.5},

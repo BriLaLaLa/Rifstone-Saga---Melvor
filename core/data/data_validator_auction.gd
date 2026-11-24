@@ -11,7 +11,7 @@ const STRICT_REAL_DATA: bool = true
 const TRADED: PackedStringArray = ["material", "component", "food"]
 const BUYABLE: PackedStringArray = ["component", "food"]
 const PPM: int = 1000000
-const PARAM_KEYS: PackedStringArray = ["block_ms", "index", "drift", "saturation", "buy", "stock", "trend", "population", "book", "listing"]
+const PARAM_KEYS: PackedStringArray = ["block_ms", "history_max", "index", "drift", "saturation", "buy", "stock", "trend", "population", "book", "listing"]
 const ITEM_FIELDS: PackedStringArray = ["item", "buy_level"]
 
 
@@ -96,6 +96,7 @@ static func validate_balance(v: DataValidatorRules, balance: Dictionary) -> void
 	var auction: Dictionary = section as Dictionary
 	v.keys(auction, PARAM_KEYS, "auction")
 	var ok: bool = v.integer(auction, "block_ms", 60000.0, 3600000.0, "auction")
+	ok = v.integer(auction, "history_max", 1.0, 200.0, "auction") and ok
 	var index: Dictionary = v.object(auction, "index", "auction")
 	v.keys(index, ["base_pct", "min_pct", "max_pct"], "auction.index")
 	for key: String in ["base_pct", "min_pct", "max_pct"]:

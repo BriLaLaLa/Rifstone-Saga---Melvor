@@ -26,8 +26,8 @@ func _disciplines(out: Dictionary) -> Dictionary:
 
 
 func test_the_current_version_is_9() -> void:
-	assert_eq(SaveMigrator.CURRENT_VERSION, 12)
-	assert_eq(SaveMigrator.migrate(_v8({}))["format_version"], 12)
+	assert_eq(SaveMigrator.CURRENT_VERSION, 13)
+	assert_eq(SaveMigrator.migrate(_v8({}))["format_version"], 13)
 
 
 func test_xp_and_one_production_the_engraver_is_learned_at_the_grade_of_its_level() -> void:
@@ -150,7 +150,7 @@ func test_the_chain_from_v7_keeps_the_xp_of_the_engraver() -> void:
 		"actions": {"lanes": {}}}}
 	var out: Dictionary = SaveMigrator.migrate(v7)
 	var m: Dictionary = out["modules"]
-	assert_eq(out["format_version"], 12)
+	assert_eq(out["format_version"], 13)
 	assert_eq(m["skills"][E]["xp"], xp)
 	assert_eq(m["disciplines"]["learned"][E], 4, "level 61 -> grade 4")
 	assert_eq(m["disciplines"]["extra"], [E], "forging and hearthcraft were learned by v8")

@@ -10,6 +10,7 @@ extends RefCounted
 const SAVE_KEY: StringName = &"auction"
 const LOG_CATEGORY: String = "auction"
 const SEED_MODULUS: int = 2147483647  # the market seed is 1..SEED_MODULUS (a positive int that JSON holds exactly)
+const NO_GAP: int = -2147483648  # `price_gap` when the gap is not available (F-210)
 
 var _data: GameData
 var _events: GameEvents
@@ -19,6 +20,7 @@ var _wallet: Wallet
 var _session: GameSession  # for the Village (created before, read when used, as the Shop does)
 var _pricing: AuctionPricing
 var _listings: AuctionListings
+var _history: AuctionHistory
 var _listed: Array[StringName] = []
 var _buyable: Array[StringName] = []
 
@@ -33,6 +35,7 @@ func _init(session: GameSession) -> void:
 	_session = session
 	_pricing = AuctionPricing.new(_data)
 	_listings = AuctionListings.new(_data.auction_params())
+	_history = AuctionHistory.new(_data.auction_params(), _data)
 	for def: AuctionItemDef in _data.auction_items():
 		_listed.append(def.item)
 		if def.buy_level >= 1:
@@ -72,6 +75,37 @@ func durations() -> Array[AuctionDuration]: return _data.auction_params().durati
 func max_price(item_id: StringName) -> int: return _pricing.max_price(item_id)
 func max_listings() -> int: return _data.auction_params().listing_max_active
 func market_price(item_id: StringName) -> int: return _pricing.sell_quote(item_id, 1)  # F-181
+func value_of(item_id: StringName) -> int: return _pricing.value_of(item_id)  # base value in copper, 0 if not listed
+func history_max() -> int: return _data.auction_params().history_max
+
+
+## F-209: the sales history, newest first (copies).
+func history() -> Array[Dictionary]:
+	return _history.entries()
+
+
+## F-212: how long ago a history entry happened, with the precision of a market block.
+func history_age_ms(entry: Dictionary) -> int:
+	return AuctionHistory.age_ms(int(entry.get("block", 0)), _pricing.block(), _pricing.pending_ms(), _data.auction_params().block_ms)
+
+
+## F-210: the gap in % of the unit price you see (`&"buy"` or `&"sell"`) against the base value; `NO_GAP` if not available.
+func price_gap(item_id: StringName, mode: StringName) -> int:
+	var unit: int = _pricing.buy_quote(item_id, 1) if mode == &"buy" else _pricing.sell_quote(item_id, 1)
+	return AuctionView.gap_pct(unit, _pricing.value_of(item_id))
+
+
+## F-211: the most pieces `buy` accepts now (level, stock, gold, room in the Deposit); 0 if none.
+func max_buyable(item_id: StringName) -> int:
+	if not _pricing.is_buyable(item_id) or level() < _pricing.buy_level(item_id):
+		return 0
+	var most: int = AuctionView.max_buy(_pricing.buy_quote(item_id, 1), _pricing.stock(item_id), _wallet.get_gold())
+	return most if most > 0 and can_buy(item_id, most).ok else 0
+
+
+## F-213: `{"count", "units", "expected_net"}` of the active listings.
+func listings_summary() -> Dictionary:
+	return AuctionView.summary(_listings.all(), func(qty: int, price: int) -> int: return _pricing.listing_net(qty, price))
 
 
 ## F-181: the market and the player's listings of the item: `{"buyers", "sellers", "demand", "listings", "units"}`; `{}` if not listed.
@@ -165,6 +199,7 @@ func cancel_listing(listing_id: int) -> CommandResult:
 		return check
 	var listing: Dictionary = _listings.remove(listing_id)
 	var item_id: StringName = listing["item"]
+	_history.record_closed(&"cancelled", item_id, int(listing["qty"]), int(listing["price"]), _pricing.block(), listing_id)
 	_session.mail.post(&"auction_cancelled", {"item": item_id, "qty": listing["qty"], "price": listing["price"], "listing": listing_id,
 			"items": [{"item": item_id, "qty": listing["qty"]}]})
 	_events.auction_listings_changed.emit()
@@ -206,6 +241,7 @@ func sell(item_id: StringName, qty: int) -> CommandResult:
 		return removed
 	_session.mail.post(&"auction_sale", {"item": item_id, "qty": qty, "price": gold / qty, "money": gold})
 	_pricing.record_sale(item_id, qty)
+	_history.record_instant_sold(item_id, qty, gold, _pricing.block())
 	_events.auction_sold.emit(item_id, qty, gold)
 	return CommandResult.success()
 
@@ -264,7 +300,8 @@ func advance(delta_ms: int) -> void:
 		left -= step
 		if _pricing.advance(step) > 0:
 			blocks += 1
-			changed = _deliver(_listings.process_block(_pricing, _pricing.block())) or changed
+			var prices: Dictionary[int, int] = _listing_prices()
+			changed = _deliver(_listings.process_block(_pricing, _pricing.block()), prices) or changed
 	if blocks > 0:
 		_events.auction_updated.emit(blocks)
 	if changed:
@@ -275,11 +312,13 @@ func advance(delta_ms: int) -> void:
 func new_game() -> void:
 	_pricing.reset(_new_seed())
 	_listings.clear()
+	_history.clear()
 
 
 func to_save() -> Dictionary:
 	var result: Dictionary = _pricing.to_save()
 	result.merge(_listings.to_save())
+	result["history"] = _history.to_save()
 	return result
 
 
@@ -288,6 +327,7 @@ func from_save(d: Dictionary) -> void:
 	_load_market(d)
 	_listings.from_save(d)
 	_listings.drop_if(func(item_id: StringName) -> bool: return not _pricing.is_listed(item_id))
+	_history.from_save(d.get("history"))
 
 
 func _load_market(d: Dictionary) -> void:
@@ -315,12 +355,23 @@ func _duration(duration_id: StringName) -> AuctionDuration:
 
 
 # F-180 steps 5 and 6: the Mail of the events of a block (sold: the net money; expired: the pieces back). True if there was any.
-func _deliver(events: Array[Dictionary]) -> bool:
+func _deliver(events: Array[Dictionary], prices: Dictionary[int, int]) -> bool:
+	var block: int = _pricing.block()
 	for e: Dictionary in events:
 		var item_id: StringName = e["item"]
 		match e["kind"]:
 			&"sold":
+				_history.record_listing_sold(item_id, int(e["qty"]), int(e["price"]), int(e["net"]), block, int(e["id"]))
 				_session.mail.post(&"auction_sold", {"item": item_id, "qty": e["qty"], "price": e["price"], "listing": e["id"], "money": e["net"]})
 			&"expired":
+				_history.record_closed(&"expired", item_id, int(e["qty"]), prices.get(int(e["id"]), 0), block, int(e["id"]))
 				_session.mail.post(&"auction_expired", {"item": item_id, "qty": e["qty"], "listing": e["id"], "items": [{"item": item_id, "qty": e["qty"]}]})
 	return not events.is_empty()
+
+
+# The price of every active listing by id: the `expired` event of `process_block` does not carry it (F-209).
+func _listing_prices() -> Dictionary[int, int]:
+	var result: Dictionary[int, int] = {}
+	for listing: Dictionary in _listings.all():
+		result[int(listing["id"])] = int(listing["price"])
+	return result

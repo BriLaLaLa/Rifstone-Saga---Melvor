@@ -50,3 +50,31 @@ static func my_listings(pricing: AuctionPricing, listings: AuctionListings, bloc
 		listing.erase("end")
 		result.append(listing)
 	return result
+
+
+## F-210: `round(100 * (unit - value) / value)` (half away from zero) in integer maths; `AuctionHouse.NO_GAP` if `value` or `unit` is 0 or less.
+@warning_ignore("integer_division")
+static func gap_pct(unit: int, value: int) -> int:
+	if value <= 0 or unit <= 0:
+		return AuctionHouse.NO_GAP
+	var diff: int = 100 * (unit - value)
+	var magnitude: int = (2 * absi(diff) + value) / (2 * value)
+	return magnitude if diff >= 0 else -magnitude
+
+
+## F-211 without the Deposit constraint: `min(stock, floor(gold / unit))`, 0 if `unit` is 0 or less.
+@warning_ignore("integer_division")
+static func max_buy(unit: int, stock: int, gold: int) -> int:
+	if unit <= 0:
+		return 0
+	return maxi(0, mini(stock, gold / unit))
+
+
+## F-213: `{"count", "units", "expected_net"}`; `quote` is `Callable(qty, price) -> int` (the net of one listing, F-180).
+static func summary(listings: Array[Dictionary], quote: Callable) -> Dictionary:
+	var units: int = 0
+	var net: int = 0
+	for listing: Dictionary in listings:
+		units += int(listing["qty"])
+		net += int(quote.call(int(listing["qty"]), int(listing["price"])))
+	return {"count": listings.size(), "units": units, "expected_net": net}
