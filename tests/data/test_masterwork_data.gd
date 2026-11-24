@@ -84,3 +84,32 @@ func test_the_masterworks_are_in_no_drop() -> void:
 	for table: LootTableDef in _data.loot_tables():
 		for entry: DropEntry in table.entries:
 			assert_false(ids.has(entry.item_id), "%s in %s" % [entry.item_id, table.id])
+
+
+func test_a_masterwork_sells_for_1_4_times_its_model() -> void:
+	for item: ItemDef in _masterworks:
+		var armour: bool = [&"head", &"body", &"legs", &"feet", &"hands"].has(item.equip.slot) or _kind(item) == "shield"
+		var model: ItemDef = _models.get("%s:%s:%d" % [_kind(item), "plate" if armour else "", item.equip.grade])
+		if model != null:
+			assert_eq(item.value, model.value * 140 / 100, "%s: floor(1.4 x model)" % item.id)
+
+
+## F-151 / F-217 on the real data: buying the parts (buyable ones at their cheapest purchase price) costs at least 1.03 x the piece.
+func test_every_blueprint_costs_at_least_103_percent_of_its_piece() -> void:
+	var params: AuctionParams = _data.auction_params()
+	var eq_min: int = AuctionMath.eq_min(params, params.bands)
+	var checked: int = 0
+	for bp: ItemDef in _data.items():
+		if bp.category != &"blueprint":
+			continue
+		var cost: int = 0
+		var rows: Array = []
+		rows.append_array(bp.blueprint.inputs)
+		rows.append_array(bp.blueprint.rare_components)
+		for row: ItemQty in rows:
+			var buyable: bool = _data.auction_item(row.item_id) != null and _data.auction_item(row.item_id).buy_level >= 1
+			cost += row.qty * DataValidatorAuctionBuy.part_cost(_data.item(row.item_id).value, buyable, params, eq_min)
+		var piece: int = _data.item(bp.blueprint.base_id).value
+		assert_true(float(cost) >= float(piece) * 1.03, "%s: cost %d vs piece %d" % [bp.id, cost, piece])
+		checked += 1
+	assert_eq(checked, 120)
