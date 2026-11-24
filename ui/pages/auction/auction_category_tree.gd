@@ -6,11 +6,15 @@ extends VBoxContainer
 
 signal category_picked(category: StringName)
 signal search_changed(text: String)
+## "Posseduti" / "Comprabili ora" toggled (M37-4): the page applies them with the category and the search.
+signal filters_changed(owned: bool, buyable: bool)
 
 const ALL: StringName = &"__all"
 const SEPARATION: int = 8
 
 var _search: LineEdit = null
+var _owned: CheckButton = null
+var _buyable: CheckButton = null
 var _tree: Tree = null
 var _building: bool = false
 
@@ -23,6 +27,8 @@ func _ready() -> void:
 	_search.clear_button_enabled = true
 	_search.text_changed.connect(func(text: String) -> void: search_changed.emit(text))
 	add_child(_search)
+	_owned = _filter("FilterOwned", AuctionTexts.FILTER_OWNED_TEXT)
+	_buyable = _filter("FilterBuyable", AuctionTexts.FILTER_BUYABLE_TEXT)
 	_tree = Tree.new()
 	_tree.name = "CategoryTree"
 	_tree.hide_root = true
@@ -68,3 +74,26 @@ func _on_item_selected() -> void:
 		# Deferred: a Tree refuses to clear or create items while it emits `item_selected` for a mouse click
 		# (`create_item` returns null), and the page rebuilds this tree in answer to the pick.
 		category_picked.emit.call_deferred(item.get_metadata(0))
+
+
+## Sets the filter switches (the page remembers them per tab); `owned_visible` is false in Vendi, where every item is owned.
+func set_filters(owned: bool, buyable: bool, owned_visible: bool) -> void:
+	_owned.set_pressed_no_signal(owned)
+	_buyable.set_pressed_no_signal(buyable)
+	_owned.visible = owned_visible
+
+
+func _filter(node_name: String, text: String) -> CheckButton:
+	var button: CheckButton = CheckButton.new()
+	button.name = node_name
+	button.text = text
+	button.focus_mode = Control.FOCUS_NONE
+	button.toggled.connect(func(_on: bool) -> void: filters_changed.emit(_owned.button_pressed, _buyable.button_pressed))
+	add_child(button)
+	return button
+
+
+## Empties the name search field without emitting `search_changed` (the page clears its own copy).
+func clear_search() -> void:
+	if _search != null:
+		_search.text = ""

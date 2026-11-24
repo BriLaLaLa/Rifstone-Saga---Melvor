@@ -5,6 +5,8 @@ extends VBoxContainer
 ## (presentation, not saved); every sorted value is read from the auction module on each `show_items`.
 
 signal item_picked(item_id: StringName)
+## The player clicked a column header: the page remembers the sort of each tab.
+signal sort_changed(key: StringName, descending: bool)
 
 const ROW_SCRIPT: GDScript = preload("res://ui/pages/auction/auction_row.gd")
 const ROWS_SEPARATION: int = 1
@@ -12,9 +14,9 @@ const HEADER_SEPARATION: int = 8
 const SORT_NAME: StringName = &"name"
 const SORT_AVAIL: StringName = &"avail"
 const SORT_PRICE: StringName = &"price"
-const SORT_TREND: StringName = &"trend"
+const SORT_GAP: StringName = &"gap"
+const SORT_TOTAL: StringName = &"total"
 const SORT_DEPOSIT: StringName = &"deposit"
-const TREND_RANK: Dictionary[StringName, int] = {&"down": 0, &"stable": 1, &"up": 2}
 
 var _sort_key: StringName = SORT_NAME
 var _sort_desc: bool = false
@@ -40,7 +42,8 @@ func _ready() -> void:
 	_add_header(SORT_NAME, 0.0, HORIZONTAL_ALIGNMENT_LEFT).size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_add_header(SORT_AVAIL, AuctionRow.AVAIL_WIDTH, HORIZONTAL_ALIGNMENT_RIGHT)
 	_add_header(SORT_PRICE, AuctionRow.PRICE_WIDTH, HORIZONTAL_ALIGNMENT_RIGHT)
-	_add_header(SORT_TREND, AuctionRow.TREND_WIDTH, HORIZONTAL_ALIGNMENT_LEFT)
+	_add_header(SORT_GAP, AuctionRow.GAP_WIDTH, HORIZONTAL_ALIGNMENT_RIGHT)
+	_add_header(SORT_TOTAL, AuctionRow.TOTAL_WIDTH, HORIZONTAL_ALIGNMENT_RIGHT)
 	_add_header(SORT_DEPOSIT, AuctionRow.DEPOSIT_WIDTH, HORIZONTAL_ALIGNMENT_RIGHT)
 	var edge: Control = Control.new()  # keeps the last column away from the scrollbar
 	edge.name = "ScrollbarGap"
@@ -70,6 +73,9 @@ func _ready() -> void:
 func show_items(ids: Array[StringName], mode: StringName, auction: Object, session: GameSession, selected: StringName,
 		empty_text: String) -> void:
 	_last = [ids, mode, auction, session, selected, empty_text]
+	if mode == &"buy" and (_sort_key == SORT_TOTAL or _sort_key == SORT_DEPOSIT):
+		_sort_key = SORT_NAME  # these columns exist only when selling
+		_sort_desc = false
 	if mode != _mode:
 		_mode = mode
 		_update_headers()
@@ -118,8 +124,10 @@ func _value(id: StringName, auction: Object, session: GameSession) -> Variant:
 			return session.bank.get_count(id) if _mode == &"sell" else int(auction.stock(id))
 		SORT_PRICE:
 			return int(auction.sell_quote(id, 1)) if _mode == &"sell" else int(auction.buy_quote(id, 1))
-		SORT_TREND:
-			return TREND_RANK.get(auction.trend(id), 1)
+		SORT_GAP:
+			return int(auction.price_gap(id, _mode))
+		SORT_TOTAL:
+			return int(auction.sell_quote(id, session.bank.get_count(id)))
 		SORT_DEPOSIT:
 			return session.shop.sell_value(id, 1)
 	return session.data.item(id).name.to_lower()
@@ -132,6 +140,7 @@ func _on_header_pressed(key: StringName) -> void:
 		_sort_key = key
 		_sort_desc = false
 	_update_headers()
+	sort_changed.emit(_sort_key, _sort_desc)
 	if _last.size() == 6:
 		show_items(_last[0], _last[1], _last[2], _last[3], _last[4], _last[5])
 
@@ -139,7 +148,7 @@ func _on_header_pressed(key: StringName) -> void:
 func _update_headers() -> void:
 	var titles: Dictionary[StringName, String] = {SORT_NAME: AuctionTexts.COLUMN_NAME_TEXT,
 			SORT_AVAIL: AuctionTexts.COLUMN_OWNED_TEXT if _mode == &"sell" else AuctionTexts.COLUMN_AVAILABLE_TEXT,
-			SORT_PRICE: AuctionTexts.COLUMN_PRICE_TEXT, SORT_TREND: AuctionTexts.COLUMN_TREND_TEXT,
+			SORT_PRICE: AuctionTexts.COLUMN_PRICE_TEXT, SORT_GAP: AuctionTexts.COLUMN_GAP_TEXT, SORT_TOTAL: AuctionTexts.COLUMN_TOTAL_TEXT,
 			SORT_DEPOSIT: AuctionTexts.COLUMN_DEPOSIT_TEXT}
 	for key: StringName in _headers:
 		var arrow: String = ""
@@ -147,6 +156,7 @@ func _update_headers() -> void:
 			arrow = AuctionTexts.SORT_DESC_TEXT if _sort_desc else AuctionTexts.SORT_ASC_TEXT
 		_headers[key].text = titles[key] + arrow
 	_headers[SORT_DEPOSIT].visible = _mode == &"sell"
+	_headers[SORT_TOTAL].visible = _mode == &"sell"
 
 
 func _add_header(key: StringName, width: float, align: HorizontalAlignment) -> Button:
@@ -166,3 +176,11 @@ func _add_header(key: StringName, width: float, align: HorizontalAlignment) -> B
 	_header_row.add_child(button)
 	_headers[key] = button
 	return button
+
+
+## Restores the sort of a tab (the page remembers it per tab); the next `show_items` draws it.
+func set_sort(key: StringName, descending: bool) -> void:
+	_sort_key = key if _headers.has(key) else SORT_NAME
+	_sort_desc = descending
+	if _header_row != null:
+		_update_headers()

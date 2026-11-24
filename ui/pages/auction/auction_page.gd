@@ -8,6 +8,8 @@ extends Page
 ## (`auction_sold`, `auction_bought`, `auction_updated`, `bank_changed`, `gold_changed`, `village_upgraded`); the page keeps
 ## only presentation choices (tab, category, search, selected item; not saved) and references to its own nodes.
 
+signal page_requested(page_id: StringName)
+
 const AUCTION_FIELD: StringName = &"auction"
 const SELL: StringName = &"sell"
 const BUY: StringName = &"buy"
@@ -23,9 +25,9 @@ var _session: GameSession = null
 ## can also be bound to a stub with the same signatures.
 var _auction: Object = null
 var _tab: StringName = BUY
-var _category: StringName = AuctionCategoryTree.ALL
 var _search: String = ""
-var _selected: StringName = &""
+## Presentation choices per tab (`AuctionViewState`): category, sort, filters, selected item; kept for the session, not saved.
+var _views: Dictionary[StringName, AuctionViewState] = {BUY: AuctionViewState.new(), SELL: AuctionViewState.new()}
 var _redraw_queued: bool = false
 
 @onready var _margin: MarginContainer = %Margin
@@ -33,6 +35,8 @@ var _redraw_queued: bool = false
 @onready var _title_label: Label = %TitleLabel
 @onready var _level_label: Label = %LevelLabel
 @onready var _gold_label: MoneyLabel = %GoldLabel
+@onready var _post_badge: Button = %PostBadge
+@onready var _post_full: Label = %PostFullLabel
 @onready var _tabs: SubTabBar = %Tabs
 @onready var _info_label: Label = %InfoLabel
 @onready var _body: HBoxContainer = %Body
@@ -56,6 +60,9 @@ func _ready() -> void:
 	_tabs.tab_selected.connect(_on_tab_selected)
 	_categories.category_picked.connect(_on_category_picked)
 	_categories.search_changed.connect(_on_search_changed)
+	_categories.filters_changed.connect(_on_filters_changed)
+	_items.sort_changed.connect(_on_sort_changed)
+	_post_badge.pressed.connect(func() -> void: page_requested.emit(&"mail"))
 	_items.item_picked.connect(_on_item_picked)
 	_detail.trade_requested.connect(_on_trade_requested)
 	_detail.list_requested.connect(_on_list_requested)
@@ -65,6 +72,9 @@ func _ready() -> void:
 ## Draws the page of `session` (nothing if the session has no auction house yet) and follows its changes.
 func bind(session: GameSession) -> void:
 	bind_with(session, session.get(AUCTION_FIELD))
+	var argument: StringName = PageHost.argument_of(page_id)  # route `auction:<item_id>` (from the Deposit): that item on Vendi
+	if argument != &"":
+		show_item(argument, SELL)
 
 
 ## Same as `bind`, with the auction module given: used by `bind` and by the smoke test with a stub of the same signatures.
@@ -115,6 +125,7 @@ func _rebuild() -> void:
 		return
 	_gold_label.caption = AuctionTexts.GOLD_CAPTION
 	_gold_label.set_amount(_session.wallet.get_gold(), _session.data.currency())
+	_refresh_post()
 	var open: bool = _auction.is_open()
 	_level_label.visible = open
 	_level_label.text = AuctionTexts.LEVEL_TEXT % int(_auction.level())
@@ -129,13 +140,14 @@ func _rebuild() -> void:
 	if _tab == MINE:
 		_mine.refresh(_auction, _session)
 		return
+	var view: AuctionViewState = _views[_tab]
 	var base: Array[StringName] = _wanted_items()
-	if _selected != &"" and not base.has(_selected):
-		_selected = &""
+	if view.selected != &"" and not base.has(view.selected):
+		view.selected = &""
 	var counts: Dictionary = {}
 	var searched: Array[StringName] = []
 	for id: StringName in base:
-		if _matches_search(id):
+		if _matches_search(id) and _matches_filters(id, view):
 			searched.append(id)
 			var category: StringName = _session.data.item(id).category
 			counts[category] = int(counts.get(category, 0)) + 1
@@ -145,23 +157,63 @@ func _rebuild() -> void:
 		if not order.has(category):
 			order.append(category)
 	order.sort_custom(func(a: StringName, b: StringName) -> bool:
+		var rank_a: int = AuctionTexts.category_rank(a)
+		var rank_b: int = AuctionTexts.category_rank(b)
+		if rank_a != rank_b:
+			return rank_a < rank_b
 		return AuctionTexts.category_name(a).naturalnocasecmp_to(AuctionTexts.category_name(b)) < 0)
-	if _category != AuctionCategoryTree.ALL and not order.has(_category):
-		_category = AuctionCategoryTree.ALL
-	_categories.show_categories(order, counts, searched.size(), _category)
+	if view.category != AuctionCategoryTree.ALL and not order.has(view.category):
+		view.category = AuctionCategoryTree.ALL
+	_categories.set_filters(view.owned_only, view.buyable_only, _tab == BUY)
+	_categories.show_categories(order, counts, searched.size(), view.category)
 	var shown: Array[StringName] = []
 	for id: StringName in searched:
-		if _category == AuctionCategoryTree.ALL or _session.data.item(id).category == _category:
+		if view.category == AuctionCategoryTree.ALL or _session.data.item(id).category == view.category:
 			shown.append(id)
 	var empty_text: String = AuctionTexts.EMPTY_FILTER_TEXT
 	if base.is_empty():
 		empty_text = AuctionTexts.EMPTY_SELL_TEXT if _tab == SELL else AuctionTexts.EMPTY_BUY_TEXT
-	_items.show_items(shown, _tab, _auction, _session, _selected, empty_text)
-	_detail.refresh(_auction, _session, _tab, _selected)
+	_items.set_sort(view.sort_key, view.sort_desc)
+	_items.show_items(shown, _tab, _auction, _session, view.selected, empty_text)
+	_detail.refresh(_auction, _session, _tab, view.selected)
+
+
+## Post badge and the red "Posta piena" notice, read from the session's mailbox.
+func _refresh_post() -> void:
+	var count: int = _session.mail.count()
+	_post_badge.text = AuctionTexts.POST_BADGE_TEXT % count if count > 0 else AuctionTexts.POST_BADGE_EMPTY_TEXT
+	_post_full.visible = _session.mail.is_full()
+	_post_full.text = AuctionTexts.POST_FULL_TEXT
+
+
+## "Posseduti" (Compra: at least one in the Deposit) and "Comprabili ora" (`can_buy(id, 1)` would succeed).
+func _matches_filters(id: StringName, view: AuctionViewState) -> bool:
+	if _tab == BUY and view.owned_only and _session.bank.get_count(id) <= 0:
+		return false
+	return not view.buyable_only or _auction.can_buy(id, 1).ok
+
+
+## Selects `item_id` on the tab `tab` (`BUY` or `SELL`), clearing category, search and filters so that it is visible; an item the
+## Casa d'Aste does not trade (or that is not there) only shows a text.
+func show_item(item_id: StringName, tab: StringName = SELL) -> void:
+	if _auction == null or not _auction.is_open():
+		return
+	if not _auction.listed_items().has(item_id) or not _tab_items(tab).has(item_id):
+		_detail.show_message(AuctionTexts.NOT_LISTED_TEXT, UiStyle.BAD)
+		return
+	_search = ""
+	_categories.clear_search()
+	_views[tab].reset_filters()
+	_views[tab].selected = item_id
+	_tabs.select(tab)  # emits tab_selected: `_on_tab_selected` rebuilds
 
 
 func _wanted_items() -> Array[StringName]:
-	if _tab == BUY:
+	return _tab_items(_tab)
+
+
+func _tab_items(tab: StringName) -> Array[StringName]:
+	if tab == BUY:
 		return _auction.buyable_items()
 	var result: Array[StringName] = []
 	for id: StringName in _auction.listed_items():
@@ -170,18 +222,18 @@ func _wanted_items() -> Array[StringName]:
 	return result
 
 
+
 func _matches_search(id: StringName) -> bool:
 	return _search == "" or _session.data.item(id).name.to_lower().contains(_search)
 
 
 func _on_tab_selected(id: StringName) -> void:
-	_tab = id
-	_selected = &""
+	_tab = id  # each of Compra and Vendi keeps its own category, sort, filters and item
 	_rebuild()
 
 
 func _on_category_picked(category: StringName) -> void:
-	_category = category
+	_views[_tab].category = category
 	_rebuild()
 
 
@@ -191,8 +243,20 @@ func _on_search_changed(text: String) -> void:
 
 
 func _on_item_picked(item_id: StringName) -> void:
-	_selected = item_id
+	_views[_tab].selected = item_id
 	_rebuild()
+
+
+func _on_filters_changed(owned: bool, buyable: bool) -> void:
+	_views[_tab].owned_only = owned
+	_views[_tab].buyable_only = buyable
+	_rebuild()
+
+
+func _on_sort_changed(key: StringName, descending: bool) -> void:
+	if _views.has(_tab):
+		_views[_tab].sort_key = key
+		_views[_tab].sort_desc = descending
 
 
 func _on_trade_requested(item_id: StringName, qty: int) -> void:

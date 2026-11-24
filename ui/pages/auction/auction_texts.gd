@@ -35,7 +35,7 @@ const REQUIRES_SHORT_TEXT: String = "Liv. %s"
 const SORT_ASC_TEXT: String = " ▲"
 const SORT_DESC_TEXT: String = " ▼"
 ## Book, instant sale, listing form and "Le mie inserzioni" (M27-08).
-const TAB_MINE_TEXT: String = "Le mie inserzioni"
+const TAB_MINE_TEXT: String = "Le mie vendite"
 const SELL_NOW_TEXT: String = "Vendi subito"
 const SELL_NOW_NOTE_TEXT: String = "Il ricavo arriva in Posta."
 const BOOK_TITLE_TEXT: String = "Inserzioni, dalla meno cara"
@@ -128,6 +128,47 @@ const REFUSED: Dictionary[StringName, String] = {
 	Reasons.MAILBOX_FULL: "La Posta è piena: ritira qualcosa.",
 }
 const REFUSED_TEXT_DEFAULT: String = "Operazione non riuscita."
+## M37-4: price gap column, filters, post, "Le mie vendite" and history.
+const NO_GAP: int = AuctionHouse.NO_GAP
+const GAP_NEUTRAL_PCT: int = 1
+const COLUMN_GAP_TEXT: String = "% media"
+const COLUMN_TOTAL_TEXT: String = "Ricavo totale"
+const GAP_NONE_TEXT: String = "–"
+const GAP_STABLE_TEXT: String = "= Stabile"
+const GAP_UP_TEXT: String = "▲ +%s %%"
+const GAP_DOWN_TEXT: String = "▼ −%s %%"
+const FILTER_OWNED_TEXT: String = "Posseduti"
+const FILTER_BUYABLE_TEXT: String = "Comprabili ora"
+const POST_BADGE_TEXT: String = "Posta: %s da ritirare"
+const POST_BADGE_EMPTY_TEXT: String = "Posta"
+const POST_FULL_TEXT: String = "Posta piena: non puoi vendere né mettere in vendita."
+const NOT_LISTED_TEXT: String = "Questo oggetto non si tratta alla Casa d'Aste."
+const SECTION_ACTIVE_TEXT: String = "Attive"
+const SECTION_HISTORY_TEXT: String = "Storico"
+const SUMMARY_TEXT: String = "%s inserzioni, %s pezzi in vendita, incasso atteso netto: "
+const CONFIRM_CANCEL_TEXT: String = "Conferma"
+const KEEP_TEXT: String = "Indietro"
+const CONFIRM_CANCEL_NOTE_TEXT: String = "Già venduta in parte: annullare?"
+const HISTORY_EMPTY_TEXT: String = "Nessuna vendita registrata."
+const HISTORY_NOTE_TEXT: String = "Le ultime vendite, dalla più recente. Gli acquisti non si registrano."
+const COLUMN_KIND_TEXT: String = "Esito"
+const COLUMN_QTY_TEXT: String = "Pezzi"
+const COLUMN_UNIT_TEXT: String = "Unitario"
+const COLUMN_NET_TEXT: String = "Netto"
+const COLUMN_AGE_TEXT: String = "Quando"
+const KIND: Dictionary[StringName, String] = {
+	&"listing_sold": "Venduta",
+	&"instant_sold": "Venduta subito",
+	&"expired": "Scaduta",
+	&"cancelled": "Annullata",
+}
+const AGE_NOW_TEXT: String = "adesso"
+const AGE_MINUTES_TEXT: String = "%s min fa"
+const AGE_HOURS_TEXT: String = "%s h fa"
+const AGE_DAYS_TEXT: String = "%s g fa"
+## Categories in the order of use (not alphabetical); a category that is not here goes last.
+const CATEGORY_ORDER: Array[StringName] = [&"component", &"food", &"equipment", &"tool", &"material", &"infusion", &"stone",
+		&"bag", &"blueprint", &"recipe", &"map", &"currency", &"misc"]
 
 
 static func refused(reason: StringName) -> String:
@@ -165,3 +206,45 @@ static func demand_hint(demand: StringName) -> String:
 
 static func category_name(category: StringName) -> String:
 	return CATEGORIES.get(category, String(category).capitalize())
+
+
+## "▲ +12 %" / "▼ −8 %" / "= Stabile" (|gap| <= 1 %) / "–" from `AuctionHouse.price_gap` (the module decides the number).
+static func gap_text(gap: int) -> String:
+	if gap == NO_GAP:
+		return GAP_NONE_TEXT
+	if absi(gap) <= GAP_NEUTRAL_PCT:
+		return GAP_STABLE_TEXT
+	return GAP_UP_TEXT % gap if gap > 0 else GAP_DOWN_TEXT % -gap
+
+
+## Compact amount for the list: with gold, only gold and silver ("12g 5s"); otherwise `Money.text`.
+static func money_short(copper: int, currency: CurrencyParams) -> String:
+	var parts: Vector3i = Money.split(copper, currency)
+	if copper <= 0 or parts.x <= 0:
+		return Money.text(copper, currency)
+	var text: String = "%s%s" % [NumberFormat.format_compact(parts.x), currency.symbols[&"gold"]]
+	if parts.y > 0 and parts.x < 1000:
+		text += " %d%s" % [parts.y, currency.symbols[&"silver"]]
+	return text
+
+
+## "adesso" / "12 min fa" / "3 h fa" / "2 g fa" from a duration in milliseconds (`AuctionHouse.history_age_ms`).
+static func age_text(ms: int) -> String:
+	var minutes: int = maxi(ms, 0) / 60000
+	if minutes < 1:
+		return AGE_NOW_TEXT
+	if minutes < 60:
+		return AGE_MINUTES_TEXT % minutes
+	if minutes < 1440:
+		return AGE_HOURS_TEXT % (minutes / 60)
+	return AGE_DAYS_TEXT % (minutes / 1440)
+
+
+static func kind_text(kind: StringName) -> String:
+	return KIND.get(kind, String(kind))
+
+
+## Index of a category in the order of use (unknown ones last).
+static func category_rank(category: StringName) -> int:
+	var index: int = CATEGORY_ORDER.find(category)
+	return index if index >= 0 else CATEGORY_ORDER.size()

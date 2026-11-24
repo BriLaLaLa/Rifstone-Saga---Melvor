@@ -95,3 +95,21 @@ func buy(item_id: StringName, qty: int) -> CommandResult:
 	buy_calls += 1
 	last_qty = qty
 	return can_buy(item_id, qty)
+
+
+# M37-4 additions (docs/05_INTERFACES_M37.md §5.49): price gap, summary, history.
+var gap_value: int = 12
+
+
+func price_gap(_item_id: StringName, _mode: StringName) -> int: return gap_value
+func listings_summary() -> Dictionary: return {"count": 1, "units": 2, "expected_net": 11}
+func max_buyable(_item_id: StringName) -> int: return 3
+func value_of(_item_id: StringName) -> int: return 8
+func history_max() -> int: return 50
+func history_age_ms(_entry: Dictionary) -> int: return 600000
+
+
+func history() -> Array[Dictionary]:
+	return [{"kind": &"listing_sold", "item": _listed[0], "qty": 2, "unit": 6, "net": 11, "block": 1, "listing": 1},
+			{"kind": &"instant_sold", "item": _listed[0], "qty": 1, "unit": 7, "net": 7, "block": 1, "listing": 0},
+			{"kind": &"cancelled", "item": _listed[0], "qty": 3, "unit": 6, "net": 0, "block": 0, "listing": 2}]

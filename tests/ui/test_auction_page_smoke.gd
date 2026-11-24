@@ -249,3 +249,71 @@ func _click_at(at: Vector2, expected: Control) -> void:
 		get_viewport().push_input(event, true)
 		await wait_process_frames(1)
 	await wait_process_frames(3)
+
+
+## M37-4: sort, category and filters are remembered per tab (Compra / Vendi) when switching tab.
+func test_view_state_is_kept_per_tab() -> void:
+	_session = AuctionTestData.session(1)
+	_session.bank.add(_session.auction.buyable_items()[0], 5)
+	_page = SCENE.instantiate()
+	add_child(_page)
+	_page.bind(_session)
+	assert_true(_page.find_child("FilterOwned", true, false).visible, "Posseduti only in Compra")
+	_page.find_child("FilterOwned", true, false).button_pressed = true
+	assert_eq(_rows().size(), 1, "only what is in the Deposit")
+	_page.find_child("Header_gap", true, false).pressed.emit()
+	_page.find_child("Tab_sell", true, false).pressed.emit()
+	assert_false(_page.find_child("FilterOwned", true, false).visible, "hidden in Vendi")
+	_page.find_child("Tab_buy", true, false).pressed.emit()
+	assert_true((_page.find_child("FilterOwned", true, false) as CheckButton).button_pressed, "Compra kept its filter")
+	assert_eq(_rows().size(), 1)
+	_page.find_child("FilterBuyable", true, false).button_pressed = true
+	for row: AuctionRow in _rows():
+		assert_true(_session.auction.can_buy(row.item_id, 1).ok, "Comprabili ora")
+
+
+func test_post_badge_and_full_notice() -> void:
+	_open(AuctionTestData.session(1))
+	var badge: Button = _page.find_child("PostBadge", true, false)
+	var full: Label = _page.find_child("PostFullLabel", true, false)
+	assert_false(full.visible)
+	var asked: Array[StringName] = []
+	_page.page_requested.connect(func(id: StringName) -> void: asked.append(id))
+	badge.pressed.emit()
+	assert_eq(asked, [&"mail"] as Array[StringName])
+	var item: StringName = _session.auction.listed_items()[0]
+	while not _session.mail.is_full():
+		_session.mail.post(&"auction_cancelled", {"item": item, "qty": 1, "items": [{"item": item, "qty": 1}]})
+	await wait_physics_frames(2)
+	assert_true(full.visible, "mailbox full notice")
+
+
+func test_show_item_selects_on_vendi_and_ignores_unlisted() -> void:
+	_session = AuctionTestData.session(1)
+	var listed: Array[StringName] = _session.auction.listed_items()
+	_session.bank.add(listed[0], 2)
+	_page = SCENE.instantiate()
+	add_child(_page)
+	_page.bind(_session)
+	_page.show_item(listed[0], &"sell")
+	assert_eq(_page.find_child("Tab_sell", true, false).button_pressed, true)
+	var selected: Array[StringName] = []
+	for row: AuctionRow in _rows():
+		selected.append(row.item_id)
+	assert_true(selected.has(listed[0]))
+	_page.show_item(&"no_such_item", &"sell")  # no exception, only a text
+	assert_true(_page.find_child("MessageLabel", true, false) != null)
+
+
+func test_mine_tab_has_active_and_history_sections() -> void:
+	_session = AuctionTestData.session(1)
+	var listed: Array[StringName] = _session.auction.listed_items()
+	var stub: AuctionStub = AuctionStub.new(listed, _session.auction.buyable_items())
+	_page = SCENE.instantiate()
+	add_child(_page)
+	_page.bind_with(_session, stub)
+	_page.find_child("Tab_mine", true, false).pressed.emit()
+	assert_not_null(_page.find_child("MineSummary", true, false))
+	assert_not_null(_page.find_child("Cancel_1", true, false))
+	_page.find_child("Tab_history", true, false).pressed.emit()
+	assert_eq(_page.find_child("HistoryRows", true, false).get_child_count(), 3)

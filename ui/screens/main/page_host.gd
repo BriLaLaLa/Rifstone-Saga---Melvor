@@ -15,6 +15,8 @@ const ROUTE_SKILL := &"skill"
 const ROUTE_GUIDE := &"guide"
 ## Alias of the guide route: `help:<entry>` opens the Guide on that entry (the "?" buttons, M11-05).
 const ROUTE_HELP := &"help"
+## `auction` accepts an item id after the route (`auction:<item_id>`).
+const ROUTE_AUCTION := &"auction"
 ## Route table: route -> page scene. A route that is not here is not available yet (the sidebar shows "In arrivo").
 const ROUTES: Dictionary[StringName, String] = {
 	ROUTE_SKILL: "res://ui/pages/skill/skill_page.tscn",
@@ -92,6 +94,8 @@ func has_page(page_id: StringName) -> bool:
 		return false
 	if is_guide_route(page_id):
 		return true  # `guide` / `help` accept an entry id after the route (which has ":" itself)
+	if route_of(page_id) == ROUTE_AUCTION:
+		return true  # `auction:<item_id>` opens the page on that item (from the Deposit, M37)
 	if route_of(page_id) != ROUTE_SKILL:
 		return not String(page_id).contains(ROUTE_SEPARATOR)
 	var skill_id: StringName = argument_of(page_id)
