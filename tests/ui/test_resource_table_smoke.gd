@@ -84,7 +84,9 @@ func _open() -> Node:
 	(_screen.find_child("PageHost", true, false) as PageHost).show_page(StringName("skill:%s" % SKILL))
 	await wait_process_frames(4)
 	for node: Node in _screen.find_children("*", "", true, false):
-		if node is SkillPage:
+		if node is SkillPage:  # the page opens on Panoramica (M36-1): the table lives in the Risorse tab
+			(node.find_child("GatherBody", true, false) as GatherBody).show_tab(GatherBody.TAB_RESOURCES)
+			await wait_process_frames(2)
 			return node
 	return null
 
