@@ -3,13 +3,15 @@
     {"id": "guide_auction", "section": "first_steps", "title": "Casa d'Aste", "order": 6,
      "help_for": ["auction"],
      "blocks": [
-       {"type": "text", "text": "La Casa d'Aste è l'ottavo edificio del Villaggio. Scegli una categoria, poi un oggetto: vedi il libro con le inserzioni dalla meno cara, e quanti compratori, venditori e pezzi ci sono."},
-       {"type": "heading", "text": "Vendi subito"},
-       {"type": "text", "text": "Vende i pezzi al prezzo di mercato, che scende un poco a ogni pezzo. Il ricavo arriva in Posta."},
-       {"type": "heading", "text": "Metti in vendita"},
-       {"type": "text", "text": "Scegli quantità, prezzo (parti da quello suggerito) e durata. Paghi un deposito che non torna. Se un prezzo più basso ti supera, la tua inserzione non vende: abbassa il prezzo o aspetta. Le vendite e le inserzioni scadute arrivano in Posta; in Le mie inserzioni puoi annullare."},
+       {"type": "text", "text": "Scegli una categoria, poi un oggetto. In alto vedi il prezzo unitario e la «% sulla media»: verde conviene, rosso no. Il libro è nella sezione Mercato. Puoi filtrare per Posseduti e Comprabili ora."},
+       {"type": "heading", "text": "Vendi"},
+       {"type": "text", "text": "Vendi subito vende al prezzo di mercato, che scende a ogni pezzo. Metti in vendita: scegli quantità, prezzo e durata; il deposito non torna. Se un prezzo più basso ti supera, la tua inserzione non vende."},
        {"type": "heading", "text": "Comprare"},
-       {"type": "text", "text": "Solo componenti e cibo, secondo il livello dell'edificio. La freccia dice se il prezzo sale o scende."},
+       {"type": "text", "text": "Solo componenti e cibo, secondo il livello dell'edificio. Compra max prende quanti pezzi puoi pagare e portare."},
+       {"type": "heading", "text": "Le mie vendite"},
+       {"type": "text", "text": "Attive: le inserzioni, con l'incasso atteso; annullale da qui. Storico: le vendite chiuse e le inserzioni annullate o scadute. Gli acquisti non si registrano."},
+       {"type": "heading", "text": "Dal Deposito"},
+       {"type": "text", "text": "«Vendi alla Casa d'Aste» apre la pagina con l'oggetto già scelto. Il ricavo arriva in Posta: se è piena, non puoi vendere."},
        {"type": "links", "targets": ["page:guide_mail", "page:guide_village"]}
      ]}
   ]
