@@ -142,7 +142,9 @@ func _open_skill(skill_id: StringName = FORESTRY) -> void:
 
 
 func _panel() -> ToolUpgradePanel:
-	return _page.get_node("%Extras").get_child(0) as ToolUpgradePanel
+	var body: GatherBody = _page.find_child("GatherBody", true, false) as GatherBody
+	body.show_tab(GatherBody.TAB_TOOL)
+	return body.find_child("TabTool", true, false) as ToolUpgradePanel
 
 
 func _lines(box: Node) -> PackedStringArray:

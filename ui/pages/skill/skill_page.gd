@@ -2,7 +2,7 @@ class_name SkillPage
 extends Page
 ## Page of a learned discipline or of the Engraver (docs/01_GDD_M24.md §35.7 and §35.11, docs/03_ARCHITECTURE.md §11),
 ## route `skill:<skill_id>`: header with icon, name, level and XP bar. A gathering discipline is read only (ResourceTable of its
-## resources, the areas where it is found, the tool panel with the heads; the player gathers at the nodes of the combat cycle); an artisan
+## resources and the tool in the tabs of the GatherBody; the player gathers at the nodes of the combat cycle); an artisan
 ## page and the Engraver put recipes in the production queue. Every redraw reads the session; a refused command shows its reason under
 ## the header (stop reasons become toasts). No game state. An unlearned discipline asks for the Trainers page (`page_requested`).
 
@@ -10,8 +10,6 @@ signal page_requested(page_id: StringName)
 
 const MASTERY_PANEL_SCENE: PackedScene = preload("res://ui/pages/mastery/mastery_panel.tscn")
 const BLUEPRINT_SECTION_SCENE: PackedScene = preload("res://ui/pages/skill/blueprint_section.tscn")
-const TOOL_PANEL_SCENE: PackedScene = preload("res://ui/pages/skill/tool_upgrade_panel.tscn")
-const TOOL_SKILLS: Array[StringName] = [&"forestry", &"quarrying", &"angling", &"herbalism"]
 const LOG_CATEGORY: String = "ui"
 const LEVEL_TEXT: String = "Livello %s"
 ## Italian text of each refusal of `actions.enqueue`; other reasons use REFUSED_TEXT_DEFAULT.
@@ -20,12 +18,11 @@ const REFUSED_TEXT_DEFAULT: String = SkillHeader.REFUSED_TEXT_DEFAULT
 
 var _session: GameSession = null
 var _skill: SkillDef = null
-var _table: ResourceTable = null
+var _gather: GatherBody = null
 var _mastery_panel: MasteryPanel = null
 ## Thin bar under the XP bar: the skill's mastery pool against its cap (skills with mastery only).
 var _pool_bar: ProgressBar = null
 var _blueprints: BlueprintSection = null
-var _tool_panel: ToolUpgradePanel = null
 var _bench: ForgeBench = null
 ## The production queue of the artisan pages and the Engraver; the "Si trova in" line of a gathering page.
 var _queue: ProductionQueuePanel = null
@@ -69,7 +66,6 @@ func bind(session: GameSession) -> void:
 	_mastery_button.visible = skill.has_mastery
 	_build_pool_bar()
 	_build_extras()
-	_build_cards()
 	var events: GameEvents = _session.events
 	events.xp_gained.connect(_on_events_xp_gained)
 	events.level_up.connect(_on_events_level_up)
@@ -80,7 +76,7 @@ func bind(session: GameSession) -> void:
 	events.production_queue_changed.connect(_on_events_queue_changed)
 	events.discipline_changed.connect(_on_events_discipline_changed)
 	events.recipe_learned.connect(_redraw.unbind(1))
-	if _view != null or _blueprints != null or _tool_panel != null:
+	if _view != null or _blueprints != null or _gather != null:
 		events.bank_changed.connect(_on_events_bank_changed)
 		events.armory_changed.connect(_on_events_extras_changed)
 		events.combat_started.connect(_on_events_combat_started)
@@ -128,8 +124,9 @@ func unbind() -> void:
 	_session = null
 	_skill = null
 	_blueprints = null
-	_tool_panel = null
-	_table = null
+	if _gather != null and is_instance_valid(_gather):
+		_gather.forget_session()
+	_gather = null
 	if _view != null and is_instance_valid(_view):
 		_view.forget_session()
 	_bench = null
@@ -143,19 +140,6 @@ func _process(_delta: float) -> void:
 
 func _exit_tree() -> void:
 	unbind()
-
-
-func _build_cards() -> void:
-	if _table != null and is_instance_valid(_table):
-		_table.get_parent().remove_child(_table)
-		_table.queue_free()
-	_table = null
-	_card_list.visible = false
-	if not _is_gathering():
-		return  # the recipes of a production page are the rows of the ProfessionView
-	_table = ResourceTable.new()  # M35: the resources of a gathering discipline are a table (the cards are gone)
-	_card_list.get_parent().add_child(_table)
-	_table.setup(_session.data, _skill.id)
 
 
 func _is_gathering() -> bool:
@@ -227,8 +211,8 @@ func _on_events_discipline_changed(skill_id: StringName, grade: int) -> void:
 func _on_events_mastery_xp_gained(skill_id: StringName, _action_id: StringName, _amount: int) -> void:
 	if skill_id == _skill.id:
 		_redraw_pool_bar()
-		if _table != null:
-			_table.redraw(_session)
+		if _gather != null:
+			_gather.redraw(_session)
 
 
 ## The player entered or left a zone: the highlighted zone of "Si trova in" changes.
@@ -255,24 +239,24 @@ func _on_mastery_button_pressed() -> void:
 	_mastery_panel.open_window()
 
 
-## M10: the tool panel of the gathering skills in `Extras`; a production page gets its ProfessionView and the queue strip.
+## M36: a gathering page is its GatherBody (tabs Panoramica, Risorse, Attrezzo) in `Extras`; a production page gets its ProfessionView and the queue strip.
 func _build_extras() -> void:
 	for child: Node in _extras.get_children():
 		_extras.remove_child(child)
 		child.queue_free()
 	_blueprints = null
-	_tool_panel = null
 	_bench = null
+	_gather = null
 	_clear_top()
+	_card_list.visible = false
 	_scroll.visible = _is_gathering()
 	if _is_gathering():
-		_add_top(GatheringInfo.build_label(_session.data, _skill.id))
-		if TOOL_SKILLS.has(_skill.id):
-			_tool_panel = TOOL_PANEL_SCENE.instantiate() as ToolUpgradePanel
-			_extras.add_child(_tool_panel)
-			_tool_panel.setup(_skill.id)
-			_tool_panel.upgrade_requested.connect(_on_tool_upgrade_requested)
-			_tool_panel.head_chosen.connect(_on_tool_head_chosen)
+		_gather = GatherBody.new()
+		_extras.add_child(_gather)
+		_gather.setup(_session, _skill.id)
+		_gather.go_to_area_requested.connect(_on_go_to_area_requested)
+		_gather.tool_upgrade_requested.connect(_on_tool_upgrade_requested)
+		_gather.tool_head_chosen.connect(_on_tool_head_chosen)
 		return
 	_build_production()
 
@@ -304,14 +288,10 @@ func _build_production() -> void:
 	_queue.refused.connect(_show_refusal)
 
 
-## The node outside the card list (the "Si trova in" line above the cards, or the queue strip at the bottom).
+## The queue strip at the bottom of a production page.
 func _add_top(node: Control) -> void:
 	_top = node
-	if _is_gathering():
-		_extras.get_parent().add_child(node)
-		_extras.get_parent().move_child(node, _extras.get_index())
-	else:
-		_content.add_child(node)
+	_content.add_child(node)
 
 
 func _clear_top() -> void:
@@ -333,10 +313,8 @@ func _redraw_extras() -> void:
 		_view.redraw(_session)
 	if _blueprints != null:
 		_blueprints.redraw(_session)
-	if _table != null:
-		_table.redraw(_session)
-	if _tool_panel != null:
-		_tool_panel.redraw(_session)
+	if _gather != null:
+		_gather.redraw(_session)
 
 
 func _on_events_extras_changed(_a: Variant, _b: Variant) -> void:
@@ -383,6 +361,17 @@ func _build_pool_bar() -> void:
 func _redraw_pool_bar() -> void:
 	if _pool_bar != null:
 		SkillHeader.redraw_pool_bar(_pool_bar, _session, _skill.id)
+
+
+## "Vai" of a zone: the combat starts there (the same command as the map); a refusal shows its reason under the header.
+func _on_go_to_area_requested(area_id: StringName) -> void:
+	if _session == null:
+		return
+	var result: CommandResult = _session.combat.start(area_id)
+	if result.ok:
+		_hide_refusal()
+	else:
+		_show_refusal_text(CombatTexts.REASON_TEXTS.get(result.reason, CombatTexts.REASON_TEXT_DEFAULT))
 
 
 func _on_tool_head_chosen(uid: int, step: int, head_id: StringName) -> void:

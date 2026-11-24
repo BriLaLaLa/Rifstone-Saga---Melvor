@@ -76,7 +76,9 @@ func test_changing_page_disconnects_the_old_page() -> void:
 	for signal_name: StringName in skill_page_signals:
 		assert_eq(_count(signal_name), on_skill[signal_name] - 1, "skill page disconnected from %s" % signal_name)
 	for signal_name: StringName in bank_page_signals:
-		assert_eq(_count(signal_name), bank_on_skill[signal_name] + 1, "bank page connected to %s" % signal_name)
+		# the gathering skill page also listens to bank_changed since M36 (stock of the Risorse tab): it leaves as the bank page arrives
+		var expected: int = bank_on_skill[signal_name] + (0 if signal_name == &"bank_changed" else 1)
+		assert_eq(_count(signal_name), expected, "bank page connected to %s" % signal_name)
 	host.show_page(&"skill:test_gather")
 	for signal_name: StringName in bank_page_signals:
 		assert_eq(_count(signal_name), bank_on_skill[signal_name], "bank page disconnected from %s" % signal_name)

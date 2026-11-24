@@ -17,7 +17,6 @@ var _uid: int = 0
 var _session: GameSession = null
 ## "<step>:<head_id>" of the paid change waiting for its second press; "" if none.
 var _armed: String = ""
-var _title: Label = null
 var _warning: Label = null
 var _rows: VBoxContainer = null
 
@@ -25,11 +24,6 @@ var _rows: VBoxContainer = null
 func _init() -> void:
 	name = "HeadSection"
 	add_theme_constant_override("separation", 4)
-	_title = Label.new()
-	_title.name = "HeadTitle"
-	_title.theme_type_variation = &"HeaderLabel"
-	_title.text = ResourceTexts.HEADS_TITLE
-	add_child(_title)
 	_warning = Label.new()
 	_warning.name = "HeadWarning"
 	_warning.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

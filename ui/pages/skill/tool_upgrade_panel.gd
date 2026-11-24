@@ -13,29 +13,30 @@ extends PanelContainer
 signal upgrade_requested(uid: int)
 signal head_chosen(uid: int, step: int, head_id: StringName)
 
-const SOURCE_PREFIX: String = "equipment:"
 const LABEL_NAME_FMT: String = "Line_%d"
 
 var _skill_id: StringName = &""
 ## Uid of the tool drawn by the last redraw (0 if none): what the button sends.
 var _uid: int = 0
 var _heads: HeadSection = null
+var _heads_fold: FoldableSection = null
 
-@onready var _title: Label = %PanelTitle
 @onready var _name_label: Label = %ToolName
 @onready var _next_label: Label = %NextTitle
-@onready var _cost: VBoxContainer = %CostLines
+@onready var _cost: HBoxContainer = %CostLines
 @onready var _level_label: Label = %MinLevelLabel
 @onready var _effects: VBoxContainer = %EffectLines
 @onready var _upgrade_button: Button = %UpgradeButton
 
 
 func _ready() -> void:
-	_title.text = ToolUpgradeTexts.TITLE
 	_upgrade_button.text = ToolUpgradeTexts.UPGRADE_TEXT
 	_upgrade_button.pressed.connect(_on_upgrade_pressed)
 	_heads = HeadSection.new()
-	$Box.add_child(_heads)
+	_heads_fold = FoldableSection.new()
+	_heads_fold.name = "HeadsFold"
+	$Box.add_child(_heads_fold)
+	_heads_fold.setup(ResourceTexts.HEADS_TITLE, _heads)  # closed at the start (view setting)
 	_heads.head_chosen.connect(head_chosen.emit)
 
 
@@ -49,8 +50,10 @@ func redraw(session: GameSession) -> void:
 	_uid = session.armory.tool_uid(StringName("%s%s" % [ToolUpgrade.SLOT_PREFIX, _skill_id]))
 	var inst: ItemInstance = session.armory.get_instance(_uid) if _uid != 0 else null
 	_heads.redraw(session, _uid)
+	_heads_fold.visible = _heads.visible
 	_clear(_cost)
 	_clear(_effects)
+	_effects.tooltip_text = ""
 	if inst == null:
 		_name_label.text = ToolUpgradeTexts.NO_TOOL_TEXT
 		_next_label.visible = false
@@ -88,21 +91,15 @@ func _redraw_next(session: GameSession, inst: ItemInstance) -> void:
 			UiStyle.GOOD if session.skills.get_level(_skill_id) >= min_level else UiStyle.BAD)
 
 
-## Current effects of the tool: the sources `equipment:tool_<skill>` of every registry stat in the skill context.
+## Main effect of the tool in the line (the sources `equipment:tool_<skill>`, from the texts helper); every effect in its tooltip.
 func _redraw_effects(session: GameSession) -> void:
-	var source: StringName = StringName("%s%s%s" % [SOURCE_PREFIX, ToolUpgrade.SLOT_PREFIX, _skill_id])
-	var ctx: ModifierContext = ModifierContext.for_skill(_skill_id)
-	var shown: bool = false
-	for stat: StringName in session.data.stats.ids():
-		for entry: Dictionary in session.modifiers.breakdown(stat, ctx):
-			if entry["source"] != source:
-				continue
-			var info: Dictionary = session.data.stats.info(stat)
-			_add_line(_effects, "%s: %s" % [info["name"], ItemTooltipLines.format_stat(info["format"] as String,
-					float(entry["value"]))], true)
-			shown = true
-	if not shown:
+	var effects: PackedStringArray = ToolUpgradeTexts.effect_texts(session, _skill_id)
+	if effects.is_empty():
 		_add_line(_effects, ToolUpgradeTexts.NO_EFFECT_TEXT, true)
+		return
+	_add_line(_effects, effects[0], true)
+	_effects.tooltip_text = "\n".join(effects)
+	(_effects.get_child(0) as Control).mouse_filter = Control.MOUSE_FILTER_PASS
 
 
 func _cost_line(session: GameSession, item_id: StringName, required: int) -> String:
@@ -111,7 +108,7 @@ func _cost_line(session: GameSession, item_id: StringName, required: int) -> Str
 			NumberFormat.format_int(session.bank.get_count(item_id)), NumberFormat.format_int(required)]
 
 
-func _add_line(box: VBoxContainer, text: String, good: bool) -> void:
+func _add_line(box: BoxContainer, text: String, good: bool) -> void:
 	var line: Label = Label.new()
 	line.name = LABEL_NAME_FMT % box.get_child_count()
 	line.text = text
@@ -119,7 +116,7 @@ func _add_line(box: VBoxContainer, text: String, good: bool) -> void:
 	box.add_child(line)
 
 
-func _clear(box: VBoxContainer) -> void:
+func _clear(box: BoxContainer) -> void:
 	for child: Node in box.get_children():
 		box.remove_child(child)
 		child.queue_free()
