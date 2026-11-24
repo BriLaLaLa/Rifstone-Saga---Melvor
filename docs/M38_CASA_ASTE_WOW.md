@@ -103,3 +103,27 @@ La «% sulla media» ora confronta con la mediana delle ultime 12 h (F-214): 0 %
 - I compratori PNG restano **impliciti** nel libro; 	aken non cambia la domanda delle inserzioni del giocatore (nessun flipping).
 - Limite per clic: nessun tetto, **conferma** se si prende ≥ 50 % dei disponibili o il prezzo medio supera il migliore del 25 % (F-218; Q247).
 **Rischio noto**: il costo minimo d'acquisto scende a ×0,69 (da 2,20 a 1,5225 × ): i **progetti** (F-151) vanno ricontrollati; si correggono nei dati (M38-2, Q251). Il ritmo delle fasce 2-3 cresce (Q252).
+## 9. Q251 rivista: i progetti sotto il margine (Reviewer)
+**Verificato sui dati veri** (`data/items/blueprints.json`, valori da `data/items/*.json`, acquistabili da `data/auction/auction_items.json`): i **120** progetti usano tutti componenti acquistabili (piastre, impugnature, anime, manici). Con il costo minimo nuovo
+`c(x) = ⌈v × 1,05 × 1,45⌉` (F-217) il rapporto «costo dei componenti / valore del pezzo» (check di F-151, margine 3 %) scende da **min 1,051** (M23) a **min 0,735** (`bp_mw_shield_14`: costo 1.512.612 contro un pezzo da 2.057.200). Falliscono **39** progetti
+(livelli 8 ×6, 10 ×8, 12 ×8, 13 ×1, 14 ×8, 15 ×8); 33 sono addirittura sotto 1,00. La regola di Q251 («togliere un componente dagli acquistabili») **peggiora**: un non acquistabile costa `v` (non 1,52 × `v`) ed esce dal controllo.
+Perché il controllo c'è: comprare i componenti, forgiare il progetto (il progetto si consuma e cade a ~1,5/h, F-121) e vendere il Capolavoro a F-18 non deve dare oro dal nulla.
+
+**Alternative, con i numeri**
+| | Cosa cambia | Effetto | Esito |
+|---|---|---|---|
+| **A** più componenti rari | rari 3 → 12, 19, 21, 6, 39, 28 (lv 8, 10, 12, 13, 14, 15; i rari costano 200-11.000 contro pezzi da 0,3-3 M) | costo ok, ma 39 rari per **ciascuna** delle due specie per un solo progetto al lv 14: irrealistico per i drop; rompe F-119 («quantità come l'attuale») e `assert_eq(rare.qty, 3)` | **scartata** |
+| **B** abbassare il margine | `blueprint_margin_pct` da +3 a **−30** (costo ≥ 70 % del pezzo) | passano tutti (min 0,735), ma resta un **guadagno compra→forgia→vendi** fino al **26,5 %** del pezzo: 544.588 r (54 g) nel caso peggiore, 316.000-545.000 r a lv 14. Con ~1,5 progetti/h (F-121) sono ≲ 0,8 M r/h (≲ 80 g/h), circa +5 % rispetto a vendere i 12 pezzi/h che cadono (stima su valori 0,7-1,4 M). Piccolo ma **oro dal nulla**: va dichiarato e la soglia di (3) cambia | alternativa accettabile |
+| **C** alzare il `value` dei componenti | serve circa +40 % su piastre, impugnature, anime, manici | cambia F-131 (costi del Villaggio), ricette, vendite F-18 e tutti i generatori | **scartata** (troppo larga) |
+| **D** margine più alto solo per i componenti dei progetti | `markup` per oggetto in `auction_items.json` | per il caso peggiore serve 1 + MK ≥ 2,03, cioè **MK ≈ 103 %**: sono proprio gli oggetti più comprati (piastre, impugnature); il −35 % resterebbe solo per cibo e Tonici | **scartata** |
+| **F** togliere dal mercato i progetti sotto margine | componenti non più acquistabili | tolgono molti dei 58 acquistabili (piastre e legno lavorato di quei gradi): scompare l'esempio dell'utente (`redbirch_grip`) | **scartata** |
+| **E** abbassare il valore dei Capolavori | il generatore usa `2 ×` il valore del modello; si passa a **1,4 ×** (`MASTERWORK_VALUE_PCT` 140) | il rapporto torna a **min 1,05** (0,735 × 2 ÷ 1,4), come in M23 (1,051): **tutti i 120 passano** con il margine 3 %, nessun guadagno nuovo, formule e validatore invariati | **consigliata** |
+
+**Alternativa E nel dettaglio**
+- Il Capolavoro non cade mai: il suo `value` (2 × il modello) serve solo per venderlo e per il progetto (5 % del valore, min 100). Con 1,4 ×: `mw_shield_14` 2.057.200 → **1.440.040**, il progetto (5 %) da ≈ 102.860 a ≈ 72.000; la spesa in componenti (1.512.612) è **1,050 ×** il pezzo.
+- Costo per il giocatore: **vendere** un Capolavoro rende il **30 %** in meno (sempre più del modello: `assert_gt(item.value, model.value)` regge, 1,4 > 1). Chi forgia con componenti comprati paga il 35 % in meno e incassa il 30 % in meno: il bilancio di ogni forgiatura resta quello di prima. Un Capolavoro si indossa, non si vende.
+- File: `tools/gen_equipment.gd` (una costante al posto del `2 *` in `_masterwork`; il valore del progetto è già il 5 % della base, quindi segue), `data/items/equipment_masterwork.json` e `blueprints.json` rigenerati (`--check` verde). Test: nessuno da cambiare (`test_blueprint_data.gd:106` è relativo; `test_masterwork_data.gd` chiede solo `> modello`); da aggiungere a `test_masterwork_data.gd` il caso «valore = ⌊1,4 × modello⌋» e il controllo F-151 sui dati veri (rapporto ≥ 1,03).
+- Formule: F-119 (una riga: valore di vendita 1,4 × quello del modello, era 2 ×), F-217 («Progetti»: correzione nei dati = costante del generatore), `sim_market` (3): `c(x)` con `EQMIN × (1 + MK)`, soglia invariata (minimo atteso **1,05**).
+- Rischio: chi vende Capolavori al Deposito vede −30 % (una riga nelle note di versione). Armeria e smantellamento (F-95) non usano `value`.
+
+**Domanda per l'utente (una)**: «I Capolavori valgono il 30 % in meno quando si vendono (da 2× a 1,4× del pezzo normale) così comprare i componenti resta senza guadagni; ti sta bene? Altrimenti si accetta un guadagno di circa il 5 % (alternativa B, margine −30 %).»
