@@ -54,6 +54,8 @@ func run(args: PackedStringArray) -> int:
 	print_rich(check_clock(data, int(opts["seed"])))
 	print_rich("== (5) 1 h of production sold at once against F-18")
 	print_rich(check_production(data))
+	print_rich("== (6) the history stays within history_max")
+	print_rich(check_history(data, int(opts["seed"])))
 	_fails.append_array((load("res://tools/sim_market_book.gd") as GDScript).call("run", data, opts) as Array)
 	print_rich("elapsed %.1f s" % (float(Time.get_ticks_msec() - started) / 1000.0))
 	if _fails.is_empty():
@@ -91,6 +93,12 @@ func check_clock(data: GameData, seed_value: int) -> String:
 	var r: Dictionary = clock(data, seed_value)
 	_fails.append_array(r["failures"] as Array)
 	return "blocks after 12 h %d, in one step / 100 ms ticks / 60 s blocks identical: %s" % [r["blocks"], r["same"]]
+
+
+func check_history(data: GameData, seed_value: int) -> String:
+	var r: Dictionary = history(data, seed_value)
+	_fails.append_array(r["failures"] as Array)
+	return "history_max %d, entries after %d writes: %d (plain list, it holds no money)" % [r["max"], r["writes"], r["size"]]
 
 
 func check_production(data: GameData) -> String:
@@ -302,6 +310,28 @@ static func clock(data: GameData, seed_value: int) -> Dictionary:
 	if blocks != 144 and blocks != 145:
 		failures.append("(4) 12 h made %d blocks, expected 144 (145 with the 123 s already pending)" % blocks)
 	return {"failures": failures, "blocks": blocks, "same": same}
+
+
+## (6) M37 F-209: any number of writes leaves at most `history_max` entries (the history is a plain list: money goes through the Mail).
+static func history(data: GameData, seed_value: int) -> Dictionary:
+	var p: AuctionParams = data.auction_params()
+	var h := AuctionHistory.new(p, data)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value
+	var ids: Array[StringName] = buyable(data)
+	var failures: Array = []
+	var writes: int = p.history_max * 5
+	for i: int in writes:
+		var item: StringName = ids[rng.randi_range(0, ids.size() - 1)]
+		match rng.randi_range(0, 3):
+			0: h.record_listing_sold(item, rng.randi_range(1, 9), 100, 95, i, rng.randi_range(1, 200))
+			1: h.record_instant_sold(item, rng.randi_range(1, 9), rng.randi_range(1, 5000), i)
+			2: h.record_closed(&"expired", item, rng.randi_range(1, 9), 100, i, i + 1000)
+			_: h.record_closed(&"cancelled", item, rng.randi_range(1, 9), 100, i, i + 2000)
+		if h.count() > p.history_max:
+			failures.append("(6) history has %d entries after write %d, max %d" % [h.count(), i, p.history_max])
+			break
+	return {"failures": failures, "max": p.history_max, "writes": writes, "size": h.count()}
 
 
 ## (5) 1 h of production of every raw T1-T8 item (tiers by level inside each gathering skill), sold in one go at the minimum
