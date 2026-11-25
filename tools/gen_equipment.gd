@@ -67,8 +67,7 @@ const RARE_PAIRS: Array = [
 	["wraith_veil", "knight_plate"],
 ]
 const RARE_QTY: int = 3
-## Sale value of a Masterwork as a percentage of its plate model (F-119; M38 Q251: 140, was 200 = `2 *`).
-const MASTERWORK_VALUE_PCT: int = 140
+const MASTERWORK_VALUE_PCT: int = 140  # F-119, M38 Q251: percent of the plate model value (was 200)
 ## §8.2: plates and handles per base [plates, handle kind ("" / "grip" / "shieldcore"), handles].
 const RECIPES: Dictionary = {"sword": [6, "grip", 2], "greatsword": [10, "grip", 2], "shield": [8, "shieldcore", 2],
 	"body": [10, "", 0], "legs": [8, "", 0], "head": [6, "", 0], "feet": [4, "", 0], "hands": [4, "", 0]}
